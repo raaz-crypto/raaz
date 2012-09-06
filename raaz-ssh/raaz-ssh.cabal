@@ -1,0 +1,14 @@
+name:          raaz-ssh
+version:       0.0.0.0
+synopsis:      An implementation of the ssh protocol.
+homepage:      http://github.com/piyush-kurur/raaz
+license:       BSD3
+license-file:  LICENSE
+author:        Piyush P Kurur
+maintainer:    ppk@cse.iitk.ac.in
+category:      Network, Raaz
+build-type:    Simple
+cabal-version: >=1.8
+
+library
+  build-depends:       base ==4.5.*
