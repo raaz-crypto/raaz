@@ -1,0 +1,14 @@
+name:          raaz-primitives
+version:       0.0.0.0
+synopsis:      Cryptographic primitives for the raaz library
+homepage:      http://github.com/piyush-kurur/raaz
+license:       BSD3
+license-file:  LICENSE
+author:        Piyush P Kurur
+maintainer:    ppk@cse.iitk.ac.in
+category:      Codec, Raaz
+build-type:    Simple
+cabal-version: >=1.8
+
+library
+  build-depends:       base ==4.5.*
