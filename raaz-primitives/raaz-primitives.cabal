@@ -11,4 +11,8 @@ build-type:    Simple
 cabal-version: >=1.8
 
 library
-  build-depends:       base ==4.5.*
+  exposed-modules: Raaz.Types
+  build-depends: base
+               , bytestring
+               , vector == 0.9.*
+  ghc-options: -Wall
