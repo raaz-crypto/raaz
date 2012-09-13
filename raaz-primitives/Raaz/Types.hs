@@ -29,8 +29,8 @@ class CryptoBytes a where
   toByteString :: a -> ByteString
 
 
--- | Often we would like to feed the input of one crypto algorithm as
--- the output of the other algorithm, for e.g RSA sign the HMAC of a
+-- | Often we would like to feed the output of one crypto algorithm as
+-- the input of the other algorithm, for e.g RSA sign the HMAC of a
 -- message.
 class CryptoCoerce s t where
   cryptoCoerce :: s -> t
