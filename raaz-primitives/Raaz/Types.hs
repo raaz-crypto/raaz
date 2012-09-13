@@ -17,6 +17,7 @@ module Raaz.Types
        , Word64LE, Word64BE
        ) where
 
+import Data.Bits
 import Data.Word
 import Data.ByteString (ByteString)
 import qualified Data.Vector.Storable.Mutable as VSM
@@ -111,19 +112,19 @@ by ghc.
 
 -- | Little endian `Word32`.
 newtype Word32LE = LE32 Word32
-   deriving (Bounded, Enum, Eq, Integral, Num, Ord, Read, Real, Show)
+   deriving (Bounded, Enum, Eq, Integral, Num, Ord, Read, Real, Show, Bits)
 
 -- | Big endian  `Word32`
 newtype Word32BE = BE32 Word32
-   deriving (Bounded, Enum, Eq, Integral, Num, Ord, Read, Real, Show)
+   deriving (Bounded, Enum, Eq, Integral, Num, Ord, Read, Real, Show, Bits)
 
 -- | Little endian `Word64`
 newtype Word64LE = LE64 Word64
-   deriving (Bounded, Enum, Eq, Integral, Num, Ord, Read, Real, Show)
+   deriving (Bounded, Enum, Eq, Integral, Num, Ord, Read, Real, Show, Bits)
 
 -- | Big endian `Word64`
 newtype Word64BE = BE64 Word64
-   deriving (Bounded, Enum, Eq, Integral, Num, Ord, Read, Real, Show)
+   deriving (Bounded, Enum, Eq, Integral, Num, Ord, Read, Real, Show, Bits)
 
 
 {-|
