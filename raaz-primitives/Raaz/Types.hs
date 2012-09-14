@@ -11,6 +11,8 @@ module Raaz.Types
        , CryptoCoerce(..)
        -- * Endian safe types
        -- $endianSafe
+       , CryptoAlign
+       , CryptoStore(..)
        , Word32LE, Word32BE
        , Word64LE, Word64BE
        ) where
@@ -21,6 +23,14 @@ import Data.ByteString (ByteString)
 import Foreign.Ptr
 import Foreign.Storable
 import System.Endian
+
+-- Developers notes: I assumes that word alignment is alignment
+-- safe. If this is not the case one needs to fix this to avoid
+-- performance degradation or worse incorrect load/store.
+
+-- | A type whose only purpose in this universe is to provide
+-- alignment safe pointers.
+newtype CryptoAlign = CryptoAlign Word deriving Storable
 
 -- | This class captures anything that can be converted to a string of bytes.
 -- Candidates include cryptographic hash, signature etc.
@@ -36,6 +46,15 @@ class CryptoCoerce s t where
   cryptoCoerce :: s -> t
 
 
+-- | This class is defined mainly to perform endian safe loading and
+-- storing. For any type that might have to be encoded as either byte
+-- strings or peeked/poked from a memory location it is advisable to
+-- define an instance of this class. Using store and load will then
+-- prevent endian confusion.
+class Storable w => CryptoStore w where
+  store :: Ptr CryptoAlign -> w -> IO ()
+  load  :: Ptr CryptoAlign -> IO w
+
 {-
 
 Developers notes:
@@ -50,11 +69,18 @@ by ghc.
 
 -- $endianSafe
 --
--- To avoid endianness confusion in cryptographic algorithms, we
--- provide explicitly endianness encoded `Word32` and `Word64`
--- types. These types inherit their parent type's `Num` instance
--- (besides `Ord`, `Eq` etc). The advantage is the following
--- uniformity in their usage in Haskell code:
+-- One of the most common source of implementation problems in crypto
+-- algorithms is the correct dealing of endianness. We define the
+-- class `CryptoStore` to solve this problem in a type safe way. Any
+-- type that might have to be encoded as either byte strings or
+-- peeked/poked from a memory location should be an instance of this
+-- class.
+--
+-- This module also provide explicitly endianness encoded versions of
+-- Word32 and Word64 which are instances of `CryptoStore`. These types
+-- inherit their parent type's `Num` instance (besides `Ord`, `Eq`
+-- etc). The advantage is the following uniformity in their usage in
+-- Haskell code:
 --
 --   1. Numeric constants are represented in their Haskell notation
 --      (which is big endian). For example 0xF0 represents the number
@@ -68,35 +94,32 @@ by ghc.
 -- Therefore, as far as Haskell programmers are concerned, `Word32LE`
 -- and `Word32BE` should be treated as `Word32` for all algorithmic
 -- aspects. Similarly, `Word64LE` and `Word64BE` should be treated as
--- `Word64`.
---
--- There is only one exception to this: The Storable instances of
--- their types guarantees proper endian conversion while peeking and
--- poking values. Peeking a `Word32LE` whose value is 0xFF would give
--- the bytes @0xFF 0x00 0x00 0x00@, whereas peeking a `Word32BE` gives
--- the bytes @0x00 0x00 0x00 0xFF@ irrespective of the underlying
--- machine. This is precisely what is intended: Endianness is relevant
--- only at the time of Load/Store and not at the time of
--- arithmetic. In contrast, peeking `Word32` gives either of the two
--- depending on the underlying machine.
---
-
+-- `Word64`. One can use the load/store functions to encode them
+-- safely as well.
 
 -- | Little endian `Word32`.
 newtype Word32LE = LE32 Word32
-   deriving (Bounded, Enum, Eq, Integral, Num, Ord, Read, Real, Show, Bits)
+   deriving ( Bounded, Enum, Read, Show, Integral
+            , Num, Real, Eq, Ord, Bits, Storable
+            )
 
 -- | Big endian  `Word32`
 newtype Word32BE = BE32 Word32
-   deriving (Bounded, Enum, Eq, Integral, Num, Ord, Read, Real, Show, Bits)
+   deriving ( Bounded, Enum, Read, Show, Integral
+            , Num, Real, Eq, Ord, Bits, Storable
+            )
 
 -- | Little endian `Word64`
 newtype Word64LE = LE64 Word64
-   deriving (Bounded, Enum, Eq, Integral, Num, Ord, Read, Real, Show, Bits)
+   deriving ( Bounded, Enum, Read, Show, Integral
+            , Num, Real, Eq, Ord, Bits, Storable
+            )
 
 -- | Big endian `Word64`
 newtype Word64BE = BE64 Word64
-   deriving (Bounded, Enum, Eq, Integral, Num, Ord, Read, Real, Show, Bits)
+   deriving ( Bounded, Enum, Read, Show, Integral
+            , Num, Real, Eq, Ord, Bits, Storable
+            )
 
 
 {-|
@@ -152,94 +175,28 @@ fromWord64BE :: Word64BE -> Word64
 {-# INLINE fromWord64BE #-}
 fromWord64BE (BE64 w) = fromBE64 w
 
--- | Guaranteed to peek and poke as little endian encoded 32-bit
--- positive integer.
-instance Storable Word32LE where
-  sizeOf         _ = sizeOf    (undefined :: Word32)
-  {-# INLINE sizeOf      #-}
-  alignment      _ = alignment (undefined :: Word32)
-  {-# INLINE alignment   #-}
-
-  peekElemOff ptr off = toWord32LE `fmap` peekElemOff (castPtr ptr) off
-  {-# INLINE peekElemOff #-}
-  peekByteOff ptr off = toWord32LE `fmap` peekByteOff ptr off
-  {-# INLINE peekByteOff #-}
-  peek = fmap toWord32LE . peek . castPtr
-  {-# INLINE peek        #-}
+instance CryptoStore Word32LE where
+  {-# INLINE load  #-}
+  {-# INLINE store #-}
+  load      = fmap toWord32LE . peek . castPtr
+  store ptr = poke (castPtr ptr) . fromWord32LE
 
 
-  pokeElemOff ptr off = pokeElemOff (castPtr ptr) off . fromWord32LE
-  {-# INLINE pokeElemOff #-}
-  pokeByteOff ptr off = pokeByteOff ptr off . fromWord32LE
-  {-# INLINE pokeByteOff #-}
-  poke ptr = poke (castPtr ptr) . fromWord32LE
-  {-# INLINE poke        #-}
+instance CryptoStore Word32BE where
+  {-# INLINE load  #-}
+  {-# INLINE store #-}
+  load      = fmap toWord32BE . peek . castPtr
+  store ptr = poke (castPtr ptr) . fromWord32BE
 
 
--- | Guaranteed to peek and poke as big endian encoded 32-bit positive
--- integer.
-instance Storable Word32BE where
-  sizeOf         _ = sizeOf    (undefined :: Word32)
-  {-# INLINE sizeOf      #-}
-  alignment      _ = alignment (undefined :: Word32)
-  {-# INLINE alignment   #-}
+instance CryptoStore Word64LE where
+  {-# INLINE load  #-}
+  {-# INLINE store #-}
+  load      = fmap toWord64LE . peek . castPtr
+  store ptr = poke (castPtr ptr) . fromWord64LE
 
-  peekElemOff ptr off = toWord32BE `fmap` peekElemOff (castPtr ptr) off
-  {-# INLINE peekElemOff #-}
-  peekByteOff ptr off = toWord32BE `fmap` peekByteOff (castPtr ptr) off
-  {-# INLINE peekByteOff #-}
-  peek = fmap toWord32BE . peek . castPtr
-  {-# INLINE peek        #-}
-
-  pokeElemOff ptr off = pokeElemOff (castPtr ptr) off . fromWord32BE
-  {-# INLINE pokeElemOff #-}
-  pokeByteOff ptr off = pokeByteOff ptr off . fromWord32BE
-  {-# INLINE pokeByteOff #-}
-  poke ptr = poke (castPtr ptr) . fromWord32BE
-  {-# INLINE poke        #-}
-
-
--- | Guaranteed to peek and poke as little endian encoded 64-bit
--- positive integer.
-instance Storable Word64LE where
-  sizeOf         _ = sizeOf    (undefined :: Word64)
-  {-# INLINE sizeOf      #-}
-  alignment      _ = alignment (undefined :: Word64)
-  {-# INLINE alignment   #-}
-
-  peekElemOff ptr off = toWord64LE `fmap` peekElemOff (castPtr ptr) off
-  {-# INLINE peekElemOff #-}
-  peekByteOff ptr off = toWord64LE `fmap` peekByteOff ptr off
-  {-# INLINE peekByteOff #-}
-  peek = fmap toWord64LE . peek . castPtr
-  {-# INLINE peek        #-}
-
-
-  pokeElemOff ptr off = pokeElemOff (castPtr ptr) off . fromWord64LE
-  {-# INLINE pokeElemOff #-}
-  pokeByteOff ptr off = pokeByteOff ptr off . fromWord64LE
-  {-# INLINE pokeByteOff #-}
-  poke ptr = poke (castPtr ptr) . fromWord64LE
-  {-# INLINE poke        #-}
-
--- | Guaranteed to peek and poke as big endian encoded 64-bit positive
--- integer.
-instance Storable Word64BE where
-  sizeOf         _ = sizeOf    (undefined :: Word64)
-  {-# INLINE sizeOf      #-}
-  alignment      _ = alignment (undefined :: Word64)
-  {-# INLINE alignment   #-}
-  peekElemOff ptr off = toWord64BE `fmap` peekElemOff (castPtr ptr) off
-  {-# INLINE peekElemOff #-}
-  peekByteOff ptr off = toWord64BE `fmap` peekByteOff ptr off
-  {-# INLINE peekByteOff #-}
-  peek = fmap toWord64BE . peek . castPtr
-  {-# INLINE peek        #-}
-
-
-  pokeElemOff ptr off = pokeElemOff (castPtr ptr) off . fromWord64BE
-  {-# INLINE pokeElemOff #-}
-  pokeByteOff ptr off = pokeByteOff ptr off . fromWord64BE
-  {-# INLINE pokeByteOff #-}
-  poke ptr = poke (castPtr ptr) . fromWord64BE
-  {-# INLINE poke        #-}
+instance CryptoStore Word64BE where
+  {-# INLINE load  #-}
+  {-# INLINE store #-}
+  load      = fmap toWord64BE . peek . castPtr
+  store ptr = poke (castPtr ptr) . fromWord64BE
