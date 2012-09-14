@@ -11,7 +11,7 @@ module Raaz.Types
        ( CryptoCoerce(..)
        -- * Endian safe types
        -- $endianSafe
-       , CryptoAlign
+       , CryptoAlign, CryptoPtr
        , CryptoStore(..), toByteString
        , Word32LE, Word32BE
        , Word64LE, Word64BE
@@ -33,6 +33,9 @@ import System.Endian
 -- alignment safe pointers.
 newtype CryptoAlign = CryptoAlign Word deriving Storable
 
+-- | Alignment safe pointers.
+type CryptoPtr = Ptr CryptoAlign
+
 -- | Often we would like to feed the output of one crypto algorithm as
 -- the input of the other algorithm, for e.g RSA sign the HMAC of a
 -- message.
@@ -46,8 +49,8 @@ class CryptoCoerce s t where
 -- define an instance of this class. Using store and load will then
 -- prevent endian confusion.
 class Storable w => CryptoStore w where
-  store :: Ptr CryptoAlign -> w -> IO ()
-  load  :: Ptr CryptoAlign -> IO w
+  store :: CryptoPtr -> w -> IO ()
+  load  :: CryptoPtr -> IO w
 
 -- | Generate a bytestring representation of the object.
 toByteString :: CryptoStore w => w -> ByteString
