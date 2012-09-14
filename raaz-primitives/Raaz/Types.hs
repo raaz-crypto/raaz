@@ -20,7 +20,7 @@ module Raaz.Types
 import Data.Bits
 import Data.Word
 import Data.ByteString (ByteString)
-import Data.ByteString.Internal (create)
+import Data.ByteString.Internal (unsafeCreate)
 import Foreign.Ptr
 import Foreign.Storable
 import System.Endian
@@ -50,8 +50,8 @@ class Storable w => CryptoStore w where
   load  :: Ptr CryptoAlign -> IO w
 
 -- | Generate a bytestring representation of the object.
-toByteString :: CryptoStore w => w -> IO ByteString
-toByteString w = create (sizeOf w) putit
+toByteString :: CryptoStore w => w -> ByteString
+toByteString w = unsafeCreate (sizeOf w) putit
       where putit ptr = store (castPtr ptr) w
 
 {-
