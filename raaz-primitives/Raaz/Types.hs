@@ -6,13 +6,13 @@ Some basic types and classes used in the cryptographic protocols.
 
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE FlexibleInstances          #-}
 module Raaz.Types
-       ( CryptoBytes(..)
-       , CryptoCoerce(..)
+       ( CryptoCoerce(..)
        -- * Endian safe types
        -- $endianSafe
        , CryptoAlign
-       , CryptoStore(..)
+       , CryptoStore(..), toByteString
        , Word32LE, Word32BE
        , Word64LE, Word64BE
        ) where
@@ -20,6 +20,7 @@ module Raaz.Types
 import Data.Bits
 import Data.Word
 import Data.ByteString (ByteString)
+import Data.ByteString.Internal (create)
 import Foreign.Ptr
 import Foreign.Storable
 import System.Endian
@@ -31,13 +32,6 @@ import System.Endian
 -- | A type whose only purpose in this universe is to provide
 -- alignment safe pointers.
 newtype CryptoAlign = CryptoAlign Word deriving Storable
-
--- | This class captures anything that can be converted to a string of bytes.
--- Candidates include cryptographic hash, signature etc.
-class CryptoBytes a where
-  -- | Convert the type to Bytestring.
-  toByteString :: a -> ByteString
-
 
 -- | Often we would like to feed the output of one crypto algorithm as
 -- the input of the other algorithm, for e.g RSA sign the HMAC of a
@@ -54,6 +48,11 @@ class CryptoCoerce s t where
 class Storable w => CryptoStore w where
   store :: Ptr CryptoAlign -> w -> IO ()
   load  :: Ptr CryptoAlign -> IO w
+
+-- | Generate a bytestring representation of the object.
+toByteString :: CryptoStore w => w -> IO ByteString
+toByteString w = create (sizeOf w) putit
+      where putit ptr = store (castPtr ptr) w
 
 {-
 
