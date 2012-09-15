@@ -12,8 +12,12 @@ cabal-version: >=1.9.2
 
 library
   exposed-modules: Raaz.Types
+                 , Raaz.Test.CryptoStore
   build-depends: base
                , bytestring
+               , test-framework==0.6.*
+               , test-framework-quickcheck2==0.2.*
+               , QuickCheck==2.4.*
                , cpu
                , vector == 0.9.*
   ghc-options: -Wall
