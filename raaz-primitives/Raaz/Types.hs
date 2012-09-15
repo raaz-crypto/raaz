@@ -11,7 +11,7 @@ module Raaz.Types
        ( CryptoCoerce(..)
        -- * Endian safe types
        -- $endianSafe
-       , CryptoAlign, CryptoPtr
+       , cryptoAlignment, CryptoAlign, CryptoPtr
        , CryptoStore(..), toByteString
        , Word32LE, Word32BE
        , Word64LE, Word64BE
@@ -35,6 +35,11 @@ newtype CryptoAlign = CryptoAlign Word deriving Storable
 
 -- | Alignment safe pointers.
 type CryptoPtr = Ptr CryptoAlign
+
+-- | Alignment to use for cryptographic pointers.
+cryptoAlignment :: Int
+cryptoAlignment = alignment (undefined :: CryptoAlign)
+{-# INLINE cryptoAlignment #-}
 
 -- | Often we would like to feed the output of one crypto algorithm as
 -- the input of the other algorithm, for e.g RSA sign the HMAC of a
