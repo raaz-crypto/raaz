@@ -7,6 +7,7 @@ Some basic types and classes used in the cryptographic protocols.
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE FlexibleInstances          #-}
+{-# LANGUAGE DeriveDataTypeable         #-}
 module Raaz.Types
        ( CryptoCoerce(..)
        -- * Endian safe types
@@ -21,6 +22,7 @@ import Data.Bits
 import Data.Word
 import Data.ByteString (ByteString)
 import Data.ByteString.Internal (unsafeCreate)
+import Data.Typeable(Typeable)
 import Foreign.Ptr
 import Foreign.Storable
 import System.Endian
@@ -108,24 +110,28 @@ by ghc.
 newtype Word32LE = LE32 Word32
    deriving ( Bounded, Enum, Read, Show, Integral
             , Num, Real, Eq, Ord, Bits, Storable
+            , Typeable
             )
 
 -- | Big endian  `Word32`
 newtype Word32BE = BE32 Word32
    deriving ( Bounded, Enum, Read, Show, Integral
             , Num, Real, Eq, Ord, Bits, Storable
+            , Typeable
             )
 
 -- | Little endian `Word64`
 newtype Word64LE = LE64 Word64
    deriving ( Bounded, Enum, Read, Show, Integral
             , Num, Real, Eq, Ord, Bits, Storable
+            , Typeable
             )
 
 -- | Big endian `Word64`
 newtype Word64BE = BE64 Word64
    deriving ( Bounded, Enum, Read, Show, Integral
             , Num, Real, Eq, Ord, Bits, Storable
+            , Typeable
             )
 
 
