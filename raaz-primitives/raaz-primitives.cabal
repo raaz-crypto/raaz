@@ -12,6 +12,7 @@ cabal-version: >=1.9.2
 
 library
   exposed-modules: Raaz.Types
+                 , Raaz.Hash
                  , Raaz.Test.CryptoStore
   build-depends: base
                , bytestring
