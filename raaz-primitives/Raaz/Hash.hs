@@ -8,10 +8,14 @@ A cryptographic hash function abstraction.
 {-# LANGUAGE FlexibleContexts  #-}
 module Raaz.Hash
        ( CryptoHash(..)
+       , withHashCxt
+       , hash
+       , hashLazy
        ) where
 
 import Control.Exception(finally)
 import qualified Data.ByteString as B
+import qualified Data.ByteString.Lazy as L
 import System.IO.Unsafe(unsafePerformIO)
 
 
@@ -75,3 +79,22 @@ withHashCxt :: CryptoHash h
 withHashCxt h act = do cxt <- newHashCxt h
                        act cxt `finally` freeHashCxt h cxt
 
+
+-- | Compute the hash of a strict bytestring.
+hash :: CryptoHash h
+     => h              -- ^ The hash algorithm
+     -> B.ByteString   -- ^ The data
+     -> Hash h
+hash h bs = unsafePerformIO  $ withHashCxt h act
+  where act cxt = do addHashData h cxt bs
+                     finaliseHash h cxt
+
+
+-- | Compute the hash of a lazy bytestring.
+hashLazy :: CryptoHash h
+         => h
+         -> L.ByteString
+         -> Hash h
+hashLazy h lbs = unsafePerformIO $ withHashCxt h act
+  where act cxt = do mapM_ (addHashData h cxt) $ L.toChunks lbs
+                     finaliseHash h cxt
