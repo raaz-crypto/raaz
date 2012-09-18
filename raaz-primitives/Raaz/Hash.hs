@@ -25,22 +25,23 @@ import Raaz.Types
 -- | The class that captures a Hash function. The associated type
 -- @Hash h@ captures the actual Hash value.
 --
--- For potential implementers of hash we have some remarks:
---
--- WARNING: Care must be taken in defining the @'Eq'@ instance for
--- @'Hash' h@ to avoid timing based side-channel attacks. Make sure
--- that the equality operator @==@ takes time independent of the
--- input. In particular /do not/ use the deriving clause at all.
+-- [Warning] While defining the @'Eq'@ instance of @'Hash' h@, make
+-- sure that the @==@ operator takes time independent of the input.
+-- This is to avoid timing based side-channel attacks. In particular
+-- /do not/ take the lazy option of deriving the @'Eq'@ instance.
 --
 
 class ( Eq          (Hash h)
       , CryptoStore (Hash h)
       ) => CryptoHash h where
 
-  data Hash h        :: * -- ^ The hash value.
-  type HashCxt h     :: * -- ^ The hash context
+  -- | The hash value.
+  data Hash h        :: *
+  -- | The hash context
+  type HashCxt h     :: *
 
-  blockSize  :: h -> Int  -- ^ size of message block in bytes
+  -- | The size of message blocks in bytes.
+  blockSize  :: h -> Int
 
   -- | Alloc a new context for use.
   newHashCxt     :: h -> IO (HashCxt h)
