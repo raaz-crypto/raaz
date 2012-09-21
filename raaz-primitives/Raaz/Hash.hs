@@ -20,7 +20,7 @@ import qualified Data.ByteString.Lazy as L
 import System.IO.Unsafe(unsafePerformIO)
 
 
-import Raaz.Types
+import Raaz.Types(CryptoStore, CryptoPtr)
 
 
 -- | The class that captures a Hash function. The associated type
