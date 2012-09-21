@@ -14,6 +14,7 @@ module Raaz.Hash
        ) where
 
 import Control.Exception(finally)
+import Control.Monad(foldM)
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as L
 import System.IO.Unsafe(unsafePerformIO)
@@ -41,7 +42,7 @@ class ( Eq          (Hash h)
   type HashCxt h     :: *
 
   -- | The size of message blocks in bytes.
-  blockSize  :: h -> Int
+  hashBlockSize  :: h -> Int
 
   -- | Alloc a new context for use.
   newHashCxt     :: h -> IO (HashCxt h)
@@ -51,10 +52,10 @@ class ( Eq          (Hash h)
   freeHashCxt    :: h -> HashCxt h -> IO ()
 
   -- | Resets the context for reuse in the next hashing.
-  resetHashCxt   :: h -> HashCxt h -> IO ()
+  resetHashCxt   :: h -> HashCxt h -> IO (HashCxt h)
 
   -- | Add the next chunk of data.
-  addHashData    :: h -> HashCxt h -> B.ByteString -> IO ()
+  addHashData    :: h -> HashCxt h -> B.ByteString -> IO (HashCxt h)
 
   -- | Finalise the context to a hash value.
   finaliseHash   :: h -> HashCxt h -> IO (Hash h)
@@ -69,7 +70,7 @@ class ( Eq          (Hash h)
                     -> CryptoPtr -- ^ The pointer to the first element
                     -> Int       -- ^ Number of hash blocks (not the
                                  -- number of bytes).
-                    -> IO ()
+                    -> IO (HashCxt h)
 
 
 -- | Run a computation using a hash cxt
@@ -87,8 +88,7 @@ hash :: CryptoHash h
      -> B.ByteString   -- ^ The data
      -> Hash h
 hash h bs = unsafePerformIO  $ withHashCxt h act
-  where act cxt = do addHashData h cxt bs
-                     finaliseHash h cxt
+  where act cxt = addHashData h cxt bs >>= finaliseHash h
 
 
 -- | Compute the hash of a lazy bytestring.
@@ -97,5 +97,5 @@ hashLazy :: CryptoHash h
          -> L.ByteString
          -> Hash h
 hashLazy h lbs = unsafePerformIO $ withHashCxt h act
-  where act cxt = do mapM_ (addHashData h cxt) $ L.toChunks lbs
-                     finaliseHash h cxt
+  where act cxt = foldM (addHashData h) cxt (L.toChunks lbs)
+                  >>= finaliseHash h
