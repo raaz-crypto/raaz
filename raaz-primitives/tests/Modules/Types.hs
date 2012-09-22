@@ -29,16 +29,16 @@ instance Arbitrary Word64BE where
 -- Endian word is same as reversing the bytestring encoding of Big endian word.
 prop_LEBEreverse32 :: Word32 -> Bool
 prop_LEBEreverse32 w = toByteString wle == BS.reverse (toByteString wbe )
-       where wle = (fromIntegral w) :: Word32LE
-             wbe = (fromIntegral w) :: Word32BE
+       where wle = fromIntegral w :: Word32LE
+             wbe = fromIntegral w :: Word32BE
 
 testLEBEreverse32 :: Test
 testLEBEreverse32 = testProperty "ReverseLEBE32" prop_LEBEreverse32
 
 prop_LEBEreverse64 :: Word64 -> Bool
 prop_LEBEreverse64 w = toByteString wle == BS.reverse (toByteString wbe )
-       where wle = (fromIntegral w) :: Word64LE
-             wbe = (fromIntegral w) :: Word64BE
+       where wle = fromIntegral w :: Word64LE
+             wbe = fromIntegral w :: Word64BE
 
 testLEBEreverse64 :: Test
 testLEBEreverse64 = testProperty "ReverseLEBE64" prop_LEBEreverse64
