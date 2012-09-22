@@ -20,7 +20,7 @@ import qualified Data.ByteString.Lazy as L
 import System.IO.Unsafe(unsafePerformIO)
 
 
-import Raaz.Types(CryptoStore, CryptoPtr)
+import Raaz.Types(CryptoStore, CryptoPtr, toByteString)
 
 
 -- | The class that captures a Hash function. The associated type
@@ -72,7 +72,18 @@ class ( Eq          (Hash h)
                                  -- number of bytes).
                     -> IO (HashCxt h)
 
-
+  -- | This is to compute the hash of an already computed hash. This
+  -- is a common operation when constructing HMAC. There is a default
+  -- definition of this function but you may provide an efficient one
+  -- to improve HMAC computation.
+  hashHash :: h
+           -> HashCxt h
+           -> Hash h
+           -> IO (Hash h)
+           
+  hashHash h cxt hsh = addHashData h cxt (toByteString hsh)
+                     >>= finaliseHash h
+           
 -- | Run a computation using a hash cxt
 withHashCxt :: CryptoHash h
             => h
