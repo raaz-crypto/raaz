@@ -33,7 +33,7 @@ prop_LEBEreverse32 w = toByteString wle == BS.reverse (toByteString wbe )
              wbe = fromIntegral w :: Word32BE
 
 testLEBEreverse32 :: Test
-testLEBEreverse32 = testProperty "ReverseLEBE32" prop_LEBEreverse32
+testLEBEreverse32 = testProperty "LE32 == reverse BE32" prop_LEBEreverse32
 
 prop_LEBEreverse64 :: Word64 -> Bool
 prop_LEBEreverse64 w = toByteString wle == BS.reverse (toByteString wbe )
@@ -41,7 +41,7 @@ prop_LEBEreverse64 w = toByteString wle == BS.reverse (toByteString wbe )
              wbe = fromIntegral w :: Word64BE
 
 testLEBEreverse64 :: Test
-testLEBEreverse64 = testProperty "ReverseLEBE64" prop_LEBEreverse64
+testLEBEreverse64 = testProperty "LE64 == reverse BE64" prop_LEBEreverse64
 
 tests = [ testStoreLoad (undefined :: Word32LE)
         , testStoreLoad (undefined :: Word32BE)
