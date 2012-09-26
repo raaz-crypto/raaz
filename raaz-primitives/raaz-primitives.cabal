@@ -10,6 +10,13 @@ category:      Codec, Raaz
 build-type:    Simple
 cabal-version: >=1.9.2
 
+bug-reports: https://github.com/piyush-kurur/raaz/issues
+
+source-repository head
+  type: git
+  location: https://github.com/piyush-kurur/raaz
+  subdir: raaz-primitives
+
 library
   exposed-modules: Raaz.Types
                  , Raaz.Hash
