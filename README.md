@@ -17,6 +17,5 @@ Hacking and Discussion
 
 [repo]: <https://github.com/piyush-kurur/raaz> "Raaz on github"
 
-[emailgroups]: <https://groups.google.com/forum/#!forum/hraaz>
-	       "Raaz on Google groups"
+[emailgroups]: <https://groups.google.com/forum/#!forum/hraaz> "Raaz on Google groups"
 
