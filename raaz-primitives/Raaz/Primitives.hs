@@ -11,6 +11,7 @@ module Raaz.Primitives
        ) where
 
 import Data.Word
+import qualified Data.ByteString as B
 
 import Raaz.Types
 
@@ -20,7 +21,12 @@ class BlockPrimitive p where
   blockSize :: p -> Int -- ^ Block size in bytes
 
 -- | A compressor is a crypto primitive that shrinks an arbitrary
--- sized string to a fixed size string.
+-- sized string to a fixed size string. A message is usually padded
+-- using some strategy. The obvious need for padding is to handle
+-- messages that do not have a length that is a multiple of the block
+-- length. Besides the security of certain primitives like the
+-- Merkle-Damgård hashes depend on the padding.
+
 class BlockPrimitive c => Compressor c where
   -- | The compress context.
   type Cxt c   :: *
@@ -34,3 +40,27 @@ class BlockPrimitive c => Compressor c where
                          -- is undisturbed.
            -> Int        -- ^ Number of blocks at the above location.
            -> IO (Cxt c)
+
+  -- | Although the compressor works one block at a time, handling the
+  -- last block of data requires additional blocks mainly to handle
+  -- padding. This variable gives the number of additional blocks
+  -- required to handle this. In a hashing algorithm like sha this is
+  -- 1 (this the the additional block and does not count the partially
+  -- filled block if there is any).
+  maxAdditionalBlocks :: c -> Int
+
+  -- | This function gives the padding to add to the message.
+  padding :: c              -- ^ The compressor
+          -> Word64         -- ^ Length of the message in bytes.
+          -> B.ByteString
+
+  -- | This is the unsafe version of the padding where it is assumed
+  -- that the data buffer has enough space to accomodate the padding
+  -- data.
+  unsafePadIt :: c         -- ^ The compressor
+              -> Word64    -- ^ the total length
+              -> CryptoPtr -- ^ The buffer to put the padding
+              -> Int       -- ^ Byte position
+              -> IO ()
+
+
