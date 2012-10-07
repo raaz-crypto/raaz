@@ -22,6 +22,7 @@ library
                  , Raaz.Primitives
                  , Raaz.Hash
                  , Raaz.MAC
+                 , Raaz.Util.ByteString
                  , Raaz.Test.CryptoStore
   build-depends: base
                , bytestring
