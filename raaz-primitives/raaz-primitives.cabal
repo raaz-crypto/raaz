@@ -21,6 +21,7 @@ library
   exposed-modules: Raaz.Types
                  , Raaz.Hash
                  , Raaz.MAC
+                 , Raaz.Util.ByteString
                  , Raaz.Test.CryptoStore
   build-depends: base
                , bytestring
