@@ -12,6 +12,8 @@ module Raaz.Primitives
 
 import Data.Word
 import qualified Data.ByteString as B
+import Data.ByteString.Internal (unsafeCreate)
+import Foreign.Ptr(castPtr)
 
 import Raaz.Types
 
@@ -49,18 +51,25 @@ class BlockPrimitive c => Compressor c where
   -- filled block if there is any).
   maxAdditionalBlocks :: c -> Int
 
+  -- | The length of the padding message for a given length.
+  padLength :: c      -- ^ The compressor
+            -> Word64 -- ^ Length of the message in bytes
+            -> Word64
+
   -- | This function gives the padding to add to the message.
   padding :: c              -- ^ The compressor
           -> Word64         -- ^ Length of the message in bytes.
           -> B.ByteString
+
+  padding c len = unsafeCreate (fromIntegral $ padLength c len)
+                               (unsafePadIt c len 0 . castPtr)
 
   -- | This is the unsafe version of the padding where it is assumed
   -- that the data buffer has enough space to accomodate the padding
   -- data.
   unsafePadIt :: c         -- ^ The compressor
               -> Word64    -- ^ the total length
-              -> CryptoPtr -- ^ The buffer to put the padding
               -> Int       -- ^ Byte position
+              -> CryptoPtr -- ^ The buffer to put the padding
               -> IO ()
-
 
