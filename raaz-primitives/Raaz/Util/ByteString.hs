@@ -46,9 +46,9 @@ unsafeNCopyToCryptoPtr n bs cptr = withForeignPtr fptr $
 -- | This function tries to fill up a crypto buffer with the data from
 -- the input bytestring. It returns either the number number of bytes
 -- left in the buffer if the bytestring is smaller than the remaining
--- data in the cryptobuffer. Otherwise it returns the rest of the
--- bytestring. This function is useful for running block algorithms on
--- lazy bytestrings.
+-- data in the cryptobuffer, or the rest of the bytestring. This
+-- function is useful for running block algorithms on lazy
+-- bytestrings.
 fillUp :: Int          -- ^ block size
        -> CryptoPtr    -- ^ pointer to the buffer
        -> Int          -- ^ data remaining
