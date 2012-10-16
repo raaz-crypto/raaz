@@ -24,6 +24,7 @@ library
                  , Raaz.MAC
                  , Raaz.Util.ByteString
                  , Raaz.Test.CryptoStore
+                 , Raaz.Test.Primitives
   build-depends: base
                , bytestring
                , primitive==0.4.*
