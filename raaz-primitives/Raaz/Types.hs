@@ -10,12 +10,15 @@ Some basic types and classes used in the cryptographic protocols.
 {-# LANGUAGE DeriveDataTypeable         #-}
 module Raaz.Types
        ( CryptoCoerce(..)
-       -- * Endian safe types
-       -- $endianSafe
        , cryptoAlignment, CryptoAlign, CryptoPtr
        , CryptoStore(..), toByteString
+       -- * Endian safe types
+       -- $endianSafe
        , Word32LE, Word32BE
        , Word64LE, Word64BE
+       -- * Length encoding
+       -- $length
+       , BYTES(..), BITS(..)
        ) where
 
 import Data.Bits
@@ -214,3 +217,45 @@ instance CryptoStore Word64BE where
   {-# INLINE store #-}
   load      = fmap toWord64BE . peek . castPtr
   store ptr = poke (castPtr ptr) . fromWord64BE
+
+-- $length
+--
+-- Crypto protocols also represent message lengths in various units,
+-- bytes and bits usually. To catch length conversion errors at
+-- compile time, we include the following types that specify
+-- explicitly whether the length is in bits or bytes.
+
+newtype BYTES a  = BYTES a
+        deriving (Show, Eq, Ord, Enum, Integral, Real, Num, Storable, CryptoStore)
+newtype BITS  a  = BITS  a
+        deriving (Show, Eq, Ord, Enum, Integral, Real, Num, Storable, CryptoStore)
+  
+instance ( Integral by
+         , Num bi
+         )
+         => CryptoCoerce (BYTES by) (BITS bi) where
+  cryptoCoerce (BYTES by) = BITS $ 8 * fromIntegral by
+  {-# INLINE cryptoCoerce #-}
+
+-- | BEWARE: If the number of bits is not an integral multiple of 8
+-- then there are rounding errors.
+instance ( Integral bi
+         , Real bi
+         , Num by
+         )
+         => CryptoCoerce (BITS bi) (BYTES by) where
+  cryptoCoerce (BITS bi) = BYTES $ fromIntegral (bi `quot` 8)
+  {-# INLINE cryptoCoerce #-}
+
+instance ( Integral by1
+         , Num by2
+         ) => CryptoCoerce (BYTES by1) (BYTES by2) where
+  cryptoCoerce (BYTES by) = BYTES $ fromIntegral by
+  {-# INLINE cryptoCoerce #-}
+
+
+instance ( Integral bi1
+         , Num bi2
+         ) => CryptoCoerce (BITS bi1) (BITS bi2) where
+  cryptoCoerce (BITS bi) = BITS $ fromIntegral bi
+  {-# INLINE cryptoCoerce #-}
