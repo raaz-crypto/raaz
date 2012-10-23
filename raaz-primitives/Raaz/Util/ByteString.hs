@@ -10,13 +10,12 @@ module Raaz.Util.ByteString
        ) where
 
 import qualified Data.ByteString as B
+import Data.ByteString(ByteString)
 import Data.ByteString.Internal(toForeignPtr, memcpy)
 import Foreign.ForeignPtr(withForeignPtr)
 import Foreign.Ptr(castPtr, plusPtr)
 
-import Raaz.Types(CryptoPtr)
-
-type ByteString = B.ByteString
+import Raaz.Types(CryptoPtr, BYTES(..))
 
 -- | Copy the bytestring to the crypto buffer. This operation leads to
 -- undefined behaviour if the crypto pointer points to an area smaller
@@ -34,9 +33,9 @@ unsafeCopyToCryptoPtr bs cptr =  withForeignPtr fptr $
 -- @n@ which is the number of bytes to transfer. This operation leads
 -- to undefined behaviour if either the bytestring is shorter than @n@
 -- or the crypto pointer points to an area smaller than @n@.
-unsafeNCopyToCryptoPtr :: Int          -- ^ number of bytes to copy
-                       -> ByteString   -- ^ The source byte string
-                       -> CryptoPtr    -- ^ The buffer
+unsafeNCopyToCryptoPtr :: BYTES Int      -- ^ number of bytes to copy
+                       -> ByteString     -- ^ The source byte string
+                       -> CryptoPtr      -- ^ The buffer
                        -> IO ()
 unsafeNCopyToCryptoPtr n bs cptr = withForeignPtr fptr $
            \ p -> memcpy dest (p `plusPtr` offset) (fromIntegral n)
@@ -49,17 +48,17 @@ unsafeNCopyToCryptoPtr n bs cptr = withForeignPtr fptr $
 -- data in the cryptobuffer, or the rest of the bytestring. This
 -- function is useful for running block algorithms on lazy
 -- bytestrings.
-fillUp :: Int          -- ^ block size
-       -> CryptoPtr    -- ^ pointer to the buffer
-       -> Int          -- ^ data remaining
-       -> ByteString   -- ^ next chunk
-       -> IO (Either Int ByteString)
+fillUp :: BYTES Int  -- ^ block size
+       -> CryptoPtr  -- ^ pointer to the buffer
+       -> BYTES Int  -- ^ data remaining
+       -> ByteString -- ^ next chunk
+       -> IO (Either (BYTES Int) ByteString)
 fillUp bsz cptr r bs | l < r     = do unsafeCopyToCryptoPtr bs dest
                                       return $ Left r'
                      | otherwise = do unsafeNCopyToCryptoPtr r bs dest
                                       return $ Right rest
-  where l      = B.length bs
+  where l      = BYTES $ B.length bs
         r'     = r - l
-        rest   = B.drop r bs
+        rest   = B.drop (fromIntegral r) bs
         offset = bsz - r
-        dest   = (cptr `plusPtr` offset)
+        dest   = (cptr `plusPtr` fromIntegral offset)
