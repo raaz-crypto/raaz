@@ -18,6 +18,6 @@ source-repository head
   subdir: raaz-hash-sha
 
 library
-  exposed-modules:
+  exposed-modules: Raaz.Hash.Sha.Ref
   build-depends: base
   ghc-options: -Wall
