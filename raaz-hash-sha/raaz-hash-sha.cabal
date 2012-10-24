@@ -1,0 +1,23 @@
+name:          raaz-hash-sha
+version:       0.0.0.0
+synopsis:      Implementation of the SHA family of hashes for raaz library
+homepage:      http://github.com/piyush-kurur/raaz
+license:       BSD3
+license-file:  LICENSE
+author:        Piyush P Kurur
+maintainer:    ppk@cse.iitk.ac.in
+category:      Codec, Raaz
+build-type:    Simple
+cabal-version: >=1.9.2
+
+bug-reports: https://github.com/piyush-kurur/raaz/issues
+
+source-repository head
+  type: git
+  location: https://github.com/piyush-kurur/raaz
+  subdir: raaz-hash-sha
+
+library
+  exposed-modules:
+  build-depends: base
+  ghc-options: -Wall
