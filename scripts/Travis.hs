@@ -7,4 +7,5 @@ There is a branch for each package tracking changes
 import System.Exit
 
 main :: IO ()
-main = exitWith ExitSuccess
+main = do putStrLn "I ran"
+          exitWith ExitSuccess

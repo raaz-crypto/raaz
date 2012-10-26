@@ -1,5 +1,5 @@
 language: haskell
-script: runhaskell ./scripts/Travis.hs
+script: runghc ./scripts/Travis.hs
 notification:
   email: false
 
