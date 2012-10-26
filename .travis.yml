@@ -1,0 +1,8 @@
+language: haskell
+script: runhaskell ./scripts/Travis.hs
+notification:
+  email: false
+
+branches:
+  only:
+    - master
