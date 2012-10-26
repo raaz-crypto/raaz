@@ -1,7 +1,5 @@
 language: haskell
 script: runghc ./scripts/Travis.hs
-notification:
-  email: false
 
 branches:
   only:
