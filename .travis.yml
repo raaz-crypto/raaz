@@ -4,4 +4,4 @@ script: "make tests"
 
 branches:
   only:
-    - x-master-merge
+    - x-merge
