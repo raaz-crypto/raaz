@@ -18,7 +18,7 @@ ${PACKAGES}:
 	cd raaz-$@; cabal install --enable-tests
 
 tests:
-	$(foreach pkg, ${PACKAGES}, raaz-${pkg}/${TEST_PATH})
+	$(foreach pkg, ${PACKAGES}, raaz-${pkg}/${TEST_PATH}; )
 
 merge:
 	git checkout master
