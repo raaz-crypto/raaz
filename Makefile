@@ -1,5 +1,8 @@
 PACKAGES=primitives ssh hash-sha
 
+
+hash-sha: primitives
+
 BRANCHES=${PACKAGES}
 X_BRANCHES=$(addprefix x-,${BRANCHES})
 
@@ -8,6 +11,8 @@ TEST_PATH=dist/build/tests/tests
 .PHONY: ${PACKAGES}
 
 install: ${PACKAGES}
+
+
 
 ${PACKAGES}:
 	cd raaz-$@; cabal install --enable-tests
