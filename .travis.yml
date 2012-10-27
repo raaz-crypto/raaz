@@ -1,6 +1,7 @@
 language: haskell
-script: runghc ./scripts/Travis.hs
+install: make install
+script: make tests
 
 branches:
   only:
-    - master
+    - x-master-merge
