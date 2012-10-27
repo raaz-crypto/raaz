@@ -13,9 +13,10 @@ Hacking and Discussion
 
 * For discussion see our [google groups][emailgroups] mailing list.
 
-
+![Build Staus][travis-status]
 
 [repo]: <https://github.com/piyush-kurur/raaz> "Raaz on github"
 
 [emailgroups]: <https://groups.google.com/forum/#!forum/hraaz> "Raaz on Google groups"
 
+[travis-status]: <https://secure.travis-ci.org/piyush-kurur/raaz.png> "Build status"
