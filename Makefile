@@ -1,4 +1,4 @@
-PACKAGES=primitives
+PACKAGES=primitives ssh hash-sha
 
 BRANCHES=${PACKAGES}
 X_BRANCHES=$(addprefix x-,${BRANCHES})
