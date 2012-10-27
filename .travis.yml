@@ -1,6 +1,6 @@
 language: haskell
-install: "make install"
-script: "make tests"
+install: "make -s install"
+script: "make -s tests"
 
 branches:
   only:
