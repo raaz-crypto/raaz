@@ -8,17 +8,25 @@ X_BRANCHES=$(addprefix x-,${BRANCHES})
 
 TEST_PATH=dist/build/tests/tests
 
-.PHONY: ${PACKAGES}
+.PHONY: ${PACKAGES} install merge release tests
 
 install: ${PACKAGES}
-
+	git checkout master
 
 
 ${PACKAGES}:
-	cd raaz-$@; cabal install --enable-tests
+	git checkout x-$@
+	cd raaz-$@; cabal install --force-reinstall --enable-tests
 
 tests:
-	$(foreach pkg, ${PACKAGES}, cd raaz-${pkg}; cabal test;)
+
+	$(foreach pkg, ${PACKAGES},\
+		git checkout x-${pkg};\
+		cd raaz-${pkg};\
+		cabal test;\
+		cd ..;\
+		)
+	git checkout master
 
 merge:
 	git checkout master

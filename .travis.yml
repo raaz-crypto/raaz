@@ -4,4 +4,6 @@ script: "make -s tests"
 
 branches:
   only:
-    - x-merge
+    - x-ssh
+    - x-primitives
+    - x-hash-sha
