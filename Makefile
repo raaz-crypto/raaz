@@ -16,7 +16,10 @@ install: ${PACKAGES}
 
 ${PACKAGES}:
 	git checkout x-$@
-	cd raaz-$@; cabal install --force-reinstall --enable-tests
+	cd raaz-$@;\
+	cabal install --enable-documentation\
+	              --enable-tests\
+		      --force-reinstall
 
 tests:
 
