@@ -1,18 +1,20 @@
 {-|
 
-This module contains function to allocate and de-allocate
-memory. Essentially it exports the functions from
-"Foreign.Marshal.Alloc" except that the sizes are now expressed in
-type safe length units.
+This module contains low level function to manipulate pointers and
+allocate/free memory. The size and offset types here are more friendly
+to use with type safe lengths.
 
 -}
 
 {-# LANGUAGE FlexibleContexts #-}
-module Raaz.Util.Alloc
+module Raaz.Util.Ptr
        ( allocaBuffer
+       , movePtr
        ) where
 
+import Foreign.Ptr
 import Foreign.Marshal.Alloc
+
 
 import Raaz.Types
 
@@ -26,3 +28,10 @@ allocaBuffer :: CryptoCoerce l (BYTES Int)
              -> IO b
 allocaBuffer l action = allocaBytes bytes action
   where BYTES bytes = cryptoCoerce l
+
+movePtr :: CryptoCoerce offset (BYTES Int)
+        => CryptoPtr
+        -> offset
+        -> CryptoPtr
+movePtr cptr offset = cptr `plusPtr` bytes
+  where BYTES bytes = cryptoCoerce offset
