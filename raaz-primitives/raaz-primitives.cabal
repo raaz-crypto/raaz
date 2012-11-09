@@ -21,7 +21,7 @@ library
   exposed-modules: Raaz.Types
                  , Raaz.Primitives
                  , Raaz.Hash
-                 , Raaz.MAC
+--                 , Raaz.MAC
                  , Raaz.Util.ByteString
                  , Raaz.Util.Ptr
                  , Raaz.Test.CryptoStore
