@@ -7,6 +7,7 @@ module Raaz.Util.ByteString
        ( unsafeCopyToCryptoPtr
        , unsafeNCopyToCryptoPtr
        , fillUp
+       , fillUpChunks
        ) where
 
 import qualified Data.ByteString as B
@@ -62,3 +63,16 @@ fillUp bsz cptr r bs | l < r     = do unsafeCopyToCryptoPtr bs dest
         rest   = B.drop (fromIntegral r) bs
         offset = bsz - r
         dest   = (cptr `plusPtr` fromIntegral offset)
+
+fillUpChunks :: BYTES Int     -- ^ buffer size
+             -> CryptoPtr     -- ^ the buffer
+             -> [ByteString]  -- ^ The chunks of the byte string
+             -> IO (Either (BYTES Int) [ByteString])
+
+fillUpChunks bsz cptr chunks       = go bsz chunks
+    where go r []     = return $ Left r
+          go r (b:bs) = do
+            fill <- fillUp bsz cptr r b
+            case fill of
+              Left  r1 -> go r1 bs
+              Right b1 -> return $ Right $ b1:bs
