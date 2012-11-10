@@ -29,6 +29,7 @@ import Data.Typeable(Typeable)
 import Foreign.Ptr
 import Foreign.Storable
 import System.Endian
+import Test.QuickCheck(Arbitrary(..))
 
 -- Developers notes: I assumes that word alignment is alignment
 -- safe. If this is not the case one needs to fix this to avoid
@@ -111,32 +112,31 @@ by ghc.
 
 -- | Little endian `Word32`.
 newtype Word32LE = LE32 Word32
-   deriving ( Bounded, Enum, Read, Show, Integral
-            , Num, Real, Eq, Ord, Bits, Storable
-            , Typeable
+   deriving ( Arbitrary, Bounded, Enum, Read, Show
+            , Integral, Num, Real, Eq, Ord, Bits
+            , Storable, Typeable
             )
 
 -- | Big endian  `Word32`
 newtype Word32BE = BE32 Word32
-   deriving ( Bounded, Enum, Read, Show, Integral
-            , Num, Real, Eq, Ord, Bits, Storable
-            , Typeable
+   deriving ( Arbitrary, Bounded, Enum, Read, Show
+            , Integral, Num, Real, Eq, Ord, Bits
+            , Storable, Typeable
             )
 
 -- | Little endian `Word64`
 newtype Word64LE = LE64 Word64
-   deriving ( Bounded, Enum, Read, Show, Integral
-            , Num, Real, Eq, Ord, Bits, Storable
-            , Typeable
+   deriving ( Arbitrary, Bounded, Enum, Read, Show
+            , Integral, Num, Real, Eq, Ord, Bits
+            , Storable, Typeable
             )
 
 -- | Big endian `Word64`
 newtype Word64BE = BE64 Word64
-   deriving ( Bounded, Enum, Read, Show, Integral
-            , Num, Real, Eq, Ord, Bits, Storable
-            , Typeable
+   deriving ( Arbitrary, Bounded, Enum, Read, Show
+            , Integral, Num, Real, Eq, Ord, Bits
+            , Storable, Typeable
             )
-
 
 {-|
 
@@ -225,10 +225,14 @@ instance CryptoStore Word64BE where
 -- explicitly whether the length is in bits or bytes.
 
 newtype BYTES a  = BYTES a
-        deriving (Show, Eq, Ord, Enum, Integral, Real, Num, Storable, CryptoStore)
+        deriving ( Arbitrary, Show, Eq, Ord, Enum, Integral
+                 , Real, Num, Storable, CryptoStore
+                 )
 newtype BITS  a  = BITS  a
-        deriving (Show, Eq, Ord, Enum, Integral, Real, Num, Storable, CryptoStore)
-  
+        deriving ( Arbitrary, Show, Eq, Ord, Enum, Integral
+                 , Real, Num, Storable, CryptoStore
+                 )
+
 instance ( Integral by
          , Num bi
          )

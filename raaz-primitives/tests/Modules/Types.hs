@@ -12,22 +12,6 @@ import Test.Framework.Providers.QuickCheck2 (testProperty)
 import Raaz.Types
 import Raaz.Test.CryptoStore
 
-
-instance Arbitrary Word32LE where
-  arbitrary = fmap fromIntegral (arbitrary :: Gen Word32)
-
-instance Arbitrary Word32BE where
-  arbitrary = fmap fromIntegral (arbitrary :: Gen Word32)
-
-instance Arbitrary Word64LE where
-  arbitrary = fmap fromIntegral (arbitrary :: Gen Word64)
-
-instance Arbitrary Word64BE where
-  arbitrary = fmap fromIntegral (arbitrary :: Gen Word64)
-
-instance Arbitrary (BYTES Word32) where
-  arbitrary = fmap fromIntegral (arbitrary :: Gen Word32)
-  
 -- | This test captures the property that bytestring encodings of Little
 -- Endian word is same as reversing the bytestring encoding of Big endian word.
 prop_LEBEreverse32 :: Word32 -> Bool
