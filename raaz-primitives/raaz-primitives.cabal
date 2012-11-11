@@ -25,6 +25,7 @@ library
                  , Raaz.Util.ByteString
                  , Raaz.Util.Ptr
                  , Raaz.Test.CryptoStore
+                 , Raaz.Test.Hash
   build-depends: base
                , bytestring
                , test-framework==0.6.*
