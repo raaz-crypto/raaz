@@ -63,7 +63,11 @@ fillUp bsz cptr r bs | l < r     = do unsafeCopyToCryptoPtr bs dest
         rest   = B.drop (fromIntegral r) bs
         offset = bsz - r
         dest   = (cptr `plusPtr` fromIntegral offset)
-
+        
+-- | This combinator tries to fill up the buffer from a list of chunks
+-- of bytestring. If the entire bytestring fits in the buffer then it
+-- returns the space left at the buffer. Otherwise it returns the
+-- remaining chunks.
 fillUpChunks :: BYTES Int     -- ^ buffer size
              -> CryptoPtr     -- ^ the buffer
              -> [ByteString]  -- ^ The chunks of the byte string
