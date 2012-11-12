@@ -8,12 +8,12 @@ import Data.Bits(xor, (.|.))
 import qualified Data.ByteString as B
 import Data.Typeable(Typeable)
 import Data.Word
-import Foreign.Ptr(plusPtr)
 import Foreign.Storable(Storable(..))
 import Test.QuickCheck(Arbitrary(..))
 
 import Raaz.Hash
 import Raaz.Primitives
+import Raaz.Util.Ptr(movePtr)
 import Raaz.Types
 
 -- | The SHA1 hash value.
@@ -50,19 +50,30 @@ instance Storable SHA1 where
                                             >> pokeByteOff ptr (pos + 16) h4
 
 instance CryptoStore SHA1 where
-  load cptr = do h0 <- load cptr
-                 h1 <- load $ plusPtr cptr 4
-                 h2 <- load $ plusPtr cptr 8
-                 h3 <- load $ plusPtr cptr 12
-                 h4 <- load $ plusPtr cptr 16
-                 return $ SHA1 h0 h1 h2 h3 h4
+  load cptr = SHA1 <$> load ptr0
+                   <*> load ptr1
+                   <*> load ptr2
+                   <*> load ptr3
+                   <*> load ptr4
+       where ptr0   = cptr
+             ptr1   = ptr0 `movePtr` offset
+             ptr2   = ptr1 `movePtr` offset
+             ptr3   = ptr2 `movePtr` offset
+             ptr4   = ptr3 `movePtr` offset
+             offset = BYTES $ sizeOf (undefined :: Word32BE)
 
-
-  store cptr (SHA1 h0 h1 h2 h3 h4) =  store cptr                h0
-                                   >> store (cptr `plusPtr` 4)  h1
-                                   >> store (cptr `plusPtr` 8)  h2
-                                   >> store (cptr `plusPtr` 12) h3
-                                   >> store (cptr `plusPtr` 16) h4
+  store cptr (SHA1 h0 h1 h2 h3 h4) =  store ptr0 h0
+                                   >> store ptr1 h1
+                                   >> store ptr2 h2
+                                   >> store ptr3 h3
+                                   >> store ptr4 h4
+        where ptr0   = cptr
+              ptr1   = ptr0 `movePtr` offset
+              ptr2   = ptr1 `movePtr` offset
+              ptr3   = ptr2 `movePtr` offset
+              ptr4   = ptr3 `movePtr` offset
+              offset = BYTES $ sizeOf (undefined :: Word32BE)
+              
 
 instance Arbitrary SHA1 where
   arbitrary = SHA1 <$> arbitrary   -- h0
