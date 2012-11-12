@@ -19,12 +19,15 @@ source-repository head
 
 library
   exposed-modules: Raaz.Types
+                 , Raaz.Primitives
                  , Raaz.Hash
-                 , Raaz.MAC
+--                 , Raaz.MAC
+                 , Raaz.Util.ByteString
+                 , Raaz.Util.Ptr
                  , Raaz.Test.CryptoStore
+                 , Raaz.Test.Hash
   build-depends: base
                , bytestring
-               , primitive==0.4.*
                , test-framework==0.6.*
                , test-framework-quickcheck2==0.2.*
                , QuickCheck==2.4.*
