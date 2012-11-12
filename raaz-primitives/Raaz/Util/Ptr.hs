@@ -21,7 +21,9 @@ import Raaz.Types
 -- | The expression @allocaBuffer l action@ allocates a local buffer
 -- of length @l@ and passes it on to the IO action @action@. No
 -- explicit freeing of the memory is required as the memory is
--- allocated locally and freed once the action finishes.
+-- allocated locally and freed once the action finishes. It is better
+-- to use this function than @`allocaBytes`@ as it does type safe
+-- scaling.
 allocaBuffer :: CryptoCoerce l (BYTES Int)
              => l                    -- ^ buffer length
              -> (CryptoPtr -> IO b)  -- ^ the action to run
@@ -29,6 +31,9 @@ allocaBuffer :: CryptoCoerce l (BYTES Int)
 allocaBuffer l action = allocaBytes bytes action
   where BYTES bytes = cryptoCoerce l
 
+-- | Moves a pointer by a specified offset. The offset can be of any
+-- type that supports coercion to @`BYTES` Int@. It is safer to use
+-- this function than @`plusPtr`@, as it does type safe scaling.
 movePtr :: CryptoCoerce offset (BYTES Int)
         => CryptoPtr
         -> offset
