@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveDataTypeable         #-}
 module Raaz.Hash.Sha
-       ( SHA1(..)
+       ( SHA1
        ) where
 
 import Control.Applicative ((<$>), (<*>))
