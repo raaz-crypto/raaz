@@ -47,9 +47,10 @@ cryptoAlignment :: Int
 cryptoAlignment = alignment (undefined :: CryptoAlign)
 {-# INLINE cryptoAlignment #-}
 
--- | Often we would like to feed the output of one crypto algorithm as
--- the input of the other algorithm, for e.g RSA sign the HMAC of a
--- message.
+-- | Often we need a type safe way to convert between one type to
+-- another. In such a case, it is advisable to define an instance of
+-- this class. One place where it is extensively used is in type safe
+-- lengths.
 class CryptoCoerce s t where
   cryptoCoerce :: s -> t
 
@@ -224,10 +225,19 @@ instance CryptoStore Word64BE where
 -- compile time, we include the following types that specify
 -- explicitly whether the length is in bits or bytes.
 
+-- | Type safe lengths/offsets in units of bytes. If the function
+-- excepts a length unit of a different type use `cryptoCoerce` to
+-- convert to a more convenient length units.  the `CrytoCoerce`
+-- instance is guranteed to do the appropriate scaling.
 newtype BYTES a  = BYTES a
         deriving ( Arbitrary, Show, Eq, Ord, Enum, Integral
                  , Real, Num, Storable, CryptoStore
                  )
+
+-- | Type safe lengths/offsets in units of bits. If the function
+-- excepts a length unit of a different type use `cryptoCoerce` to
+-- convert to a more convenient length units.  the `CrytoCoerce`
+-- instance is guranteed to do the appropriate scaling.
 newtype BITS  a  = BITS  a
         deriving ( Arbitrary, Show, Eq, Ord, Enum, Integral
                  , Real, Num, Storable, CryptoStore
