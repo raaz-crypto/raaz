@@ -36,18 +36,29 @@ instance Eq SHA1 where
 instance Storable SHA1 where
   sizeOf    _ = 5 * sizeOf (undefined :: Word32BE)
   alignment _ = alignment  (undefined :: Word32BE)
-  peekByteOff ptr pos = do
-    h0 <- peekByteOff ptr pos
-    h1 <- peekByteOff ptr (pos + 4)
-    h2 <- peekByteOff ptr (pos + 8)
-    h3 <- peekByteOff ptr (pos + 12)
-    h4 <- peekByteOff ptr (pos + 16)
-    return $ SHA1 h0 h1 h2 h3 h4
-  pokeByteOff ptr pos (SHA1 h0 h1 h2 h3 h4) =  pokeByteOff ptr pos        h0
-                                            >> pokeByteOff ptr (pos + 4)  h1
-                                            >> pokeByteOff ptr (pos + 8)  h2
-                                            >> pokeByteOff ptr (pos + 12) h3
-                                            >> pokeByteOff ptr (pos + 16) h4
+  peekByteOff ptr pos = SHA1 <$> peekByteOff ptr pos0
+                             <*> peekByteOff ptr pos1
+                             <*> peekByteOff ptr pos2
+                             <*> peekByteOff ptr pos3
+                             <*> peekByteOff ptr pos4
+    where pos0   = pos
+          pos1   = pos0 + offset
+          pos2   = pos1 + offset
+          pos3   = pos2 + offset
+          pos4   = pos3 + offset
+          offset = sizeOf (undefined:: Word32BE)
+
+  pokeByteOff ptr pos (SHA1 h0 h1 h2 h3 h4) =  pokeByteOff ptr pos0 h0
+                                            >> pokeByteOff ptr pos1 h1
+                                            >> pokeByteOff ptr pos2 h2
+                                            >> pokeByteOff ptr pos3 h3
+                                            >> pokeByteOff ptr pos4 h4
+    where pos0   = pos
+          pos1   = pos0 + offset
+          pos2   = pos1 + offset
+          pos3   = pos2 + offset
+          pos4   = pos3 + offset
+          offset = sizeOf (undefined:: Word32BE)
 
 instance CryptoStore SHA1 where
   load cptr = SHA1 <$> load ptr0
