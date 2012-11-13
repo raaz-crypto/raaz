@@ -8,7 +8,7 @@ A cryptographic hash function abstraction.
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
 
-module Raaz.Hash
+module Raaz.Primitives.Hash
        ( Hash(..), HashImplementation(..)
        , hashByteString
        , hashLazyByteString

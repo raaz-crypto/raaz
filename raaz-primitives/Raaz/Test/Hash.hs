@@ -15,8 +15,8 @@ import Data.Word
 import Test.Framework(Test)
 import Test.Framework.Providers.QuickCheck2(testProperty)
 
-import Raaz.Hash
 import Raaz.Primitives
+import Raaz.Primitives.Hash
 import Raaz.Types
 
 

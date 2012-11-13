@@ -20,7 +20,7 @@ source-repository head
 library
   exposed-modules: Raaz.Types
                  , Raaz.Primitives
-                 , Raaz.Hash
+                 , Raaz.Primitives.Hash
 --                 , Raaz.MAC
                  , Raaz.Util.ByteString
                  , Raaz.Util.Ptr
