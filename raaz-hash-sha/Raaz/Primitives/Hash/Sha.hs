@@ -1,5 +1,5 @@
 {-# LANGUAGE DeriveDataTypeable         #-}
-module Raaz.Hash.Sha
+module Raaz.Primitives.Hash.Sha
        ( SHA1
        ) where
 
@@ -11,8 +11,8 @@ import Data.Word
 import Foreign.Storable(Storable(..))
 import Test.QuickCheck(Arbitrary(..))
 
-import Raaz.Hash
 import Raaz.Primitives
+import Raaz.Primitives.Hash
 import Raaz.Util.Ptr(movePtr)
 import Raaz.Types
 

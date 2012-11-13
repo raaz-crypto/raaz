@@ -8,7 +8,7 @@ import Test.Framework
 
 import Raaz.Test.CryptoStore
 import Raaz.Test.Hash
-import Raaz.Hash.Sha
+import Raaz.Primitives.Hash.Sha
 
 
 tests = [ testStoreLoad (undefined :: SHA1)

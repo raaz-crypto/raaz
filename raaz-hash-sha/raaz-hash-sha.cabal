@@ -18,7 +18,7 @@ source-repository head
   subdir: raaz-hash-sha
 
 library
-  exposed-modules: Raaz.Hash.Sha
+  exposed-modules: Raaz.Primitives.Hash.Sha
   build-depends: base
                , bytestring
                , QuickCheck==2.4.*
