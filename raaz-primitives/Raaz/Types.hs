@@ -64,7 +64,13 @@ class CryptoCoerce s t where
 -- define an instance of this class. Using store and load will then
 -- prevent endian confusion.
 class Storable w => CryptoStore w where
-  store :: CryptoPtr -> w -> IO ()
+
+  -- | Store the given value at the locating pointed by the pointer
+  store :: CryptoPtr   -- ^ the location.
+        -> w           -- ^ value to store
+        -> IO ()
+
+  -- | Load the value from the location pointed by the pointer.
   load  :: CryptoPtr -> IO w
 
 -- | Generate a bytestring representation of the object.
