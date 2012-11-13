@@ -10,10 +10,13 @@ to use with type safe lengths.
 module Raaz.Util.Ptr
        ( allocaBuffer
        , movePtr
+       , storeAt, storeAtIndex
+       , loadFrom, loadFromIndex
        ) where
 
 import Foreign.Ptr
 import Foreign.Marshal.Alloc
+import Foreign.Storable(Storable, sizeOf)
 
 
 import Raaz.Types
@@ -40,3 +43,46 @@ movePtr :: CryptoCoerce offset (BYTES Int)
         -> CryptoPtr
 movePtr cptr offset = cptr `plusPtr` bytes
   where BYTES bytes = cryptoCoerce offset
+
+
+
+-- | Store the given value as the @n@-th element of the array
+-- pointed by the crypto pointer.
+storeAtIndex :: CryptoStore w
+             => CryptoPtr -- ^ the pointer to the first element of the
+                          -- array
+             -> Int       -- ^ the index of the array
+             -> w         -- ^ the value to store
+             -> IO ()
+storeAtIndex cptr index w = store (cptr `plusPtr` (index * sizeOf w)) w
+  
+-- | Store the given value at an offset from the crypto pointer. The
+-- offset is given in type safe units.
+storeAt :: ( CryptoStore w
+           , CryptoCoerce offset (BYTES Int)
+           )
+        => CryptoPtr   -- ^ the pointer
+        -> offset      -- ^ the absolute offset in type safe length units.
+        -> w           -- ^ value to store
+        -> IO ()
+storeAt cptr offset = store $ cptr `movePtr` offset
+
+-- | Load the @n@-th value of an array pointed by the crypto pointer.
+loadFromIndex :: CryptoStore w
+              => CryptoPtr -- ^ the pointer to the first element of
+                           -- the array
+              -> Int       -- ^ the index of the array
+              -> IO w
+loadFromIndex cptr index = loadP undefined
+   where loadP ::  (CryptoStore w, Storable w) => w -> IO w
+         loadP w = load $ cptr `plusPtr` (index * sizeOf w)
+
+-- | Load from a given offset. The offset is given in type safe units.
+loadFrom :: ( CryptoStore w
+            , CryptoCoerce offset (BYTES Int)
+            )
+         => CryptoPtr -- ^ the pointer
+         -> offset    -- ^ the offset
+         -> IO w
+loadFrom cptr offset = load $ cptr `movePtr` offset
+ 
