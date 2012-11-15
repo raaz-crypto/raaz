@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveDataTypeable         #-}
 module Raaz.Primitives.Hash.Sha
-       ( SHA1
+       ( SHA1(..)
        ) where
 
 import Control.Applicative ((<$>), (<*>))
@@ -107,7 +107,7 @@ padLength64 h l | r >= extra64 = r
   where lb :: BYTES Int
         lb    = cryptoCoerce l `rem` blockSize h
         r     = blockSize h - lb
-        
+
 -- | Padding string for a 64-bit length appended hash like SHA1.
 padding64 :: Hash h => h -> BITS Word64 -> B.ByteString
 padding64 h l = B.concat [ B.singleton firstPadByte
