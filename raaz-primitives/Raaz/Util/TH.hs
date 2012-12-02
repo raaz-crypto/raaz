@@ -14,6 +14,8 @@ module Raaz.Util.TH
        , variable
        , signature
        , permute
+       -- * Subscripting variables.
+       -- $subscripting
        , sub, subE, subP
        ) where
 
@@ -79,7 +81,7 @@ constantP is k ty = fmap concat . zipWithM inner [0..]
 -- | The expression @signature "x" ''Int [1,2]@ declares the following
 -- type signature.
 --
--- > x_5 :: Int
+-- > x_1_2 :: Int
 --
 signature :: String -> Name -> [Int] -> DecQ
 signature k ty is = sigD (k `sub` is) $ conT ty
@@ -116,6 +118,17 @@ permute vars i   = sequence $ map f vars
   where f :: (String,String) -> DecQ
         f (x,y)  = variable x (const $ subE y [i-1]) [i]
 
+-- $subscripting
+--
+-- While unrolling loops we need to generate a sequence of
+-- variables. Typically the subscript would just be an
+-- integer. However, we some times require matrix variables.  The
+-- convention followed in this: A variable can have a list of integers
+-- as its subscript. The variable @k@ with subscript @[2,3]@
+-- correspondes to the variable @k_2_3@ in the generated Haskell
+-- code. However, while using the library make use of the exported
+-- functions `sub`, `subE` and `subP` to generate the variable names
+-- instead of explicitly coding it up.
 
 -- | The expression @sub "k" [i,j]@ gives the name @"k_i_j"@.
 sub :: String -> [Int] -> Name
@@ -125,6 +138,6 @@ sub x is = mkName $ intercalate "_" $ x : map show is
 subE :: String -> [Int] -> ExpQ
 subE x is = varE $ sub x is
 
--- | The `PatQ` variabt of @sub@.
+-- | The `PatQ` variant of @sub@.
 subP :: String -> [Int] -> PatQ
 subP x is = varP $ sub x is
