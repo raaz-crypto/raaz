@@ -13,6 +13,7 @@ module Raaz.Util.TH
        , matrix
        , variable, variable', variableGen
        , signature, signatureGen
+       , declarations
        , permute
        -- * Subscripting variables.
        -- $subscripting
@@ -145,6 +146,26 @@ permute :: [(String,String)] -> Int -> DecsQ
 permute vars i   = sequence $ map f vars
   where f :: (String,String) -> DecQ
         f (x,y)  = variable x (const $ subE y [i-1]) [i]
+
+-- | The TH code @declarations [w,a] [1..100]@ generates the following
+-- declarations
+--
+-- > w 1
+-- > w 2
+-- > ...
+-- > w 100
+-- > a 1
+-- > ...
+-- > w 100
+--
+-- This function can be used for example to unroll a set of mutually
+-- recursive definitions of variables.
+
+declarations :: [Int -> DecsQ] -- ^ Declaration generators
+             -> [Int]          -- ^ Subscripts
+             -> DecsQ
+declarations gens is  = fmap concat $ forM gens singleGen
+  where singleGen gen = fmap concat $ forM is gen
 
 -- $subscripting
 --
