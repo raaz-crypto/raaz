@@ -11,7 +11,7 @@ also consider using the INLINE pragma.
 module Raaz.Util.TH
        ( constants
        , matrix
-       , variable
+       , variable, variable', variableGen
        , signature
        , permute
        -- * Subscripting variables.
@@ -101,6 +101,24 @@ variable k rhs is = valD (k `subP` is)
                          (normalB $ rhs is)
                          []
 
+-- | Genrates a variable definition and type signature.
+variable' :: String          -- ^ Variable name
+          -> Name            -- ^ Type
+          -> ([Int] -> ExpQ) -- ^ The rhs of the variable definition
+          -> [Int]           -- ^ The subscript
+          -> DecsQ
+variable' k ty rhs is = variableGen k (conT ty) rhs is
+
+
+-- | The most general type of variable declaration.
+variableGen :: String          -- ^ Variable name
+            -> TypeQ           -- ^ Type signature
+            -> ([Int] -> ExpQ) -- ^ The rhs of the variable definition
+            -> [Int]           -- ^ The subscript
+            -> DecsQ
+variableGen k ty rhs is = sequence [ sigD (k `sub` is) ty
+                                   , variable k rhs is
+                                   ]
 
 -- | The TH expression @permute [("x", "y"), ("u","v")] 5@ declares
 -- the following variables
