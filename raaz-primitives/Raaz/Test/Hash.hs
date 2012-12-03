@@ -7,6 +7,7 @@ Generic tests for Hash implementations.
 module Raaz.Test.Hash
        ( testPadLengthVsPadding
        , testLengthDivisibility
+       , allHashTests
        ) where
 
 import qualified Data.ByteString as B
@@ -14,11 +15,20 @@ import Data.Typeable
 import Data.Word
 import Test.Framework(Test)
 import Test.Framework.Providers.QuickCheck2(testProperty)
+import Test.QuickCheck(Arbitrary)
 
 import Raaz.Primitives
 import Raaz.Primitives.Hash
 import Raaz.Types
+import Raaz.Test.CryptoStore
 
+-- | All generic tests for an instance of `Hash`.
+allHashTests :: ( Arbitrary h, Show h, Hash h, Typeable h )
+             => h -> [Test]
+allHashTests h = [ testStoreLoad h
+                 , testPadLengthVsPadding h
+                 , testLengthDivisibility h
+                 ]
 
 prop_padLengthVsPadding :: Hash h => h -> BITS Word64 ->  Bool
 prop_padLengthVsPadding h w = padLength h w ==
