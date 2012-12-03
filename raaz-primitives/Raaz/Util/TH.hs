@@ -12,7 +12,7 @@ module Raaz.Util.TH
        ( constants
        , matrix
        , variable, variable', variableGen
-       , signature
+       , signature, signatureGen
        , permute
        -- * Subscripting variables.
        -- $subscripting
@@ -83,8 +83,18 @@ constantP is k ty = fmap concat . zipWithM inner [0..]
 --
 -- > x_1_2 :: Int
 --
-signature :: String -> Name -> [Int] -> DecQ
-signature k ty is = sigD (k `sub` is) $ conT ty
+signature :: String   -- ^ Variable name
+          -> Name     -- ^ The type name
+          -> [Int]    -- ^ The subscript
+          -> DecQ
+signature k ty is = signatureGen k (conT ty) is
+
+-- | A more general version of `signature`.
+signatureGen :: String   -- ^ The variable
+             -> TypeQ    -- ^ The type
+             -> [Int]    -- ^ The subscript
+             -> DecQ
+signatureGen k ty is = sigD (k `sub` is) $ ty
 
 
 -- | Generate a variable definition. The expression @variable "x" exp [1,2]@
@@ -116,7 +126,7 @@ variableGen :: String          -- ^ Variable name
             -> ([Int] -> ExpQ) -- ^ The rhs of the variable definition
             -> [Int]           -- ^ The subscript
             -> DecsQ
-variableGen k ty rhs is = sequence [ sigD (k `sub` is) ty
+variableGen k ty rhs is = sequence [ signatureGen k ty is
                                    , variable k rhs is
                                    ]
 
