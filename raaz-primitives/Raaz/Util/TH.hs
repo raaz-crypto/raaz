@@ -88,14 +88,14 @@ signature :: String   -- ^ Variable name
           -> Name     -- ^ The type name
           -> [Int]    -- ^ The subscript
           -> DecQ
-signature k ty is = signatureGen k (conT ty) is
+signature k ty = signatureGen k $ conT ty
 
 -- | A more general version of `signature`.
 signatureGen :: String   -- ^ The variable
              -> TypeQ    -- ^ The type
              -> [Int]    -- ^ The subscript
              -> DecQ
-signatureGen k ty is = sigD (k `sub` is) $ ty
+signatureGen k ty is = sigD (k `sub` is) ty
 
 
 -- | Generate a variable definition. The expression @variable "x" exp [1,2]@
@@ -118,7 +118,7 @@ variable' :: String          -- ^ Variable name
           -> ([Int] -> ExpQ) -- ^ The rhs of the variable definition
           -> [Int]           -- ^ The subscript
           -> DecsQ
-variable' k ty rhs is = variableGen k (conT ty) rhs is
+variable' k ty = variableGen k $ conT ty
 
 
 -- | The most general type of variable declaration.
@@ -143,7 +143,7 @@ variableGen k ty rhs is = sequence [ signatureGen k ty is
 --
 
 permute :: [(String,String)] -> Int -> DecsQ
-permute vars i   = sequence $ map f vars
+permute vars i   = mapM f vars
   where f :: (String,String) -> DecQ
         f (x,y)  = variable x (const $ subE y [i-1]) [i]
 
