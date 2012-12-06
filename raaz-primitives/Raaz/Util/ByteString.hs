@@ -8,15 +8,18 @@ module Raaz.Util.ByteString
        , unsafeNCopyToCryptoPtr
        , fillUp
        , fillUpChunks
+       , hex, toHex
        ) where
 
 import qualified Data.ByteString as B
 import Data.ByteString(ByteString)
-import Data.ByteString.Internal(toForeignPtr, memcpy)
+import Data.ByteString.Internal(toForeignPtr, memcpy, c2w, unsafeCreate)
 import Foreign.ForeignPtr(withForeignPtr)
 import Foreign.Ptr(castPtr, plusPtr)
+import Foreign.Storable(poke, peek)
+import Data.Bits
 
-import Raaz.Types(CryptoPtr, BYTES(..))
+import Raaz.Types(CryptoPtr, BYTES(..), CryptoStore, toByteString)
 
 -- | Copy the bytestring to the crypto buffer. This operation leads to
 -- undefined behaviour if the crypto pointer points to an area smaller
@@ -63,7 +66,7 @@ fillUp bsz cptr r bs | l < r     = do unsafeCopyToCryptoPtr bs dest
         rest   = B.drop (fromIntegral r) bs
         offset = bsz - r
         dest   = (cptr `plusPtr` fromIntegral offset)
-        
+
 -- | This combinator tries to fill up the buffer from a list of chunks
 -- of bytestring. If the entire bytestring fits in the buffer then it
 -- returns the space left at the buffer. Otherwise it returns the
@@ -80,3 +83,34 @@ fillUpChunks bsz cptr chunks       = go bsz chunks
             case fill of
               Left  r1 -> go r1 bs
               Right b1 -> return $ Right $ b1:bs
+
+-- | Converts a crypto storable instances to its hexadecimal
+-- representation.
+toHex :: CryptoStore a => a -> ByteString
+toHex = hex . toByteString
+
+-- | Converts bytestring to hexadecimal representation.
+hex :: ByteString -> ByteString
+hex bs = unsafeCreate (2 * n) filler
+  where (fptr, offset, n)      = toForeignPtr bs
+
+        filler ptr = withForeignPtr fptr $
+             \ bsPtr -> putBS (bsPtr `plusPtr` offset) 0 ptr
+
+        putBS bsPtr i ptr
+              | i < n     = do x <- peek bsPtr
+                               put ptr x
+                               putBS bsNewPtr (i+1) ptrNew
+              | otherwise = return ()
+          where bsNewPtr = bsPtr `plusPtr` 1
+                ptrNew   = ptr `plusPtr`   2
+        hexDigit x | x < 10    = c2w '0' + x
+                   | otherwise = c2w 'a' + (x - 10)
+
+        top4 x  = x `shiftR` 4
+        bot4 x  = x  .&. 0x0F
+
+        put ptr x = do poke ptr0 $ hexDigit $ top4 x
+                       poke ptr1 $ hexDigit $ bot4 x
+            where ptr0 = ptr
+                  ptr1 = ptr `plusPtr` 1
