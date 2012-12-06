@@ -3,6 +3,8 @@
 Some utility function for byte strings.
 
 -}
+
+{-# LANGUAGE FlexibleContexts #-}
 module Raaz.Util.ByteString
        ( unsafeCopyToCryptoPtr
        , unsafeNCopyToCryptoPtr
@@ -17,9 +19,10 @@ import Data.ByteString.Internal(toForeignPtr, memcpy, c2w, unsafeCreate)
 import Foreign.ForeignPtr(withForeignPtr)
 import Foreign.Ptr(castPtr, plusPtr)
 import Foreign.Storable(poke, peek)
+import Foreign.C.Types(CSize)
 import Data.Bits
 
-import Raaz.Types(CryptoPtr, BYTES(..), CryptoStore, toByteString)
+import Raaz.Types
 
 -- | Copy the bytestring to the crypto buffer. This operation leads to
 -- undefined behaviour if the crypto pointer points to an area smaller
@@ -34,17 +37,20 @@ unsafeCopyToCryptoPtr bs cptr =  withForeignPtr fptr $
 
 
 -- | Similar to `unsafeCopyToCryptoPtr` but takes an additional input
--- @n@ which is the number of bytes to transfer. This operation leads
--- to undefined behaviour if either the bytestring is shorter than @n@
--- or the crypto pointer points to an area smaller than @n@.
-unsafeNCopyToCryptoPtr :: BYTES Int      -- ^ number of bytes to copy
+-- @n@ which is the number of bytes (expressed in type safe length
+-- units) to transfer. This operation leads to undefined behaviour if
+-- either the bytestring is shorter than @n@ or the crypto pointer
+-- points to an area smaller than @n@.
+unsafeNCopyToCryptoPtr :: CryptoCoerce n (BYTES CSize)
+                       => n              -- ^ length of data to be copied
                        -> ByteString     -- ^ The source byte string
                        -> CryptoPtr      -- ^ The buffer
                        -> IO ()
 unsafeNCopyToCryptoPtr n bs cptr = withForeignPtr fptr $
-           \ p -> memcpy dest (p `plusPtr` offset) (fromIntegral n)
+           \ p -> memcpy dest (p `plusPtr` offset) l
     where (fptr, offset,_) = toForeignPtr bs
-          dest = castPtr cptr
+          dest    = castPtr cptr
+          BYTES l = cryptoCoerce n
 
 -- | This function tries to fill up a crypto buffer with the data from
 -- the input bytestring. It returns either the number number of bytes
@@ -52,6 +58,7 @@ unsafeNCopyToCryptoPtr n bs cptr = withForeignPtr fptr $
 -- data in the cryptobuffer, or the rest of the bytestring. This
 -- function is useful for running block algorithms on lazy
 -- bytestrings.
+
 fillUp :: BYTES Int  -- ^ block size
        -> CryptoPtr  -- ^ pointer to the buffer
        -> BYTES Int  -- ^ data remaining
