@@ -13,14 +13,15 @@ module Raaz.Util.ByteString
        , hex, toHex
        ) where
 
+import           Data.Bits
 import qualified Data.ByteString as B
-import Data.ByteString(ByteString)
-import Data.ByteString.Internal(toForeignPtr, memcpy, c2w, unsafeCreate)
-import Foreign.ForeignPtr(withForeignPtr)
-import Foreign.Ptr(castPtr, plusPtr)
-import Foreign.Storable(poke, peek)
-import Foreign.C.Types(CSize)
-import Data.Bits
+import           Data.ByteString(ByteString)
+import           Data.ByteString.Internal(toForeignPtr, memcpy, c2w, unsafeCreate)
+import           Foreign.ForeignPtr(withForeignPtr)
+import           Foreign.Ptr(castPtr, plusPtr)
+import           Foreign.Storable(poke, peek)
+import           Foreign.C.Types(CSize)
+
 
 import Raaz.Types
 
