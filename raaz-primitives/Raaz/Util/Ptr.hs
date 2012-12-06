@@ -31,7 +31,7 @@ allocaBuffer :: CryptoCoerce l (BYTES Int)
              => l                    -- ^ buffer length
              -> (CryptoPtr -> IO b)  -- ^ the action to run
              -> IO b
-allocaBuffer l action = allocaBytes bytes action
+allocaBuffer l = allocaBytes bytes
   where BYTES bytes = cryptoCoerce l
 
 -- | Moves a pointer by a specified offset. The offset can be of any
