@@ -102,9 +102,10 @@ class ( BlockPrimitive h
   -- hashing files, bytestrings it makes sense to hash multiple blocks
   -- at a time. Setting this member appropriately (typically depends
   -- on the cache size of your machine) can drastically improve cache
-  -- performance of your program. Default setting is @1@.
+  -- performance of your program. Default setting is the number of
+  -- blocks that fit in @32KB@.
   recommendedBlocks   :: h -> BLOCKS h
-  recommendedBlocks _ = 1
+  recommendedBlocks _ = cryptoCoerce (1024 * 32 :: BYTES Int)
 
 
   -- | This functions is to facilitate the hmac construction. There is
