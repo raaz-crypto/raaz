@@ -20,7 +20,6 @@ import           Data.ByteString.Internal(toForeignPtr, memcpy, c2w, unsafeCreat
 import           Foreign.ForeignPtr(withForeignPtr)
 import           Foreign.Ptr(castPtr, plusPtr)
 import           Foreign.Storable(poke, peek)
-import           Foreign.C.Types(CSize)
 
 
 import Raaz.Types
@@ -42,16 +41,16 @@ unsafeCopyToCryptoPtr bs cptr =  withForeignPtr fptr $
 -- units) to transfer. This operation leads to undefined behaviour if
 -- either the bytestring is shorter than @n@ or the crypto pointer
 -- points to an area smaller than @n@.
-unsafeNCopyToCryptoPtr :: CryptoCoerce n (BYTES CSize)
+unsafeNCopyToCryptoPtr :: CryptoCoerce n (BYTES Int)
                        => n              -- ^ length of data to be copied
                        -> ByteString     -- ^ The source byte string
                        -> CryptoPtr      -- ^ The buffer
                        -> IO ()
 unsafeNCopyToCryptoPtr n bs cptr = withForeignPtr fptr $
-           \ p -> memcpy dest (p `plusPtr` offset) l
+           \ p -> memcpy dest (p `plusPtr` offset) (fromIntegral l)
     where (fptr, offset,_) = toForeignPtr bs
           dest    = castPtr cptr
-          BYTES l = cryptoCoerce n
+          BYTES l = cryptoCoerce n :: BYTES Int
 
 -- | This function tries to fill up a crypto buffer with the data from
 -- the input bytestring. It returns either the number number of bytes
