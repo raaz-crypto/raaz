@@ -72,7 +72,7 @@ class ( BlockPrimitive h
   -- one can hold the padding. This function is useful if you want to
   -- know the size to be allocated for your message buffers.
   maxAdditionalBlocks :: h -> BLOCKS h
-  
+
   -- | The recommended number of blocks to hash at a time. While
   -- hashing files, bytestrings it makes sense to hash multiple blocks
   -- at a time. Setting this member appropriately (typically depends
