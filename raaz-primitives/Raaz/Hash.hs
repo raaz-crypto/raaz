@@ -12,6 +12,8 @@ module Raaz.Hash
        ( Hash(..)
        , hashByteString
        , hashLazyByteString
+       , hashFile
+       , hashFileHandle
        ) where
 
 import           Control.Applicative((<$>))
@@ -22,6 +24,7 @@ import qualified Data.ByteString.Lazy as L
 import           Foreign.Ptr(castPtr)
 import           Foreign.Storable(Storable(..))
 import           System.IO.Unsafe
+import           System.IO
 
 import           Raaz.Types
 import           Raaz.Primitives
@@ -178,3 +181,37 @@ compressChunks cxt bs = fmap finaliseHash $ allocaBuffer bufSize $ go cxt bs 0
                            blks      = cryptoCoerce (bufLen + pl)
                            totalBits = bits + cryptoCoerce bufLen
                            padPtr    = cptr `movePtr` bufLen
+
+-- | Hash a given file given the file `Handle`.
+-- It is supposed to be faster than reading a file and then hashing it.
+hashFileHandle :: Hash h
+               => Handle      -- ^ File to be hashed
+               -> IO h
+hashFileHandle hndl = fmap finaliseHash $ allocaBuffer bufSize $ go cxt 0
+     where getHash  :: Cxt h -> h
+           getHash _ = undefined
+           cxt       = startCxt undefined
+           h         = getHash cxt
+           nBlocks   = recommendedBlocks h
+           sz        = cryptoCoerce nBlocks
+           bufSize   = maxAdditionalBlocks h + nBlocks
+           go context bits cptr = do
+                      out <- hGetBuf hndl (castPtr cptr) (fromIntegral sz)
+                      let r = BYTES out
+                      if r < sz then goLeft r else goRight
+             where goRight = do
+                     context' <- compress context nBlocks cptr
+                     go context' (bits + cryptoCoerce nBlocks) cptr
+
+                   goLeft bufLen = do unsafePad h totalBits padPtr
+                                      compress context blks cptr
+                     where pl        = padLength h totalBits
+                           blks      = cryptoCoerce (bufLen + pl)
+                           totalBits = bits + cryptoCoerce bufLen
+                           padPtr    = cptr `movePtr` bufLen
+
+-- | Hash a given file given `FilePath`
+hashFile :: Hash h
+         => FilePath    -- ^ File to be hashed
+         -> IO h
+hashFile fpth = withFile fpth ReadMode hashFileHandle
