@@ -107,6 +107,12 @@ class ( BlockPrimitive h
   recommendedBlocks   :: h -> BLOCKS h
   recommendedBlocks _ = cryptoCoerce (1024 * 32 :: BYTES Int)
 
+  -- | Computes the iterated hash useful for password
+  -- hashing. Although a default implementation is given, you might
+  -- want to give an optimized specialised version of this function.
+  iterate :: Int    -- ^ Number of times to iterate
+          -> h      -- ^ starting hash
+          -> h
 
   -- | This functions is to facilitate the hmac construction. There is
   -- a default definition of this function but implementations can
