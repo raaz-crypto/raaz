@@ -181,8 +181,9 @@ declarations gens is  = fmap concat $ forM gens singleGen
 
 -- | The expression @sub "k" [i,j]@ gives the name @"k_i_j"@.
 sub :: String -> [Int] -> Name
-sub x is = mkName $ intercalate "_" $ x : map show is
-
+sub x is = mkName $ intercalate "_" $ x : map showIndex is
+   where showIndex i | i >= 0    = show i
+                     | otherwise = '_' : show  (abs i)
 -- | The `ExpQ` variant of @sub@.
 subE :: String -> [Int] -> ExpQ
 subE x is = varE $ sub x is
