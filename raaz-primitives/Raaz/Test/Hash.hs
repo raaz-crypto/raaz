@@ -18,7 +18,7 @@ import Test.Framework.Providers.QuickCheck2(testProperty)
 import Test.QuickCheck(Arbitrary)
 
 import Raaz.Primitives
-import Raaz.Primitives.Hash
+import Raaz.Hash
 import Raaz.Types
 import Raaz.Test.CryptoStore
 

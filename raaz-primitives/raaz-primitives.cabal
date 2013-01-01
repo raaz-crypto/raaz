@@ -21,7 +21,6 @@ library
   exposed-modules: Raaz.Types
                  , Raaz.Hash
                  , Raaz.Primitives
-                 , Raaz.Primitives.Hash
 --                 , Raaz.MAC
                  , Raaz.Util.ByteString
                  , Raaz.Util.Ptr
