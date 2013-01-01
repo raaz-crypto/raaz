@@ -88,8 +88,8 @@ instance BlockPrimitive SHA1 where
 instance Hash SHA1 where
   maxAdditionalBlocks _ = 1
 
-  padLength sha1 l = padLength64 sha1 l
-  padding sha1 l   = padding64 sha1 l
+  padLength = padLength64
+  padding   = padding64
 
 
 firstPadByte :: Word8
