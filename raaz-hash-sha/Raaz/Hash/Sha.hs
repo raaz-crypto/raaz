@@ -1,5 +1,5 @@
 {-# LANGUAGE DeriveDataTypeable         #-}
-module Raaz.Primitives.Hash.Sha
+module Raaz.Hash.Sha
        ( SHA1(..)
        ) where
 
@@ -12,7 +12,7 @@ import Foreign.Storable(Storable(..))
 import Test.QuickCheck(Arbitrary(..))
 
 import Raaz.Primitives
-import Raaz.Primitives.Hash
+import Raaz.Hash
 import Raaz.Util.Ptr(loadFromIndex, storeAtIndex)
 import Raaz.Types
 
@@ -83,6 +83,7 @@ instance Arbitrary SHA1 where
 instance BlockPrimitive SHA1 where
   blockSize _ = cryptoCoerce $ BITS (512 :: Int)
   {-# INLINE blockSize #-}
+
 
 instance Hash SHA1 where
   maxAdditionalBlocks _ = 1
