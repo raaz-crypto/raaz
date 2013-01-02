@@ -1,4 +1,6 @@
 {-# LANGUAGE DeriveDataTypeable         #-}
+{-# LANGUAGE TypeFamilies               #-}
+
 module Raaz.Hash.Sha
        ( SHA1(..)
        ) where
@@ -86,6 +88,15 @@ instance BlockPrimitive SHA1 where
 
 
 instance Hash SHA1 where
+  newtype Cxt SHA1 = SHA1Cxt SHA1
+
+  startCxt _ = SHA1Cxt $ SHA1 0x67452301
+                              0xefcdab89
+                              0x98badcfe
+                              0x10325476
+                              0xc3d2e1f0
+  finaliseHash (SHA1Cxt h) = h
+
   maxAdditionalBlocks _ = 1
 
   padLength = padLength64
