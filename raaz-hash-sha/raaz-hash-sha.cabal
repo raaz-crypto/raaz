@@ -19,10 +19,13 @@ source-repository head
 
 library
   exposed-modules: Raaz.Hash.Sha
+                 , Raaz.Hash.Sha.Ref.Sha1
+
   build-depends: base
                , bytestring
                , QuickCheck==2.4.*
                , raaz-primitives==0.0.0.0
+               , template-haskell
   ghc-options: -Wall
 
 test-Suite tests
