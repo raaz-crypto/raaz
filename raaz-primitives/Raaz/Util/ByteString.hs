@@ -10,6 +10,7 @@ module Raaz.Util.ByteString
        , unsafeNCopyToCryptoPtr
        , fillUp
        , fillUpChunks
+       , Raaz.Util.ByteString.length
        , hex, toHex
        ) where
 
@@ -23,6 +24,10 @@ import           Foreign.Storable(poke, peek)
 
 
 import Raaz.Types
+
+-- | A typesafe length for Bytestring
+length :: ByteString -> BYTES Int
+length = BYTES . B.length
 
 -- | Copy the bytestring to the crypto buffer. This operation leads to
 -- undefined behaviour if the crypto pointer points to an area smaller
