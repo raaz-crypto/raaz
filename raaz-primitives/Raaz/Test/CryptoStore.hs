@@ -62,6 +62,6 @@ testStoreLoad :: ( CryptoStore a
               => a    -- ^ dummy argument (not used)
               -> Test
 
-testStoreLoad a = testProperty ("Store/Load " ++ aType)
+testStoreLoad a = testProperty (aType ++ ": Store/Load ")
                                $ prop_StoreLoad a
      where aType = show $ typeOf a
