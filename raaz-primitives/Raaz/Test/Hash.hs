@@ -58,11 +58,21 @@ testLengthDivisibility h = testProperty name
                            $ prop_LengthDivisibility h
     where name = show (typeOf h) ++ ": padding + message length vs block length"
 
--- | For a hash implementation and given prehashed input-output pairs,
--- this function checks if the implementation satisfies those.
+-- | The specifications of hash algorithms is usually accompanied with
+-- a set of strings and their corresponding hash values so that
+-- implementations can be checked. This combinator helps in generating
+-- a unit test from such a set of string hash pairs.
+--
+-- The first argument is ignored and is present only to satisfy the
+-- type checker. The second argument is a list which consists of pairs
+-- of a string its hash (expressed as a bytestring in hex).
+
 testStandardHashValues :: (CryptoStore h, Hash h, Typeable h)
-                       => h
-                       -> [(B.ByteString,B.ByteString)]
+                       => h                             -- ^ hash
+                                                        -- value
+                                                        -- (ignored)
+                       -> [(B.ByteString,B.ByteString)] -- ^ string
+                                                        -- hash pairs
                        -> [Test]
 testStandardHashValues h = hUnitTestToTests . test . map checkHash
   where getHash a = toHex $ hashByteString a `asTypeOf` h
