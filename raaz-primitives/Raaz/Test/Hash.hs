@@ -16,8 +16,8 @@ import Data.Typeable
 import Data.Word
 import Test.Framework(Test)
 import Test.Framework.Providers.QuickCheck2(testProperty)
-import Test.HUnit ((@?=))
-import Test.Framework.Providers.HUnit(testCase)
+import Test.HUnit ((~?=), test, (~:) )
+import Test.Framework.Providers.HUnit(hUnitTestToTests)
 import Test.QuickCheck(Arbitrary)
 
 import Raaz.Hash
@@ -63,8 +63,8 @@ testLengthDivisibility h = testProperty name
 testStandardHashValues :: (CryptoStore h, Hash h, Typeable h)
                        => h
                        -> [(B.ByteString,B.ByteString)]
-                       -> Test
-testStandardHashValues h = testCase msg . sequence_ . map checkHash
-  where getHash a = toHex( hashByteString a `asTypeOf` h)
-        msg = show (typeOf h) ++ ": StandardHashValues"
-        checkHash (a,b) = getHash a @?= b
+                       -> [Test]
+testStandardHashValues h = hUnitTestToTests . test . map checkHash
+  where getHash a = toHex $ hashByteString a `asTypeOf` h
+        label a   = show (typeOf h) ++ " " ++ show a
+        checkHash (a,b) = label a ~: getHash a ~?= b
