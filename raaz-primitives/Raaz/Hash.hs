@@ -17,6 +17,7 @@ module Raaz.Hash
        ) where
 
 import           Control.Applicative((<$>))
+import           Control.Monad (foldM)
 import           Data.Word(Word64)
 import qualified Data.ByteString as B
 import           Data.ByteString.Internal(unsafeCreate)
@@ -65,11 +66,29 @@ class ( BlockPrimitive h
   -- compressor which works on a fixed block of bits. This compressor
   -- is what does all the hardwork and the security of the hash
   -- depends on the security of this function. The compression
-  -- function assocated with the hash.
+  -- function assocated with the hash. This already has a default
+  -- implementation in terms of compressSingle, but you can provide a
+  -- more efficient implementation.
   compress :: Cxt h         -- ^ The context from the previous round
            -> BLOCKS h      -- ^ The number of blocks of data.
            -> CryptoPtr     -- ^ The message buffer
            -> IO (Cxt h)
+  compress cxt b cptr = fst <$> foldM moveAndHash (cxt,cptr) [1..b]
+    where
+      moveAndHash (cxt',ptr) _ = do newcxt <- compressSingle cxt' ptr
+                                    let moveBy = blockSize (getHash cxt)
+                                    return (newcxt,movePtr ptr moveBy)
+      getHash :: Cxt h -> h
+      getHash _ = undefined
+
+  -- | Reads one block from the CryptoPtr and produces the next
+  -- context from the previous context. It has a default
+  -- implementation in terms of compress. So you need to provide
+  -- implementation of atleast one of compress or compressSingle.
+  compressSingle :: Cxt h         -- ^ The context
+                 -> CryptoPtr     -- ^ The message buffer
+                 -> IO (Cxt h)
+  compressSingle cxt cptr = compress cxt 1 cptr
 
   -- | There are two reasons to pad the data to be hashed. The obvious
   -- reason is to handle messages that are not multiples of the block
