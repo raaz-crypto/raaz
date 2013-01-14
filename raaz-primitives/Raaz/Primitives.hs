@@ -37,7 +37,7 @@ newtype BLOCKS p = BLOCKS Int
 instance ( BlockPrimitive p
          , Num by
          ) => CryptoCoerce (BLOCKS p) (BYTES by) where
-  cryptoCoerce b@(BLOCKS n) = fromIntegral $ blockSize (prim b) * 
+  cryptoCoerce b@(BLOCKS n) = fromIntegral $ blockSize (prim b) *
                                            (fromIntegral n)
          where prim :: BLOCKS p -> p
                prim _ = undefined
@@ -47,7 +47,7 @@ instance ( BlockPrimitive p
 instance ( BlockPrimitive p
          , Num bits
          ) => CryptoCoerce (BLOCKS p) (BITS bits) where
-  cryptoCoerce b@(BLOCKS n) = fromIntegral $ 8 * blockSize (prim b) * 
+  cryptoCoerce b@(BLOCKS n) = fromIntegral $ 8 * blockSize (prim b) *
                                            (fromIntegral n)
          where prim :: BLOCKS p -> p
                prim _ = undefined
@@ -65,6 +65,15 @@ instance ( BlockPrimitive p
                m      = fromIntegral bytes `quot` blockSize (prim result)
   {-# INLINE cryptoCoerce #-}
 
+-- | BEWARE: There can be rounding errors if the number of bytes is
+-- not a multiple of block length.
+instance ( BlockPrimitive p
+         , Integral by
+         ) => CryptoCoerce (BITS by) (BLOCKS p) where
+  cryptoCoerce = cryptoCoerce . bytes
+    where bytes :: Integral by => BITS by -> BYTES by
+          bytes = cryptoCoerce
+  {-# INLINE cryptoCoerce #-}
 -- | The expression @n `blocksOf` p@ specifies the message lengths in
 -- units of the block length of the primitive @p@. This expression is
 -- sometimes required to make the type checker happy.
