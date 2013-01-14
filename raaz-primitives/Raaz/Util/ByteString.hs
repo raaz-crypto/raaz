@@ -10,10 +10,11 @@ module Raaz.Util.ByteString
        , unsafeNCopyToCryptoPtr
        , fillUp
        , fillUpChunks
-       , Raaz.Util.ByteString.length
+       , length
        , hex, toHex
        ) where
 
+import           Prelude hiding (length)
 import           Data.Bits
 import qualified Data.ByteString as B
 import           Data.ByteString(ByteString)
