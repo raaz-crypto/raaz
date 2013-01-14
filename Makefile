@@ -11,11 +11,8 @@ TEST_PATH=dist/build/tests/tests
 .PHONY: ${PACKAGES} install merge release tests
 
 install: ${PACKAGES}
-	git checkout master
-
 
 ${PACKAGES}:
-	git checkout x-$@
 	cd raaz-$@;\
 	cabal install --enable-documentation\
 	              --enable-tests\
@@ -24,12 +21,10 @@ ${PACKAGES}:
 tests:
 
 	$(foreach pkg, ${PACKAGES},\
-		git checkout x-${pkg};\
 		cd raaz-${pkg};\
 		cabal test;\
 		cd ..;\
 		)
-	git checkout master
 
 merge:
 	git checkout master
