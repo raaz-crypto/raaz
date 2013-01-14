@@ -25,6 +25,7 @@ import           Foreign.Storable(poke, peek)
 
 
 import Raaz.Types
+import Raaz.Util.Ptr
 
 -- | A typesafe length for Bytestring
 length :: ByteString -> BYTES Int
@@ -71,14 +72,13 @@ fillUp :: BYTES Int  -- ^ block size
        -> ByteString -- ^ next chunk
        -> IO (Either (BYTES Int) ByteString)
 fillUp bsz cptr r bs | l < r     = do unsafeCopyToCryptoPtr bs dest
-                                      return $ Left r'
+                                      return $ Left $ r - l
                      | otherwise = do unsafeNCopyToCryptoPtr r bs dest
                                       return $ Right rest
-  where l      = BYTES $ B.length bs
-        r'     = r - l
+  where dest   = cptr `movePtr` offset
         rest   = B.drop (fromIntegral r) bs
         offset = bsz - r
-        dest   = cptr `plusPtr` fromIntegral offset
+        l      = length bs
 
 -- | This combinator tries to fill up the buffer from a list of chunks
 -- of bytestring. If the entire bytestring fits in the buffer then it
