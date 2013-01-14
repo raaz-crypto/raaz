@@ -1,0 +1,193 @@
+{-|
+
+Some template haskell helper functions. For speed considerations we
+often need to unroll computations. Typing such unrolled definitions
+are repeatitive and error prone. This module provides Template Haskell
+based functions to eliminate some of these. For function definitions,
+also consider using the INLINE pragma.
+
+-}
+
+module Raaz.Util.TH
+       ( constants
+       , matrix
+       , variable, variable', variableGen
+       , signature, signatureGen
+       , declarations
+       , permute
+       -- * Subscripting variables.
+       -- $subscripting
+       , sub, subE, subP
+       ) where
+
+import Control.Monad
+import Data.List(intercalate)
+import Language.Haskell.TH
+import Language.Haskell.TH.Syntax(Lift(..))
+
+-- | Declare a list of constants. For example the expression
+-- @constants "k" ''Int [1, 1 ,2, 3]@ will lead to the following
+-- declarations.
+--
+-- > k_0 :: Int
+-- > k_0 = 1
+-- > k_1 :: Int
+-- > k_1 = 1
+-- > k_2 :: Int
+-- > k_2 = 2
+-- > k_3 :: Int
+-- > k_3 = 3
+--
+-- This combinator gives an easy way of declaring round constants in a
+-- cryptographic algorithm.
+constants :: Lift val
+          => String  -- ^ variable name.
+          -> Name    -- ^ the type of the variable
+          -> [val]   -- ^ the values
+          -> DecsQ
+constants = constantP []
+
+
+-- | A matrix variant of `constants`: @matrix "k" ''Int [[0,1],[2,3]]@ gives
+-- the declaration
+--
+-- > k_0_0 :: Int
+-- > k_0_0 = 0
+-- > ...
+-- > ...
+-- > k_1_1 :: Int
+-- > k_1_1 = 3
+matrix :: Lift val
+       => String    -- ^ the base name of the variable
+       -> Name      -- ^ the type of the variable
+       -> [[val]]   -- ^ the value matrix
+       -> DecsQ
+matrix k ty = fmap concat . zipWithM outer [0..]
+  where outer i = constantP [i] k ty
+
+
+-- | Worker function to define constants.
+constantP :: Lift v
+          => [Int]
+          -> String
+          -> Name
+          -> [v]
+          -> DecsQ
+constantP is k ty = fmap concat . zipWithM inner [0..]
+   where inner i v = sequence [ signature k ty index
+                              , variable  k (const $ lift v) index
+                              ]
+               where index = is ++ [i]
+
+-- | The expression @signature "x" ''Int [1,2]@ declares the following
+-- type signature.
+--
+-- > x_1_2 :: Int
+--
+signature :: String   -- ^ Variable name
+          -> Name     -- ^ The type name
+          -> [Int]    -- ^ The subscript
+          -> DecQ
+signature k ty = signatureGen k $ conT ty
+
+-- | A more general version of `signature`.
+signatureGen :: String   -- ^ The variable
+             -> TypeQ    -- ^ The type
+             -> [Int]    -- ^ The subscript
+             -> DecQ
+signatureGen k ty is = sigD (k `sub` is) ty
+
+
+-- | Generate a variable definition. The expression @variable "x" exp [1,2]@
+-- will result in a declaration that looks like
+--
+-- > x_1_2 = [| $(exp [1,2]) |]
+--
+--
+variable :: String          -- ^ Variable name
+         -> ([Int] -> ExpQ) -- ^ the rhs of the variable
+         -> [Int]           -- ^ subscript
+         -> DecQ
+variable k rhs is = valD (k `subP` is)
+                         (normalB $ rhs is)
+                         []
+
+-- | Genrates a variable definition and type signature.
+variable' :: String          -- ^ Variable name
+          -> Name            -- ^ Type
+          -> ([Int] -> ExpQ) -- ^ The rhs of the variable definition
+          -> [Int]           -- ^ The subscript
+          -> DecsQ
+variable' k ty = variableGen k $ conT ty
+
+
+-- | The most general type of variable declaration.
+variableGen :: String          -- ^ Variable name
+            -> TypeQ           -- ^ Type signature
+            -> ([Int] -> ExpQ) -- ^ The rhs of the variable definition
+            -> [Int]           -- ^ The subscript
+            -> DecsQ
+variableGen k ty rhs is = sequence [ signatureGen k ty is
+                                   , variable k rhs is
+                                   ]
+
+-- | The TH expression @permute [("x", "y"), ("u","v")] 5@ declares
+-- the following variables
+--
+-- > x_5 = y_4
+-- > u_5 = v_4
+--
+-- Often the definition of round variables are just permutations of
+-- the previous round variables. In such a case the permute
+-- declaration is useful.
+--
+
+permute :: [(String,String)] -> Int -> DecsQ
+permute vars i   = mapM f vars
+  where f :: (String,String) -> DecQ
+        f (x,y)  = variable x (const $ subE y [i-1]) [i]
+
+-- | The TH code @declarations [w,a] [1..100]@ generates the following
+-- declarations
+--
+-- > w 1
+-- > w 2
+-- > ...
+-- > w 100
+-- > a 1
+-- > ...
+-- > w 100
+--
+-- This function can be used for example to unroll a set of mutually
+-- recursive definitions of variables.
+
+declarations :: [Int -> DecsQ] -- ^ Declaration generators
+             -> [Int]          -- ^ Subscripts
+             -> DecsQ
+declarations gens is  = fmap concat $ forM gens singleGen
+  where singleGen gen = fmap concat $ forM is gen
+
+-- $subscripting
+--
+-- While unrolling loops we need to generate a sequence of
+-- variables. Typically the subscript would just be an
+-- integer. However, we some times require matrix variables.  The
+-- convention followed in this: A variable can have a list of integers
+-- as its subscript. The variable @k@ with subscript @[2,3]@
+-- correspondes to the variable @k_2_3@ in the generated Haskell
+-- code. However, while using the library make use of the exported
+-- functions `sub`, `subE` and `subP` to generate the variable names
+-- instead of explicitly coding it up.
+
+-- | The expression @sub "k" [i,j]@ gives the name @"k_i_j"@.
+sub :: String -> [Int] -> Name
+sub x is = mkName $ intercalate "_" $ x : map showIndex is
+   where showIndex i | i >= 0    = show i
+                     | otherwise = '_' : show  (abs i)
+-- | The `ExpQ` variant of @sub@.
+subE :: String -> [Int] -> ExpQ
+subE x is = varE $ sub x is
+
+-- | The `PatQ` variant of @sub@.
+subP :: String -> [Int] -> PatQ
+subP x is = varP $ sub x is

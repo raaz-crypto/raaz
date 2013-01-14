@@ -8,12 +8,10 @@ A cryptographic hash function abstraction.
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
 
-module Raaz.Hash
-       ( Hash(..)
+module Raaz.Primitives.Hash
+       ( Hash(..), HashImplementation(..)
        , hashByteString
        , hashLazyByteString
-       , hashFile
-       , hashFileHandle
        ) where
 
 import           Control.Applicative((<$>))
@@ -24,7 +22,6 @@ import qualified Data.ByteString.Lazy as L
 import           Foreign.Ptr(castPtr)
 import           Foreign.Storable(Storable(..))
 import           System.IO.Unsafe
-import           System.IO
 
 import           Raaz.Types
 import           Raaz.Primitives
@@ -45,31 +42,6 @@ class ( BlockPrimitive h
       , Storable    h
       , CryptoStore h
       ) => Hash h where
-
-  -- | Hash functions proceeds in rounds where each round processes
-  -- one block. This assocaited type captures the intermediate value
-  -- required in the processing of the next block. For Merkel-Damgård
-  -- this is usually just h, although one could use a more efficient
-  -- representation of it. In HAIFA hashes, it usually contains the
-  -- salt and the number of bits processed as well.
-  data Cxt h :: *
-
-  -- | The context to start the hash algorithm.
-  startCxt   :: h -> Cxt h
-
-  -- | How to finalise the hash from the context.
-  finaliseHash :: Cxt h -> h
-
-  -- | Underlying a cryptographic hash, whether it is one of the
-  -- Merkel-Damgård hashes like SHA1 or HAIFA hashes like BLAKE, is a
-  -- compressor which works on a fixed block of bits. This compressor
-  -- is what does all the hardwork and the security of the hash
-  -- depends on the security of this function. The compression
-  -- function assocated with the hash.
-  compress :: Cxt h         -- ^ The context from the previous round
-           -> BLOCKS h      -- ^ The number of blocks of data.
-           -> CryptoPtr     -- ^ The message buffer
-           -> IO (Cxt h)
 
   -- | There are two reasons to pad the data to be hashed. The obvious
   -- reason is to handle messages that are not multiples of the block
@@ -105,22 +77,43 @@ class ( BlockPrimitive h
   -- hashing files, bytestrings it makes sense to hash multiple blocks
   -- at a time. Setting this member appropriately (typically depends
   -- on the cache size of your machine) can drastically improve cache
-  -- performance of your program. Default setting is the number of
-  -- blocks that fit in @32KB@.
+  -- performance of your program. Default setting is @1@.
   recommendedBlocks   :: h -> BLOCKS h
-  recommendedBlocks _ = cryptoCoerce (1024 * 32 :: BYTES Int)
+  recommendedBlocks _ = 1
 
-  -- | Computes the iterated hash useful for password
-  -- hashing. Although a default implementation is given, you might
-  -- want to give an optimized specialised version of this function.
-  iterateHash :: Int    -- ^ Number of times to iterate
-              -> h      -- ^ starting hash
-              -> h
+
+-- | Underlying a cryptographic hash, whether it is one of the
+-- Merkel-Damgård hashes like SHA1 or HAIFA hashes like BLAKE, is a
+-- compressor which works on a fixed block of bits. This compressor is
+-- what does all the hardwork and the security of the hash depends on
+-- the security of this function. We capture this compressor via the
+-- type class HashImplementation.
+
+class Hash h => HashImplementation i h where
+  -- | Hash functions proceeds in rounds where each round processes
+  -- one block. This assocaited type captures the intermediate value
+  -- required in the processing of the next block. For Merkel-Damgård
+  -- this is usually just h, although one could use a more efficient
+  -- representation of it. In HAIFA hashes, it usually contains the
+  -- salt and the number of bits processed as well.
+  data Cxt i h :: *
+
+  -- | The context to start the hash algorithm.
+  startCxt     :: i -> h -> Cxt i h
+
+  -- | How to finalise the hash from the context.
+  finaliseHash :: Cxt i h -> h
+
+  -- | The compression function assocated with the hash.
+  compress :: Cxt i h       -- ^ The context from the previous round
+           -> BLOCKS h      -- ^ The number of blocks of data.
+           -> CryptoPtr     -- ^ The message buffer
+           -> IO (Cxt i h)
 
   -- | This functions is to facilitate the hmac construction. There is
   -- a default definition of this function but implementations can
   -- give a more efficient version.
-  hmacOuter :: Cxt h
+  hmacOuter :: Cxt i h
             -> h
             -> h
   hmacOuter cxt h = unsafePerformIO $ allocaBuffer tl go
@@ -138,81 +131,50 @@ class ( BlockPrimitive h
               unsafePad h bits $ cptr `movePtr` sz
               finaliseHash <$> compress cxt (cryptoCoerce tl) cptr
 
-
-
 -- | Hash a given strict bytestring.
-hashByteString :: Hash h
-               => B.ByteString  -- ^ The data to hash
+hashByteString :: ( Hash h
+                  , HashImplementation i h
+                  )
+               => i             -- ^ The implementation
+               -> B.ByteString  -- ^ The data to hash
                -> h             -- ^ The hash
 
-hashByteString bs = unsafePerformIO $ compressChunks (startCxt undefined) [bs]
-
+hashByteString i bs = unsafePerformIO $ compressChunks (startCxt i undefined) [bs]
 
 -- | Hash a given lazy bytestring.
-hashLazyByteString :: Hash h
-                   => L.ByteString -- ^ The bytestring
+hashLazyByteString :: ( Hash h
+                      , HashImplementation i h
+                      )
+                   => i            -- ^ The implementation
+                   -> L.ByteString -- ^ The bytestring
                    -> h
-hashLazyByteString = unsafePerformIO
-                   . compressChunks (startCxt undefined)
-                   . L.toChunks
+hashLazyByteString i = unsafePerformIO
+                     . compressChunks (startCxt i undefined)
+                     . L.toChunks
 
--- | Hash a given file given `FilePath`
-hashFile :: Hash h
-         => FilePath    -- ^ File to be hashed
-         -> IO h
-hashFile fpth = withFile fpth ReadMode hashFileHandle
-
--- | Hash a given file given the file `Handle`.  It is supposed to be
--- faster than reading a file and then hashing it.
-hashFileHandle :: Hash h
-               => Handle      -- ^ File to be hashed
+-- | Compress a list of strict byte string chunks.
+compressChunks :: HashImplementation i h
+               => Cxt i h
+               -> [B.ByteString]
                -> IO h
-hashFileHandle hndl = fmap finaliseHash $ allocaBuffer bufSize $ go cxt 0
-     where getHash  :: Cxt h -> h
+compressChunks cxt bs = fmap finaliseHash $ allocaBuffer bufSize $ go cxt bs 0
+     where getHash  :: Cxt i h -> h
            getHash _ = undefined
-           cxt       = startCxt undefined
            h         = getHash cxt
            nBlocks   = recommendedBlocks h
            sz        = cryptoCoerce nBlocks
            bufSize   = maxAdditionalBlocks h + nBlocks
-           go context bits cptr = do
-                      count <- hFillBuf hndl cptr nBlocks
-                      if count == sz
-                         then do context' <- compress context nBlocks cptr
-                                 go context' (bits + cryptoCoerce nBlocks) cptr
-                         else compressLast h context bits count cptr
-
-
--- | Compress a list of strict byte string chunks.
-compressChunks :: Hash h
-               => Cxt h
-               -> [B.ByteString]
-               -> IO h
-compressChunks cxt bs = fmap finaliseHash $ allocaBuffer bufSize $ go cxt bs 0
-     where getHash  :: Cxt h -> h
-           getHash _ = undefined
-           h         = getHash cxt
-           nBlocks   = recommendedBlocks h
-           bufSize   = maxAdditionalBlocks h + nBlocks
-           go context bstr bits cptr =   fillUpChunks bstr nBlocks cptr
-                                     >>= either goLeft goRight
+           go context bstr bits cptr = do
+                      fill <- fillUpChunks sz cptr bstr
+                      either goLeft goRight fill
              where goRight rest = do
                      context' <- compress context nBlocks cptr
                      go context' rest (bits + cryptoCoerce nBlocks) cptr
 
-                   goLeft r = compressLast h context bits bufLen cptr
-                        where bufLen = cryptoCoerce nBlocks - r
-
--- | Compressing the last bytes.
-compressLast :: Hash h
-             => h
-             -> Cxt h
-             -> BITS Word64
-             -> BYTES Int   -- ^ Bytes in the buffer.
-             -> CryptoPtr
-             -> IO (Cxt h)
-compressLast h cxt bits bufLen cptr =  unsafePad h totalBits padPtr
-                                    >> compress cxt blks cptr
-       where totalBits = bits + cryptoCoerce bufLen
-             blks      = cryptoCoerce (bufLen + padLength h totalBits)
-             padPtr    = cptr `movePtr` bufLen
+                   goLeft r = do unsafePad h totalBits padPtr
+                                 compress context blks cptr
+                     where bufLen    = sz - r
+                           pl        = padLength h totalBits
+                           blks      = cryptoCoerce (bufLen + pl)
+                           totalBits = bits + cryptoCoerce bufLen
+                           padPtr    = cptr `movePtr` bufLen

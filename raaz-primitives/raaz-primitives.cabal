@@ -20,12 +20,19 @@ source-repository head
 library
   exposed-modules: Raaz.Types
                  , Raaz.Hash
-                 , Raaz.MAC
+                 , Raaz.Primitives
+--                 , Raaz.MAC
+                 , Raaz.Util.ByteString
+                 , Raaz.Util.Ptr
+                 , Raaz.Util.TH
                  , Raaz.Test.CryptoStore
+                 , Raaz.Test.Hash
   build-depends: base
                , bytestring
-               , primitive==0.4.*
+               , HUnit==1.2.*
+               , template-haskell
                , test-framework==0.6.*
+               , test-framework-hunit
                , test-framework-quickcheck2==0.2.*
                , QuickCheck==2.4.*
                , cpu
@@ -36,9 +43,11 @@ test-Suite tests
   type: exitcode-stdio-1.0
   hs-source-dirs: tests
   main-is: Main.hs
-  build-depends: base==4.5.*
+  build-depends: base
                , bytestring
+               , HUnit==1.2.*
                , test-framework==0.6.*
+               , test-framework-hunit
                , test-framework-quickcheck2==0.2.*
                , QuickCheck==2.4.*
                , raaz-primitives==0.0.0.0

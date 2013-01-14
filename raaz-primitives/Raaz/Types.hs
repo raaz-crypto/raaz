@@ -10,23 +10,29 @@ Some basic types and classes used in the cryptographic protocols.
 {-# LANGUAGE DeriveDataTypeable         #-}
 module Raaz.Types
        ( CryptoCoerce(..)
-       -- * Endian safe types
-       -- $endianSafe
        , cryptoAlignment, CryptoAlign, CryptoPtr
        , CryptoStore(..), toByteString
+       -- * Endian safe types
+       -- $endianSafe
        , Word32LE, Word32BE
        , Word64LE, Word64BE
+       -- * Length encoding
+       -- $length
+       , BYTES(..), BITS(..)
+       -- * Types capturing implementations
+       -- $implementation
+       , HaskellGHC(..), MagicHash(..), C99FFI(..), C99GCC(..),
        ) where
 
 import Data.Bits
 import Data.Word
 import Data.ByteString (ByteString)
 import Data.ByteString.Internal (unsafeCreate)
-import Data.Primitive.Types (Prim)
 import Data.Typeable(Typeable)
 import Foreign.Ptr
 import Foreign.Storable
 import System.Endian
+import Test.QuickCheck(Arbitrary(..))
 
 -- Developers notes: I assumes that word alignment is alignment
 -- safe. If this is not the case one needs to fix this to avoid
@@ -44,9 +50,10 @@ cryptoAlignment :: Int
 cryptoAlignment = alignment (undefined :: CryptoAlign)
 {-# INLINE cryptoAlignment #-}
 
--- | Often we would like to feed the output of one crypto algorithm as
--- the input of the other algorithm, for e.g RSA sign the HMAC of a
--- message.
+-- | Often we need a type safe way to convert between one type to
+-- another. In such a case, it is advisable to define an instance of
+-- this class. One place where it is extensively used is in type safe
+-- lengths.
 class CryptoCoerce s t where
   cryptoCoerce :: s -> t
 
@@ -57,7 +64,13 @@ class CryptoCoerce s t where
 -- define an instance of this class. Using store and load will then
 -- prevent endian confusion.
 class Storable w => CryptoStore w where
-  store :: CryptoPtr -> w -> IO ()
+
+  -- | Store the given value at the locating pointed by the pointer
+  store :: CryptoPtr   -- ^ the location.
+        -> w           -- ^ value to store
+        -> IO ()
+
+  -- | Load the value from the location pointed by the pointer.
   load  :: CryptoPtr -> IO w
 
 -- | Generate a bytestring representation of the object.
@@ -109,32 +122,31 @@ by ghc.
 
 -- | Little endian `Word32`.
 newtype Word32LE = LE32 Word32
-   deriving ( Bounded, Enum, Read, Show, Integral
-            , Num, Real, Eq, Ord, Bits, Storable
-            , Prim, Typeable
+   deriving ( Arbitrary, Bounded, Enum, Read, Show
+            , Integral, Num, Real, Eq, Ord, Bits
+            , Storable, Typeable
             )
 
 -- | Big endian  `Word32`
 newtype Word32BE = BE32 Word32
-   deriving ( Bounded, Enum, Read, Show, Integral
-            , Num, Real, Eq, Ord, Bits, Storable
-            , Prim, Typeable
+   deriving ( Arbitrary, Bounded, Enum, Read, Show
+            , Integral, Num, Real, Eq, Ord, Bits
+            , Storable, Typeable
             )
 
 -- | Little endian `Word64`
 newtype Word64LE = LE64 Word64
-   deriving ( Bounded, Enum, Read, Show, Integral
-            , Num, Real, Eq, Ord, Bits, Storable
-            , Prim, Typeable
+   deriving ( Arbitrary, Bounded, Enum, Read, Show
+            , Integral, Num, Real, Eq, Ord, Bits
+            , Storable, Typeable
             )
 
 -- | Big endian `Word64`
 newtype Word64BE = BE64 Word64
-   deriving ( Bounded, Enum, Read, Show, Integral
-            , Num, Real, Eq, Ord, Bits, Storable
-            , Prim, Typeable
+   deriving ( Arbitrary, Bounded, Enum, Read, Show
+            , Integral, Num, Real, Eq, Ord, Bits
+            , Storable, Typeable
             )
-
 
 {-|
 
@@ -214,3 +226,78 @@ instance CryptoStore Word64BE where
   {-# INLINE store #-}
   load      = fmap toWord64BE . peek . castPtr
   store ptr = poke (castPtr ptr) . fromWord64BE
+
+-- $length
+--
+-- Crypto protocols also represent message lengths in various units,
+-- bytes and bits usually. To catch length conversion errors at
+-- compile time, we include the following types that specify
+-- explicitly whether the length is in bits or bytes.
+
+-- | Type safe lengths/offsets in units of bytes. If the function
+-- excepts a length unit of a different type use `cryptoCoerce` to
+-- convert to a more convenient length units.  the `CrytoCoerce`
+-- instance is guranteed to do the appropriate scaling.
+newtype BYTES a  = BYTES a
+        deriving ( Arbitrary, Show, Eq, Ord, Enum, Integral
+                 , Real, Num, Storable, CryptoStore
+                 )
+
+-- | Type safe lengths/offsets in units of bits. If the function
+-- excepts a length unit of a different type use `cryptoCoerce` to
+-- convert to a more convenient length units.  the `CrytoCoerce`
+-- instance is guranteed to do the appropriate scaling.
+newtype BITS  a  = BITS  a
+        deriving ( Arbitrary, Show, Eq, Ord, Enum, Integral
+                 , Real, Num, Storable, CryptoStore
+                 )
+
+instance ( Integral by
+         , Num bi
+         )
+         => CryptoCoerce (BYTES by) (BITS bi) where
+  cryptoCoerce (BYTES by) = BITS $ 8 * fromIntegral by
+  {-# INLINE cryptoCoerce #-}
+
+-- | BEWARE: If the number of bits is not an integral multiple of 8
+-- then there are rounding errors.
+instance ( Integral bi
+         , Real bi
+         , Num by
+         )
+         => CryptoCoerce (BITS bi) (BYTES by) where
+  cryptoCoerce (BITS bi) = BYTES $ fromIntegral (bi `quot` 8)
+  {-# INLINE cryptoCoerce #-}
+
+instance ( Integral by1
+         , Num by2
+         ) => CryptoCoerce (BYTES by1) (BYTES by2) where
+  cryptoCoerce (BYTES by) = BYTES $ fromIntegral by
+  {-# INLINE cryptoCoerce #-}
+
+
+instance ( Integral bi1
+         , Num bi2
+         ) => CryptoCoerce (BITS bi1) (BITS bi2) where
+  cryptoCoerce (BITS bi) = BITS $ fromIntegral bi
+  {-# INLINE cryptoCoerce #-}
+
+-- $implementation
+--
+-- Each primitives have multiple implementations and these
+-- implementations are characterised by types. Given below are the
+-- standard implementation types.
+
+
+-- | Captures implementation in GHC flavoured haskell.
+data HaskellGHC = HaskellGHC deriving Show
+
+-- | Captures implementations that uses the MagicHash unboxed types.
+data MagicHash = MagicHash deriving Show
+
+-- | Captures implementations using portable C99 and Haskell FFI.
+data C99FFI = C99FFI       deriving Show
+
+-- | Captures implementation which assumes GCC. Use this if you are
+-- using some gcc specific features like inline assembly etc.
+data C99GCC = C99GCC       deriving Show
