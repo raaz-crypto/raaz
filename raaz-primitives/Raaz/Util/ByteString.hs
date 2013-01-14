@@ -66,36 +66,39 @@ unsafeNCopyToCryptoPtr n bs cptr = withForeignPtr fptr $
 -- function is useful for running block algorithms on lazy
 -- bytestrings.
 
-fillUp :: BYTES Int  -- ^ block size
+fillUp :: ByteString -- ^ next chunk
+       -> BYTES Int  -- ^ block size
        -> CryptoPtr  -- ^ pointer to the buffer
-       -> BYTES Int  -- ^ data remaining
-       -> ByteString -- ^ next chunk
        -> IO (Either (BYTES Int) ByteString)
-fillUp bsz cptr r bs | l < r     = do unsafeCopyToCryptoPtr bs dest
-                                      return $ Left $ r - l
-                     | otherwise = do unsafeNCopyToCryptoPtr r bs dest
-                                      return $ Right rest
-  where dest   = cptr `movePtr` offset
-        rest   = B.drop (fromIntegral r) bs
-        offset = bsz - r
-        l      = length bs
+fillUp bs sz cptr | l < sz    = do unsafeCopyToCryptoPtr bs cptr
+                                   return $ Left  $ sz - l
+                  | otherwise = do unsafeNCopyToCryptoPtr sz bs cptr
+                                   return $ Right rest
+  where l      = length bs
+        rest   = B.drop (fromIntegral sz) bs
+
 
 -- | This combinator tries to fill up the buffer from a list of chunks
 -- of bytestring. If the entire bytestring fits in the buffer then it
 -- returns the space left at the buffer. Otherwise it returns the
 -- remaining chunks.
-fillUpChunks :: BYTES Int     -- ^ buffer size
+fillUpChunks :: CryptoCoerce bufSize (BYTES Int)
+             => [ByteString]  -- ^ The chunks of the byte string
+             -> bufSize       -- ^ buffer size
              -> CryptoPtr     -- ^ the buffer
-             -> [ByteString]  -- ^ The chunks of the byte string
              -> IO (Either (BYTES Int) [ByteString])
+fillUpChunks chunks = go chunks . cryptoCoerce
+   where go :: [ByteString]
+            -> BYTES Int
+            -> CryptoPtr
+            -> IO (Either (BYTES Int) [ByteString])
+         go (b:bs) r cptr =   fillUp b r cptr
+                          >>= either goLeft goRight
+            where goLeft  s  =  go bs s $ cptr `movePtr` s
+                  goRight b' =  return $ Right $ b':bs
+         go [] r _ | r == 0    = return $ Right []
+                   | otherwise = return $ Left r
 
-fillUpChunks bsz cptr = go bsz
-    where go r []     = return $ Left r
-          go r (b:bs) = do
-            fill <- fillUp bsz cptr r b
-            case fill of
-              Left  r1 -> go r1 bs
-              Right b1 -> return $ Right $ b1:bs
 
 -- | Converts a crypto storable instances to its hexadecimal
 -- representation.
