@@ -12,13 +12,13 @@ module Raaz.Util.Ptr
        , movePtr
        , storeAt, storeAtIndex
        , loadFrom, loadFromIndex
+       , hFillBuf
        ) where
 
 import Foreign.Ptr
 import Foreign.Marshal.Alloc
 import Foreign.Storable(Storable, sizeOf)
-
-
+import System.IO (hGetBuf, Handle)
 import Raaz.Types
 
 -- | The expression @allocaBuffer l action@ allocates a local buffer
@@ -55,7 +55,7 @@ storeAtIndex :: CryptoStore w
              -> w         -- ^ the value to store
              -> IO ()
 storeAtIndex cptr index w = store (cptr `plusPtr` (index * sizeOf w)) w
-  
+
 -- | Store the given value at an offset from the crypto pointer. The
 -- offset is given in type safe units.
 storeAt :: ( CryptoStore w
@@ -85,4 +85,12 @@ loadFrom :: ( CryptoStore w
          -> offset    -- ^ the offset
          -> IO w
 loadFrom cptr offset = load $ cptr `movePtr` offset
- 
+
+-- | A version of `hGetBuf` which works for any type safe length units.
+hFillBuf :: (CryptoCoerce bufSize (BYTES Int))
+         => Handle
+         -> CryptoPtr
+         -> bufSize
+         -> IO (BYTES Int)
+hFillBuf handle cptr sz = fmap BYTES $ hGetBuf handle cptr bytes
+     where BYTES bytes = cryptoCoerce sz
