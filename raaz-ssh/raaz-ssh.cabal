@@ -18,11 +18,14 @@ source-repository head
   subdir: raaz-ssh
 
 library
-  build-depends:       base ==4.5.*
+  exposed-modules: Raaz.Network.SSH.Transport
+  other-modules: Paths_raaz_ssh
+  build-depends: base
+               , bytestring
 
 
 test-Suite tests
   type: exitcode-stdio-1.0
   hs-source-dirs: tests
   main-is: Main.hs
-  build-depends: base==4.5.*
+  build-depends: base
