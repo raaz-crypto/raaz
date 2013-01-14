@@ -38,7 +38,7 @@ instance ( BlockPrimitive p
          , Num by
          ) => CryptoCoerce (BLOCKS p) (BYTES by) where
   cryptoCoerce b@(BLOCKS n) = fromIntegral $ blockSize (prim b) *
-                                           (fromIntegral n)
+                                           fromIntegral n
          where prim :: BLOCKS p -> p
                prim _ = undefined
   {-# INLINE cryptoCoerce #-}
@@ -48,7 +48,7 @@ instance ( BlockPrimitive p
          , Num bits
          ) => CryptoCoerce (BLOCKS p) (BITS bits) where
   cryptoCoerce b@(BLOCKS n) = fromIntegral $ 8 * blockSize (prim b) *
-                                           (fromIntegral n)
+                                           fromIntegral n
          where prim :: BLOCKS p -> p
                prim _ = undefined
   {-# INLINE cryptoCoerce #-}
