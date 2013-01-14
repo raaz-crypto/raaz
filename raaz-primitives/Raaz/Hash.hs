@@ -139,6 +139,7 @@ class ( BlockPrimitive h
               finaliseHash <$> compress cxt (cryptoCoerce tl) cptr
 
 
+
 -- | Hash a given strict bytestring.
 hashByteString :: Hash h
                => B.ByteString  -- ^ The data to hash
@@ -155,35 +156,14 @@ hashLazyByteString = unsafePerformIO
                    . compressChunks (startCxt undefined)
                    . L.toChunks
 
--- | Compress a list of strict byte string chunks.
-compressChunks :: Hash h
-               => Cxt h
-               -> [B.ByteString]
-               -> IO h
-compressChunks cxt bs = fmap finaliseHash $ allocaBuffer bufSize $ go cxt bs 0
-     where getHash  :: Cxt h -> h
-           getHash _ = undefined
-           h         = getHash cxt
-           nBlocks   = recommendedBlocks h
-           sz        = cryptoCoerce nBlocks
-           bufSize   = maxAdditionalBlocks h + nBlocks
-           go context bstr bits cptr = do
-                      fill <- fillUpChunks sz cptr bstr
-                      either goLeft goRight fill
-             where goRight rest = do
-                     context' <- compress context nBlocks cptr
-                     go context' rest (bits + cryptoCoerce nBlocks) cptr
+-- | Hash a given file given `FilePath`
+hashFile :: Hash h
+         => FilePath    -- ^ File to be hashed
+         -> IO h
+hashFile fpth = withFile fpth ReadMode hashFileHandle
 
-                   goLeft r = do unsafePad h totalBits padPtr
-                                 compress context blks cptr
-                     where bufLen    = sz - r
-                           pl        = padLength h totalBits
-                           blks      = cryptoCoerce (bufLen + pl)
-                           totalBits = bits + cryptoCoerce bufLen
-                           padPtr    = cptr `movePtr` bufLen
-
--- | Hash a given file given the file `Handle`.
--- It is supposed to be faster than reading a file and then hashing it.
+-- | Hash a given file given the file `Handle`.  It is supposed to be
+-- faster than reading a file and then hashing it.
 hashFileHandle :: Hash h
                => Handle      -- ^ File to be hashed
                -> IO h
@@ -196,22 +176,43 @@ hashFileHandle hndl = fmap finaliseHash $ allocaBuffer bufSize $ go cxt 0
            sz        = cryptoCoerce nBlocks
            bufSize   = maxAdditionalBlocks h + nBlocks
            go context bits cptr = do
-                      out <- hGetBuf hndl (castPtr cptr) (fromIntegral sz)
-                      let r = BYTES out
-                      if r < sz then goLeft r else goRight
-             where goRight = do
+                      count <- hFillBuf hndl cptr nBlocks
+                      if count == sz
+                         then do context' <- compress context nBlocks cptr
+                                 go context' (bits + cryptoCoerce nBlocks) cptr
+                         else compressLast h context bits count cptr
+
+
+-- | Compress a list of strict byte string chunks.
+compressChunks :: Hash h
+               => Cxt h
+               -> [B.ByteString]
+               -> IO h
+compressChunks cxt bs = fmap finaliseHash $ allocaBuffer bufSize $ go cxt bs 0
+     where getHash  :: Cxt h -> h
+           getHash _ = undefined
+           h         = getHash cxt
+           nBlocks   = recommendedBlocks h
+           bufSize   = maxAdditionalBlocks h + nBlocks
+           go context bstr bits cptr =   fillUpChunks bstr nBlocks cptr
+                                     >>= either goLeft goRight
+             where goRight rest = do
                      context' <- compress context nBlocks cptr
-                     go context' (bits + cryptoCoerce nBlocks) cptr
+                     go context' rest (bits + cryptoCoerce nBlocks) cptr
 
-                   goLeft bufLen = do unsafePad h totalBits padPtr
-                                      compress context blks cptr
-                     where pl        = padLength h totalBits
-                           blks      = cryptoCoerce (bufLen + pl)
-                           totalBits = bits + cryptoCoerce bufLen
-                           padPtr    = cptr `movePtr` bufLen
+                   goLeft r = compressLast h context bits bufLen cptr
+                        where bufLen = cryptoCoerce nBlocks - r
 
--- | Hash a given file given `FilePath`
-hashFile :: Hash h
-         => FilePath    -- ^ File to be hashed
-         -> IO h
-hashFile fpth = withFile fpth ReadMode hashFileHandle
+-- | Compressing the last bytes.
+compressLast :: Hash h
+             => h
+             -> Cxt h
+             -> BITS Word64
+             -> BYTES Int   -- ^ Bytes in the buffer.
+             -> CryptoPtr
+             -> IO (Cxt h)
+compressLast h cxt bits bufLen cptr =  unsafePad h totalBits padPtr
+                                    >> compress cxt blks cptr
+       where totalBits = bits + cryptoCoerce bufLen
+             blks      = cryptoCoerce (bufLen + padLength h totalBits)
+             padPtr    = cptr `movePtr` bufLen
