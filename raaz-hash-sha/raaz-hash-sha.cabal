@@ -18,7 +18,8 @@ source-repository head
   subdir: raaz-hash-sha
 
 library
-  exposed-modules: Raaz.Hash.Sha
+  exposed-modules: Raaz.Hash.Instances
+                 , Raaz.Hash.Sha
                  , Raaz.Hash.Sha.Ref.Sha1
 
   build-depends: base

@@ -9,6 +9,7 @@ import Test.Framework
 import Raaz.Test.CryptoStore
 import Raaz.Test.Hash
 import Raaz.Hash.Sha
+import Raaz.Hash.Instances
 
 
 tests = allHashTests (undefined ::SHA1)
