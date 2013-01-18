@@ -34,6 +34,7 @@ test-Suite tests
   hs-source-dirs: tests
   main-is: Main.hs
   build-depends: base
+               , bytestring
                , test-framework==0.6.*
                , raaz-primitives==0.0.0.0
                , raaz-hash-sha==0.0.0.0
