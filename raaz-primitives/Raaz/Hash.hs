@@ -108,6 +108,7 @@ class ( BlockPrimitive h
   padding h bits = unsafeCreate len padIt
         where BYTES len = padLength h bits
               padIt     = unsafePad h bits . castPtr
+
   -- | This is the unsafe version of the padding function. It is
   -- unsafe in the sense that the call @unsafePad h bits cptr@ assumes
   -- that there is enough free space to put the padding string at the
@@ -135,6 +136,20 @@ class ( BlockPrimitive h
   iterateHash :: Int    -- ^ Number of times to iterate
               -> h      -- ^ starting hash
               -> h
+  iterateHash n h = unsafePerformIO $ allocaBuffer tl iterateN
+      where dl = BYTES $ sizeOf h              -- length of msg
+            pl = padLength h (cryptoCoerce dl) -- length of pad
+            tl = dl + pl                       -- total length
+            blks = cryptoCoerce tl             -- number of blocks
+            iterateN cptr = do
+              unsafePad h bits padPtr
+              foldM iterateOnce h [1..n]
+              where
+                bits = cryptoCoerce dl
+                padPtr = cptr `movePtr` dl
+                iterateOnce h' _ = do
+                  store cptr h'
+                  finaliseHash <$> compress (startCxt h') blks cptr
 
   -- | This functions is to facilitate the hmac construction. There is
   -- a default definition of this function but implementations can
