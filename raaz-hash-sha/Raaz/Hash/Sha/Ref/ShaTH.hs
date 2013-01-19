@@ -18,12 +18,13 @@ import Language.Haskell.TH
 import Raaz.Types
 import Raaz.Util.TH
 
-import Raaz.Hash.Sha(SHA1(..))
+import Raaz.Hash.Sha
 
 -- Declares roundF function.
 oneRound :: DecsQ
-oneRound = return <$> funD (mkName "roundF") [cls]
+oneRound = sequence $ [typeSig, funD name [cls]]
   where
+    name = mkName "roundF"
     cls = clause (args1 ++ args2) (normalB (LetE <$> roundLoop <*>
                                       [| SHA1
                                          ($(subE "a" [-1]) + $(subE "a" [79]))
@@ -34,6 +35,9 @@ oneRound = return <$> funD (mkName "roundF") [cls]
                                       |])) []
     args1 = map (flip subP [-1]) ["a","b","c","d","e"]
     args2 = map (\i -> subP "m" [i]) [0..15]
+    typeSig = sigD name $
+              foldl (const . appT wordtype) (conT ''SHA1) [1..21 :: Int]
+    wordtype = appT arrowT (conT ''Word32BE)
 
 -- | Unrolls the round loop.
 -- Also assumes a__1,b__1,c__1,d__1,e__1, which are the hash values in the
@@ -52,11 +56,13 @@ roundLoop = declarations [wdecs,kdecs,adecs,cdecs,restdecs] [0..79]
                       + $(subE "k" [j])                      -- k (i-1)
                       + $(subE "w" [j])                      -- w_(i-1)
                       :: Word32BE |]
+        body _   = error "Unimaginable happended"
 
     cdecs :: Int -> DecsQ
     cdecs i = variable' "c" ''Word32BE body [i]
       where
         body [j] = [| rotateL $(subE "b" [j-1]) 30|]
+        body _   = error "Unimaginable happended"
 
     wdecs :: Int -> DecsQ
     wdecs i = variable' "w" ''Word32BE body [i]
@@ -67,15 +73,17 @@ roundLoop = declarations [wdecs,kdecs,adecs,cdecs,restdecs] [0..79]
                                             $(subE "w" [j-14]) `xor`
                                             $(subE "w" [j-16])
                                           ) 1 |]
+        body _   = error "Unimaginable happended"
 
     -- | The round constants for SHA1 hash
     kdecs :: Int -> DecsQ
     kdecs i = variable' "k" ''Word32BE body [i]
       where
-        body [j] | i <= 19    = [| 0x5a827999 :: Word32BE |]
+        body [_] | i <= 19    = [| 0x5a827999 :: Word32BE |]
                  | i <= 39    = [| 0x6ed9eba1 :: Word32BE |]
                  | i <= 59    = [| 0x8f1bbcdc :: Word32BE |]
                  | otherwise = [| 0xca62c1d6 :: Word32BE |]
+        body _   = error "Unimaginable happended"
 
     restdecs :: Int -> DecsQ
     restdecs = permute [("e","d"),("d","c"),("b","a")]

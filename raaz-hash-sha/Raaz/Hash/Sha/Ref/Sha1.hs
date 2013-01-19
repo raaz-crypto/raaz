@@ -13,9 +13,7 @@ module Raaz.Hash.Sha.Ref.Sha1
        ) where
 
 import Control.Applicative
-import Control.Monad
 
-import Raaz.Primitives
 import Raaz.Types
 import Raaz.Util.Ptr
 

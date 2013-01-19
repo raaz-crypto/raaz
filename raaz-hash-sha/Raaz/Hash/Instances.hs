@@ -4,6 +4,7 @@ This module defines the hash instances for different hashes.
 
 -}
 {-# LANGUAGE TypeFamilies #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module Raaz.Hash.Instances where
 
