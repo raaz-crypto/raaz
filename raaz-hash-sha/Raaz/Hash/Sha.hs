@@ -5,7 +5,8 @@ module Raaz.Hash.Sha
        ( SHA1(..)
        , SHA256(..)
        , SHA224(..)
-       , SHA512 (..)
+       , SHA512(..)
+       , SHA384(..)
        ) where
 
 import Control.Applicative ((<$>), (<*>))
@@ -365,5 +366,84 @@ instance Arbitrary SHA512 where
                      <*> arbitrary
 
 instance BlockPrimitive SHA512 where
+  blockSize _ = cryptoCoerce $ BITS (1024 :: Int)
+  {-# INLINE blockSize #-}
+
+-- | The Sha384 hash value.
+data SHA384 = SHA384 {-# UNPACK #-} !Word64BE
+                     {-# UNPACK #-} !Word64BE
+                     {-# UNPACK #-} !Word64BE
+                     {-# UNPACK #-} !Word64BE
+                     {-# UNPACK #-} !Word64BE
+                     {-# UNPACK #-} !Word64BE deriving (Show, Typeable)
+
+-- | Timing independent equality testing for sha384
+instance Eq SHA384 where
+  (==) (SHA384 g0 g1 g2 g3 g4 g5) (SHA384 h0 h1 h2 h3 h4 h5)
+      =   xor g0 h0
+      .|. xor g1 h1
+      .|. xor g2 h2
+      .|. xor g3 h3
+      .|. xor g4 h4
+      .|. xor g5 h5
+      == 0
+
+
+instance Storable SHA384 where
+  sizeOf    _ = 6 * sizeOf (undefined :: Word64BE)
+  alignment _ = alignment  (undefined :: Word64BE)
+  peekByteOff ptr pos = SHA384 <$> peekByteOff ptr pos0
+                               <*> peekByteOff ptr pos1
+                               <*> peekByteOff ptr pos2
+                               <*> peekByteOff ptr pos3
+                               <*> peekByteOff ptr pos4
+                               <*> peekByteOff ptr pos5
+    where pos0   = pos
+          pos1   = pos0 + offset
+          pos2   = pos1 + offset
+          pos3   = pos2 + offset
+          pos4   = pos3 + offset
+          pos5   = pos4 + offset
+          offset = sizeOf (undefined:: Word64BE)
+
+  pokeByteOff ptr pos (SHA384 h0 h1 h2 h3 h4 h5)
+      =  pokeByteOff ptr pos0 h0
+      >> pokeByteOff ptr pos1 h1
+      >> pokeByteOff ptr pos2 h2
+      >> pokeByteOff ptr pos3 h3
+      >> pokeByteOff ptr pos4 h4
+      >> pokeByteOff ptr pos5 h5
+    where pos0   = pos
+          pos1   = pos0 + offset
+          pos2   = pos1 + offset
+          pos3   = pos2 + offset
+          pos4   = pos3 + offset
+          pos5   = pos4 + offset
+          offset = sizeOf (undefined:: Word64BE)
+
+instance CryptoStore SHA384 where
+  load cptr = SHA384 <$> load cptr
+                     <*> loadFromIndex cptr 1
+                     <*> loadFromIndex cptr 2
+                     <*> loadFromIndex cptr 3
+                     <*> loadFromIndex cptr 4
+                     <*> loadFromIndex cptr 5
+
+  store cptr (SHA384 h0 h1 h2 h3 h4 h5) =  store cptr h0
+                                        >> storeAtIndex cptr 1 h1
+                                        >> storeAtIndex cptr 2 h2
+                                        >> storeAtIndex cptr 3 h3
+                                        >> storeAtIndex cptr 4 h4
+                                        >> storeAtIndex cptr 5 h5
+
+instance Arbitrary SHA384 where
+  arbitrary = SHA384 <$> arbitrary
+                     <*> arbitrary
+                     <*> arbitrary
+                     <*> arbitrary
+                     <*> arbitrary
+                     <*> arbitrary
+
+instance BlockPrimitive SHA384 where
   blockSize _ = cryptoCoerce $ BITS (1024 :: Int)
   {-# INLINE blockSize #-}

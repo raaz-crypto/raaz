@@ -6,7 +6,7 @@ This module defines the hash instances for different hashes.
 {-# LANGUAGE TypeFamilies #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module Raaz.Hash.Instances where
+module Raaz.Hash.Instances () where
 
 import Control.Applicative ((<$>))
 import qualified Data.ByteString as B
@@ -98,6 +98,29 @@ instance Hash SHA512 where
   padLength = padLength128
   padding   = padding128
   compressSingle (SHA512Cxt cxt) ptr = SHA512Cxt <$> sha512CompressSingle cxt ptr
+
+instance Hash SHA384 where
+  newtype Cxt SHA384 = SHA384Cxt SHA512
+
+  startCxt _ = SHA384Cxt $ SHA512 0xcbbb9d5dc1059ed8
+                                  0x629a292a367cd507
+                                  0x9159015a3070dd17
+                                  0x152fecd8f70e5939
+                                  0x67332667ffc00b31
+                                  0x8eb44a8768581511
+                                  0xdb0c2e0d64f98fa7
+                                  0x47b5481dbefa4fa4
+
+  finaliseHash (SHA384Cxt h) = sha512Tosha384 h
+   where sha512Tosha384 (SHA512 h0 h1 h2 h3 h4 h5 _ _)
+                      = (SHA384 h0 h1 h2 h3 h4 h5)
+
+  maxAdditionalBlocks _ = 1
+
+  padLength = padLength128
+  padding   = padding128
+  compressSingle (SHA384Cxt cxt) ptr = SHA384Cxt <$> sha512CompressSingle cxt ptr
+
 
 firstPadByte :: Word8
 firstPadByte = 128
