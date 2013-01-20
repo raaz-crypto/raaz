@@ -17,6 +17,7 @@ import Raaz.Hash
 import Raaz.Hash.Sha
 import Raaz.Hash.Sha.Ref.Sha1
 import Raaz.Hash.Sha.Ref.Sha256
+import Raaz.Hash.Sha.Ref.Sha512
 import Raaz.Primitives
 import Raaz.Types
 
@@ -78,6 +79,26 @@ instance Hash SHA256 where
   padding   = padding64
   compressSingle (SHA256Cxt cxt) ptr = SHA256Cxt <$> sha256CompressSingle cxt ptr
 
+instance Hash SHA512 where
+  newtype Cxt SHA512 = SHA512Cxt SHA512
+
+  startCxt _ = SHA512Cxt $ SHA512 0x6a09e667f3bcc908
+                                  0xbb67ae8584caa73b
+                                  0x3c6ef372fe94f82b
+                                  0xa54ff53a5f1d36f1
+                                  0x510e527fade682d1
+                                  0x9b05688c2b3e6c1f
+                                  0x1f83d9abfb41bd6b
+                                  0x5be0cd19137e2179
+
+  finaliseHash (SHA512Cxt h) = h
+
+  maxAdditionalBlocks _ = 1
+
+  padLength = padLength128
+  padding   = padding128
+  compressSingle (SHA512Cxt cxt) ptr = SHA512Cxt <$> sha512CompressSingle cxt ptr
+
 firstPadByte :: Word8
 firstPadByte = 128
 
@@ -107,3 +128,32 @@ padding64 h l = B.concat [ B.singleton firstPadByte
      where r      = padLength h l :: BYTES Int
            zeros  = fromIntegral $ r - extra64
            lBits  = cryptoCoerce l :: BITS Word64BE
+
+-- | Number of bytes in the padding for the first pad byte and the
+-- length encoding for a 128-bit length appended hash like
+-- SHA384,SHA512.
+extra128 :: BYTES Int
+extra128 = BYTES $ 1 + 2*sizeOf (undefined :: Word64)
+
+-- | Padding length for a 128-bit length appended hash like
+-- SHA384,SHA512.
+padLength128 :: Hash h => h -> BITS Word64 -> BYTES Int
+{-# INLINE padLength128 #-}
+padLength128 h l | r >= extra128 = r
+                 | otherwise     = r + blockSize h
+  where lb :: BYTES Int
+        lb    = cryptoCoerce l `rem` blockSize h
+        r     = blockSize h - lb
+
+-- | Padding string for a 128-bit length appended hash like
+-- SHA384,SHA512.
+padding128 :: Hash h => h -> BITS Word64 -> B.ByteString
+padding128 h l = B.concat [ B.singleton firstPadByte
+                          , B.replicate zeros 0
+                          , lBits1
+                          , toByteString lBits2
+                          ]
+     where r      = padLength h l :: BYTES Int
+           zeros  = fromIntegral $ r - extra128
+           lBits1 = B.replicate (sizeOf (undefined :: Word64)) 0
+           lBits2 = cryptoCoerce l :: BITS Word64BE

@@ -22,6 +22,7 @@ library
                  , Raaz.Hash.Sha
                  , Raaz.Hash.Sha.Ref.Sha1
                  , Raaz.Hash.Sha.Ref.Sha256
+                 , Raaz.Hash.Sha.Ref.Sha512
 
   build-depends: base
                , bytestring
