@@ -36,6 +36,28 @@ instance Hash SHA1 where
   padding   = padding64
   compressSingle (SHA1Cxt cxt) ptr = SHA1Cxt <$> sha1CompressSingle cxt ptr
 
+instance Hash SHA224 where
+  newtype Cxt SHA224 = SHA224Cxt SHA256
+
+  startCxt _ = SHA224Cxt $ SHA256 0xc1059ed8
+                                  0x367cd507
+                                  0x3070dd17
+                                  0xf70e5939
+                                  0xffc00b31
+                                  0x68581511
+                                  0x64f98fa7
+                                  0xbefa4fa4
+
+  finaliseHash (SHA224Cxt h) = sha256Tosha224 h
+   where sha256Tosha224 (SHA256 h0 h1 h2 h3 h4 h5 h6 _)
+                       = SHA224 h0 h1 h2 h3 h4 h5 h6
+
+  maxAdditionalBlocks _ = 1
+
+  padLength = padLength64
+  padding   = padding64
+  compressSingle (SHA224Cxt cxt) ptr = SHA224Cxt <$> sha256CompressSingle cxt ptr
+
 instance Hash SHA256 where
   newtype Cxt SHA256 = SHA256Cxt SHA256
 
