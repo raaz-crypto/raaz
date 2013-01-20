@@ -21,6 +21,7 @@ library
   exposed-modules: Raaz.Hash.Instances
                  , Raaz.Hash.Sha
                  , Raaz.Hash.Sha.Ref.Sha1
+                 , Raaz.Hash.Sha.Ref.Sha256
 
   build-depends: base
                , bytestring
