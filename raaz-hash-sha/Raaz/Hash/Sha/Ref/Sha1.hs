@@ -18,7 +18,7 @@ import Raaz.Types
 import Raaz.Util.Ptr
 
 import Raaz.Hash.Sha(SHA1(..))
-import Raaz.Hash.Sha.Ref.ShaTH
+import Raaz.Hash.Sha.Ref.Sha1TH
 
 -- | roundF function generated from TH
 $(oneRound)

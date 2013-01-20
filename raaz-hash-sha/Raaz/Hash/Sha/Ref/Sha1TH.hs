@@ -7,7 +7,7 @@ spliced in the actual module.
 
 {-# LANGUAGE TemplateHaskell #-}
 
-module Raaz.Hash.Sha.Ref.ShaTH
+module Raaz.Hash.Sha.Ref.Sha1TH
        ( oneRound
        ) where
 
@@ -20,7 +20,9 @@ import Raaz.Util.TH
 
 import Raaz.Hash.Sha
 
--- Declares roundF function.
+-- | Declares roundF function which denotes compression of one
+-- block. This is used internally for efficient code generation using
+-- Template Haskell.
 oneRound :: DecsQ
 oneRound = sequence $ [typeSig, funD name [cls]]
   where
@@ -39,9 +41,9 @@ oneRound = sequence $ [typeSig, funD name [cls]]
               foldl (const . appT wordtype) (conT ''SHA1) [1..21 :: Int]
     wordtype = appT arrowT (conT ''Word32BE)
 
--- | Unrolls the round loop.
--- Also assumes a__1,b__1,c__1,d__1,e__1, which are the hash values in the
--- previous round also present in scope.
+-- | Unrolls the round loop.  Also assumes a__1,b__1,c__1,d__1,e__1,
+-- which are the hash values in the previous round also present in
+-- scope.
 roundLoop :: DecsQ
 roundLoop = declarations [wdecs,kdecs,adecs,cdecs,restdecs] [0..79]
   where
