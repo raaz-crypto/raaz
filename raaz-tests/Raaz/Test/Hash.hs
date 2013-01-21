@@ -86,5 +86,18 @@ testStandardHashValues :: (CryptoStore h, Hash h, Typeable h)
                        -> [Test]
 testStandardHashValues h = hUnitTestToTests . test . map checkHash
   where getHash a = toHex $ hashByteString a `asTypeOf` h
-        label a   = show (typeOf h) ++ " " ++ show a
+        label a   = show (typeOf h) ++ " " ++ shorten (show a)
         checkHash (a,b) = label a ~: getHash a ~?= b
+
+-- | While displaying the input truncate it to these many characters.
+maxLength :: Int
+maxLength = 10
+-- | This is to shorten the large strings while displaying unit test results
+
+shorten :: String -> String
+shorten str | l <= maxLength = str
+            | otherwise      = take maxLength str ++ "..."
+                             ++ "("
+                             ++ show (l - maxLength)
+                             ++ " more chars)"
+  where l = length str
