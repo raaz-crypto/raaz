@@ -1,6 +1,6 @@
 language: haskell
 install: "make install"
-script: "make tests"
+script: "make travis-tests"
 
 branches:
   only:

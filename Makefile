@@ -1,14 +1,14 @@
-PACKAGES=primitives ssh hash-sha
+PACKAGES=primitives ssh hash-sha tests
 
 
-hash-sha: primitives
+hash-sha: primitives tests
 
 BRANCHES=${PACKAGES}
 X_BRANCHES=$(addprefix x-,${BRANCHES})
 
 TEST_PATH=dist/build/tests/tests
 
-.PHONY: ${PACKAGES} install merge release tests
+.PHONY: ${PACKAGES} install merge release travis-tests
 
 install: ${PACKAGES}
 
@@ -18,7 +18,7 @@ ${PACKAGES}:
 	              --enable-tests\
 		      --force-reinstall
 
-tests:
+travis-tests:
 
 	$(foreach pkg, ${PACKAGES},\
 		cd raaz-${pkg};\
