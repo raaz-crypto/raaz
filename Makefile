@@ -8,7 +8,7 @@ X_BRANCHES=$(addprefix x-,${BRANCHES})
 
 TEST_PATH=dist/build/tests/tests
 
-.PHONY: ${PACKAGES} install merge release travis-tests
+.PHONY: ${PACKAGES} install merge release travis-tests fast-forward
 
 install: ${PACKAGES}
 
@@ -35,3 +35,9 @@ merge:
 release:
 	git checkout master
 	git merge --no-ff ${BRANCES}
+
+fast-forward:
+	$(foreach br, ${BRANCHES} ${X_BRANCHES},\
+		git checkout ${br}; \
+		git merge --ff-only master; \
+		)
