@@ -8,5 +8,7 @@ production.
 -}
 
 module Raaz.Hash.Sha.Ref
-       (
+       ( module Raaz.Hash.Sha.Ref.Sha1
        ) where
+
+import Raaz.Hash.Sha.Ref.Sha1
