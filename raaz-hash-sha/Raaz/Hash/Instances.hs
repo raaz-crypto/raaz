@@ -172,11 +172,10 @@ padLength128 h l | r >= extra128 = r
 -- SHA384,SHA512.
 padding128 :: Hash h => h -> BITS Word64 -> B.ByteString
 padding128 h l = B.concat [ B.singleton firstPadByte
-                          , B.replicate zeros 0
-                          , lBits1
-                          , toByteString lBits2
+                          , B.replicate totalZeros 0
+                          , toByteString lBits
                           ]
-     where r      = padLength h l :: BYTES Int
-           zeros  = fromIntegral $ r - extra128
-           lBits1 = B.replicate (sizeOf (undefined :: Word64)) 0
-           lBits2 = cryptoCoerce l :: BITS Word64BE
+     where r            = padLength h l :: BYTES Int
+           BYTES zeros  = r - extra128
+           totalZeros   = zeros + sizeOf (undefined :: Word64BE)
+           lBits        = cryptoCoerce l :: BITS Word64BE
