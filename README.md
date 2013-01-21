@@ -21,4 +21,4 @@ Hacking and Discussion
 
 [travis-status]: <https://secure.travis-ci.org/piyush-kurur/raaz.png> "Build status"
 
-[travis-raaz]: <https://secure.travis-ci.org/piyush-kurur/raaz>
+[travis-raaz]: <https://travis-ci.org/piyush-kurur/raaz>
