@@ -14,7 +14,7 @@ module Raaz.Test.Hash
 import qualified Data.ByteString as B
 import Data.Typeable
 import Data.Word
-import Test.Framework(Test)
+import Test.Framework(Test, testGroup)
 import Test.Framework.Providers.QuickCheck2(testProperty)
 import Test.HUnit ((~?=), test, (~:) )
 import Test.Framework.Providers.HUnit(hUnitTestToTests)
@@ -28,13 +28,22 @@ import Raaz.Types
 import Raaz.Util.ByteString (toHex)
 
 
--- | All generic tests for an instance of `Hash`.
+-- | This runs all the test for a given hash. The second argument to
+-- the function is a list of pairs of bytestring and their
+-- corresponding hash value which is used as a unit testing test
+-- suites.
 allHashTests :: ( Arbitrary h, Show h, Hash h, Typeable h )
-             => h -> [Test]
-allHashTests h = [ testStoreLoad h
-                 , testPadLengthVsPadding h
-                 , testLengthDivisibility h
-                 ]
+             => h         -- ^ dummy hash type to satisfy the type checker
+             -> [(B.ByteString,B.ByteString)]
+                          -- ^ string hash pairs
+             -> [Test]
+allHashTests h pairs = [ testStoreLoad h
+                       , testPadLengthVsPadding h
+                       , testLengthDivisibility h
+                       , testGroup unitTestName unitTests
+                       ]
+    where unitTestName  = unwords [show $ typeOf h, "Unit tests"]
+          unitTests     = testStandardHashValues h pairs
 
 prop_padLengthVsPadding :: Hash h => h -> BITS Word64 ->  Bool
 prop_padLengthVsPadding h w = padLength h w ==
