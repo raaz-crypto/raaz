@@ -9,4 +9,3 @@ main = defaultMain tests
 tests = [ testGroup "Raaz.Types" Types.tests
         , testGroup "Raaz.Util.ByteString" ByteString.tests
         ]
-

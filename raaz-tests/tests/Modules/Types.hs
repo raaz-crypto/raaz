@@ -9,6 +9,7 @@ import Test.QuickCheck
 import Test.Framework
 import Test.Framework.Providers.QuickCheck2 (testProperty)
 
+import Raaz.Test()
 import Raaz.Types
 import Raaz.Test.CryptoStore
 

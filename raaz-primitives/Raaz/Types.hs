@@ -32,7 +32,7 @@ import Data.Typeable(Typeable)
 import Foreign.Ptr
 import Foreign.Storable
 import System.Endian
-import Test.QuickCheck(Arbitrary(..))
+
 
 -- Developers notes: I assumes that word alignment is alignment
 -- safe. If this is not the case one needs to fix this to avoid
@@ -122,28 +122,28 @@ by ghc.
 
 -- | Little endian `Word32`.
 newtype Word32LE = LE32 Word32
-   deriving ( Arbitrary, Bounded, Enum, Read, Show
+   deriving ( Bounded, Enum, Read, Show
             , Integral, Num, Real, Eq, Ord, Bits
             , Storable, Typeable
             )
 
 -- | Big endian  `Word32`
 newtype Word32BE = BE32 Word32
-   deriving ( Arbitrary, Bounded, Enum, Read, Show
+   deriving ( Bounded, Enum, Read, Show
             , Integral, Num, Real, Eq, Ord, Bits
             , Storable, Typeable
             )
 
 -- | Little endian `Word64`
 newtype Word64LE = LE64 Word64
-   deriving ( Arbitrary, Bounded, Enum, Read, Show
+   deriving ( Bounded, Enum, Read, Show
             , Integral, Num, Real, Eq, Ord, Bits
             , Storable, Typeable
             )
 
 -- | Big endian `Word64`
 newtype Word64BE = BE64 Word64
-   deriving ( Arbitrary, Bounded, Enum, Read, Show
+   deriving ( Bounded, Enum, Read, Show
             , Integral, Num, Real, Eq, Ord, Bits
             , Storable, Typeable
             )
@@ -239,7 +239,7 @@ instance CryptoStore Word64BE where
 -- convert to a more convenient length units.  the `CrytoCoerce`
 -- instance is guranteed to do the appropriate scaling.
 newtype BYTES a  = BYTES a
-        deriving ( Arbitrary, Show, Eq, Ord, Enum, Integral
+        deriving ( Show, Eq, Ord, Enum, Integral
                  , Real, Num, Storable, CryptoStore
                  )
 
@@ -248,7 +248,7 @@ newtype BYTES a  = BYTES a
 -- convert to a more convenient length units.  the `CrytoCoerce`
 -- instance is guranteed to do the appropriate scaling.
 newtype BITS  a  = BITS  a
-        deriving ( Arbitrary, Show, Eq, Ord, Enum, Integral
+        deriving ( Show, Eq, Ord, Enum, Integral
                  , Real, Num, Storable, CryptoStore
                  )
 

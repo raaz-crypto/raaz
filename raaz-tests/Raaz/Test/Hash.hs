@@ -23,6 +23,7 @@ import Test.QuickCheck(Arbitrary)
 import Raaz.Hash
 import Raaz.Primitives
 import Raaz.Test.CryptoStore
+import Raaz.Test.Instances()
 import Raaz.Types
 import Raaz.Util.ByteString (toHex)
 
