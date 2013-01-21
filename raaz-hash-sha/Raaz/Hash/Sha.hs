@@ -13,7 +13,6 @@ import Control.Applicative ((<$>), (<*>))
 import Data.Bits(xor, (.|.))
 import Data.Typeable(Typeable)
 import Foreign.Storable(Storable(..))
-import Test.QuickCheck(Arbitrary(..))
 
 import Raaz.Primitives
 import Raaz.Util.Ptr(loadFromIndex, storeAtIndex)
@@ -76,12 +75,6 @@ instance CryptoStore SHA1 where
                                    >> storeAtIndex cptr 3 h3
                                    >> storeAtIndex cptr 4 h4
 
-instance Arbitrary SHA1 where
-  arbitrary = SHA1 <$> arbitrary   -- h0
-                   <*> arbitrary   -- h1
-                   <*> arbitrary   -- h2
-                   <*> arbitrary   -- h3
-                   <*> arbitrary   -- h4
 
 instance BlockPrimitive SHA1 where
   blockSize _ = cryptoCoerce $ BITS (512 :: Int)
@@ -170,15 +163,6 @@ instance CryptoStore SHA256 where
                                               >> storeAtIndex cptr 6 h6
                                               >> storeAtIndex cptr 7 h7
 
-instance Arbitrary SHA256 where
-  arbitrary = SHA256 <$> arbitrary
-                     <*> arbitrary
-                     <*> arbitrary
-                     <*> arbitrary
-                     <*> arbitrary
-                     <*> arbitrary
-                     <*> arbitrary
-                     <*> arbitrary
 
 instance BlockPrimitive SHA256 where
   blockSize _ = cryptoCoerce $ BITS (512 :: Int)
@@ -259,14 +243,6 @@ instance CryptoStore SHA224 where
                                            >> storeAtIndex cptr 5 h5
                                            >> storeAtIndex cptr 6 h6
 
-instance Arbitrary SHA224 where
-  arbitrary = SHA224 <$> arbitrary
-                     <*> arbitrary
-                     <*> arbitrary
-                     <*> arbitrary
-                     <*> arbitrary
-                     <*> arbitrary
-                     <*> arbitrary
 
 instance BlockPrimitive SHA224 where
   blockSize _ = cryptoCoerce $ BITS (512 :: Int)
@@ -355,15 +331,6 @@ instance CryptoStore SHA512 where
                                               >> storeAtIndex cptr 6 h6
                                               >> storeAtIndex cptr 7 h7
 
-instance Arbitrary SHA512 where
-  arbitrary = SHA512 <$> arbitrary
-                     <*> arbitrary
-                     <*> arbitrary
-                     <*> arbitrary
-                     <*> arbitrary
-                     <*> arbitrary
-                     <*> arbitrary
-                     <*> arbitrary
 
 instance BlockPrimitive SHA512 where
   blockSize _ = cryptoCoerce $ BITS (1024 :: Int)
@@ -435,14 +402,6 @@ instance CryptoStore SHA384 where
                                         >> storeAtIndex cptr 3 h3
                                         >> storeAtIndex cptr 4 h4
                                         >> storeAtIndex cptr 5 h5
-
-instance Arbitrary SHA384 where
-  arbitrary = SHA384 <$> arbitrary
-                     <*> arbitrary
-                     <*> arbitrary
-                     <*> arbitrary
-                     <*> arbitrary
-                     <*> arbitrary
 
 instance BlockPrimitive SHA384 where
   blockSize _ = cryptoCoerce $ BITS (1024 :: Int)

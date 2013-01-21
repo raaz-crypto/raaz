@@ -2,20 +2,25 @@ module Modules.Sha384
        ( tests
        ) where
 
-
+import Control.Applicative
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Char8 as C8
-import Test.Framework
+import Test.QuickCheck(Arbitrary(..))
 
-
-import Raaz.Test.CryptoStore
-import Raaz.Test.Hash
+import Raaz.Test(allHashTests)
 import Raaz.Hash.Sha
 import Raaz.Hash.Instances
 
+instance Arbitrary SHA384 where
+  arbitrary = SHA384 <$> arbitrary
+                     <*> arbitrary
+                     <*> arbitrary
+                     <*> arbitrary
+                     <*> arbitrary
+                     <*> arbitrary
 
-tests = allHashTests (undefined ::SHA384)
-     ++ testStandardHashValues (undefined ::SHA384) exampleStrings
+
+tests = allHashTests (undefined ::SHA384) exampleStrings
 
 
 exampleStrings :: [(B.ByteString,B.ByteString)]
