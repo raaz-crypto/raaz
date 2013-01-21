@@ -1,4 +1,4 @@
-module Modules.Sha1
+module Modules.Sha256
        ( tests
        ) where
 
@@ -14,24 +14,24 @@ import Raaz.Hash.Sha
 import Raaz.Hash.Instances
 
 
-tests = allHashTests (undefined ::SHA1)
-     ++ testStandardHashValues (undefined ::SHA1) exampleStrings
+tests = allHashTests (undefined ::SHA256)
+     ++ testStandardHashValues (undefined ::SHA256) exampleStrings
 
 
 exampleStrings :: [(B.ByteString,B.ByteString)]
 exampleStrings = map convertToByteString
   [ ( "abc"
-    , "a9993e364706816aba3e25717850c26c9cd0d89d" )
+    , "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad" )
   , ( "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq"
-    , "84983e441c3bd26ebaae4aa1f95129e5e54670f1" )
+    , "248d6a61d20638b8e5c026930c3e6039a33ce45964ff2167f6ecedd419db06c1" )
   , ( "The quick brown fox jumps over the lazy dog"
-    , "2fd4e1c67a2d28fced849ee1bb76e7391b93eb12" )
+    , "d7a8fbb307d7809469ca9abcb0082e4f8d5651e46d3cdb762d02d0bf37c9e592" )
   , ( "The quick brown fox jumps over the lazy cog"
-    , "de9f2c7fd25e1b3afad3e85a0bd17d9b100db4b3" )
+    , "e4c4d8f3bf76b692de791a173e05321150f7a345b46484fe427f6acc7ecc81be" )
   , ( ""
-    , "da39a3ee5e6b4b0d3255bfef95601890afd80709" )
+    , "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855" )
   , ( "The quick brown fox jumps over the lazy dog The quick brown fox jumps over the lazy dog The quick brown fox jumps over the lazy dog The quick brown fox jumps over the lazy dog The quick brown fox jumps over the lazy dog"
-    , "5957a404e7e74dc746bea2d0d47645ddb387a7de" )
+    , "86c55ba51d6b4aef51f4ae956077a0f661d0b876c5774fef3172c4f56092cbbd" )
   ]
  where
    convertToByteString (a,b) = (C8.pack a, C8.pack b)
