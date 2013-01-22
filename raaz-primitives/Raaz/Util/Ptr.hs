@@ -31,6 +31,7 @@ allocaBuffer :: CryptoCoerce l (BYTES Int)
              => l                    -- ^ buffer length
              -> (CryptoPtr -> IO b)  -- ^ the action to run
              -> IO b
+{-# INLINE allocaBuffer #-}
 allocaBuffer l = allocaBytes bytes
   where BYTES bytes = cryptoCoerce l
 
@@ -41,6 +42,7 @@ movePtr :: CryptoCoerce offset (BYTES Int)
         => CryptoPtr
         -> offset
         -> CryptoPtr
+{-# INLINE movePtr #-}
 movePtr cptr offset = cptr `plusPtr` bytes
   where BYTES bytes = cryptoCoerce offset
 
@@ -54,6 +56,7 @@ storeAtIndex :: CryptoStore w
              -> Int       -- ^ the index of the array
              -> w         -- ^ the value to store
              -> IO ()
+{-# INLINE storeAtIndex #-}
 storeAtIndex cptr index w = store (cptr `plusPtr` (index * sizeOf w)) w
 
 -- | Store the given value at an offset from the crypto pointer. The
@@ -65,6 +68,7 @@ storeAt :: ( CryptoStore w
         -> offset      -- ^ the absolute offset in type safe length units.
         -> w           -- ^ value to store
         -> IO ()
+{-# INLINE storeAt #-}
 storeAt cptr offset = store $ cptr `movePtr` offset
 
 -- | Load the @n@-th value of an array pointed by the crypto pointer.
@@ -73,6 +77,7 @@ loadFromIndex :: CryptoStore w
                            -- the array
               -> Int       -- ^ the index of the array
               -> IO w
+{-# INLINE loadFromIndex #-}
 loadFromIndex cptr index = loadP undefined
    where loadP ::  (CryptoStore w, Storable w) => w -> IO w
          loadP w = load $ cptr `plusPtr` (index * sizeOf w)
@@ -84,6 +89,7 @@ loadFrom :: ( CryptoStore w
          => CryptoPtr -- ^ the pointer
          -> offset    -- ^ the offset
          -> IO w
+{-# INLINE loadFrom #-}
 loadFrom cptr offset = load $ cptr `movePtr` offset
 
 -- | A version of `hGetBuf` which works for any type safe length units.
@@ -92,5 +98,6 @@ hFillBuf :: (CryptoCoerce bufSize (BYTES Int))
          -> CryptoPtr
          -> bufSize
          -> IO (BYTES Int)
+{-# INLINE hFillBuf #-}
 hFillBuf handle cptr sz = fmap BYTES $ hGetBuf handle cptr bytes
      where BYTES bytes = cryptoCoerce sz
