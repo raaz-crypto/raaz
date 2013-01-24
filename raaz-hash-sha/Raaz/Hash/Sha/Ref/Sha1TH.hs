@@ -29,21 +29,17 @@ oneRound = sequence $ [typeSig, funD name [cls]]
     name = mkName "roundF"
     cls = clause (args1 ++ args2) (normalB (LetE <$> roundLoop <*>
                                       [| SHA1
-                                         ($(subE' "a" (-1)) + $(subE' "a" 79))
-                                         ($(subE' "b" (-1)) + $(subE' "b" 79))
-                                         ($(subE' "c" (-1)) + $(subE' "c" 79))
-                                         ($(subE' "d" (-1)) + $(subE' "d" 79))
-                                         ($(subE' "e" (-1)) + $(subE' "e" 79))
+                                         ($(a $ -1) + $(a 79))
+                                         ($(b $ -1) + $(b 79))
+                                         ($(c $ -1) + $(c 79))
+                                         ($(d $ -1) + $(d 79))
+                                         ($(e $ -1) + $(e 79))
                                       |])) []
-    args1 = map (flip subP' (-1)) ["a","b","c","d","e"]
-    args2 = map (subP' "m") [0..15]
+    args1 = map (flip subP (-1 :: Int)) ["a","b","c","d","e"]
+    args2 = map (subP "m") [0..15 :: Int]
     typeSig = sigD name $
               foldl (const . appT wordtype) (conT ''SHA1) [1..21 :: Int]
     wordtype = appT arrowT (conT ''Word32BE)
-    subE' :: String -> Int -> ExpQ
-    subE' = subE
-    subP' :: String -> Int -> PatQ
-    subP' = subP
 
 -- | Unrolls the round loop.  Also assumes a__1,b__1,c__1,d__1,e__1,
 -- which are the hash values in the previous round also present in
@@ -54,32 +50,22 @@ roundLoop = declarations [wdecs,kdecs,adecs,cdecs,restdecs] [0..79]
     adecs :: Int -> DecsQ
     adecs = variable' "a" ''Word32BE body
       where
-        body j = [|   $([| rotateL $(subE "a" $ j-1) 5 |])
-                    + $(f j (subE "b" $ j-1)
-                            (subE "c" $ j-1)
-                            (subE "d" $ j-1))
-                    + $(subE "e" $ j-1)
-                    + $(subE "k" j)
-                    + $(subE "w" j)
-                 :: Word32BE |]
-
+        body j = [| $(r') + $(f') + $(e $ j-1) + $(k j) + $(w j) :: Word32BE |]
+         where r' = [| rotateL $(a $ j-1) 5 |]
+               f' = f j (b $ j-1) (c $ j-1) (d $ j-1)
 
     cdecs :: Int -> DecsQ
     cdecs = variable' "c" ''Word32BE body
       where
-        body j = [| rotateL $(subE "b" $ j-1) 30 |]
+        body j = [| rotateL $(b $ j-1) 30 |]
 
     wdecs :: Int -> DecsQ
     wdecs = variable' "w" ''Word32BE body
       where
         body j | j<16      = subE "m" j
-               | otherwise = [| rotateL ( $(subE "w" $ j-3)  `xor`
-                                          $(subE "w" $ j-8)  `xor`
-                                          $(subE "w" $ j-14) `xor`
-                                          $(subE "w" $ j-16)
-                                        ) 1 |]
+               | otherwise = [| rotateL ($(w $ j-3)  `xor` $(w $ j-8)  `xor`
+                                         $(w $ j-14) `xor` $(w $ j-16)) 1 |]
 
-    -- | The round constants for SHA1 hash
     kdecs :: Int -> DecsQ
     kdecs = variable' "k" ''Word32BE body
       where
@@ -97,5 +83,13 @@ f i x y z | i <= 19   = [| ($(x) .&. $(y)) `xor` (complement $(x) .&. $(z)) |]
           | i <= 39   = [| $(x) `xor` $(y) `xor` $(z) |]
           | i <= 59   = [| ($(x) .&. $(y)) `xor` ($(y) .&. $(z)) `xor` ($(z)
                            .&. $(x)) |]
-          | i <= 79   = [| $(x) `xor` $(y) `xor` $(z) |]
-          | otherwise = error "unthinkable has happened f_t in SHA1 reference"
+          | otherwise = [| $(x) `xor` $(y) `xor` $(z) |]
+
+a,b,c,d,e,k,w :: Int -> ExpQ
+a = subE "a"
+b = subE "b"
+c = subE "c"
+d = subE "d"
+e = subE "e"
+k = subE "k"
+w = subE "w"

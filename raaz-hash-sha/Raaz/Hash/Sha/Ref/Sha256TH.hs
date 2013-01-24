@@ -30,24 +30,20 @@ oneRound = sequence $ [typeSig, funD name [cls]]
     name = mkName "roundF"
     cls = clause (args1 ++ args2) (normalB (LetE <$> roundLoop <*>
                                       [| SHA256
-                                         ($(subE' "a" (-1)) + $(subE' "a" 63))
-                                         ($(subE' "b" (-1)) + $(subE' "b" 63))
-                                         ($(subE' "c" (-1)) + $(subE' "c" 63))
-                                         ($(subE' "d" (-1)) + $(subE' "d" 63))
-                                         ($(subE' "e" (-1)) + $(subE' "e" 63))
-                                         ($(subE' "f" (-1)) + $(subE' "f" 63))
-                                         ($(subE' "g" (-1)) + $(subE' "g" 63))
-                                         ($(subE' "h" (-1)) + $(subE' "h" 63))
+                                         ($(a (-1)) + $(a 63))
+                                         ($(b (-1)) + $(b 63))
+                                         ($(c (-1)) + $(c 63))
+                                         ($(d (-1)) + $(d 63))
+                                         ($(e (-1)) + $(e 63))
+                                         ($(f (-1)) + $(f 63))
+                                         ($(g (-1)) + $(g 63))
+                                         ($(h (-1)) + $(h 63))
                                       |])) []
-    args1 = map (flip subP' (-1)) ["a","b","c","d","e","f","g","h"]
-    args2 = map (subP' "m") [0..15]
+    args1 = map (flip subP (-1 :: Int)) ["a","b","c","d","e","f","g","h"]
+    args2 = map (subP "m") [0..15 :: Int]
     typeSig = sigD name $
               foldl (const . appT wordtype) (conT ''SHA256) [1..24 :: Int]
     wordtype = appT arrowT (conT ''Word32BE)
-    subE' :: String -> Int -> ExpQ
-    subE' = subE
-    subP' :: String -> Int -> PatQ
-    subP' = subP
 
 -- | Unrolls the round loop. Also assumes
 -- a__1,b__1,c__1,d__1,e__1,f__1,g__1,h__1 which are the hash values
@@ -59,40 +55,35 @@ roundLoop = liftM2 (++) kdecs
     adecs :: Int -> DecsQ
     adecs = variable' "a" ''Word32BE body
       where
-        body j = [| $(t1exp j) + $(t2exp j)
-                 :: Word32BE |]
+        body j = [| $(t1exp j) + $(t2exp j) :: Word32BE |]
 
     edecs :: Int -> DecsQ
     edecs = variable' "e" ''Word32BE body
       where
-        body j = [| $(subE "d" [j-1]) + $(t1exp j)
-                 :: Word32BE |]
+        body j = [| $(d $ j-1) + $(t1exp j) :: Word32BE |]
 
     t1exp :: Int -> ExpQ
-    t1exp j = [| $(subE "h" [j-1])
-               + $(sigB 1 (subE "e" [j-1]))
-               + $(ch (subE "e" [j-1]) (subE "f" [j-1]) (subE "g" [j-1]))
-               + $(subE "k" [j])
-               + $(subE "w" [j])
-              :: Word32BE |]
+    t1exp j = [| $(h $ j-1) + $(sigB1') + $(ch') + $(k j) + $(w j) :: Word32BE |]
+      where
+       ch' = ch (e $ j-1) (f $ j-1) (g $ j-1)
+       sigB1' = sigB1 (e $ j-1)
 
     t2exp :: Int -> ExpQ
-    t2exp j = [| $(sigB 0 (subE "a" [j-1]))
-               + $(maj (subE "a" [j-1]) (subE "b" [j-1]) (subE "c" [j-1]))
-              :: Word32BE |]
-
+    t2exp j = [| $(sigB0') + $(maj') :: Word32BE |]
+      where
+        sigB0'  = sigB0 (a $ j-1)
+        maj'    = maj (a $ j-1) (b $ j-1) (c $ j-1)
 
     wdecs :: Int -> DecsQ
     wdecs = variable' "w" ''Word32BE body
       where
         body j | j<16      = subE "m" j
-               | otherwise = [| $(sigS 1 (subE "w" (j-2)))  +
-                                $(subE "w" (j-7))           +
-                                $(sigS 0 (subE "w" (j-15))) +
-                                $(subE "w" (j-16))
+               | otherwise = [| $(sigS1') + $(w $ j-7) + $(sigS2') + $(w $ j-16)
                              :: Word32BE |]
+          where
+            sigS1' = sigS1 (w $ j-2)
+            sigS2' = sigS0 (w $ j-15)
 
-    -- | The round constants for SHA1 hash
     kdecs :: DecsQ
     kdecs = constants "k" ''Word32BE
          [ 0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1
@@ -108,26 +99,27 @@ roundLoop = liftM2 (++) kdecs
          , 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2 :: Word32BE ]
 
     restdecs :: Int -> DecsQ
-    restdecs = permute [ ("h","g")
-                       , ("g","f")
-                       , ("f","e")
-                       , ("d","c")
-                       , ("c","b")
-                       , ("b","a")
-                       ]
+    restdecs = permute [ ("h","g"), ("g","f"), ("f","e")
+                       , ("d","c"), ("c","b"), ("b","a") ]
 
-ch :: ExpQ -> ExpQ -> ExpQ -> ExpQ
-ch x y z = [| ($(x) .&. $(y)) `xor` (complement $(x) .&. $(z)) |]
-
-maj :: ExpQ -> ExpQ -> ExpQ -> ExpQ
+ch,maj :: ExpQ -> ExpQ -> ExpQ -> ExpQ
+ch x y z =  [| ($(x) .&. $(y)) `xor` (complement $(x) .&. $(z)) |]
 maj x y z = [| ($(x) .&. $(y)) `xor` ($(y) .&. $(z)) `xor` ($(z) .&. $(x)) |]
 
-sigB :: Int -> ExpQ -> ExpQ
-sigB 0 x = [| rotateR $(x) 2 `xor` rotateR $(x) 13 `xor` rotateR $(x) 22 |]
-sigB 1 x = [| rotateR $(x) 6 `xor` rotateR $(x) 11 `xor` rotateR $(x) 25 |]
-sigB _ _ = error "Wrong usage of sig function"
+sigB0,sigB1,sigS0,sigS1 :: ExpQ -> ExpQ
+sigB0 x = [| rotateR $(x) 2  `xor` rotateR $(x) 13 `xor` rotateR $(x) 22 |]
+sigB1 x = [| rotateR $(x) 6  `xor` rotateR $(x) 11 `xor` rotateR $(x) 25 |]
+sigS0 x = [| rotateR $(x) 7  `xor` rotateR $(x) 18 `xor` shiftR $(x) 3   |]
+sigS1 x = [| rotateR $(x) 17 `xor` rotateR $(x) 19 `xor` shiftR $(x) 10  |]
 
-sigS :: Int -> ExpQ -> ExpQ
-sigS 0 x = [| rotateR $(x) 7  `xor` rotateR $(x) 18 `xor` shiftR $(x) 3 |]
-sigS 1 x = [| rotateR $(x) 17 `xor` rotateR $(x) 19 `xor` shiftR $(x) 10 |]
-sigS _ _ = error "Wrong usage of sig function"
+a,b,c,d,e,f,g,h,k,w :: Int -> ExpQ
+a = subE "a"
+b = subE "b"
+c = subE "c"
+d = subE "d"
+e = subE "e"
+f = subE "f"
+g = subE "g"
+h = subE "h"
+k = subE "k"
+w = subE "w"
