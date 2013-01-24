@@ -1,0 +1,28 @@
+name:          raaz-executables
+version:       0.0.0.0
+synopsis:      Provides various executables from raaz library
+homepage:      http://github.com/piyush-kurur/raaz
+license:       BSD3
+license-file:  LICENSE
+author:        Piyush P Kurur
+maintainer:    ppk@cse.iitk.ac.in
+category:      Codec, Raaz
+build-type:    Simple
+cabal-version: >=1.9.2
+
+bug-reports: https://github.com/piyush-kurur/raaz/issues
+
+source-repository head
+  type: git
+  location: https://github.com/piyush-kurur/raaz
+  subdir: raaz-executables
+
+executable sha1sum
+  build-depends: base
+               , bytestring
+               , raaz-primitives==0.0.0.0
+               , raaz-hash-sha==0.0.0.0
+  ghc-options: -Wall -funbox-strict-fields
+  ghc-prof-options: -auto-all
+  hs-source-dirs: src
+  main-is: Sha1sum.hs
