@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleInstances #-}
 {-|
 
 Some template haskell helper functions. For speed considerations we
@@ -17,6 +18,7 @@ module Raaz.Util.TH
        , permute
        -- * Subscripting variables.
        -- $subscripting
+       , Subscript
        , sub, subE, subP
        ) where
 
@@ -24,6 +26,7 @@ import Control.Monad
 import Data.List(intercalate)
 import Language.Haskell.TH
 import Language.Haskell.TH.Syntax(Lift(..))
+
 
 -- | Declare a list of constants. For example the expression
 -- @constants "k" ''Int [1, 1 ,2, 3]@ will lead to the following
@@ -84,16 +87,18 @@ constantP is k ty = fmap concat . zipWithM inner [0..]
 --
 -- > x_1_2 :: Int
 --
-signature :: String   -- ^ Variable name
-          -> Name     -- ^ The type name
-          -> [Int]    -- ^ The subscript
+signature :: Subscript s
+          => String      -- ^ Variable name
+          -> Name        -- ^ The type name
+          -> s           -- ^ The subscript
           -> DecQ
 signature k ty = signatureGen k $ conT ty
 
 -- | A more general version of `signature`.
-signatureGen :: String   -- ^ The variable
-             -> TypeQ    -- ^ The type
-             -> [Int]    -- ^ The subscript
+signatureGen :: Subscript s
+             => String      -- ^ The variable
+             -> TypeQ       -- ^ The type
+             -> s           -- ^ The subscript
              -> DecQ
 signatureGen k ty is = sigD (k `sub` is) ty
 
@@ -104,28 +109,31 @@ signatureGen k ty is = sigD (k `sub` is) ty
 -- > x_1_2 = [| $(exp [1,2]) |]
 --
 --
-variable :: String          -- ^ Variable name
-         -> ([Int] -> ExpQ) -- ^ the rhs of the variable
-         -> [Int]           -- ^ subscript
+variable :: Subscript s
+         => String      -- ^ Variable name
+         -> (s -> ExpQ) -- ^ the rhs of the variable
+         -> s           -- ^ subscript
          -> DecQ
 variable k rhs is = valD (k `subP` is)
                          (normalB $ rhs is)
                          []
 
 -- | Genrates a variable definition and type signature.
-variable' :: String          -- ^ Variable name
+variable' :: Subscript s
+          => String          -- ^ Variable name
           -> Name            -- ^ Type
-          -> ([Int] -> ExpQ) -- ^ The rhs of the variable definition
-          -> [Int]           -- ^ The subscript
+          -> (s -> ExpQ)     -- ^ The rhs of the variable definition
+          -> s               -- ^ The subscript
           -> DecsQ
 variable' k ty = variableGen k $ conT ty
 
 
 -- | The most general type of variable declaration.
-variableGen :: String          -- ^ Variable name
-            -> TypeQ           -- ^ Type signature
-            -> ([Int] -> ExpQ) -- ^ The rhs of the variable definition
-            -> [Int]           -- ^ The subscript
+variableGen :: Subscript s
+            => String      -- ^ Variable name
+            -> TypeQ       -- ^ Type signature
+            -> (s -> ExpQ) -- ^ The rhs of the variable definition
+            -> s           -- ^ The subscript
             -> DecsQ
 variableGen k ty rhs is = sequence [ signatureGen k ty is
                                    , variable k rhs is
@@ -161,8 +169,9 @@ permute vars i   = mapM f vars
 -- This function can be used for example to unroll a set of mutually
 -- recursive definitions of variables.
 
-declarations :: [Int -> DecsQ] -- ^ Declaration generators
-             -> [Int]          -- ^ Subscripts
+declarations :: Subscript s
+             => [s -> DecsQ] -- ^ Declaration generators
+             -> [s]          -- ^ Subscripts
              -> DecsQ
 declarations gens is  = fmap concat $ forM gens singleGen
   where singleGen gen = fmap concat $ forM is gen
@@ -171,23 +180,37 @@ declarations gens is  = fmap concat $ forM gens singleGen
 --
 -- While unrolling loops we need to generate a sequence of
 -- variables. Typically the subscript would just be an
--- integer. However, we some times require matrix variables.  The
+-- integer. However, we some times require matrix variables. The
 -- convention followed in this: A variable can have a list of integers
--- as its subscript. The variable @k@ with subscript @[2,3]@
--- correspondes to the variable @k_2_3@ in the generated Haskell
--- code. However, while using the library make use of the exported
--- functions `sub`, `subE` and `subP` to generate the variable names
--- instead of explicitly coding it up.
+-- as its subscript. Infact our class Subscript captures those types
+-- which can be used as subscripts. Currently we support only @`Int`@
+-- and @[`Int`]@.
+
+-- The variable @k@ with subscript @[2,3]@ correspondes to the
+-- variable @k_2_3@ in the generated Haskell code. However, while
+-- using the library make use of the exported functions `sub`, `subE`
+-- and `subP` to generate the variable names instead of explicitly
+-- coding it up.
+
+-- | An class that capture subscripts.
+class Subscript a where
+  toSub :: a -> String
+
+instance Subscript Int where
+  toSub x | x >= 0    = show x
+          | otherwise = "_" ++ show (abs x)
+
+instance Subscript [Int] where
+  toSub = intercalate "_" . map toSub
 
 -- | The expression @sub "k" [i,j]@ gives the name @"k_i_j"@.
-sub :: String -> [Int] -> Name
-sub x is = mkName $ intercalate "_" $ x : map showIndex is
-   where showIndex i | i >= 0    = show i
-                     | otherwise = '_' : show  (abs i)
+sub :: Subscript s => String -> s -> Name
+sub x s = mkName $ x ++ "_" ++ toSub s
+
 -- | The `ExpQ` variant of @sub@.
-subE :: String -> [Int] -> ExpQ
-subE x is = varE $ sub x is
+subE :: Subscript s => String -> s -> ExpQ
+subE x = varE . sub x
 
 -- | The `PatQ` variant of @sub@.
-subP :: String -> [Int] -> PatQ
-subP x is = varP $ sub x is
+subP :: Subscript s => String -> s -> PatQ
+subP x = varP . sub x

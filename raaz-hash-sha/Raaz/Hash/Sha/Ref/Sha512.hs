@@ -22,6 +22,7 @@ import Raaz.Hash.Sha.Ref.Sha512TH
 
 -- | roundF function generated from TH
 $(oneRound)
+{-# INLINE roundF #-}
 
 -- | Compresses one block.
 sha512CompressSingle :: SHA512

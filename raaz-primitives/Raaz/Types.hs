@@ -8,6 +8,8 @@ Some basic types and classes used in the cryptographic protocols.
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE DeriveDataTypeable         #-}
+{-# LANGUAGE TemplateHaskell            #-}
+
 module Raaz.Types
        ( CryptoCoerce(..)
        , cryptoAlignment, CryptoAlign, CryptoPtr
@@ -31,6 +33,8 @@ import Data.ByteString.Internal (unsafeCreate)
 import Data.Typeable(Typeable)
 import Foreign.Ptr
 import Foreign.Storable
+import Language.Haskell.TH(sigE, conT)
+import Language.Haskell.TH.Syntax(Lift(..))
 import System.Endian
 
 
@@ -226,6 +230,20 @@ instance CryptoStore Word64BE where
   {-# INLINE store #-}
   load      = fmap toWord64BE . peek . castPtr
   store ptr = poke (castPtr ptr) . fromWord64BE
+
+
+
+instance Lift Word32LE where
+  lift w =  sigE (lift $ toInteger w) $ conT ''Word32LE
+
+instance Lift Word32BE where
+  lift w =  sigE (lift $ toInteger w) $ conT ''Word32BE
+
+instance Lift Word64LE where
+  lift w =  sigE (lift $ toInteger w) $ conT ''Word64LE
+
+instance Lift Word64BE where
+  lift w =  sigE (lift $ toInteger w) $ conT ''Word64BE
 
 -- $length
 --
