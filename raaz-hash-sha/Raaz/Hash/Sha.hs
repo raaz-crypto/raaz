@@ -7,7 +7,6 @@ sha224, sha512, sha384.
 
 module Raaz.Hash.Sha
        ( module Raaz.Hash.Sha.Types
-       , module Raaz.Hash.Sha.Instances
        ) where
 
 import Raaz.Hash.Sha.Types( SHA1
