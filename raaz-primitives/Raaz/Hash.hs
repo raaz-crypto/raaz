@@ -32,10 +32,22 @@ import           Raaz.Primitives
 import           Raaz.Util.ByteString
 import           Raaz.Util.Ptr
 
--- | The class abstracts an arbitrary hash type. Minimum complete
--- definition include @padLength@, one of @`padding`@ or @`unsafePad`@
--- and @`maxAdditionalBlocks`@. However, for efficiency you might want
--- to define all of the members separately.
+-- | The class abstracts an arbitrary hash type. A hash should be a
+-- block primitive. Computing the hash involved starting at a fixed
+-- context and iterating through the blocks of data (suitably padded)
+-- by the process function. The last context is then finalised to the
+-- value of the hash.
+--
+-- The data to be hashed should be padded. The obvious reason is to
+-- handle messages that are not multiples of the block size. Howerver,
+-- there is a more subtle reason. For hashing schemes like
+-- Merkel-Damgård, the strength of the hash crucially depends on the
+-- padding.
+--
+-- A Minimum complete definition include @`startCxt`@,
+-- @`finaliseHash`@, @`padLength`@, one of @`padding`@ or
+-- @`unsafePad`@ and @`maxAdditionalBlocks`@. However, for efficiency
+-- you might want to define all of the members separately.
 --
 -- [Warning:] While defining the @'Eq'@ instance of @'Hash' h@, make
 -- sure that the @==@ operator takes time independent of the input.
@@ -47,55 +59,14 @@ class ( BlockPrimitive h
       , CryptoStore h
       ) => Hash h where
 
-  -- | Hash functions proceeds in rounds where each round processes
-  -- one block. This assocaited type captures the intermediate value
-  -- required in the processing of the next block. For Merkel-Damgård
-  -- this is usually just h, although one could use a more efficient
-  -- representation of it. In HAIFA hashes, it usually contains the
-  -- salt and the number of bits processed as well.
-  data Cxt h :: *
-
   -- | The context to start the hash algorithm.
   startCxt   :: h -> Cxt h
 
   -- | How to finalise the hash from the context.
   finaliseHash :: Cxt h -> h
 
-  -- | Underlying a cryptographic hash, whether it is one of the
-  -- Merkel-Damgård hashes like SHA1 or HAIFA hashes like BLAKE, is a
-  -- compressor which works on a fixed block of bits. This compressor
-  -- is what does all the hardwork and the security of the hash
-  -- depends on the security of this function. The compression
-  -- function assocated with the hash. This already has a default
-  -- implementation in terms of compressSingle, but you can provide a
-  -- more efficient implementation.
-  compress :: Cxt h         -- ^ The context from the previous round
-           -> BLOCKS h      -- ^ The number of blocks of data.
-           -> CryptoPtr     -- ^ The message buffer
-           -> IO (Cxt h)
-  compress cxt b cptr = fst <$> foldM moveAndHash (cxt,cptr) [1..b]
-    where
-      moveAndHash (cxt',ptr) _ = do newcxt <- compressSingle cxt' ptr
-                                    let moveBy = blockSize (getHash cxt)
-                                    return (newcxt,movePtr ptr moveBy)
-      getHash :: Cxt h -> h
-      getHash _ = undefined
-
-  -- | Reads one block from the CryptoPtr and produces the next
-  -- context from the previous context. It has a default
-  -- implementation in terms of compress. So you need to provide
-  -- implementation of atleast one of compress or compressSingle.
-  compressSingle :: Cxt h         -- ^ The context
-                 -> CryptoPtr     -- ^ The message buffer
-                 -> IO (Cxt h)
-  compressSingle cxt cptr = compress cxt 1 cptr
-
-  -- | There are two reasons to pad the data to be hashed. The obvious
-  -- reason is to handle messages that are not multiples of the block
-  -- size. Howerver, there is a more subtle reason. For hashing
-  -- schemes like Merkel-Damgård, the strength of the hash crucially
-  -- depends on the padding. This combinator returns the length of the
-  -- padding that is to be added to the message.
+  -- This combinator returns the length of the padding that is to be
+  -- added to the message.
   padLength :: h           -- ^ The hash type
             -> BITS Word64 -- ^ the total message size in bits.
             -> BYTES Int
@@ -121,16 +92,8 @@ class ( BlockPrimitive h
   -- know the size to be allocated for your message buffers.
   maxAdditionalBlocks :: h -> BLOCKS h
 
-  -- | The recommended number of blocks to hash at a time. While
-  -- hashing files, bytestrings it makes sense to hash multiple blocks
-  -- at a time. Setting this member appropriately (typically depends
-  -- on the cache size of your machine) can drastically improve cache
-  -- performance of your program. Default setting is the number of
-  -- blocks that fit in @32KB@.
-  recommendedBlocks   :: h -> BLOCKS h
-  recommendedBlocks _ = cryptoCoerce (1024 * 32 :: BYTES Int)
 
-  -- | Computes the iterated hash useful for password
+  -- | Computes the iterated hash, useful for password
   -- hashing. Although a default implementation is given, you might
   -- want to give an optimized specialised version of this function.
   iterateHash :: Int    -- ^ Number of times to iterate
@@ -149,28 +112,26 @@ class ( BlockPrimitive h
                 padPtr = cptr `movePtr` dl
                 iterateOnce h' _ = do
                   store cptr h'
-                  finaliseHash <$> compress (startCxt h') blks cptr
+                  finaliseHash <$> process (startCxt h') blks cptr
 
-  -- | This functions is to facilitate the hmac construction. There is
-  -- a default definition of this function but implementations can
-  -- give a more efficient version.
-  hmacOuter :: Cxt h
-            -> h
-            -> h
-  hmacOuter cxt h = unsafePerformIO $ allocaBuffer tl go
-     where sz   :: BYTES Int   -- size of message
-           pl   :: BYTES Int   -- size of padding
-           bits :: BITS Word64 -- total Message size
-           tl   :: BYTES Int   -- total buffer size
-           sz      = BYTES $ sizeOf h
-           bits    = cryptoCoerce $ blocksOf 1 h -- outer pad
-                   + cryptoCoerce sz
-           pl      = padLength h bits
+  -- | This functions processes data which itself is a hash. One can
+  -- use this for iterated hash computation, hmac construction
+  -- etc. There is a default definition of this function but
+  -- implementations can give a more efficient version.
+  processHash :: Cxt h       -- ^ Context obtained by processing so far
+              -> BITS Word64 -- ^ number of bits processed so far
+                             -- (exculding the bits in the hash)
+              -> h
+              -> h
+  processHash cxt bits h = unsafePerformIO $ allocaBuffer tl go
+     where sz      = BYTES $ sizeOf h
+           tBits   = bits + cryptoCoerce sz
+           pl      = padLength h tBits
            tl      = sz + pl
            go cptr = do
               store cptr h
-              unsafePad h bits $ cptr `movePtr` sz
-              finaliseHash <$> compress cxt (cryptoCoerce tl) cptr
+              unsafePad h tBits $ cptr `movePtr` sz
+              finaliseHash <$> process cxt (cryptoCoerce tl) cptr
 
 
 
@@ -212,10 +173,9 @@ hashFileHandle hndl = fmap finaliseHash $ allocaBuffer bufSize $ go cxt 0
            go context bits cptr = do
                       count <- hFillBuf hndl cptr nBlocks
                       if count == sz
-                         then do context' <- compress context nBlocks cptr
+                         then do context' <- process context nBlocks cptr
                                  go context' (bits + cryptoCoerce nBlocks) cptr
                          else compressLast h context bits count cptr
-
 
 -- | Compress a list of strict byte string chunks.
 compressChunks :: Hash h
@@ -231,7 +191,7 @@ compressChunks cxt bs = fmap finaliseHash $ allocaBuffer bufSize $ go cxt bs 0
            go context bstr bits cptr =   fillUpChunks bstr nBlocks cptr
                                      >>= either goLeft goRight
              where goRight rest = do
-                     context' <- compress context nBlocks cptr
+                     context' <- process context nBlocks cptr
                      go context' rest (bits + cryptoCoerce nBlocks) cptr
 
                    goLeft r = compressLast h context bits bufLen cptr
@@ -246,7 +206,7 @@ compressLast :: Hash h
              -> CryptoPtr
              -> IO (Cxt h)
 compressLast h cxt bits bufLen cptr =  unsafePad h totalBits padPtr
-                                    >> compress cxt blks cptr
+                                    >> process cxt blks cptr
        where totalBits = bits + cryptoCoerce bufLen
              blks      = cryptoCoerce (bufLen + padLength h totalBits)
              padPtr    = cptr `movePtr` bufLen

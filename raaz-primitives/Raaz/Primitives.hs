@@ -11,28 +11,65 @@ module Raaz.Primitives
        ( BlockPrimitive(..)
        , BLOCKS, blocksOf
        ) where
-{-
-import Data.Word
-import qualified Data.ByteString as B
-import qualified Data.ByteString.Lazy as L
-import Data.ByteString.Internal (unsafeCreate)
-import Foreign.Ptr(castPtr)
--}
+
+import Control.Applicative((<$>))
+import Control.Monad(foldM)
 
 import Raaz.Types
-
-
-
-
-
--- | Abstraction that captures crypto primitives that work one block
--- at a time. Examples are block ciphers, Merkle-Damgård hashes etc.
-class BlockPrimitive p where
-  blockSize :: p -> BYTES Int -- ^ Block size
+import Raaz.Util.Ptr
 
 -- | Type safe message length in units of blocks of the primitive.
 newtype BLOCKS p = BLOCKS Int
                  deriving (Show, Eq, Ord, Enum, Real, Num, Integral)
+
+-- | Abstraction that captures crypto primitives that work one block
+-- at a time. Block primitives process data one block at a
+-- time. Examples are block ciphers, Merkle-Damgård hashes etc. The
+-- minimal complete definition consists of `blockSize`, the associated
+-- type `Cxt` and one of `process` or `processSingle`.
+class BlockPrimitive p where
+
+  blockSize :: p -> BYTES Int -- ^ Block size
+
+  -- | Block primitives require carrying around a context to process
+  -- subsequent blocks. This associated type captures such a context.
+  data Cxt p
+
+  -- | This `process` function is what does all the hardwork of the
+  -- primitive. A default implementation in terms of `processSingle`,
+  -- but you can provide a more efficient implementation. Whether the
+  -- data in the message buffer is left intact or not, depends on the
+  -- primitive.
+  process :: Cxt p     -- ^ The context passed from the previous block
+          -> BLOCKS p  -- ^ The number of blocks of data.
+          -> CryptoPtr -- ^ The message buffer
+          -> IO (Cxt p)
+
+  process cxt b cptr = fst <$> foldM moveAndHash (cxt,cptr) [1..b]
+    where
+      getCxt :: Cxt p -> p
+      getCxt _  = undefined
+      sz        = blockSize $ getCxt cxt
+      moveAndHash (context,ptr) _ = do newCxt <- processSingle context ptr
+                                       return (newCxt, ptr `movePtr` sz)
+
+  -- | Reads one block from the CryptoPtr and produces the next
+  -- context from the previous context. There is a default
+  -- implementation in terms of `process`. However, for efficiency you
+  -- might consider defining a separte version.
+  processSingle :: Cxt p         -- ^ The context
+                -> CryptoPtr     -- ^ The message buffer
+                -> IO (Cxt p)
+  processSingle cxt cptr = process cxt 1 cptr
+
+  -- | The recommended number of blocks to process at a time. While
+  -- processing files, bytestrings it makes sense to handle multiple
+  -- blocks at a time. Setting this member appropriately (typically
+  -- depends on the cache size of your machine) can drastically
+  -- improve cache performance of your program. Default setting is the
+  -- number of blocks that fit in @32KB@.
+  recommendedBlocks   :: p -> BLOCKS p
+  recommendedBlocks _ = cryptoCoerce (1024 * 32 :: BYTES Int)
 
 instance ( BlockPrimitive p
          , Num by
