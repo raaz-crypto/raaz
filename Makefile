@@ -1,15 +1,21 @@
-PACKAGES=primitives ssh hash-sha tests
 INSTALL_OPTS=
+PACKAGES=primitives ssh hash-sha tests # Add new packages here
+
+# Dependencies of packages goes here.
 
 hash-sha: primitives tests
+
+# End of package dependency
 
 BRANCHES=${PACKAGES}
 X_BRANCHES=$(addprefix x-,${BRANCHES})
 
 TEST_PATH=dist/build/tests/tests
 
-.PHONY: ${PACKAGES} install merge release travis-tests clean
-.PHONY: fast-forward fast-forward-all
+.PHONY: ${PACKAGES} install travis-tests clean
+.PHONY: fast-forward fast-forward-all merge release
+
+
 
 install: ${PACKAGES}
 
@@ -24,6 +30,7 @@ travis-tests:
 		cabal test;\
 		cd ..;\
 		)
+
 clean:
 	$(foreach pkg, ${PACKAGES},\
 		ghc-pkg unregister --force raaz-${pkg}; \
