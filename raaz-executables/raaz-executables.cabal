@@ -18,11 +18,10 @@ source-repository head
   subdir: raaz-executables
 
 executable sha1sum
+  hs-source-dirs: src
   build-depends: base
                , bytestring
                , raaz-primitives==0.0.0.0
                , raaz-hash-sha==0.0.0.0
   ghc-options: -Wall -funbox-strict-fields
-  ghc-prof-options: -auto-all
-  hs-source-dirs: src
   main-is: Sha1sum.hs
