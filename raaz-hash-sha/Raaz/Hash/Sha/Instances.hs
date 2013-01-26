@@ -1,12 +1,13 @@
-{-
+{-|
 
 This module defines the hash instances for different hashes.
 
 -}
+
 {-# LANGUAGE TypeFamilies #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module Raaz.Hash.Instances () where
+module Raaz.Hash.Sha.Instances () where
 
 import Control.Applicative ((<$>))
 import qualified Data.ByteString as B
@@ -14,7 +15,7 @@ import Data.Word
 import Foreign.Storable(Storable(..))
 
 import Raaz.Hash
-import Raaz.Hash.Sha
+import Raaz.Hash.Sha.Types
 import Raaz.Hash.Sha.Ref.Sha1
 import Raaz.Hash.Sha.Ref.Sha256
 import Raaz.Hash.Sha.Ref.Sha512

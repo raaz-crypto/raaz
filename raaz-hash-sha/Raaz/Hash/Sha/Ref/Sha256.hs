@@ -17,7 +17,7 @@ import Control.Applicative
 import Raaz.Types
 import Raaz.Util.Ptr
 
-import Raaz.Hash.Sha(SHA256(..))
+import Raaz.Hash.Sha.Types(SHA256(..))
 import Raaz.Hash.Sha.Ref.Sha256TH
 
 -- | roundF function generated from TH

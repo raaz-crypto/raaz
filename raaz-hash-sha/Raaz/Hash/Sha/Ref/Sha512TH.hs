@@ -19,7 +19,7 @@ import Language.Haskell.TH
 import Raaz.Types
 import Raaz.Util.TH
 
-import Raaz.Hash.Sha
+import Raaz.Hash.Sha.Types(SHA512(..))
 
 -- | Declares roundF function which denotes compression of one
 -- block. This is used internally for efficient code generation using
