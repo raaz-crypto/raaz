@@ -1,7 +1,7 @@
 language: haskell
-install: "make install"
+env: INSTALL_OPTS="-O0 -enable-documentation --enable-tests --force-reinstall"
+install: "make install INSTALL_OPTS
 script: "make travis-tests"
-
 branches:
   only:
     - master

@@ -1,5 +1,5 @@
 PACKAGES=primitives ssh hash-sha tests
-
+INSTALL_OPTS=
 
 hash-sha: primitives tests
 
@@ -15,9 +15,7 @@ install: ${PACKAGES}
 
 ${PACKAGES}:
 	cd raaz-$@;\
-	cabal install --enable-documentation\
-	              --enable-tests\
-		      --force-reinstall
+	cabal install ${INSTALL_OPTS}
 
 travis-tests:
 
