@@ -1,9 +1,12 @@
 INSTALL_OPTS=
-PACKAGES=primitives ssh hash-sha tests # Add new packages here
+
+# Add new packages here
+PACKAGES=primitives ssh hash-sha tests executables
 
 # Dependencies of packages goes here.
 
 hash-sha: primitives tests
+executables: hash-sha
 
 # End of package dependency
 
