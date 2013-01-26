@@ -8,7 +8,7 @@ X_BRANCHES=$(addprefix x-,${BRANCHES})
 
 TEST_PATH=dist/build/tests/tests
 
-.PHONY: ${PACKAGES} install merge release travis-tests
+.PHONY: ${PACKAGES} install merge release travis-tests clean
 .PHONY: fast-forward fast-forward-all
 
 install: ${PACKAGES}
@@ -24,7 +24,12 @@ travis-tests:
 		cabal test;\
 		cd ..;\
 		)
-
+clean:
+	$(foreach pkg, ${PACKAGES},\
+		ghc-pkg unregister --force raaz-${pkg}; \
+		cd raaz-${pkg}; \
+		./Setup.lhs clean;\
+		cd ..)
 merge:
 	git checkout master
 	if git branch | grep -q 'x-merge'; then git branch -D x-merge ; fi
