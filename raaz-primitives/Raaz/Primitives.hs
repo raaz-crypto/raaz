@@ -11,19 +11,20 @@ module Raaz.Primitives
        ( BlockPrimitive(..)
        , HasPadding(..)
        , BLOCKS, blocksOf
+       , transformContext, transformContextFile
        ) where
 
 import           Control.Applicative((<$>))
 import           Control.Monad(foldM)
 import qualified Data.ByteString      as B
 import           Data.ByteString.Internal(unsafeCreate)
-import qualified Data.ByteString.Lazy as L
 import           Data.Word(Word64)
 import           Foreign.Ptr(castPtr)
-import           System.IO(Handle, withFile, IOMode(ReadMode))
+import           System.IO(withFile, IOMode(ReadMode))
 
 import Raaz.Types
-import Raaz.Util.ByteString(fillUpChunks, fillUp, unsafeCopyToCryptoPtr)
+import Raaz.ByteSource
+import Raaz.Util.ByteString
 import Raaz.Util.Ptr
 
 -- | Type safe message length in units of blocks of the primitive.
@@ -165,3 +166,38 @@ class BlockPrimitive p => HasPadding p where
   -- one can hold the padding. This function is useful if you want to
   -- know the size to be allocated for your message buffers.
   maxAdditionalBlocks :: p -> BLOCKS p
+
+-- | For a block primitive that supports padding, this combinator is
+-- used when we care only about the final context and not the contents
+-- of the procesed buffer.
+transformContext  :: ( ByteSource src
+                     , HasPadding p
+                     )
+                  => Cxt p     -- ^ The starting context
+                  -> src       -- ^ The byte source
+                  -> IO (Cxt p)
+transformContext cxt src = allocaBuffer bufSize $ go 0 cxt src
+  where nBlocks = recommendedBlocks p
+        bufSize = nBlocks + maxAdditionalBlocks p
+        p       = getPrimitive cxt
+        go k context source cptr =   fill nBlocks source cptr
+                                 >>= withFillResult continue endIt
+           where continue rest = do context' <- process context nBlocks cptr
+                                    go (k + nBlocks) context' rest cptr
+                 endIt r       = do unsafePad p bits padPtr
+                                    process context blks cptr
+                       where len    = cryptoCoerce nBlocks - r
+                             bits   = cryptoCoerce k + cryptoCoerce len
+                             padPtr = cptr `movePtr` len
+                             blks   = cryptoCoerce $ len + padLength p bits
+
+-- | A version of `transformContext` which takes a filename instead.
+transformContextFile :: HasPadding p
+                     => Cxt p      -- ^ The starting context
+                     -> FilePath   -- ^ The file name.
+                     -> IO (Cxt p)
+transformContextFile cxt fpth = withFile fpth ReadMode $ transformContext cxt
+
+-- | A function to make the type checker happy.
+getPrimitive :: BlockPrimitive p => Cxt p -> p
+getPrimitive _ = undefined
