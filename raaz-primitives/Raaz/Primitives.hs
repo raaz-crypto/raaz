@@ -9,13 +9,21 @@ Generic cryptographic algorithms.
 {-# LANGUAGE GeneralizedNewtypeDeriving  #-}
 module Raaz.Primitives
        ( BlockPrimitive(..)
+       , HasPadding(..)
        , BLOCKS, blocksOf
        ) where
 
-import Control.Applicative((<$>))
-import Control.Monad(foldM)
+import           Control.Applicative((<$>))
+import           Control.Monad(foldM)
+import qualified Data.ByteString      as B
+import           Data.ByteString.Internal(unsafeCreate)
+import qualified Data.ByteString.Lazy as L
+import           Data.Word(Word64)
+import           Foreign.Ptr(castPtr)
+import           System.IO(Handle, withFile, IOMode(ReadMode))
 
 import Raaz.Types
+import Raaz.Util.ByteString(fillUpChunks, fillUp, unsafeCopyToCryptoPtr)
 import Raaz.Util.Ptr
 
 -- | Type safe message length in units of blocks of the primitive.
@@ -116,3 +124,44 @@ instance ( BlockPrimitive p
 -- sometimes required to make the type checker happy.
 blocksOf :: BlockPrimitive p =>  Int -> p -> BLOCKS p
 blocksOf n _ = BLOCKS n
+
+-- | This class captures a block primitive that has a length dependent
+-- padding strategy. The obvious reason for padding is to handle
+-- messages that are not multiples of the block size. However, there
+-- is a more subtle reason. For certain hashing schemes like
+-- Merkel-Damgård, the strength of the hash crucially depends on the
+-- padding. The minmal complete definition for this class is
+-- `padLength`, `maxAdditionalBlocks` and one of `padding` or
+-- `unsafePad`.
+class BlockPrimitive p => HasPadding p where
+  -- | This combinator returns the length of the padding that is to be
+  -- added to the message.
+  padLength :: p           -- ^ the block primitive
+            -> BITS Word64 -- ^ the total message size in bits.
+            -> BYTES Int
+
+  -- | This function returns the actual bytestring to pad the message
+  -- with. There is a default definition of this message in terms of
+  -- the unsafePad function. However, implementations might want to
+  -- give a more efficient definition.
+  padding   :: p           -- ^ the block primitive
+            -> BITS Word64 -- ^ the total message size in bits.
+            -> B.ByteString
+  padding p bits = unsafeCreate len padIt
+        where BYTES len = padLength p bits
+              padIt     = unsafePad p bits . castPtr
+
+  -- | This is the unsafe version of the padding function. It is
+  -- unsafe in the sense that the call @unsafePad h bits cptr@ assumes
+  -- that there is enough free space to put the padding string at the
+  -- given pointer.
+  unsafePad :: p           -- ^ the block primitive
+            -> BITS Word64 -- ^ the total message size in bits
+            -> CryptoPtr   -- ^ the message buffer
+            -> IO ()
+  unsafePad p bits = unsafeCopyToCryptoPtr $ padding p bits
+
+  -- | This counts the number of additional blocks required so that
+  -- one can hold the padding. This function is useful if you want to
+  -- know the size to be allocated for your message buffers.
+  maxAdditionalBlocks :: p -> BLOCKS p

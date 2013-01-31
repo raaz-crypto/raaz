@@ -20,9 +20,7 @@ import           Control.Applicative((<$>))
 import           Control.Monad (foldM)
 import           Data.Word(Word64)
 import qualified Data.ByteString as B
-import           Data.ByteString.Internal(unsafeCreate)
 import qualified Data.ByteString.Lazy as L
-import           Foreign.Ptr(castPtr)
 import           Foreign.Storable(Storable(..))
 import           System.IO.Unsafe
 import           System.IO
@@ -38,22 +36,15 @@ import           Raaz.Util.Ptr
 -- by the process function. The last context is then finalised to the
 -- value of the hash.
 --
--- The data to be hashed should be padded. The obvious reason is to
--- handle messages that are not multiples of the block size. Howerver,
--- there is a more subtle reason. For hashing schemes like
--- Merkel-Damgård, the strength of the hash crucially depends on the
--- padding.
---
 -- A Minimum complete definition include @`startCxt`@,
--- @`finaliseHash`@, @`padLength`@, one of @`padding`@ or
--- @`unsafePad`@ and @`maxAdditionalBlocks`@. However, for efficiency
--- you might want to define all of the members separately.
+-- @`finaliseHash`@, However, for efficiency you might want to define
+-- all of the members separately.
 --
 -- [Warning:] While defining the @'Eq'@ instance of @'Hash' h@, make
 -- sure that the @==@ operator takes time independent of the input.
 -- This is to avoid timing based side-channel attacks. In particular,
 -- /do not/ take the lazy option of deriving the @'Eq'@ instance.
-class ( BlockPrimitive h
+class ( HasPadding h
       , Eq          h
       , Storable    h
       , CryptoStore h
@@ -64,34 +55,6 @@ class ( BlockPrimitive h
 
   -- | How to finalise the hash from the context.
   finaliseHash :: Cxt h -> h
-
-  -- This combinator returns the length of the padding that is to be
-  -- added to the message.
-  padLength :: h           -- ^ The hash type
-            -> BITS Word64 -- ^ the total message size in bits.
-            -> BYTES Int
-
-  -- | This function returns the actual bytestring to pad the message
-  -- with. There is a default definition of this message in terms of
-  -- the unsafePad function. However, implementations might want to
-  -- give a more efficient definition.
-  padding   :: h -> BITS Word64 -> B.ByteString
-  padding h bits = unsafeCreate len padIt
-        where BYTES len = padLength h bits
-              padIt     = unsafePad h bits . castPtr
-
-  -- | This is the unsafe version of the padding function. It is
-  -- unsafe in the sense that the call @unsafePad h bits cptr@ assumes
-  -- that there is enough free space to put the padding string at the
-  -- given pointer.
-  unsafePad :: h -> BITS Word64 -> CryptoPtr -> IO ()
-  unsafePad h bits = unsafeCopyToCryptoPtr $ padding h bits
-
-  -- | This counts the number of additional blocks required so that
-  -- one can hold the padding. This function is useful if you want to
-  -- know the size to be allocated for your message buffers.
-  maxAdditionalBlocks :: h -> BLOCKS h
-
 
   -- | Computes the iterated hash, useful for password
   -- hashing. Although a default implementation is given, you might
