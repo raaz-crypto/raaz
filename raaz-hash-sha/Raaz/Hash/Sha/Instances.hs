@@ -22,9 +22,20 @@ import Raaz.Hash.Sha.Ref.Sha512
 import Raaz.Primitives
 import Raaz.Types
 
-instance Hash SHA1 where
+instance BlockPrimitive SHA1 where
+  blockSize _ = cryptoCoerce $ BITS (512 :: Int)
+  {-# INLINE blockSize #-}
+
   newtype Cxt SHA1 = SHA1Cxt SHA1
 
+  processSingle (SHA1Cxt cxt) ptr = SHA1Cxt <$> sha1CompressSingle cxt ptr
+
+instance HasPadding SHA1 where
+  maxAdditionalBlocks _ = 1
+  padLength = padLength64
+  padding   = padding64
+
+instance Hash SHA1 where
   startCxt _ = SHA1Cxt $ SHA1 0x67452301
                               0xefcdab89
                               0x98badcfe
@@ -32,15 +43,23 @@ instance Hash SHA1 where
                               0xc3d2e1f0
   finaliseHash (SHA1Cxt h) = h
 
-  maxAdditionalBlocks _ = 1
 
-  padLength = padLength64
-  padding   = padding64
-  compressSingle (SHA1Cxt cxt) ptr = SHA1Cxt <$> sha1CompressSingle cxt ptr
+instance BlockPrimitive SHA224 where
+  blockSize _ = cryptoCoerce $ BITS (512 :: Int)
+  {-# INLINE blockSize #-}
 
-instance Hash SHA224 where
   newtype Cxt SHA224 = SHA224Cxt SHA256
 
+  processSingle (SHA224Cxt cxt) ptr = SHA224Cxt <$> sha256CompressSingle cxt ptr
+
+instance HasPadding SHA224 where
+
+  maxAdditionalBlocks _ = 1
+  padLength = padLength64
+  padding   = padding64
+
+
+instance Hash SHA224 where
   startCxt _ = SHA224Cxt $ SHA256 0xc1059ed8
                                   0x367cd507
                                   0x3070dd17
@@ -51,17 +70,24 @@ instance Hash SHA224 where
                                   0xbefa4fa4
 
   finaliseHash (SHA224Cxt h) = sha256Tosha224 h
-   where sha256Tosha224 (SHA256 h0 h1 h2 h3 h4 h5 h6 _)
-                       = SHA224 h0 h1 h2 h3 h4 h5 h6
+    where sha256Tosha224 (SHA256 h0 h1 h2 h3 h4 h5 h6 _)
+            = SHA224 h0 h1 h2 h3 h4 h5 h6
+
+instance BlockPrimitive SHA256 where
+  blockSize _ = cryptoCoerce $ BITS (512 :: Int)
+  {-# INLINE blockSize #-}
+
+  newtype Cxt SHA256 = SHA256Cxt SHA256
+  processSingle (SHA256Cxt cxt) ptr = SHA256Cxt <$> sha256CompressSingle cxt ptr
+
+
+instance HasPadding SHA256 where
 
   maxAdditionalBlocks _ = 1
-
   padLength = padLength64
   padding   = padding64
-  compressSingle (SHA224Cxt cxt) ptr = SHA224Cxt <$> sha256CompressSingle cxt ptr
 
 instance Hash SHA256 where
-  newtype Cxt SHA256 = SHA256Cxt SHA256
 
   startCxt _ = SHA256Cxt $ SHA256 0x6a09e667
                                   0xbb67ae85
@@ -71,17 +97,24 @@ instance Hash SHA256 where
                                   0x9b05688c
                                   0x1f83d9ab
                                   0x5be0cd19
-
   finaliseHash (SHA256Cxt h) = h
 
-  maxAdditionalBlocks _ = 1
+instance BlockPrimitive SHA512 where
+  blockSize _ = cryptoCoerce $ BITS (1024 :: Int)
+  {-# INLINE blockSize #-}
 
-  padLength = padLength64
-  padding   = padding64
-  compressSingle (SHA256Cxt cxt) ptr = SHA256Cxt <$> sha256CompressSingle cxt ptr
+  newtype Cxt SHA512 = SHA512Cxt SHA512
+
+  processSingle (SHA512Cxt cxt) ptr = SHA512Cxt <$> sha512CompressSingle cxt ptr
+
+
+instance HasPadding SHA512 where
+  maxAdditionalBlocks _ = 1
+  padLength = padLength128
+  padding   = padding128
+
 
 instance Hash SHA512 where
-  newtype Cxt SHA512 = SHA512Cxt SHA512
 
   startCxt _ = SHA512Cxt $ SHA512 0x6a09e667f3bcc908
                                   0xbb67ae8584caa73b
@@ -94,15 +127,19 @@ instance Hash SHA512 where
 
   finaliseHash (SHA512Cxt h) = h
 
-  maxAdditionalBlocks _ = 1
+instance BlockPrimitive SHA384 where
+  blockSize _ = cryptoCoerce $ BITS (1024 :: Int)
+  {-# INLINE blockSize #-}
+  newtype Cxt SHA384 = SHA384Cxt SHA512
+  processSingle (SHA384Cxt cxt) ptr = SHA384Cxt <$> sha512CompressSingle cxt ptr
 
+instance HasPadding SHA384 where
+  maxAdditionalBlocks _ = 1
   padLength = padLength128
   padding   = padding128
-  compressSingle (SHA512Cxt cxt) ptr = SHA512Cxt <$> sha512CompressSingle cxt ptr
+
 
 instance Hash SHA384 where
-  newtype Cxt SHA384 = SHA384Cxt SHA512
-
   startCxt _ = SHA384Cxt $ SHA512 0xcbbb9d5dc1059ed8
                                   0x629a292a367cd507
                                   0x9159015a3070dd17
@@ -113,15 +150,8 @@ instance Hash SHA384 where
                                   0x47b5481dbefa4fa4
 
   finaliseHash (SHA384Cxt h) = sha512Tosha384 h
-   where sha512Tosha384 (SHA512 h0 h1 h2 h3 h4 h5 _ _)
-                      = (SHA384 h0 h1 h2 h3 h4 h5)
-
-  maxAdditionalBlocks _ = 1
-
-  padLength = padLength128
-  padding   = padding128
-  compressSingle (SHA384Cxt cxt) ptr = SHA384Cxt <$> sha512CompressSingle cxt ptr
-
+    where sha512Tosha384 (SHA512 h0 h1 h2 h3 h4 h5 _ _)
+            = (SHA384 h0 h1 h2 h3 h4 h5)
 
 firstPadByte :: Word8
 firstPadByte = 128

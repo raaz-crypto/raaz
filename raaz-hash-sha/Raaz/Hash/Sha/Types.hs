@@ -14,7 +14,6 @@ import Data.Bits(xor, (.|.))
 import Data.Typeable(Typeable)
 import Foreign.Storable(Storable(..))
 
-import Raaz.Primitives
 import Raaz.Util.Ptr(loadFromIndex, storeAtIndex)
 import Raaz.Types
 
@@ -74,11 +73,6 @@ instance CryptoStore SHA1 where
                                    >> storeAtIndex cptr 2 h2
                                    >> storeAtIndex cptr 3 h3
                                    >> storeAtIndex cptr 4 h4
-
-
-instance BlockPrimitive SHA1 where
-  blockSize _ = cryptoCoerce $ BITS (512 :: Int)
-  {-# INLINE blockSize #-}
 
 -- | The Sha256 hash value. Used in implementation of Sha224 as well.
 data SHA256 = SHA256 {-# UNPACK #-} !Word32BE
@@ -163,11 +157,6 @@ instance CryptoStore SHA256 where
                                               >> storeAtIndex cptr 6 h6
                                               >> storeAtIndex cptr 7 h7
 
-
-instance BlockPrimitive SHA256 where
-  blockSize _ = cryptoCoerce $ BITS (512 :: Int)
-  {-# INLINE blockSize #-}
-
 -- | Sha224 hash value which consist of 7 32bit words.
 data SHA224 = SHA224 {-# UNPACK #-} !Word32BE
                      {-# UNPACK #-} !Word32BE
@@ -244,9 +233,6 @@ instance CryptoStore SHA224 where
                                            >> storeAtIndex cptr 6 h6
 
 
-instance BlockPrimitive SHA224 where
-  blockSize _ = cryptoCoerce $ BITS (512 :: Int)
-  {-# INLINE blockSize #-}
 
 -- | The Sha512 hash value. Used in implementation of Sha384 as well.
 data SHA512 = SHA512 {-# UNPACK #-} !Word64BE
@@ -332,10 +318,6 @@ instance CryptoStore SHA512 where
                                               >> storeAtIndex cptr 7 h7
 
 
-instance BlockPrimitive SHA512 where
-  blockSize _ = cryptoCoerce $ BITS (1024 :: Int)
-  {-# INLINE blockSize #-}
-
 -- | The Sha384 hash value.
 data SHA384 = SHA384 {-# UNPACK #-} !Word64BE
                      {-# UNPACK #-} !Word64BE
@@ -402,7 +384,3 @@ instance CryptoStore SHA384 where
                                         >> storeAtIndex cptr 3 h3
                                         >> storeAtIndex cptr 4 h4
                                         >> storeAtIndex cptr 5 h5
-
-instance BlockPrimitive SHA384 where
-  blockSize _ = cryptoCoerce $ BITS (1024 :: Int)
-  {-# INLINE blockSize #-}
