@@ -10,10 +10,10 @@ A cryptographic hash function abstraction.
 
 module Raaz.Hash
        ( Hash(..)
+       , hash
        , hashByteString
        , hashLazyByteString
        , hashFile
-       , hashFileHandle
        ) where
 
 import           Control.Applicative((<$>))
@@ -22,12 +22,11 @@ import           Data.Word(Word64)
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as L
 import           Foreign.Storable(Storable(..))
-import           System.IO.Unsafe
-import           System.IO
+import           System.IO.Unsafe(unsafePerformIO)
 
 import           Raaz.Types
 import           Raaz.Primitives
-import           Raaz.Util.ByteString
+import           Raaz.ByteSource
 import           Raaz.Util.Ptr
 
 -- | The class abstracts an arbitrary hash type. A hash should be a
@@ -98,78 +97,20 @@ class ( HasPadding h
 
 
 
--- | Hash a given strict bytestring.
-hashByteString :: Hash h
-               => B.ByteString  -- ^ The data to hash
-               -> h             -- ^ The hash
+-- | Hash a given byte source.
+hash :: ( Hash h, ByteSource src) => src -> IO h
+hash = fmap finaliseHash . transformContext (startCxt undefined)
 
-hashByteString bs = unsafePerformIO $ compressChunks (startCxt undefined) [bs]
+-- | Hash a strict bytestring.
+hashByteString :: Hash h => B.ByteString -> h
+hashByteString = unsafePerformIO . hash
 
-
--- | Hash a given lazy bytestring.
-hashLazyByteString :: Hash h
-                   => L.ByteString -- ^ The bytestring
-                   -> h
-hashLazyByteString = unsafePerformIO
-                   . compressChunks (startCxt undefined)
-                   . L.toChunks
+-- | Hash a lazy bytestring.
+hashLazyByteString :: Hash h => L.ByteString -> h
+hashLazyByteString = unsafePerformIO . hash
 
 -- | Hash a given file given `FilePath`
 hashFile :: Hash h
          => FilePath    -- ^ File to be hashed
          -> IO h
-hashFile fpth = withFile fpth ReadMode hashFileHandle
-
--- | Hash a given file given the file `Handle`.  It is supposed to be
--- faster than reading a file and then hashing it.
-hashFileHandle :: Hash h
-               => Handle      -- ^ File to be hashed
-               -> IO h
-hashFileHandle hndl = fmap finaliseHash $ allocaBuffer bufSize $ go cxt 0
-     where getHash  :: Cxt h -> h
-           getHash _ = undefined
-           cxt       = startCxt undefined
-           h         = getHash cxt
-           nBlocks   = recommendedBlocks h
-           sz        = cryptoCoerce nBlocks
-           bufSize   = maxAdditionalBlocks h + nBlocks
-           go context bits cptr = do
-                      count <- hFillBuf hndl cptr nBlocks
-                      if count == sz
-                         then do context' <- process context nBlocks cptr
-                                 go context' (bits + cryptoCoerce nBlocks) cptr
-                         else compressLast h context bits count cptr
-
--- | Compress a list of strict byte string chunks.
-compressChunks :: Hash h
-               => Cxt h
-               -> [B.ByteString]
-               -> IO h
-compressChunks cxt bs = fmap finaliseHash $ allocaBuffer bufSize $ go cxt bs 0
-     where getHash  :: Cxt h -> h
-           getHash _ = undefined
-           h         = getHash cxt
-           nBlocks   = recommendedBlocks h
-           bufSize   = maxAdditionalBlocks h + nBlocks
-           go context bstr bits cptr =   fillUpChunks bstr nBlocks cptr
-                                     >>= either goLeft goRight
-             where goRight rest = do
-                     context' <- process context nBlocks cptr
-                     go context' rest (bits + cryptoCoerce nBlocks) cptr
-
-                   goLeft r = compressLast h context bits bufLen cptr
-                        where bufLen = cryptoCoerce nBlocks - r
-
--- | Compressing the last bytes.
-compressLast :: Hash h
-             => h
-             -> Cxt h
-             -> BITS Word64
-             -> BYTES Int   -- ^ Bytes in the buffer.
-             -> CryptoPtr
-             -> IO (Cxt h)
-compressLast h cxt bits bufLen cptr =  unsafePad h totalBits padPtr
-                                    >> process cxt blks cptr
-       where totalBits = bits + cryptoCoerce bufLen
-             blks      = cryptoCoerce (bufLen + padLength h totalBits)
-             padPtr    = cptr `movePtr` bufLen
+hashFile = fmap finaliseHash . transformContextFile (startCxt undefined)
