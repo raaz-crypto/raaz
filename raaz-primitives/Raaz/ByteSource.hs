@@ -4,6 +4,7 @@
 -}
 module Raaz.ByteSource
        ( FillResult(..)
+       , withFillResult
        , ByteSource(..)
        , fill
        ) where
@@ -30,6 +31,14 @@ data FillResult a = Remaining a           -- ^ only partially filled
 instance Functor FillResult where
   fmap f (Remaining a ) = Remaining $ f a
   fmap _ (Exhausted sz) = Exhausted sz
+
+-- | Combinator to handle a fill result.
+withFillResult :: (a -> b)          -- ^ stuff to do when filled
+               -> (BYTES Int -> b)  -- ^ stuff to do when exhausted
+               -> FillResult a      -- ^ the fill result to process
+               -> b
+withFillResult continueWith _     (Remaining a)  = continueWith a
+withFillResult _            endBy (Exhausted sz) = endBy sz
 
 class ByteSource src where
   fillBytes :: BYTES Int  -- ^ Buffer size
