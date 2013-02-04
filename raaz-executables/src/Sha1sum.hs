@@ -14,7 +14,7 @@ import qualified Data.ByteString.Char8 as BC
 import System.Environment(getArgs)
 import System.IO(stdin)
 
-import Raaz.Hash(hashFile, hashFileHandle, Hash)
+import Raaz.Hash(hashFile, hash, Hash)
 import Raaz.Hash.Sha(SHA1)
 import Raaz.Util.ByteString(toHex)
 
@@ -26,7 +26,7 @@ main = do args <- getArgs
   where sha1 = undefined :: SHA1
 
 computeHash :: Hash h => String -> IO h
-computeHash file | file == "-" = hashFileHandle stdin
+computeHash file | file == "-" = hash stdin
                  | otherwise   = hashFile file
 
 printHashText :: Hash h => h -> String -> IO ()
