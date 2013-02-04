@@ -1,9 +1,11 @@
+{-# LANGUAGE FlexibleContexts #-}
 {-|
 
 -}
 module Raaz.ByteSource
        ( FillResult(..)
        , ByteSource(..)
+       , fill
        ) where
 
 import qualified Data.ByteString as B
@@ -11,7 +13,7 @@ import qualified Data.ByteString.Lazy as L
 import           Prelude hiding(length)
 import           System.IO(Handle)
 
-import           Raaz.Types(BYTES, CryptoPtr)
+import           Raaz.Types(BYTES, CryptoPtr, CryptoCoerce(..))
 import           Raaz.Util.ByteString( unsafeCopyToCryptoPtr
                                      , unsafeNCopyToCryptoPtr
                                      , length
@@ -67,3 +69,13 @@ instance ByteSource src => ByteSource [src] where
             case result of
                  Exhausted nSz -> fillBytes nSz xs $ movePtr cptr $ sz - nSz
                  Remaining nx  -> return $ Remaining $ nx:xs
+
+-- | A version of fillBytes that takes type safe lengths as input.
+fill :: ( CryptoCoerce len (BYTES Int)
+        , ByteSource src
+        )
+     => len
+     -> src
+     -> CryptoPtr
+     -> IO (FillResult src)
+fill = fillBytes . cryptoCoerce
