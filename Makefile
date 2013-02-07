@@ -5,6 +5,7 @@ PACKAGES=primitives ssh hash-sha tests executables
 
 # Dependencies of packages goes here.
 
+tests: primitives
 hash-sha: primitives tests
 executables: hash-sha
 
