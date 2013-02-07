@@ -35,7 +35,7 @@ import           Raaz.Util.Ptr
 -- by the process function. The last context is then finalised to the
 -- value of the hash.
 --
--- A Minimum complete definition include @`startCxt`@,
+-- A Minimum complete definition include @`startHashCxt`@,
 -- @`finaliseHash`@, However, for efficiency you might want to define
 -- all of the members separately.
 --
@@ -50,7 +50,7 @@ class ( HasPadding h
       ) => Hash h where
 
   -- | The context to start the hash algorithm.
-  startCxt   :: h -> Cxt h
+  startHashCxt   :: h -> Cxt h
 
   -- | How to finalise the hash from the context.
   finaliseHash :: Cxt h -> h
@@ -74,7 +74,7 @@ class ( HasPadding h
                 padPtr = cptr `movePtr` dl
                 iterateOnce h' _ = do
                   store cptr h'
-                  finaliseHash <$> process (startCxt h') blks cptr
+                  finaliseHash <$> process (startHashCxt h') blks cptr
 
   -- | This functions processes data which itself is a hash. One can
   -- use this for iterated hash computation, hmac construction
@@ -99,7 +99,7 @@ class ( HasPadding h
 
 -- | Hash a given byte source.
 hash :: ( Hash h, ByteSource src) => src -> IO h
-hash = fmap finaliseHash . transformContext (startCxt undefined)
+hash = fmap finaliseHash . transformContext (startHashCxt undefined)
 
 -- | Hash a strict bytestring.
 hashByteString :: Hash h => B.ByteString -> h
@@ -113,4 +113,4 @@ hashLazyByteString = unsafePerformIO . hash
 hashFile :: Hash h
          => FilePath    -- ^ File to be hashed
          -> IO h
-hashFile = fmap finaliseHash . transformContextFile (startCxt undefined)
+hashFile = fmap finaliseHash . transformContextFile (startHashCxt undefined)

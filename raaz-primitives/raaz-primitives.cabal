@@ -22,7 +22,7 @@ library
                  , Raaz.ByteSource
                  , Raaz.Hash
                  , Raaz.Primitives
---                 , Raaz.MAC
+                 , Raaz.MAC
                  , Raaz.Util.ByteString
                  , Raaz.Util.Ptr
                  , Raaz.Util.TH
