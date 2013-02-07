@@ -7,8 +7,9 @@ This module provides the message authentication abstraction
 {-# LANGUAGE TypeFamilies     #-}
 {-# LANGUAGE FlexibleContexts #-}
 module Raaz.MAC
-       ( CryptoMAC(..)
+       ( MAC(..)
        ) where
+import Data.ByteString(ByteString)
 
 import Raaz.Types
 import Raaz.Primitives
@@ -24,24 +25,19 @@ import Raaz.Primitives
 --
 
 class ( BlockPrimitive m
-      , Eq          (MAC m)
-      , CryptoStore (MAC m)
-      ) => CryptoMAC m where
-
-  -- | The MAC value.
-  data MAC m       :: *
+      , HasPadding  m
+      , Eq          m
+      , CryptoStore m
+      ) => MAC m where
 
   -- | The secret key
-  type MACSecret m :: *
+  data MACSecret m :: *
 
-  -- | Load the MAC secret from a crypto buffer.
-  loadMACSecret    :: m                -- The mac algorithm
-                   -> CryptoPtr        -- The cryptographic buffer
-                   -> BYTES Int        -- The length of the secret
-                   -> IO (MACSecret m)
+  -- | Convert a bytestring to a secret
+  toMACSecret  :: ByteString -> MACSecret m
 
   -- | The starting MAC context
-  startMACCxt   :: m -> MACSecret m -> Cxt m
+  startMAC     :: MACSecret m -> Cxt m
 
   -- | Finalise the context to a MAC value.
-  finaliseMAC   :: m -> MACSecret m -> Cxt m -> MAC m
+  finaliseMAC  :: MACSecret m -> Cxt m -> m
