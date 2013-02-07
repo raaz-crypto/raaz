@@ -11,12 +11,19 @@ module Raaz.MAC
        ( MAC(..)
        , HMAC(..)
        ) where
-import Control.Applicative
-import Data.ByteString(ByteString)
-import Foreign.Storable
+import           Control.Applicative
+import           Data.Bits
+import qualified Data.ByteString as B
+import           Foreign.Storable
+import           Prelude hiding (length)
+import           System.IO.Unsafe(unsafePerformIO)
 
 import Raaz.Types
+import Raaz.ByteSource
 import Raaz.Primitives
+import Raaz.Hash
+import Raaz.Util.ByteString(length)
+import Raaz.Util.Ptr
 
 -- | The class that captures a cryptographic message authentication
 -- algorithm. The associated type @MAC m@ captures the actual MAC
@@ -38,7 +45,7 @@ class ( BlockPrimitive m
   data MACSecret m :: *
 
   -- | Convert a bytestring to a secret
-  toMACSecret  :: m -> ByteString -> MACSecret m
+  toMACSecret  :: m -> B.ByteString -> MACSecret m
 
   -- | The starting MAC context
   startMACCxt  :: MACSecret m -> Cxt m
@@ -96,3 +103,52 @@ instance HasPadding h => HasPadding (HMAC h) where
           bits' = bits + cryptoCoerce (blocksOf 1 hmac)
 
   maxAdditionalBlocks  = toEnum . fromEnum . maxAdditionalBlocks . getHash
+
+
+
+instance Hash h => MAC (HMAC h) where
+
+  -- The HMAC construction can be seen as two hashing stage
+  --
+  -- 1. The hash of the inner pad concatenated to the message and
+  -- 2. The outer pad concatenated to the hash obtained in stage 1.
+  --
+  -- The inner pad and outer pad has length exactly 1 block and hence
+  -- in the MACSecret datatype we keep trak of the context after hashing
+  -- them.
+
+  data MACSecret (HMAC h) = HMACSecret !(Cxt h) -- ^ hash of the inner pad
+                                       !(Cxt h) -- ^ hash of the other pad
+
+  startMACCxt (HMACSecret c1 _ ) = HMACCxt c1
+
+  finaliseMAC (HMACSecret _  c2) (HMACCxt cxt) = HMAC $ processHash c2 blkSize h
+    where oneBlock :: h -> BLOCKS h
+          oneBlock _ = 1
+          blkSize    = cryptoCoerce $ oneBlock h
+          h          = finaliseHash cxt
+
+  toMACSecret hmac bs | length bs < blkSize = toHMACSecret hmac bs
+                      | otherwise           = toHMACSecret hmac
+                                            $ toByteString hashbs
+    where blkSize = cryptoCoerce $ blocksOf 1 $ h
+          hashbs  = hashByteString bs `asTypeOf` h
+          h       = getHash hmac
+
+
+
+toHMACSecret :: Hash h => HMAC h -> B.ByteString -> MACSecret (HMAC h)
+toHMACSecret hmac bs = unsafePerformIO $ allocaBuffer oneBlock go
+  where h     = getHash hmac
+        cxt0  = startHashCxt h
+        oneBlock = blocksOf 1 h
+        bsPad = B.append bs $ B.replicate (len - bslen) 0
+        opad  = B.map (xor 0x5c) bsPad
+        ipad  = B.map (xor 0x36) bsPad
+        BYTES len   = cryptoCoerce oneBlock
+        BYTES bslen = length bs
+        go cptr = do _ <- fillBytes (BYTES len) ipad cptr
+                     icxt <- processSingle cxt0 cptr
+                     _ <- fillBytes (BYTES len) opad cptr
+                     ocxt <- processSingle cxt0 cptr
+                     return $ HMACSecret icxt ocxt
