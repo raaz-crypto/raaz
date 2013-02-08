@@ -194,15 +194,19 @@ instance Hash h => MAC (HMAC h) where
     where blkSize    = cryptoCoerce $ blocksOf 1 h
           h          = finaliseHash cxt
 
-  toMACSecret hmac bs | length bs < blkSize = toHMACSecret hmac bs
-                      | otherwise           = toHMACSecret hmac
-                                            $ toByteString hashbs
-    where blkSize = cryptoCoerce $ blocksOf 1 $ h
-          hashbs  = hashByteString bs `asTypeOf` h
-          h       = getHash hmac
+  toMACSecret        = toHMACSecret undefined
 
-toHMACSecret :: Hash h => HMAC h -> B.ByteString -> MACSecret (HMAC h)
-toHMACSecret hmac bs = unsafePerformIO $ allocaBuffer oneBlock go
+
+toHMACSecret  :: Hash h => HMAC h -> B.ByteString -> MACSecret (HMAC h)
+toHMACSecret  hmac bs
+  | length bs <= blkSize = toHMACSecret' hmac bs
+  | otherwise            = toHMACSecret' hmac $ toByteString bsHash
+  where h       = getHash hmac
+        blkSize = cryptoCoerce $ blocksOf 1 h
+        bsHash  = hashByteString bs `asTypeOf` h
+
+toHMACSecret' :: Hash h => HMAC h -> B.ByteString -> MACSecret (HMAC h)
+toHMACSecret' hmac bs = unsafePerformIO $ allocaBuffer oneBlock go
   where h     = getHash hmac
         cxt0  = startHashCxt
         oneBlock = blocksOf 1 h

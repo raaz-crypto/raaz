@@ -42,7 +42,7 @@ class ( BlockPrimitive m
   data MACSecret m :: *
 
   -- | Convert a bytestring to a secret
-  toMACSecret  :: m -> B.ByteString -> MACSecret m
+  toMACSecret  :: B.ByteString -> MACSecret m
 
   -- | The starting MAC context
   startMACCxt  :: MACSecret m -> Cxt m
@@ -60,7 +60,7 @@ mac :: ( ByteSource src
 
 mac secret src =   transformContext cxt0 src
                >>= return . finaliseMAC macsecret
-    where macsecret = toMACSecret undefined secret
+    where macsecret = toMACSecret secret
           cxt0      = startMACCxt macsecret
 
 -- | Compute the MAC of a strict bytestring.
@@ -85,5 +85,5 @@ macFile :: MAC m
 
 macFile secret fp =   transformContextFile cxt0 fp
                    >>= return . finaliseMAC macsecret
-    where macsecret = toMACSecret undefined secret
+    where macsecret = toMACSecret secret
           cxt0      = startMACCxt macsecret
