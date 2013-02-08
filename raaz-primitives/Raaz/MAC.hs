@@ -10,10 +10,14 @@ This module provides the message authentication abstraction
 module Raaz.MAC
        ( MAC(..)
        , HMAC(..)
+       , mac
+       , macByteString, macLazyByteString
+       , macFile
        ) where
 import           Control.Applicative
 import           Data.Bits
 import qualified Data.ByteString as B
+import qualified Data.ByteString.Lazy as L
 import           Foreign.Storable
 import           Prelude hiding (length)
 import           System.IO.Unsafe(unsafePerformIO)
@@ -52,6 +56,44 @@ class ( BlockPrimitive m
 
   -- | Finalise the context to a MAC value.
   finaliseMAC  :: MACSecret m -> Cxt m -> m
+
+-- | Compute the MAC for the byte source.
+mac :: ( ByteSource src
+       , MAC m
+       )
+    => B.ByteString   -- ^ the secret
+    -> src            -- ^ the input byte source
+    -> IO m
+
+mac secret src =   transformContext cxt0 src
+               >>= return . finaliseMAC macsecret
+    where macsecret = toMACSecret undefined secret
+          cxt0      = startMACCxt macsecret
+
+-- | Compute the MAC of a strict bytestring.
+macByteString :: MAC m
+              => B.ByteString -- ^ the secret
+              -> B.ByteString -- ^ the input strict bytestring
+              -> m
+macByteString secret = unsafePerformIO . mac secret
+
+-- | Compute the MAC of a lazy bytestring
+macLazyByteString :: MAC m
+                  => B.ByteString -- ^ the secret
+                  -> L.ByteString -- ^ the input lazy bytestring
+                  -> m
+macLazyByteString secret = unsafePerformIO . mac secret
+
+-- | Compute the MAC of a file.
+macFile :: MAC m
+        => B.ByteString -- ^ the secret
+        -> FilePath     -- ^ the input file
+        -> IO m
+
+macFile secret fp =   transformContextFile cxt0 fp
+                   >>= return . finaliseMAC macsecret
+    where macsecret = toMACSecret undefined secret
+          cxt0      = startMACCxt macsecret
 
 
 -- | The HMAC associated to a hash value. The `Eq` instance for HMAC
