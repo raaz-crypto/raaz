@@ -56,7 +56,7 @@ class ( HasPadding h
       ) => Hash h where
 
   -- | The context to start the hash algorithm.
-  startHashCxt   :: h -> Cxt h
+  startHashCxt   :: Cxt h
 
   -- | How to finalise the hash from the context.
   finaliseHash :: Cxt h -> h
@@ -71,16 +71,17 @@ class ( HasPadding h
       where dl = BYTES $ sizeOf h              -- length of msg
             pl = padLength h (cryptoCoerce dl) -- length of pad
             tl = dl + pl                       -- total length
-            blks = cryptoCoerce tl             -- number of blocks
+            blks = cryptoCoerce tl `asTypeOf` blocksOf 1 h
             iterateN cptr = do
               unsafePad h bits padPtr
               foldM iterateOnce h [1..n]
               where
                 bits = cryptoCoerce dl
                 padPtr = cptr `movePtr` dl
-                iterateOnce h' _ = do
-                  store cptr h'
-                  finaliseHash <$> process (startHashCxt h') blks cptr
+                iterateOnce hsh _ = do
+                  store cptr hsh
+                  finaliseHash <$> process startHashCxt blks cptr
+
 
   -- | This functions processes data which itself is a hash. One can
   -- use this for iterated hash computation, hmac construction
@@ -105,7 +106,7 @@ class ( HasPadding h
 
 -- | Hash a given byte source.
 hash :: ( Hash h, ByteSource src) => src -> IO h
-hash = fmap finaliseHash . transformContext (startHashCxt undefined)
+hash = fmap finaliseHash . transformContext startHashCxt
 
 -- | Hash a strict bytestring.
 hashByteString :: Hash h => B.ByteString -> h
@@ -119,7 +120,7 @@ hashLazyByteString = unsafePerformIO . hash
 hashFile :: Hash h
          => FilePath    -- ^ File to be hashed
          -> IO h
-hashFile = fmap finaliseHash . transformContextFile (startHashCxt undefined)
+hashFile = fmap finaliseHash . transformContextFile startHashCxt
 
 -- | The HMAC associated to a hash value. The `Eq` instance for HMAC
 -- is essentially the `Eq` instance for the underlying hash and hence
@@ -203,7 +204,7 @@ instance Hash h => MAC (HMAC h) where
 toHMACSecret :: Hash h => HMAC h -> B.ByteString -> MACSecret (HMAC h)
 toHMACSecret hmac bs = unsafePerformIO $ allocaBuffer oneBlock go
   where h     = getHash hmac
-        cxt0  = startHashCxt h
+        cxt0  = startHashCxt
         oneBlock = blocksOf 1 h
         bsPad = B.append bs $ B.replicate (len - bslen) 0
         opad  = B.map (xor 0x5c) bsPad
