@@ -190,9 +190,7 @@ instance Hash h => MAC (HMAC h) where
   startMACCxt (HMACSecret c1 _ ) = HMACCxt c1
 
   finaliseMAC (HMACSecret _  c2) (HMACCxt cxt) = HMAC $ processHash c2 blkSize h
-    where oneBlock :: h -> BLOCKS h
-          oneBlock _ = 1
-          blkSize    = cryptoCoerce $ oneBlock h
+    where blkSize    = cryptoCoerce $ blocksOf 1 h
           h          = finaliseHash cxt
 
   toMACSecret hmac bs | length bs < blkSize = toHMACSecret hmac bs
