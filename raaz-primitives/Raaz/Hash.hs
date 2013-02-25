@@ -185,8 +185,8 @@ instance Hash h => MAC (HMAC h) where
   -- in the MACSecret datatype we keep trak of the context after hashing
   -- them.
 
-  data MACSecret (HMAC h) = HMACSecret !(Cxt h) -- ^ hash of the inner pad
-                                       !(Cxt h) -- ^ hash of the other pad
+  data MACSecret (HMAC h) = HMACSecret !(Cxt h) --  hash of the inner pad
+                                       !(Cxt h) --  hash of the other pad
 
   startMACCxt (HMACSecret c1 _ ) = HMACCxt c1
 
