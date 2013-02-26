@@ -32,3 +32,6 @@ library
                , cpu
                , vector == 0.9.*
   ghc-options: -Wall
+  include-dirs: include
+  includes: gcc/endian.h
+  install-includes: gcc/endian.h
