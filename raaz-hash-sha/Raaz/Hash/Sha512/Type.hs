@@ -1,8 +1,8 @@
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE TypeFamilies               #-}
 
-module Raaz.Hash.Sha.Types
-       (  SHA512(..)
+module Raaz.Hash.Sha512.Type
+       ( SHA512(..)
        , SHA384(..)
        ) where
 

@@ -21,13 +21,14 @@ library
   exposed-modules: Raaz.Hash.Sha
                  , Raaz.Hash.Sha1.Type
                  , Raaz.Hash.Sha256.Type
-                 , Raaz.Hash.Sha.Types
+                 , Raaz.Hash.Sha512.Type
   other-modules: Raaz.Hash.Sha1.Instance
                , Raaz.Hash.Sha1.Ref.Sha1
                , Raaz.Hash.Sha256.Instance
                , Raaz.Hash.Sha256.Ref.Sha256
-               , Raaz.Hash.Sha.Instances
-               , Raaz.Hash.Sha.Ref.Sha512
+               , Raaz.Hash.Sha512.Instance
+               , Raaz.Hash.Sha512.Ref.Sha512
+               , Raaz.Hash.Util
   build-depends: base
                , bytestring
                , raaz-primitives==0.0.0.0
