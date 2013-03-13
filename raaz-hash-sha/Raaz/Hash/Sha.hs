@@ -7,10 +7,11 @@ sha224, sha512, sha384.
 
 module Raaz.Hash.Sha
        ( module Raaz.Hash.Sha.Types
+       , module Raaz.Hash.Sha1.Type
        ) where
 
-import Raaz.Hash.Sha.Types( SHA1
-                          , SHA256
+import Raaz.Hash.Sha1.Type
+import Raaz.Hash.Sha.Types( SHA256
                           , SHA224
                           , SHA512
                           , SHA384

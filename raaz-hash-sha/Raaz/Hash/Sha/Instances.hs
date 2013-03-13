@@ -16,33 +16,10 @@ import Foreign.Storable(Storable(..))
 
 import Raaz.Hash
 import Raaz.Hash.Sha.Types
-import Raaz.Hash.Sha.Ref.Sha1
 import Raaz.Hash.Sha.Ref.Sha256
 import Raaz.Hash.Sha.Ref.Sha512
 import Raaz.Primitives
 import Raaz.Types
-
-instance BlockPrimitive SHA1 where
-  blockSize _ = cryptoCoerce $ BITS (512 :: Int)
-  {-# INLINE blockSize #-}
-
-  newtype Cxt SHA1 = SHA1Cxt SHA1
-
-  processSingle (SHA1Cxt cxt) ptr = SHA1Cxt <$> sha1CompressSingle cxt ptr
-
-instance HasPadding SHA1 where
-  maxAdditionalBlocks _ = 1
-  padLength = padLength64
-  padding   = padding64
-
-instance Hash SHA1 where
-  startHashCxt = SHA1Cxt $ SHA1 0x67452301
-                                0xefcdab89
-                                0x98badcfe
-                                0x10325476
-                                0xc3d2e1f0
-  finaliseHash (SHA1Cxt h) = h
-
 
 instance BlockPrimitive SHA224 where
   blockSize _ = cryptoCoerce $ BITS (512 :: Int)
