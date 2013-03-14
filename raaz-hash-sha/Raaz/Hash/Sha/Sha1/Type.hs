@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE TypeFamilies               #-}
 
-module Raaz.Hash.Sha1.Type
+module Raaz.Hash.Sha.Sha1.Type
        ( SHA1(..)
        ) where
 

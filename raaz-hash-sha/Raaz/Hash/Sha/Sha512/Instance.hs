@@ -7,14 +7,14 @@ This module defines the hash instances for sha384 and sha512.
 {-# LANGUAGE TypeFamilies #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module Raaz.Hash.Sha512.Instance () where
+module Raaz.Hash.Sha.Sha512.Instance () where
 
 import Control.Applicative ((<$>))
 
 import Raaz.Hash
-import Raaz.Hash.Sha512.Type
-import Raaz.Hash.Sha512.Ref.Sha512
-import Raaz.Hash.Util
+import Raaz.Hash.Sha.Sha512.Type
+import Raaz.Hash.Sha.Sha512.Ref.Sha512
+import Raaz.Hash.Sha.Util
 import Raaz.Primitives
 import Raaz.Types
 

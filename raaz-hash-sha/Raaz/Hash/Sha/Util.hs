@@ -1,4 +1,4 @@
-module Raaz.Hash.Util
+module Raaz.Hash.Sha.Util
     ( padLength64, padding64
     , padLength128,padding128
     ) where

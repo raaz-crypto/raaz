@@ -7,14 +7,14 @@ This module defines the hash instances for different hashes.
 {-# LANGUAGE TypeFamilies #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module Raaz.Hash.Sha1.Instance () where
+module Raaz.Hash.Sha.Sha1.Instance () where
 
 import Control.Applicative ((<$>))
 
 import Raaz.Hash
-import Raaz.Hash.Util
-import Raaz.Hash.Sha1.Type
-import Raaz.Hash.Sha1.Ref.Sha1
+import Raaz.Hash.Sha.Util
+import Raaz.Hash.Sha.Sha1.Type
+import Raaz.Hash.Sha.Sha1.Ref.Sha1
 import Raaz.Primitives
 import Raaz.Types
 

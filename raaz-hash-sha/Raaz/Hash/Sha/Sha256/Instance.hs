@@ -7,14 +7,14 @@ This module defines the hash instances for sha224 and sha256 hashes.
 {-# LANGUAGE TypeFamilies #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module Raaz.Hash.Sha256.Instance () where
+module Raaz.Hash.Sha.Sha256.Instance () where
 
 import Control.Applicative ((<$>))
 
 import Raaz.Hash
-import Raaz.Hash.Sha256.Type
-import Raaz.Hash.Sha256.Ref.Sha256
-import Raaz.Hash.Util
+import Raaz.Hash.Sha.Sha256.Type
+import Raaz.Hash.Sha.Sha256.Ref.Sha256
+import Raaz.Hash.Sha.Util
 import Raaz.Primitives
 import Raaz.Types
 

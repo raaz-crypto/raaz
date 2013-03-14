@@ -7,7 +7,7 @@ spliced in the actual module.
 
 {-# LANGUAGE TemplateHaskell #-}
 
-module Raaz.Hash.Sha1.Ref.Sha1TH
+module Raaz.Hash.Sha.Sha1.Ref.Sha1TH
        ( oneRound
        ) where
 
@@ -18,7 +18,7 @@ import Language.Haskell.TH
 import Raaz.Types
 import Raaz.Util.TH
 
-import Raaz.Hash.Sha1.Type(SHA1(..))
+import Raaz.Hash.Sha.Sha1.Type(SHA1(..))
 
 -- | Declares roundF function which denotes compression of one
 -- block. This is used internally for efficient code generation using
