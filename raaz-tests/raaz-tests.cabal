@@ -38,6 +38,11 @@ test-Suite tests
   hs-source-dirs: tests
   main-is: Main.hs
   ghc-options: -Wall
+
+  cc-options: -Wall -O3
+  c-sources: cbits/portable/load_test.c
+  include-dirs: cbits/portable
+  includes: cbits/portable/load_test.h
   build-depends: base
                , bytestring
                , HUnit==1.2.*
