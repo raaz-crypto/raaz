@@ -32,3 +32,6 @@ library
                , cpu
                , vector == 0.9.*
   ghc-options: -Wall
+  include-dirs: include
+  includes: load.h
+  install-includes: load.h
