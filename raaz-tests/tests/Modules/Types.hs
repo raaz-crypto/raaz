@@ -5,7 +5,6 @@ module Modules.Types where
 
 import qualified Data.ByteString as BS
 import Data.Word
-import Test.QuickCheck
 import Test.Framework
 import Test.Framework.Providers.QuickCheck2 (testProperty)
 
@@ -34,6 +33,7 @@ testLEBEreverse64 = testProperty "LE64 == reverse BE64" prop_LEBEreverse64
 prop_bitsVsBytes :: BYTES Word32 -> Bool
 prop_bitsVsBytes by = cryptoCoerce (cryptoCoerce by :: BITS Word64) == by
 
+tests :: [Test]
 tests = [ testStoreLoad (undefined :: Word32LE)
         , testStoreLoad (undefined :: Word32BE)
         , testStoreLoad (undefined :: Word64LE)

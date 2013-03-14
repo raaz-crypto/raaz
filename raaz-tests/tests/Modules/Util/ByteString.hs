@@ -1,18 +1,16 @@
+{-# OPTIONS_GHC -fno-warn-orphans #-}
+
 -- | Tests for the module Util.ByteString.
 
 
 module Modules.Util.ByteString where
 
-import Control.Monad
 import qualified Data.ByteString as B
-import Data.ByteString (ByteString)
 import Data.ByteString.Internal
-import Data.Word
 import Foreign.Ptr (castPtr)
 import Test.QuickCheck
 import Test.Framework
 import Test.Framework.Providers.QuickCheck2 (testProperty)
-import Test.QuickCheck(Property, Arbitrary)
 import Test.QuickCheck.Monadic(run, assert, monadicIO)
 
 import Raaz.Types(BYTES(..))
@@ -48,6 +46,7 @@ prop_unSafeNCopy (BoundedByteString bs n) = monadicIO $ do
     return n
   assert $ B.take n bs == w
 
+tests :: [Test]
 tests = [ testProperty "UnsafeCopyToCryptoPtr" prop_unSafeCopy
         , testProperty "UnsafeNCopyToCryptoPtr" prop_unSafeNCopy
         ]
