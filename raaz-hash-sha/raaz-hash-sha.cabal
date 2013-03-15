@@ -19,11 +19,16 @@ source-repository head
 
 library
   exposed-modules: Raaz.Hash.Sha
-                 , Raaz.Hash.Sha.Types
-  other-modules: Raaz.Hash.Sha.Instances
-               , Raaz.Hash.Sha.Ref.Sha1
-               , Raaz.Hash.Sha.Ref.Sha256
-               , Raaz.Hash.Sha.Ref.Sha512
+                 , Raaz.Hash.Sha.Sha1.Type
+                 , Raaz.Hash.Sha.Sha256.Type
+                 , Raaz.Hash.Sha.Sha512.Type
+  other-modules: Raaz.Hash.Sha.Sha1.Instance
+               , Raaz.Hash.Sha.Sha1.Ref.Sha1
+               , Raaz.Hash.Sha.Sha256.Instance
+               , Raaz.Hash.Sha.Sha256.Ref.Sha256
+               , Raaz.Hash.Sha.Sha512.Instance
+               , Raaz.Hash.Sha.Sha512.Ref.Sha512
+               , Raaz.Hash.Sha.Util
   build-depends: base
                , bytestring
                , raaz-primitives==0.0.0.0

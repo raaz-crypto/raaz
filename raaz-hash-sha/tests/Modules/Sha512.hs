@@ -9,7 +9,7 @@ import Test.QuickCheck(Arbitrary(..))
 
 import Raaz.Test(allHashTests)
 import Raaz.Hash.Sha()
-import Raaz.Hash.Sha.Types(SHA512(..))
+import Raaz.Hash.Sha.Sha512.Type(SHA512(..))
 
 instance Arbitrary SHA512 where
   arbitrary = SHA512 <$> arbitrary
