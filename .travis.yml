@@ -1,5 +1,5 @@
 language: haskell
-install: "make install INSTALL_OPTS='-O0 --enable-documentation --enable-tests'"
+install: "make travis-install"
 script: "make travis-tests"
 branches:
   only:

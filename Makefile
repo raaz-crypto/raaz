@@ -16,10 +16,13 @@ X_BRANCHES=$(addprefix x-,${BRANCHES})
 
 TEST_PATH=dist/build/tests/tests
 
-.PHONY: ${PACKAGES} install travis-tests clean
+.PHONY: travis-install travis-tests
+.PHONY: ${PACKAGES} install clean
 .PHONY: fast-forward fast-forward-all merge release
 
 
+travis-install:
+	make install INSTALL_OPTS='-O0 --enable-documentation --enable-tests'
 
 install: ${PACKAGES}
 
