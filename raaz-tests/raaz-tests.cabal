@@ -39,10 +39,17 @@ test-Suite tests
   main-is: Main.hs
   ghc-options: -Wall
 
-  cc-options: -Wall -O3
-  c-sources: cbits/portable/load_test.c
-  include-dirs: cbits/portable
-  includes: cbits/portable/load_test.h
+  if os(linux)
+     cc-options: -Wall -Werror -O3 -DRAAZ_HAVE_GCC
+  else
+     cc-options:
+
+  c-sources: cbits/raaz/tests/portable/load_test.c
+           , cbits/raaz/tests/platform/load_test.c
+  include-dirs: includes
+  includes: raaz/tests/portable/load_test.h
+          , raaz/tests/platform/load_test.h
+
   build-depends: base
                , bytestring
                , HUnit==1.2.*
