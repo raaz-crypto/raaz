@@ -32,6 +32,10 @@ library
                , cpu
                , vector == 0.9.*
   ghc-options: -Wall
-  include-dirs: include
-  includes: load.h
-  install-includes: load.h
+  include-dirs: includes
+  includes: raaz/primitives.h
+          , raaz/primitives/config.h
+          , raaz/primitives/load.h
+  install-includes: raaz/primitives.h
+                  , raaz/primitives/config.h
+                  , raaz/primitives/load.h

@@ -1,7 +1,8 @@
-#ifndef __RAAZ_LOAD_H__
-#define __RAAZ_LOAD_H__
+#ifndef __RAAZ_PRIMITIVES_LOAD_H__
+#define __RAAZ_PRIMITIVES_LOAD_H__
 
 #include <stdint.h>
+#include <raaz/primitives/config.h>
 
 /*
 
@@ -15,13 +16,13 @@ location. Most likely it would not work on them.
 
 */
 
-#ifdef __RAAZ_HAVE_ENDIAN_H__
+#ifdef RAAZ_HAVE_ENDIAN_H
 #include <endian.h>
 #endif
 
 static inline uint32_t raazLoad32LE(uint32_t *w, int i)
 {
-#ifdef __RAAZ_HAVE_ENDIAN_H__
+#ifdef RAAZ_HAVE_ENDIAN_H
   return htole32(w[i]);
 #else
   unsigned char *ptr;
@@ -37,7 +38,7 @@ static inline uint32_t raazLoad32LE(uint32_t *w, int i)
 
 static inline uint32_t raazLoad32BE(uint32_t *w, int i)
 {
-#ifdef __RAAZ_HAVE_ENDIAN_H__
+#ifdef RAAZ_HAVE_ENDIAN_H
   return htobe32(w[i]);
 #else
   unsigned char *ptr;
@@ -53,7 +54,7 @@ static inline uint32_t raazLoad32BE(uint32_t *w, int i)
 
 static inline uint64_t raazLoad64LE(uint64_t *w, int i)
 {
-#ifdef __RAAZ_HAVE_ENDIAN_H__
+#ifdef RAAZ_HAVE_ENDIAN_H
   return htole64(w[i]);
 #else
   unsigned char *ptr;
@@ -72,7 +73,7 @@ static inline uint64_t raazLoad64LE(uint64_t *w, int i)
 
 static inline uint64_t raazLoad64BE(uint64_t *w, int i)
 {
-#ifdef __RAAZ_HAVE_ENDIAN_H__
+#ifdef RAAZ_HAVE_ENDIAN_H
   return htobe64(w[i]);
 #else
   unsigned char *ptr;
