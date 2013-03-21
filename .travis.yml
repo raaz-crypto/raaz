@@ -4,7 +4,3 @@ script: "make travis-tests"
 branches:
   only:
     - master
-    - x-merge
-    - x-ssh
-    - x-primitives
-    - x-hash-sha
