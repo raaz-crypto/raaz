@@ -30,7 +30,6 @@ library
                , bytestring
                , template-haskell
                , cpu
-               , vector == 0.9.*
   ghc-options: -Wall
   include-dirs: includes
   includes: raaz/primitives.h
