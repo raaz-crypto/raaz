@@ -19,6 +19,7 @@ source-repository head
 
 executable checksum
   hs-source-dirs: src
+  other-modules: Paths_raaz_executables
   build-depends: base
                , bytestring
                , cmdargs==0.10.*

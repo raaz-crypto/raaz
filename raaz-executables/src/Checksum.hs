@@ -13,6 +13,8 @@ import Control.Applicative ((<$>))
 import qualified Data.ByteString.Char8 as BC
 import System.IO
 import System.Console.CmdArgs
+import Data.Version(showVersion)
+import Paths_raaz_executables(version)
 
 import Raaz.Hash(hashFile, hash, Hash)
 import Raaz.Hash.Sha
@@ -35,7 +37,7 @@ shasum = cmdArgsMode $ Shasum { hashType = "sha1" &=
                                 args &=
                                 opt ("-" :: String) &=
                                 typFile
-                              } &= summary "Shasum v0"
+                              } &= summary ("checksum " ++ showVersion version)
 
 main :: IO ()
 main = do shaArgs <- cmdArgsRun shasum
