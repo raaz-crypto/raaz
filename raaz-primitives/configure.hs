@@ -1,7 +1,10 @@
-import Config
+import          Config
+import qualified Config.Linux
+
 import Data.Default
 import System.Directory
 import System.FilePath
+import System.Info
 
 systemDir    = "includes/raaz/system"
 systemHeader = systemDir </> "parameters.h"
@@ -18,4 +21,6 @@ main = do putStrLn "configure:"
           "writing to " ++ systemHeader
             <:> writeFile systemHeader $ protectWith systemHeaderSymbol configStr
          
-config = return $ toString def
+config | os == "linux" = fmap toString Config.Linux.configure
+       | otherwise     = do inform $ "platform is generic (" ++ os ++ ")"
+                            return $ toString def
