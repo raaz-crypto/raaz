@@ -1,8 +1,34 @@
 module Config
        ( (<:>)
+       , Parameters(..), toString
        , define, define'
        , protectWith
        ) where
+
+import Data.Default
+
+-- | The system parameters.
+data Parameters = Parameters { l1Cache   :: Int
+                                 -- ^ L1 cache in bytes
+                             , l2Cache   :: Int
+                                 -- ^ L2 cache in bytes
+                             , isGCC     :: Bool
+                                 -- ^ GCC (or compatiable) C compiler.
+                             }
+
+instance Default Parameters where
+  def = Parameters { l1Cache = 0
+                   , l2Cache = 0
+                   , isGCC   = False
+                   }
+
+toString :: Parameters -> String
+toString p = unlines [ define "RAAZ_L1_CACHE" $ show $ l1Cache p
+                     , define "RAAZ_L2_CACHE" $ show $ l2Cache p
+                     , if isGCC p then define' "RAAZ_HAVE_GCC"
+                                  else define' "RAAZ_PORTABLE_C"
+                     ]
+
 
 -- | Define a symbol.
 define :: String -> String -> String
@@ -19,7 +45,7 @@ protectWith symbol content = unlines [ "# ifndef "  ++ symbol
                                      , content
                                      , "# endif"
                                      ]
-                             
+
 (<:>)  :: String -> IO a -> IO a
 infixr 0 <:>
 
@@ -27,4 +53,3 @@ infixr 0 <:>
                       x <- action
                       putStrLn " done"
                       return x
-       

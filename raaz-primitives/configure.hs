@@ -1,4 +1,5 @@
 import Config
+import Data.Default
 import System.Directory
 import System.FilePath
 
@@ -17,4 +18,4 @@ main = do putStrLn "configure:"
           "writing to " ++ systemHeader
             <:> writeFile systemHeader $ protectWith systemHeaderSymbol configStr
          
-config = return ""
+config = return $ toString def
