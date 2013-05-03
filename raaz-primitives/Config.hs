@@ -1,5 +1,5 @@
 module Config
-       ( (<:>)
+       ( (<:>), inform
        , Parameters(..), toString
        , define, define'
        , protectWith
@@ -53,3 +53,5 @@ infixr 0 <:>
                       x <- action
                       putStrLn " done"
                       return x
+inform :: String -> IO ()
+inform str = putStrLn $ "    " ++ str 
