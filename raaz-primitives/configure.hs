@@ -4,13 +4,7 @@ import System.FilePath
 
 systemDir    = "includes/raaz/system"
 systemHeader = systemDir </> "parameters.h"
-
-preamble = unlines [ "/* Generated with the configure script do not modify */"
-                   , "# ifndef __RAAZ_SYSTEM_PARAMETERS_H__"
-                   , "# define __RAAZ_SYSTEM_PARAMETERS_H__"
-                   , ""
-                   ]
-endif   = "# endif"
+systemHeaderSymbol = "__RAAZ_SYSTEM_PARAMETERS_H__"
 
 main :: IO ()
 main = do putStrLn "configure:"
@@ -21,6 +15,6 @@ main = do putStrLn "configure:"
           configStr <- config
           
           "writing to " ++ systemHeader
-            <:> writeFile systemHeader $ preamble ++ configStr ++ endif
+            <:> writeFile systemHeader $ protectWith systemHeaderSymbol configStr
          
 config = return ""
