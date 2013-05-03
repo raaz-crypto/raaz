@@ -38,3 +38,4 @@ library
   install-includes: raaz/primitives.h
                   , raaz/primitives/config.h
                   , raaz/primitives/load.h
+                  , raaz/system/parameters.h
