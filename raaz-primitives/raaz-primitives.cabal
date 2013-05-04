@@ -26,6 +26,7 @@ library
                  , Raaz.Util.ByteString
                  , Raaz.Util.Ptr
                  , Raaz.Util.TH
+                 , Raaz.System.Parameters
   build-depends: base
                , bytestring
                , template-haskell
@@ -38,3 +39,4 @@ library
   install-includes: raaz/primitives.h
                   , raaz/primitives/config.h
                   , raaz/primitives/load.h
+                  , raaz/system/parameters.h
