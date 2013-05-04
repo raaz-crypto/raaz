@@ -26,6 +26,7 @@ library
                  , Raaz.Util.ByteString
                  , Raaz.Util.Ptr
                  , Raaz.Util.TH
+                 , Raaz.System.Parameters
   build-depends: base
                , bytestring
                , template-haskell
