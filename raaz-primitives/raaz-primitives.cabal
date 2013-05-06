@@ -7,7 +7,7 @@ license-file:  LICENSE
 author:        Piyush P Kurur
 maintainer:    ppk@cse.iitk.ac.in
 category:      Codec, Raaz
-build-type:    Simple
+build-type:    Custom
 cabal-version: >=1.9.2
 
 bug-reports: https://github.com/piyush-kurur/raaz/issues
@@ -31,6 +31,9 @@ library
                , bytestring
                , template-haskell
                , cpu
+               -- Stuff need for the configure step.
+               , data-default
+               , text
   ghc-options: -Wall
   include-dirs: includes
   includes: raaz/primitives.h
