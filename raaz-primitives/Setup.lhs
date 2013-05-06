@@ -1,6 +1,5 @@
 #!/usr/bin/env runhaskell
 
-> import Data.Default
 > import Distribution.PackageDescription
 > import Distribution.Simple.LocalBuildInfo
 > import Distribution.Simple.Setup
@@ -57,4 +56,4 @@ Compute the system parameters based on which platform we are in.
 > config :: IO Parameters
 > config | os == "linux" = Config.Linux.configure
 >        | otherwise     = do inform $ "platform is generic (" ++ os ++ ")"
->                             return def
+>                             return defaultParameters

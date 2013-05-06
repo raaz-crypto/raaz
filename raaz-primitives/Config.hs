@@ -1,11 +1,9 @@
 module Config
        ( (<:>), inform
-       , Parameters(..), toString
+       , Parameters(..), defaultParameters, toString
        , define, define'
        , protectWith
        ) where
-
-import Data.Default
 
 -- | The system parameters.
 data Parameters = Parameters { l1Cache   :: Int
@@ -16,11 +14,11 @@ data Parameters = Parameters { l1Cache   :: Int
                                  -- ^ GCC (or compatiable) C compiler.
                              }
 
-instance Default Parameters where
-  def = Parameters { l1Cache = 0
-                   , l2Cache = 0
-                   , isGCC   = False
-                   }
+defaultParameters :: Parameters
+defaultParameters = Parameters { l1Cache = 0
+                               , l2Cache = 0
+                               , isGCC   = False
+                               }
 
 toString :: Parameters -> String
 toString p = unlines [ define "RAAZ_L1_CACHE" $ show $ l1Cache p

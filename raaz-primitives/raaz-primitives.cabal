@@ -32,7 +32,6 @@ library
                , template-haskell
                , cpu
                -- Stuff need for the configure step.
-               , data-default
                , text
   ghc-options: -Wall
   include-dirs: includes
