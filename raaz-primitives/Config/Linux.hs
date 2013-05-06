@@ -5,10 +5,8 @@ module Config.Linux
 
 import Control.Exception(catch)
 import Config
-import Data.Text(Text, strip, span, unpack)
-import Data.Text.IO(readFile)
-import Data.Char(isDigit)
-import Prelude hiding (readFile, span, catch)
+import Data.Char(isDigit, isSpace)
+import Prelude hiding (catch)
 import System.Info(os)
 
 
@@ -38,10 +36,16 @@ getCache fp = fmap readCache (readFile fp) `catch` handler
           handler e = do inform $ show e
                          return 0
                  
-readCache :: Text -> Int
+readCache :: String -> Int
 readCache str | unit == "K" = number * 1024
               | unit == "M" = number * 1024 * 1024
               | otherwise   = error "cache info: bad format for cache string"
   where (n, r) = span isDigit str
         unit   = strip r
-        number = read  $ unpack n
+        number = read  n
+
+strip :: String -> String
+strip = reverse
+      . dropWhile isSpace
+      . reverse 
+      . dropWhile isSpace
