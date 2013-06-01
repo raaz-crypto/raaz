@@ -10,9 +10,8 @@ This module provides the message authentication abstraction
 
 module Raaz.MAC
        ( MACImplementation(..)
-       , mac', mac
-       , macByteString', macByteString
-       , macLazyByteString, macLazyByteString'
+       , sourceMAC', sourceMAC
+       , mac, mac'
        , macFile', macFile
        ) where
 import qualified Data.ByteString as B
@@ -56,88 +55,55 @@ class (CryptoPrimitive m, MACImplementation (Recommended m)) => MAC m where
 
 --------------------- Computing the MAC --------------------------------
 
-mac' :: ( MACImplementation i
-        , ByteSource src
-        )
-     => i
-     -> B.ByteString -- ^ the secret
-     -> src
-     -> IO (PrimitiveOf i)
-
-mac' i secret src =   transformContext cxt0 src
-                  >>= return . finaliseMAC macsecret
+-- | Compute the MAC of a given byte source with a given
+-- implementation.
+sourceMAC' :: ( MACImplementation i
+              , ByteSource src
+              )
+           => i
+           -> B.ByteString -- ^ the secret
+           -> src          -- ^ the message
+           -> IO (PrimitiveOf i)
+sourceMAC' i secret src =   transformContext cxt0 src
+                        >>= return . finaliseMAC macsecret
   where getSecret :: MACImplementation i => i -> MACSecret i
         getSecret _ = toMACSecret secret
         macsecret   = getSecret i
         cxt0        = startMACCxt macsecret
 
--- | Compute the MAC for the byte source.
-mac :: ( ByteSource src
-       , MAC m
-       )
-    => B.ByteString   -- ^ the secret
-    -> src            -- ^ the input byte source
-    -> IO m
-mac secret src = go undefined
-  where go :: MAC m => Recommended m -> IO m
-        go i = mac' i secret src
-
------------------- Unsafe MACs (For internal use only) -----------------
-
--- | WARNING: Do not export. It is meant to be used only for pure
--- bytesources. Unsafe version of mac'. This is not exported by the
--- module and is only used for bytesources that are known to be pure.
-unsafeMAC' :: ( MACImplementation i
-              , ByteSource src
-              )
-           => i
-           -> B.ByteString -- secret
-           -> src
-           -> PrimitiveOf i
-unsafeMAC' i secret = unsafePerformIO . mac' i secret
-{-# INLINE unsafeMAC' #-}
-
--- | Similar to unsafeMAC' but uses the recommended implementation.
-unsafeMAC :: ( MAC m
-             , ByteSource src
+-- | Compute the MAC for the byte source using the recomended
+-- implementation.
+sourceMAC :: ( ByteSource src
+             , MAC m
              )
-          => B.ByteString -- secret
-          -> src
-          -> m
-unsafeMAC secret = unsafePerformIO . mac secret
-{-# INLINE unsafeMAC #-}
+          => B.ByteString   -- ^ the secret
+          -> src            -- ^ the message
+          -> IO m
+sourceMAC secret src = go undefined
+  where go :: MAC m => Recommended m -> IO m
+        go i = sourceMAC' i secret src
 
---------------------- MAC for Bytestring -------------------------------
+--------------------- MAC for pure source ------------------------------
 
-macByteString' :: MACImplementation i
-               => i
-               -> B.ByteString -- ^ The secret
-               -> B.ByteString -- ^ The message
-               -> PrimitiveOf i
-macByteString' = unsafeMAC'
--- | Compute the MAC of a strict bytestring.
+-- | Compute the MAC of a pure byte source.
+-- LazyByteString etc.
+mac' :: ( MACImplementation i
+        , PureByteSource src
+        )
+        => i
+        -> B.ByteString -- ^ The secret
+        -> src -- ^ The message
+        -> PrimitiveOf i
+mac' i secret = unsafePerformIO . sourceMAC' i secret
 
-macByteString :: MAC m
-              => B.ByteString -- ^ the secret
-              -> B.ByteString -- ^ the input strict bytestring
-              -> m
-macByteString = unsafeMAC
-
-
--- | Compute the MAC of a lazy bytestring
-macLazyByteString' :: MACImplementation i
-                   => i
-                   -> B.ByteString -- ^ the secret
-                   -> L.ByteString -- ^ the input lazy bytestring
-                   -> PrimitiveOf i
-macLazyByteString' = unsafeMAC'
-
--- | Compute the MAC of a lazy bytestring
-macLazyByteString :: MAC m
-                  => B.ByteString -- ^ the secret
-                  -> L.ByteString -- ^ the input lazy bytestring
-                  -> m
-macLazyByteString = unsafeMAC
+-- | Compute the MAC of a pure byte source.
+mac :: ( MAC m
+       , PureByteSource src
+       )
+    => B.ByteString -- ^ the secret
+    -> src          -- ^ the message
+    -> m
+mac secret = unsafePerformIO . sourceMAC secret
 
 ----------------------- MACing a file ----------------------------------
 
@@ -147,11 +113,11 @@ macFile' :: MACImplementation i
          -> B.ByteString -- ^ the secret
          -> FilePath     -- ^ the input file
          -> IO (PrimitiveOf i)
-macFile' i secret fp = withBinaryFile fp ReadMode $ mac' i secret
+macFile' i secret fp = withBinaryFile fp ReadMode $ sourceMAC' i secret
 
 -- | Compute the MAC of a file with recommended implementation.
 macFile :: MAC m
         => B.ByteString -- ^ the secret
         -> FilePath     -- ^ the input file
         -> IO m
-macFile secret fp = withBinaryFile fp ReadMode $ mac secret
+macFile secret fp = withBinaryFile fp ReadMode $ sourceMAC secret
