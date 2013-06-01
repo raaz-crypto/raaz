@@ -6,6 +6,7 @@ module Raaz.ByteSource
        ( FillResult(..)
        , withFillResult
        , ByteSource(..)
+       , PureByteSource(..)
        , fill
        ) where
 
@@ -40,11 +41,35 @@ withFillResult :: (a -> b)          -- ^ stuff to do when filled
 withFillResult continueWith _     (Remaining a)  = continueWith a
 withFillResult _            endBy (Exhausted sz) = endBy sz
 
+------------------------ Byte sources ----------------------------------
+
+-- | Abstract byte sources. One should be able to fill a buffer from a
+-- byte source.
 class ByteSource src where
+  -- | Fills a buffer from the source.
   fillBytes :: BYTES Int  -- ^ Buffer size
             -> src        -- ^ The source to fill.
             -> CryptoPtr  -- ^ Buffer pointer
             -> IO (FillResult src)
+
+
+
+-- | A version of fillBytes that takes type safe lengths as input.
+fill :: ( CryptoCoerce len (BYTES Int)
+        , ByteSource src
+        )
+     => len
+     -> src
+     -> CryptoPtr
+     -> IO (FillResult src)
+fill = fillBytes . cryptoCoerce
+
+-- | A pure byte source.
+class ByteSource src => PureByteSource src where
+
+
+
+----------------------- Instances of byte source -----------------------
 
 instance ByteSource Handle where
   fillBytes sz hand cptr = do
@@ -70,7 +95,6 @@ instance ByteSource src => ByteSource (Maybe src) where
                 fillIt a  =  fillBytes sz a cptr
                           >>= return . fmap Just
 
-
 instance ByteSource src => ByteSource [src] where
   fillBytes sz []     _    = return $ Exhausted sz
   fillBytes sz (x:xs) cptr = do
@@ -79,12 +103,8 @@ instance ByteSource src => ByteSource [src] where
                  Exhausted nSz -> fillBytes nSz xs $ movePtr cptr $ sz - nSz
                  Remaining nx  -> return $ Remaining $ nx:xs
 
--- | A version of fillBytes that takes type safe lengths as input.
-fill :: ( CryptoCoerce len (BYTES Int)
-        , ByteSource src
-        )
-     => len
-     -> src
-     -> CryptoPtr
-     -> IO (FillResult src)
-fill = fillBytes . cryptoCoerce
+--------------------- Instances of pure byte source --------------------
+
+instance PureByteSource B.ByteString where
+instance PureByteSource L.ByteString where
+instance PureByteSource src => PureByteSource [src] where
