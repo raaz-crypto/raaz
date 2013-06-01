@@ -1,13 +1,12 @@
 {-# LANGUAGE FlexibleContexts #-}
-{-|
 
--}
+-- | Module define byte sources.
 module Raaz.ByteSource
-       ( FillResult(..)
-       , withFillResult
-       , ByteSource(..)
+       ( ByteSource(..), fill
        , PureByteSource(..)
-       , fill
+       , FillResult(..)
+       , withFillResult
+
        ) where
 
 import qualified Data.ByteString as B
@@ -43,8 +42,8 @@ withFillResult _            endBy (Exhausted sz) = endBy sz
 
 ------------------------ Byte sources ----------------------------------
 
--- | Abstract byte sources. One should be able to fill a buffer from a
--- byte source.
+-- | Abstract byte sources. A bytesource is something that you can use
+-- to fill a buffer.
 class ByteSource src where
   -- | Fills a buffer from the source.
   fillBytes :: BYTES Int  -- ^ Buffer size
@@ -64,10 +63,13 @@ fill :: ( CryptoCoerce len (BYTES Int)
      -> IO (FillResult src)
 fill = fillBytes . cryptoCoerce
 
--- | A pure byte source.
+-- | A pure bytesource is a bytesource that does not have any side
+-- effect other than filling a the given buffer. Formally, two
+-- different fills form the same source should fill the buffer with
+-- the same bytes. Clearly a file handle is *not* a pure source. This
+-- additional constraint on the source helps to *purify* certain
+-- crypto computations like computing the hash or mac of the source.
 class ByteSource src => PureByteSource src where
-
-
 
 ----------------------- Instances of byte source -----------------------
 
