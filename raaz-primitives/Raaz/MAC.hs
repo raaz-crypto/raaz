@@ -9,7 +9,7 @@ This module provides the message authentication abstraction
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 module Raaz.MAC
-       ( MACImplementation(..)
+       ( MACImplementation(..), MAC(..)
        , sourceMAC', sourceMAC
        , mac, mac'
        , macFile', macFile
