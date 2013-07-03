@@ -13,7 +13,7 @@
 
 
 > -- | The directory where the header files are put.
-> systemDir    = "includes/raaz/system"
+> systemDir    = "includes" </> "raaz" </> "system"
 > 
 > -- | The actual header file
 > systemHeader = systemDir </> "parameters.h"
