@@ -9,13 +9,12 @@ This module provides the message authentication abstraction
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 module Raaz.MAC
-       ( MACImplementation(..), MAC(..)
+       ( MACImplementation(..), MAC
        , sourceMAC', sourceMAC
        , mac, mac'
        , macFile', macFile
        ) where
 import qualified Data.ByteString as B
-import qualified Data.ByteString.Lazy as L
 import           Prelude hiding (length)
 import           System.IO(withBinaryFile, IOMode(ReadMode))
 import           System.IO.Unsafe(unsafePerformIO)

@@ -6,32 +6,32 @@ A cryptographic hash function abstraction.
 
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE FlexibleContexts           #-}
 
 module Raaz.Hash
-       ( Hash(..)
+       ( HashImplementation(..)
+       , Hash
        , HMAC(..)
-       , hash
-       , hashByteString
-       , hashLazyByteString
-       , hashFile
+       , sourceHash', sourceHash
+       , hash', hash
+       , hashFile', hashFile
        ) where
 
-import           Control.Applicative((<$>))
-import           Control.Monad (foldM)
-import           Data.Word(Word64)
+import           Control.Applicative  ((<$>))
+import           Control.Monad        (foldM)
+import           Data.Word            (Word64)
 import           Data.Bits
-import qualified Data.ByteString as B
-import qualified Data.ByteString.Lazy as L
-import           Foreign.Storable(Storable(..))
-import           Prelude hiding (length)
-import           System.IO.Unsafe(unsafePerformIO)
+import qualified Data.ByteString      as B
+import           Foreign.Storable     (Storable(..))
+import           Prelude              hiding (length)
+import           System.IO            (withBinaryFile, IOMode(ReadMode))
+import           System.IO.Unsafe     (unsafePerformIO)
 
 import           Raaz.Types
 import           Raaz.Primitives
 import           Raaz.ByteSource
 import           Raaz.MAC
-import           Raaz.Util.ByteString(length)
+import           Raaz.Util.ByteString (length)
 import           Raaz.Util.Ptr
 
 
@@ -49,30 +49,33 @@ import           Raaz.Util.Ptr
 -- sure that the @==@ operator takes time independent of the input.
 -- This is to avoid timing based side-channel attacks. In particular,
 -- /do not/ take the lazy option of deriving the @'Eq'@ instance.
-class ( HasPadding h
-      , Eq          h
-      , Storable    h
-      , CryptoStore h
-      ) => Hash h where
+class ( Implementation i
+      , HasPadding     (PrimitiveOf i)
+      , Eq             (PrimitiveOf i)
+      , CryptoStore    (PrimitiveOf i)
+      ) => HashImplementation i where
 
   -- | The context to start the hash algorithm.
-  startHashCxt   :: Cxt h
+  startHashCxt :: Cxt i
 
   -- | How to finalise the hash from the context.
-  finaliseHash :: Cxt h -> h
+  finaliseHash :: Cxt i -> PrimitiveOf i
 
   -- | Computes the iterated hash, useful for password
   -- hashing. Although a default implementation is given, you might
   -- want to give an optimized specialised version of this function.
-  iterateHash :: Int    -- ^ Number of times to iterate
-              -> h      -- ^ starting hash
-              -> h
-  iterateHash n h = unsafePerformIO $ allocaBuffer tl iterateN
+  iterateHash :: i             -- ^ Implementation
+              -> Int           -- ^ Number of times to iterate
+              -> PrimitiveOf i -- ^ starting hash
+              -> PrimitiveOf i
+  iterateHash i n h = unsafePerformIO $ allocaBuffer tl (iterateN h)
       where dl = BYTES $ sizeOf h              -- length of msg
             pl = padLength h (cryptoCoerce dl) -- length of pad
             tl = dl + pl                       -- total length
             blks = cryptoCoerce tl `asTypeOf` blocksOf 1 h
-            iterateN cptr = do
+            getStartCxt :: HashImplementation i => i -> PrimitiveOf i -> Cxt i
+            getStartCxt _ _ = startHashCxt
+            iterateN _ cptr = do
               unsafePad h bits padPtr
               foldM iterateOnce h [1..n]
               where
@@ -80,18 +83,18 @@ class ( HasPadding h
                 padPtr = cptr `movePtr` dl
                 iterateOnce hsh _ = do
                   store cptr hsh
-                  finaliseHash <$> process startHashCxt blks cptr
+                  finaliseHash <$> process (getStartCxt i h) blks cptr
 
 
   -- | This functions processes data which itself is a hash. One can
   -- use this for iterated hash computation, hmac construction
   -- etc. There is a default definition of this function but
   -- implementations can give a more efficient version.
-  processHash :: Cxt h       -- ^ Context obtained by processing so far
+  processHash :: Cxt i       -- ^ Context obtained by processing so far
               -> BITS Word64 -- ^ number of bits processed so far
                              -- (exculding the bits in the hash)
-              -> h
-              -> h
+              -> PrimitiveOf i
+              -> PrimitiveOf i
   processHash cxt bits h = unsafePerformIO $ allocaBuffer tl go
      where sz      = BYTES $ sizeOf h
            tBits   = bits + cryptoCoerce sz
@@ -102,47 +105,81 @@ class ( HasPadding h
               unsafePad h tBits $ cptr `movePtr` sz
               finaliseHash <$> process cxt (cryptoCoerce tl) cptr
 
-
+class (CryptoPrimitive h, HashImplementation (Recommended h)) => Hash h where
 
 -- | Hash a given byte source.
-hash :: ( Hash h, ByteSource src) => src -> IO h
-hash = fmap finaliseHash . transformContext startHashCxt
+sourceHash' :: ( HashImplementation i, ByteSource src )
+            => i    -- ^ Implementation
+            -> src  -- ^ Message
+            -> IO (PrimitiveOf i)
+sourceHash' i = fmap finaliseHash . transformContext (startContext i)
+   where startContext :: HashImplementation i => i -> Cxt i
+         startContext _ = startHashCxt
 
--- | Hash a strict bytestring.
-hashByteString :: Hash h => B.ByteString -> h
-hashByteString = unsafePerformIO . hash
+sourceHash :: ( Hash h, ByteSource src )
+           => src  -- ^ Message
+           -> IO h
+sourceHash src = go undefined
+  where go :: Hash h => Recommended h -> IO h
+        go i = sourceHash' i src
 
--- | Hash a lazy bytestring.
-hashLazyByteString :: Hash h => L.ByteString -> h
-hashLazyByteString = unsafePerformIO . hash
+-- | Compute the Hash of Pure Byte Source. Implementation dependent.
+hash' :: ( HashImplementation i, PureByteSource src )
+     => i    -- ^ Implementation
+     -> src  -- ^ Message
+     -> PrimitiveOf i
+hash' i = unsafePerformIO . sourceHash' i
 
--- | Hash a given file given `FilePath`
+-- | Compute the Hash of Pure Byte Source using recommended
+-- implementation.
+hash :: ( Hash h, PureByteSource src )
+     => src  -- ^ Message
+     -> h
+hash = unsafePerformIO . sourceHash
+
+-- | Hash a given file given `FilePath`. Implementation dependent.
+hashFile' :: HashImplementation i
+          => i           -- ^ Implementation
+          -> FilePath    -- ^ File to be hashed
+          -> IO (PrimitiveOf i)
+hashFile' i fp = withBinaryFile fp ReadMode $ sourceHash' i
+
+-- | Hash a given file given `FilePath` based on recommended
+-- implementation.
 hashFile :: Hash h
-         => FilePath    -- ^ File to be hashed
+         => FilePath  -- ^ File to be hashed
          -> IO h
-hashFile = fmap finaliseHash . transformContextFile startHashCxt
+hashFile fp = withBinaryFile fp ReadMode sourceHash
 
--- | The HMAC associated to a hash value. The `Eq` instance for HMAC
--- is essentially the `Eq` instance for the underlying hash and hence
--- is safe against timing attack (provided the underlying hashs
--- comparison is safe under timing attack).
-newtype HMAC h = HMAC h deriving (Eq, Storable, CryptoStore)
+-- | The HMAC associated to a hash value. The `Eq`
+-- instance for HMAC -- is essentially the `Eq` instance for the
+-- underlying hash and hence -- is safe against timing attack
+-- (provided the underlying hashs -- comparison is safe under timing
+-- attack).
+newtype HMAC h = HMAC h deriving (Eq, Storable,CryptoStore)
 
 getHash :: HMAC h -> h
 getHash _ = undefined
 
-instance BlockPrimitive h => BlockPrimitive (HMAC h) where
+instance Primitive h => Primitive (HMAC h) where
+  blockSize = blockSize . getHash
 
-  blockSize         = blockSize . getHash
-  recommendedBlocks = toEnum . fromEnum . recommendedBlocks . getHash
+instance ( Implementation i )
+           => Implementation (HMAC i) where
 
-  newtype Cxt (HMAC h) = HMACCxt (Cxt h)
+  type PrimitiveOf (HMAC i) = HMAC (PrimitiveOf i)
+
+  newtype Cxt (HMAC i) = HMACCxt (Cxt i)
 
   process (HMACCxt cxt) blks cptr = HMACCxt <$> process cxt blks' cptr
           where blks' = toEnum $ fromEnum blks
 
   processSingle (HMACCxt cxt) cptr = HMACCxt <$> processSingle cxt cptr
 
+  recommendedBlocks = toEnum . fromEnum . recommendedBlocks . getHash
+
+instance CryptoPrimitive p => CryptoPrimitive (HMAC p) where
+  type Recommended (HMAC p) = HMAC (Recommended p)
 
 -- The instance is a straight forward definition from the
 -- corresponding hash. Recall that hmac is computed as follows
@@ -156,7 +193,8 @@ instance BlockPrimitive h => BlockPrimitive (HMAC h) where
 -- additional block of data arising out of the concatination of k1 in
 -- front of the message.
 
-instance HasPadding h => HasPadding (HMAC h) where
+instance ( Primitive h, HasPadding h )
+         => HasPadding (HMAC h) where
 
   padLength hmac bits = padLength h bits'
     where h     = getHash hmac
@@ -174,7 +212,7 @@ instance HasPadding h => HasPadding (HMAC h) where
 
 
 
-instance Hash h => MAC (HMAC h) where
+instance HashImplementation i => MACImplementation (HMAC i) where
 
   -- The HMAC construction can be seen as two hashing stage
   --
@@ -185,38 +223,50 @@ instance Hash h => MAC (HMAC h) where
   -- in the MACSecret datatype we keep trak of the context after hashing
   -- them.
 
-  data MACSecret (HMAC h) = HMACSecret !(Cxt h) --  hash of the inner pad
-                                       !(Cxt h) --  hash of the other pad
+  data MACSecret (HMAC i) = HMACSecret !(Cxt i) --  hash of the inner pad
+                                       !(Cxt i) --  hash of the other pad
 
   startMACCxt (HMACSecret c1 _ ) = HMACCxt c1
 
-  finaliseMAC (HMACSecret _  c2) (HMACCxt cxt) = HMAC $ processHash c2 blkSize h
+  finaliseMAC (HMACSecret _  c2) (HMACCxt cxt) = HMAC (processHash c2 blkSize h)
     where blkSize    = cryptoCoerce $ blocksOf 1 h
           h          = finaliseHash cxt
 
   toMACSecret        = toHMACSecret undefined
 
 
-toHMACSecret  :: Hash h => HMAC h -> B.ByteString -> MACSecret (HMAC h)
-toHMACSecret  hmac bs
-  | length bs <= blkSize = toHMACSecret' hmac bs
-  | otherwise            = toHMACSecret' hmac $ toByteString bsHash
-  where h       = getHash hmac
+toHMACSecret :: HashImplementation i
+             => HMAC (PrimitiveOf i)
+             -> B.ByteString
+             -> MACSecret (HMAC i)
+toHMACSecret hmac bs = go undefined hmac
+  where go :: HashImplementation i
+           => i
+           -> HMAC (PrimitiveOf i)
+           -> MACSecret (HMAC i)
+        go i hmac' | length bs <= blkSize = toHMACSecret' hmac' bs
+                   | otherwise            = toHMACSecret' hmac'
+                                                    $ toByteString (hash' i bs)
+        h       = getHash hmac
         blkSize = cryptoCoerce $ blocksOf 1 h
-        bsHash  = hashByteString bs `asTypeOf` h
 
-toHMACSecret' :: Hash h => HMAC h -> B.ByteString -> MACSecret (HMAC h)
-toHMACSecret' hmac bs = unsafePerformIO $ allocaBuffer oneBlock go
-  where h     = getHash hmac
-        cxt0  = startHashCxt
+toHMACSecret' :: HashImplementation i
+              => HMAC (PrimitiveOf i)
+              -> B.ByteString
+              -> MACSecret (HMAC i)
+toHMACSecret' hmac bs = unsafePerformIO $ allocaBuffer oneBlock (go undefined)
+  where h = getHash hmac
+        cxt0 :: HashImplementation i => i -> Cxt i
+        cxt0 _ = startHashCxt
         oneBlock = blocksOf 1 h
         bsPad = B.append bs $ B.replicate (len - bslen) 0
         opad  = B.map (xor 0x5c) bsPad
         ipad  = B.map (xor 0x36) bsPad
         BYTES len   = cryptoCoerce oneBlock
         BYTES bslen = length bs
-        go cptr = do _ <- fillBytes (BYTES len) ipad cptr
-                     icxt <- processSingle cxt0 cptr
-                     _ <- fillBytes (BYTES len) opad cptr
-                     ocxt <- processSingle cxt0 cptr
-                     return $ HMACSecret icxt ocxt
+        go :: HashImplementation i => i -> CryptoPtr -> IO (MACSecret (HMAC i))
+        go i cptr = do _ <- fillBytes (BYTES len) ipad cptr
+                       icxt <- processSingle (cxt0 i) cptr
+                       _ <- fillBytes (BYTES len) opad cptr
+                       ocxt <- processSingle (cxt0 i) cptr
+                       return $ HMACSecret icxt ocxt
