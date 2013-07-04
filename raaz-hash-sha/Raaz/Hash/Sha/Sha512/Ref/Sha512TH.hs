@@ -28,67 +28,31 @@ oneRound :: DecsQ
 oneRound = sequence $ [typeSig, funD name [cls]]
   where
     name = mkName "roundF"
-    cls = clause (args1 ++ args2) (normalB (LetE <$> roundLoop <*>
-                                      [| SHA512
-                                         ($(a $ -1) + $(a 79))
-                                         ($(b $ -1) + $(b 79))
-                                         ($(c $ -1) + $(c 79))
-                                         ($(d $ -1) + $(d 79))
-                                         ($(e $ -1) + $(e 79))
-                                         ($(f $ -1) + $(f 79))
-                                         ($(g $ -1) + $(g 79))
-                                         ($(h $ -1) + $(h 79))
-                                      |])) []
-    args1 = map (flip subP (-1 :: Int)) ["a","b","c","d","e","f","g","h"]
+    cls = clause (args1:args2) (normalB (LetE <$> roundLoop <*>
+                                      [| addHash $(s $ -1) $(s $ 79) |])) []
+    args1 = subP "s" (-1 :: Int)
     args2 = map (subP "m") [0..15 :: Int]
-    typeSig = sigD name $
-              foldl (const . appT wordtype) (conT ''SHA512) [1..24 :: Int]
+    typeSig = sigD name $ appT (appT arrowT (conT ''SHA512)) $
+                foldl (const . appT wordtype) (conT ''SHA512) [1..16 :: Int]
     wordtype = appT arrowT (conT ''Word64BE)
-    subP' :: String -> Int -> PatQ
-    subP' = subP
 
--- | Unrolls the round loop. Also assumes
--- a__1,b__1,c__1,d__1,e__1,f__1,g__1,h__1 which are the hash values
+-- | Unrolls the round loop. Also assumes s__1 which is the hash value
 -- in the previous round also present in scope.
 roundLoop :: DecsQ
-roundLoop = liftM2 (++) kdecs
-               $ declarations [wdecs,adecs,edecs,restdecs] [0..79]
+roundLoop = liftM2 (++) kDecs $ declarations [transDecs,wDecs] [0..79]
   where
-    adecs :: Int -> DecsQ
-    adecs = variable' "a" ''Word64BE body
+    transDecs :: Int -> DecsQ
+    transDecs = variable' "s" ''SHA512 body
       where
-        body j = [| $(t1exp j) + $(t2exp j) :: Word64BE |]
-
-    edecs :: Int -> DecsQ
-    edecs = variable' "e" ''Word64BE body
-      where
-        body j = [| $(d $ j-1) + $(t1exp j) :: Word64BE |]
-
-    t1exp :: Int -> ExpQ
-    t1exp j = [| $(h $ j-1) + $(sigB1') + $(ch') + $(k j) + $(w j) :: Word64BE |]
-      where
-        sigB1' = sigB1 (e $ j-1)
-        ch'    = ch (e $ j-1) (f $ j-1) (g $ j-1)
-
-    t2exp :: Int -> ExpQ
-    t2exp j = [| $(sigB0') + $(maj') :: Word64BE |]
-      where
-        sigB0' = sigB0 (a $ j-1)
-        maj'   = maj (a $ j-1) (b $ j-1) (c $ j-1)
-
-    wdecs :: Int -> DecsQ
-    wdecs = variable' "w" ''Word64BE body
+        body j = [| trans $(s $ j-1) $(k $ j) $(w $ j) |]
+    wDecs :: Int -> DecsQ
+    wDecs = variable' "w" ''Word64BE body
       where
         body j | j<16      = subE "m" j
-               | otherwise = [| $(sigS0') + $(w $ j-7) + $(sigS1')
+               | otherwise = [| sigS1 $(w $ j-2) + $(w $ j-7) + sigS0 $(w $ j-15)
                               + $(w $ j-16) :: Word64BE |]
-          where
-            sigS1' = sigS1 (w $ j-2)
-            sigS0' = sigS0 (w $ j-15)
-
-    -- | The round constants for SHA1 hash
-    kdecs :: DecsQ
-    kdecs = constants "k" ''Word64BE
+    kDecs :: DecsQ
+    kDecs = constants "k" ''Word64BE
                 [ 0x428a2f98d728ae22, 0x7137449123ef65cd, 0xb5c0fbcfec4d3b2f
                 , 0xe9b5dba58189dbbc, 0x3956c25bf348b538, 0x59f111f1b605d019
                 , 0x923f82a4af194f9b, 0xab1c5ed5da6d8118, 0xd807aa98a3030242
@@ -117,28 +81,37 @@ roundLoop = liftM2 (++) kdecs
                 , 0x431d67c49c100d4c, 0x4cc5d4becb3e42b6, 0x597f299cfc657e2a
                 , 0x5fcb6fab3ad6faec, 0x6c44198c4a475817 :: Word64BE]
 
-    restdecs :: Int -> DecsQ
-    restdecs = permute [ ("h","g"), ("g","f"), ("f","e")
-                       , ("d","c"), ("c","b"), ("b","a") ]
+trans :: SHA512 -> Word64BE -> Word64BE -> SHA512
+trans (SHA512 a b c d e f g h) k' w' = SHA512 a' b' c' d' e' f' g' h'
+  where
+    t1 = h + sigB1 e + ((e .&. f) `xor` (complement e .&. g)) + k' + w'
+    t2 = sigB0 a + ((a .&. (b .|. c)) .|. (b .&. c))
+    a' = t1 + t2
+    b' = a
+    c' = b
+    d' = c
+    e' = d + t1
+    f' = e
+    g' = f
+    h' = g
+{-# INLINE trans #-}
 
-ch,maj :: ExpQ -> ExpQ -> ExpQ -> ExpQ
-ch x y z  = [| ($(x) .&. $(y)) `xor` (complement $(x) .&. $(z)) |]
-maj x y z = [| ($(x) .&. $(y)) `xor` ($(y) .&. $(z)) `xor` ($(z) .&. $(x)) |]
+sigB0,sigB1,sigS0,sigS1 :: Word64BE -> Word64BE
+sigB0 x = rotateR x 28 `xor` rotateR x 34 `xor` rotateR x 39
+sigB1 x = rotateR x 14 `xor` rotateR x 18 `xor` rotateR x 41
+sigS0 x = rotateR x 1  `xor` rotateR x 8  `xor` shiftR  x 7
+sigS1 x = rotateR x 19 `xor` rotateR x 61 `xor` shiftR  x 6
+{-# INLINE sigB0 #-}
+{-# INLINE sigB1 #-}
+{-# INLINE sigS0 #-}
+{-# INLINE sigS1 #-}
 
-sigB0,sigB1,sigS0,sigS1 :: ExpQ -> ExpQ
-sigB0 x = [| rotateR $(x) 28 `xor` rotateR $(x) 34 `xor` rotateR $(x) 39 |]
-sigB1 x = [| rotateR $(x) 14 `xor` rotateR $(x) 18 `xor` rotateR $(x) 41 |]
-sigS0 x = [| rotateR $(x) 1  `xor` rotateR $(x) 8  `xor` shiftR  $(x) 7  |]
-sigS1 x = [| rotateR $(x) 19 `xor` rotateR $(x) 61 `xor` shiftR  $(x) 6  |]
+addHash :: SHA512 -> SHA512 -> SHA512
+addHash (SHA512 a b c d e f g h) (SHA512 a' b' c' d' e' f' g' h') =
+  SHA512 (a+a') (b+b') (c+c') (d+d') (e+e') (f+f') (g+g') (h+h')
+{-# INLINE addHash #-}
 
-a,b,c,d,e,f,g,h,k,w :: Int -> ExpQ
-a = subE "a"
-b = subE "b"
-c = subE "c"
-d = subE "d"
-e = subE "e"
-f = subE "f"
-g = subE "g"
-h = subE "h"
+k,s,w :: Int -> ExpQ
 k = subE "k"
+s = subE "s"
 w = subE "w"
