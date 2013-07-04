@@ -4,12 +4,15 @@ Generic cryptographic algorithms.
 
 -}
 
-{-# LANGUAGE TypeFamilies                #-}
-{-# LANGUAGE MultiParamTypeClasses       #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving  #-}
+{-# LANGUAGE TypeFamilies               #-}
+{-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE FlexibleContexts           #-}
+
 module Raaz.Primitives
-       ( BlockPrimitive(..)
+       ( BlockImplementation(..), BlockPrimitive(..)
        , HasPadding(..)
+       , HasBlockSize(..)
        , BLOCKS, blocksOf
        , transformContext, transformContextFile
        ) where
@@ -31,32 +34,32 @@ import Raaz.Util.Ptr
 newtype BLOCKS p = BLOCKS Int
                  deriving (Show, Eq, Ord, Enum, Real, Num, Integral)
 
+class HasBlockSize p where
+  blockSize :: p -> BYTES Int
+
 -- | Abstraction that captures crypto primitives that work one block
 -- at a time. Block primitives process data one block at a
 -- time. Examples are block ciphers, Merkle-Damgård hashes etc. The
 -- minimal complete definition consists of `blockSize`, the associated
 -- type `Cxt` and one of `process` or `processSingle`.
-class BlockPrimitive p where
-
-  blockSize :: p -> BYTES Int -- ^ Block size
+class (Show i, HasBlockSize p) => BlockImplementation i p where
 
   -- | Block primitives require carrying around a context to process
   -- subsequent blocks. This associated type captures such a context.
-  data Cxt p
+  data Cxt i p
 
   -- | This `process` function is what does all the hardwork of the
   -- primitive. A default implementation in terms of `processSingle`,
   -- but you can provide a more efficient implementation. Whether the
   -- data in the message buffer is left intact or not, depends on the
   -- primitive.
-  process :: Cxt p     -- ^ The context passed from the previous block
-          -> BLOCKS p  -- ^ The number of blocks of data.
-          -> CryptoPtr -- ^ The message buffer
-          -> IO (Cxt p)
-
+  process :: Cxt i p      -- ^ The context passed from the previous block
+          -> BLOCKS p     -- ^ The number of blocks of data.
+          -> CryptoPtr    -- ^ The message buffer
+          -> IO (Cxt i p)
   process cxt b cptr = fst <$> foldM moveAndHash (cxt,cptr) [1..b]
     where
-      getCxt :: Cxt p -> p
+      getCxt :: Cxt i p -> p
       getCxt _  = undefined
       sz        = blockSize $ getCxt cxt
       moveAndHash (context,ptr) _ = do newCxt <- processSingle context ptr
@@ -66,9 +69,9 @@ class BlockPrimitive p where
   -- context from the previous context. There is a default
   -- implementation in terms of `process`. However, for efficiency you
   -- might consider defining a separte version.
-  processSingle :: Cxt p         -- ^ The context
-                -> CryptoPtr     -- ^ The message buffer
-                -> IO (Cxt p)
+  processSingle :: Cxt i p      -- ^ The context
+                -> CryptoPtr    -- ^ The message buffer
+                -> IO (Cxt i p)
   processSingle cxt cptr = process cxt 1 cptr
 
   -- | The recommended number of blocks to process at a time. While
@@ -77,10 +80,15 @@ class BlockPrimitive p where
   -- depends on the cache size of your machine) can drastically
   -- improve cache performance of your program. Default setting is the
   -- number of blocks that fit in @32KB@.
-  recommendedBlocks   :: p -> BLOCKS p
-  recommendedBlocks _ = cryptoCoerce (1024 * 32 :: BYTES Int)
+  recommendedBlocks :: i -> p -> BLOCKS p
+  recommendedBlocks _ _ = cryptoCoerce (1024 * 32 :: BYTES Int)
 
-instance ( BlockPrimitive p
+-- | BlockPrimitive works with default implementation which can be
+-- autotuned.
+class BlockImplementation (DefaultBlockImplementation p) p => BlockPrimitive p where
+  type DefaultBlockImplementation p :: *
+
+instance ( HasBlockSize p
          , Num by
          ) => CryptoCoerce (BLOCKS p) (BYTES by) where
   cryptoCoerce b@(BLOCKS n) = fromIntegral $ blockSize (prim b) *
@@ -90,7 +98,7 @@ instance ( BlockPrimitive p
   {-# INLINE cryptoCoerce #-}
 
 
-instance ( BlockPrimitive p
+instance ( HasBlockSize p
          , Num bits
          ) => CryptoCoerce (BLOCKS p) (BITS bits) where
   cryptoCoerce b@(BLOCKS n) = fromIntegral $ 8 * blockSize (prim b) *
@@ -101,7 +109,7 @@ instance ( BlockPrimitive p
 
 -- | BEWARE: There can be rounding errors if the number of bytes is
 -- not a multiple of block length.
-instance ( BlockPrimitive p
+instance ( HasBlockSize p
          , Integral by
          ) => CryptoCoerce (BYTES by) (BLOCKS p) where
   cryptoCoerce bytes = result
@@ -113,13 +121,14 @@ instance ( BlockPrimitive p
 
 -- | BEWARE: There can be rounding errors if the number of bytes is
 -- not a multiple of block length.
-instance ( BlockPrimitive p
+instance ( HasBlockSize p
          , Integral by
          ) => CryptoCoerce (BITS by) (BLOCKS p) where
   cryptoCoerce = cryptoCoerce . bytes
     where bytes :: Integral by => BITS by -> BYTES by
           bytes = cryptoCoerce
   {-# INLINE cryptoCoerce #-}
+
 -- | The expression @n `blocksOf` p@ specifies the message lengths in
 -- units of the block length of the primitive @p@. This expression is
 -- sometimes required to make the type checker happy.
@@ -172,12 +181,13 @@ class BlockPrimitive p => HasPadding p where
 -- of the procesed buffer.
 transformContext  :: ( ByteSource src
                      , HasPadding p
+                     , BlockImplementation i p
                      )
-                  => Cxt p     -- ^ The starting context
-                  -> src       -- ^ The byte source
-                  -> IO (Cxt p)
+                  => Cxt i p     -- ^ The starting context
+                  -> src         -- ^ The byte source
+                  -> IO (Cxt i p)
 transformContext cxt src = allocaBuffer bufSize $ go 0 cxt src
-  where nBlocks = recommendedBlocks p
+  where nBlocks = recommendedBlocks (getImplementation cxt) p
         bufSize = nBlocks + maxAdditionalBlocks p
         p       = getPrimitive cxt
         go k context source cptr =   fill nBlocks source cptr
@@ -192,12 +202,15 @@ transformContext cxt src = allocaBuffer bufSize $ go 0 cxt src
                              blks   = cryptoCoerce $ len + padLength p bits
 
 -- | A version of `transformContext` which takes a filename instead.
-transformContextFile :: HasPadding p
-                     => Cxt p      -- ^ The starting context
-                     -> FilePath   -- ^ The file name.
-                     -> IO (Cxt p)
+transformContextFile :: ( HasPadding p, BlockImplementation i p)
+                     => Cxt i p      -- ^ The starting context
+                     -> FilePath     -- ^ The file name.
+                     -> IO (Cxt i p)
 transformContextFile cxt fpth = withFile fpth ReadMode $ transformContext cxt
 
 -- | A function to make the type checker happy.
-getPrimitive :: BlockPrimitive p => Cxt p -> p
+getPrimitive :: BlockImplementation i p => Cxt i p -> p
 getPrimitive _ = undefined
+
+getImplementation :: BlockImplementation i p => Cxt i p -> i
+getImplementation _ = undefined
