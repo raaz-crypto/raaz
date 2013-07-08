@@ -28,8 +28,8 @@ $(oneRound)
 sha256CompressSingle :: SHA256
                    -> CryptoPtr
                    -> IO SHA256
-sha256CompressSingle (SHA256 h0 h1 h2 h3 h4 h5 h6 h7) cptr =
-         roundF h0 h1 h2 h3 h4 h5 h6 h7
+sha256CompressSingle sha256 cptr =
+         roundF sha256
          <$> load cptr
          <*> loadFromIndex cptr 1
          <*> loadFromIndex cptr 2

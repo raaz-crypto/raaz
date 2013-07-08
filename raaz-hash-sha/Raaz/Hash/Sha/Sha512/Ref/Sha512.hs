@@ -28,8 +28,8 @@ $(oneRound)
 sha512CompressSingle :: SHA512
                      -> CryptoPtr
                      -> IO SHA512
-sha512CompressSingle (SHA512 h0 h1 h2 h3 h4 h5 h6 h7) cptr =
-         roundF h0 h1 h2 h3 h4 h5 h6 h7
+sha512CompressSingle sha512 cptr =
+         roundF sha512
          <$> load cptr
          <*> loadFromIndex cptr 1
          <*> loadFromIndex cptr 2
