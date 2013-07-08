@@ -16,7 +16,7 @@ import System.Console.CmdArgs
 import Data.Version(showVersion)
 import Paths_raaz_executables(version)
 
-import Raaz.Hash(hashFile, hash, Hash)
+import Raaz.Hash(hashFile, sourceHash, Hash)
 import Raaz.Hash.Sha
 import Raaz.Util.ByteString(toHex)
 
@@ -56,7 +56,7 @@ main = do shaArgs <- cmdArgsRun shasum
 
 
 computeHash :: Hash h => String -> IO h
-computeHash "-" = hash stdin
+computeHash "-" = sourceHash stdin
 computeHash fp  = hashFile fp
 
 printHashText :: Hash h => h -> Bool -> String -> IO ()
