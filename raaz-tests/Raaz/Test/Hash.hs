@@ -85,7 +85,7 @@ testStandardHashValues :: (CryptoStore h, Hash h, Typeable h)
                                                         -- hash pairs
                        -> [Test]
 testStandardHashValues h = hUnitTestToTests . test . map checkHash
-  where getHash a = toHex $ hashByteString a `asTypeOf` h
+  where getHash a = toHex $ hash a `asTypeOf` h
         label a   = show (typeOf h) ++ " " ++ shorten (show a)
         checkHash (a,b) = label a ~: getHash a ~?= b
 
