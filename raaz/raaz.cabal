@@ -1,0 +1,21 @@
+name:          raaz
+version:       0.0.0.0
+synopsis:      The raaz meta package.
+license:       BSD3
+license-file:  LICENSE
+author:        Piyush P Kurur
+maintainer:    ppk@cse.iitk.ac.in
+category:      Raaz
+build-type:    Simple
+cabal-version: >=1.9.2
+
+bug-reports: https://github.com/piyush-kurur/raaz/issues
+
+source-repository head
+  type: git
+  location: https://github.com/piyush-kurur/raaz
+  subdir: raaz
+
+library
+  exposed-modules: Raaz
+  build-depends: base
