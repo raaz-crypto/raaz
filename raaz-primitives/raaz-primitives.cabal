@@ -31,8 +31,6 @@ library
                , bytestring
                , template-haskell
                , cpu
-               -- Stuff need for the configure step.
-               , text
   ghc-options: -Wall
   include-dirs: includes
   includes: raaz/primitives.h
