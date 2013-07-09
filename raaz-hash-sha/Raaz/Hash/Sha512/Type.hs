@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE TypeFamilies               #-}
 
-module Raaz.Hash.Sha.Sha512.Type
+module Raaz.Hash.Sha512.Type
        ( SHA512(..)
        , SHA384(..)
        ) where
@@ -11,8 +11,9 @@ import Data.Bits(xor, (.|.))
 import Data.Typeable(Typeable)
 import Foreign.Storable(Storable(..))
 
-import Raaz.Util.Ptr(loadFromIndex, storeAtIndex)
 import Raaz.Types
+import Raaz.Util.Ptr(loadFromIndex, storeAtIndex)
+
 
 -- | The Sha512 hash value. Used in implementation of Sha384 as well.
 data SHA512 = SHA512 {-# UNPACK #-} !Word64BE

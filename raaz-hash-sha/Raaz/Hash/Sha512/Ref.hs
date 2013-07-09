@@ -8,7 +8,7 @@ implementation. So you /should not/ be using this code in production.
 
 {-# LANGUAGE TemplateHaskell #-}
 
-module Raaz.Hash.Sha.Sha512.Ref.Sha512
+module Raaz.Hash.Sha512.Ref
        ( sha512CompressSingle
        ) where
 
@@ -17,8 +17,8 @@ import Control.Applicative
 import Raaz.Types
 import Raaz.Util.Ptr
 
-import Raaz.Hash.Sha.Sha512.Type(SHA512(..))
-import Raaz.Hash.Sha.Sha512.Ref.Sha512TH
+import Raaz.Hash.Sha512.Type(SHA512(..))
+import Raaz.Hash.Sha512.Ref.TH
 
 -- | roundF function generated from TH
 $(oneRound)
