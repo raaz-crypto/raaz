@@ -16,7 +16,7 @@ import System.Console.CmdArgs
 import Data.Version(showVersion)
 import Paths_raaz_executables(version)
 
-import Raaz.Hash(hashFile, sourceHash, Hash)
+import Raaz.Primitives.Hash(Hash)
 import Raaz.Hash.Sha
 import Raaz.Util.ByteString(toHex)
 
