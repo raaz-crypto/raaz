@@ -1,14 +1,15 @@
 {-|
 
 This module gives the reference implementation of the sha1
-hash. Depending on your platform there might be a more efficient
-implementation. So you /should not/ be using this code in production.
+hash. Depending on your platform, there might be a more efficient
+and/or secure implementation. So you /should not/ be using this code
+in production unless you know what you are doing.
 
 -}
 
 {-# LANGUAGE TemplateHaskell #-}
 
-module Raaz.Hash.Sha.Sha1.Ref.Sha1
+module Raaz.Hash.Sha1.Ref
        ( sha1CompressSingle
        ) where
 
@@ -17,8 +18,8 @@ import Control.Applicative
 import Raaz.Types
 import Raaz.Util.Ptr
 
-import Raaz.Hash.Sha.Sha1.Type(SHA1(..))
-import Raaz.Hash.Sha.Sha1.Ref.Sha1TH
+import Raaz.Hash.Sha1.Type(SHA1(..))
+import Raaz.Hash.Sha1.Ref.TH
 
 -- | roundF function generated from TH
 $(oneRound)

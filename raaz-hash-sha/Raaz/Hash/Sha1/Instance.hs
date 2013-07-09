@@ -8,16 +8,17 @@ This module defines the hash instances for different hashes.
 {-# LANGUAGE EmptyDataDecls       #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module Raaz.Hash.Sha.Sha1.Instance (ReferenceSHA1) where
+module Raaz.Hash.Sha1.Instance (ReferenceSHA1) where
 
 import Control.Applicative ((<$>))
 
-import Raaz.Hash
-import Raaz.Hash.Sha.Util
-import Raaz.Hash.Sha.Sha1.Type
-import Raaz.Hash.Sha.Sha1.Ref.Sha1
 import Raaz.Primitives
+import Raaz.Primitives.Hash
 import Raaz.Types
+
+import Raaz.Hash.Sha.Util
+import Raaz.Hash.Sha1.Type
+import Raaz.Hash.Sha1.Ref
 
 ----------------------------- SHA1 ---------------------------------------------
 

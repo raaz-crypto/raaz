@@ -1,7 +1,16 @@
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE TypeFamilies               #-}
 
-module Raaz.Hash.Sha.Sha1.Type
+{-|
+
+This module exposes the `SHA1` hash constructor. You would hardly need
+to import the module directly as you would want to treat the `SHA1`
+type as an opaque type for type safety. This module is exported only
+for special uses like writing a test case or defining a binary
+instance etc.
+
+-}
+module Raaz.Hash.Sha1.Type
        ( SHA1(..)
        ) where
 
