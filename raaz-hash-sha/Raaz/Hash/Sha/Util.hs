@@ -7,8 +7,8 @@ import qualified Data.ByteString as B
 import Data.Word
 import Foreign.Storable(Storable(..))
 
-import Raaz.Hash
 import Raaz.Primitives
+import Raaz.Primitives.Hash
 import Raaz.Types
 
 firstPadByte :: Word8
