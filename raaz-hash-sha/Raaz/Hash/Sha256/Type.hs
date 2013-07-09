@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE TypeFamilies               #-}
 
-module Raaz.Hash.Sha.Sha256.Type
+module Raaz.Hash.Sha256.Type
        ( SHA256(..)
        , SHA224(..)
        ) where
