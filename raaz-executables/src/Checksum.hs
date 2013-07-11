@@ -17,7 +17,13 @@ import Data.Version(showVersion)
 import Paths_raaz_executables(version)
 
 import Raaz.Primitives.Hash(Hash)
-import Raaz.Hash.Sha
+import Raaz.Hash.Sha1
+import Raaz.Hash.Sha224
+import Raaz.Hash.Sha256
+import Raaz.Hash.Sha384
+import Raaz.Hash.Sha512
+
+
 import Raaz.Util.ByteString(toHex)
 
 data Shasum = Shasum { hashType :: String
