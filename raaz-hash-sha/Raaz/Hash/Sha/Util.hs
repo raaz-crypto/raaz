@@ -24,7 +24,6 @@ extra64  = BYTES $ 1 + sizeOf (undefined :: Word64)
 -- SHA224, SHA256.
 padLength64 :: Primitive h => h -> BITS Word64 -> BYTES Int
 {-# INLINE padLength64 #-}
-{-# INLINABLE padLength64 #-}
 padLength64 h l | r >= extra64 = r
                 | otherwise    = r + blockSize h
   where lb :: BYTES Int
@@ -35,7 +34,6 @@ padLength64 h l | r >= extra64 = r
 -- SHA224, SHA256.
 padding64 :: Primitive h => h -> BITS Word64 -> B.ByteString
 {-# INLINE padding64 #-}
-{-# INLINABLE padding64 #-}
 
 padding64 h l = B.concat [ B.singleton firstPadByte
                          , B.replicate zeros 0
@@ -55,7 +53,6 @@ extra128 = BYTES $ 1 + 2*sizeOf (undefined :: Word64)
 -- SHA384,SHA512.
 padLength128 :: Primitive h => h -> BITS Word64 -> BYTES Int
 {-# INLINE padLength128 #-}
-{-# INLINABLE padLength128 #-}
 padLength128 h l | r >= extra128 = r
                  | otherwise     = r + blockSize h
   where lb :: BYTES Int
@@ -66,7 +63,6 @@ padLength128 h l | r >= extra128 = r
 -- SHA384,SHA512.
 padding128 :: Primitive h => h -> BITS Word64 -> B.ByteString
 {-# INLINE padding128 #-}
-{-# INLINABLE padding128 #-}
 padding128 h l = B.concat [ B.singleton firstPadByte
                           , B.replicate totalZeros 0
                           , toByteString lBits
