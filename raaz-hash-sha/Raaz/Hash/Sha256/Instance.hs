@@ -14,27 +14,18 @@ import Control.Applicative ((<$>))
 
 import Raaz.Primitives
 import Raaz.Primitives.Hash
-import Raaz.Types
+
 
 import Raaz.Hash.Sha256.Type
 import Raaz.Hash.Sha256.Ref
-import Raaz.Hash.Sha.Util
 
 
 
 ----------------------------- SHA224 -------------------------------------------
 
-instance Primitive SHA224 where
-  blockSize _ = cryptoCoerce $ BITS (512 :: Int)
-  {-# INLINE blockSize #-}
-
-instance HasPadding SHA224 where
-  maxAdditionalBlocks _ = 1
-  padLength = padLength64
-  padding   = padding64
-
 instance CryptoPrimitive SHA224 where
   type Recommended SHA224 = ReferenceSHA224
+
 
 instance Hash SHA224 where
 
@@ -61,15 +52,6 @@ instance HashImplementation ReferenceSHA224 where
             = SHA224 h0 h1 h2 h3 h4 h5 h6
 
 ----------------------------- SHA256 -------------------------------------------
-
-instance Primitive SHA256 where
-  blockSize _ = cryptoCoerce $ BITS (512 :: Int)
-  {-# INLINE blockSize #-}
-
-instance HasPadding SHA256 where
-  maxAdditionalBlocks _ = 1
-  padLength = padLength64
-  padding   = padding64
 
 instance CryptoPrimitive SHA256 where
   type Recommended SHA256 = ReferenceSHA256

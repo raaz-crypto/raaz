@@ -11,8 +11,13 @@ import Data.Bits(xor, (.|.))
 import Data.Typeable(Typeable)
 import Foreign.Storable(Storable(..))
 
-import Raaz.Util.Ptr(loadFromIndex, storeAtIndex)
+import Raaz.Primitives
 import Raaz.Types
+import Raaz.Util.Ptr(loadFromIndex, storeAtIndex)
+
+import Raaz.Hash.Sha.Util
+
+----------------------------- SHA256 -------------------------------------------
 
 -- | The Sha256 hash value. Used in implementation of Sha224 as well.
 data SHA256 = SHA256 {-# UNPACK #-} !Word32BE
@@ -97,6 +102,18 @@ instance CryptoStore SHA256 where
                                               >> storeAtIndex cptr 6 h6
                                               >> storeAtIndex cptr 7 h7
 
+
+instance Primitive SHA256 where
+  blockSize _ = cryptoCoerce $ BITS (512 :: Int)
+  {-# INLINE blockSize #-}
+
+instance HasPadding SHA256 where
+  maxAdditionalBlocks _ = 1
+  padLength = padLength64
+  padding   = padding64
+
+----------------------------- SHA224 -------------------------------------------
+
 -- | Sha224 hash value which consist of 7 32bit words.
 data SHA224 = SHA224 {-# UNPACK #-} !Word32BE
                      {-# UNPACK #-} !Word32BE
@@ -171,3 +188,12 @@ instance CryptoStore SHA224 where
                                            >> storeAtIndex cptr 4 h4
                                            >> storeAtIndex cptr 5 h5
                                            >> storeAtIndex cptr 6 h6
+
+instance Primitive SHA224 where
+  blockSize _ = cryptoCoerce $ BITS (512 :: Int)
+  {-# INLINE blockSize #-}
+
+instance HasPadding SHA224 where
+  maxAdditionalBlocks _ = 1
+  padLength = padLength64
+  padding   = padding64
