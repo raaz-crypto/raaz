@@ -11,9 +11,13 @@ import Data.Bits(xor, (.|.))
 import Data.Typeable(Typeable)
 import Foreign.Storable(Storable(..))
 
+import Raaz.Primitives
 import Raaz.Types
 import Raaz.Util.Ptr(loadFromIndex, storeAtIndex)
 
+import Raaz.Hash.Sha.Util
+
+----------------------------- SHA512 -------------------------------------------
 
 -- | The Sha512 hash value. Used in implementation of Sha384 as well.
 data SHA512 = SHA512 {-# UNPACK #-} !Word64BE
@@ -98,6 +102,16 @@ instance CryptoStore SHA512 where
                                               >> storeAtIndex cptr 6 h6
                                               >> storeAtIndex cptr 7 h7
 
+instance Primitive SHA512 where
+  blockSize _ = cryptoCoerce $ BITS (1024 :: Int)
+  {-# INLINE blockSize #-}
+
+instance HasPadding SHA512 where
+  maxAdditionalBlocks _ = 1
+  padLength = padLength128
+  padding   = padding128
+
+----------------------------- SHA384 -------------------------------------------
 
 -- | The Sha384 hash value.
 data SHA384 = SHA384 {-# UNPACK #-} !Word64BE
@@ -165,3 +179,12 @@ instance CryptoStore SHA384 where
                                         >> storeAtIndex cptr 3 h3
                                         >> storeAtIndex cptr 4 h4
                                         >> storeAtIndex cptr 5 h5
+
+instance Primitive SHA384 where
+  blockSize _ = cryptoCoerce $ BITS (1024 :: Int)
+  {-# INLINE blockSize #-}
+
+instance HasPadding SHA384 where
+  maxAdditionalBlocks _ = 1
+  padLength = padLength128
+  padding   = padding128
