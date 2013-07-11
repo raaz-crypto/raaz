@@ -2,13 +2,13 @@ INSTALL_OPTS=
 
 # Add new packages here.
 
-PACKAGES=primitives hash-sha executables ssh tests
+PACKAGES=raaz raaz-primitives raaz-hash-sha raaz-ssh raaz-tests
 
 # Dependencies of packages goes here.
 
-tests: primitives
-hash-sha: primitives tests
-executables: hash-sha
+raaz-tests: raaz-primitives
+raaz-hash-sha: raaz-primitives raaz-tests
+raaz: raaz-hash-sha raaz-primitives
 
 # End of package dependency. Edit the rest only if you know what your
 # are doing.
@@ -21,19 +21,18 @@ X_BRANCHES=
 
 .PHONY: install clean ${PACKAGES} ${PACKAGES_UNREGISTER}
 
-install: ${PACKAGES}
+install: ${PACKAGES} raaz
 clean: ${PACKAGE_CLEAN}
 	$(foreach pkg, ${PACKAGES},\
-		cd raaz-${pkg};\
+		cd ${pkg};\
 		./Setup.lhs clean;\
 		cd ..;)
-
 ${PACKAGES}:
-	cd raaz-$@;\
+	cd $@;\
 	cabal install ${INSTALL_OPTS}
 
 ${PACKAGE_CLEAN}:
-	-ghc-pkg unregister  raaz-$(patsubst %-clean,%,$@) --force
+	-ghc-pkg unregister  $(patsubst %-clean,%,$@) --force
 
 
 
@@ -47,7 +46,7 @@ travis-install:
 
 travis-tests:
 	$(foreach pkg, ${PACKAGES},\
-		cd raaz-${pkg};\
+		cd ${pkg};\
 		cabal test;\
 		cd ..;\
 		)
