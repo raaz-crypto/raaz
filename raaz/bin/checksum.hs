@@ -14,15 +14,10 @@ import qualified Data.ByteString.Char8 as BC
 import System.IO
 import System.Console.CmdArgs
 import Data.Version(showVersion)
-import Paths_raaz_executables(version)
+import Paths_raaz(version)
 
+import Raaz.Hash
 import Raaz.Primitives.Hash(Hash)
-import Raaz.Hash.Sha1
-import Raaz.Hash.Sha224
-import Raaz.Hash.Sha256
-import Raaz.Hash.Sha384
-import Raaz.Hash.Sha512
-
 
 import Raaz.Util.ByteString(toHex)
 
