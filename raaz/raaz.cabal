@@ -18,4 +18,6 @@ source-repository head
 
 library
   exposed-modules: Raaz
+                 , Raaz.Hash
   build-depends: base
+               , raaz-hash-sha ==0.0.0.0
