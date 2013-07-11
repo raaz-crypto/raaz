@@ -8,7 +8,7 @@ import qualified Data.ByteString.Char8 as C8
 import Test.QuickCheck(Arbitrary(..))
 
 import Raaz.Test(allHashTests)
-import Raaz.Hash.Sha()
+import Raaz.Hash.Sha256
 import Raaz.Hash.Sha256.Type(SHA256(..))
 
 instance Arbitrary SHA256 where
