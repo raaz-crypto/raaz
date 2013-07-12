@@ -3,7 +3,7 @@
 -- | Module define byte sources.
 module Raaz.ByteSource
        ( ByteSource(..), fill
-       , PureByteSource(..)
+       , PureByteSource
        , FillResult(..)
        , withFillResult
 
