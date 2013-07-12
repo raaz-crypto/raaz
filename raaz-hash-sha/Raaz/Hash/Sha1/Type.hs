@@ -1,7 +1,16 @@
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE TypeFamilies               #-}
 
-module Raaz.Hash.Sha.Sha1.Type
+{-|
+
+This module exposes the `SHA1` hash constructor. You would hardly need
+to import the module directly as you would want to treat the `SHA1`
+type as an opaque type for type safety. This module is exported only
+for special uses like writing a test case or defining a binary
+instance etc.
+
+-}
+module Raaz.Hash.Sha1.Type
        ( SHA1(..)
        ) where
 
@@ -10,8 +19,11 @@ import Data.Bits(xor, (.|.))
 import Data.Typeable(Typeable)
 import Foreign.Storable(Storable(..))
 
-import Raaz.Util.Ptr(loadFromIndex, storeAtIndex)
+import Raaz.Primitives
 import Raaz.Types
+import Raaz.Util.Ptr(loadFromIndex, storeAtIndex)
+
+import Raaz.Hash.Sha.Util
 
 -- | The SHA1 hash value.
 data SHA1 = SHA1 {-# UNPACK #-} !Word32BE
@@ -69,3 +81,12 @@ instance CryptoStore SHA1 where
                                    >> storeAtIndex cptr 2 h2
                                    >> storeAtIndex cptr 3 h3
                                    >> storeAtIndex cptr 4 h4
+
+instance Primitive SHA1 where
+  blockSize _ = cryptoCoerce $ BITS (512 :: Int)
+  {-# INLINE blockSize #-}
+
+instance HasPadding SHA1 where
+  maxAdditionalBlocks _ = 1
+  padLength = padLength64
+  padding   = padding64

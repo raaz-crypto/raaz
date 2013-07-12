@@ -14,10 +14,11 @@ import qualified Data.ByteString.Char8 as BC
 import System.IO
 import System.Console.CmdArgs
 import Data.Version(showVersion)
-import Paths_raaz_executables(version)
+import Paths_raaz(version)
 
-import Raaz.Hash(hashFile, sourceHash, Hash)
-import Raaz.Hash.Sha
+import Raaz.Hash
+import Raaz.Primitives.Hash(Hash)
+
 import Raaz.Util.ByteString(toHex)
 
 data Shasum = Shasum { hashType :: String

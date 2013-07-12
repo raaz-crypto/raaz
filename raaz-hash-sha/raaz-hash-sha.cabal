@@ -18,16 +18,22 @@ source-repository head
   subdir: raaz-hash-sha
 
 library
-  exposed-modules: Raaz.Hash.Sha
-                 , Raaz.Hash.Sha.Sha1.Type
-                 , Raaz.Hash.Sha.Sha256.Type
-                 , Raaz.Hash.Sha.Sha512.Type
-  other-modules: Raaz.Hash.Sha.Sha1.Instance
-               , Raaz.Hash.Sha.Sha1.Ref.Sha1
-               , Raaz.Hash.Sha.Sha256.Instance
-               , Raaz.Hash.Sha.Sha256.Ref.Sha256
-               , Raaz.Hash.Sha.Sha512.Instance
-               , Raaz.Hash.Sha.Sha512.Ref.Sha512
+  exposed-modules: Raaz.Hash.Sha1
+                 , Raaz.Hash.Sha1.Type
+                 , Raaz.Hash.Sha224
+                 , Raaz.Hash.Sha224.Type
+                 , Raaz.Hash.Sha256
+                 , Raaz.Hash.Sha256.Type
+                 , Raaz.Hash.Sha384
+                 , Raaz.Hash.Sha384.Type
+                 , Raaz.Hash.Sha512
+                 , Raaz.Hash.Sha512.Type
+  other-modules: Raaz.Hash.Sha1.Instance
+               , Raaz.Hash.Sha1.Ref
+               , Raaz.Hash.Sha256.Instance
+               , Raaz.Hash.Sha256.Ref
+               , Raaz.Hash.Sha512.Instance
+               , Raaz.Hash.Sha512.Ref
                , Raaz.Hash.Sha.Util
   build-depends: base
                , bytestring

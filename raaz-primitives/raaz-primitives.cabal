@@ -18,19 +18,19 @@ source-repository head
   subdir: raaz-primitives
 
 library
-  exposed-modules: Raaz.Types
-                 , Raaz.ByteSource
-                 , Raaz.Hash
+  exposed-modules: Raaz.ByteSource
                  , Raaz.Primitives
-                 , Raaz.MAC
+                 , Raaz.Primitives.Hash
+                 , Raaz.Primitives.MAC
+                 , Raaz.System.Parameters
+                 , Raaz.Types
                  , Raaz.Util.ByteString
                  , Raaz.Util.Ptr
                  , Raaz.Util.TH
-                 , Raaz.System.Parameters
   build-depends: base
                , bytestring
-               , template-haskell
                , cpu
+               , template-haskell
   ghc-options: -Wall
   include-dirs: includes
   includes: raaz/primitives.h

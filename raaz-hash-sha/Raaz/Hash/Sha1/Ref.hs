@@ -1,15 +1,16 @@
 {-|
 
-This module gives the reference implementation of the sha512
-hash. Depending on your platform there might be a more efficient
-implementation. So you /should not/ be using this code in production.
+This module gives the reference implementation of the sha1
+hash. Depending on your platform, there might be a more efficient
+and/or secure implementation. So you /should not/ be using this code
+in production unless you know what you are doing.
 
 -}
 
 {-# LANGUAGE TemplateHaskell #-}
 
-module Raaz.Hash.Sha.Sha512.Ref.Sha512
-       ( sha512CompressSingle
+module Raaz.Hash.Sha1.Ref
+       ( sha1CompressSingle
        ) where
 
 import Control.Applicative
@@ -17,19 +18,18 @@ import Control.Applicative
 import Raaz.Types
 import Raaz.Util.Ptr
 
-import Raaz.Hash.Sha.Sha512.Type(SHA512(..))
-import Raaz.Hash.Sha.Sha512.Ref.Sha512TH
+import Raaz.Hash.Sha1.Type(SHA1(..))
+import Raaz.Hash.Sha1.Ref.TH
 
 -- | roundF function generated from TH
 $(oneRound)
 {-# INLINE roundF #-}
 
 -- | Compresses one block.
-sha512CompressSingle :: SHA512
-                     -> CryptoPtr
-                     -> IO SHA512
-sha512CompressSingle (SHA512 h0 h1 h2 h3 h4 h5 h6 h7) cptr =
-         roundF h0 h1 h2 h3 h4 h5 h6 h7
+sha1CompressSingle :: SHA1
+                   -> CryptoPtr
+                   -> IO SHA1
+sha1CompressSingle (SHA1 h0 h1 h2 h3 h4) cptr = roundF h0 h1 h2 h3 h4
          <$> load cptr
          <*> loadFromIndex cptr 1
          <*> loadFromIndex cptr 2

@@ -8,27 +8,17 @@ This module defines the hash instances for different hashes.
 {-# LANGUAGE EmptyDataDecls       #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module Raaz.Hash.Sha.Sha1.Instance (ReferenceSHA1) where
+module Raaz.Hash.Sha1.Instance (ReferenceSHA1) where
 
 import Control.Applicative ((<$>))
 
-import Raaz.Hash
-import Raaz.Hash.Sha.Util
-import Raaz.Hash.Sha.Sha1.Type
-import Raaz.Hash.Sha.Sha1.Ref.Sha1
 import Raaz.Primitives
-import Raaz.Types
+import Raaz.Primitives.Hash
+
+import Raaz.Hash.Sha1.Type
+import Raaz.Hash.Sha1.Ref
 
 ----------------------------- SHA1 ---------------------------------------------
-
-instance Primitive SHA1 where
-  blockSize _ = cryptoCoerce $ BITS (512 :: Int)
-  {-# INLINE blockSize #-}
-
-instance HasPadding SHA1 where
-  maxAdditionalBlocks _ = 1
-  padLength = padLength64
-  padding   = padding64
 
 instance CryptoPrimitive SHA1 where
   type Recommended SHA1 = ReferenceSHA1

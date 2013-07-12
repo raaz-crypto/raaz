@@ -8,7 +8,7 @@ This module provides the message authentication abstraction
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
-module Raaz.MAC
+module Raaz.Primitives.MAC
        ( MACImplementation(..), MAC
        , sourceMAC', sourceMAC
        , mac, mac'

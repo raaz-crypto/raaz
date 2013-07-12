@@ -20,8 +20,8 @@ import Test.HUnit ((~?=), test, (~:) )
 import Test.Framework.Providers.HUnit(hUnitTestToTests)
 import Test.QuickCheck(Arbitrary)
 
-import Raaz.Hash
 import Raaz.Primitives
+import Raaz.Primitives.Hash
 import Raaz.Test.CryptoStore
 import Raaz.Test.Instances()
 import Raaz.Types

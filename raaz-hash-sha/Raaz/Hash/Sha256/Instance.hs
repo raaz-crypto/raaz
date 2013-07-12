@@ -8,30 +8,24 @@ This module defines the hash instances for sha224 and sha256 hashes.
 {-# LANGUAGE EmptyDataDecls       #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module Raaz.Hash.Sha.Sha256.Instance (ReferenceSHA224, ReferenceSHA256) where
+module Raaz.Hash.Sha256.Instance (ReferenceSHA224, ReferenceSHA256) where
 
 import Control.Applicative ((<$>))
 
-import Raaz.Hash
-import Raaz.Hash.Sha.Sha256.Type
-import Raaz.Hash.Sha.Sha256.Ref.Sha256
-import Raaz.Hash.Sha.Util
 import Raaz.Primitives
-import Raaz.Types
+import Raaz.Primitives.Hash
+
+
+import Raaz.Hash.Sha256.Type
+import Raaz.Hash.Sha256.Ref
+
+
 
 ----------------------------- SHA224 -------------------------------------------
 
-instance Primitive SHA224 where
-  blockSize _ = cryptoCoerce $ BITS (512 :: Int)
-  {-# INLINE blockSize #-}
-
-instance HasPadding SHA224 where
-  maxAdditionalBlocks _ = 1
-  padLength = padLength64
-  padding   = padding64
-
 instance CryptoPrimitive SHA224 where
   type Recommended SHA224 = ReferenceSHA224
+
 
 instance Hash SHA224 where
 
@@ -58,15 +52,6 @@ instance HashImplementation ReferenceSHA224 where
             = SHA224 h0 h1 h2 h3 h4 h5 h6
 
 ----------------------------- SHA256 -------------------------------------------
-
-instance Primitive SHA256 where
-  blockSize _ = cryptoCoerce $ BITS (512 :: Int)
-  {-# INLINE blockSize #-}
-
-instance HasPadding SHA256 where
-  maxAdditionalBlocks _ = 1
-  padLength = padLength64
-  padding   = padding64
 
 instance CryptoPrimitive SHA256 where
   type Recommended SHA256 = ReferenceSHA256

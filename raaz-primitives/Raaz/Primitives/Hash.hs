@@ -8,7 +8,7 @@ A cryptographic hash function abstraction.
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE FlexibleContexts           #-}
 
-module Raaz.Hash
+module Raaz.Primitives.Hash
        ( HashImplementation(..)
        , Hash
        , HMAC(..)
@@ -27,10 +27,10 @@ import           Prelude              hiding (length)
 import           System.IO            (withBinaryFile, IOMode(ReadMode))
 import           System.IO.Unsafe     (unsafePerformIO)
 
-import           Raaz.Types
-import           Raaz.Primitives
 import           Raaz.ByteSource
-import           Raaz.MAC
+import           Raaz.Primitives
+import           Raaz.Primitives.MAC
+import           Raaz.Types
 import           Raaz.Util.ByteString (length)
 import           Raaz.Util.Ptr
 
