@@ -213,6 +213,8 @@ transformContext  :: ( ByteSource src
                   => Cxt i     -- ^ The starting context
                   -> src       -- ^ The byte source
                   -> IO (Cxt i)
+{-# INLINEABLE transformContext #-}
+
 transformContext cxt src = allocaBuffer bufSize $ go 0 cxt src
   where nBlocks = recommendedBlocks $ getImplementation cxt
         bufSize = nBlocks + maxAdditionalBlocks p

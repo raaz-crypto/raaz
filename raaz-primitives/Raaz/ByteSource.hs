@@ -62,6 +62,7 @@ fill :: ( CryptoCoerce len (BYTES Int)
      -> CryptoPtr
      -> IO (FillResult src)
 fill = fillBytes . cryptoCoerce
+{-# INLINE fill #-}
 
 -- | A pure bytesource is a bytesource that does not have any side
 -- effect other than filling a the given buffer. Formally, two
@@ -74,12 +75,14 @@ class ByteSource src => PureByteSource src where
 ----------------------- Instances of byte source -----------------------
 
 instance ByteSource Handle where
+  {-# INLINE fillBytes #-}
   fillBytes sz hand cptr = do
             count <- hFillBuf hand cptr sz
             if count < sz then return $ Exhausted $ sz - count
                else return $ Remaining hand
 
 instance ByteSource B.ByteString where
+  {-# INLINE fillBytes #-}
   fillBytes sz bs cptr | l < sz    = do unsafeCopyToCryptoPtr bs cptr
                                         return $ Exhausted $ sz - l
                        | otherwise = do unsafeNCopyToCryptoPtr sz bs cptr
@@ -88,10 +91,12 @@ instance ByteSource B.ByteString where
              rest = B.drop (fromIntegral sz) bs
 
 instance ByteSource L.ByteString where
+  {-# INLINE fillBytes #-}
   fillBytes sz bs cptr =   fillBytes sz (L.toChunks bs) cptr
                        >>= return . fmap L.fromChunks
 
 instance ByteSource src => ByteSource (Maybe src) where
+  {-# INLINE fillBytes #-}
   fillBytes sz ma cptr = maybe exhausted fillIt ma
           where exhausted = return $ Exhausted sz
                 fillIt a  =  fillBytes sz a cptr

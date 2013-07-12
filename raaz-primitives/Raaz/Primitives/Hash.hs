@@ -22,9 +22,10 @@ import           Control.Monad        (foldM)
 import           Data.Word            (Word64)
 import           Data.Bits
 import qualified Data.ByteString      as B
+import qualified Data.ByteString.Lazy as L
 import           Foreign.Storable     (Storable(..))
 import           Prelude              hiding (length)
-import           System.IO            (withBinaryFile, IOMode(ReadMode))
+import           System.IO            (withBinaryFile, IOMode(ReadMode), Handle)
 import           System.IO.Unsafe     (unsafePerformIO)
 
 import           Raaz.ByteSource
@@ -115,6 +116,8 @@ sourceHash' :: ( HashImplementation i, ByteSource src )
 sourceHash' i = fmap finaliseHash . transformContext (startContext i)
    where startContext :: HashImplementation i => i -> Cxt i
          startContext _ = startHashCxt
+{-# INLINEABLE sourceHash' #-}
+
 
 sourceHash :: ( Hash h, ByteSource src )
            => src  -- ^ Message
@@ -122,6 +125,10 @@ sourceHash :: ( Hash h, ByteSource src )
 sourceHash src = go undefined
   where go :: Hash h => Recommended h -> IO h
         go i = sourceHash' i src
+{-# INLINEABLE sourceHash #-}
+{-# SPECIALIZE sourceHash :: Hash h => B.ByteString -> IO h #-}
+{-# SPECIALIZE sourceHash :: Hash h => L.ByteString -> IO h #-}
+{-# SPECIALIZE sourceHash :: Hash h => Handle -> IO h #-}
 
 -- | Compute the Hash of Pure Byte Source. Implementation dependent.
 hash' :: ( HashImplementation i, PureByteSource src )
@@ -129,6 +136,8 @@ hash' :: ( HashImplementation i, PureByteSource src )
      -> src  -- ^ Message
      -> PrimitiveOf i
 hash' i = unsafePerformIO . sourceHash' i
+{-# INLINEABLE hash' #-}
+
 
 -- | Compute the Hash of Pure Byte Source using recommended
 -- implementation.
@@ -136,6 +145,9 @@ hash :: ( Hash h, PureByteSource src )
      => src  -- ^ Message
      -> h
 hash = unsafePerformIO . sourceHash
+{-# INLINEABLE hash #-}
+{-# SPECIALIZE hash :: Hash h => B.ByteString -> h #-}
+{-# SPECIALIZE hash :: Hash h => L.ByteString -> h #-}
 
 -- | Hash a given file given `FilePath`. Implementation dependent.
 hashFile' :: HashImplementation i
@@ -143,6 +155,7 @@ hashFile' :: HashImplementation i
           -> FilePath    -- ^ File to be hashed
           -> IO (PrimitiveOf i)
 hashFile' i fp = withBinaryFile fp ReadMode $ sourceHash' i
+{-# INLINEABLE hashFile' #-}
 
 -- | Hash a given file given `FilePath` based on recommended
 -- implementation.
@@ -150,6 +163,7 @@ hashFile :: Hash h
          => FilePath  -- ^ File to be hashed
          -> IO h
 hashFile fp = withBinaryFile fp ReadMode sourceHash
+{-# INLINEABLE hashFile #-}
 
 -- | The HMAC associated to a hash value. The `Eq`
 -- instance for HMAC -- is essentially the `Eq` instance for the
