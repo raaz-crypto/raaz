@@ -112,7 +112,7 @@ class ( Implementation  (Recommended p)
 -- `maxAdditionalBlocks` and one of `padding` or `unsafePad`.
 --
 
-class HasPadding p where
+class Primitive p => HasPadding p where
 
   -- | This combinator returns the length of the padding that is to be
   -- added to the message.

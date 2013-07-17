@@ -207,8 +207,7 @@ instance CryptoPrimitive p => CryptoPrimitive (HMAC p) where
 -- additional block of data arising out of the concatination of k1 in
 -- front of the message.
 
-instance ( Primitive h, HasPadding h )
-         => HasPadding (HMAC h) where
+instance HasPadding h => HasPadding (HMAC h) where
 
   padLength hmac bits = padLength h bits'
     where h     = getHash hmac
