@@ -30,6 +30,7 @@ library
                  , Raaz.Hash.Sha512.Type
   other-modules: Raaz.Hash.Sha1.Instance
                , Raaz.Hash.Sha1.Ref
+               , Raaz.Hash.Sha1.CPortable
                , Raaz.Hash.Sha256.Instance
                , Raaz.Hash.Sha256.Ref
                , Raaz.Hash.Sha512.Instance
@@ -40,6 +41,17 @@ library
                , raaz-primitives==0.0.0.0
                , template-haskell
   ghc-options: -Wall
+
+  c-sources: cbits/raaz/hash/sha1/portable.c
+  include-dirs: cbits
+  includes: raaz/hash/sha1/portable.h
+
+  if os(linux)
+     cc-options: -Wall -Werror -O3 -DRAAZ_HAVE_GCC
+  else
+     cc-options:
+
+
 
 test-Suite tests
   type: exitcode-stdio-1.0
