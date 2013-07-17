@@ -17,11 +17,12 @@ import Raaz.Primitives.Hash
 
 import Raaz.Hash.Sha1.Type
 import Raaz.Hash.Sha1.Ref
+import Raaz.Hash.Sha1.CPortable
 
 ----------------------------- SHA1 ---------------------------------------------
 
 instance CryptoPrimitive SHA1 where
-  type Recommended SHA1 = ReferenceSHA1
+  type Recommended SHA1 = CPortable
 
 instance Hash SHA1 where
 
