@@ -1,41 +1,35 @@
-{-# LANGUAGE OverloadedStrings #-}
-module Config.Linux
-       ( configure
+
+{-| L1,L2 Cache information on Linux platform. -}
+module Config.Cache.Linux
+       ( cache
        ) where
 
 import Control.Exception(catch)
-import Config
 import Data.Char(isDigit, isSpace)
 import Prelude hiding (catch)
-import System.Info(os)
 
+import Config.Monad
 
-configure :: IO Parameters
-configure = do inform "platform is linux"
-               inform "C compiler is GCC"
-               (l1,l2) <- cache
-               return $ Parameters { l1Cache = l1
-                                   , l2Cache = l2
-                                   , isGCC   = True
-                                   }
-                
-                 
 -- | Gets the L1 and L2 cache for a linux machine.
-cache :: IO (Int, Int)
-cache = "reading L1 and L2 cache sizes " <:> do
+cache :: ConfigM (Int, Int)
+cache = doIO cacheIO
+
+cacheIO = do
+  putStrLn "reading L1 and L2 cache sizes from sysfs"
   l1 <- getCache "/sys/devices/system/cpu/cpu0/cache/index1/size"
   l2 <- getCache "/sys/devices/system/cpu/cpu0/cache/index2/size"
-  putStr $ unwords [ "L1 = ", show l1
+  putStr $ unwords [ "\tL1 = ", show l1
                    , "L2 = ", show l2
+                   , "\n"
                    ]
   return (l1,l2)
 
 getCache :: FilePath -> IO Int
 getCache fp = fmap readCache (readFile fp) `catch` handler
     where handler :: IOError -> IO Int
-          handler e = do inform $ show e
+          handler e = do putStrLn $ show e
                          return 0
-                 
+
 readCache :: String -> Int
 readCache str | unit == "K" = number * 1024
               | unit == "M" = number * 1024 * 1024
@@ -47,5 +41,5 @@ readCache str | unit == "K" = number * 1024
 strip :: String -> String
 strip = reverse
       . dropWhile isSpace
-      . reverse 
+      . reverse
       . dropWhile isSpace
