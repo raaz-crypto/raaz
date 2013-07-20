@@ -1,3 +1,18 @@
+/*
+
+This header file provides endian explicit load instruction.
+
+Copyright (c) 2012, Piyush P Kurur
+
+All rights reserved.
+
+This software is distributed under the terms and conditions of the
+BSD3 license. See the accompanying file LICENSE for exact terms and
+condition.
+
+*/
+
+
 #ifndef __RAAZ_PRIMITIVES_LOAD_H__
 #define __RAAZ_PRIMITIVES_LOAD_H__
 
@@ -6,23 +21,20 @@
 
 /*
 
-If the C enviroment provides endian.h, like for example gcc, use it to
-make the endian conversion fast. Otherwise, fall back to portable C
-implementation.
+If the C enviroment provides functions htolex/htobex via endian.h
+(e.g. gcc/glibc), use it to make the endian conversion
+fast. Otherwise, fall back to portable C implementation.
 
 Potential problems: This code has *NOT* been tested on architectures
 that throws exception on reading from a non-word aligned
-location. Most likely it would not work on them.
+location.
 
 */
 
-#ifdef RAAZ_HAVE_ENDIAN_H
-#include <endian.h>
-#endif
-
 static inline uint32_t raazLoad32LE(uint32_t *w, int i)
 {
-#ifdef RAAZ_HAVE_ENDIAN_H
+#ifdef RAAZ_HAVE_htole32
+#include <endian.h>
   return htole32(w[i]);
 #else
   unsigned char *ptr;
@@ -38,7 +50,8 @@ static inline uint32_t raazLoad32LE(uint32_t *w, int i)
 
 static inline uint32_t raazLoad32BE(uint32_t *w, int i)
 {
-#ifdef RAAZ_HAVE_ENDIAN_H
+#ifdef RAAZ_HAVE_htobe32
+#include <endian.h>
   return htobe32(w[i]);
 #else
   unsigned char *ptr;
@@ -54,7 +67,8 @@ static inline uint32_t raazLoad32BE(uint32_t *w, int i)
 
 static inline uint64_t raazLoad64LE(uint64_t *w, int i)
 {
-#ifdef RAAZ_HAVE_ENDIAN_H
+#ifdef RAAZ_HAVE_htole64
+#include <endian.h>
   return htole64(w[i]);
 #else
   unsigned char *ptr;
@@ -73,7 +87,8 @@ static inline uint64_t raazLoad64LE(uint64_t *w, int i)
 
 static inline uint64_t raazLoad64BE(uint64_t *w, int i)
 {
-#ifdef RAAZ_HAVE_ENDIAN_H
+#ifdef RAAZ_HAVE_htobe64
+#include <endian.h>
   return htobe64(w[i]);
 #else
   unsigned char *ptr;
