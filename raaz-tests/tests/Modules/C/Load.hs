@@ -24,27 +24,6 @@ import Raaz.Types
 import Raaz.Util.Ptr
 
 foreign import ccall unsafe
-  "raaz/tests/portable/load_test.h raazTestsPortableLoad32LE"
-  c_portable_get32le :: CryptoPtr -> Int -> IO Word32
-
-foreign import ccall unsafe
-  "raaz/tests/portable/load_test.h raazTestsPortableLoad32BE"
-  c_portable_get32be :: CryptoPtr -> Int -> IO Word32
-
-foreign import ccall unsafe
-  "raaz/tests/portable/load_test.h raazTestsPortableLoad64LE"
-  c_portable_get64le :: CryptoPtr -> Int -> IO Word64
-
-foreign import ccall unsafe
-  "raaz/tests/portable/load_test.h raazTestsPortableLoad64BE"
-  c_portable_get64be :: CryptoPtr -> Int -> IO Word64
-
-foreign import ccall
-  "raaz/tests/portable/loadtest.h raazTestsPortableCCompiler"
-  c_portable_cCompiler :: IO CString
-
-
-foreign import ccall unsafe
   "raaz/tests/platform/load_test.h raazTestsLoad32LE"
   c_get32le :: CryptoPtr -> Int -> IO Word32
 
@@ -60,9 +39,6 @@ foreign import ccall unsafe
   "raaz/tests/platform/load_test.h raazTestsLoad64BE"
   c_get64be :: CryptoPtr -> Int -> IO Word64
 
-foreign import ccall
-  "raaz/tests/platform/loadtest.h raazTestsCCompiler"
-  c_cCompiler :: IO CString
 
 arraySize :: Int
 arraySize = 42
@@ -100,38 +76,13 @@ prop_HStoreCLoad loader _ b = monadicIO $ do y <- run $ hStoreCLoad loader b
                                              assert y
 
 tests :: Test
-tests = buildTest $ do c_portable_compiler <- c_portable_cCompiler
-                       portableCompiler    <- peekCString c_portable_compiler
-                       c_compiler          <- c_cCompiler
-                       compiler            <- peekCString c_compiler
-                       return
-                         $ testGroup "C Load:"
-                         [ testGroup ("portable: compiler=" ++ portableCompiler)
-                                     portableTests
-                         , testGroup ("platform-specific: compiler=" ++ compiler)
-                                     platformTests
-                         ]
-
--- | Tests for platform specific configuration.
-platformTests :: [Test]
-platformTests = [ testProperty "C load 32-bit LE"
-                   $ prop_HStoreCLoad c_get32le (undefined :: Word32LE)
-                , testProperty "C load 32-bit BE"
-                   $ prop_HStoreCLoad c_get32be (undefined :: Word32BE)
-                , testProperty "C load 64-bit LE"
-                   $ prop_HStoreCLoad c_get64le (undefined :: Word64LE)
-                , testProperty "C load 64-bit BE"
-                   $ prop_HStoreCLoad c_get64be (undefined :: Word64BE)
-                ]
-
--- | Tests that should work in a portable way.
-portableTests :: [Test]
-portableTests = [ testProperty "C load 32-bit LE"
-                   $ prop_HStoreCLoad c_portable_get32le (undefined :: Word32LE)
-                , testProperty "C load 32-bit BE"
-                   $ prop_HStoreCLoad c_portable_get32be (undefined :: Word32BE)
-                , testProperty "C load 64-bit LE"
-                   $ prop_HStoreCLoad c_portable_get64le (undefined :: Word64LE)
-                , testProperty "C load 64-bit BE"
-                   $ prop_HStoreCLoad c_portable_get64be (undefined :: Word64BE)
-                ]
+tests = testGroup "C Load:"
+        [ testProperty "C load 32-bit LE"
+            $ prop_HStoreCLoad c_get32le (undefined :: Word32LE)
+        , testProperty "C load 32-bit BE"
+            $ prop_HStoreCLoad c_get32be (undefined :: Word32BE)
+        , testProperty "C load 64-bit LE"
+            $ prop_HStoreCLoad c_get64le (undefined :: Word64LE)
+        , testProperty "C load 64-bit BE"
+            $ prop_HStoreCLoad c_get64be (undefined :: Word64BE)
+        ]
