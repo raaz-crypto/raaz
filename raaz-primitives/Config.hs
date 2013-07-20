@@ -22,6 +22,7 @@ actualConfig :: ConfigM ()
 actualConfig = do
   section "Cache parameters" configureCache
   section "Endian functions" checkEndian
+  section "Memory locking"   checkMemoryLocking
 
 section :: String -> ConfigM () -> ConfigM ()
 section com action = do comment com
@@ -39,6 +40,11 @@ checkEndian = do haveFFIFunction "htole32"
                  haveFFIFunction "htole64"
                  haveFFIFunction "htobe32"
                  haveFFIFunction "htobe64"
+
+-- | Check memory locking
+checkMemoryLocking = do
+  haveFFIFunction "mlock"
+  haveFFIFunction "mlockall"
 
 haveFFIFunction :: String -> ConfigM ()
 haveFFIFunction funcName = do chk <- ffiTest ffiPath
