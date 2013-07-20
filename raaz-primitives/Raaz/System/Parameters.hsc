@@ -14,11 +14,11 @@ module Raaz.System.Parameters
        ) where
 
 import Raaz.Types( BYTES(..) )
-#include <raaz/system/parameters.h>
+#include <raaz/primitives/config.h>
 
 -- | The L1 cache size.
 l1Cache :: BYTES Int
-l1Cache = BYTES #const RAAZ_L1_CACHE
+l1Cache = #const RAAZ_L1_CACHE
 
 -- | The L2 cache size.
 l2Cache :: BYTES Int
