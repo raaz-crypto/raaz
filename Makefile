@@ -2,10 +2,11 @@ INSTALL_OPTS=
 
 # Add new packages here.
 
-PACKAGES=raaz raaz-primitives raaz-hash-sha raaz-ssh raaz-tests
+PACKAGES=raaz raaz-config raaz-primitives raaz-hash-sha raaz-ssh raaz-tests
 
 # Dependencies of packages goes here.
 
+raaz-primitives: raaz-config
 raaz-tests: raaz-primitives
 raaz-hash-sha: raaz-primitives raaz-tests
 raaz: raaz-hash-sha raaz-primitives
