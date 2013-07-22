@@ -1,4 +1,8 @@
-{-| The configuration monad -}
+{-|
+
+The configuration monad.
+
+-}
 module Raaz.Config.Monad
        ( ConfigM
        , doIO
@@ -13,7 +17,15 @@ module Raaz.Config.Monad
 
 import Control.Monad.Writer
 
--- | The configuration action.
+-- | The configuration action. All the configuration actions happen in
+-- this monad. The raaz packages configuration consists of some simple
+-- tests that are performed on the platform followed by writing out a
+-- C header file with appropriate symbols defined. Inside the
+-- configuration monad you can at any time define/undefine symbols,
+-- besides minimal IO actions required to carry out the tests. The
+-- configuration monad keeps track of these definitions and can
+-- generate a C header file in the end (either via `genConfigContents`
+-- or `genConfigFile`).
 type ConfigM a = WriterT [String] IO a
 
 -- | Perform IO
@@ -28,7 +40,7 @@ message = doIO . putStr
 messageLn :: String -> ConfigM ()
 messageLn = doIO . putStrLn
 
--- | Generate the config file from the config action.
+-- | Generate the config file contents from the config action.
 genConfigContents :: ConfigM a -> IO String
 genConfigContents = fmap unlines . execWriterT
 
