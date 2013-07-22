@@ -12,20 +12,18 @@ import Raaz.Config.Monad
 
 -- | Gets the L1 and L2 cache for a linux machine.
 cache :: ConfigM (Int, Int)
-cache = doIO cacheIO
 
-cacheIO = do
-  putStrLn "reading L1 and L2 cache sizes from sysfs"
+cache = do
+  messageLn "reading L1 and L2 cache sizes from sysfs"
   l1 <- getCache "/sys/devices/system/cpu/cpu0/cache/index1/size"
   l2 <- getCache "/sys/devices/system/cpu/cpu0/cache/index2/size"
-  putStr $ unwords [ "\tL1 = ", show l1
-                   , "L2 = ", show l2
-                   , "\n"
-                   ]
+  messageLn $ unwords [ "\tL1 = ", show l1
+                      , "L2 = ", show l2
+                      ]
   return (l1,l2)
 
-getCache :: FilePath -> IO Int
-getCache fp = fmap readCache (readFile fp) `catch` handler
+getCache :: FilePath -> ConfigM Int
+getCache fp = doIO $ fmap readCache (readFile fp) `catch` handler
     where handler :: IOError -> IO Int
           handler e = do putStrLn $ show e
                          return 0
