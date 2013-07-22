@@ -4,16 +4,15 @@ Code to run some ffiTest
 
 -}
 
-module Config.FFI
+module Raaz.Config.FFI
        ( ffiTest
        ) where
 
-import Control.Monad
 import System.Cmd
 import System.Exit
 import System.FilePath
 
-import Config.Monad
+import Raaz.Config.Monad
 
 -- | Converts exit status to
 status :: ExitCode -> IO Bool

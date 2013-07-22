@@ -1,5 +1,5 @@
 {-| The configuration monad -}
-module Config.Monad
+module Raaz.Config.Monad
        ( ConfigM
        , doIO
        , genConfigContents, genConfigFile
@@ -51,9 +51,7 @@ wrapHeaderFile :: String      -- ^ Symbol to use for protection
                -> ConfigM ()
 wrapHeaderFile symbol action = ifndef symbol $ do
   define' symbol
-  newline
-  action
-  newline
+  newline >> action >> newline
 
 -- | An ifndef stuff.
 ifndef :: String     -- ^ symbol

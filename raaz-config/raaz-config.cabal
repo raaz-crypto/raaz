@@ -1,0 +1,35 @@
+name:          raaz-config
+version:       0.0.0.0
+
+synopsis: Code to ease writing configuration scripts for the raaz
+  library
+
+description: Each package in the raaz collection makes use of a
+  configuration script to check for system dependent parameters.
+  package
+
+homepage:      http://github.com/piyush-kurur/raaz
+license:       BSD3
+license-file:  LICENSE
+author:        Piyush P Kurur
+maintainer:    ppk@cse.iitk.ac.in
+category:      Codec, Raaz
+build-type:    Custom
+cabal-version: >=1.9.2
+
+bug-reports: https://github.com/piyush-kurur/raaz/issues
+
+source-repository head
+  type: git
+  location: https://github.com/piyush-kurur/raaz
+  subdir: raaz-config
+
+library
+  exposed-modules: Raaz.Config
+                 , Raaz.Config.Monad
+                 , Raaz.Config.FFI
+  build-depends: base
+               , mtl
+               , filepath
+               , process
+  ghc-options: -Wall
