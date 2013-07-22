@@ -6,8 +6,8 @@ module Config
 
 import System.FilePath
 
-import Config.Monad
-import Config.FFI
+import Raaz.Config.Monad
+import Raaz.Config.FFI
 import Config.Cache(cache)
 
 

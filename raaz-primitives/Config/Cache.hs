@@ -10,7 +10,7 @@ module Config.Cache
        ) where
 import System.Info
 
-import           Config.Monad
+import           Raaz.Config.Monad
 import qualified Config.Cache.Linux as Linux
 
 cache :: ConfigM (Int,Int)
