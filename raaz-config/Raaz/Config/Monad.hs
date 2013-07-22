@@ -2,6 +2,7 @@
 module Raaz.Config.Monad
        ( ConfigM
        , doIO
+       , message, messageLn
        , genConfigContents, genConfigFile
        , define, define'
        , undef, hash
@@ -18,6 +19,14 @@ type ConfigM a = WriterT [String] IO a
 -- | Perform IO
 doIO :: IO a -> ConfigM a
 doIO = lift
+
+-- | Print out an information message when configuring stuff.
+message :: String -> ConfigM ()
+message = doIO . putStr
+
+-- | Similar to message but puts a newline as well.
+messageLn :: String -> ConfigM ()
+messageLn = doIO . putStrLn
 
 -- | Generate the config file from the config action.
 genConfigContents :: ConfigM a -> IO String
