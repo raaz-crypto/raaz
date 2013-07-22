@@ -48,18 +48,22 @@ undef symbol = hash "undef" [symbol]
 -- | Wrap the CPP directive in a ifndef - define -endif combination.
 wrapHeaderFile :: String      -- ^ Symbol to use for protection
                -> ConfigM a   -- ^ Body
-               -> ConfigM ()
+               -> ConfigM a
 wrapHeaderFile symbol action = ifndef symbol $ do
   define' symbol
-  newline >> action >> newline
+  newline
+  res <- action
+  newline
+  return res
 
 -- | An ifndef stuff.
 ifndef :: String     -- ^ symbol
        -> ConfigM a  -- ^ body
-       -> ConfigM ()
+       -> ConfigM a
 ifndef symbol action = do hash "ifndef" [symbol]
-                          action
+                          res <- action
                           hash "endif" ["/* " ++ symbol ++" */"]
+                          return res
 
 -- | Generate actual text in the config file
 text :: [String] -> ConfigM ()
