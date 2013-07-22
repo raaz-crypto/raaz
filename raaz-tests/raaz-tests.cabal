@@ -44,11 +44,9 @@ test-Suite tests
   else
      cc-options:
 
-  c-sources: cbits/raaz/tests/portable/load_test.c
-           , cbits/raaz/tests/platform/load_test.c
-  include-dirs: includes
-  includes: raaz/tests/portable/load_test.h
-          , raaz/tests/platform/load_test.h
+  c-sources: cbits/raaz/tests/load_test.c
+  include-dirs: cbits
+  includes: raaz/tests/load_test.h
 
   build-depends: base
                , bytestring

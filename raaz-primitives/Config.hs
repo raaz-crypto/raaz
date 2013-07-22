@@ -1,55 +1,53 @@
+
 module Config
-       ( (<:>), inform
-       , Parameters(..), defaultParameters, toString
-       , define, define'
-       , protectWith
+       ( configure
+       , genConfigFile
        ) where
 
--- | The system parameters.
-data Parameters = Parameters { l1Cache   :: Int
-                                 -- ^ L1 cache in bytes
-                             , l2Cache   :: Int
-                                 -- ^ L2 cache in bytes
-                             , isGCC     :: Bool
-                                 -- ^ GCC (or compatiable) C compiler.
-                             }
+import System.FilePath
 
-defaultParameters :: Parameters
-defaultParameters = Parameters { l1Cache = 0
-                               , l2Cache = 0
-                               , isGCC   = False
-                               }
-
-toString :: Parameters -> String
-toString p = unlines [ define "RAAZ_L1_CACHE" $ show $ l1Cache p
-                     , define "RAAZ_L2_CACHE" $ show $ l2Cache p
-                     , if isGCC p then define' "RAAZ_HAVE_GCC"
-                                  else define' "RAAZ_PORTABLE_C"
-                     ]
+import Raaz.Config.Monad
+import Raaz.Config.FFI
+import Config.Cache(cache)
 
 
--- | Define a symbol.
-define :: String -> String -> String
-define symbol value =  unwords ["# define", symbol, value]
+-- | The main configuration action. This justs packages the actual
+-- configuration.
+configure = do
+  section "Auto generated stuff (do not edit)" $
+    wrapHeaderFile "__RAAZ_PRIMITIVES_AUTOCONF_H__" actualConfig
 
--- | Empty definition.
-define' :: String -> String
-define' symbol = define symbol ""
+-- | Here is where the actual configuration happens.
+actualConfig :: ConfigM ()
+actualConfig = do
+  section "Cache parameters" configureCache
+  section "Endian functions" checkEndian
+  section "Memory locking"   checkMemoryLocking
 
--- | Protect a content with an ifndef symbol define endif construct.
-protectWith :: String -> String -> String
-protectWith symbol content = unlines [ "# ifndef "  ++ symbol
-                                     , define' symbol
-                                     , content
-                                     , "# endif"
-                                     ]
+section :: String -> ConfigM () -> ConfigM ()
+section com action = do comment com
+                        action
+                        comment $ "End of " ++ com
+                        newline
 
-(<:>)  :: String -> IO a -> IO a
-infixr 0 <:>
+-- | Configuring the L1 and L2 cache values.
+configureCache = do (l1,l2) <- cache
+                    define "RAAZ_L1_CACHE" $ show l1
+                    define "RAAZ_L2_CACHE" $ show l2
 
-(<:>) str action = do putStr $ "    " ++ str ++ " ..."
-                      x <- action
-                      putStrLn " done"
-                      return x
-inform :: String -> IO ()
-inform str = putStrLn $ "    " ++ str 
+-- | Checking for endian conversion functions.
+checkEndian = do haveFFIFunction "htole32"
+                 haveFFIFunction "htole64"
+                 haveFFIFunction "htobe32"
+                 haveFFIFunction "htobe64"
+
+-- | Check memory locking
+checkMemoryLocking = do
+  haveFFIFunction "mlock"
+  haveFFIFunction "mlockall"
+
+haveFFIFunction :: String -> ConfigM ()
+haveFFIFunction funcName = do chk <- ffiTest ffiPath
+                              if chk then define' $ "RAAZ_HAVE_" ++ funcName
+                                 else undef $ "RAAZ_HAVE_" ++ funcName
+   where ffiPath = "Config" </> "ffi" </> funcName

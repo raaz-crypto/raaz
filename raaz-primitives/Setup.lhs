@@ -6,24 +6,14 @@
 > import Distribution.Simple
 > import System.Directory
 > import System.FilePath
-> import System.Info
-
 > import Config
-> import Config.Linux
 
 
-> -- | The directory where the header files are put.
-> systemDir    = "includes" </> "raaz" </> "system"
-> 
-> -- | The actual header file
-> systemHeader = systemDir </> "parameters.h"
->
-> -- | The ifdef symbol used to protect the header file.
-> systemHeaderSymbol = "__RAAZ_SYSTEM_PARAMETERS_H__"
+> root     = "includes" </> "raaz" </> "primitives" -- ^ package root
+> autoConf = root </> "autoconf.h"                  -- ^ auto-detected stuff
 
-
+> main :: IO ()
 > main = defaultMainWithHooks simpleUserHooks { confHook = raazConfigure }
-
 
 The actual configuration. Essentially write the system parameters on
 the the header file and run the default user hooks.
@@ -31,29 +21,13 @@ the the header file and run the default user hooks.
 > raazConfigure :: (GenericPackageDescription, HookedBuildInfo)
 >               -> ConfigFlags
 >               -> IO LocalBuildInfo
-> raazConfigure gpd flags = do systemParameterConfigure
+> raazConfigure gpd flags = do putStr $ "creating directory: " ++ root ++ "..."
+>                              createDirectoryIfMissing True root
+>                              putStrLn "done."
+>
+>                              putStrLn $ "writing " ++ autoConf ++ "..."
+>                              genConfigFile autoConf $ configure
+>                              putStrLn $ "done writing " ++ autoConf ++ "."
+>
 >                              confHook simpleUserHooks gpd flags
-> 
-
-
-This write the system dependent header file.
-
-> systemParameterConfigure :: IO ()
-> systemParameterConfigure = do
->   putStrLn "configure:"
->          
->   "creating the directory " ++ systemDir  ++ "/"
->      <:> createDirectoryIfMissing True systemDir
->          
->   configStr <- fmap toString config
->          
->   "writing to " ++ systemHeader
->      <:> writeFile systemHeader $ protectWith systemHeaderSymbol configStr
->         
-
-Compute the system parameters based on which platform we are in.
-
-> config :: IO Parameters
-> config | os == "linux" = Config.Linux.configure
->        | otherwise     = do inform $ "platform is generic (" ++ os ++ ")"
->                             return defaultParameters
+>
