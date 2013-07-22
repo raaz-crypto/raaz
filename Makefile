@@ -1,8 +1,12 @@
 INSTALL_OPTS=
 
-# Add new packages here.
+# Add new packages here. Make sure that raaz-config is the last in
+# this list. We unregister package according to this order and
+# raaz-config is typically used by the Setup.lhs of packages. Cleaning
+# will fail otherwise.
 
-PACKAGES=raaz raaz-config raaz-primitives raaz-hash-sha raaz-ssh raaz-tests
+PACKAGES=raaz raaz-primitives raaz-hash-sha raaz-ssh raaz-tests \
+	 raaz-config
 
 # Dependencies of packages goes here.
 
@@ -24,15 +28,14 @@ X_BRANCHES=
 
 install: ${PACKAGES} raaz
 clean: ${PACKAGE_CLEAN}
-	$(foreach pkg, ${PACKAGES},\
-		cd ${pkg};\
-		./Setup.lhs clean;\
-		cd ..;)
 ${PACKAGES}:
 	cd $@;\
 	cabal install ${INSTALL_OPTS}
 
 ${PACKAGE_CLEAN}:
+	cd $(patsubst %-clean,%,$@);\
+	./Setup.lhs clean;\
+	cd ..
 	-ghc-pkg unregister  $(patsubst %-clean,%,$@) --force
 
 
