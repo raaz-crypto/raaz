@@ -147,10 +147,6 @@ void raazHashSha1PortableCompress(Hash hash, int nblocks, Block *mesg)
     Word w14;
     Word w15;
 
-    /* initialisation of the hash state */
-
-    a = hash[0]; b = hash[1]; c = hash[2]; d = hash[3]; e = hash[4];
-
     while (nblocks > 0)
     {
         /* initialisation of the hash state */
