@@ -31,8 +31,11 @@ library
   other-modules: Raaz.Hash.Sha1.Instance
                , Raaz.Hash.Sha1.Ref
                , Raaz.Hash.Sha1.CPortable
+               , Raaz.Hash.Sha224.Instance
+               , Raaz.Hash.Sha224.CPortable
                , Raaz.Hash.Sha256.Instance
                , Raaz.Hash.Sha256.Ref
+               , Raaz.Hash.Sha256.CPortable
                , Raaz.Hash.Sha512.Instance
                , Raaz.Hash.Sha512.Ref
                , Raaz.Hash.Sha.Util
@@ -43,8 +46,8 @@ library
   ghc-options: -Wall
 
   c-sources: cbits/raaz/hash/sha1/portable.c
+           , cbits/raaz/hash/sha256/portable.c
   include-dirs: cbits
-  includes: raaz/hash/sha1/portable.h
 
   if os(linux)
      cc-options: -Wall -Werror -O3 -DRAAZ_HAVE_GCC
