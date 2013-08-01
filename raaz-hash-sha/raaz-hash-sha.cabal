@@ -36,8 +36,11 @@ library
                , Raaz.Hash.Sha256.Instance
                , Raaz.Hash.Sha256.Ref
                , Raaz.Hash.Sha256.CPortable
+               , Raaz.Hash.Sha384.Instance
+               , Raaz.Hash.Sha384.CPortable
                , Raaz.Hash.Sha512.Instance
                , Raaz.Hash.Sha512.Ref
+               , Raaz.Hash.Sha512.CPortable
                , Raaz.Hash.Sha.Util
   build-depends: base
                , bytestring
@@ -47,7 +50,9 @@ library
 
   c-sources: cbits/raaz/hash/sha1/portable.c
            , cbits/raaz/hash/sha256/portable.c
+           , cbits/raaz/hash/sha512/portable.c
   include-dirs: cbits
+
 
   if os(linux)
      cc-options: -Wall -Werror -O3 -DRAAZ_HAVE_GCC

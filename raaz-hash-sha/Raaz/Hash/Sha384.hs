@@ -15,8 +15,8 @@ import qualified Data.ByteString.Lazy as L
 import Raaz.ByteSource
 
 import Raaz.Primitives.Hash( sourceHash, hash, hashFile)
-import Raaz.Hash.Sha512.Type(SHA384)
-import Raaz.Hash.Sha512.Instance()
+import Raaz.Hash.Sha384.Type(SHA384)
+import Raaz.Hash.Sha384.Instance()
 
 
 
