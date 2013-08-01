@@ -14,8 +14,21 @@ condition.
 
 */
 
+#ifndef __RAAZ_HASH_SHA1_PORTABLE__
+#define __RAAZ_HASH_SHA1_PORTABLE__
+
 #include <raaz/primitives/load.h>
-#include <raaz/hash/sha1/portable.h>
+#include <stdint.h>
+
+typedef uint32_t   Word;  /* basic unit of sha1 hash    */
+#define HASH_SIZE  5      /* Number of words in a Hash  */
+#define BLOCK_SIZE 16     /* Number of words in a block */
+
+
+typedef Word Hash [ HASH_SIZE  ];
+typedef Word Block[ BLOCK_SIZE ];
+
+void raazHashSha1PortableCompress(Hash hash, int nblocks, Block *mesg);
 
 /* WARNING: Macro variables not protected use only simple
  * expressions.
@@ -323,3 +336,34 @@ void raazHashSha1PortableCompress(Hash hash, int nblocks, Block *mesg)
     }
     return;
 }
+
+
+#undef K
+#undef F
+
+#undef SCHEDULE
+#undef Step
+
+#undef RotateL
+#undef RotL30
+#undef RotL1
+#undef RotL5
+
+#undef K0
+#undef K20
+#undef K40
+#undef K60
+
+#undef F0
+#undef F20
+#undef F40
+#undef F60
+
+#undef CH
+#undef PARITY
+#undef MAJ
+
+#undef HASH_SIZE
+#undef BLOCK_SIZE
+
+#endif /*  __RAAZ_HASH_SHA1_PORTABLE__  */
