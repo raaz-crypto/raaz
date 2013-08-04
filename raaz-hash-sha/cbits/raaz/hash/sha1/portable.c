@@ -14,9 +14,6 @@ condition.
 
 */
 
-#ifndef __RAAZ_HASH_SHA1_PORTABLE__
-#define __RAAZ_HASH_SHA1_PORTABLE__
-
 #include <raaz/primitives/load.h>
 #include <stdint.h>
 
@@ -336,34 +333,3 @@ void raazHashSha1PortableCompress(Hash hash, int nblocks, Block *mesg)
     }
     return;
 }
-
-
-#undef K
-#undef F
-
-#undef SCHEDULE
-#undef Step
-
-#undef RotateL
-#undef RotL30
-#undef RotL1
-#undef RotL5
-
-#undef K0
-#undef K20
-#undef K40
-#undef K60
-
-#undef F0
-#undef F20
-#undef F40
-#undef F60
-
-#undef CH
-#undef PARITY
-#undef MAJ
-
-#undef HASH_SIZE
-#undef BLOCK_SIZE
-
-#endif /*  __RAAZ_HASH_SHA1_PORTABLE__  */

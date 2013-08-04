@@ -14,9 +14,6 @@ condition.
 
 */
 
-#ifndef __RAAZ_HASH_SHA256_PORTABLE__
-#define __RAAZ_HASH_SHA256_PORTABLE__
-
 #include <raaz/primitives/load.h>
 #include <stdint.h>
 
@@ -336,88 +333,3 @@ void raazHashSha256PortableCompress(Hash hash, int nblocks, Block *mesg)
     }
     return;
 }
-
-#undef SCHEDULE
-#undef Step
-
-#undef CH
-#undef MAJ
-
-#undef SIGB0
-#undef SIGB1
-#undef SIGS0
-#undef SIGS1
-
-#undef K0
-#undef K1
-#undef K2
-#undef K3
-#undef K4
-#undef K5
-#undef K6
-#undef K7
-#undef K8
-#undef K9
-#undef K10
-#undef K11
-#undef K12
-#undef K13
-#undef K14
-#undef K15
-#undef K16
-#undef K17
-#undef K18
-#undef K19
-#undef K20
-#undef K21
-#undef K22
-#undef K23
-#undef K24
-#undef K25
-#undef K26
-#undef K27
-#undef K28
-#undef K29
-#undef K30
-#undef K31
-#undef K32
-#undef K33
-#undef K34
-#undef K35
-#undef K36
-#undef K37
-#undef K38
-#undef K39
-#undef K40
-#undef K41
-#undef K42
-#undef K43
-#undef K44
-#undef K45
-#undef K46
-#undef K47
-#undef K48
-#undef K49
-#undef K50
-#undef K51
-#undef K52
-#undef K53
-#undef K54
-#undef K55
-#undef K56
-#undef K57
-#undef K58
-#undef K59
-#undef K60
-#undef K61
-#undef K62
-#undef K63
-
-#undef RotateL
-#undef RotateR
-#undef ShiftR
-
-#undef HASH_SIZE
-#undef BLOCK_SIZE
-
-#endif /*  __RAAZ_HASH_SHA256_PORTABLE__  */
