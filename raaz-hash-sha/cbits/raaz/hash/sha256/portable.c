@@ -109,7 +109,7 @@ void raazHashSha256PortableCompress(Hash hash, int nblocks, Block *mesg);
 
 /* The round functions */
 #define CH(x,y,z)     ((x & y) ^ (~x & z))
-#define MAJ(x,y,z)    ((x & y) ^ (x & z) ^ (y & z))
+#define MAJ(x,y,z)    ((x & (y | z)) | (y & z))
 
 #define SIGB0(x)     (RotateR(x,2) ^ RotateR(x,13) ^ RotateR(x,22))
 #define SIGB1(x)     (RotateR(x,6) ^ RotateR(x,11) ^ RotateR(x,25))

@@ -56,7 +56,7 @@ void raazHashSha1PortableCompress(Hash hash, int nblocks, Block *mesg);
 
 #define CH(x,y,z)     ((x & y) ^ (~x & z))
 #define PARITY(x,y,z) (x^y^z)
-#define MAJ(x,y,z)    ((x & y) ^ (x & z) ^ (y & z))
+#define MAJ(x,y,z)    ((x & (y | z)) | (y & z))
 
 /* One step in the hash function
 
