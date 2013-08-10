@@ -14,8 +14,8 @@ import qualified Data.ByteString.Lazy as L
 
 import Raaz.ByteSource
 import Raaz.Primitives.Hash( sourceHash, hash, hashFile)
-import Raaz.Hash.Sha256.Type(SHA224)
-import Raaz.Hash.Sha256.Instance()
+import Raaz.Hash.Sha224.Type(SHA224)
+import Raaz.Hash.Sha224.Instance()
 
 -- | Compute the sha224 hash of the given byte source.
 sourceSha224 :: ByteSource src => src -> IO SHA224

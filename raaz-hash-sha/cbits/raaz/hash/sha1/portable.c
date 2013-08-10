@@ -15,7 +15,17 @@ condition.
 */
 
 #include <raaz/primitives/load.h>
-#include <raaz/hash/sha1/portable.h>
+#include <stdint.h>
+
+typedef uint32_t   Word;  /* basic unit of sha1 hash    */
+#define HASH_SIZE  5      /* Number of words in a Hash  */
+#define BLOCK_SIZE 16     /* Number of words in a block */
+
+
+typedef Word Hash [ HASH_SIZE  ];
+typedef Word Block[ BLOCK_SIZE ];
+
+void raazHashSha1PortableCompress(Hash hash, int nblocks, Block *mesg);
 
 /* WARNING: Macro variables not protected use only simple
  * expressions.
@@ -46,7 +56,7 @@ condition.
 
 #define CH(x,y,z)     ((x & y) ^ (~x & z))
 #define PARITY(x,y,z) (x^y^z)
-#define MAJ(x,y,z)    ((x & y) ^ (x & z) ^ (y & z))
+#define MAJ(x,y,z)    ((x & (y | z)) | (y & z))
 
 /* One step in the hash function
 
