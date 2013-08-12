@@ -24,6 +24,7 @@ actualConfig = do
   section "Page Size parameters" configurePageSize
   section "Endian functions" checkEndian
   section "Memory locking"   checkMemoryLocking
+  section "Aligned Memory Allocation"   checkMemAlign
 
 section :: String -> ConfigM () -> ConfigM ()
 section com action = do comment com
@@ -51,6 +52,10 @@ checkEndian = do haveFFIFunction "htole32"
 checkMemoryLocking = do
   haveFFIFunction "mlock"
   haveFFIFunction "mlockall"
+
+-- | Check memory locking
+checkMemAlign = do
+  haveFFIFunction "memalign"
 
 haveFFIFunction :: String -> ConfigM ()
 haveFFIFunction funcName = do chk <- ffiTest ffiPath
