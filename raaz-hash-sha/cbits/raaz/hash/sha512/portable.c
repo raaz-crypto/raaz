@@ -149,12 +149,11 @@ Notice the values of a,b,c,e,f,g are carried over but d and h gets updated.
 
 */
 
-#define Step(a,b,c,d,e,f,g,h,w,k)               \
-    {                                           \
-        register Word t1;                       \
-        t1 = h + SIGB1(e) + CH(e,f,g) + k + w;  \
-        d += t1;                                \
-        h = t1 + SIGB0(a) + MAJ(a,b,c);         \
+#define Step(a,b,c,d,e,f,g,h,w,k)                 \
+    {                                             \
+        temp = h + SIGB1(e) + CH(e,f,g) + k + w;  \
+        d   += temp;                              \
+        h    = temp + SIGB0(a) + MAJ(a,b,c);      \
     }
 
 /* Message scheduling is done as
@@ -206,7 +205,9 @@ Notice the values of a,b,c,e,f,g are carried over but d and h gets updated.
 void raazHashSha512PortableCompress(Hash hash, int nblocks, Block *mesg)
 {
 
-  register Word a,b,c,d,e,f,g,h; /* Stores the hash state  */
+    register Word a,b,c,d,e,f,g,h; /* Stores the hash state  */
+
+    register Word temp;
 
     /*
       The message variables:
