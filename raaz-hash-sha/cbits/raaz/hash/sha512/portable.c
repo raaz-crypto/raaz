@@ -222,23 +222,24 @@ void raazHashSha512PortableCompress(Hash hash, int nblocks, Block *mesg)
 
     */
 
-		Word w0;
-		Word w1;
-		Word w2;
-		Word w3;
-		Word w4;
-		Word w5;
-		Word w6;
-		Word w7;
-		Word w8;
-		Word w9;
-		Word w10;
-		Word w11;
-		Word w12;
-		Word w13;
-		Word w14;
-		Word w15;
+    Word w0;
+    Word w1;
+    Word w2;
+    Word w3;
+    Word w4;
+    Word w5;
+    Word w6;
+    Word w7;
+    Word w8;
+    Word w9;
+    Word w10;
+    Word w11;
+    Word w12;
+    Word w13;
+    Word w14;
+    Word w15;
 
+    /* Looping over the blocks */
     while (nblocks > 0)
     {
         /* initialisation of the hash state */
@@ -252,22 +253,22 @@ void raazHashSha512PortableCompress(Hash hash, int nblocks, Block *mesg)
 
         */
 
-				w0 = raazLoad64BE( (Word *) mesg, 0);
-				w1 = raazLoad64BE( (Word *) mesg, 1);
-				w2 = raazLoad64BE( (Word *) mesg, 2);
-				w3 = raazLoad64BE( (Word *) mesg, 3);
-				w4 = raazLoad64BE( (Word *) mesg, 4);
-				w5 = raazLoad64BE( (Word *) mesg, 5);
-				w6 = raazLoad64BE( (Word *) mesg, 6);
-				w7 = raazLoad64BE( (Word *) mesg, 7);
-				w8 = raazLoad64BE( (Word *) mesg, 8);
-				w9 = raazLoad64BE( (Word *) mesg, 9);
-				w10 = raazLoad64BE( (Word *) mesg, 10);
-				w11 = raazLoad64BE( (Word *) mesg, 11);
-				w12 = raazLoad64BE( (Word *) mesg, 12);
-				w13 = raazLoad64BE( (Word *) mesg, 13);
-				w14 = raazLoad64BE( (Word *) mesg, 14);
-				w15 = raazLoad64BE( (Word *) mesg, 15);
+	w0 = raazLoad64BE( (Word *) mesg, 0);
+	w1 = raazLoad64BE( (Word *) mesg, 1);
+	w2 = raazLoad64BE( (Word *) mesg, 2);
+	w3 = raazLoad64BE( (Word *) mesg, 3);
+	w4 = raazLoad64BE( (Word *) mesg, 4);
+	w5 = raazLoad64BE( (Word *) mesg, 5);
+	w6 = raazLoad64BE( (Word *) mesg, 6);
+	w7 = raazLoad64BE( (Word *) mesg, 7);
+	w8 = raazLoad64BE( (Word *) mesg, 8);
+	w9 = raazLoad64BE( (Word *) mesg, 9);
+	w10 = raazLoad64BE( (Word *) mesg, 10);
+	w11 = raazLoad64BE( (Word *) mesg, 11);
+	w12 = raazLoad64BE( (Word *) mesg, 12);
+	w13 = raazLoad64BE( (Word *) mesg, 13);
+	w14 = raazLoad64BE( (Word *) mesg, 14);
+	w15 = raazLoad64BE( (Word *) mesg, 15);
 
 
         /* End of reading the message */

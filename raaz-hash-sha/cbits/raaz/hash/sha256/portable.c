@@ -187,7 +187,7 @@ Notice the values of a,b,c,e,f,g are carried over but d and h gets updated.
 void raazHashSha256PortableCompress(Hash hash, int nblocks, Block *mesg)
 {
 
-  register Word a,b,c,d,e,f,g,h; /* Stores the hash state  */
+    register Word a,b,c,d,e,f,g,h; /* Stores the hash state  */
 
     register Word temp;            /* A temproray variable   */
     /*
@@ -220,6 +220,7 @@ void raazHashSha256PortableCompress(Hash hash, int nblocks, Block *mesg)
     Word w14;
     Word w15;
 
+    /* Looping over all the blocks */
     while (nblocks > 0)
     {
         /* initialisation of the hash state */
