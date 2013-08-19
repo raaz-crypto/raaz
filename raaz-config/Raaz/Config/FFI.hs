@@ -55,7 +55,7 @@ ffiTestIO fp = do
         hs    = fp </> "Test.hs"
         test  = fp </> "test"
         compile    = do putStr "compile:"
-                        status =<< rawSystem "haskell-compiler"
+                        status =<< rawSystem "ghc"
                           [ "-v0", c, hs, "-o", test]
         run        = do status =<< rawSystem test []
         printDescr = do readFile (fp </> "DESCRIPTION") >>= putStr

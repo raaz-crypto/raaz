@@ -19,6 +19,11 @@ condition.
 #include <stdint.h>
 #include <raaz/primitives/config.h>
 
+#if defined(RAAZ_HAVE_htole32) | defined(RAAZ_HAVE_htobe32) \
+  | defined(RAAZ_HAVE_htole64) | defined(RAAZ_HAVE_htobe64)
+#include <endian.h>
+#endif
+
 /*
 
 If the C enviroment provides functions htolex/htobex via endian.h
@@ -34,7 +39,6 @@ location.
 static inline uint32_t raazLoad32LE(uint32_t *w, int i)
 {
 #ifdef RAAZ_HAVE_htole32
-#include <endian.h>
   return htole32(w[i]);
 #else
   unsigned char *ptr;
@@ -51,7 +55,6 @@ static inline uint32_t raazLoad32LE(uint32_t *w, int i)
 static inline uint32_t raazLoad32BE(uint32_t *w, int i)
 {
 #ifdef RAAZ_HAVE_htobe32
-#include <endian.h>
   return htobe32(w[i]);
 #else
   unsigned char *ptr;
@@ -68,7 +71,6 @@ static inline uint32_t raazLoad32BE(uint32_t *w, int i)
 static inline uint64_t raazLoad64LE(uint64_t *w, int i)
 {
 #ifdef RAAZ_HAVE_htole64
-#include <endian.h>
   return htole64(w[i]);
 #else
   unsigned char *ptr;
@@ -88,7 +90,6 @@ static inline uint64_t raazLoad64LE(uint64_t *w, int i)
 static inline uint64_t raazLoad64BE(uint64_t *w, int i)
 {
 #ifdef RAAZ_HAVE_htobe64
-#include <endian.h>
   return htobe64(w[i]);
 #else
   unsigned char *ptr;
