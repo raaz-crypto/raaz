@@ -9,7 +9,7 @@ This module provides the message authentication abstraction
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 module Raaz.Primitives.MAC
-       ( MACImplementation(..), MAC
+       ( MACGadget(..), MAC
        , sourceMAC', sourceMAC
        , mac, mac'
        , macFile', macFile
@@ -19,6 +19,7 @@ import           Prelude hiding (length)
 import           System.IO(withBinaryFile, IOMode(ReadMode))
 import           System.IO.Unsafe(unsafePerformIO)
 
+import Raaz.Memory
 import Raaz.Types
 import Raaz.ByteSource
 import Raaz.Primitives
@@ -32,43 +33,37 @@ import Raaz.Primitives
 -- /do not/ take the lazy option of deriving the @'Eq'@ instance.
 --
 
-class ( Implementation i
-      , HasPadding (PrimitiveOf i)
-      , Eq (PrimitiveOf i)
-      , CryptoStore (PrimitiveOf i)
-      ) => MACImplementation i where
+class ( Gadget g
+      , HasPadding (PrimitiveOf g)
+      , Eq (PrimitiveOf g)
+      , CryptoStore (PrimitiveOf g)
+      ) => MACGadget g where
 
-  -- | The secret key
-  data MACSecret i :: *
+  -- | Convert a bytestring to a IV
+  fromMACSecret  :: g -> B.ByteString -> IV (PrimitiveOf g)
 
-  -- | Convert a bytestring to a secret
-  toMACSecret  :: B.ByteString -> MACSecret i
-
-  -- | The starting MAC context
-  startMACCxt  :: MACSecret i -> Cxt i
-
-  -- | Finalise the context to a MAC value.
-  finaliseMAC  :: MACSecret i -> Cxt i -> PrimitiveOf i
-
-class (CryptoPrimitive m, MACImplementation (Recommended m)) => MAC m where
+class (CryptoPrimitive m, MACGadget (Recommended m)) => MAC m where
 
 --------------------- Computing the MAC --------------------------------
 
 -- | Compute the MAC of a given byte source with a given
 -- implementation.
-sourceMAC' :: ( MACImplementation i
+sourceMAC' :: ( MACGadget g
               , ByteSource src
               )
-           => i
+           => g
            -> B.ByteString -- ^ the secret
            -> src          -- ^ the message
-           -> IO (PrimitiveOf i)
-sourceMAC' i secret src =   transformContext cxt0 src
-                        >>= return . finaliseMAC macsecret
-  where getSecret :: MACImplementation i => i -> MACSecret i
-        getSecret _ = toMACSecret secret
-        macsecret   = getSecret i
-        cxt0        = startMACCxt macsecret
+           -> IO (PrimitiveOf g)
+sourceMAC' g secret src = do
+  init <- initializeMAC g
+  transformGadget init src
+  out <- finalize g
+  freeGadget g
+  return out
+   where initializeMAC :: MACGadget g => g -> IO g
+         initializeMAC g' = initialize (fromMACSecret g' secret) =<< newMemory
+{-# INLINEABLE sourceMAC' #-}
 
 -- | Compute the MAC for the byte source using the recomended
 -- implementation.
@@ -86,14 +81,14 @@ sourceMAC secret src = go undefined
 
 -- | Compute the MAC of a pure byte source.
 -- LazyByteString etc.
-mac' :: ( MACImplementation i
+mac' :: ( MACGadget g
         , PureByteSource src
         )
-        => i
+        => g
         -> B.ByteString -- ^ The secret
         -> src -- ^ The message
-        -> PrimitiveOf i
-mac' i secret = unsafePerformIO . sourceMAC' i secret
+        -> PrimitiveOf g
+mac' g secret = unsafePerformIO . sourceMAC' g secret
 
 -- | Compute the MAC of a pure byte source.
 mac :: ( MAC m
@@ -107,12 +102,12 @@ mac secret = unsafePerformIO . sourceMAC secret
 ----------------------- MACing a file ----------------------------------
 
 -- | Compute the MAC of a file.
-macFile' :: MACImplementation i
-         => i
+macFile' :: MACGadget g
+         => g
          -> B.ByteString -- ^ the secret
          -> FilePath     -- ^ the input file
-         -> IO (PrimitiveOf i)
-macFile' i secret fp = withBinaryFile fp ReadMode $ sourceMAC' i secret
+         -> IO (PrimitiveOf g)
+macFile' g secret fp = withBinaryFile fp ReadMode $ sourceMAC' g secret
 
 -- | Compute the MAC of a file with recommended implementation.
 macFile :: MAC m

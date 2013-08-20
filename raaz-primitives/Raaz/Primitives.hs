@@ -1,6 +1,8 @@
 {-|
 
-Generic cryptographic algorithms.
+Generic cryptographic primtives and gadgets computing them. This is
+the low-level stuff that lies in the guts of the raaz system. You
+might be better of using the more high leven interface.
 
 -}
 
@@ -10,77 +12,90 @@ Generic cryptographic algorithms.
 {-# LANGUAGE FlexibleContexts            #-}
 
 module Raaz.Primitives
-       ( Primitive(..)
-       , Implementation(..)
+       ( -- * Primtives and gadgets.
+         -- $primAndGadget$
+         Primitive(..)
+       , Gadget(..)
+       , SafeGadget(..)
+       , UnsafeGadget(..)
        , CryptoPrimitive(..)
        , HasPadding(..)
        , BLOCKS, blocksOf
-       , transformContext, transformContextFile
+       , transformGadget, transformGadgetFile
        ) where
 
-import           Control.Applicative((<$>))
-import           Control.Monad(foldM)
 import qualified Data.ByteString      as B
 import           Data.ByteString.Internal(unsafeCreate)
 import           Data.Word(Word64)
 import           Foreign.Ptr(castPtr)
 import           System.IO(withFile, IOMode(ReadMode))
 
+import Raaz.Memory
 import Raaz.Types
 import Raaz.ByteSource
 import Raaz.Util.ByteString
 import Raaz.Util.Ptr
 
+-- $primAndGadget$
+--
+-- The raaz cryptographic engine is centered around two kinds of
+-- stuff: primitives and gadgets to compute those primitives. Typical
+-- cryptographic primitives are hashes, macs, ciphers, signature
+-- algorithms etc. A gadget can be thought of as a device or algorithm
+-- that implements the primitive.
+--
+-- As a library, raaz believes in providing multiple gadgets for a
+-- primitive. Of these two are of at most importance. There is the
+-- reference gadget where the emphasis is on correctness rather than
+-- speed or security. They are used to verify the correctness of the
+-- other gadgets for the same primitive. For use of production, there
+-- is the recommended gadget which. By default all library functions
+-- are tuned to use the recommended gadget.
+--
+
 ----------------------- A primitive ------------------------------------
 
--- | Abstraction that captures crypto primitives that work one block
--- at a time.  Primitives process data one block at a time. Examples
--- are block ciphers, Merkle-Damgård hashes etc. Stream primitives may
--- be captured as primitives with block size 1.
+-- | Abstraction that captures crypto primitives. A primitive consists
+-- of the following (1) A block size (2) and intialisation value
+-- (captures by `IV`) and (3) a finalisation value captured `FV`. For
+-- a stream primitive (like a stream cipher) the block size is
+-- 1. Certain primitives do not require an initialisation value
+-- (e.g. a hash) or might not provide a final value (e.g. a
+-- cipher). In such cases use the unit type `()`.
+
 class Primitive p where
 
   blockSize :: p -> BYTES Int -- ^ Block size
 
--------------------- Implementation  -----------------------------------
+  data IV p :: * -- ^ the initialisation value.
 
--- | The raaz library supports multiple implementation of the same
--- primitives. This class captures an implementation.
+-----------------   A cryptographic gadget. ----------------------------
+
+-- | A gadget implements a primitive It has three phases: (1) the
+-- initialisation (2) the processing/transformation phase and (3) the
+-- finalisation. Depending on what the gadget does each of this phase
+-- might be absent/trivial. The main action happens in the processing
+-- phase where the gadget is passed a buffer. Depending on the
+-- functionality of the gadget data is either written into/read by/or
+-- transformed (think of a PRG, Cryptographic hash or a Cipher
+-- respectively).
 --
-class Primitive (PrimitiveOf i) => Implementation i where
+class ( Primitive (PrimitiveOf g), Memory (MemoryOf g) )
+      => Gadget g where
 
-  -- | The primitive associated with this implementation
-  type PrimitiveOf i :: *
+  type PrimitiveOf g
 
-  -- | Block primitives require carrying around a context to process
-  -- subsequent blocks. This associated type captures such a context.
-  data Cxt i
+  type MemoryOf g
 
-  -- | This `process` function is what does all the hardwork of the
-  -- primitive. A default implementation in terms of `processSingle`,
-  -- but you can provide a more efficient implementation. Whether the
-  -- data in the message buffer is left intact or not, depends on the
-  -- primitive.
-  process :: Cxt i                 -- ^ The context passed from the
-                                   -- previous block
-          -> BLOCKS (PrimitiveOf i)  -- ^ The number of blocks of data.
-          -> CryptoPtr             -- ^ The message buffer
-          -> IO (Cxt i)
-  process cxt b cptr = fst <$> foldM moveAndHash (cxt,cptr) [1..b]
-    where
-      getCxt :: Cxt i -> PrimitiveOf i
-      getCxt _  = undefined
-      sz        = blockSize $ getCxt cxt
-      moveAndHash (context,ptr) _ = do newCxt <- processSingle context ptr
-                                       return (newCxt, ptr `movePtr` sz)
+  -- | Creates a new gadget using the provided memory.
+  newGadget :: (MemoryOf g) -> IO g
 
-  -- | Reads one block from the CryptoPtr and produces the next
-  -- context from the previous context. There is a default
-  -- implementation in terms of `process`. However, for efficiency you
-  -- might consider defining a separte version.
-  processSingle :: Cxt i         -- ^ The context
-                -> CryptoPtr     -- ^ The message buffer
-                -> IO (Cxt i)
-  processSingle cxt cptr = process cxt 1 cptr
+  -- | Initializes the gadget.
+  initialize :: g -> IV (PrimitiveOf g) -> IO ()
+
+  -- | Finalize the data. Whether the gadget can be used again is
+  -- gadget dependent.
+  finalize :: g -> IO (PrimitiveOf g)
 
   -- | The recommended number of blocks to process at a time. While
   -- processing files, bytestrings it makes sense to handle multiple
@@ -88,17 +103,21 @@ class Primitive (PrimitiveOf i) => Implementation i where
   -- depends on the cache size of your machine) can drastically
   -- improve cache performance of your program. Default setting is the
   -- number of blocks that fit in @32KB@.
-  recommendedBlocks   :: i -> BLOCKS (PrimitiveOf i)
+  recommendedBlocks   :: g -> BLOCKS (PrimitiveOf g)
   recommendedBlocks _ = cryptoCoerce (1024 * 32 :: BYTES Int)
 
----------------------- A crypto primitive ------------------------------
 
--- | A crypto primitive is a primitive together with a recommended
--- implementation.
-class ( Implementation  (Recommended p)
-      , p ~ PrimitiveOf (Recommended p)
-      ) => CryptoPrimitive p where
-  type Recommended p :: *
+class (Gadget g) => SafeGadget g where
+    -- | Performs the action of the gadget on the buffer. The
+    -- instances of this class must ensure that the data in the
+    -- message buffer is left intact.
+  applySafe :: g -> BLOCKS (PrimitiveOf g) -> CryptoPtr -> IO ()
+
+class (Gadget g) => UnsafeGadget g where
+    -- | Performs the action of the gadget on the buffer. The
+    -- instances of this class can modify the data in the
+    -- message buffer.
+  applyUnsafe :: g -> BLOCKS (PrimitiveOf g) -> CryptoPtr -> IO ()
 
 -------------------- Primitives with padding ---------------------------
 
@@ -146,6 +165,17 @@ class Primitive p => HasPadding p where
   -- know the size to be allocated for your message buffers.
   maxAdditionalBlocks :: p -> BLOCKS p
 
+---------------------- A crypto primitive ------------------------------
+
+-- | A crypto primitive is a primitive together with a recommended
+-- implementation.
+class ( Gadget (Recommended p)
+      , Gadget (Reference p)
+      , p ~ PrimitiveOf (Recommended p)
+      , p ~ PrimitiveOf (Reference p)
+      ) => CryptoPrimitive p where
+  type Recommended p :: *
+  type Reference   p :: *
 
 ------------------- Type safe lengths in units of block ----------------
 
@@ -200,47 +230,45 @@ instance ( Primitive p
 blocksOf :: Primitive p =>  Int -> p -> BLOCKS p
 blocksOf n _ = BLOCKS n
 
-
 -------------------- Some helper functions -----------------------------
 
 -- | For a block primitive that supports padding, this combinator is
 -- used when we care only about the final context and not the contents
 -- of the procesed buffer.
-transformContext  :: ( ByteSource src
-                     , Implementation i
-                     , HasPadding (PrimitiveOf i)
-                     )
-                  => Cxt i     -- ^ The starting context
-                  -> src       -- ^ The byte source
-                  -> IO (Cxt i)
-{-# INLINEABLE transformContext #-}
+transformGadget :: ( ByteSource src
+                   , Gadget g
+                   , HasPadding (PrimitiveOf g)
+                   )
+                => g         -- ^ Gadget
+                -> (g -> (BLOCKS (PrimitiveOf g)) -> CryptoPtr -> IO ())
+                -> src       -- ^ The byte source
+                -> IO ()
+{-# INLINEABLE transformGadget #-}
 
-transformContext cxt src = allocaBuffer bufSize $ go 0 cxt src
-  where nBlocks = recommendedBlocks $ getImplementation cxt
+transformGadget g apply src = allocaBuffer bufSize $ go 0 src
+  where nBlocks = recommendedBlocks g
         bufSize = nBlocks + maxAdditionalBlocks p
-        p       = getPrimitive cxt
-
-        getImplementation :: Implementation i => Cxt i -> i
-        getImplementation _ = undefined
-        getPrimitive :: Implementation i => Cxt i -> PrimitiveOf i
+        p       = getPrimitive g
+        getPrimitive :: Gadget g => g -> PrimitiveOf g
         getPrimitive _ = undefined
-
-        go k context source cptr =   fill nBlocks source cptr
-                                 >>= withFillResult continue endIt
-           where continue rest = do context' <- process context nBlocks cptr
-                                    go (k + nBlocks) context' rest cptr
+        go k source cptr =   fill nBlocks source cptr
+                             >>= withFillResult continue endIt
+           where continue rest = do apply g nBlocks cptr
+                                    go (k + nBlocks) rest cptr
                  endIt r       = do unsafePad p bits padPtr
-                                    process context blks cptr
+                                    apply g blks cptr
                        where len    = cryptoCoerce nBlocks - r
                              bits   = cryptoCoerce k + cryptoCoerce len
                              padPtr = cptr `movePtr` len
                              blks   = cryptoCoerce $ len + padLength p bits
 
 -- | A version of `transformContext` which takes a filename instead.
-transformContextFile ::( Implementation i
-                       , HasPadding (PrimitiveOf i)
+transformGadgetFile :: ( Gadget g
+                       , HasPadding (PrimitiveOf g)
                        )
-                     => Cxt i      -- ^ The starting context
-                     -> FilePath   -- ^ The file name.
-                     -> IO (Cxt i)
-transformContextFile cxt fpth = withFile fpth ReadMode $ transformContext cxt
+                    => g          -- ^ Gadget
+                    -> (g -> (BLOCKS (PrimitiveOf g)) -> CryptoPtr -> IO ())
+                    -> FilePath   -- ^ The file name.
+                    -> IO ()
+transformGadgetFile g apply fpth = withFile fpth ReadMode $ transformGadget g apply
+{-# INLINEABLE transformGadgetFile #-}

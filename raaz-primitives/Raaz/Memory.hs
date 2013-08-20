@@ -10,6 +10,7 @@ module Raaz.Memory
        , CryptoCell(..)
        , cellLoad
        , cellStore
+       , withCell
          -- CryptoArray
        , CryptoArray(..)
        , loadFrom
@@ -29,10 +30,7 @@ import Foreign.Ptr
 import Foreign.Storable
 
 
-import Raaz.Types ( BYTES(..)
-                  , CryptoStore(..)
-                  , CryptoAlign
-                  )
+import Raaz.Types
 import Raaz.Util.Ptr ( loadFromIndex
                      , storeAtIndex
                      )
@@ -92,6 +90,11 @@ cellLoad (CryptoCell p) = withForeignPtr p (peek . castPtr)
 -- | Write the value to the CryptoCell.
 cellStore :: CryptoStore a => CryptoCell a -> a -> IO ()
 cellStore (CryptoCell p) v = withForeignPtr p (flip poke v . castPtr)
+
+-- | Perform some pointer action on CryptoCell. Useful while working
+-- with ffi functions.
+withCell :: CryptoCell a -> (CryptoPtr -> IO b) -> IO b
+withCell (CryptoCell fp) f = withForeignPtr fp f
 
 instance CryptoStore a => Memory (CryptoCell a) where
   newMemory = mal undefined

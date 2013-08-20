@@ -22,7 +22,7 @@ library
                  , Raaz.Memory
                  , Raaz.Primitives
                  , Raaz.Primitives.Hash
-                 , Raaz.Primitives.MAC
+--                 , Raaz.Primitives.MAC
                  , Raaz.System.Parameters
                  , Raaz.Types
                  , Raaz.Util.ByteString
@@ -32,6 +32,7 @@ library
   build-depends: base
                , bytestring
                , cpu
+               , data-default
                , mtl
                , QuickCheck==2.4.*
                , template-haskell
