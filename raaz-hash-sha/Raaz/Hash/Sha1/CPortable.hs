@@ -13,11 +13,7 @@ module Raaz.Hash.Sha1.CPortable
        ( CPortable
        ) where
 
-
-import Foreign.Marshal.Alloc
-import Foreign.Ptr
-import Foreign.Storable
-
+import Raaz.Memory
 import Raaz.Primitives
 import Raaz.Primitives.Hash
 import Raaz.Types
@@ -25,29 +21,26 @@ import Raaz.Types
 import Raaz.Hash.Sha1.Type
 
 -- | Portable C implementation
-data CPortable
+data CPortable = CPortable (CryptoCell SHA1)
 
 foreign import ccall unsafe
   "raaz/hash/sha1/portable.h raazHashSha1PortableCompress"
-  c_sha1_compress  :: Ptr SHA1 -> Int -> CryptoPtr -> IO ()
+  c_sha1_compress  :: CryptoPtr -> Int -> CryptoPtr -> IO ()
 
-sha1Compress :: SHA1 -> Int -> CryptoPtr -> IO SHA1
+sha1Compress :: CryptoCell SHA1 -> BLOCKS SHA1 -> CryptoPtr -> IO ()
 {-# INLINE sha1Compress #-}
-sha1Compress sha1 nblocks buffer = alloca go
-  where go ptr = do poke ptr sha1
-                    c_sha1_compress ptr nblocks buffer
-                    peek ptr
+sha1Compress cc nblocks buffer = withCell cc action
+  where action ptr = c_sha1_compress ptr n buffer
+        n = fromEnum nblocks
 
-instance Implementation CPortable where
+instance Gadget CPortable where
   type PrimitiveOf CPortable = SHA1
-  newtype Cxt CPortable = SHA1Cxt SHA1
-  process (SHA1Cxt sha1) nblocks buf = fmap SHA1Cxt $ sha1Compress sha1 n buf
-      where n = fromEnum nblocks
+  type MemoryOf CPortable = CryptoCell SHA1
+  newGadget cc = return $ CPortable cc
+  initialize (CPortable cc) (SHA1IV sha1) = cellStore cc sha1
+  finalize (CPortable cc) = cellLoad cc
 
-instance HashImplementation CPortable where
-  startHashCxt = SHA1Cxt $ SHA1 0x67452301
-                                0xefcdab89
-                                0x98badcfe
-                                0x10325476
-                                0xc3d2e1f0
-  finaliseHash (SHA1Cxt h) = h
+instance SafeGadget CPortable where
+  applySafe (CPortable cc) n cptr = sha1Compress cc n cptr
+
+instance HashGadget CPortable where

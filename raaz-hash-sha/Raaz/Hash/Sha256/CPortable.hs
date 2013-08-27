@@ -15,10 +15,9 @@ module Raaz.Hash.Sha256.CPortable
        ) where
 
 
-import Foreign.Marshal.Alloc
 import Foreign.Ptr
-import Foreign.Storable
 
+import Raaz.Memory
 import Raaz.Primitives
 import Raaz.Primitives.Hash
 import Raaz.Types
@@ -26,32 +25,26 @@ import Raaz.Types
 import Raaz.Hash.Sha256.Type
 
 -- | Portable C implementation
-data CPortable
+data CPortable = CPortable (CryptoCell SHA256)
 
 foreign import ccall unsafe
   "raaz/hash/sha256/portable.h raazHashSha256PortableCompress"
   c_sha256_compress  :: Ptr SHA256 -> Int -> CryptoPtr -> IO ()
 
-sha256Compress :: SHA256 -> Int -> CryptoPtr -> IO SHA256
+sha256Compress :: CryptoCell SHA256 -> BLOCKS SHA256 -> CryptoPtr -> IO ()
+sha256Compress cc nblocks buffer = withCell cc action
+  where action ptr = c_sha256_compress (castPtr ptr) n buffer
+        n = fromEnum nblocks
 {-# INLINE sha256Compress #-}
-sha256Compress sha256 nblocks buffer = alloca go
-  where go ptr = do poke ptr sha256
-                    c_sha256_compress ptr nblocks buffer
-                    peek ptr
 
-instance Implementation CPortable where
+instance Gadget CPortable where
   type PrimitiveOf CPortable = SHA256
-  newtype Cxt CPortable = SHA256Cxt SHA256
-  process (SHA256Cxt sha256) nblocks buf = fmap SHA256Cxt $ sha256Compress sha256 n buf
-      where n = fromEnum nblocks
+  type MemoryOf CPortable = CryptoCell SHA256
+  newGadget cc = return $ CPortable cc
+  initialize (CPortable cc) (SHA256IV sha1) = cellStore cc sha1
+  finalize (CPortable cc) = cellLoad cc
 
-instance HashImplementation CPortable where
-  startHashCxt = SHA256Cxt $ SHA256 0x6a09e667
-                                    0xbb67ae85
-                                    0x3c6ef372
-                                    0xa54ff53a
-                                    0x510e527f
-                                    0x9b05688c
-                                    0x1f83d9ab
-                                    0x5be0cd19
-  finaliseHash (SHA256Cxt h) = h
+instance SafeGadget CPortable where
+  applySafe (CPortable cc) n cptr = sha256Compress cc n cptr
+
+instance HashGadget CPortable where

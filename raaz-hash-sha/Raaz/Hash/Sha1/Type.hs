@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE TypeFamilies               #-}
+{-# LANGUAGE FlexibleInstances          #-}
 
 {-|
 
@@ -12,10 +13,12 @@ instance etc.
 -}
 module Raaz.Hash.Sha1.Type
        ( SHA1(..)
+       , IV(SHA1IV)
        ) where
 
 import Control.Applicative ((<$>), (<*>))
 import Data.Bits(xor, (.|.))
+import Data.Default
 import Data.Typeable(Typeable)
 import Foreign.Storable(Storable(..))
 
@@ -85,8 +88,16 @@ instance CryptoStore SHA1 where
 instance Primitive SHA1 where
   blockSize _ = cryptoCoerce $ BITS (512 :: Int)
   {-# INLINE blockSize #-}
+  newtype IV SHA1 = SHA1IV SHA1
 
 instance HasPadding SHA1 where
   maxAdditionalBlocks _ = 1
   padLength = padLength64
   padding   = padding64
+
+instance Default (IV SHA1) where
+  def = SHA1IV $ SHA1 0x67452301
+                      0xefcdab89
+                      0x98badcfe
+                      0x10325476
+                      0xc3d2e1f0

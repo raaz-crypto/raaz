@@ -8,12 +8,15 @@ This module defines the hash instances for different hashes.
 {-# LANGUAGE EmptyDataDecls       #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module Raaz.Hash.Sha1.Instance (ReferenceSHA1) where
+module Raaz.Hash.Sha1.Instance ( Reference ) where
 
-import Control.Applicative ((<$>))
+import Control.Applicative ( (<$>) )
+import Control.Monad       ( foldM )
 
+import Raaz.Memory
 import Raaz.Primitives
 import Raaz.Primitives.Hash
+import Raaz.Util.Ptr
 
 import Raaz.Hash.Sha1.Type
 import Raaz.Hash.Sha1.Ref
@@ -23,21 +26,28 @@ import Raaz.Hash.Sha1.CPortable
 
 instance CryptoPrimitive SHA1 where
   type Recommended SHA1 = CPortable
+  type Reference SHA1 = Ref
 
 instance Hash SHA1 where
 
--- | Reference Implementation
-data ReferenceSHA1
+-- | Ref Implementation
+data Ref = Ref (CryptoCell SHA1)
 
-instance Implementation ReferenceSHA1 where
-  type PrimitiveOf ReferenceSHA1 = SHA1
-  newtype Cxt ReferenceSHA1 = SHA1Cxt SHA1
-  processSingle (SHA1Cxt cxt) ptr = SHA1Cxt <$> sha1CompressSingle cxt ptr
+instance Gadget Ref where
+  type PrimitiveOf Ref = SHA1
+  type MemoryOf Ref = CryptoCell SHA1
+  newGadget cc = return $ Ref cc
+  initialize (Ref cc) (SHA1IV sha1) = cellStore cc sha1
+  finalize (Ref cc) = cellLoad cc
 
-instance HashImplementation ReferenceSHA1 where
-  startHashCxt = SHA1Cxt $ SHA1 0x67452301
-                                0xefcdab89
-                                0x98badcfe
-                                0x10325476
-                                0xc3d2e1f0
-  finaliseHash (SHA1Cxt h) = h
+instance SafeGadget Ref where
+  applySafe (Ref cc) n cptr = do
+    initial <- cellLoad cc
+    final <- fst <$> foldM moveAndHash (initial,cptr) [1..n]
+    cellStore cc final
+    where
+      sz = blockSize (undefined :: SHA1)
+      moveAndHash (cxt,ptr) _ = do newCxt <- sha1CompressSingle cxt ptr
+                                   return (newCxt, ptr `movePtr` sz)
+
+instance HashGadget Ref where
