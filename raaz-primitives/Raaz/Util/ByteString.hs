@@ -10,6 +10,7 @@ module Raaz.Util.ByteString
        , unsafeNCopyToCryptoPtr
        , length
        , hex, toHex
+       , withByteString
        ) where
 
 import           Prelude hiding (length)
@@ -86,3 +87,10 @@ hex bs = unsafeCreate (2 * n) filler
                        poke ptr1 $ hexDigit $ bot4 x
             where ptr0 = ptr
                   ptr1 = ptr `plusPtr` 1
+
+-- | Works directly on the pointer associated with the
+-- `ByteString`. This function should only read and not modify the
+-- contents of the pointer.
+withByteString :: ByteString -> (CryptoPtr -> IO a) -> IO a
+withByteString bs f = withForeignPtr fptr (f . flip plusPtr off . castPtr)
+  where (fptr, off, _) = toForeignPtr bs

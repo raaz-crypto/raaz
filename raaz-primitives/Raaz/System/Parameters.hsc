@@ -11,6 +11,7 @@ etc to the Haskell world.
 module Raaz.System.Parameters
        ( l1Cache
        , l2Cache
+       , pageSize
        ) where
 
 import Raaz.Types( BYTES(..) )
@@ -23,3 +24,6 @@ l1Cache = #const RAAZ_L1_CACHE
 -- | The L2 cache size.
 l2Cache :: BYTES Int
 l2Cache = #const RAAZ_L2_CACHE
+
+pageSize :: BYTES Int
+pageSize = #const RAAZ_PAGE_SIZE

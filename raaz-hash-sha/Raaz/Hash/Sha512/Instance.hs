@@ -8,12 +8,15 @@ This module defines the hash instances for sha512 hash.
 {-# LANGUAGE EmptyDataDecls #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module Raaz.Hash.Sha512.Instance (ReferenceSHA512) where
+module Raaz.Hash.Sha512.Instance ( Ref ) where
 
-import Control.Applicative ((<$>))
+import Control.Applicative ( (<$>) )
+import Control.Monad       ( foldM )
 
+import Raaz.Memory
 import Raaz.Primitives
 import Raaz.Primitives.Hash
+import Raaz.Util.Ptr
 
 import Raaz.Hash.Sha512.Type
 import Raaz.Hash.Sha512.Ref
@@ -22,27 +25,30 @@ import Raaz.Hash.Sha512.CPortable
 
 ----------------------------- SHA512 -------------------------------------------
 
-
 instance CryptoPrimitive SHA512 where
   type Recommended SHA512 = CPortable
+  type Reference SHA512   = Ref
 
 instance Hash SHA512 where
 
--- | Reference Implementation
-data ReferenceSHA512
+-- | Ref Implementation
+data Ref = Ref (CryptoCell SHA512)
 
-instance Implementation ReferenceSHA512 where
-  type PrimitiveOf ReferenceSHA512 = SHA512
-  newtype Cxt ReferenceSHA512 = SHA512Cxt SHA512
-  processSingle (SHA512Cxt cxt) ptr = SHA512Cxt <$> sha512CompressSingle cxt ptr
+instance Gadget Ref where
+  type PrimitiveOf Ref = SHA512
+  type MemoryOf Ref = CryptoCell SHA512
+  newGadget cc = return $ Ref cc
+  initialize (Ref cc) (SHA512IV sha1) = cellStore cc sha1
+  finalize (Ref cc) = cellLoad cc
 
-instance HashImplementation ReferenceSHA512 where
-  startHashCxt = SHA512Cxt $ SHA512 0x6a09e667f3bcc908
-                                    0xbb67ae8584caa73b
-                                    0x3c6ef372fe94f82b
-                                    0xa54ff53a5f1d36f1
-                                    0x510e527fade682d1
-                                    0x9b05688c2b3e6c1f
-                                    0x1f83d9abfb41bd6b
-                                    0x5be0cd19137e2179
-  finaliseHash (SHA512Cxt h) = h
+instance SafeGadget Ref where
+  applySafe (Ref cc) n cptr = do
+    initial <- cellLoad cc
+    final <- fst <$> foldM moveAndHash (initial,cptr) [1..n]
+    cellStore cc final
+    where
+      sz = blockSize (undefined :: SHA512)
+      moveAndHash (cxt,ptr) _ = do newCxt <- sha512CompressSingle cxt ptr
+                                   return (newCxt, ptr `movePtr` sz)
+
+instance HashGadget Ref where

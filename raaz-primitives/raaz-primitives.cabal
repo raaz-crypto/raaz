@@ -19,17 +19,21 @@ source-repository head
 
 library
   exposed-modules: Raaz.ByteSource
+                 , Raaz.Memory
                  , Raaz.Primitives
                  , Raaz.Primitives.Hash
-                 , Raaz.Primitives.MAC
+--                 , Raaz.Primitives.MAC
                  , Raaz.System.Parameters
                  , Raaz.Types
                  , Raaz.Util.ByteString
                  , Raaz.Util.Ptr
+                 , Raaz.Util.SecureMemory
                  , Raaz.Util.TH
   build-depends: base
                , bytestring
                , cpu
+               , data-default
+               , mtl
                , QuickCheck==2.4.*
                , template-haskell
                , test-framework==0.6.*
@@ -39,6 +43,8 @@ library
                --
                , raaz-config
   ghc-options: -Wall
+
+  c-sources: cbits/raaz/memory.c
   include-dirs: includes
   includes: raaz/primitives.h
           , raaz/primitives/config.h

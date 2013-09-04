@@ -8,13 +8,15 @@ This module defines the hash instances for sha256 hash.
 {-# LANGUAGE EmptyDataDecls       #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module Raaz.Hash.Sha256.Instance (ReferenceSHA256) where
+module Raaz.Hash.Sha256.Instance (Ref) where
 
-import Control.Applicative ((<$>))
+import Control.Applicative ( (<$>) )
+import Control.Monad       ( foldM )
 
+import Raaz.Memory
 import Raaz.Primitives
 import Raaz.Primitives.Hash
-
+import Raaz.Util.Ptr
 
 import Raaz.Hash.Sha256.Type
 import Raaz.Hash.Sha256.Ref
@@ -25,24 +27,28 @@ import Raaz.Hash.Sha256.CPortable
 
 instance CryptoPrimitive SHA256 where
   type Recommended SHA256 = CPortable
+  type Reference SHA256 = Ref
 
 instance Hash SHA256 where
 
--- | Reference Implementation
-data ReferenceSHA256
+-- | Ref Implementation
+data Ref = Ref (CryptoCell SHA256)
 
-instance Implementation ReferenceSHA256 where
-  type PrimitiveOf ReferenceSHA256 = SHA256
-  newtype Cxt ReferenceSHA256 = SHA256Cxt SHA256
-  processSingle (SHA256Cxt cxt) ptr = SHA256Cxt <$> sha256CompressSingle cxt ptr
+instance Gadget Ref where
+  type PrimitiveOf Ref = SHA256
+  type MemoryOf Ref = CryptoCell SHA256
+  newGadget cc = return $ Ref cc
+  initialize (Ref cc) (SHA256IV sha1) = cellStore cc sha1
+  finalize (Ref cc) = cellLoad cc
 
-instance HashImplementation ReferenceSHA256 where
-  startHashCxt = SHA256Cxt $ SHA256 0x6a09e667
-                                    0xbb67ae85
-                                    0x3c6ef372
-                                    0xa54ff53a
-                                    0x510e527f
-                                    0x9b05688c
-                                    0x1f83d9ab
-                                    0x5be0cd19
-  finaliseHash (SHA256Cxt h) = h
+instance SafeGadget Ref where
+  applySafe (Ref cc) n cptr = do
+    initial <- cellLoad cc
+    final <- fst <$> foldM moveAndHash (initial,cptr) [1..n]
+    cellStore cc final
+    where
+      sz = blockSize (undefined :: SHA256)
+      moveAndHash (cxt,ptr) _ = do newCxt <- sha256CompressSingle cxt ptr
+                                   return (newCxt, ptr `movePtr` sz)
+
+instance HashGadget Ref where
