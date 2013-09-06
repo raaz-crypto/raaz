@@ -65,13 +65,15 @@ import Raaz.Util.Ptr
 
 class Primitive p where
 
-  blockSize :: p -> BYTES Int -- ^ Block size
+  -- | The block size.
+  blockSize :: p -> BYTES Int
 
-  data IV p :: * -- ^ the initialisation value.
+  -- | The initialisation value.
+  data IV p :: *
 
 -----------------   A cryptographic gadget. ----------------------------
 
--- | A gadget implements a primitive It has three phases: (1) the
+-- | A gadget implements a primitive. It has three phases: (1) the
 -- initialisation (2) the processing/transformation phase and (3) the
 -- finalisation. Depending on what the gadget does each of this phase
 -- might be absent/trivial. The main action happens in the processing
@@ -80,21 +82,33 @@ class Primitive p where
 -- transformed (think of a PRG, Cryptographic hash or a Cipher
 -- respectively).
 --
+-- This type class captures only the first and the third phase of
+-- operation, namely initialisation and finalisation. Depending on
+-- whether the input buffer is modified or not one has `applySafe` or
+-- `applyUnsafe` functions that process a buffer of data. They are
+-- members of the `SafeGadget` and `UnsafeGadget` classes
+-- respectively.
+--
 class ( Primitive (PrimitiveOf g), Memory (MemoryOf g) )
       => Gadget g where
 
+  -- | The primitive for which this is a gadget
   type PrimitiveOf g
 
+  -- | The (type of the) internal memory used by the gadget.
   type MemoryOf g
 
-  -- | Creates a new gadget using the provided memory.
+  -- | The action @newGadget mem@ creates a gadget which uses @mem@ as
+  -- its internal memory. If you want the internal data to be
+  -- protected from being swapped out (for example if the internal
+  -- memory contains sensitive data) then pass a secuded memory to
+  -- this function.
   newGadget :: (MemoryOf g) -> IO g
 
   -- | Initializes the gadget.
   initialize :: g -> IV (PrimitiveOf g) -> IO ()
 
-  -- | Finalize the data. Whether the gadget can be used again is
-  -- gadget dependent.
+  -- | Finalize the data.
   finalize :: g -> IO (PrimitiveOf g)
 
   -- | The recommended number of blocks to process at a time. While
@@ -106,17 +120,18 @@ class ( Primitive (PrimitiveOf g), Memory (MemoryOf g) )
   recommendedBlocks   :: g -> BLOCKS (PrimitiveOf g)
   recommendedBlocks _ = cryptoCoerce (1024 * 32 :: BYTES Int)
 
-
+-- | This type class captures a gadget that promises not to touch the
+-- the buffer of data that it processes.
 class (Gadget g) => SafeGadget g where
-    -- | Performs the action of the gadget on the buffer. The
-    -- instances of this class must ensure that the data in the
-    -- message buffer is left intact.
+  -- | Performs the action of the gadget on the buffer.
   applySafe :: g -> BLOCKS (PrimitiveOf g) -> CryptoPtr -> IO ()
 
+-- | An instance of this gadget /does not/ promise anything on the
+-- contents of the buffer passed. Sometimes, we actually want the
+-- buffer of data to be mangled by the gadget, for example when the
+-- gadget implements a cipher or fills the buffer with random bytes.
 class (Gadget g) => UnsafeGadget g where
-    -- | Performs the action of the gadget on the buffer. The
-    -- instances of this class can modify the data in the
-    -- message buffer.
+  -- | Performs the action of the gadget on the buffer.
   applyUnsafe :: g -> BLOCKS (PrimitiveOf g) -> CryptoPtr -> IO ()
 
 -------------------- Primitives with padding ---------------------------
