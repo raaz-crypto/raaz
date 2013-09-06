@@ -25,7 +25,6 @@ module Raaz.Util.SecureMemory
        ) where
 
 import Control.Arrow ( first )
-import Control.Monad.State
 import Data.IORef
 import Foreign.ForeignPtr.Safe ( ForeignPtr
                                , finalizeForeignPtr
