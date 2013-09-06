@@ -27,69 +27,69 @@ oneRound :: DecsQ
 oneRound = sequence $ [typeSig, funD name [cls]]
   where
     name = mkName "roundF"
-    cls = clause (args1 ++ args2) (normalB (LetE <$> roundLoop <*>
-                                      [| SHA1
-                                         ($(a $ -1) + $(a 79))
-                                         ($(b $ -1) + $(b 79))
-                                         ($(c $ -1) + $(c 79))
-                                         ($(d $ -1) + $(d 79))
-                                         ($(e $ -1) + $(e 79))
-                                      |])) []
-    args1 = map (flip subP (-1 :: Int)) ["a","b","c","d","e"]
+    cls = clause (args1:args2) (normalB (LetE <$> roundLoop <*>
+                                      [| addHash $(s $ -1) $(s $ 79) |])) []
+    args1 = subP "s" $ (-1 :: Int)
     args2 = map (subP "m") [0..15 :: Int]
-    typeSig = sigD name $
-              foldl (const . appT wordtype) (conT ''SHA1) [1..21 :: Int]
+    typeSig = sigD name $ appT (appT arrowT (conT ''SHA1)) $
+                foldl (const . appT wordtype) (conT ''SHA1) [1..16 :: Int]
     wordtype = appT arrowT (conT ''Word32BE)
 
--- | Unrolls the round loop.  Also assumes a__1,b__1,c__1,d__1,e__1,
--- which are the hash values in the previous round also present in
--- scope.
+-- | Unrolls the round loop.  Also assumes s__1 which is the hash
+-- value in the previous round also present in scope.
 roundLoop :: DecsQ
-roundLoop = declarations [wdecs,kdecs,adecs,cdecs,restdecs] [0..79]
+roundLoop = declarations [wDecs,kDecs,transDecs] [0..79]
   where
-    adecs :: Int -> DecsQ
-    adecs = variable' "a" ''Word32BE body
+    transDecs = variable' "s" ''SHA1 body
       where
-        body j = [| $(r') + $(f') + $(e $ j-1) + $(k j) + $(w j) :: Word32BE |]
-         where r' = [| rotateL $(a $ j-1) 5 |]
-               f' = f j (b $ j-1) (c $ j-1) (d $ j-1)
-
-    cdecs :: Int -> DecsQ
-    cdecs = variable' "c" ''Word32BE body
-      where
-        body j = [| rotateL $(b $ j-1) 30 |]
-
-    wdecs :: Int -> DecsQ
-    wdecs = variable' "w" ''Word32BE body
+        body j = [| trans j $(s $ j-1) $(k $ j) $(w $ j) |]
+    wDecs     = variable' "w" ''Word32BE body
       where
         body j | j<16      = subE "m" j
                | otherwise = [| rotateL ($(w $ j-3)  `xor` $(w $ j-8)  `xor`
                                          $(w $ j-14) `xor` $(w $ j-16)) 1 |]
-
-    kdecs :: Int -> DecsQ
-    kdecs = variable' "k" ''Word32BE body
+    kDecs     = variable' "k" ''Word32BE body
       where
         body j  | j <= 19    = [| 0x5a827999 :: Word32BE |]
                 | j <= 39    = [| 0x6ed9eba1 :: Word32BE |]
                 | j <= 59    = [| 0x8f1bbcdc :: Word32BE |]
                 | otherwise  = [| 0xca62c1d6 :: Word32BE |]
 
-    restdecs :: Int -> DecsQ
-    restdecs = permute [("e","d"),("d","c"),("b","a")]
-
 -- | The round functions
-f :: Int -> ExpQ -> ExpQ -> ExpQ -> ExpQ
-f i x y z | i <= 19   = [| ($(x) .&. $(y)) `xor` (complement $(x) .&. $(z)) |]
-          | i <= 39   = [| $(x) `xor` $(y) `xor` $(z) |]
-          | i <= 59   = [| ($(x) .&. $(y)) `xor` ($(y) .&. $(z)) `xor` ($(z)
-                           .&. $(x)) |]
-          | otherwise = [| $(x) `xor` $(y) `xor` $(z) |]
+trans :: Int -> SHA1 -> Word32BE -> Word32BE -> SHA1
+trans i (SHA1 a b c d e) k' w' | i <= 19 = SHA1 a' b' c' d' e'
+  where a' = rotateL a 5 + ((b .&. c) `xor` (complement b .&. d)) + e + k' + w'
+        b' = a
+        c' = rotateL b 30
+        d' = c
+        e' = d
+trans i (SHA1 a b c d e) k' w' | i <= 39 = SHA1 a' b' c' d' e'
+  where a' = rotateL a 5 + (b `xor` c `xor` d) + e + k' + w'
+        b' = a
+        c' = rotateL b 30
+        d' = c
+        e' = d
+trans i (SHA1 a b c d e) k' w' | i <= 59 = SHA1 a' b' c' d' e'
+  where a' = rotateL a 5 + ((b .&. (c .|. d)) .|. (c .&. d)) + e + k' + w'
+        b' = a
+        c' = rotateL b 30
+        d' = c
+        e' = d
+trans i (SHA1 a b c d e) k' w' | i <= 79 = SHA1 a' b' c' d' e'
+  where a' = rotateL a 5 + (b `xor` c `xor` d) + e + k' + w'
+        b' = a
+        c' = rotateL b 30
+        d' = c
+        e' = d
+trans _ _ _ _ = error "Wrong index used for trans"
+{-# INLINE trans #-}
 
-a,b,c,d,e,k,w :: Int -> ExpQ
-a = subE "a"
-b = subE "b"
-c = subE "c"
-d = subE "d"
-e = subE "e"
+addHash :: SHA1 -> SHA1 -> SHA1
+addHash (SHA1 a b c d e) (SHA1 a' b' c' d' e') =
+  SHA1 (a+a') (b+b') (c+c') (d+d') (e+e')
+{-# INLINE addHash #-}
+
+k,s,w :: Int -> ExpQ
 k = subE "k"
+s = subE "s"
 w = subE "w"

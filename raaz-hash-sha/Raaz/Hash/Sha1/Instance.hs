@@ -8,7 +8,7 @@ This module defines the hash instances for different hashes.
 {-# LANGUAGE EmptyDataDecls       #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module Raaz.Hash.Sha1.Instance ( Reference ) where
+module Raaz.Hash.Sha1.Instance ( Ref ) where
 
 import Control.Applicative ( (<$>) )
 import Control.Monad       ( foldM )

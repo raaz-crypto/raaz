@@ -30,16 +30,19 @@ library
                  , Raaz.Hash.Sha512.Type
   other-modules: Raaz.Hash.Sha1.Instance
                , Raaz.Hash.Sha1.Ref
+               , Raaz.Hash.Sha1.Ref.TH
                , Raaz.Hash.Sha1.CPortable
                , Raaz.Hash.Sha224.Instance
                , Raaz.Hash.Sha224.CPortable
                , Raaz.Hash.Sha256.Instance
                , Raaz.Hash.Sha256.Ref
+               , Raaz.Hash.Sha256.Ref.TH
                , Raaz.Hash.Sha256.CPortable
                , Raaz.Hash.Sha384.Instance
                , Raaz.Hash.Sha384.CPortable
                , Raaz.Hash.Sha512.Instance
                , Raaz.Hash.Sha512.Ref
+               , Raaz.Hash.Sha512.Ref.TH
                , Raaz.Hash.Sha512.CPortable
                , Raaz.Hash.Sha.Util
   build-depends: base

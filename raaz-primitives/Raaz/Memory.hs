@@ -11,12 +11,6 @@ module Raaz.Memory
        , cellLoad
        , cellStore
        , withCell
-         -- CryptoArray
-       , CryptoArray(..)
-       , loadFrom
-       , unsafeLoadFrom
-       , storeAt
-       , unsafeStoreAt
        ) where
 
 
@@ -79,16 +73,16 @@ instance (Memory a, Memory b) => Memory (a,b) where
   withSecureMemory f bk = withSecureMemory sec bk
     where sec b = withSecureMemory (\a -> f (a,b)) bk
 
--- | A memory location to store a value of type having `CryptoStore`
+-- | A memory location to store a value of type having `Storable`
 -- instance.
 newtype CryptoCell a = CryptoCell ForeignCryptoPtr
 
 -- | Read the value from the CryptoCell.
-cellLoad :: CryptoStore a => CryptoCell a -> IO a
+cellLoad :: Storable a => CryptoCell a -> IO a
 cellLoad (CryptoCell p) = withForeignPtr p (peek . castPtr)
 
 -- | Write the value to the CryptoCell.
-cellStore :: CryptoStore a => CryptoCell a -> a -> IO ()
+cellStore :: Storable a => CryptoCell a -> a -> IO ()
 cellStore (CryptoCell p) v = withForeignPtr p (flip poke v . castPtr)
 
 -- | Perform some pointer action on CryptoCell. Useful while working
@@ -96,9 +90,9 @@ cellStore (CryptoCell p) v = withForeignPtr p (flip poke v . castPtr)
 withCell :: CryptoCell a -> (CryptoPtr -> IO b) -> IO b
 withCell (CryptoCell fp) f = withForeignPtr fp f
 
-instance CryptoStore a => Memory (CryptoCell a) where
+instance Storable a => Memory (CryptoCell a) where
   newMemory = mal undefined
-    where mal :: CryptoStore a => a -> IO (CryptoCell a)
+    where mal :: Storable a => a -> IO (CryptoCell a)
           mal a = fmap CryptoCell (mallocForeignPtrBytes $ sz a)
           sz a = sizeOf a
   freeMemory (CryptoCell fptr) = finalizeForeignPtr fptr
@@ -107,28 +101,27 @@ instance CryptoStore a => Memory (CryptoCell a) where
      wordAlign size = let alignSize = (sizeOf (undefined :: CryptoAlign))
                           extra = size `rem` alignSize
                       in if extra == 0 then size else size + alignSize - extra
-     allocSec :: CryptoStore a => a -> BookKeeper -> IO (CryptoCell a)
+     allocSec :: Storable a => a -> BookKeeper -> IO (CryptoCell a)
      allocSec a = fmap CryptoCell . allocSecureMem' (BYTES $ wordAlign $ sizeOf a)
 
+-- -- | An array of values of type having `Storable` instance.
+-- data CryptoArray a = CryptoArray ForeignCryptoPtr Int
 
--- | An array of values of type having `CryptoStore` instance.
-data CryptoArray a = CryptoArray ForeignCryptoPtr Int
+-- -- | Read the value from `CryptoArray` at the given index. Index is
+-- -- assumed to start from @0@.
+-- loadFrom :: Storable a => CryptoArray a -> Int -> IO a
+-- loadFrom arr@(CryptoArray _ s) n | s < n     = unsafeLoadFrom arr n
+--                                  | otherwise = error "Illegal index"
 
--- | Read the value from `CryptoArray` at the given index. Index is
--- assumed to start from @0@.
-loadFrom :: CryptoStore a => CryptoArray a -> Int -> IO a
-loadFrom arr@(CryptoArray _ s) n | s < n     = unsafeLoadFrom arr n
-                                 | otherwise = error "Illegal index"
+-- -- | Write the value to `CryptoArray` at the given index.
+-- storeAt :: Storable a => CryptoArray a -> Int -> a -> IO ()
+-- storeAt arr@(CryptoArray _ s) n v | s < n     = unsafeStoreAt arr n v
+--                                   | otherwise = error "Illegal index"
 
--- | Write the value to `CryptoArray` at the given index.
-storeAt :: CryptoStore a => CryptoArray a -> Int -> a -> IO ()
-storeAt arr@(CryptoArray _ s) n v | s < n     = unsafeStoreAt arr n v
-                                  | otherwise = error "Illegal index"
+-- -- | This is unsafe version of `loadAt` as it does not check for overflow.
+-- unsafeLoadFrom :: Storable a => CryptoArray a -> Int -> IO a
+-- unsafeLoadFrom (CryptoArray p _) = withForeignPtr p . flip loadFromIndex
 
--- | This is unsafe version of `loadAt` as it does not check for overflow.
-unsafeLoadFrom :: CryptoStore a => CryptoArray a -> Int -> IO a
-unsafeLoadFrom (CryptoArray p _) = withForeignPtr p . flip loadFromIndex
-
--- | This is unsafe version of `storeAt` as it does not check for overflow.
-unsafeStoreAt :: CryptoStore a => CryptoArray a -> Int -> a -> IO ()
-unsafeStoreAt (CryptoArray p _) n = withForeignPtr p . (flip . flip storeAtIndex $ n)
+-- -- | This is unsafe version of `storeAt` as it does not check for overflow.
+-- unsafeStoreAt :: Storable a => CryptoArray a -> Int -> a -> IO ()
+-- unsafeStoreAt (CryptoArray p _) n = withForeignPtr p . (flip . flip storeAtIndex $ n)

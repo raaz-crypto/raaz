@@ -29,7 +29,7 @@ $(oneRound)
 sha1CompressSingle :: SHA1
                    -> CryptoPtr
                    -> IO SHA1
-sha1CompressSingle (SHA1 h0 h1 h2 h3 h4) cptr = roundF h0 h1 h2 h3 h4
+sha1CompressSingle sha1 cptr = roundF sha1
          <$> load cptr
          <*> loadFromIndex cptr 1
          <*> loadFromIndex cptr 2
