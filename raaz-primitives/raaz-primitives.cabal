@@ -22,7 +22,7 @@ library
                  , Raaz.Memory
                  , Raaz.Primitives
                  , Raaz.Primitives.Hash
---                 , Raaz.Primitives.MAC
+                 , Raaz.Primitives.Cipher
                  , Raaz.System.Parameters
                  , Raaz.Types
                  , Raaz.Util.ByteString

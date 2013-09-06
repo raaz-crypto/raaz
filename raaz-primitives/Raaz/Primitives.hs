@@ -15,25 +15,27 @@ module Raaz.Primitives
        ( -- * Primtives and gadgets.
          -- $primAndGadget$
          Primitive(..)
+       , Initializable(..)
        , Gadget(..)
        , SafeGadget
        , CryptoPrimitive(..)
        , HasPadding(..)
        , BLOCKS, blocksOf
-       , transformGadget, transformGadgetFile
+       , transformGadget, transformGadgetFile, transformUnsafeGadget
        ) where
 
-import qualified Data.ByteString      as B
-import           Data.ByteString.Internal(unsafeCreate)
-import           Data.Word(Word64)
-import           Foreign.Ptr(castPtr)
-import           System.IO(withFile, IOMode(ReadMode))
+import qualified Data.ByteString          as B
+import qualified Data.ByteString.Lazy     as L
+import           Data.ByteString.Internal
+import           Data.Word                (Word64)
+import           Foreign.Ptr              (castPtr)
+import           System.IO                (withFile, IOMode(ReadMode))
 
-import Raaz.Memory
-import Raaz.Types
-import Raaz.ByteSource
-import Raaz.Util.ByteString
-import Raaz.Util.Ptr
+import           Raaz.Memory
+import           Raaz.Types
+import           Raaz.ByteSource
+import           Raaz.Util.ByteString
+import           Raaz.Util.Ptr
 
 -- $primAndGadget$
 --
@@ -69,6 +71,11 @@ class Primitive p where
 
   -- | The initialisation value.
   data IV p :: *
+
+-- | This class captures those primitives whose initial value can
+-- decoded from a `ByteSource`.
+class (Primitive p) => Initializable p where
+  getIV :: ByteString -> (IV p)
 
 -----------------   A cryptographic gadget. ----------------------------
 
@@ -280,3 +287,39 @@ transformGadgetFile :: ( Gadget g
                     -> IO ()
 transformGadgetFile g fpth = withFile fpth ReadMode $ transformGadget g
 {-# INLINEABLE transformGadgetFile #-}
+
+-- | For a block primitive that supports padding, this combinator is
+-- used to run the buffer transforming gadget and return the result as
+-- lazy ByteString.
+transformUnsafeGadget :: ( ByteSource src
+                         , Gadget g
+                         , HasPadding (PrimitiveOf g)
+                         )
+                      => g         -- ^ Gadget
+                      -> src       -- ^ The byte source
+                      -> IO L.ByteString
+{-# INLINEABLE transformUnsafeGadget #-}
+
+transformUnsafeGadget g src = do
+    chunks <- allocaBuffer bufSize $ go 0 src []
+    return (L.fromChunks $ reverse chunks)
+  where nBlocks = recommendedBlocks g
+        (BYTES nSize) = cryptoCoerce nBlocks
+        bufSize = nBlocks + maxAdditionalBlocks p
+        p       = getPrimitive g
+        getPrimitive :: Gadget g => g -> PrimitiveOf g
+        getPrimitive _ = undefined
+        go k source chunks cptr = fill nBlocks source cptr
+                             >>= withFillResult continue endIt
+           where continue rest = do apply g nBlocks cptr
+                                    bs <- create nSize copyTo
+                                    go (k + nBlocks) rest (bs:chunks) cptr
+                 copyTo ptr = memcpy ptr (castPtr cptr) $ fromIntegral nSize
+                 endIt r       = do unsafePad p bits padPtr
+                                    apply g blks cptr
+                                    bs <- create nSize copyTo
+                                    return (bs:chunks)
+                       where len    = cryptoCoerce nBlocks - r
+                             bits   = cryptoCoerce k + cryptoCoerce len
+                             padPtr = cptr `movePtr` len
+                             blks   = cryptoCoerce $ len + padLength p bits
