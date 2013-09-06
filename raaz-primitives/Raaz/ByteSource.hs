@@ -64,12 +64,13 @@ fill :: ( CryptoCoerce len (BYTES Int)
 fill = fillBytes . cryptoCoerce
 {-# INLINE fill #-}
 
--- | A pure bytesource is a bytesource that does not have any side
--- effect other than filling a the given buffer. Formally, two
+-- | A byte source src is pure if filling from it does not have any
+-- other side effect on the state of the byte source. Formally, two
 -- different fills form the same source should fill the buffer with
--- the same bytes. Clearly a file handle is *not* a pure source. This
--- additional constraint on the source helps to *purify* certain
--- crypto computations like computing the hash or mac of the source.
+-- the same bytes.  This additional constraint on the source helps to
+-- /purify/ certain crypto computations like computing the hash or mac
+-- of the source. Usualy sources like `B.ByteString` etc are pure byte
+-- sources. A file handle is a byte source that /not/ a pure source.
 class ByteSource src => PureByteSource src where
 
 ----------------------- Instances of byte source -----------------------
