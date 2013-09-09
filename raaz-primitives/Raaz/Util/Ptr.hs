@@ -8,7 +8,8 @@ to use with type safe lengths.
 
 {-# LANGUAGE FlexibleContexts #-}
 module Raaz.Util.Ptr
-       ( allocaBuffer
+       ( byteSize
+       , allocaBuffer
        , movePtr
        , storeAt, storeAtIndex
        , loadFrom, loadFromIndex
@@ -20,6 +21,11 @@ import Foreign.Marshal.Alloc
 import Foreign.Storable(Storable, sizeOf)
 import System.IO (hGetBuf, Handle)
 import Raaz.Types
+
+-- | Similar to `sizeOf` but returns the length in type safe units.
+byteSize :: Storable a => a -> BYTES Int
+{-# INLINE byteSize #-}
+byteSize = BYTES . sizeOf
 
 -- | The expression @allocaBuffer l action@ allocates a local buffer
 -- of length @l@ and passes it on to the IO action @action@. No
@@ -57,7 +63,8 @@ storeAtIndex :: CryptoStore w
              -> w         -- ^ the value to store
              -> IO ()
 {-# INLINE storeAtIndex #-}
-storeAtIndex cptr index w = store (cptr `plusPtr` (index * sizeOf w)) w
+storeAtIndex cptr index w = storeAt cptr offset w
+  where offset = toEnum index * byteSize w
 
 -- | Store the given value at an offset from the crypto pointer. The
 -- offset is given in type safe units.
@@ -80,7 +87,8 @@ loadFromIndex :: CryptoStore w
 {-# INLINE loadFromIndex #-}
 loadFromIndex cptr index = loadP undefined
    where loadP ::  (CryptoStore w, Storable w) => w -> IO w
-         loadP w = load $ cptr `plusPtr` (index * sizeOf w)
+         loadP w = loadFrom cptr offset
+           where offset = toEnum index * byteSize w
 
 -- | Load from a given offset. The offset is given in type safe units.
 loadFrom :: ( CryptoStore w
