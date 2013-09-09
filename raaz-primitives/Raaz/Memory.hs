@@ -25,9 +25,6 @@ import Foreign.Storable
 
 
 import Raaz.Types
-import Raaz.Util.Ptr ( loadFromIndex
-                     , storeAtIndex
-                     )
 import Raaz.Util.SecureMemory
 
 -- | Any cryptographic primitives use memory to store stuff. This
