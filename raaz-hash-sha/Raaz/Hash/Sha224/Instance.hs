@@ -5,10 +5,9 @@ This module defines the hash instances for sha224 hash.
 -}
 
 {-# LANGUAGE TypeFamilies         #-}
-{-# LANGUAGE EmptyDataDecls       #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module Raaz.Hash.Sha224.Instance ( Ref ) where
+module Raaz.Hash.Sha224.Instance (CPortable, Ref) where
 
 import Control.Applicative ( (<$>) )
 import Control.Monad       ( foldM )

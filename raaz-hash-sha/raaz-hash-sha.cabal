@@ -19,28 +19,28 @@ source-repository head
 
 library
   exposed-modules: Raaz.Hash.Sha1
+                 , Raaz.Hash.Sha1.Instance
                  , Raaz.Hash.Sha1.Type
                  , Raaz.Hash.Sha224
+                 , Raaz.Hash.Sha224.Instance
                  , Raaz.Hash.Sha224.Type
                  , Raaz.Hash.Sha256
+                 , Raaz.Hash.Sha256.Instance
                  , Raaz.Hash.Sha256.Type
                  , Raaz.Hash.Sha384
+                 , Raaz.Hash.Sha384.Instance
                  , Raaz.Hash.Sha384.Type
                  , Raaz.Hash.Sha512
+                 , Raaz.Hash.Sha512.Instance
                  , Raaz.Hash.Sha512.Type
-  other-modules: Raaz.Hash.Sha1.Instance
-               , Raaz.Hash.Sha1.Ref
+  other-modules: Raaz.Hash.Sha1.Ref
                , Raaz.Hash.Sha1.Ref.TH
                , Raaz.Hash.Sha1.CPortable
-               , Raaz.Hash.Sha224.Instance
                , Raaz.Hash.Sha224.CPortable
-               , Raaz.Hash.Sha256.Instance
                , Raaz.Hash.Sha256.Ref
                , Raaz.Hash.Sha256.Ref.TH
                , Raaz.Hash.Sha256.CPortable
-               , Raaz.Hash.Sha384.Instance
                , Raaz.Hash.Sha384.CPortable
-               , Raaz.Hash.Sha512.Instance
                , Raaz.Hash.Sha512.Ref
                , Raaz.Hash.Sha512.Ref.TH
                , Raaz.Hash.Sha512.CPortable
@@ -71,6 +71,7 @@ test-Suite tests
   main-is: Main.hs
   build-depends: base
                , bytestring
+               , data-default
                , test-framework==0.6.*
                , QuickCheck==2.4.*
                , raaz-primitives==0.0.0.0

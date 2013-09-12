@@ -2,14 +2,18 @@ module Modules.Sha224
        ( tests
        ) where
 
-import Control.Applicative
-import qualified Data.ByteString as B
+import           Control.Applicative
+import qualified Data.ByteString       as B
 import qualified Data.ByteString.Char8 as C8
-import Test.QuickCheck(Arbitrary(..))
+import           Data.Default
+import           Test.QuickCheck       (Arbitrary(..))
 
-import Raaz.Test(allHashTests)
-import Raaz.Hash.Sha224
-import Raaz.Hash.Sha224.Type(SHA224(..))
+import           Raaz.Test             (allHashTests)
+import           Raaz.Test.Gadget
+
+import           Raaz.Hash.Sha224
+import           Raaz.Hash.Sha224.Instance
+import           Raaz.Hash.Sha224.Type (SHA224(..))
 
 instance Arbitrary SHA224 where
   arbitrary = SHA224 <$> arbitrary
@@ -21,7 +25,14 @@ instance Arbitrary SHA224 where
                      <*> arbitrary
 
 
-tests = allHashTests (undefined ::SHA224) exampleStrings
+tests = allHashTests (undefined ::SHA224) exampleStrings ++ [testCPortable]
+
+testCPortable = testGadget g ref def "CPortable vs Reference"
+  where
+    g :: CPortable
+    g = undefined
+    ref :: Ref
+    ref = undefined
 
 
 exampleStrings :: [(B.ByteString,B.ByteString)]
