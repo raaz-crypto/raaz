@@ -42,8 +42,7 @@ instance Gadget CPortable where
   newGadget cc = return $ CPortable cc
   initialize (CPortable cc) (SHA512IV sha1) = cellStore cc sha1
   finalize (CPortable cc) = cellLoad cc
+  apply (CPortable cc) n cptr = sha512Compress cc n cptr
 
-instance SafeGadget CPortable where
-  applySafe (CPortable cc) n cptr = sha512Compress cc n cptr
-
-instance HashGadget CPortable where
+instance SafeGadget CPortable
+instance HashGadget CPortable

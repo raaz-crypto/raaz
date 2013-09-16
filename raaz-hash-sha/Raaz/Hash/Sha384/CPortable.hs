@@ -32,9 +32,8 @@ instance Gadget CPortable where
   finalize (CPortable cc) = sha512Tosha384 `fmap` cellLoad cc
     where sha512Tosha384 (SHA512 h0 h1 h2 h3 h4 h5 _ _)
             = (SHA384 h0 h1 h2 h3 h4 h5)
-
-instance SafeGadget CPortable where
-  applySafe (CPortable cc) n cptr = sha512Compress cc n' cptr
+  apply (CPortable cc) n cptr = sha512Compress cc n' cptr
     where n' = blocksOf (fromIntegral n) (undefined :: SHA512)
 
-instance HashGadget CPortable where
+instance SafeGadget CPortable
+instance HashGadget CPortable
