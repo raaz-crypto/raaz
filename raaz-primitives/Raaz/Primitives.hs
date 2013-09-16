@@ -16,8 +16,8 @@ module Raaz.Primitives
          -- $primAndGadget$
          Primitive(..)
        , Gadget(..)
-       , SafeGadget(..)
-       , UnsafeGadget(..)
+       , SafeGadget
+       , UnsafeGadget
        , CryptoPrimitive(..)
        , HasPadding(..)
        , BLOCKS, blocksOf
@@ -120,19 +120,21 @@ class ( Primitive (PrimitiveOf g), Memory (MemoryOf g) )
   recommendedBlocks   :: g -> BLOCKS (PrimitiveOf g)
   recommendedBlocks _ = cryptoCoerce (1024 * 32 :: BYTES Int)
 
+  -- | This function actually applies the gadget on the buffer. What
+  -- happens to the content of the buffer depends on whether it is a
+  -- `SafeGadget` or `UnsafeGadget`.
+  apply :: g -> BLOCKS (PrimitiveOf g) -> CryptoPtr -> IO ()
+
 -- | This type class captures a gadget that promises not to touch the
 -- the buffer of data that it processes.
-class (Gadget g) => SafeGadget g where
-  -- | Performs the action of the gadget on the buffer.
-  applySafe :: g -> BLOCKS (PrimitiveOf g) -> CryptoPtr -> IO ()
+class (Gadget g) => SafeGadget g
+
 
 -- | An instance of this gadget /does not/ promise anything on the
 -- contents of the buffer passed. Sometimes, we actually want the
 -- buffer of data to be mangled by the gadget, for example when the
 -- gadget implements a cipher or fills the buffer with random bytes.
-class (Gadget g) => UnsafeGadget g where
-  -- | Performs the action of the gadget on the buffer.
-  applyUnsafe :: g -> BLOCKS (PrimitiveOf g) -> CryptoPtr -> IO ()
+class (Gadget g) => UnsafeGadget g
 
 -------------------- Primitives with padding ---------------------------
 
@@ -255,12 +257,11 @@ transformGadget :: ( ByteSource src
                    , HasPadding (PrimitiveOf g)
                    )
                 => g         -- ^ Gadget
-                -> (g -> (BLOCKS (PrimitiveOf g)) -> CryptoPtr -> IO ())
                 -> src       -- ^ The byte source
                 -> IO ()
 {-# INLINEABLE transformGadget #-}
 
-transformGadget g apply src = allocaBuffer bufSize $ go 0 src
+transformGadget g src = allocaBuffer bufSize $ go 0 src
   where nBlocks = recommendedBlocks g
         bufSize = nBlocks + maxAdditionalBlocks p
         p       = getPrimitive g
@@ -282,8 +283,7 @@ transformGadgetFile :: ( Gadget g
                        , HasPadding (PrimitiveOf g)
                        )
                     => g          -- ^ Gadget
-                    -> (g -> (BLOCKS (PrimitiveOf g)) -> CryptoPtr -> IO ())
                     -> FilePath   -- ^ The file name.
                     -> IO ()
-transformGadgetFile g apply fpth = withFile fpth ReadMode $ transformGadget g apply
+transformGadgetFile g fpth = withFile fpth ReadMode $ transformGadget g
 {-# INLINEABLE transformGadgetFile #-}
