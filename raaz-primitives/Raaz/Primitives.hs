@@ -17,7 +17,6 @@ module Raaz.Primitives
          Primitive(..)
        , Gadget(..)
        , SafeGadget
-       , UnsafeGadget
        , CryptoPrimitive(..)
        , HasPadding(..)
        , BLOCKS, blocksOf
@@ -122,19 +121,13 @@ class ( Primitive (PrimitiveOf g), Memory (MemoryOf g) )
 
   -- | This function actually applies the gadget on the buffer. What
   -- happens to the content of the buffer depends on whether it is a
-  -- `SafeGadget` or `UnsafeGadget`.
+  -- `SafeGadget` or not.
   apply :: g -> BLOCKS (PrimitiveOf g) -> CryptoPtr -> IO ()
 
 -- | This type class captures a gadget that promises not to touch the
 -- the buffer of data that it processes.
 class (Gadget g) => SafeGadget g
 
-
--- | An instance of this gadget /does not/ promise anything on the
--- contents of the buffer passed. Sometimes, we actually want the
--- buffer of data to be mangled by the gadget, for example when the
--- gadget implements a cipher or fills the buffer with random bytes.
-class (Gadget g) => UnsafeGadget g
 
 -------------------- Primitives with padding ---------------------------
 
