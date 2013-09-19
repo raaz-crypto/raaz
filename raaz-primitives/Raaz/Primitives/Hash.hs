@@ -81,7 +81,7 @@ class ( SafeGadget g
                 iterateOnce hsh _ = do
                   store cptr hsh
                   initialize g def
-                  applySafe g blks cptr
+                  apply g blks cptr
                   out <- finalize g
                   return out
 
@@ -103,7 +103,7 @@ class ( SafeGadget g
            go cptr = do
               store cptr h
               unsafePad h tBits $ cptr `movePtr` sz
-              applySafe g (cryptoCoerce tl) cptr
+              apply g (cryptoCoerce tl) cptr
               finalize g
 
 
@@ -116,7 +116,7 @@ sourceHash' :: ( HashGadget g, ByteSource src )
             -> IO (PrimitiveOf g)
 sourceHash' g src = do
   gad <- initializeHash g
-  transformGadget gad applySafe src
+  transformGadget gad src
   finalize gad
    where initializeHash :: HashGadget g => g -> IO g
          initializeHash _ = do
@@ -232,7 +232,7 @@ instance HashGadget g => Gadget (HMACGadget g) where
     withForeignPtr fcptr (flip store fv . flip movePtr (oneBlock g))
     withForeignPtr fcptr (unsafePad (getPrim g) mlen)
     initialize g def
-    withForeignPtr fcptr (applySafe g (2 * oneBlock g))
+    withForeignPtr fcptr (apply g (2 * oneBlock g))
     HMAC <$> finalize g
     where
       mlen = cryptoCoerce $ BYTES $ sizeOf (getPrim g) + len
@@ -247,9 +247,10 @@ instance HashGadget g => Gadget (HMACGadget g) where
         getHash' :: Gadget g => HMACGadget g -> g
         getHash' (HMACGadget g _) = g
 
-instance (HashGadget g) => SafeGadget (HMACGadget g) where
-  applySafe (HMACGadget g _) blks cptr = applySafe g blks' cptr
+  apply (HMACGadget g _) blks cptr = apply g blks' cptr
           where blks' = toEnum $ fromEnum blks
+
+instance (HashGadget g) => SafeGadget (HMACGadget g)
 
 -- instance (CryptoPrimitive p, PrimitiveOf (HMACGadget (Recommended p)) ~ HMAC p)
 --          => CryptoPrimitive (HMAC p) where
@@ -304,7 +305,7 @@ initHMAC' :: HashGadget g
           -> IO ()
 initHMAC' (HMACGadget g (HMACBuffer fptr)) bs = do
   _ <- withForeignPtr fptr (fillBytes (BYTES len) ipad)
-  withForeignPtr fptr (applySafe g (oneBlock g))
+  withForeignPtr fptr (apply g (oneBlock g))
   _ <- withForeignPtr fptr (fillBytes (BYTES len) opad)
   return ()
   where

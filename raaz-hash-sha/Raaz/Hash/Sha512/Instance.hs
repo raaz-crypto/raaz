@@ -40,9 +40,7 @@ instance Gadget Ref where
   newGadget cc = return $ Ref cc
   initialize (Ref cc) (SHA512IV sha1) = cellStore cc sha1
   finalize (Ref cc) = cellLoad cc
-
-instance SafeGadget Ref where
-  applySafe (Ref cc) n cptr = do
+  apply (Ref cc) n cptr = do
     initial <- cellLoad cc
     final <- fst <$> foldM moveAndHash (initial,cptr) [1..n]
     cellStore cc final
@@ -51,4 +49,5 @@ instance SafeGadget Ref where
       moveAndHash (cxt,ptr) _ = do newCxt <- sha512CompressSingle cxt ptr
                                    return (newCxt, ptr `movePtr` sz)
 
-instance HashGadget Ref where
+instance SafeGadget Ref
+instance HashGadget Ref
