@@ -58,6 +58,7 @@ test-Suite tests
   build-depends: base
                , bytestring
                , test-framework==0.6.*
+               , test-framework-quickcheck2>=0.2
                , QuickCheck==2.4.*
                , raaz-primitives==0.0.0.0
                , raaz-cipher-aes==0.0.0.0
