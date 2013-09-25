@@ -29,7 +29,7 @@ library
                , template-haskell
   ghc-options: -Wall
 
-  c-sources:
+  c-sources: cbits/raaz/cipher/aes.c
   include-dirs: cbits
 
 
