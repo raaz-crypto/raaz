@@ -19,17 +19,28 @@ source-repository head
 
 library
   exposed-modules: Raaz.Cipher.AES.Type
-                 , Raaz.Cipher.AES.Block
-                 , Raaz.Cipher.AES.CBC.Type
+                 , Raaz.Cipher.AES.Ref.Type
+                 , Raaz.Cipher.AES.Ref.Block
+                 , Raaz.Cipher.AES.CBC.CPortable
+                 , Raaz.Cipher.AES.CBC.Instance
                  , Raaz.Cipher.AES.CBC.Ref
+                 , Raaz.Cipher.AES.CBC.Type
+                 , Raaz.Cipher.AES.CTR.CPortable
+                 , Raaz.Cipher.AES.CTR.Instance
+                 , Raaz.Cipher.AES.CTR.Ref
+                 , Raaz.Cipher.AES.CTR.Type
+                 , Raaz.Cipher.AES.ECB.CPortable
+                 , Raaz.Cipher.AES.ECB.Instance
+                 , Raaz.Cipher.AES.ECB.Ref
+                 , Raaz.Cipher.AES.ECB.Type
   other-modules: Raaz.Cipher.Util.GF
   build-depends: base
                , bytestring
                , raaz-primitives==0.0.0.0
-               , template-haskell
+               , vector
   ghc-options: -Wall
 
-  c-sources: cbits/raaz/cipher/aes.c
+  c-sources: cbits/raaz/cipher/cportable/aes.c
   include-dirs: cbits
 
 
