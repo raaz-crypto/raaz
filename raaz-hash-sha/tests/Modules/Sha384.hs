@@ -2,14 +2,18 @@ module Modules.Sha384
        ( tests
        ) where
 
-import Control.Applicative
-import qualified Data.ByteString as B
+import           Control.Applicative
+import qualified Data.ByteString       as B
 import qualified Data.ByteString.Char8 as C8
-import Test.QuickCheck(Arbitrary(..))
+import           Data.Default
+import           Test.QuickCheck       (Arbitrary(..))
 
-import Raaz.Test(allHashTests)
-import Raaz.Hash.Sha384
-import Raaz.Hash.Sha384.Type(SHA384(..))
+import           Raaz.Test             (allHashTests)
+import           Raaz.Test.Gadget
+
+import           Raaz.Hash.Sha384
+import           Raaz.Hash.Sha384.Instance
+import           Raaz.Hash.Sha384.Type (SHA384(..))
 
 instance Arbitrary SHA384 where
   arbitrary = SHA384 <$> arbitrary
@@ -20,8 +24,14 @@ instance Arbitrary SHA384 where
                      <*> arbitrary
 
 
-tests = allHashTests (undefined ::SHA384) exampleStrings
+tests = allHashTests (undefined ::SHA384) exampleStrings ++ [testCPortable]
 
+testCPortable = testGadget g ref def "CPortable vs Reference"
+  where
+    g :: CPortable
+    g = undefined
+    ref :: Ref
+    ref = undefined
 
 exampleStrings :: [(B.ByteString,B.ByteString)]
 exampleStrings = map convertToByteString

@@ -20,7 +20,9 @@ source-repository head
 
 library
   exposed-modules: Raaz.Test
+                 , Raaz.Test.Cipher
                  , Raaz.Test.CryptoStore
+                 , Raaz.Test.Gadget
                  , Raaz.Test.Hash
   other-modules: Raaz.Test.Instances
   build-depends: base

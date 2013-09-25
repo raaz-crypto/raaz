@@ -9,6 +9,7 @@ module Raaz.Test.Hash
        , testLengthDivisibility
        , testStandardHashValues
        , allHashTests
+       , shorten
        ) where
 
 import qualified Data.ByteString as B
