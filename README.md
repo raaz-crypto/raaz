@@ -2,9 +2,9 @@ Raaz: A secure networking library in Haskell
 --------------------------------------------
 
 Raaz is a library for secure network programming. The word `Raaz`
-stands for secret in Hindi. The aim of this library is to provide a
-haskell interface to existing protocols like ssh and tls together with
-fast implementation of primitives.
+(&#x0930;&#x093E;&#x095B;) stands for secret in Hindi. The aim of this library
+is to provide a haskell interface to existing protocols like ssh and
+tls together with fast implementation of primitives.
 
 Hacking and Discussion
 ----------------------
