@@ -9,12 +9,16 @@ fast implementation of primitives.
 Hacking and Discussion
 ----------------------
 
-* For hacking see our [github repository][repo]
+* For hacking see our [github repository][repo].
 
 * For discussion see our [google groups][emailgroups] mailing list.
 
+For details please refer to [our wiki][wiki].
+
+
 [![Build Staus][travis-status]][travis-raaz]
 
+[wiki]: <https://github.com/piyush-kurur/raaz/wiki> "Raaz Wiki"
 [repo]: <https://github.com/piyush-kurur/raaz> "Raaz on github"
 
 [emailgroups]: <https://groups.google.com/forum/#!forum/hraaz> "Raaz on Google groups"
