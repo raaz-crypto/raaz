@@ -18,10 +18,13 @@ endif			# For explicit ghc version
 
 
 
-.PHONY: install clean ${PACKAGES} ${PACKAGES_UNREGISTER}
+.PHONY: install clean ${PACKAGES} ${PACKAGES_UNREGISTER} cabal-update
 
 install: ${PACKAGES} raaz
 clean:   ${PACKAGE_CLEAN}
+
+cabal-update:
+	${CABAL} update
 
 ${PACKAGES}:
 	cd $@;\
@@ -39,15 +42,12 @@ ${PACKAGE_CLEAN}:
 
 ##  Travis stuff here.
 
-
-
-
 travis-haskell-ppa:
 	sudo add-apt-repository -y ppa:hvr/ghc
 	sudo apt-get update
 	sudo apt-get install cabal-install-1.18 ghc-${GHC_VERSION} happy
 
-travis-install:
+travis-install: cabal-update
 	make install \
 		INSTALL_OPTS='-O0 --enable-documentation --enable-tests'
 

@@ -1,4 +1,3 @@
-language: haskell
 env:
   - GHC_VERSION=7.4.2
   - GHC_VERSION=7.6.3
