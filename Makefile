@@ -5,6 +5,19 @@ include Makefile.configure
 PACKAGE_CLEAN=$(foreach pkg, ${PACKAGES}, ${pkg}-clean)
 TEST_PATH=dist/build/tests/tests
 
+ifdef GHC_VERSION	# For explicit ghc version
+
+travis-install: travis-haskell-ppa
+PATH:=/opt/ghc/${GHC_VERSION}/bin:${PATH}
+CABAL=cabal-1.18
+
+else
+CABAL=cabal
+
+endif			# For explicit ghc version
+
+
+
 .PHONY: install clean ${PACKAGES} ${PACKAGES_UNREGISTER}
 
 install: ${PACKAGES} raaz
@@ -12,7 +25,7 @@ clean:   ${PACKAGE_CLEAN}
 
 ${PACKAGES}:
 	cd $@;\
-	cabal install ${INSTALL_OPTS}
+	${CABAL} install ${INSTALL_OPTS}
 
 ${PACKAGE_CLEAN}:
 	cd $(patsubst %-clean,%,$@);\
@@ -24,13 +37,23 @@ ${PACKAGE_CLEAN}:
 
 .PHONY: fast-forward fast-forward-all merge release
 
+##  Travis stuff here.
+
+
+
+
+travis-haskell-ppa:
+	sudo add-apt-repository -y ppa:hvr/ghc
+	sudo apt-get update
+	sudo apt-get install cabal-install-1.18 ghc-${GHC_VERSION} happy
 
 travis-install:
-	make install INSTALL_OPTS='-O0 --enable-documentation --enable-tests'
+	make install \
+		INSTALL_OPTS='-O0 --enable-documentation --enable-tests'
 
 travis-tests:
 	$(foreach pkg, ${PACKAGES},\
 		cd ${pkg};\
-		cabal test;\
+		${CABAL} test;\
 		cd ..;\
 		)
