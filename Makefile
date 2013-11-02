@@ -63,6 +63,8 @@ CABAL=cabal
 endif
 
 install: ${PACKAGES} raaz
+	@echo User packages installed
+	ghc-pkg list --user
 
 ${PACKAGES}:
 	cd $@;\
