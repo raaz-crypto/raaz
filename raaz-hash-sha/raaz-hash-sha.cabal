@@ -1,5 +1,5 @@
 name:          raaz-hash-sha
-version:       0.0.0.0
+version:       0.0.0.1
 synopsis:      Implementation of the SHA family of hashes for raaz library
 homepage:      http://github.com/piyush-kurur/raaz
 license:       BSD3
@@ -48,8 +48,13 @@ library
   build-depends: base
                , bytestring
                , data-default
-               , raaz-primitives==0.0.0.0
                , template-haskell
+
+               --
+               -- Raaz dependencies
+               --
+               , raaz-primitives           >=0.0.0.1
+
   ghc-options: -Wall
 
   c-sources: cbits/raaz/hash/sha1/portable.c
@@ -71,8 +76,12 @@ test-Suite tests
   main-is: Main.hs
   build-depends: base
                , bytestring
-               , test-framework==0.6.*
-               , QuickCheck==2.4.*
-               , raaz-primitives==0.0.0.0
-               , raaz-hash-sha==0.0.0.0
-               , raaz-tests==0.0.0.0
+               , test-framework            >=0.6
+               , QuickCheck                >=2.4
+
+               --
+               -- Raaz dependencies
+               --
+               , raaz-primitives           >=0.0.0.1
+               , raaz-hash-sha             >=0.0.0.1
+               , raaz-tests                >=0.0.0.1
