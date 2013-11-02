@@ -62,6 +62,15 @@ CABAL=cabal
 
 endif
 
+# This target just prints the setting of each relevant
+# variable. Useful for debugging.
+
+echo-variables:
+	@echo Makefile variables.
+	@echo -e '\t'GHC_VERSION=${GHC_VERSION}
+	@echo -e '\t'CABAL_VERSION=${CABAL_VERSION}
+	@echo -e '\t'ghc,cabal: ${GHC_PKG} ${CABAL_PKG}
+
 install: ${PACKAGES} raaz
 	@echo User packages installed
 	ghc-pkg list --user
