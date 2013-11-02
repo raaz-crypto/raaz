@@ -7,6 +7,7 @@ include Makefile.configure # Read in configuration
 PHONY: install # Installs all the packages
 PHONY: clean   # removes all the packages and cleans
 PHONY: tests   # Runs the tests assumes that install is already done.
+PHONY: echo-variables # Shows make variables. Useful while debugging
 PHONY: travis-before-install # Sets up the travis environment.
 
 #
