@@ -1,5 +1,5 @@
 name:          raaz-primitives
-version:       0.0.0.0
+version:       0.0.0.1
 synopsis:      Cryptographic primitives for the raaz library
 homepage:      http://github.com/piyush-kurur/raaz
 license:       BSD3
@@ -34,14 +34,14 @@ library
                , cpu
                , data-default
                , mtl
-               , QuickCheck==2.4.*
+               , QuickCheck                     >= 2.4
                , template-haskell
-               , test-framework==0.6.*
-               , test-framework-quickcheck2==0.2.*
+               , test-framework                 >= 0.6
+               , test-framework-quickcheck2     >= 0.2
                --
                -- Dependency on other raaz-packages.
                --
-               , raaz-config
+               , raaz-config                    >= 0.0.0.1
   ghc-options: -Wall
 
   c-sources: cbits/raaz/memory.c

@@ -1,5 +1,5 @@
 name:          raaz-ssh
-version:       0.0.0.0
+version:       0.0.0.1
 synopsis:      An implementation of the ssh protocol.
 homepage:      http://github.com/piyush-kurur/raaz
 license:       BSD3
