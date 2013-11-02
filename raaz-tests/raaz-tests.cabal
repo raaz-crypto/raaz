@@ -1,5 +1,5 @@
 name:          raaz-tests
-version:       0.0.0.0
+version:       0.0.0.1
 synopsis:      Generic tests for raaz-packages and test suites for
                raaz-primitives
 homepage:      http://github.com/piyush-kurur/raaz
@@ -25,12 +25,14 @@ library
   other-modules: Raaz.Test.Instances
   build-depends: base
                , bytestring
-               , HUnit==1.2.*
-               , test-framework==0.6.*
-               , test-framework-hunit
-               , test-framework-quickcheck2==0.2.*
-               , QuickCheck==2.4.*
-               , raaz-primitives==0.0.0.0
+               , HUnit                       >=1.2
+               , QuickCheck                  >=2.4
+               , test-framework              >=0.6
+               , test-framework-hunit        >=0.2
+               , test-framework-quickcheck2  >=0.2
+
+               -- Dependency on other raaz packages
+               , raaz-primitives             >=0.0.0.1
   ghc-options: -Wall
 
 test-Suite tests
@@ -50,10 +52,14 @@ test-Suite tests
 
   build-depends: base
                , bytestring
-               , HUnit==1.2.*
-               , test-framework==0.6.*
-               , test-framework-hunit
-               , test-framework-quickcheck2==0.2.*
-               , QuickCheck==2.4.*
-               , raaz-primitives==0.0.0.0
-               , raaz-tests==0.0.0.0
+               , HUnit                       >=1.2
+               , QuickCheck                  >=2.4
+               , test-framework              >=0.6
+               , test-framework-hunit        >=0.2
+               , test-framework-quickcheck2  >=0.2
+
+               --
+               -- Dependency on other raaz packages.
+               --
+               , raaz-primitives             >=0.0.0.1
+               , raaz-tests                  >=0.0.0.1
