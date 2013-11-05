@@ -84,7 +84,7 @@ echo-variables:
 
 	@echo -e '\t'ghc,cabal: ${GHC_PKG} ${CABAL_PKG}
 
-install: ${PACKAGES} raaz
+install: ${PACKAGES}
 	@echo User packages installed
 	ghc-pkg list --user
 
