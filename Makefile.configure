@@ -12,8 +12,8 @@ INSTALL_OPTS=
 # TODO: Can this ordering be auto generated from the depenency in the
 # make file. Can it be generated using some cabal scripting.
 
-PACKAGES=raaz raaz-primitives raaz-hash-sha raaz-ssh raaz-tests\
-	 raaz-config
+PACKAGES= raaz raaz-hash-sha raaz-ssh raaz-tests\
+	  raaz-primitives raaz-config
 
 # Dependencies of packages goes here. At present it is hand coded but
 # may be this should be the work of a cabal script.
