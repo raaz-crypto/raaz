@@ -26,6 +26,7 @@ library
                  , Raaz.System.Parameters
                  , Raaz.Types
                  , Raaz.Util.ByteString
+                 , Raaz.Util.Gadget
                  , Raaz.Util.Ptr
                  , Raaz.Util.SecureMemory
                  , Raaz.Util.TH
