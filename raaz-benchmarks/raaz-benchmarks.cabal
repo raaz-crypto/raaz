@@ -26,10 +26,10 @@ library
                , HUnit                       >= 1.2
                , QuickCheck                  >= 2.4
                , test-framework              >= 0.6
-               , test-framework-hunit	     >= 0.2
+               , test-framework-hunit        >= 0.2
                , test-framework-quickcheck2  >= 0.2
 
-	       -- Dependency on other raaz packages.
+               -- Dependency on other raaz packages.
                , raaz-primitives             >= 0.0.0.1
   ghc-options: -Wall
 
@@ -49,9 +49,9 @@ test-Suite tests
                , HUnit                       >= 1.2
                , QuickCheck                  >= 2.4
                , test-framework              >= 0.6
-               , test-framework-hunit	     >= 0.2
+               , test-framework-hunit        >= 0.2
                , test-framework-quickcheck2  >= 0.2
 
-	       -- Dependencies on raaz packages.
-	       , raaz-primitives             >= 0.0.0.1
+               -- Dependencies on raaz packages.
+               , raaz-primitives             >= 0.0.0.1
                , raaz-tests                  >= 0.0.0.1
