@@ -91,7 +91,13 @@ install: ${PACKAGES}
 ${PACKAGES}:
 	cp ${CABAL_CONFIG} $@/cabal.config
 	cd $@;\
-	${CABAL} install ${INSTALL_OPTS}
+	${CABAL} configure --enable-tests --enable-benchmarks -v2;\
+	${CABAL} build;\
+	${CABAL} test;\
+	${CABAL} check;\
+	${CABAL} sdist;\
+	${CABAL} haddock;\
+	${CABAL} install
 
 tests:
 	$(foreach pkg, ${PACKAGES},\
