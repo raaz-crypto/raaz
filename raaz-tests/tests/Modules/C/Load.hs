@@ -12,9 +12,8 @@ module Modules.C.Load
 
 import Control.Monad
 import Data.Word
-import Foreign.C.String
 import Foreign.Storable
-import Test.Framework(Test, testGroup, buildTest)
+import Test.Framework(Test, testGroup)
 import Test.Framework.Providers.QuickCheck2(testProperty)
 import Test.QuickCheck
 import Test.QuickCheck.Monadic(run, assert, monadicIO)
