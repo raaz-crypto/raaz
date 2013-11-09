@@ -1,12 +1,20 @@
-name:          raaz-ssh
-version:       0.0.0.1
-synopsis:      An implementation of the ssh protocol.
-homepage:      http://github.com/piyush-kurur/raaz
-license:       BSD3
-license-file:  LICENSE
-author:        Piyush P Kurur
-maintainer:    ppk@cse.iitk.ac.in
-category:      Network, Raaz
+name:     raaz-ssh
+version:  0.0.0.1
+category: Network, Raaz
+
+synopsis: Implementation of the ssh protocol.
+
+description: This package implements the ssh protocol.
+
+
+homepage: http://github.com/piyush-kurur/raaz
+
+license:      BSD3
+license-file: LICENSE
+author:       Piyush P Kurur
+maintainer:   ppk@cse.iitk.ac.in
+
+
 build-type:    Simple
 cabal-version: >=1.8
 
@@ -20,9 +28,8 @@ source-repository head
 library
   exposed-modules: Raaz.Network.SSH.Transport
   other-modules: Paths_raaz_ssh
-  build-depends: base
-               , bytestring
-
+  build-depends: base                           >= 4.5 && < 4.7
+               , bytestring                     >= 0.9 && < 0.11
 
 test-Suite tests
   type: exitcode-stdio-1.0
