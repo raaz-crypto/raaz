@@ -70,7 +70,7 @@ library
 
 
   if os(linux)
-     cc-options: -Wall -Werror -O3 -DRAAZ_HAVE_GCC
+     cc-options: -Wall -Werror -DRAAZ_HAVE_GCC
   else
      cc-options:
 
