@@ -1,11 +1,20 @@
-name:          raaz
-version:       0.0.0.1
-synopsis:      The raaz meta package.
+name:     raaz
+version:  0.0.0.1
+category: Raaz
+
+synopsis: The raaz meta package.
+
+description: This package exposes the entire raaz cryptographic
+  library to the user. Usually you need to only import the Raaz module
+  for this package. This package also provides some executables that
+  can act as stand in replacement for the corresponding executables
+  available of a Unix environment.
+
 license:       BSD3
 license-file:  LICENSE
 author:        Piyush P Kurur
 maintainer:    ppk@cse.iitk.ac.in
-category:      Raaz
+
 build-type:    Simple
 cabal-version: >=1.9.2
 
@@ -20,25 +29,24 @@ library
   exposed-modules: Raaz
                  , Raaz.Hash
   other-modules: Paths_raaz
-  build-depends: base
-
+  build-depends: base                           >= 4.5 && < 4.7
                --
                -- Raaz dependencies
                --
-               , raaz-hash-sha                  >=0.0.0.1
+               , raaz-hash-sha                  >=0.0.0.1 && < 0.0.0.2
 
 executable checksum
   hs-source-dirs: bin
   other-modules: Paths_raaz
-  build-depends: base
-               , bytestring
-               , cmdargs                        >=0.10
-
+  build-depends: base                           >= 4.5  && < 4.7
+               , bytestring                     >= 0.9  && < 0.11
+               , cmdargs                        >= 0.9 &&  < 0.11
                --
                -- Raaz dependencies
                --
                , raaz-primitives                >=0.0.0.1
                , raaz                           >=0.0.0.1
-
+               , raaz-hash-sha                  >=0.0.0.1 && < 0.0.0.2
+               , raaz                           >=0.0.0.1 && < 0.0.0.2
   ghc-options: -Wall
   main-is: checksum.hs
