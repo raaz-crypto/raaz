@@ -4,11 +4,11 @@ include Makefile.configure # Read in configuration
 
 # The targets provided by this make file are the following:
 
-PHONY: install # Installs all the packages
-PHONY: clean   # removes all the packages and cleans
-PHONY: tests   # Runs the tests assumes that install is already done.
-PHONY: echo-variables # Shows make variables. Useful while debugging
-PHONY: travis-before-install # Sets up the travis environment.
+.PHONY: install # Installs all the packages
+.PHONY: clean   # removes all the packages and cleans
+.PHONY: tests   # Runs the tests assumes that install is already done.
+.PHONY: echo-variables # Shows make variables. Useful while debugging
+.PHONY: travis-before-install # Sets up the travis environment.
 
 #
 # For each package we have a target with the same name and a target
