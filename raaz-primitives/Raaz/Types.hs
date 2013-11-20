@@ -1,6 +1,7 @@
 {-|
 
-Some basic types and classes used in the cryptographic protocols.
+This module provide some basic types and type classes used in the
+cryptographic protocols.
 
 -}
 
@@ -11,16 +12,22 @@ Some basic types and classes used in the cryptographic protocols.
 {-# LANGUAGE TemplateHaskell            #-}
 
 module Raaz.Types
-       ( CryptoCoerce(..)
-       , cryptoAlignment, CryptoAlign, CryptoPtr
-       , CryptoStore(..), toByteString
-       -- * Endian safe types
-       -- $endianSafe
-       , Word32LE, Word32BE
+       (
+         -- * Type safety.
+         -- $typesafety$
+
+         -- ** Endian safe types
+         -- $endianSafe$
+
+         -- ** Type safe lengths
+         -- $length$
+         Word32LE, Word32BE
        , Word64LE, Word64BE
-       -- * Length encoding
-       -- $length
+       , CryptoStore(..), toByteString
+
        , BYTES(..), BITS(..)
+       , CryptoCoerce(..)
+       , cryptoAlignment, CryptoAlign, CryptoPtr
        -- * Types capturing implementations
        -- $implementation
        , HaskellGHC(..), MagicHash(..), C99FFI(..), C99GCC(..),
@@ -37,31 +44,58 @@ import Language.Haskell.TH(sigE, conT)
 import Language.Haskell.TH.Syntax(Lift(..))
 import System.Endian
 
-
--- Developers notes: I assumes that word alignment is alignment
--- safe. If this is not the case one needs to fix this to avoid
--- performance degradation or worse incorrect load/store.
-
--- | A type whose only purpose in this universe is to provide
--- alignment safe pointers.
-newtype CryptoAlign = CryptoAlign Word deriving Storable
-
--- | Alignment safe pointers.
-type CryptoPtr = Ptr CryptoAlign
-
--- | Alignment to use for cryptographic pointers.
-cryptoAlignment :: Int
-cryptoAlignment = alignment (undefined :: CryptoAlign)
-{-# INLINE cryptoAlignment #-}
-
--- | Often we need a type safe way to convert between one type to
--- another. In such a case, it is advisable to define an instance of
--- this class. One place where it is extensively used is in type safe
--- lengths.
-class CryptoCoerce s t where
-  cryptoCoerce :: s -> t
+-- $typesafety$
+--
+-- One of the aims of raaz is to avoid many bugs by making use of the
+-- type system of Haskell whenever possible. The types provided here
+-- avoids two kinds of errors
+--
+-- 1. Endian mismatch errors.
+--
+-- 2. Length conversion errors.
+--
 
 
+-- $endianSafe$
+--
+-- One of the most common source of implementation problems in crypto
+-- algorithms is the correct dealing of endianness. Endianness matters
+-- only when we first load the data from the buffer or when we finally
+-- write the data out. The class `CrytoStore` via its member functions
+-- `load` and `store` takes care of endian coversion automatically.
+--
+-- This module also provide explicitly endianness encoded versions of
+-- Word32 and Word64 which are instances of `CryptoStore`. These types
+-- inherit their parent type's `Num` instance (besides `Ord`, `Eq`
+-- etc). The advantage is the following uniformity in their usage in
+-- Haskell code:
+--
+--   1. Numeric constants are represented in their Haskell notation
+--      (which is big endian). For example 0xF0 represents the number
+--      240 whether it is `Word32LE` or `Word32BE` or just `Word32`.
+--
+--   2. The normal arithmetic work on them.
+--
+--   3. They have the same printed form except for the constructor
+--      sticking around.
+--
+-- Therefore, as far as Haskell programmers are concerned, `Word32LE`
+-- and `Word32BE` should be treated as `Word32` for all algorithmic
+-- aspects. Similarly, `Word64LE` and `Word64BE` should be treated as
+-- `Word64`.
+--
+-- When defining other endian sensitive data types like hashes, we
+-- expect users to use these endian safe types. For example SHA1 can
+-- be defined as
+--
+-- > data SHA1 = SHA1 Word32BE Word32BE Word32BE Word32BE Word32BE
+--
+-- Then the CryptoStore instance boils down to storing the words in
+-- correct order.
+
+
+
+--
 -- | This class is defined mainly to perform endian safe loading and
 -- storing. For any type that might have to be encoded as either byte
 -- strings or peeked/poked from a memory location it is advisable to
@@ -94,35 +128,6 @@ by ghc.
 -}
 
 
--- $endianSafe
---
--- One of the most common source of implementation problems in crypto
--- algorithms is the correct dealing of endianness. We define the
--- class `CryptoStore` to solve this problem in a type safe way. Any
--- type that might have to be encoded as either byte strings or
--- peeked/poked from a memory location should be an instance of this
--- class.
---
--- This module also provide explicitly endianness encoded versions of
--- Word32 and Word64 which are instances of `CryptoStore`. These types
--- inherit their parent type's `Num` instance (besides `Ord`, `Eq`
--- etc). The advantage is the following uniformity in their usage in
--- Haskell code:
---
---   1. Numeric constants are represented in their Haskell notation
---      (which is big endian). For example 0xF0 represents the number
---      240 whether it is `Word32LE` or `Word32BE` or just `Word32`.
---
---   2. The normal arithmetic work on them.
---
---   3. They have the same printed form except for the constructor
---      sticking around.
---
--- Therefore, as far as Haskell programmers are concerned, `Word32LE`
--- and `Word32BE` should be treated as `Word32` for all algorithmic
--- aspects. Similarly, `Word64LE` and `Word64BE` should be treated as
--- `Word64`. One can use the load/store functions to encode them
--- safely as well.
 
 -- | Little endian `Word32`.
 newtype Word32LE = LE32 Word32
@@ -245,16 +250,37 @@ instance Lift Word64LE where
 instance Lift Word64BE where
   lift w =  sigE (lift $ toInteger w) $ conT ''Word64BE
 
--- $length
+-- $length$
 --
--- Crypto protocols also represent message lengths in various units,
--- bytes and bits usually. To catch length conversion errors at
--- compile time, we include the following types that specify
--- explicitly whether the length is in bits or bytes.
+-- The other source of errors is when we have length conversions. Some
+-- times we need the length in bits (for example when appending the
+-- pad bytes in a crypto-hash), in other instances we need them in
+-- bytes (for example while allocating buffers). This module provides
+-- the `BYTES` and `BITS` type which capture lengths in units of bytes
+-- and BITS respectively. Interconversion between these types is
+-- handled by the `CryptoCoerce` class.  However, care should be taken
+-- when converting from `BITS` to `BYTES`. We could have avoided this
+-- but there are instances when this conversion is required. In such
+-- case it is the users responsibility to ensure that there are no
+-- rounding errors.
+--
+-- Most, if not all, functions in raaz that accept a length argument
+-- can be given any type safe length units. Thus a lot of length
+-- conversion boilerplate can be eradicated.
+--
+
+-- | We need a type safe way to convert between one type to
+-- another. In such a case, it is advisable to define an instance of
+-- this class. One place where it is extensively used is in type safe
+-- lengths.
+class CryptoCoerce s t where
+  cryptoCoerce :: s -> t
+
+
 
 -- | Type safe lengths/offsets in units of bytes. If the function
 -- excepts a length unit of a different type use `cryptoCoerce` to
--- convert to a more convenient length units.  the `CrytoCoerce`
+-- convert to a more convenient length units.  The `CrytoCoerce`
 -- instance is guranteed to do the appropriate scaling.
 newtype BYTES a  = BYTES a
         deriving ( Show, Eq, Ord, Enum, Integral
@@ -263,7 +289,7 @@ newtype BYTES a  = BYTES a
 
 -- | Type safe lengths/offsets in units of bits. If the function
 -- excepts a length unit of a different type use `cryptoCoerce` to
--- convert to a more convenient length units.  the `CrytoCoerce`
+-- convert to a more convenient length units.  The `CrytoCoerce`
 -- instance is guranteed to do the appropriate scaling.
 newtype BITS  a  = BITS  a
         deriving ( Show, Eq, Ord, Enum, Integral
@@ -299,6 +325,30 @@ instance ( Integral bi1
          ) => CryptoCoerce (BITS bi1) (BITS bi2) where
   cryptoCoerce (BITS bi) = BITS $ fromIntegral bi
   {-# INLINE cryptoCoerce #-}
+
+
+
+
+------------------ Alignment fu -------------------------------
+
+-- Developers notes: I assumes that word alignment is alignment
+-- safe. If this is not the case one needs to fix this to avoid
+-- performance degradation or worse incorrect load/store.
+
+-- | A type whose only purpose in this universe is to provide
+-- alignment safe pointers.
+newtype CryptoAlign = CryptoAlign Word deriving Storable
+
+-- | Alignment safe pointers.
+type CryptoPtr = Ptr CryptoAlign
+
+-- | Alignment to use for cryptographic pointers.
+cryptoAlignment :: Int
+cryptoAlignment = alignment (undefined :: CryptoAlign)
+{-# INLINE cryptoAlignment #-}
+
+
+
 
 -- $implementation
 --
