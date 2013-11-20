@@ -14,13 +14,17 @@ might be better of using the more high level interface.
 module Raaz.Primitives
        ( -- * Primtives and gadgets.
          -- $primAndGadget$
+
+         -- * Type safe lengths in units of blocks.
+         -- $typesafelengths$
+
          Primitive(..)
+       , BLOCKS, blocksOf
        , Gadget(..)
        , SafeGadget
        , CryptoPrimitive(..)
        , HasPadding(..)
-         -- * Type safe length units.
-       , BLOCKS, blocksOf
+
        , transformGadget, transformGadgetFile
        ) where
 
@@ -56,6 +60,7 @@ import Raaz.Util.Ptr
 -- are tuned to use the recommended gadget.
 --
 
+
 ----------------------- A primitive ------------------------------------
 
 -- | Abstraction that captures crypto primitives. Every primitive that
@@ -64,11 +69,6 @@ import Raaz.Util.Ptr
 -- intialisation value (captured by the data family `IV`). For a
 -- stream primitive (like a stream cipher) the block size is 1.
 --
--- When dealing with buffer lengths for a primitive, it is often
--- better to use the type safe units `BLOCKS`. Functions in the raaz
--- package that take lengths usually allow any type safe length as
--- long as they can be converted to bytes. This can avoid a lot of
--- tedious and error prone length calculations.
 class Primitive p where
 
   -- | The block size.
@@ -197,6 +197,15 @@ class ( Gadget (Recommended p)
   type Reference   p :: *
 
 ------------------- Type safe lengths in units of block ----------------
+
+-- $typesafelengths$
+--
+-- When dealing with buffer lengths for a primitive, it is often
+-- better to use the type safe units `BLOCKS`. Functions in the raaz
+-- package that take lengths usually allow any type safe length as
+-- long as they can be converted to bytes. This can avoid a lot of
+-- tedious and error prone length calculations.
+--
 
 -- | Type safe message length in units of blocks of the primitive.
 newtype BLOCKS p = BLOCKS Int
