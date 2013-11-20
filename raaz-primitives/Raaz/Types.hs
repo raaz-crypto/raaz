@@ -28,9 +28,6 @@ module Raaz.Types
        , BYTES(..), BITS(..)
        , CryptoCoerce(..)
        , cryptoAlignment, CryptoAlign, CryptoPtr
-       -- * Types capturing implementations
-       -- $implementation
-       , HaskellGHC(..), MagicHash(..), C99FFI(..), C99GCC(..),
        ) where
 
 import Data.Bits
@@ -346,26 +343,3 @@ type CryptoPtr = Ptr CryptoAlign
 cryptoAlignment :: Int
 cryptoAlignment = alignment (undefined :: CryptoAlign)
 {-# INLINE cryptoAlignment #-}
-
-
-
-
--- $implementation
---
--- Each primitives have multiple implementations and these
--- implementations are characterised by types. Given below are the
--- standard implementation types.
-
-
--- | Captures implementation in GHC flavoured haskell.
-data HaskellGHC = HaskellGHC deriving Show
-
--- | Captures implementations that uses the MagicHash unboxed types.
-data MagicHash = MagicHash deriving Show
-
--- | Captures implementations using portable C99 and Haskell FFI.
-data C99FFI = C99FFI       deriving Show
-
--- | Captures implementation which assumes GCC. Use this if you are
--- using some gcc specific features like inline assembly etc.
-data C99GCC = C99GCC       deriving Show
