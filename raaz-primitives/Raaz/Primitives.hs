@@ -2,7 +2,7 @@
 
 Generic cryptographic primtives and gadgets computing them. This is
 the low-level stuff that lies in the guts of the raaz system. You
-might be better of using the more high leven interface.
+might be better of using the more high level interface.
 
 -}
 
@@ -19,6 +19,7 @@ module Raaz.Primitives
        , SafeGadget
        , CryptoPrimitive(..)
        , HasPadding(..)
+         -- * Type safe length units.
        , BLOCKS, blocksOf
        , transformGadget, transformGadgetFile
        ) where
@@ -38,30 +39,36 @@ import Raaz.Util.Ptr
 -- $primAndGadget$
 --
 -- The raaz cryptographic engine is centered around two kinds of
--- stuff: primitives and gadgets to compute those primitives. Typical
--- cryptographic primitives are hashes, macs, ciphers, signature
--- algorithms etc. A gadget can be thought of as a device or algorithm
--- that implements the primitive.
+-- stuff: (1) /primitives/ and (2) /gadgets/ to compute those
+-- primitives. Typical cryptographic primitives are hashes, macs,
+-- ciphers, signature algorithms etc. A gadget can be thought of as a
+-- device or algorithm that implements the primitive. However, it is
+-- not merely a function. Usually they have internal memory elements
+-- or associated with them and they require explicit initialisation
+-- and finalisation. Therefore the device analogy is often better.
 --
 -- As a library, raaz believes in providing multiple gadgets for a
--- primitive. Of these two are of at most importance. There is the
--- reference gadget where the emphasis is on correctness rather than
--- speed or security. They are used to verify the correctness of the
--- other gadgets for the same primitive. For use of production, there
--- is the recommended gadget which. By default all library functions
+-- given primitive. Of these two are of at most importance. There is
+-- the /reference gadget/ where the emphasis is on correctness rather
+-- than speed or security. They are used to verify the correctness of
+-- the other gadgets for the same primitive. For use of production,
+-- there is the /recommended gadget/. By default all library functions
 -- are tuned to use the recommended gadget.
 --
 
 ----------------------- A primitive ------------------------------------
 
--- | Abstraction that captures crypto primitives. A primitive consists
--- of the following (1) A block size (2) and intialisation value
--- (captures by `IV`) and (3) a finalisation value captured `FV`. For
--- a stream primitive (like a stream cipher) the block size is
--- 1. Certain primitives do not require an initialisation value
--- (e.g. a hash) or might not provide a final value (e.g. a
--- cipher). In such cases use the unit type `()`.
-
+-- | Abstraction that captures crypto primitives. Every primitive that
+-- that we provide is a type which is an instance of this class. A
+-- primitive consists of the following (1) A block size and (2) an
+-- intialisation value (captured by the data family `IV`). For a
+-- stream primitive (like a stream cipher) the block size is 1.
+--
+-- When dealing with buffer lengths for a primitive, it is often
+-- better to use the type safe units `BLOCKS`. Functions in the raaz
+-- package that take lengths usually allow any type safe length as
+-- long as they can be converted to bytes. This can avoid a lot of
+-- tedious and error prone length calculations.
 class Primitive p where
 
   -- | The block size.
@@ -73,20 +80,14 @@ class Primitive p where
 -----------------   A cryptographic gadget. ----------------------------
 
 -- | A gadget implements a primitive. It has three phases: (1) the
--- initialisation (2) the processing/transformation phase and (3) the
--- finalisation. Depending on what the gadget does each of this phase
--- might be absent/trivial. The main action happens in the processing
--- phase where the gadget is passed a buffer. Depending on the
--- functionality of the gadget data is either written into/read by/or
+-- initialisation (2) the /processing/ or /transformation/ phase and
+-- (3) the /finalisation/. Depending on what the gadget, i.e. the
+-- nature of the associated primitive, each of this phase might be
+-- absent or trivial. The main action happens in the processing phase
+-- where the gadget is passed a buffer. Depending on the functionality
+-- of the gadget data is either written into, or read by or just
 -- transformed (think of a PRG, Cryptographic hash or a Cipher
 -- respectively).
---
--- This type class captures only the first and the third phase of
--- operation, namely initialisation and finalisation. Depending on
--- whether the input buffer is modified or not one has `applySafe` or
--- `applyUnsafe` functions that process a buffer of data. They are
--- members of the `SafeGadget` and `UnsafeGadget` classes
--- respectively.
 --
 class ( Primitive (PrimitiveOf g), Memory (MemoryOf g) )
       => Gadget g where
@@ -124,8 +125,16 @@ class ( Primitive (PrimitiveOf g), Memory (MemoryOf g) )
   -- `SafeGadget` or not.
   apply :: g -> BLOCKS (PrimitiveOf g) -> CryptoPtr -> IO ()
 
--- | This type class captures a gadget that promises not to touch the
--- the buffer of data that it processes.
+-- | A gadget @g@ is a safe gadget if it does not modify its input
+-- buffer. For example, gadgets for hashes are usually safe (there is
+-- no requirement as such but it appears that it makes sense to keep
+-- it safe) where as one would not want the a cipher gadget or a
+-- random source gadget to be safe. This type class captures a gadget
+-- that promises not to touch the the buffer of data that it
+-- processes. If we want to compute two primitives on the same data,
+-- then using a safe gadget for the first primitive ensures that we do
+-- not need to recopy the actual source (consider for example hmac
+-- followed by encryption).
 class (Gadget g) => SafeGadget g
 
 
