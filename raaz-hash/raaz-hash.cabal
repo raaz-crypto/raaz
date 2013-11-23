@@ -25,7 +25,8 @@ source-repository head
   subdir: raaz-hash-sha
 
 library
-  exposed-modules: Raaz.Hash.Sha1
+  exposed-modules: Raaz.Hash
+                 , Raaz.Hash.Sha1
                  , Raaz.Hash.Sha1.Type
                  , Raaz.Hash.Sha224
                  , Raaz.Hash.Sha224.Type

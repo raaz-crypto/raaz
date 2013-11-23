@@ -27,7 +27,6 @@ source-repository head
 
 library
   exposed-modules: Raaz
-                 , Raaz.Hash
   other-modules: Paths_raaz
   build-depends: base                           >= 4.5 && < 4.7
                --
