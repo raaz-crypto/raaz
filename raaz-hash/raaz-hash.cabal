@@ -1,11 +1,12 @@
-name:     raaz-hash-sha
+name:     raaz-hash
 version:  0.0.0.1
 category: Codec, Raaz
 
-synopsis: Implementation of the SHA family of hashes for raaz library
+synopsis: Cryptographic hash implementations in raaz.
 
-description: This raaz package implements the SHA1 and SHA2 family of
-  hashes.
+description: This package contains all the cryptographic hashes
+  available with the raaz cryptographic library. The hashes that this
+  module provide are SHA1, SHA256, SHA224, SHA512 and SHA384.
 
 homepage:     http://github.com/piyush-kurur/raaz
 license:      BSD3
@@ -88,5 +89,5 @@ test-Suite tests
                -- Raaz dependencies
                --
                , raaz-primitives                >=0.0.0.1 && < 0.0.0.2
-               , raaz-hash-sha                  >=0.0.0.1 && < 0.0.0.2
+               , raaz-hash                      >=0.0.0.1 && < 0.0.0.2
                , raaz-tests                     >=0.0.0.1 && < 0.0.0.2

@@ -33,7 +33,7 @@ library
                --
                -- Raaz dependencies
                --
-               , raaz-hash-sha                  >=0.0.0.1 && < 0.0.0.2
+               , raaz-hash                      >=0.0.0.1 && < 0.0.0.2
 
 executable checksum
   hs-source-dirs: bin
@@ -46,7 +46,7 @@ executable checksum
                --
                , raaz-primitives                >=0.0.0.1
                , raaz                           >=0.0.0.1
-               , raaz-hash-sha                  >=0.0.0.1 && < 0.0.0.2
+               , raaz-hash                      >=0.0.0.1 && < 0.0.0.2
                , raaz                           >=0.0.0.1 && < 0.0.0.2
   ghc-options: -Wall
   main-is: checksum.hs
