@@ -1,11 +1,12 @@
-name:     raaz-hash-sha
+name:     raaz-hash
 version:  0.0.0.1
 category: Codec, Raaz
 
-synopsis: Implementation of the SHA family of hashes for raaz library
+synopsis: Cryptographic hash implementations in raaz.
 
-description: This raaz package implements the SHA1 and SHA2 family of
-  hashes.
+description: This package contains all the cryptographic hashes
+  available with the raaz cryptographic library. The hashes that this
+  module provide are SHA1, SHA256, SHA224, SHA512 and SHA384.
 
 homepage:     http://github.com/piyush-kurur/raaz
 license:      BSD3
@@ -24,7 +25,8 @@ source-repository head
   subdir: raaz-hash-sha
 
 library
-  exposed-modules: Raaz.Hash.Sha1
+  exposed-modules: Raaz.Hash
+                 , Raaz.Hash.Sha1
                  , Raaz.Hash.Sha1.Type
                  , Raaz.Hash.Sha224
                  , Raaz.Hash.Sha224.Type
@@ -34,6 +36,7 @@ library
                  , Raaz.Hash.Sha384.Type
                  , Raaz.Hash.Sha512
                  , Raaz.Hash.Sha512.Type
+                 , Raaz.Primitives.Hash
   other-modules: Raaz.Hash.Sha1.Instance
                , Raaz.Hash.Sha1.Ref
                , Raaz.Hash.Sha1.Ref.TH
@@ -82,11 +85,13 @@ test-Suite tests
   main-is: Main.hs
   build-depends: base                           >= 4.5 && < 4.7
                , bytestring                     >= 0.9 && < 0.11
+               , HUnit                          >= 1.2 && < 1.3
                , QuickCheck                     >= 2.4 && < 2.7
                , test-framework                 >= 0.6 && < 0.7
+               , test-framework-hunit           >= 0.2 && < 0.3
+               , test-framework-quickcheck2     >= 0.2 && < 0.3
                --
                -- Raaz dependencies
                --
                , raaz-primitives                >=0.0.0.1 && < 0.0.0.2
-               , raaz-hash-sha                  >=0.0.0.1 && < 0.0.0.2
-               , raaz-tests                     >=0.0.0.1 && < 0.0.0.2
+               , raaz-hash                      >=0.0.0.1 && < 0.0.0.2

@@ -60,7 +60,6 @@ test-Suite tests
                -- Dependencies on raaz packages.
                --
                , raaz-primitives                >= 0.0.0.1 && < 0.0.0.2
-               , raaz-tests                     >= 0.0.0.1 && < 0.0.0.2
 
   if os(linux)
      cc-options: -Wall -Werror -O3 -DRAAZ_HAVE_GCC

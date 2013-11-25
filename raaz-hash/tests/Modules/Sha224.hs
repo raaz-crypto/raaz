@@ -1,4 +1,4 @@
-module Modules.Sha256
+module Modules.Sha224
        ( tests
        ) where
 
@@ -7,13 +7,12 @@ import qualified Data.ByteString as B
 import qualified Data.ByteString.Char8 as C8
 import Test.QuickCheck(Arbitrary(..))
 
-import Raaz.Test(allHashTests)
-import Raaz.Hash.Sha256
-import Raaz.Hash.Sha256.Type(SHA256(..))
+import Modules.Generic(allHashTests)
+import Raaz.Hash.Sha224
+import Raaz.Hash.Sha224.Type(SHA224(..))
 
-instance Arbitrary SHA256 where
-  arbitrary = SHA256 <$> arbitrary
-                     <*> arbitrary
+instance Arbitrary SHA224 where
+  arbitrary = SHA224 <$> arbitrary
                      <*> arbitrary
                      <*> arbitrary
                      <*> arbitrary
@@ -21,22 +20,24 @@ instance Arbitrary SHA256 where
                      <*> arbitrary
                      <*> arbitrary
 
-tests = allHashTests (undefined ::SHA256) exampleStrings
+
+tests = allHashTests (undefined ::SHA224) exampleStrings
+
 
 exampleStrings :: [(B.ByteString,B.ByteString)]
 exampleStrings = map convertToByteString
   [ ( "abc"
-    , "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad" )
+    , "23097d223405d8228642a477bda255b32aadbce4bda0b3f7e36c9da7" )
   , ( "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq"
-    , "248d6a61d20638b8e5c026930c3e6039a33ce45964ff2167f6ecedd419db06c1" )
+    , "75388b16512776cc5dba5da1fd890150b0c6455cb4f58b1952522525" )
   , ( "The quick brown fox jumps over the lazy dog"
-    , "d7a8fbb307d7809469ca9abcb0082e4f8d5651e46d3cdb762d02d0bf37c9e592" )
+    , "730e109bd7a8a32b1cb9d9a09aa2325d2430587ddbc0c38bad911525" )
   , ( "The quick brown fox jumps over the lazy cog"
-    , "e4c4d8f3bf76b692de791a173e05321150f7a345b46484fe427f6acc7ecc81be" )
+    , "fee755f44a55f20fb3362cdc3c493615b3cb574ed95ce610ee5b1e9b" )
   , ( ""
-    , "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855" )
+    , "d14a028c2a3a2bc9476102bb288234c415a2b01f828ea62ac5b3e42f" )
   , ( "The quick brown fox jumps over the lazy dog The quick brown fox jumps over the lazy dog The quick brown fox jumps over the lazy dog The quick brown fox jumps over the lazy dog The quick brown fox jumps over the lazy dog"
-    , "86c55ba51d6b4aef51f4ae956077a0f661d0b876c5774fef3172c4f56092cbbd" )
+    , "72a1a34c088733e432fa2e61e93a3e69af178870aa6b5ce0864ca60b" )
   ]
  where
    convertToByteString (a,b) = (C8.pack a, C8.pack b)
