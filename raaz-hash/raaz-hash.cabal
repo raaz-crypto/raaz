@@ -36,6 +36,7 @@ library
                  , Raaz.Hash.Sha384.Type
                  , Raaz.Hash.Sha512
                  , Raaz.Hash.Sha512.Type
+                 , Raaz.Primitives.Hash
   other-modules: Raaz.Hash.Sha1.Instance
                , Raaz.Hash.Sha1.Ref
                , Raaz.Hash.Sha1.Ref.TH

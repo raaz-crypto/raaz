@@ -31,7 +31,6 @@ library
   exposed-modules: Raaz.ByteSource
                  , Raaz.Memory
                  , Raaz.Primitives
-                 , Raaz.Primitives.Hash
 --                 , Raaz.Primitives.MAC
                  , Raaz.System.Parameters
                  , Raaz.Types
