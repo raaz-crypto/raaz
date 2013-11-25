@@ -91,4 +91,3 @@ test-Suite tests
                --
                , raaz-primitives                >=0.0.0.1 && < 0.0.0.2
                , raaz-hash                      >=0.0.0.1 && < 0.0.0.2
-               , raaz-tests                     >=0.0.0.1 && < 0.0.0.2
