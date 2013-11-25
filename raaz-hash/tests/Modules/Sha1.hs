@@ -7,7 +7,7 @@ import qualified Data.ByteString as B
 import qualified Data.ByteString.Char8 as C8
 import Test.QuickCheck(Arbitrary(..))
 
-import Raaz.Test(allHashTests)
+import Modules.Generic(allHashTests)
 import Raaz.Hash.Sha1
 import Raaz.Hash.Sha1.Type(SHA1(..))
 

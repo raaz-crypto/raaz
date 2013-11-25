@@ -1,10 +1,10 @@
 {-|
 
-Generic tests for Hash implementations.
+Generic tests for Hashes.
 
 -}
 
-module Raaz.Test.Hash
+module Modules.Generic
        ( testPadLengthVsPadding
        , testLengthDivisibility
        , testStandardHashValues
@@ -23,7 +23,6 @@ import Test.QuickCheck(Arbitrary)
 import Raaz.Primitives
 import Raaz.Primitives.Hash
 import Raaz.Test.CryptoStore
-import Raaz.Test.Instances()
 import Raaz.Types
 import Raaz.Util.ByteString (toHex)
 

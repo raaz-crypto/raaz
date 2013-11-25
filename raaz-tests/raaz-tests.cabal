@@ -1,0 +1,75 @@
+name:    raaz-tests
+version: 0.0.0.1
+
+synopsis: Generic tests for raaz packages and test suites for
+  raaz-primitives
+
+description: This package provides generic tests for cryptographic
+  primitives which can be used to write tests for actual
+  implementations. For example, if one wants to have a test that works
+  for any hash like checking if the total length + padding length
+  should be block size, this is the place do define such tests.
+
+  The test suits here are essentiall tests for types defined in
+  raaz-primitives.
+
+homepage:      http://github.com/piyush-kurur/raaz
+license:       BSD3
+license-file:  LICENSE
+author:        Piyush P Kurur
+maintainer:    ppk@cse.iitk.ac.in
+category:      Codec, Raaz
+build-type:    Simple
+cabal-version: >=1.9.2
+
+bug-reports: https://github.com/piyush-kurur/raaz/issues
+
+source-repository head
+  type: git
+  location: https://github.com/piyush-kurur/raaz
+  subdir: raaz-tests
+
+library
+  exposed-modules: Raaz.Test
+                 , Raaz.Test.CryptoStore
+  other-modules: Raaz.Test.Instances
+  build-depends: base                           >= 4.5 && < 4.7
+               , bytestring                     >= 0.9 && < 0.11
+               , HUnit                          >= 1.2 && < 1.3
+               , QuickCheck                     >= 2.4 && < 2.7
+               , test-framework                 >= 0.6 && < 0.7
+               , test-framework-hunit           >= 0.2 && < 0.3
+               , test-framework-quickcheck2     >= 0.2 && < 0.3
+
+               -- Dependency on other raaz packages
+               , raaz-primitives                >= 0.0.0.1 && < 0.0.0.2
+  ghc-options: -Wall
+
+test-Suite tests
+  type: exitcode-stdio-1.0
+  hs-source-dirs: tests
+  main-is: Main.hs
+  ghc-options: -Wall
+
+  if os(linux)
+     cc-options: -Wall -Werror -O3 -DRAAZ_HAVE_GCC
+  else
+     cc-options:
+
+  c-sources: cbits/raaz/tests/load_test.c
+  include-dirs: cbits
+  includes: raaz/tests/load_test.h
+
+  build-depends: base                           >= 4.5 && < 4.7
+               , bytestring                     >= 0.9 && < 0.11
+               , HUnit                          >= 1.2 && < 1.3
+               , QuickCheck                     >= 2.4 && < 2.7
+               , test-framework                 >= 0.6 && < 0.7
+               , test-framework-hunit           >= 0.2 && < 0.3
+               , test-framework-quickcheck2     >= 0.2 && < 0.3
+
+               --
+               -- Dependency on other raaz packages.
+               --
+               , raaz-primitives             >= 0.0.0.1 && < 0.0.0.2
+               , raaz-tests                  >= 0.0.0.1 && < 0.0.0.2
