@@ -35,6 +35,8 @@ library
 --                 , Raaz.Primitives.MAC
                  , Raaz.System.Parameters
                  , Raaz.Types
+                 , Raaz.Test
+                 , Raaz.Test.CryptoStore
                  , Raaz.Util.ByteString
                  , Raaz.Util.Gadget
                  , Raaz.Util.Ptr
