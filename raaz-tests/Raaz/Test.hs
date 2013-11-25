@@ -6,5 +6,3 @@ module Raaz.Test
        ) where
 
 import Raaz.Test.CryptoStore
-import Raaz.Test.Hash
-import Raaz.Test.Instances()

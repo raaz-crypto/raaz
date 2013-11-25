@@ -40,6 +40,7 @@ import Foreign.Storable
 import Language.Haskell.TH(sigE, conT)
 import Language.Haskell.TH.Syntax(Lift(..))
 import System.Endian
+import Test.QuickCheck(Arbitrary)
 
 -- $typesafety$
 --
@@ -128,28 +129,28 @@ by ghc.
 
 -- | Little endian `Word32`.
 newtype Word32LE = LE32 Word32
-   deriving ( Bounded, Enum, Read, Show
+   deriving ( Arbitrary, Bounded, Enum, Read, Show
             , Integral, Num, Real, Eq, Ord, Bits
             , Storable, Typeable
             )
 
 -- | Big endian  `Word32`
 newtype Word32BE = BE32 Word32
-   deriving ( Bounded, Enum, Read, Show
+   deriving ( Arbitrary, Bounded, Enum, Read, Show
             , Integral, Num, Real, Eq, Ord, Bits
             , Storable, Typeable
             )
 
 -- | Little endian `Word64`
 newtype Word64LE = LE64 Word64
-   deriving ( Bounded, Enum, Read, Show
+   deriving ( Arbitrary, Bounded, Enum, Read, Show
             , Integral, Num, Real, Eq, Ord, Bits
             , Storable, Typeable
             )
 
 -- | Big endian `Word64`
 newtype Word64BE = BE64 Word64
-   deriving ( Bounded, Enum, Read, Show
+   deriving ( Arbitrary, Bounded, Enum, Read, Show
             , Integral, Num, Real, Eq, Ord, Bits
             , Storable, Typeable
             )
@@ -280,7 +281,7 @@ class CryptoCoerce s t where
 -- convert to a more convenient length units.  The `CrytoCoerce`
 -- instance is guranteed to do the appropriate scaling.
 newtype BYTES a  = BYTES a
-        deriving ( Show, Eq, Ord, Enum, Integral
+        deriving ( Arbitrary, Show, Eq, Ord, Enum, Integral
                  , Real, Num, Storable, CryptoStore
                  )
 
@@ -289,7 +290,7 @@ newtype BYTES a  = BYTES a
 -- convert to a more convenient length units.  The `CrytoCoerce`
 -- instance is guranteed to do the appropriate scaling.
 newtype BITS  a  = BITS  a
-        deriving ( Show, Eq, Ord, Enum, Integral
+        deriving ( Arbitrary, Show, Eq, Ord, Enum, Integral
                  , Real, Num, Storable, CryptoStore
                  )
 
