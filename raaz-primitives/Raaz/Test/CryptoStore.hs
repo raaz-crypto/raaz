@@ -2,7 +2,7 @@
 
 This module contains some generic tests cases for CryptoStore
 instances. Whenever a new instance of CryptoStore is defined, consider
-using them
+using them.
 
 -}
 
@@ -41,9 +41,9 @@ prop_StoreLoad _ a = monadicIO $ do y <- run $ storeLoad a
                                     assert y
 
 -- | This test checks whether storing followed by loading gives the
--- same value for your instance. The typeable instance is used print
--- the type when running the test and for nothing else. A typical use
--- would look something like.
+-- same value for your instance. The typeable instance is used to
+-- print the type when running the test and for nothing else. A
+-- typical use would look something like:
 --
 -- > data Foo = ... deriving (Typeable, Eq, Show)
 -- > instance CryptoStore Foo where
@@ -61,7 +61,6 @@ testStoreLoad :: ( CryptoStore a
                  )
               => a    -- ^ dummy argument (not used)
               -> Test
-
 testStoreLoad a = testProperty (aType ++ ": Store/Load ")
                                $ prop_StoreLoad a
      where aType = show $ typeOf a
