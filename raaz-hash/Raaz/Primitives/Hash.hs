@@ -76,21 +76,19 @@ class ( SafeGadget g
               unsafePad h bits padPtr
               foldM iterateOnce h [1..n]
               where
-                bits = cryptoCoerce dl
+                bits   = cryptoCoerce dl
                 padPtr = cptr `movePtr` dl
                 iterateOnce hsh _ = do
                   store cptr hsh
                   initialize g def
                   apply g blks cptr
-                  out <- finalize g
-                  return out
+                  finalize g
 
   -- | This functions processes data which itself is a hash. One can
   -- use this for iterated hash computation, hmac construction
   -- etc. There is a default definition of this function but
   -- implementations can give a more efficient version.
-  processHash :: HashGadget g
-              => g           -- ^ Context obtained by processing so far
+  processHash :: g           -- ^ Context obtained by processing so far
               -> BITS Word64 -- ^ number of bits processed so far
                              -- (exculding the bits in the hash)
               -> PrimitiveOf g
@@ -172,13 +170,13 @@ hashFile :: Hash h
 hashFile fp = withBinaryFile fp ReadMode sourceHash
 {-# INLINEABLE hashFile #-}
 
--- | The HMAC associated to a hash value. The `Eq`
--- instance for HMAC -- is essentially the `Eq` instance for the
--- underlying hash and hence -- is safe against timing attack
--- (provided the underlying hashs -- comparison is safe under timing
--- attack).
+-- | The HMAC associated to a hash value. The `Eq` instance for HMAC
+-- is essentially the `Eq` instance for the underlying hash and hence
+-- is safe against timing attack (provided the underlying hashs --
+-- comparison is safe under timing attack).
 newtype HMAC h = HMAC h deriving (Eq, Storable, CryptoStore)
 
+-- | A function that is often used to keep type checker happy.
 getHash :: HMAC h -> h
 getHash _ = undefined
 
@@ -187,15 +185,18 @@ instance Primitive h => Primitive (HMAC h) where
   -- | Stores inner and outer pad
   newtype IV (HMAC h) = HMACSecret B.ByteString
 
-data (Gadget g) => HMACGadget g = HMACGadget g (HMACBuffer (PrimitiveOf g))
+newtype HMACBuffer p = HMACBuffer ForeignCryptoPtr deriving Eq
 
-newtype HMACBuffer p = HMACBuffer ForeignCryptoPtr deriving (Eq)
+data Gadget g => HMACGadget g =
+  HMACGadget g (HMACBuffer (PrimitiveOf g))
+
+
 
 instance (Primitive p, CryptoStore p) => Memory (HMACBuffer p) where
   newMemory = allocMem undefined
     where
       allocMem :: (Primitive p, CryptoStore p) => p -> IO (HMACBuffer p)
-      allocMem p = let (BYTES len) = cryptoCoerce (size p)
+      allocMem p = let BYTES len = cryptoCoerce $ size p
                    in fmap HMACBuffer $ mallocForeignPtrBytes len
       size :: (Primitive p, CryptoStore p) => p -> BLOCKS p
       size p = blocksOf 1 p + cryptoCoerce (BYTES $ sizeOf p)
@@ -217,7 +218,7 @@ instance HashGadget g => Gadget (HMACGadget g) where
 
   type PrimitiveOf (HMACGadget g) = HMAC (PrimitiveOf g)
 
-  type (MemoryOf (HMACGadget g)) = (MemoryOf g, HMACBuffer (PrimitiveOf g))
+  type MemoryOf (HMACGadget g) = (MemoryOf g, HMACBuffer (PrimitiveOf g))
 
   newGadget (gmem,hbuff) = do
     g <- newGadget gmem
@@ -243,12 +244,11 @@ instance HashGadget g => Gadget (HMACGadget g) where
       BYTES len   = cryptoCoerce $ oneBlock g
 
   recommendedBlocks = toEnum . fromEnum . recommendedBlocks . getHash'
-      where
-        getHash' :: Gadget g => HMACGadget g -> g
-        getHash' (HMACGadget g _) = g
+    where getHash' :: Gadget g => HMACGadget g -> g
+          getHash' (HMACGadget g _) = g
 
-  apply (HMACGadget g _) blks cptr = apply g blks' cptr
-          where blks' = toEnum $ fromEnum blks
+  apply (HMACGadget g _) blks = apply g blks'
+    where blks' = toEnum $ fromEnum blks
 
 instance (HashGadget g) => SafeGadget (HMACGadget g)
 
@@ -292,9 +292,10 @@ initHMAC :: HashGadget g
 initHMAC hmacg@(HMACGadget g _) bs = go hmacg
   where
     go :: HashGadget g => HMACGadget g -> IO ()
-    go (HMACGadget g' _) | length bs <= blkSize = initHMAC' hmacg bs
-                         | otherwise            = initHMAC' hmacg
-                                                    $ toByteString (hash' g' bs)
+    go (HMACGadget g' _)
+      | length bs <= blkSize = initHMAC' hmacg bs
+      | otherwise            = initHMAC' hmacg $ toByteString
+                                               $ hash' g' bs
     getPrim :: Gadget g => g -> PrimitiveOf g
     getPrim _ = undefined
     blkSize = cryptoCoerce $ blocksOf 1 (getPrim g)
@@ -304,9 +305,9 @@ initHMAC' :: HashGadget g
           -> B.ByteString
           -> IO ()
 initHMAC' (HMACGadget g (HMACBuffer fptr)) bs = do
-  _ <- withForeignPtr fptr (fillBytes (BYTES len) ipad)
-  withForeignPtr fptr (apply g (oneBlock g))
-  _ <- withForeignPtr fptr (fillBytes (BYTES len) opad)
+  _ <- withForeignPtr fptr $ fillBytes (BYTES len) ipad
+  withForeignPtr fptr $ apply g (oneBlock g)
+  _ <- withForeignPtr fptr $ fillBytes (BYTES len) opad
   return ()
   where
     oneBlock :: Gadget g => g -> BLOCKS (PrimitiveOf g)
