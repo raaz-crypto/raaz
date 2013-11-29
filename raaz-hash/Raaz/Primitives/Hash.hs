@@ -39,20 +39,7 @@ import           Raaz.Util.Ptr
 import           Raaz.Util.SecureMemory
 
 
--- | The class abstracts an arbitrary hash type. A hash should be a
--- block primitive. Computing the hash involved starting at a fixed
--- context and iterating through the blocks of data (suitably padded)
--- by the process function. The last context is then finalised to the
--- value of the hash.
---
--- A Minimum complete definition include @`startHashCxt`@,
--- @`finaliseHash`@, However, for efficiency you might want to define
--- all of the members separately.
---
--- [Warning:] While defining the @'Eq'@ instance of @'Hash' h@, make
--- sure that the @==@ operator takes time independent of the input.
--- This is to avoid timing based side-channel attacks. In particular,
--- /do not/ take the lazy option of deriving the @'Eq'@ instance.
+-- | Gadgets that compute a cryptographic hash.
 class ( SafeGadget g
       , Eq          (PrimitiveOf g)
       , HasPadding  (PrimitiveOf g)
@@ -63,11 +50,11 @@ class ( SafeGadget g
   -- | Computes the iterated hash, useful for password
   -- hashing. Although a default implementation is given, you might
   -- want to give an optimized specialised version of this function.
-  iterateHash :: g             -- ^ Implementation
+  iterateHash :: g             -- ^ The gadget
               -> Int           -- ^ Number of times to iterate
               -> PrimitiveOf g -- ^ starting hash
-              -> PrimitiveOf g
-  iterateHash g n h = unsafePerformIO $ allocaBuffer tl (iterateN h)
+              -> IO (PrimitiveOf g)
+  iterateHash g n h = allocaBuffer tl (iterateN h)
       where dl = BYTES $ sizeOf h              -- length of msg
             pl = padLength h (cryptoCoerce dl) -- length of pad
             tl = dl + pl                       -- total length
@@ -88,12 +75,12 @@ class ( SafeGadget g
   -- use this for iterated hash computation, hmac construction
   -- etc. There is a default definition of this function but
   -- implementations can give a more efficient version.
-  processHash :: g           -- ^ Context obtained by processing so far
+  processHash :: g           -- ^ The gadget
               -> BITS Word64 -- ^ number of bits processed so far
                              -- (exculding the bits in the hash)
               -> PrimitiveOf g
-              -> PrimitiveOf g
-  processHash g bits h = unsafePerformIO $ allocaBuffer tl go
+              -> IO (PrimitiveOf g)
+  processHash g bits h = allocaBuffer tl go
      where sz      = BYTES $ sizeOf h
            tBits   = bits + cryptoCoerce sz
            pl      = padLength h tBits
