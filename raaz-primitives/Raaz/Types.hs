@@ -298,7 +298,7 @@ instance ( Integral by
          , Num bi
          )
          => CryptoCoerce (BYTES by) (BITS bi) where
-  cryptoCoerce (BYTES by) = BITS $ 8 * fromIntegral by
+  cryptoCoerce by = 8 * fromIntegral by
   {-# INLINE cryptoCoerce #-}
 
 -- | BEWARE: If the number of bits is not an integral multiple of 8
@@ -308,20 +308,20 @@ instance ( Integral bi
          , Num by
          )
          => CryptoCoerce (BITS bi) (BYTES by) where
-  cryptoCoerce (BITS bi) = BYTES $ fromIntegral (bi `quot` 8)
+  cryptoCoerce bi = fromIntegral $ quot bi 8
   {-# INLINE cryptoCoerce #-}
 
 instance ( Integral by1
          , Num by2
          ) => CryptoCoerce (BYTES by1) (BYTES by2) where
-  cryptoCoerce (BYTES by) = BYTES $ fromIntegral by
+  cryptoCoerce = fromIntegral
   {-# INLINE cryptoCoerce #-}
 
 
 instance ( Integral bi1
          , Num bi2
          ) => CryptoCoerce (BITS bi1) (BITS bi2) where
-  cryptoCoerce (BITS bi) = BITS $ fromIntegral bi
+  cryptoCoerce  = fromIntegral
   {-# INLINE cryptoCoerce #-}
 
 
