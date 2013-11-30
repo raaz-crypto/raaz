@@ -103,7 +103,7 @@ class ( Primitive (PrimitiveOf g), Memory (MemoryOf g) )
   -- protected from being swapped out (for example if the internal
   -- memory contains sensitive data) then pass a secuded memory to
   -- this function.
-  newGadget :: (MemoryOf g) -> IO g
+  newGadget :: MemoryOf g -> IO g
 
   -- | Initializes the gadget.
   initialize :: g -> IV (PrimitiveOf g) -> IO ()
