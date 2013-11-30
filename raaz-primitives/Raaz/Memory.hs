@@ -52,7 +52,7 @@ class Memory m where
   -- allocated from the stack directly and will have very little GC
   -- overhead.
   withMemory   :: (m -> IO a) -> IO a
-  withMemory f = bracket newMemory freeMemory f
+  withMemory = bracket newMemory freeMemory
 
   -- | Similar to `withMemory` but allocates a secure memory for the
   -- action.
@@ -85,13 +85,13 @@ cellStore (CryptoCell p) v = withForeignPtr p (flip poke v . castPtr)
 -- | Perform some pointer action on CryptoCell. Useful while working
 -- with ffi functions.
 withCell :: CryptoCell a -> (CryptoPtr -> IO b) -> IO b
-withCell (CryptoCell fp) f = withForeignPtr fp f
+withCell (CryptoCell fp) = withForeignPtr fp
 
 instance Storable a => Memory (CryptoCell a) where
   newMemory = mal undefined
     where mal :: Storable a => a -> IO (CryptoCell a)
-          mal a = fmap CryptoCell (mallocForeignPtrBytes $ sz a)
-          sz a = sizeOf a
+          mal = fmap CryptoCell . mallocForeignPtrBytes . sizeOf
+
   freeMemory (CryptoCell fptr) = finalizeForeignPtr fptr
   withSecureMemory f bk = allocSec undefined bk >>= f
    where
