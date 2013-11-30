@@ -70,23 +70,6 @@ data Block = Block CryptoPtr         -- Location
                    (BYTES Int)       -- Size
                    Bool              -- isFree
 
--- | Captures memory in terms of number of pages
-newtype PAGES a = PAGES a
-
-instance ( Integral by
-         , Num pg
-         )
-         => CryptoCoerce (BYTES by) (PAGES pg) where
-  cryptoCoerce (BYTES by) | r == 0    = PAGES $ fromIntegral q
-                          | otherwise = PAGES $ fromIntegral q + 1
-    where (q,r) = (fromIntegral by) `quotRem` pageSize
-
-instance ( Integral pg
-         , Num by
-         )
-         => CryptoCoerce (PAGES pg) (BYTES by) where
-  cryptoCoerce (PAGES pg) = BYTES $ (fromIntegral pg) * (fromIntegral pageSize)
-
 
 -- | Allocates the memory from the secure pool and returns the
 -- allocated `CryptoPtr`. In case of unavailability of enough free
@@ -214,3 +197,26 @@ freeSecureMem cptr bkpr =
           _                                 -> (npool:ps,Nothing)
       | otherwise = first (p:) $ with ps
     uptr fp = unsafeForeignPtrToPtr fp
+
+
+--------------------- Pages -------------------------------------
+
+-- | Type safe unit for measuring lengths in pages. Size is actually
+-- system dependent.
+newtype PAGES a = PAGES a deriving ( Show, Enum, Real
+                                   , Integral, Num, Eq, Ord
+                                   )
+
+instance ( Integral by
+         , Num pg
+         )
+         => CryptoCoerce (BYTES by) (PAGES pg) where
+  cryptoCoerce by | r == 0    = fromIntegral q
+                  | otherwise = fromIntegral q + 1
+    where (q,r) = fromIntegral by `quotRem` pageSize
+
+instance ( Integral pg
+         , Num by
+         )
+         => CryptoCoerce (PAGES pg) (BYTES by) where
+  cryptoCoerce pgs = fromIntegral pgs * fromIntegral pageSize
