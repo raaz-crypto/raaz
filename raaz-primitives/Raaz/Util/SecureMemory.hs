@@ -132,15 +132,15 @@ freeInPool ptr (Pool fp sz blks) =
   where
     buildZipper _ xs@([],_) = xs
     buildZipper cptr (b@(Block p s _):ls,rs)
-      | p == cptr = ((Block p s True):ls,rs)
+      | p == cptr = (Block p s True:ls,rs)
       | otherwise = buildZipper cptr (ls,b:rs)
-    mergeZipper ([],rs) = rs
-    mergeZipper ([b],(r1:rs)) = reverse (merge r1 [b] ++ rs)
-    mergeZipper ((b:ls),[]) = merge b ls
-    mergeZipper ((b:ls),(r1:rs)) = reverse rs ++ merge r1 (merge b ls)
+    mergeZipper ( []  ,   rs  )  = rs
+    mergeZipper ( [b] , r1:rs )  = reverse (merge r1 [b] ++ rs)
+    mergeZipper ( b:ls, []    )  = merge b ls
+    mergeZipper ( b:ls, r1:rs )  = reverse rs ++ merge r1 (merge b ls)
     merge b [] = [b]
     merge b1@(Block p1 s1 f1) (b2@(Block _ s2 f2):rs)
-      | f1 && f2 = (Block p1 (s1 + s2) True):rs
+      | f1 && f2 = Block p1 (s1 + s2) True:rs
       | otherwise = b1:b2:rs
 
 -- | Creates the initial pool of secure memory of the given size. It
@@ -217,15 +217,15 @@ freeSecureMem cptr bkpr =
   where
     with [] = ([],Nothing)
     with (p@(Pool fp s _):ps)
-      | cptr >= uptr fp && cptr < movePtr (uptr fp) s = do
+      | cptr >= uptr && cptr < movePtr uptr s = do
         let npool = freeInPool cptr p
         case (npool,ps) of
           -- Only one block which is free means pool is free
           -- ps has atleast one element means it is not the default pool
-          (Pool _ _ [Block _ _ True],(_:_)) -> (ps,Just fp)
+          (Pool _ _ [Block _ _ True], _:_ ) -> (ps,Just fp)
           _                                 -> (npool:ps,Nothing)
       | otherwise = first (p:) $ with ps
-    uptr fp = unsafeForeignPtrToPtr fp
+      where uptr = unsafeForeignPtrToPtr fp
 
 
 --------------------- Pages -------------------------------------
