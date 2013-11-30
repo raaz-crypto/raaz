@@ -25,7 +25,7 @@ cache = do
 getCache :: FilePath -> ConfigM Int
 getCache fp = doIO $ fmap readCache (readFile fp) `catch` handler
     where handler :: IOError -> IO Int
-          handler e = do putStrLn $ show e
+          handler e = do print  e
                          return 0
 
 readCache :: String -> Int

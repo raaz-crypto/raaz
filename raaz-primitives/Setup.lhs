@@ -26,7 +26,7 @@ the the header file and run the default user hooks.
 >                              putStrLn "done."
 >
 >                              putStrLn $ "writing " ++ autoConf ++ "..."
->                              genConfigFile autoConf $ configure
+>                              genConfigFile autoConf configure
 >                              putStrLn $ "done writing " ++ autoConf ++ "."
 >
 >                              confHook simpleUserHooks gpd flags

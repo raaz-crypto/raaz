@@ -14,8 +14,8 @@ import Config.Page(pageSize)
 -- | The main configuration action. This justs packages the actual
 -- configuration.
 configure = do
-  section "Auto generated stuff (do not edit)" $
-    wrapHeaderFile "__RAAZ_PRIMITIVES_AUTOCONF_H__" actualConfig
+  comment "Auto generated stuff (do not edit)"
+  wrapHeaderFile "__RAAZ_PRIMITIVES_AUTOCONF_H__" actualConfig
 
 -- | Here is where the actual configuration happens.
 actualConfig :: ConfigM ()
@@ -54,8 +54,7 @@ checkMemoryLocking = do
   haveFFIFunction "mlockall"
 
 -- | Check memory locking
-checkMemAlign = do
-  haveFFIFunction "memalign"
+checkMemAlign = haveFFIFunction "memalign"
 
 haveFFIFunction :: String -> ConfigM ()
 haveFFIFunction funcName = do chk <- ffiTest ffiPath

@@ -16,8 +16,7 @@ checkStatus name action = do
   when (stat /= 0) $ do
     putStr $ unwords [name, "failed"]
     exitFailure
-  when (stat == 0) $ do
-    putStr $ unwords [name, "succcess"]
+  when (stat == 0) $ putStr $ unwords [name, "succcess"]
 
 main :: IO ()
 main = do checkStatus "mlockall"   c_mlockall
