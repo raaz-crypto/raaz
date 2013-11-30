@@ -198,7 +198,7 @@ class Subscript a where
 
 instance Subscript Int where
   toSub x | x >= 0    = show x
-          | otherwise = "_" ++ show (abs x)
+          | otherwise = '_' : show (abs x)
 
 instance Subscript [Int] where
   toSub = intercalate "_" . map toSub
