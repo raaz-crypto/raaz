@@ -56,7 +56,7 @@ hash command rest = tell [unwords $ ["#", command] ++ rest]
 
 -- | Define a symbol.
 define :: String -> String -> ConfigM ()
-define symbol value =  hash "define" $ [symbol, value]
+define symbol value =  hash "define" [symbol, value]
 
 -- | Empty definition.
 define' :: String -> ConfigM ()

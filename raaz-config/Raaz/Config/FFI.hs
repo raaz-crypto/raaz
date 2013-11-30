@@ -16,7 +16,7 @@ import Raaz.Config.Monad
 
 -- | Converts exit status to
 status :: ExitCode -> IO Bool
-status  ExitSuccess       = do putStrLn $ "SUCCESS"; return True
+status  ExitSuccess       = do putStrLn "SUCCESS"; return True
 status (ExitFailure code) = do putStrLn $ "FAILED (status code: "
                                  ++ show code
                                  ++ ")"
@@ -50,13 +50,13 @@ ffiTestIO :: FilePath -- ^ test directory
 ffiTestIO fp = do
   printDescr
   cstat <- compile
-  if cstat then do run else return False
+  if cstat then run else return False
   where c     = fp </> "test.c"
         hs    = fp </> "Test.hs"
         test  = fp </> "test"
+        ghc   = rawSystem "ghc" [ "-v0", c, hs, "-o", test]
         compile    = do putStr "compile:"
-                        status =<< rawSystem "ghc"
-                          [ "-v0", c, hs, "-o", test]
-        run        = do status =<< rawSystem test []
+                        ghc >>= status
+        run        = rawSystem test [] >>= status
         printDescr = do readFile (fp </> "DESCRIPTION") >>= putStr
                         putStr "..."
