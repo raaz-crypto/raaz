@@ -1,14 +1,26 @@
-{-
+{-|
 
-This module provides utility functions to work with secure memory.
+This module provides utility functions to work with secure memory. By
+secure memory, we mean memory that will /not/ be swapped out to the
+external disk. It is recommended to use secure memory to store
+sensitive information like passphrase, especially in an environment
+where there are hostile users on the same system. However, using
+secure memory alone is not really going to save the day.
+
+Operating systems have limit on the amount of memory that can be
+locked by a users process. So use it judciously.
 
 -}
-{-# LANGUAGE FlexibleContexts         #-}
-{-# LANGUAGE ForeignFunctionInterface #-}
-{-# LANGUAGE MultiParamTypeClasses    #-}
+{-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE ForeignFunctionInterface   #-}
+{-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 module Raaz.Util.SecureMemory
-       ( ForeignCryptoPtr
+       (
+         -- * Architecture of the allocator.
+         -- $architecture
+         ForeignCryptoPtr
        , PAGES(..)
        , Block
        , Pool
@@ -54,16 +66,33 @@ foreign import ccall unsafe "cbits/raaz/memory.c wipememory"
 -- | Captures word aligned `ForeignPtr`.
 type ForeignCryptoPtr = ForeignPtr CryptoAlign
 
+-- $architecture
+--
+-- We describe the architecture of the secure memory allocation
+-- system. Memory is allocated as a `ForeignPtr` and finalizers are
+-- set that will wipe the memory with zeros before de-allocation.  The
+-- memory is allocated in units of pages as most operating systems
+-- support only locking of an entire page. We call this a pool
+-- captured by the data type `Pool`. During the course of allocation
+-- this pool gets fragmented into blocks. Therefore, a pool is
+-- essentially a list of blocks (captured by the `Block` data type)
+-- together with some meta information. Finally we have the
+-- `BookKeeper` which keeps track fo all the pools in a `IORef`.
+--
+
+
+-- | Captures the state of secure memory and allows modification in a
+-- thread safe way.
+type BookKeeper = IORef [Pool]
+
+
+
 -- | Captures the pool of secure memory. Whenever a new secure memory
 -- is needed, it is allocated from this pool. Reference to
 -- `ForeignPtr` is kept to prevent it from being garbage collected.
 data Pool = Pool ForeignCryptoPtr  -- Location
                  (PAGES Int)       -- Total Size
                  [Block]           -- Blocks inside pool
-
--- | Captures the state of secure memory and allows modification in a thread
--- safe way.
-type BookKeeper = IORef [Pool]
 
 -- | A block of allocated secure memory in a pool.
 data Block = Block CryptoPtr         -- Location
