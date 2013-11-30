@@ -9,6 +9,7 @@ module Raaz.ByteSource
 
        ) where
 
+import           Control.Monad (liftM)
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as L
 import           Prelude hiding(length)
@@ -93,23 +94,23 @@ instance ByteSource B.ByteString where
 
 instance ByteSource L.ByteString where
   {-# INLINE fillBytes #-}
-  fillBytes sz bs cptr =   fillBytes sz (L.toChunks bs) cptr
-                       >>= return . fmap L.fromChunks
+  fillBytes sz bs = liftM (fmap L.fromChunks)
+                    . fillBytes sz (L.toChunks bs)
+
 
 instance ByteSource src => ByteSource (Maybe src) where
   {-# INLINE fillBytes #-}
   fillBytes sz ma cptr = maybe exhausted fillIt ma
           where exhausted = return $ Exhausted sz
-                fillIt a  =  fillBytes sz a cptr
-                          >>= return . fmap Just
+                fillIt a  = liftM (fmap Just) $ fillBytes sz a cptr
 
 instance ByteSource src => ByteSource [src] where
   fillBytes sz []     _    = return $ Exhausted sz
   fillBytes sz (x:xs) cptr = do
-            result <- fillBytes sz x cptr
-            case result of
-                 Exhausted nSz -> fillBytes nSz xs $ movePtr cptr $ sz - nSz
-                 Remaining nx  -> return $ Remaining $ nx:xs
+    result <- fillBytes sz x cptr
+    case result of
+      Exhausted nSz -> fillBytes nSz xs $ movePtr cptr $ sz - nSz
+      Remaining nx  -> return $ Remaining $ nx:xs
 
 --------------------- Instances of pure byte source --------------------
 
