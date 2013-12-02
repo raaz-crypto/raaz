@@ -20,8 +20,7 @@ module Raaz.Util.SecureMemory
        (
          -- * Architecture of the allocator.
          -- $architecture
-         ForeignCryptoPtr
-       , PAGES(..)
+         PAGES(..)
        , Block
        , Pool
          -- Pool helper functions
@@ -38,9 +37,7 @@ module Raaz.Util.SecureMemory
 
 import Control.Arrow ( first )
 import Data.IORef
-import Foreign.ForeignPtr.Safe ( ForeignPtr
-                               , finalizeForeignPtr
-                               )
+import Foreign.ForeignPtr.Safe ( finalizeForeignPtr )
 import Foreign.Concurrent
 import Foreign.ForeignPtr.Unsafe
 
@@ -62,9 +59,6 @@ foreign import ccall unsafe "cbits/raaz/memory.c freepool"
 
 foreign import ccall unsafe "cbits/raaz/memory.c wipememory"
   c_wipe :: CryptoPtr -> Int -> IO ()
-
--- | Captures word aligned `ForeignPtr`.
-type ForeignCryptoPtr = ForeignPtr CryptoAlign
 
 -- $architecture
 --

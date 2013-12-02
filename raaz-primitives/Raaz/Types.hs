@@ -28,6 +28,7 @@ module Raaz.Types
        , BYTES(..), BITS(..)
        , CryptoCoerce(..)
        , cryptoAlignment, CryptoAlign, CryptoPtr
+       , ForeignCryptoPtr
        ) where
 
 import Data.Bits
@@ -37,6 +38,7 @@ import Data.ByteString.Internal (unsafeCreate)
 import Data.Typeable(Typeable)
 import Foreign.Ptr
 import Foreign.Storable
+import Foreign.ForeignPtr.Safe (ForeignPtr)
 import Language.Haskell.TH(sigE, conT)
 import Language.Haskell.TH.Syntax(Lift(..))
 import System.Endian
@@ -339,6 +341,9 @@ newtype CryptoAlign = CryptoAlign Word deriving Storable
 
 -- | Alignment safe pointers.
 type CryptoPtr = Ptr CryptoAlign
+
+-- | Alignment safe `ForeignPtr`.
+type ForeignCryptoPtr = ForeignPtr CryptoAlign
 
 -- | Alignment to use for cryptographic pointers.
 cryptoAlignment :: Int
