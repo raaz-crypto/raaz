@@ -30,6 +30,7 @@ source-repository head
 library
   exposed-modules: Raaz.ByteSource
                  , Raaz.Memory
+                 , Raaz.Parse
                  , Raaz.Primitives
 --                 , Raaz.Primitives.MAC
                  , Raaz.System.Parameters
