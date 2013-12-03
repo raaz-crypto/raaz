@@ -6,15 +6,19 @@
 --
 
 module Raaz.Parse
-       ( Parser
+       ( Parser, parse, parseStorable
        , runParser
        , runParser'
        ) where
 
+import Control.Applicative         ( (<$>)          )
 import Control.Monad.State.Strict
-import Foreign.ForeignPtr.Safe ( withForeignPtr )
+import Foreign.ForeignPtr.Safe     ( withForeignPtr )
+import Foreign.Ptr                 ( castPtr, Ptr   )
+import Foreign.Storable
 
 import Raaz.Types
+import Raaz.Util.Ptr
 
 -- | A simple parser.
 type Parser a = StateT CryptoPtr IO a
@@ -26,3 +30,24 @@ runParser cptr parser = evalStateT parser cptr
 -- | Run the parser on a buffer given by a foreign pointer.
 runParser' :: ForeignCryptoPtr -> Parser a -> IO a
 runParser' fcptr parser = withForeignPtr fcptr $ evalStateT parser
+
+getPtr   :: Parser (Ptr a)
+getPtr   = castPtr <$> get
+
+-- | Parses a value which is an instance of Storable. Beware that this
+-- parser expects that the value is stored in machine endian. Mostly
+-- it is useful in defining the `peek` function in a complicated
+-- `Storable` instance.
+parseStorable :: Storable a => Parser a
+parseStorable = do a <- getPtr >>= lift . peek
+                   modify $ flip movePtr $ byteSize a
+                   return a
+
+-- | Parse a crypto value. Endian safety is take into account
+-- here. This is what you would need when you parse packets from an
+-- external source. You can also use this to define the `load`
+-- function in a compicated `CryptoStore` instance.
+parse :: CryptoStore a => Parser a
+parse = do a <- getPtr >>= lift . load
+           modify $ flip movePtr $ byteSize a
+           return a
