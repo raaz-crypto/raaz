@@ -3,22 +3,25 @@
 -- appropriate offset. No checks are done to see if the memory access
 -- is proper, it is meant to be fast and not safe. So use it with
 -- care.
---
+
+{-# LANGUAGE FlexibleContexts #-}
 
 module Raaz.Parse
-       ( Parser, parse, parseStorable
+       ( Parser, parse, parseStorable, parseByteString
        , runParser
        , runParser'
        ) where
 
 import Control.Applicative         ( (<$>)          )
 import Control.Monad.State.Strict
+import Data.ByteString             ( ByteString     )
 import Foreign.ForeignPtr.Safe     ( withForeignPtr )
 import Foreign.Ptr                 ( castPtr, Ptr   )
 import Foreign.Storable
 
 import Raaz.Types
 import Raaz.Util.Ptr
+import Raaz.Util.ByteString        ( createFrom )
 
 -- | A simple parser.
 type Parser a = StateT CryptoPtr IO a
@@ -51,3 +54,11 @@ parse :: CryptoStore a => Parser a
 parse = do a <- getPtr >>= lift . load
            modify $ flip movePtr $ byteSize a
            return a
+
+-- | Parses a strict bytestring of a given length.
+parseByteString :: CryptoCoerce l (BYTES Int) => l -> Parser ByteString
+parseByteString l = do bs <- getPtr >>= lift . getBS
+                       modify $ flip movePtr l
+                       return bs
+  where bytes = cryptoCoerce l :: BYTES Int
+        getBS = createFrom $ fromIntegral bytes

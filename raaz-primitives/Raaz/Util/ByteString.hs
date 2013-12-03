@@ -11,13 +11,17 @@ module Raaz.Util.ByteString
        , length
        , hex, toHex
        , withByteString
+       , createFrom
        ) where
 
 import           Prelude hiding (length)
 import           Data.Bits
 import qualified Data.ByteString as B
 import           Data.ByteString(ByteString)
-import           Data.ByteString.Internal(toForeignPtr, memcpy, c2w, unsafeCreate)
+import           Data.ByteString.Internal( toForeignPtr, memcpy
+                                         , c2w, unsafeCreate
+                                         , create
+                                         )
 import           Foreign.ForeignPtr(withForeignPtr)
 import           Foreign.Ptr(castPtr, plusPtr)
 import           Foreign.Storable(poke, peek)
@@ -94,3 +98,9 @@ hex bs = unsafeCreate (2 * n) filler
 withByteString :: ByteString -> (CryptoPtr -> IO a) -> IO a
 withByteString bs f = withForeignPtr fptr (f . flip plusPtr off . castPtr)
   where (fptr, off, _) = toForeignPtr bs
+
+-- | The IO action @createFrom n cptr@ creates a bytestring by copying
+-- @n@ bytes from the pointer @cptr@.
+createFrom :: Int -> CryptoPtr -> IO ByteString
+createFrom n cptr = create n filler
+  where filler dest = memcpy dest (castPtr cptr) $ fromIntegral n
