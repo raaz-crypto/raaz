@@ -3,14 +3,19 @@
 -- necessary pointer arithmetic to make the pointer point to the next
 -- location. No range checks are done to speed up the operations and
 -- hence these operations are highly unsafe. Use it with care.
+
+{-# LANGUAGE FlexibleContexts #-}
 module Raaz.Write
        ( Write, write, writeStorable
+       , writeBytes
        , runWrite
        , runWriteForeignPtr
        ) where
 
 import Control.Monad               ( (>=>) )
+import Data.ByteString.Internal    ( memset )
 import Data.Monoid
+import Data.Word                   ( Word8  )
 import Foreign.ForeignPtr.Safe     ( withForeignPtr )
 import Foreign.Ptr                 ( castPtr )
 import Foreign.Storable
@@ -50,3 +55,11 @@ write :: CryptoStore a => a -> Write
 write a = Write $ \ cptr -> do
   store cptr a
   return $ cptr `movePtr` byteSize a
+
+-- | The combinator @writeBytes n b@ writes @b@ as the next @n@
+-- consecutive bytes.
+writeBytes :: CryptoCoerce n (BYTES Int) => n -> Word8 -> Write
+writeBytes n b = Write $ \ cptr ->
+  memset (castPtr cptr) b (fromIntegral bytes)
+  >> return (cptr `movePtr` n)
+  where bytes = cryptoCoerce n :: BYTES Int
