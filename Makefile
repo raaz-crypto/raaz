@@ -9,7 +9,7 @@ include Makefile.configure # Read in configuration
 .PHONY: tests   # Runs the tests. Assumes that install is already done.
 .PHONY: echo-variables        # Shows make variables. mainly for debugging
 .PHONY: travis-before-install # Sets up the travis environment.
-
+.PHONY: hlint   # runs hlint on the sources
 #
 # For each package we have a target with the same name and a target
 # with the suffix clean. The former builds the package and the latter
@@ -125,3 +125,10 @@ travis-before-install:
 	sudo apt-get update
 	sudo apt-get install ${CABAL_PKG} ${GHC_PKG} happy
 	${CABAL} update
+
+#
+#  Stuff that checks the coding style
+#
+
+hlint:
+	hlint ${PACKAGES}
