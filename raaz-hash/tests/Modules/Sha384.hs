@@ -7,9 +7,10 @@ import qualified Data.ByteString as B
 import qualified Data.ByteString.Char8 as C8
 import Test.QuickCheck(Arbitrary(..))
 
+import Raaz.Test.Gadget
+
 import Modules.Generic(allHashTests)
-import Raaz.Hash.Sha384
-import Raaz.Hash.Sha384.Type(SHA384(..))
+import Raaz.Hash.Sha384.Internal
 
 instance Arbitrary SHA384 where
   arbitrary = SHA384 <$> arbitrary
