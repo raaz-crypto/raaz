@@ -12,7 +12,7 @@ module Raaz.Write
        , runWriteForeignPtr
        ) where
 
-import Control.Monad               ( (>=>) )
+import Control.Monad               ( (>=>), void )
 import Data.Monoid
 import Data.Word                   ( Word8  )
 import Foreign.ForeignPtr.Safe     ( withForeignPtr )
@@ -31,12 +31,11 @@ instance Monoid Write where
 
 -- | Perform a write action on a buffer pointed by the crypto pointer.
 runWrite :: CryptoPtr -> Write -> IO ()
-runWrite cptr (Write action) = action cptr >> return ()
+runWrite cptr (Write action) = void $ action cptr
 
 -- | Perform a write action on a buffer pointed by a foreign pointer
 runWriteForeignPtr   :: ForeignCryptoPtr -> Write -> IO ()
-runWriteForeignPtr fptr (Write action) = withForeignPtr fptr action
-                                         >> return ()
+runWriteForeignPtr fptr (Write action) = void $ withForeignPtr fptr action
 
 -- | Writes a value which is an instance of Storable. This writes the
 -- value machine endian. Mostly it is useful in defining the `poke`
