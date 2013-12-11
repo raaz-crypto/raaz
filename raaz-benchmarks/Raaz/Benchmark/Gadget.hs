@@ -3,49 +3,67 @@
 
 module Raaz.Benchmark.Gadget
        ( benchGadget
-       , benchGadgetMany
+       , benchGadgetWith
        ) where
 
 import Criterion.Main
-import Data.ByteString (ByteString)
 import Data.Typeable
 
 
 import Raaz.Memory
 import Raaz.Primitives
+import Raaz.Types
+import Raaz.Util.Ptr
 
-import Raaz.Util.Gadget
-
--- | Measures the performance of a gadget on the given
--- bytestring. Bytestring is assumed to be multiple of blockSize.
+-- | Measures the performance of a gadget on the given buffer.
 benchGadget  :: ( Gadget g, Typeable (PrimitiveOf g) )
-             => g                  -- ^ Gadget
-             -> String             -- ^ Gadget name
-             -> IV (PrimitiveOf g) -- ^ Gadget IV
-             -> ByteString         -- ^ Bytestring to be processed
+             => g                      -- ^ Gadget
+             -> String                 -- ^ Gadget name
+             -> IV (PrimitiveOf g)     -- ^ Gadget IV
+             -> CryptoPtr              -- ^ Buffer on which to benchmark
+             -> BLOCKS (PrimitiveOf g) -- ^ Size of Buffer
              -> Benchmark
-benchGadget g' gname iv bs = bench name $ do
+benchGadget g' gname iv cptr nblks = bench name $ applyGadget g' iv cptr nblks
+  where
+    name = getName g' gname
+
+benchGadgetWith :: ( Gadget g, Typeable (PrimitiveOf g) )
+                => g                      -- ^ Gadget
+                -> String                 -- ^ Gadget name
+                -> IV (PrimitiveOf g)     -- ^ Gadget IV
+                -> BLOCKS (PrimitiveOf g) -- ^ Size of random buffer which will be allocated
+                -> Benchmark
+benchGadgetWith g' gname iv nblks = bench name $ allocaBuffer nblks go
+  where
+    go cptr = applyGadget g' iv cptr nblks
+    name = getName g' gname
+
+applyGadget :: ( Gadget g )
+            => g
+            -> IV (PrimitiveOf g)
+            -> CryptoPtr
+            -> BLOCKS (PrimitiveOf g)
+            -> IO ()
+applyGadget g' iv cptr nblks = do
   g <- createGadget g'
   initialize g iv
-  applyOnByteSource g bs
+  apply g nblks cptr
   _ <- finalize g
   return ()
   where
-    getPrim :: Gadget g => g -> PrimitiveOf g
-    getPrim _ = undefined
     createGadget :: Gadget g => g -> IO g
     createGadget _ = newGadget =<< newMemory
+
+getName :: ( Gadget g, Typeable (PrimitiveOf g) )
+        => g
+        -> String
+        -> String
+getName g gname = name
+  where
+    getPrim :: Gadget g => g -> PrimitiveOf g
+    getPrim _ = undefined
     name = concat [ "Primitive: "
-                  , show (typeOf $ getPrim g')
+                  , show (typeOf $ getPrim g)
                   , " => Gadget: "
                   , gname
                   ]
-
--- | Perform benchmarking on multiple bytestrings.
-benchGadgetMany :: ( Gadget g, Typeable (PrimitiveOf g) )
-             => g                  -- ^ Gadget
-             -> String             -- ^ Gadget name
-             -> IV (PrimitiveOf g) -- ^ Gadget IV
-             -> [ByteString]       -- ^ Bytestring to be processed
-             -> [Benchmark]
-benchGadgetMany g gname iv bss = map (benchGadget g gname iv) bss
