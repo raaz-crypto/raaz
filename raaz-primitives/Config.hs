@@ -13,6 +13,7 @@ import Config.Page(pageSize)
 
 -- | The main configuration action. This justs packages the actual
 -- configuration.
+configure :: ConfigM ()
 configure = do
   comment "Auto generated stuff (do not edit)"
   wrapHeaderFile "__RAAZ_PRIMITIVES_AUTOCONF_H__" actualConfig
