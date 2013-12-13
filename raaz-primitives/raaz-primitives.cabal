@@ -27,6 +27,10 @@ source-repository head
   location: https://github.com/piyush-kurur/raaz
   subdir: raaz-primitives
 
+flag auto-configure
+  description: Detects and configurs system parameters automatically
+  default: True
+
 library
   exposed-modules: Raaz.ByteSource
                  , Raaz.Memory
@@ -64,7 +68,6 @@ library
           , raaz/primitives/config.h
           , raaz/primitives/load.h
   install-includes: raaz/primitives.h
-                  , raaz/primitives/autoconf.h
                   , raaz/primitives/config.h
                   , raaz/primitives/load.h
 
