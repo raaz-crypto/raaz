@@ -76,3 +76,18 @@ test-Suite tests
                --
                , raaz-primitives                >=0.0.0.1 && < 0.0.0.2
                , raaz-cipher                    >=0.0.0.1 && < 0.0.0.2
+
+benchmark bench-builder-all
+  type: exitcode-stdio-1.0
+  hs-source-dirs: benchmarks
+  main-is: Main.hs
+  build-depends: base                           >= 4.5 && < 4.7
+               , bytestring                     >= 0.9 && < 0.11
+               , data-default                   >= 0.5 && < 0.6
+               , criterion                      >= 0.6 && < 0.9
+               --
+               -- Raaz dependencies
+               --
+               , raaz-primitives                >=0.0.0.1 && < 0.0.0.2
+               , raaz-benchmarks                >=0.0.0.1 && < 0.0.0.2
+               , raaz-cipher                    >=0.0.0.1 && < 0.0.0.2
