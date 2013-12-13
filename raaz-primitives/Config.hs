@@ -58,7 +58,8 @@ checkMemoryLocking = do
 checkMemAlign = haveFFIFunction "memalign"
 
 haveFFIFunction :: String -> ConfigM ()
-haveFFIFunction funcName = do chk <- ffiTest ffiPath
-                              if chk then define' $ "RAAZ_HAVE_" ++ funcName
-                                 else undef $ "RAAZ_HAVE_" ++ funcName
-   where ffiPath = "Config" </> "ffi" </> funcName
+haveFFIFunction funcName = do
+  chk <- ffiTest ffiPath
+  if chk then define' $ "RAAZ_HAVE_" ++ funcName
+    else undef $ "RAAZ_HAVE_" ++ funcName
+  where ffiPath = "Config" </> "ffi" </> funcName
