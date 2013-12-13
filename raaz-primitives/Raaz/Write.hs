@@ -13,7 +13,6 @@ module Raaz.Write
        ) where
 
 import Control.Monad               ( (>=>) )
-import Data.ByteString.Internal    ( memset )
 import Data.Monoid
 import Data.Word                   ( Word8  )
 import Foreign.ForeignPtr.Safe     ( withForeignPtr )
@@ -60,6 +59,6 @@ write a = Write $ \ cptr -> do
 -- consecutive bytes.
 writeBytes :: CryptoCoerce n (BYTES Int) => n -> Word8 -> Write
 writeBytes n b = Write $ \ cptr ->
-  memset (castPtr cptr) b (fromIntegral bytes)
+  memset cptr b bytes
   >> return (cptr `movePtr` n)
   where bytes = cryptoCoerce n :: BYTES Int

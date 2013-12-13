@@ -7,19 +7,22 @@ to use with type safe lengths.
 -}
 
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE ForeignFunctionInterface   #-}
 module Raaz.Util.Ptr
        ( byteSize
-       , allocaBuffer
+       , allocaBuffer, mallocBuffer
        , movePtr
        , storeAt, storeAtIndex
        , loadFrom, loadFromIndex
        , hFillBuf
+       , memset, memmove, memcpy
        ) where
 
+import Data.Word             (Word8)
 import Foreign.Ptr
 import Foreign.Marshal.Alloc
-import Foreign.Storable(Storable, sizeOf)
-import System.IO (hGetBuf, Handle)
+import Foreign.Storable      (Storable, sizeOf)
+import System.IO             (hGetBuf, Handle)
 import Raaz.Types
 
 -- | Similar to `sizeOf` but returns the length in type safe units.
@@ -39,6 +42,15 @@ allocaBuffer :: CryptoCoerce l (BYTES Int)
              -> IO b
 {-# INLINE allocaBuffer #-}
 allocaBuffer l = allocaBytes bytes
+  where BYTES bytes = cryptoCoerce l
+
+-- | Creates a memory of given size. It is better to use over
+-- @`mallocBytes`@ as it uses typesafe length.
+mallocBuffer :: CryptoCoerce l (BYTES Int)
+             => l                    -- ^ buffer length
+             -> IO CryptoPtr
+{-# INLINE mallocBuffer #-}
+mallocBuffer l = mallocBytes bytes
   where BYTES bytes = cryptoCoerce l
 
 -- | Moves a pointer by a specified offset. The offset can be of any
@@ -109,3 +121,38 @@ hFillBuf :: (CryptoCoerce bufSize (BYTES Int))
 {-# INLINE hFillBuf #-}
 hFillBuf handle cptr sz = fmap BYTES $ hGetBuf handle cptr bytes
      where BYTES bytes = cryptoCoerce sz
+
+-- | Some common PTR functions abstracted over type safe length.
+foreign import ccall unsafe "string.h memcpy" c_memcpy
+    :: CryptoPtr -> CryptoPtr -> BYTES Int -> IO (CryptoPtr)
+
+-- | Copy between pointers.
+memcpy :: CryptoCoerce l (BYTES Int)
+       => CryptoPtr -- ^ Dest
+       -> CryptoPtr -- ^ Src
+       -> l         -- ^ Number of Bytes to copy
+       -> IO ()
+memcpy p q l = c_memcpy p q (cryptoCoerce l) >> return ()
+
+foreign import ccall unsafe "string.h memmove" c_memmove
+    :: CryptoPtr -> CryptoPtr -> BYTES Int -> IO (CryptoPtr)
+
+-- | Move between pointers.
+memmove :: CryptoCoerce l (BYTES Int)
+        => CryptoPtr -- ^ Dest
+        -> CryptoPtr -- ^ Src
+        -> l         -- ^ Number of Bytes to copy
+        -> IO ()
+memmove p q l = c_memmove p q (cryptoCoerce l) >> return ()
+
+
+foreign import ccall unsafe "string.h memset" c_memset
+    :: CryptoPtr -> Word8 -> BYTES Int -> IO CryptoPtr
+
+-- | Sets the given number of Bytes to the specified value.
+memset :: CryptoCoerce l (BYTES Int)
+       => CryptoPtr -- ^ Target
+       -> Word8     -- ^ Value byte to set
+       -> l         -- ^ Number of bytes to set
+       -> IO ()
+memset p w l = c_memset p w (cryptoCoerce l) >> return ()

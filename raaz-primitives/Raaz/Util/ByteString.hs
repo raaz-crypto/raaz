@@ -18,7 +18,7 @@ import           Prelude hiding (length)
 import           Data.Bits
 import qualified Data.ByteString as B
 import           Data.ByteString(ByteString)
-import           Data.ByteString.Internal( toForeignPtr, memcpy
+import           Data.ByteString.Internal( toForeignPtr
                                          , c2w, unsafeCreate
                                          , create
                                          )
@@ -28,6 +28,7 @@ import           Foreign.Storable(poke, peek)
 
 
 import Raaz.Types
+import Raaz.Util.Ptr
 
 -- | A typesafe length for Bytestring
 length :: ByteString -> BYTES Int
@@ -40,7 +41,7 @@ unsafeCopyToCryptoPtr :: ByteString   -- ^ The source.
                       -> CryptoPtr    -- ^ The destination.
                       -> IO ()
 unsafeCopyToCryptoPtr bs cptr =  withForeignPtr fptr $
-           \ p -> memcpy dest (p `plusPtr` offset) (fromIntegral n)
+           \ p -> memcpy dest (p `plusPtr` offset) (BYTES n)
     where (fptr, offset,n) = toForeignPtr bs
           dest = castPtr cptr
 
@@ -56,10 +57,9 @@ unsafeNCopyToCryptoPtr :: CryptoCoerce n (BYTES Int)
                        -> CryptoPtr      -- ^ The buffer
                        -> IO ()
 unsafeNCopyToCryptoPtr n bs cptr = withForeignPtr fptr $
-           \ p -> memcpy dest (p `plusPtr` offset) (fromIntegral l)
+           \ p -> memcpy dest (p `plusPtr` offset) n
     where (fptr, offset,_) = toForeignPtr bs
           dest    = castPtr cptr
-          BYTES l = cryptoCoerce n :: BYTES Int
 
 -- | Converts a crypto storable instances to its hexadecimal
 -- representation.
@@ -101,6 +101,6 @@ withByteString bs f = withForeignPtr fptr (f . flip plusPtr off . castPtr)
 
 -- | The IO action @createFrom n cptr@ creates a bytestring by copying
 -- @n@ bytes from the pointer @cptr@.
-createFrom :: Int -> CryptoPtr -> IO ByteString
-createFrom n cptr = create n filler
-  where filler dest = memcpy dest (castPtr cptr) $ fromIntegral n
+createFrom :: BYTES Int -> CryptoPtr -> IO ByteString
+createFrom n cptr = create (fromIntegral n) filler
+  where filler dest = memcpy (castPtr dest) cptr n
