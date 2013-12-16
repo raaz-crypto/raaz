@@ -29,9 +29,10 @@ getCache fp = doIO $ fmap readCache (readFile fp) `catch` handler
                          return 0
 
 readCache :: String -> Int
-readCache str | unit == "K" = number * 1024
-              | unit == "M" = number * 1024 * 1024
-              | otherwise   = error "cache info: bad format for cache string"
+readCache str
+  | unit == "K" = number * 1024
+  | unit == "M" = number * 1024 * 1024
+  | otherwise   = error "cache info: bad format for cache string"
   where (n, r) = span isDigit str
         unit   = strip r
         number = read  n
