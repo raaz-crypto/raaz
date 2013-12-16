@@ -9,6 +9,7 @@ module Modules.Generic
        , testLengthDivisibility
        , testStandardHashValues
        , allHashTests
+       , shorten
        ) where
 
 import qualified Data.ByteString as B
