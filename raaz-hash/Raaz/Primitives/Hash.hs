@@ -110,7 +110,7 @@ sourceHash' g src = do
            return g'
 {-# INLINEABLE sourceHash' #-}
 
-
+-- | Compute the hash of a byte source.
 sourceHash :: ( Hash h, ByteSource src )
            => src  -- ^ Message
            -> IO h
@@ -131,8 +131,7 @@ hash' g = unsafePerformIO . sourceHash' g
 {-# INLINEABLE hash' #-}
 
 
--- | Compute the Hash of Pure Byte Source using recommended
--- implementation.
+-- | Compute the Hash of pure byte source.
 hash :: ( Hash h, PureByteSource src )
      => src  -- ^ Message
      -> h
@@ -149,8 +148,7 @@ hashFile' :: HashGadget g
 hashFile' g fp = withBinaryFile fp ReadMode $ sourceHash' g
 {-# INLINEABLE hashFile' #-}
 
--- | Hash a given file given `FilePath` based on recommended
--- implementation.
+-- | Compute the hash of a given file.
 hashFile :: Hash h
          => FilePath  -- ^ File to be hashed
          -> IO h
