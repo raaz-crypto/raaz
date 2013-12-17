@@ -7,7 +7,6 @@ The Sha256 hash.
 module Raaz.Hash.Sha256
        ( SHA256, sha256
        , sha256File, sourceSha256
-       , module Raaz.Primitives.Hash
        ) where
 
 import qualified Data.ByteString as B
