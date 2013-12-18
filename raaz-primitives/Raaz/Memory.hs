@@ -15,7 +15,7 @@ module Raaz.Memory
 
 
 import Control.Applicative
-import Control.Exception ( bracket )
+import Control.Exception      ( bracket )
 import Foreign.ForeignPtr.Safe  ( finalizeForeignPtr
                                 , mallocForeignPtrBytes
                                 , withForeignPtr
@@ -25,7 +25,9 @@ import Foreign.Storable
 
 
 import Raaz.Types
+import Raaz.Util.Ptr
 import Raaz.Util.SecureMemory
+
 
 -- | Any cryptographic primitives use memory to store stuff. This
 -- class abstracts all types that hold some memory. Besides the usual
@@ -45,6 +47,11 @@ class Memory m where
   -- | Free the memory.
   freeMemory   :: m -> IO ()
 
+  -- | Copy Memory from Source to Destination
+  copyMemory :: m -- ^ Source
+             -> m -- ^ Destination
+             -> IO ()
+
   -- | Perform an action which makes use of this memory. The memory
   -- allocated will automatically be freed when the action finishes
   -- either gracefully or with some exception. Besides being safer,
@@ -61,12 +68,14 @@ class Memory m where
 instance Memory () where
   newMemory = return ()
   freeMemory _ = return ()
+  copyMemory _ _ = return ()
   withMemory f = f ()
   withSecureMemory f _ = f ()
 
 instance (Memory a, Memory b) => Memory (a,b) where
   newMemory = (,) <$> newMemory <*> newMemory
   freeMemory (a,b) = freeMemory a >> freeMemory b
+  copyMemory (sa,sb) (da,db) = copyMemory sa da >> copyMemory sb db
   withSecureMemory f bk = withSecureMemory sec bk
     where sec b = withSecureMemory (\a -> f (a,b)) bk
 
@@ -93,9 +102,18 @@ instance Storable a => Memory (CryptoCell a) where
           mal = fmap CryptoCell . mallocForeignPtrBytes . sizeOf
 
   freeMemory (CryptoCell fptr) = finalizeForeignPtr fptr
+
+  copyMemory scell dcell =
+    withCell scell do1
+    where
+      do1 sptr = withCell dcell (do2 sptr)
+      do2 sptr dptr = memcpy dptr sptr (BYTES $ sizeOf (getA scell))
+      getA :: CryptoCell a -> a
+      getA _ = undefined
+
   withSecureMemory f bk = allocSec undefined bk >>= f
    where
-     wordAlign size = let alignSize = (sizeOf (undefined :: CryptoAlign))
+     wordAlign size = let alignSize = sizeOf (undefined :: CryptoAlign)
                           extra = size `rem` alignSize
                       in if extra == 0 then size else size + alignSize - extra
      allocSec :: Storable a => a -> BookKeeper -> IO (CryptoCell a)
