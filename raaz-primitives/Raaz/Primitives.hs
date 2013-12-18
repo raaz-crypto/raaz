@@ -19,26 +19,27 @@ module Raaz.Primitives
          -- $typesafelengths$
 
          Primitive(..)
-       , BLOCKS, blocksOf
+       , Initializable(..)
        , Gadget(..)
        , SafeGadget
        , CryptoPrimitive(..)
        , HasPadding(..)
-
+       , BLOCKS, blocksOf
        , transformGadget, transformGadgetFile
        ) where
 
-import qualified Data.ByteString      as B
-import           Data.ByteString.Internal(unsafeCreate)
-import           Data.Word(Word64)
-import           Foreign.Ptr(castPtr)
-import           System.IO(withFile, IOMode(ReadMode))
+import qualified Data.ByteString          as B
+import qualified Data.ByteString.Lazy     as L
+import           Data.ByteString.Internal (ByteString, unsafeCreate, create)
+import           Data.Word                (Word64)
+import           Foreign.Ptr              (castPtr)
+import           System.IO                (withFile, IOMode(ReadMode))
 
-import Raaz.Memory
-import Raaz.Types
-import Raaz.ByteSource
-import Raaz.Util.ByteString
-import Raaz.Util.Ptr
+import           Raaz.Memory
+import           Raaz.Types
+import           Raaz.ByteSource
+import           Raaz.Util.ByteString
+import           Raaz.Util.Ptr
 
 -- $primAndGadget$
 --
@@ -76,6 +77,11 @@ class Primitive p where
 
   -- | The initialisation value.
   data IV p :: *
+
+-- | This class captures those primitives whose initial value can
+-- decoded from a `ByteSource`.
+class Primitive p => Initializable p where
+  getIV :: ByteString -> IV p
 
 -----------------   A cryptographic gadget. ----------------------------
 
