@@ -15,7 +15,7 @@ module Raaz.Memory
 
 
 import Control.Applicative
-import Control.Exception      ( bracket )
+import Control.Exception        ( bracket )
 import Foreign.ForeignPtr.Safe  ( finalizeForeignPtr
                                 , mallocForeignPtrBytes
                                 , withForeignPtr
