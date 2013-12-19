@@ -113,21 +113,21 @@ instance Storable a => Memory (CryptoCell a) where
 
   freeMemory (CryptoCell fptr) = finalizeForeignPtr fptr
 
-  copyMemory scell dcell =
-    withCell scell do1
-    where
-      do1 sptr = withCell dcell (do2 sptr)
-      do2 sptr dptr = memcpy dptr sptr (BYTES $ sizeOf (getA scell))
-      getA :: CryptoCell a -> a
-      getA _ = undefined
+  copyMemory scell dcell = withCell scell do1
+    where do1 sptr = withCell dcell (do2 sptr)
+          do2 sptr dptr = memcpy dptr sptr (BYTES $ sizeOf (getA scell))
+          getA :: CryptoCell a -> a
+          getA _ = undefined
 
   withSecureMemory f bk = allocSec undefined bk >>= f
-   where
-     wordAlign size = let alignSize = sizeOf (undefined :: CryptoAlign)
-                          extra = size `rem` alignSize
-                      in if extra == 0 then size else size + alignSize - extra
-     allocSec :: Storable a => a -> BookKeeper -> IO (CryptoCell a)
-     allocSec a = fmap CryptoCell . allocSecureMem' (BYTES $ wordAlign $ sizeOf a)
+   where wordAlign size | extra == 0 = size
+                        | otherwise  = size + alignSize - extra
+           where alignSize = sizeOf (undefined :: CryptoAlign)
+                 extra = size `rem` alignSize
+
+         allocSec :: Storable a => a -> BookKeeper -> IO (CryptoCell a)
+         allocSec a = fmap CryptoCell .
+                      allocSecureMem' (BYTES $ wordAlign $ sizeOf a)
 
 -- -- | An array of values of type having `Storable` instance.
 -- data CryptoArray a = CryptoArray ForeignCryptoPtr Int
