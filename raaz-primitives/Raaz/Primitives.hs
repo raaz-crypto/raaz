@@ -29,8 +29,7 @@ module Raaz.Primitives
        ) where
 
 import qualified Data.ByteString          as B
-import qualified Data.ByteString.Lazy     as L
-import           Data.ByteString.Internal (ByteString, unsafeCreate, create)
+import           Data.ByteString.Internal (ByteString, unsafeCreate)
 import           Data.Word                (Word64)
 import           Foreign.Ptr              (castPtr)
 import           System.IO                (withFile, IOMode(ReadMode))
