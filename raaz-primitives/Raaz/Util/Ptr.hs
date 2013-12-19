@@ -18,6 +18,7 @@ module Raaz.Util.Ptr
        , memset, memmove, memcpy
        ) where
 
+import Control.Monad         (void)
 import Data.Word             (Word8)
 import Foreign.Ptr
 import Foreign.Marshal.Alloc
@@ -124,7 +125,7 @@ hFillBuf handle cptr sz = fmap BYTES $ hGetBuf handle cptr bytes
 
 -- | Some common PTR functions abstracted over type safe length.
 foreign import ccall unsafe "string.h memcpy" c_memcpy
-    :: CryptoPtr -> CryptoPtr -> BYTES Int -> IO (CryptoPtr)
+    :: CryptoPtr -> CryptoPtr -> BYTES Int -> IO CryptoPtr
 
 -- | Copy between pointers.
 memcpy :: CryptoCoerce l (BYTES Int)
@@ -132,10 +133,10 @@ memcpy :: CryptoCoerce l (BYTES Int)
        -> CryptoPtr -- ^ Src
        -> l         -- ^ Number of Bytes to copy
        -> IO ()
-memcpy p q l = c_memcpy p q (cryptoCoerce l) >> return ()
+memcpy p q l = void $ c_memcpy p q $ cryptoCoerce l
 
 foreign import ccall unsafe "string.h memmove" c_memmove
-    :: CryptoPtr -> CryptoPtr -> BYTES Int -> IO (CryptoPtr)
+    :: CryptoPtr -> CryptoPtr -> BYTES Int -> IO CryptoPtr
 
 -- | Move between pointers.
 memmove :: CryptoCoerce l (BYTES Int)
@@ -143,7 +144,7 @@ memmove :: CryptoCoerce l (BYTES Int)
         -> CryptoPtr -- ^ Src
         -> l         -- ^ Number of Bytes to copy
         -> IO ()
-memmove p q l = c_memmove p q (cryptoCoerce l) >> return ()
+memmove p q l = void $ c_memmove p q $ cryptoCoerce l
 
 
 foreign import ccall unsafe "string.h memset" c_memset
@@ -155,4 +156,4 @@ memset :: CryptoCoerce l (BYTES Int)
        -> Word8     -- ^ Value byte to set
        -> l         -- ^ Number of bytes to set
        -> IO ()
-memset p w l = c_memset p w (cryptoCoerce l) >> return ()
+memset p w l = void $ c_memset p w $ cryptoCoerce l
