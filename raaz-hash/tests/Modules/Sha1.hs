@@ -2,10 +2,11 @@ module Modules.Sha1
        ( tests
        ) where
 
-import Control.Applicative
-import qualified Data.ByteString as B
-import qualified Data.ByteString.Char8 as C8
-import Test.QuickCheck(Arbitrary(..))
+import           Control.Applicative
+import qualified Data.ByteString          as B
+import qualified Data.ByteString.Char8    as C8
+import           Data.Default
+import           Test.QuickCheck          (Arbitrary(..))
 
 import Raaz.Test.Gadget
 
@@ -19,9 +20,14 @@ instance Arbitrary SHA1 where
                    <*> arbitrary   -- h3
                    <*> arbitrary   -- h4
 
-tests = allHashTests (undefined ::SHA1) exampleStrings
+tests = allHashTests (undefined ::SHA1) exampleStrings ++ [testCPortable]
 
-
+testCPortable = testGadget g ref def "CPortable vs Reference"
+  where
+    g :: CPortable
+    g = undefined
+    ref :: Ref
+    ref = undefined
 
 exampleStrings :: [(B.ByteString,B.ByteString)]
 exampleStrings = map convertToByteString

@@ -23,7 +23,6 @@ import Test.QuickCheck(Arbitrary)
 
 import Raaz.Primitives
 import Raaz.Primitives.Hash
-import Raaz.Test.CryptoStore
 import Raaz.Types
 import Raaz.Test.CryptoStore
 import Raaz.Test.Cipher

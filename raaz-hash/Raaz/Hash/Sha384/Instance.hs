@@ -5,10 +5,9 @@ This module defines the hash instances for sha384 hash.
 -}
 
 {-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE EmptyDataDecls #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module Raaz.Hash.Sha384.Instance ( Ref ) where
+module Raaz.Hash.Sha384.Instance (CPortable, Ref) where
 
 import Control.Applicative ( (<$>) )
 import Control.Monad       ( foldM )
