@@ -9,6 +9,7 @@ module Modules.Generic
        , testLengthDivisibility
        , testStandardHashValues
        , allHashTests
+       , shorten
        ) where
 
 import qualified Data.ByteString as B
@@ -22,8 +23,9 @@ import Test.QuickCheck(Arbitrary)
 
 import Raaz.Primitives
 import Raaz.Primitives.Hash
-import Raaz.Test.CryptoStore
 import Raaz.Types
+import Raaz.Test.CryptoStore
+import Raaz.Test.Cipher
 import Raaz.Util.ByteString (toHex)
 
 
@@ -87,16 +89,3 @@ testStandardHashValues h = hUnitTestToTests . test . map checkHash
   where getHash a = toHex $ hash a `asTypeOf` h
         label a   = show (typeOf h) ++ " " ++ shorten (show a)
         checkHash (a,b) = label a ~: getHash a ~?= b
-
--- | While displaying the input truncate it to these many characters.
-maxLength :: Int
-maxLength = 10
--- | This is to shorten the large strings while displaying unit test results
-
-shorten :: String -> String
-shorten str | l <= maxLength = str
-            | otherwise      = take maxLength str ++ "..."
-                             ++ "("
-                             ++ show (l - maxLength)
-                             ++ " more chars)"
-  where l = length str

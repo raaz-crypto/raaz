@@ -41,6 +41,7 @@ library
                  , Raaz.Types
                  , Raaz.Test
                  , Raaz.Test.CryptoStore
+                 , Raaz.Test.Gadget
                  , Raaz.Util.ByteString
                  , Raaz.Util.Gadget
                  , Raaz.Util.Ptr
