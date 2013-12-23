@@ -38,75 +38,31 @@ import           Raaz.Util.Ptr
 import           Raaz.Util.SecureMemory
 
 
--- | Gadgets that compute a cryptographic hash.
-class ( SafeGadget g
-      , Eq          (PrimitiveOf g)
-      , HasPadding  (PrimitiveOf g)
-      , Default     (IV (PrimitiveOf g))
-      , CryptoStore (PrimitiveOf g)
-      ) => HashGadget g where
-
-  -- | Computes the iterated hash, useful for password
-  -- hashing. Although a default implementation is given, you might
-  -- want to give an optimized specialised version of this function.
-  iterateHash :: g             -- ^ The gadget
-              -> Int           -- ^ Number of times to iterate
-              -> PrimitiveOf g -- ^ starting hash
-              -> IO (PrimitiveOf g)
-  iterateHash g n h = allocaBuffer tl (iterateN h)
-      where dl = BYTES $ sizeOf h              -- length of msg
-            pl = padLength h (cryptoCoerce dl) -- length of pad
-            tl = dl + pl                       -- total length
-            blks = cryptoCoerce tl `asTypeOf` blocksOf 1 h
-            iterateN _ cptr = do
-              unsafePad h bits padPtr
-              foldM iterateOnce h [1..n]
-              where
-                bits   = cryptoCoerce dl
-                padPtr = cptr `movePtr` dl
-                iterateOnce hsh _ = do
-                  store cptr hsh
-                  initialize g def
-                  apply g blks cptr
-                  finalize g
-
-  -- | This functions processes data which itself is a hash. One can
-  -- use this for iterated hash computation, hmac construction
-  -- etc. There is a default definition of this function but
-  -- implementations can give a more efficient version.
-  processHash :: g           -- ^ The gadget
-              -> BITS Word64 -- ^ number of bits processed so far
-                             -- (exculding the bits in the hash)
-              -> PrimitiveOf g
-              -> IO (PrimitiveOf g)
-  processHash g bits h = allocaBuffer tl go
-     where sz      = BYTES $ sizeOf h
-           tBits   = bits + cryptoCoerce sz
-           pl      = padLength h tBits
-           tl      = sz + pl
-           go cptr = do
-              store cptr h
-              unsafePad h tBits $ cptr `movePtr` sz
-              apply g (cryptoCoerce tl) cptr
-              finalize g
-
-
-class (CryptoPrimitive h, HashGadget (Recommended h)) => Hash h where
+class ( SafePrimitive h
+      , HasPadding h
+      , Default (IV h)
+      , CryptoPrimitive h
+      , Eq h
+      , CryptoStore h
+      ) => Hash h where
 
 -- | Hash a given byte source.
-sourceHash' :: ( HashGadget g, ByteSource src )
+sourceHash' :: ( ByteSource src
+               , Hash h
+               , Gadget g
+               , h ~ PrimitiveOf g
+               )
             => g    -- ^ Gadget
             -> src  -- ^ Message
             -> IO (PrimitiveOf g)
 sourceHash' g src = do
-  gad <- initializeHash g
+  gad <- new g
+  initialize gad def
   transformGadget gad src
   finalize gad
-   where initializeHash :: HashGadget g => g -> IO g
-         initializeHash _ = do
-           g' <- newGadget =<< newMemory
-           initialize g' def
-           return g'
+   where new :: Gadget g => g -> IO g
+         new _ = newGadget =<< newMemory
+
 {-# INLINEABLE sourceHash' #-}
 
 -- | Compute the hash of a byte source.
@@ -122,10 +78,14 @@ sourceHash src = go undefined
 {-# SPECIALIZE sourceHash :: Hash h => Handle -> IO h #-}
 
 -- | Compute the Hash of Pure Byte Source. Implementation dependent.
-hash' :: ( HashGadget g, PureByteSource src )
-     => g    -- ^ Gadget
-     -> src  -- ^ Message
-     -> PrimitiveOf g
+hash' :: ( PureByteSource src
+         , Hash h
+         , Gadget g
+         , h ~ PrimitiveOf g
+         )
+      => g    -- ^ Gadget
+      -> src  -- ^ Message
+      -> PrimitiveOf g
 hash' g = unsafePerformIO . sourceHash' g
 {-# INLINEABLE hash' #-}
 
@@ -140,10 +100,14 @@ hash = unsafePerformIO . sourceHash
 {-# SPECIALIZE hash :: Hash h => L.ByteString -> h #-}
 
 -- | Hash a given file given `FilePath`. Implementation dependent.
-hashFile' :: HashGadget g
+hashFile' :: ( Hash h
+             , Gadget g
+             , h ~ PrimitiveOf g
+             )
           => g           -- ^ Implementation
           -> FilePath    -- ^ File to be hashed
           -> IO (PrimitiveOf g)
+
 hashFile' g fp = withBinaryFile fp ReadMode $ sourceHash' g
 {-# INLINEABLE hashFile' #-}
 
