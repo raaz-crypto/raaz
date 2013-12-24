@@ -46,6 +46,3 @@ instance Gadget Ref where
       sz = blockSize (undefined :: SHA1)
       moveAndHash (cxt,ptr) _ = do newCxt <- sha1CompressSingle cxt ptr
                                    return (newCxt, ptr `movePtr` sz)
-
-instance SafeGadget Ref
-instance HashGadget Ref

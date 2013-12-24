@@ -15,7 +15,6 @@ module Raaz.Hash.Sha384.CPortable
 
 import Raaz.Memory
 import Raaz.Primitives
-import Raaz.Primitives.Hash
 
 import Raaz.Hash.Sha384.Type
 import Raaz.Hash.Sha512.Type      ( SHA512(..) )
@@ -34,6 +33,3 @@ instance Gadget CPortable where
             = (SHA384 h0 h1 h2 h3 h4 h5)
   apply (CPortable cc) n cptr = sha512Compress cc n' cptr
     where n' = blocksOf (fromIntegral n) (undefined :: SHA512)
-
-instance SafeGadget CPortable
-instance HashGadget CPortable

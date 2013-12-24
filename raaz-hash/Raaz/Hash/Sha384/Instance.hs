@@ -50,6 +50,3 @@ instance Gadget Ref where
       sz = blockSize (undefined :: SHA512)
       moveAndHash (cxt,ptr) _ = do newCxt <- sha512CompressSingle cxt ptr
                                    return (newCxt, ptr `movePtr` sz)
-
-instance SafeGadget Ref
-instance HashGadget Ref

@@ -36,6 +36,7 @@ library
                  , Raaz.Memory
                  , Raaz.Parse
                  , Raaz.Primitives
+                 , Raaz.Primitives.Hash
 --                 , Raaz.Primitives.MAC
                  , Raaz.System.Parameters
                  , Raaz.Types

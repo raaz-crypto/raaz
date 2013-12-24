@@ -18,12 +18,11 @@ module Raaz.Primitives
          -- * Type safe lengths in units of blocks.
          -- $typesafelengths$
 
-         Primitive(..)
+         Primitive(..), Gadget(..)
+       , SafePrimitive
        , Initializable(..)
-       , Gadget(..)
-       , SafeGadget
-       , CryptoPrimitive(..)
        , HasPadding(..)
+       , CryptoPrimitive(..)
        , BLOCKS, blocksOf
        , transformGadget, transformGadgetFile
        ) where
@@ -63,11 +62,11 @@ import           Raaz.Util.Ptr
 
 ----------------------- A primitive ------------------------------------
 
--- | Abstraction that captures crypto primitives. Every primitive that
--- that we provide is a type which is an instance of this class. A
--- primitive consists of the following (1) A block size and (2) an
--- intialisation value (captured by the data family `IV`). For a
--- stream primitive (like a stream cipher) the block size is 1.
+-- | Abstraction that captures a crypto primitives. Every primitive
+-- that that we provide is a type which is an instance of this
+-- class. A primitive consists of the following (1) A block size and
+-- (2) an intialisation value (captured by the data family `IV`). For
+-- a stream primitive (like a stream cipher) the block size is 1.
 --
 class Primitive p where
 
@@ -77,8 +76,16 @@ class Primitive p where
   -- | The initialisation value.
   data IV p :: *
 
--- | This class captures those primitives whose initial value can
--- decoded from a `ByteSource`.
+-- | A safe primitive is a primitive whose computation does not need
+-- modification of the input. Examples of safe primitives are
+-- cryptographic hashes and macs. An example of an unsafe primitive
+-- cipher. A library writter is required to ensure that a `apply`
+-- function of a gadget for a safe primitive should not modify the
+-- input buffer.
+class Primitive p => SafePrimitive p where
+
+-- | Primitives that are initialisable via a `ByteString`. Examples
+-- are hmac's.
 class Primitive p => Initializable p where
   getIV :: ByteString -> IV p
 
@@ -86,14 +93,18 @@ class Primitive p => Initializable p where
 
 -- | A gadget implements a primitive. It has three phases: (1) the
 -- initialisation (2) the /processing/ or /transformation/ phase and
--- (3) the /finalisation/. Depending on what the gadget, i.e. the
--- nature of the associated primitive, each of this phase might be
--- absent or trivial. The main action happens in the processing phase
--- where the gadget is passed a buffer. Depending on the functionality
--- of the gadget data is either written into, or read by or just
+-- (3) the /finalisation/. The main action happens in the processing
+-- phase which is captured by the `apply` combinator. Depending on the
+-- primitive, data is either written into, or read by or just
 -- transformed (think of a PRG, Cryptographic hash or a Cipher
--- respectively).
+-- respectively). Gadgets are stateful and the state is typically
+-- stored inside the memory of the gadgets captured by the associated
+-- type MemoryOf g
 --
+-- Gadget instances where the underlying primitive is an instance of
+-- `SafePrimitive` should ensure that the input buffer is not
+-- modified.
+
 class ( Primitive (PrimitiveOf g), Memory (MemoryOf g) )
       => Gadget g where
 
@@ -106,14 +117,17 @@ class ( Primitive (PrimitiveOf g), Memory (MemoryOf g) )
   -- | The action @newGadget mem@ creates a gadget which uses @mem@ as
   -- its internal memory. If you want the internal data to be
   -- protected from being swapped out (for example if the internal
-  -- memory contains sensitive data) then pass a secuded memory to
+  -- memory contains sensitive data) then pass a secured memory to
   -- this function.
   newGadget :: MemoryOf g -> IO g
 
-  -- | Initializes the gadget.
+  -- | Initializes the gadget. For each computation of the primitive,
+  -- the gadget needs to be initialised so that the internal memory is
+  -- reset to the start.
   initialize :: g -> IV (PrimitiveOf g) -> IO ()
 
-  -- | Finalize the data.
+  -- | Finalize the data. This does not destroy the gadget and the
+  -- gadget can be used again after initialisation.
   finalize :: g -> IO (PrimitiveOf g)
 
   -- | The recommended number of blocks to process at a time. While
@@ -125,23 +139,10 @@ class ( Primitive (PrimitiveOf g), Memory (MemoryOf g) )
   recommendedBlocks   :: g -> BLOCKS (PrimitiveOf g)
   recommendedBlocks _ = cryptoCoerce (1024 * 32 :: BYTES Int)
 
-  -- | This function actually applies the gadget on the buffer. What
-  -- happens to the content of the buffer depends on whether it is a
-  -- `SafeGadget` or not.
+  -- | This function actually applies the gadget on the buffer. If the
+  -- underlying primitive is an instance of the class `SafePrimitive`,
+  -- please ensure that the contents of the buffer are not modified.
   apply :: g -> BLOCKS (PrimitiveOf g) -> CryptoPtr -> IO ()
-
--- | A gadget @g@ is a safe gadget if it does not modify its input
--- buffer. For example, gadgets for hashes are usually safe (there is
--- no requirement as such but it appears that it makes sense to keep
--- it safe) where as one would not want the a cipher gadget or a
--- random source gadget to be safe. This type class captures a gadget
--- that promises not to touch the the buffer of data that it
--- processes. If we want to compute two primitives on the same data,
--- then using a safe gadget for the first primitive ensures that we do
--- not need to recopy the actual source (consider for example hmac
--- followed by encryption).
-class (Gadget g) => SafeGadget g
-
 
 -------------------- Primitives with padding ---------------------------
 

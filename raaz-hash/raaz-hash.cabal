@@ -31,7 +31,6 @@ library
                  , Raaz.Hash.Sha256
                  , Raaz.Hash.Sha384
                  , Raaz.Hash.Sha512
-                 , Raaz.Primitives.Hash
                  , Raaz.Hash.Sha1.Internal
                  , Raaz.Hash.Sha224.Internal
                  , Raaz.Hash.Sha256.Internal
