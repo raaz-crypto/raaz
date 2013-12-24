@@ -14,7 +14,6 @@ module Raaz.Hash.Sha224.CPortable
 
 import Raaz.Memory
 import Raaz.Primitives
-import Raaz.Primitives.Hash
 
 import Raaz.Hash.Sha224.Type
 import Raaz.Hash.Sha256.Type      ( SHA256(..) )
@@ -33,6 +32,3 @@ instance Gadget CPortable where
             = SHA224 h0 h1 h2 h3 h4 h5 h6
   apply (CPortable cc) n cptr = sha256Compress cc n' cptr
     where n' = blocksOf (fromIntegral n) (undefined :: SHA256)
-
-instance SafeGadget CPortable
-instance HashGadget CPortable

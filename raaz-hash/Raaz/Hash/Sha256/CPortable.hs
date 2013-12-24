@@ -19,7 +19,6 @@ import Foreign.Ptr
 
 import Raaz.Memory
 import Raaz.Primitives
-import Raaz.Primitives.Hash
 import Raaz.Types
 
 import Raaz.Hash.Sha256.Type
@@ -44,6 +43,3 @@ instance Gadget CPortable where
   initialize (CPortable cc) (SHA256IV sha1) = cellStore cc sha1
   finalize (CPortable cc) = cellLoad cc
   apply (CPortable cc) n cptr = sha256Compress cc n cptr
-
-instance SafeGadget CPortable
-instance HashGadget CPortable

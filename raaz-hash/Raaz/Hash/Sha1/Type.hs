@@ -90,6 +90,8 @@ instance Primitive SHA1 where
   {-# INLINE blockSize #-}
   newtype IV SHA1 = SHA1IV SHA1
 
+instance SafePrimitive SHA1
+
 instance HasPadding SHA1 where
   maxAdditionalBlocks _ = 1
   padLength = padLength64

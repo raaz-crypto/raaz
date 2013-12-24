@@ -111,6 +111,8 @@ instance Primitive SHA224 where
   {-# INLINE blockSize #-}
   newtype IV SHA224 = SHA224IV SHA256
 
+instance SafePrimitive SHA224
+
 instance HasPadding SHA224 where
   maxAdditionalBlocks _ = 1
   padLength = padLength64
