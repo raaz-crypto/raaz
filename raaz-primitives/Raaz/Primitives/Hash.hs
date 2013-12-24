@@ -9,9 +9,8 @@ A cryptographic hash function abstraction.
 {-# LANGUAGE FlexibleContexts           #-}
 
 module Raaz.Primitives.Hash
-       ( HashGadget(..)
-       , Hash
-       , HMAC(..)
+       ( Hash
+       -- , HMAC(..)
        , sourceHash', sourceHash
        , hash', hash
        , hashFile', hashFile
@@ -155,6 +154,7 @@ hashFile :: Hash h
 hashFile fp = withBinaryFile fp ReadMode sourceHash
 {-# INLINEABLE hashFile #-}
 
+{-
 -- | The HMAC associated to a hash value. The `Eq` instance for HMAC
 -- is essentially the `Eq` instance for the underlying hash and hence
 -- is safe against timing attack (provided the underlying hashs --
@@ -302,3 +302,4 @@ initHMAC' (HMACGadget g (HMACBuffer fptr)) bs = do
     ipad  = B.map (xor 0x36) bsPad
     BYTES len   = cryptoCoerce $ oneBlock g
     BYTES bslen = length bs
+-}
