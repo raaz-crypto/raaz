@@ -70,7 +70,7 @@ library
                  , Raaz.Primitives.Hash
                  , Raaz.Primitives.Asymmetric
                  , Raaz.Primitives.Symmetric
---                 , Raaz.Primitives.MAC
+                 , Raaz.Primitives.HMAC
                  , Raaz.Primitives.Cipher
                  , Raaz.Serialize
                  , Raaz.System.Parameters

@@ -10,7 +10,6 @@ A cryptographic hash function abstraction.
 
 module Raaz.Primitives.Hash
        ( Hash
-       -- , HMAC(..)
        , sourceHash', sourceHash
        , hash', hash
        , hashFile', hashFile
@@ -18,6 +17,8 @@ module Raaz.Primitives.Hash
 
 import           Control.Applicative  ((<$>))
 import           Data.Default
+import           Data.Word            (Word64, Word8)
+import           Data.Bits
 import qualified Data.ByteString      as B
 import qualified Data.ByteString.Lazy as L
 import           Prelude              hiding (length)
@@ -27,6 +28,9 @@ import           System.IO.Unsafe     (unsafePerformIO)
 import           Raaz.ByteSource
 import           Raaz.Primitives
 import           Raaz.Types
+import           Raaz.Util.ByteString
+import           Raaz.Util.Ptr
+import           Raaz.Util.SecureMemory
 
 -- | Type class capturing a cryptographic hash. The important
 -- properties of a hash are
