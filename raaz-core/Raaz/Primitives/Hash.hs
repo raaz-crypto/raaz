@@ -28,7 +28,18 @@ import           Raaz.ByteSource
 import           Raaz.Primitives
 import           Raaz.Types
 
-
+-- | Type class capturing a cryptographic hash. The important
+-- properties of a hash are
+--
+-- 1. There is a default starting context
+--
+-- 2. The hash value can be recovered from the final context
+--
+-- 3. There should be a padding strategy for padding non-integral
+--    multiples of block size. In raaz we allow hashing only byte
+--    messages even though standard hashes also allow hashing bit
+--    messages.
+--
 class ( SafePrimitive h
       , PaddableGadget (Recommended h)
       , HasPadding h
@@ -39,7 +50,6 @@ class ( SafePrimitive h
       , h ~ Digest h
       , Digestible h
       ) => Hash h
-
 
 -- | Hash a given byte source.
 sourceHash' :: ( ByteSource src
