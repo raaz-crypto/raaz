@@ -38,7 +38,7 @@ data Ref = Ref (CryptoCell SHA256)
 instance Gadget Ref where
   type PrimitiveOf Ref = SHA224
   type MemoryOf Ref = CryptoCell SHA256
-  newGadget cc = return $ Ref cc
+  newGadgetWithMemory cc = return $ Ref cc
   initialize (Ref cc) (SHA224IV sha1) = cellStore cc sha1
   finalize (Ref cc) = sha256Tosha224 <$> cellLoad cc
     where sha256Tosha224 (SHA256 h0 h1 h2 h3 h4 h5 h6 _)

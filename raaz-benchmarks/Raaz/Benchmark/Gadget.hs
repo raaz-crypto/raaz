@@ -52,7 +52,7 @@ applyGadget g' iv cptr nblks = do
   return ()
   where
     createGadget :: Gadget g => g -> IO g
-    createGadget _ = newGadget =<< newMemory
+    createGadget _ = newGadget
 
 getName :: ( Gadget g, Typeable (PrimitiveOf g) )
         => g

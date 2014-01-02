@@ -18,7 +18,7 @@ module Raaz.Primitives
          -- * Type safe lengths in units of blocks.
          -- $typesafelengths$
 
-         Primitive(..), Gadget(..)
+         Primitive(..), Gadget(..), newGadget, newInitializedGadget
        , SafePrimitive
        , Initializable(..)
        , HasPadding(..)
@@ -114,12 +114,12 @@ class ( Primitive (PrimitiveOf g), Memory (MemoryOf g) )
   -- | The (type of the) internal memory used by the gadget.
   type MemoryOf g
 
-  -- | The action @newGadget mem@ creates a gadget which uses @mem@ as
-  -- its internal memory. If you want the internal data to be
-  -- protected from being swapped out (for example if the internal
-  -- memory contains sensitive data) then pass a secured memory to
-  -- this function.
-  newGadget :: MemoryOf g -> IO g
+  -- | The action @newGadgetWithMemory mem@ creates a gadget which
+  -- uses @mem@ as its internal memory. If you want the internal data
+  -- to be protected from being swapped out (for example if the
+  -- internal memory contains sensitive data) then pass a secured
+  -- memory to this function.
+  newGadgetWithMemory :: MemoryOf g -> IO g
 
   -- | Initializes the gadget. For each computation of the primitive,
   -- the gadget needs to be initialised so that the internal memory is
@@ -143,6 +143,20 @@ class ( Primitive (PrimitiveOf g), Memory (MemoryOf g) )
   -- underlying primitive is an instance of the class `SafePrimitive`,
   -- please ensure that the contents of the buffer are not modified.
   apply :: g -> BLOCKS (PrimitiveOf g) -> CryptoPtr -> IO ()
+
+
+-- | The function @newInitializedGadget iv@ creates a new instance of
+-- the gadget with its memory allocated and initialised to @iv@.
+newInitializedGadget :: Gadget g => IV (PrimitiveOf g) -> IO g
+newInitializedGadget iv = do
+  g <- newGadget
+  initialize g iv
+  return g
+
+-- | The function @newGadget iv@ creates a new instance of the gadget
+-- with its memory allocated.
+newGadget :: Gadget g => IO g
+newGadget = newMemory >>= newGadgetWithMemory
 
 -------------------- Primitives with padding ---------------------------
 

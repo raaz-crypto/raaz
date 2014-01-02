@@ -60,7 +60,7 @@ prop_Gadget ref' g' iv (TestData bs) = monadicIO $ do
   where
     bsize = BU.length bs
     createGadget :: Gadget g => g -> IO g
-    createGadget _ = newGadget =<< newMemory
+    createGadget _ = newGadget
     with :: Gadget g => g -> CryptoPtr -> IO (PrimitiveOf g, ByteString)
     with g cptr =  do
       BU.unsafeCopyToCryptoPtr bs cptr

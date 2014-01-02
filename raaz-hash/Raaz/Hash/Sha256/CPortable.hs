@@ -39,7 +39,7 @@ sha256Compress cc nblocks buffer = withCell cc action
 instance Gadget CPortable where
   type PrimitiveOf CPortable = SHA256
   type MemoryOf CPortable = CryptoCell SHA256
-  newGadget cc = return $ CPortable cc
+  newGadgetWithMemory cc = return $ CPortable cc
   initialize (CPortable cc) (SHA256IV sha1) = cellStore cc sha1
   finalize (CPortable cc) = cellLoad cc
   apply (CPortable cc) n cptr = sha256Compress cc n cptr
