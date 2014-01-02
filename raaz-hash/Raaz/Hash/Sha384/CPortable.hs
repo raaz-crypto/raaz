@@ -26,7 +26,7 @@ data CPortable = CPortable (CryptoCell SHA512)
 instance Gadget CPortable where
   type PrimitiveOf CPortable = SHA384
   type MemoryOf CPortable = CryptoCell SHA512
-  newGadget cc = return $ CPortable cc
+  newGadgetWithMemory cc = return $ CPortable cc
   initialize (CPortable cc) (SHA384IV sha) = cellStore cc sha
   finalize (CPortable cc) = sha512Tosha384 `fmap` cellLoad cc
     where sha512Tosha384 (SHA512 h0 h1 h2 h3 h4 h5 _ _)
