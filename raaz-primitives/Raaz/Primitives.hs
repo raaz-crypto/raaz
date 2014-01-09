@@ -87,6 +87,7 @@ class Primitive p => SafePrimitive p where
 -- | Primitives that are initialisable via a `ByteString`. Examples
 -- are hmac's.
 class Primitive p => Initializable p where
+  ivSize :: p -> BYTES Int
   getIV :: ByteString -> IV p
 
 -----------------   A cryptographic gadget. ----------------------------
