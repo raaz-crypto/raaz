@@ -64,7 +64,7 @@ class Memory m where
 
   -- | Similar to `withMemory` but allocates a secure memory for the
   -- action.
-  withSecureMemory :: (m -> IO a) -> BookKeeper -> IO a
+  withSecureMemory :: (m -> IO a) -> PoolRef -> IO a
 
 instance Memory () where
   newMemory = return ()
@@ -130,7 +130,7 @@ instance Storable a => Memory (CryptoCell a) where
            where alignSize = sizeOf (undefined :: CryptoAlign)
                  extra = size `rem` alignSize
 
-         allocSec :: Storable a => a -> BookKeeper -> IO (CryptoCell a)
+         allocSec :: Storable a => a -> PoolRef -> IO (CryptoCell a)
          allocSec a = fmap CryptoCell .
                       allocSecureMem' (BYTES $ wordAlign $ sizeOf a)
 

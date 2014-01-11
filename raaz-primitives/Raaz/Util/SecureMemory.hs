@@ -27,10 +27,10 @@ module Raaz.Util.SecureMemory
        , initPool
        , allocFromPool
        , freeInPool
-         -- BookKeeper helper functions
-       , BookKeeper
+         -- PoolRef helper functions
+       , PoolRef
        , allocSecureMem
-       , initBookKeeper
+       , initPoolRef
        , freeSecureMem
        , allocSecureMem'
        ) where
@@ -71,13 +71,13 @@ foreign import ccall unsafe "cbits/raaz/memory.c wipememory"
 -- this pool gets fragmented into blocks. Therefore, a pool is
 -- essentially a list of blocks (captured by the `Block` data type)
 -- together with some meta information. Finally we have the
--- `BookKeeper` which keeps track fo all the pools in a `IORef`.
+-- `PoolRef` which keeps track fo all the pools in a `IORef`.
 --
 
 
 -- | Captures the state of secure memory and allows modification in a
 -- thread safe way.
-type BookKeeper = IORef [Pool]
+type PoolRef = IORef [Pool]
 
 
 
@@ -159,20 +159,20 @@ initPool size  = do
     addFinalizers :: ForeignCryptoPtr -> [IO ()] -> IO ()
     addFinalizers fptr = mapM_ (addForeignPtrFinalizer fptr)
 
--- | Creates the initial `BookKeeper` with the pool of given size.
-initBookKeeper :: CryptoCoerce size (BYTES Int)
+-- | Creates the initial `PoolRef` with the pool of given size.
+initPoolRef :: CryptoCoerce size (BYTES Int)
                => size
-               -> IO BookKeeper
-initBookKeeper size = newIORef . singleton =<< initPool size
+               -> IO PoolRef
+initPoolRef size = newIORef . singleton =<< initPool size
   where singleton a = [a]
 
 -- | Allocates the `ForeignCryptoPtr` from the already available pool
 -- of secure memory. Also adds the finalizer to mark the block as free
--- in the `BookKeeper`. Returns `Nothing` if enough free memory is not
+-- in the `PoolRef`. Returns `Nothing` if enough free memory is not
 -- available in the pool.
 allocSecureMem :: CryptoCoerce size (BYTES Int)
          => size
-         -> BookKeeper
+         -> PoolRef
          -> IO (Maybe ForeignCryptoPtr)
 allocSecureMem size bkpr = do
   mcptr <- atomicModifyIORef bkpr with
@@ -190,7 +190,7 @@ allocSecureMem size bkpr = do
 -- more memory locking.
 allocSecureMem' :: CryptoCoerce size (BYTES Int)
                 => size
-                -> BookKeeper
+                -> PoolRef
                 -> IO ForeignCryptoPtr
 allocSecureMem' size bkpr =
   maybe addPool return =<< allocSecureMem size bkpr
@@ -202,9 +202,9 @@ allocSecureMem' size bkpr =
 
 -- | Marks the associated block as free. Also frees any unused pool
 -- created by `unsafeAllocSecureMem`. It does not frees the initial
--- pool created by `initBookKeeper` even if the pool is unused.
+-- pool created by `initPoolRef` even if the pool is unused.
 freeSecureMem :: CryptoPtr
-              -> BookKeeper
+              -> PoolRef
               -> IO ()
 freeSecureMem cptr bkpr =
   maybe (return ()) finalizeForeignPtr =<< atomicModifyIORef bkpr with
