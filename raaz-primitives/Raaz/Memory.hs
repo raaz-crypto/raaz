@@ -131,8 +131,8 @@ instance Storable a => Memory (CryptoCell a) where
                  extra = size `rem` alignSize
 
          allocSec :: Storable a => a -> PoolRef -> IO (CryptoCell a)
-         allocSec a = fmap CryptoCell .
-                      allocSecureMem' (BYTES $ wordAlign $ sizeOf a)
+         allocSec a pref = allocSecureMem (BYTES $ wordAlign $ sizeOf a) pref
+               >>= maybe (fail "SecureMemory Exhausted") (return . CryptoCell)
 
 -- -- | An array of values of type having `Storable` instance.
 -- data CryptoArray a = CryptoArray ForeignCryptoPtr Int
