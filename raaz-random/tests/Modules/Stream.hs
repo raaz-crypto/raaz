@@ -36,7 +36,7 @@ prop_length :: (StreamGadget g, Initializable (PrimitiveOf g))
 prop_length g' (TestIV bsiv) (Sized sz) = monadicIO $ do
   g <- run $ createGadget g'
   run $ initialize g (getIV bsiv)
-  src <- run $ fromGadget g (16 * 1024)
+  src <- run $ fromGadget g
   bs <- undefined -- generate bytestring from src
   assert (BS.length bs == sz)
   where
