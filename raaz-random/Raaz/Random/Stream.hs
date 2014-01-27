@@ -16,11 +16,6 @@ module Raaz.Random.Stream
        ) where
 
 import Control.Monad            (void)
-import Foreign.ForeignPtr.Safe  ( finalizeForeignPtr
-                                , mallocForeignPtrBytes
-                                , withForeignPtr
-                                )
-import Foreign.Storable
 
 import Raaz.ByteSource
 import Raaz.Memory
@@ -28,48 +23,24 @@ import Raaz.Primitives
 import Raaz.Primitives.Cipher
 import Raaz.Types
 import Raaz.Util.Ptr
-import Raaz.Util.SecureMemory
 
 -- | A buffered random source which uses a stream gadget as the
 -- underlying source for generating random bytes.
 data RandomSource g = RandomSource g                         -- ^ Gadget
-                                   (Buffer g)                -- ^ Underlying Buffer
+                                   (Buffer (GadgetBuff g))   -- ^ Underlying Buffer
                                    (CryptoCell (BYTES Int))  -- ^ Offset in Buffer
                                    (CryptoCell (BYTES Int))  -- ^ `BYTES` generated so far
 
--- | Represents a buffer.
-data Buffer g = Buffer (BYTES Int) ForeignCryptoPtr
-
-bufferSize :: Buffer g -> BYTES Int
-bufferSize (Buffer sz _) = sz
-
-instance Gadget g => Memory (Buffer g) where
-  newMemory = mal undefined
-    where mal :: Gadget g => g -> IO (Buffer g)
-          mal g = fmap (Buffer bsize) $ mallocForeignPtrBytes size
-            where
-              size = fromIntegral bsize
-              bsize :: BYTES Int
-              bsize = cryptoCoerce $ recommendedBlocks g
-  freeMemory (Buffer _ fptr) = finalizeForeignPtr fptr
-  copyMemory (Buffer sz sf) (Buffer _ df) = withForeignPtr sf do1
-    where do1 sptr = withForeignPtr df (do2 sptr)
-          do2 sptr dptr = memcpy dptr sptr (BYTES sz)
-  withSecureMemory f bk = allocSec undefined bk >>= f
-   where
-     wordAlign :: BYTES Int -> BYTES Int
-     wordAlign size | extra == 0 = size
-                    | otherwise  = size + alignSize - extra
-           where alignSize = fromIntegral $ sizeOf (undefined :: CryptoAlign)
-                 extra = size `rem` alignSize
-     allocSec :: Gadget g => g -> PoolRef -> IO (Buffer g)
-     allocSec g pref = allocSecureMem (wordAlign size) pref
-         >>= maybe (fail "SecureMemory Exhausted") (return . Buffer size)
-       where
-         size = cryptoCoerce $ recommendedBlocks g
+-- | Primitive for Random Source
+newtype RandomPrim p = RandomPrim p
 
 zeroOutBuffer :: Buffer g -> IO ()
-zeroOutBuffer (Buffer size fptr) = withForeignPtr fptr (\cptr -> memset cptr 0 size)
+zeroOutBuffer buff = withBuffer buff (\cptr -> memset cptr 0 (bufferSize buff))
+
+newtype GadgetBuff g = GadgetBuff g
+
+instance (Gadget g) => Bufferable (GadgetBuff g) where
+  sizeOfBuffer (GadgetBuff g) = fromIntegral $ recommendedBlocks g
 
 -- | Create a `RandomSource` from a `StreamGadget`.
 fromGadget :: StreamGadget g
@@ -83,23 +54,23 @@ fromGadget g = do
   cellStore counter 0
   return (RandomSource g buffer offset counter)
 
-instance Primitive p => Primitive (RandomSource p) where
+instance Primitive p => Primitive (RandomPrim p) where
   blockSize = blockSize . getPrim
     where
-      getPrim :: RandomSource p -> p
+      getPrim :: RandomPrim p -> p
       getPrim _ = undefined
-  newtype IV (RandomSource p) = RSIV (IV p)
+  newtype IV (RandomPrim p) = RSIV (IV p)
 
-instance Initializable p => Initializable (RandomSource p) where
+instance Initializable p => Initializable (RandomPrim p) where
   ivSize rs = ivSize (getPrim rs)
     where
-      getPrim :: RandomSource p -> p
+      getPrim :: RandomPrim p -> p
       getPrim _ = undefined
   getIV bs = RSIV (getIV bs)
 
 instance StreamGadget g => Gadget (RandomSource g) where
-  type PrimitiveOf (RandomSource g) = RandomSource (PrimitiveOf g)
-  type MemoryOf (RandomSource g) = (MemoryOf g, Buffer g)
+  type PrimitiveOf (RandomSource g) = RandomPrim (PrimitiveOf g)
+  type MemoryOf (RandomSource g) = (MemoryOf g, Buffer (GadgetBuff g))
   -- | Uses the buffer of recommended block size.
   newGadgetWithMemory (gmem,buffer) = do
     g <- newGadgetWithMemory gmem
@@ -112,13 +83,13 @@ instance StreamGadget g => Gadget (RandomSource g) where
     cellStore celloffset (bufferSize buffer)
     cellStore cellcounter 0
   -- | Finalize is of no use for a random number generator.
-  finalize (RandomSource g (Buffer fptr sz) celloffset cellcounter) = do
+  finalize (RandomSource g _ _ _) = do
     p <- finalize g
-    return (RandomSource p (Buffer fptr sz) celloffset cellcounter)
+    return (RandomPrim p)
   apply rs blks cptr = void $ fillBytes (cryptoCoerce blks) rs cptr
 
 instance StreamGadget g => ByteSource (RandomSource g) where
-  fillBytes nb rs@(RandomSource g (Buffer bsz fptr) celloffset cellcounter) cptr = do
+  fillBytes nb rs@(RandomSource g buff celloffset cellcounter) cptr = do
     offset <- cellLoad celloffset
     foffset <- go nb offset cptr
     cellStore celloffset foffset
@@ -126,11 +97,12 @@ instance StreamGadget g => ByteSource (RandomSource g) where
     return $ Remaining rs
       where
         go !sz !offst !outptr
-          | netsz >= sz = withForeignPtr fptr (\bfr -> memcpy outptr (movePtr bfr offst) sz >> return (offst + sz))
+          | netsz >= sz = withBuffer buff (\bfr -> memcpy outptr (movePtr bfr offst) sz >> return (offst + sz))
           | otherwise = do
-              withForeignPtr fptr doWithBuffer
+              withBuffer buff doWithBuffer
               go (sz - netsz) 0 (movePtr outptr netsz)
                 where
+                  bsz = bufferSize buff
                   netsz = bsz - offst
                   doWithBuffer bfr = memcpy outptr (movePtr bfr offst) netsz
                                   >> fillFromGadget g bsz bfr
