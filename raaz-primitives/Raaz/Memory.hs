@@ -4,14 +4,21 @@ Abstraction of a memory object.
 
 -}
 
+{-# LANGUAGE DefaultSignatures #-}
+
 module Raaz.Memory
        ( Memory(..)
          -- CryptoCell
-       , CryptoCell(..)
+       , CryptoCell
        , cellLoad
        , cellStore
        , cellModify
        , withCell
+         -- Buffer
+       , Bufferable(..)
+       , Buffer
+       , bufferSize
+       , withBuffer
        ) where
 
 
@@ -134,24 +141,46 @@ instance Storable a => Memory (CryptoCell a) where
          allocSec a pref = allocSecureMem (BYTES $ wordAlign $ sizeOf a) pref
                >>= maybe (fail "SecureMemory Exhausted") (return . CryptoCell)
 
--- -- | An array of values of type having `Storable` instance.
--- data CryptoArray a = CryptoArray ForeignCryptoPtr Int
+-- | Types which can be stored in a buffer.
+class Bufferable b where
+  sizeOfBuffer :: b -> BYTES Int
+  default sizeOfBuffer :: Storable b => b -> BYTES Int
+  sizeOfBuffer = fromIntegral . sizeOf
 
--- -- | Read the value from `CryptoArray` at the given index. Index is
--- -- assumed to start from @0@.
--- loadFrom :: Storable a => CryptoArray a -> Int -> IO a
--- loadFrom arr@(CryptoArray _ s) n | s < n     = unsafeLoadFrom arr n
---                                  | otherwise = error "Illegal index"
+-- | Buffer whose size depends on the `Bufferable` instance of @b@.
+data Buffer b = Buffer {-# UNPACK #-} !(BYTES Int)
+                       {-# UNPACK #-} !ForeignCryptoPtr
 
--- -- | Write the value to `CryptoArray` at the given index.
--- storeAt :: Storable a => CryptoArray a -> Int -> a -> IO ()
--- storeAt arr@(CryptoArray _ s) n v | s < n     = unsafeStoreAt arr n v
---                                   | otherwise = error "Illegal index"
+-- | Size of the buffer.
+bufferSize :: Buffer b -> BYTES Int
+bufferSize (Buffer sz _) = sz
+{-# INLINE bufferSize #-}
 
--- -- | This is unsafe version of `loadAt` as it does not check for overflow.
--- unsafeLoadFrom :: Storable a => CryptoArray a -> Int -> IO a
--- unsafeLoadFrom (CryptoArray p _) = withForeignPtr p . flip loadFromIndex
+-- | Perform some pointer action on Buffer.
+withBuffer :: Buffer a -> (CryptoPtr -> IO b) -> IO b
+withBuffer (Buffer _ fp) = withForeignPtr fp
+{-# INLINE withBuffer #-}
 
--- -- | This is unsafe version of `storeAt` as it does not check for overflow.
--- unsafeStoreAt :: Storable a => CryptoArray a -> Int -> a -> IO ()
--- unsafeStoreAt (CryptoArray p _) n = withForeignPtr p . (flip . flip storeAtIndex $ n)
+-- | Memory instance of Buffer
+instance Bufferable b => Memory (Buffer b) where
+  newMemory = mal undefined
+    where mal :: Bufferable b => b -> IO (Buffer b)
+          mal b = fmap (Buffer size) $ mallocForeignPtrBytes (fromIntegral size)
+            where
+              size = sizeOfBuffer b
+  freeMemory (Buffer _ fptr) = finalizeForeignPtr fptr
+  copyMemory (Buffer sz sf) (Buffer _ df) = withForeignPtr sf do1
+    where do1 sptr = withForeignPtr df (do2 sptr)
+          do2 sptr dptr = memcpy dptr sptr (BYTES sz)
+  withSecureMemory f bk = allocSec undefined bk >>= f
+   where
+     wordAlign :: BYTES Int -> BYTES Int
+     wordAlign size | extra == 0 = size
+                    | otherwise  = size + alignSize - extra
+           where alignSize = fromIntegral $ sizeOf (undefined :: CryptoAlign)
+                 extra = size `rem` alignSize
+     allocSec :: Bufferable b => b -> PoolRef -> IO (Buffer b)
+     allocSec b pref = allocSecureMem (wordAlign size) pref
+         >>= maybe (fail "SecureMemory Exhausted") (return . Buffer size)
+       where
+         size = cryptoCoerce $ sizeOfBuffer b
