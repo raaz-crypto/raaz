@@ -5,6 +5,7 @@ generated from `StreamGadget`s.
 
 -}
 
+{-# LANGUAGE CPP                   #-}
 {-# LANGUAGE BangPatterns          #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE FlexibleInstances     #-}
@@ -13,16 +14,29 @@ generated from `StreamGadget`s.
 module Raaz.Random.Stream
        ( RandomSource(..)
        , fromGadget
+       , genBytes
+       , genBytesNonZero
        ) where
 
-import Control.Monad            (void)
+import           Control.Monad                 (void)
 
-import Raaz.ByteSource
-import Raaz.Memory
-import Raaz.Primitives
-import Raaz.Primitives.Cipher
-import Raaz.Types
-import Raaz.Util.Ptr
+
+import           Data.ByteString.Internal      (ByteString,create)
+import qualified Data.ByteString               as BS
+import qualified Data.ByteString.Internal      as BS
+import qualified Data.ByteString.Lazy          as BL
+import qualified Data.ByteString.Lazy.Internal as BL
+
+
+import           Foreign.Ptr                   (castPtr,plusPtr)
+import           Foreign.ForeignPtr            (withForeignPtr)
+import           Raaz.ByteSource
+import           Raaz.Memory
+import           Raaz.Primitives
+import           Raaz.Primitives.Cipher
+import           Raaz.Types
+import           Raaz.Util.Ptr
+import qualified Raaz.Util.ByteString          as BU
 
 -- | A buffered random source which uses a stream gadget as the
 -- underlying source for generating random bytes.
@@ -119,3 +133,33 @@ fillFromGadget g bsz bfr = do
       gadblksz :: BYTES Int
       gadblksz = blockSize (getPrim g)
       nblks  = bsz `quot` gadblksz
+
+genBytes :: StreamGadget g => RandomSource g -> BYTES Int -> IO ByteString
+genBytes src n = create (fromIntegral n) (fillFromGadget src n . castPtr)
+
+genBytesNonZero :: StreamGadget g => RandomSource g -> BYTES Int -> IO ByteString
+genBytesNonZero src n = go 0 []
+  where
+    go m xs | m >= n = return $ BS.take (fromIntegral n) $ toStrict $ BL.fromChunks xs
+            | otherwise = do
+              b <- genBytes src (n-m)
+              let nonzero = BS.filter (/=0x00) b
+              go (BU.length nonzero + m) (nonzero:xs)
+
+-- | Converts `BL.ByteString` to `BS.ByteString`.
+toStrict :: BL.ByteString -> BS.ByteString
+#if MIN_VERSION_bytestring(0,10,0)
+toStrict = BL.toStrict
+#else
+toStrict BL.Empty           = BS.empty
+toStrict (BL.Chunk c BL.Empty) = c
+toStrict cs0 = BS.unsafeCreate totalLen $ \ptr -> go cs0 ptr
+  where
+    totalLen = BL.foldlChunks (\a c -> a + BS.length c) 0 cs0
+
+    go BL.Empty                         !_       = return ()
+    go (BL.Chunk (BS.PS fp off len) cs) !destptr =
+      withForeignPtr fp $ \p -> do
+        BS.memcpy destptr (p `plusPtr` off) (fromIntegral len)
+        go cs (destptr `plusPtr` len)
+#endif
