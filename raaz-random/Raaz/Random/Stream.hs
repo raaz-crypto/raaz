@@ -40,10 +40,10 @@ import qualified Raaz.Util.ByteString          as BU
 
 -- | A buffered random source which uses a stream gadget as the
 -- underlying source for generating random bytes.
-data RandomSource g = RandomSource g                         -- ^ Gadget
-                                   (Buffer (GadgetBuff g))   -- ^ Underlying Buffer
-                                   (CryptoCell (BYTES Int))  -- ^ Offset in Buffer
-                                   (CryptoCell (BYTES Int))  -- ^ `BYTES` generated so far
+data RandomSource g = RandomSource g
+                                   (Buffer (GadgetBuff g))
+                                   (CryptoCell (BYTES Int))
+                                   (CryptoCell (BYTES Int)) -- ^ Gadget, Buffer, Offset in Buffer, Bytes generated so far
 
 -- | Primitive for Random Source
 newtype RandomPrim p = RandomPrim p
