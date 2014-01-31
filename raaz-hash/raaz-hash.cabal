@@ -68,8 +68,10 @@ library
                --
                , raaz-primitives                >=0.0.0.1 && < 0.0.0.2
 
-  ghc-options: -Wall
-
+  if arch(i386) && impl(ghc < 7.6.0)
+      ghc-options: -Wall -fregs-graph
+  else
+      ghc-options: -Wall
   c-sources: cbits/raaz/hash/sha1/portable.c
            , cbits/raaz/hash/sha256/portable.c
            , cbits/raaz/hash/sha512/portable.c
