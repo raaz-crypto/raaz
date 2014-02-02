@@ -23,6 +23,7 @@ library
                  , Raaz.Cipher.AES.Ref.Internal
                  , Raaz.Cipher.AES.CBC
                  , Raaz.Cipher.AES.CTR
+                 , Raaz.Cipher.AES.ECB
   other-modules: Raaz.Cipher.Util.GF
                , Raaz.Cipher.AES.Ref.Type
                , Raaz.Cipher.AES.CBC.CPortable
@@ -33,6 +34,10 @@ library
                , Raaz.Cipher.AES.CTR.Instance
                , Raaz.Cipher.AES.CTR.Ref
                , Raaz.Cipher.AES.CTR.Type
+               , Raaz.Cipher.AES.ECB.CPortable
+               , Raaz.Cipher.AES.ECB.Instance
+               , Raaz.Cipher.AES.ECB.Ref
+               , Raaz.Cipher.AES.ECB.Type
   build-depends: base                           >= 4.5 && < 4.7
                , bytestring                     >= 0.9 && < 0.11
                , data-default                   >= 0.4 && < 0.6
