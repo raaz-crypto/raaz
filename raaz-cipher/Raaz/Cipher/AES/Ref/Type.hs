@@ -124,8 +124,7 @@ fromByteString src = unsafePerformIO $ using undefined
     using k = do
       m <- newMemory
       withCell m doStuff
-      k' <- cellLoad m
-      return k'
+      cellLoad m
       where
         size = sizeOf k
         doStuff cptr = withFillResult (const $ return ()) errorKey
@@ -200,7 +199,7 @@ instance Eq STATE where
                           .||. xor' r1 s1
                           .||. xor' r2 s2
                           .||. xor' r3 s3
-                          == (SplitWord32 0 0 0 0)
+                          == SplitWord32 0 0 0 0
 
 -- | Timing independent equality testing for KEY128
 instance Eq KEY128 where
@@ -209,7 +208,7 @@ instance Eq KEY128 where
                            .||. xor' r1 s1
                            .||. xor' r2 s2
                            .||. xor' r3 s3
-                           == (SplitWord32 0 0 0 0)
+                           == SplitWord32 0 0 0 0
 
 -- | Timing independent equality testing for KEY192
 instance Eq KEY192 where
@@ -220,7 +219,7 @@ instance Eq KEY192 where
                                  .||. xor' r3 s3
                                  .||. xor' r4 s4
                                  .||. xor' r5 s5
-                                 == (SplitWord32 0 0 0 0)
+                                 == SplitWord32 0 0 0 0
 
 -- | Timing independent equality testing for KEY256
 instance Eq KEY256 where
@@ -233,7 +232,7 @@ instance Eq KEY256 where
                                        .||. xor' r5 s5
                                        .||. xor' r6 s6
                                        .||. xor' r7 s7
-                                       == (SplitWord32 0 0 0 0)
+                                       == SplitWord32 0 0 0 0
 
 xor' :: SplitWord32 -> SplitWord32 -> SplitWord32
 xor' (SplitWord32 r0 r1 r2 r3)

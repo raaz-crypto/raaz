@@ -28,7 +28,7 @@ instance Gadget (Ref128 ECB Encryption) where
   initialize (Ref128 (ek,_)) (AES128EIV k) = cellStore ek
                                          (expand128 $ fromByteString k)
   finalize _ = return AES128
-  apply g@(Ref128 (ex,_)) n cptr = applyGad g ex encrypt128 n cptr
+  apply g@(Ref128 (ex,_)) = applyGad g ex encrypt128
 
 instance Gadget (Ref128 ECB Decryption) where
   type PrimitiveOf (Ref128 ECB Decryption) = AES128 ECB Decryption
@@ -37,7 +37,7 @@ instance Gadget (Ref128 ECB Decryption) where
   initialize (Ref128 (ek,_)) (AES128DIV k) = cellStore ek
                                          (expand128 $ fromByteString k)
   finalize _ = return AES128
-  apply g@(Ref128 (ex,_)) n cptr = applyGad g ex decrypt128 n cptr
+  apply g@(Ref128 (ex,_)) = applyGad g ex decrypt128
 
 
 --------------------- AES192 ---------------------------------------------------
@@ -49,7 +49,7 @@ instance Gadget (Ref192 ECB Encryption) where
   initialize (Ref192 (ek,_)) (AES192EIV k) = cellStore ek
                                          (expand192 $ fromByteString k)
   finalize _ = return AES192
-  apply g@(Ref192 (ex,_)) n cptr = applyGad g ex encrypt192 n cptr
+  apply g@(Ref192 (ex,_)) = applyGad g ex encrypt192
 
 instance Gadget (Ref192 ECB Decryption) where
   type PrimitiveOf (Ref192 ECB Decryption) = AES192 ECB Decryption
@@ -58,7 +58,7 @@ instance Gadget (Ref192 ECB Decryption) where
   initialize (Ref192 (ek,_)) (AES192DIV k) = cellStore ek
                                          (expand192 $ fromByteString k)
   finalize _ = return AES192
-  apply g@(Ref192 (ex,_)) n cptr = applyGad g ex decrypt192 n cptr
+  apply g@(Ref192 (ex,_)) = applyGad g ex decrypt192
 
 
 --------------------- AES256 ---------------------------------------------------
@@ -70,7 +70,7 @@ instance Gadget (Ref256 ECB Encryption) where
   initialize (Ref256 (ek,_)) (AES256EIV k) = cellStore ek
                                          (expand256 $ fromByteString k)
   finalize _ = return AES256
-  apply g@(Ref256 (ex,_)) n cptr = applyGad g ex encrypt256 n cptr
+  apply g@(Ref256 (ex,_)) = applyGad g ex encrypt256
 
 instance Gadget (Ref256 ECB Decryption) where
   type PrimitiveOf (Ref256 ECB Decryption) = AES256 ECB Decryption
@@ -79,7 +79,7 @@ instance Gadget (Ref256 ECB Decryption) where
   initialize (Ref256 (ek,_)) (AES256DIV k) = cellStore ek
                                          (expand256 $ fromByteString k)
   finalize _ = return AES256
-  apply g@(Ref256 (ex,_)) n cptr = applyGad g ex decrypt256 n cptr
+  apply g@(Ref256 (ex,_)) = applyGad g ex decrypt256
 
 
 applyGad :: (Gadget g, Storable k) => g

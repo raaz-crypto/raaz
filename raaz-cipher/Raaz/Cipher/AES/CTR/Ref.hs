@@ -31,7 +31,7 @@ instance Gadget (Ref128 CTR Encryption) where
     cellStore ek (expand128 $ fromByteString k)
     cellStore s $ fromByteString iv
   finalize _ = return AES128
-  apply g@(Ref128 mem) n cptr = applyGad g mem encrypt128 n cptr
+  apply g@(Ref128 mem) = applyGad g mem encrypt128
 
 instance Gadget (Ref128 CTR Decryption) where
   type PrimitiveOf (Ref128 CTR Decryption) = AES128 CTR Decryption
@@ -41,7 +41,7 @@ instance Gadget (Ref128 CTR Decryption) where
     cellStore ek (expand128 $ fromByteString k)
     cellStore s $ fromByteString iv
   finalize _ = return AES128
-  apply g@(Ref128 mem) n cptr = applyGad g mem encrypt128 n cptr
+  apply g@(Ref128 mem) = applyGad g mem encrypt128
 
 
 --------------------- AES192 ---------------------------------------------------
@@ -54,7 +54,7 @@ instance Gadget (Ref192 CTR Encryption) where
     cellStore ek (expand192 $ fromByteString k)
     cellStore s $ fromByteString iv
   finalize _ = return AES192
-  apply g@(Ref192 mem) n cptr = applyGad g mem encrypt192 n cptr
+  apply g@(Ref192 mem) = applyGad g mem encrypt192
 
 instance Gadget (Ref192 CTR Decryption) where
   type PrimitiveOf (Ref192 CTR Decryption) = AES192 CTR Decryption
@@ -64,7 +64,7 @@ instance Gadget (Ref192 CTR Decryption) where
     cellStore ek (expand192 $ fromByteString k)
     cellStore s $ fromByteString iv
   finalize _ = return AES192
-  apply g@(Ref192 mem) n cptr = applyGad g mem encrypt192 n cptr
+  apply g@(Ref192 mem) = applyGad g mem encrypt192
 
 
 --------------------- AES256 ---------------------------------------------------
@@ -77,7 +77,7 @@ instance Gadget (Ref256 CTR Encryption) where
     cellStore ek (expand256 $ fromByteString k)
     cellStore s $ fromByteString iv
   finalize _ = return AES256
-  apply g@(Ref256 mem) n cptr = applyGad g mem encrypt256 n cptr
+  apply g@(Ref256 mem) = applyGad g mem encrypt256
 
 instance Gadget (Ref256 CTR Decryption) where
   type PrimitiveOf (Ref256 CTR Decryption) = AES256 CTR Decryption
@@ -87,7 +87,7 @@ instance Gadget (Ref256 CTR Decryption) where
     cellStore ek (expand256 $ fromByteString k)
     cellStore s $ fromByteString iv
   finalize _ = return AES256
-  apply g@(Ref256 mem) n cptr = applyGad g mem encrypt256 n cptr
+  apply g@(Ref256 mem) = applyGad g mem encrypt256
 
 
 applyGad :: (Gadget g, Storable k) => g
@@ -103,8 +103,8 @@ applyGad g (ex,s) with n cptr = do
     final <- restOfblock expanded newiv restptr
     cellStore s final
     where
-      nblks = (fromIntegral n) `div` (fromIntegral realsz) :: Int
-      nextra = (fromIntegral n) `rem` (fromIntegral realsz) :: Int
+      nblks = fromIntegral n `div` fromIntegral realsz :: Int
+      nextra = fromIntegral n `rem` fromIntegral realsz :: Int
 
       moveAndHash expanded (cxt,ptr) _ = do
         blk <- peek (castPtr ptr)

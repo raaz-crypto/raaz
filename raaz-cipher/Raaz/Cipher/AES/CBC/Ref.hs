@@ -30,7 +30,7 @@ instance Gadget (Ref128 CBC Encryption) where
     cellStore ek (expand128 $ fromByteString k)
     cellStore s $ fromByteString iv
   finalize _ = return AES128
-  apply g@(Ref128 mem) n cptr = applyE g mem encrypt128 n cptr
+  apply g@(Ref128 mem) = applyE g mem encrypt128
 
 instance Gadget (Ref128 CBC Decryption) where
   type PrimitiveOf (Ref128 CBC Decryption) = AES128 CBC Decryption
@@ -40,7 +40,7 @@ instance Gadget (Ref128 CBC Decryption) where
     cellStore ek (expand128 $ fromByteString k)
     cellStore s $ fromByteString iv
   finalize _ = return AES128
-  apply g@(Ref128 mem) n cptr = applyD g mem decrypt128 n cptr
+  apply g@(Ref128 mem) = applyD g mem decrypt128
 
 
 --------------------- AES192 ---------------------------------------------------
@@ -53,7 +53,7 @@ instance Gadget (Ref192 CBC Encryption) where
     cellStore ek (expand192 $ fromByteString k)
     cellStore s $ fromByteString iv
   finalize _ = return AES192
-  apply g@(Ref192 mem) n cptr = applyE g mem encrypt192 n cptr
+  apply g@(Ref192 mem) = applyE g mem encrypt192
 
 instance Gadget (Ref192 CBC Decryption) where
   type PrimitiveOf (Ref192 CBC Decryption) = AES192 CBC Decryption
@@ -63,7 +63,7 @@ instance Gadget (Ref192 CBC Decryption) where
     cellStore ek (expand192 $ fromByteString k)
     cellStore s $ fromByteString iv
   finalize _ = return AES192
-  apply g@(Ref192 mem) n cptr = applyD g mem decrypt192 n cptr
+  apply g@(Ref192 mem) = applyD g mem decrypt192
 
 
 --------------------- AES256 ---------------------------------------------------
@@ -76,7 +76,7 @@ instance Gadget (Ref256 CBC Encryption) where
     cellStore ek (expand256 $ fromByteString k)
     cellStore s $ fromByteString iv
   finalize _ = return AES256
-  apply g@(Ref256 mem) n cptr = applyE g mem encrypt256 n cptr
+  apply g@(Ref256 mem) = applyE g mem encrypt256
 
 instance Gadget (Ref256 CBC Decryption) where
   type PrimitiveOf (Ref256 CBC Decryption) = AES256 CBC Decryption
@@ -86,8 +86,24 @@ instance Gadget (Ref256 CBC Decryption) where
     cellStore ek (expand256 $ fromByteString k)
     cellStore s $ fromByteString iv
   finalize _ = return AES256
-  apply g@(Ref256 mem) n cptr = applyD g mem decrypt256 n cptr
+  apply g@(Ref256 mem) = applyD g mem decrypt256
 
+
+loadAndApply :: (Gadget g, Storable k)
+             => (k -> (STATE,CryptoPtr) -> BLOCKS (PrimitiveOf g) -> IO (STATE,CryptoPtr))
+             -> g
+             -> (CryptoCell k,CryptoCell STATE)
+             -> BLOCKS (PrimitiveOf g)
+             -> CryptoPtr
+             -> IO ()
+loadAndApply moveAndHash _ (ex,s) n cptr = do
+    expanded <- cellLoad ex
+    initial <- cellLoad s
+    final <- fst <$> foldM (moveAndHash expanded) (initial,cptr) [1..n]
+    cellStore s final
+
+getPrim :: Gadget g => g -> PrimitiveOf g
+getPrim _ = undefined
 
 applyE :: (Gadget g, Storable k) => g
                                 -> (CryptoCell k,CryptoCell STATE)
@@ -95,14 +111,8 @@ applyE :: (Gadget g, Storable k) => g
                                 -> BLOCKS (PrimitiveOf g)
                                 -> CryptoPtr
                                 -> IO ()
-applyE g (ex,s) with n cptr = do
-    expanded <- cellLoad ex
-    initial <- cellLoad s
-    final <- fst <$> foldM (moveAndHash expanded) (initial,cptr) [1..n]
-    cellStore s final
+applyE g tup with = loadAndApply moveAndHash g tup
     where
-      getPrim :: Gadget g => g -> PrimitiveOf g
-      getPrim _ = undefined
       sz = blockSize (getPrim g)
       moveAndHash expanded (cxt,ptr) _ = do
         blk <- peek (castPtr ptr)
@@ -116,14 +126,8 @@ applyD :: (Gadget g, Storable k) => g
                                 -> BLOCKS (PrimitiveOf g)
                                 -> CryptoPtr
                                 -> IO ()
-applyD g (ex,s) with n cptr = do
-    expanded <- cellLoad ex
-    initial <- cellLoad s
-    final <- fst <$> foldM (moveAndHash expanded) (initial,cptr) [1..n]
-    cellStore s final
+applyD g tup with = loadAndApply moveAndHash g tup
     where
-      getPrim :: Gadget g => g -> PrimitiveOf g
-      getPrim _ = undefined
       sz = blockSize (getPrim g)
       moveAndHash expanded (cxt,ptr) _ = do
         blk <- peek (castPtr ptr)
