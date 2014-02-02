@@ -34,7 +34,7 @@ library
                , raaz-primitives                >=0.0.0.1 && < 0.0.0.2
   ghc-options: -Wall
 
-  c-sources:
+  c-sources: cbits/raaz/cipher/cportable/aes.c
   include-dirs: cbits
 
 
