@@ -1,18 +1,25 @@
 {-# LANGUAGE FlexibleContexts #-}
 module Modules.Defaults (benchmarksDefault, benchmarksTinyDefault) where
 
-import Criterion.Main
-import Data.ByteString (pack)
+import           Criterion.Main
+import           Data.ByteString          (ByteString,pack)
+import qualified Data.ByteString          as BS
 
-import Raaz.Primitives
-import Raaz.Benchmark.Gadget
-import Raaz.Primitives.Cipher
+import           Raaz.Primitives
+import           Raaz.Benchmark.Gadget
+import           Raaz.Primitives.Cipher
 
-import Raaz.Cipher.AES.Internal
-import Raaz.Cipher.AES.ECB
+import           Raaz.Cipher.AES.Internal
+import           Raaz.Cipher.AES.ECB
+
+genIV :: (Initializable p) => ByteString -> IV p
+genIV bs = generateIV undefined bs
+  where
+    generateIV :: (Initializable p) => p -> ByteString -> IV p
+    generateIV p = getIV . BS.take (fromIntegral $ ivSize p)
 
 testKey128 :: (Initializable g) => IV g
-testKey128 =  getIV $ pack [0x2b,0x7e,0x15,0x16
+testKey128 =  genIV $ pack [0x2b,0x7e,0x15,0x16
                            ,0x28,0xae,0xd2,0xa6
                            ,0xab,0xf7,0x15,0x88
                            ,0x09,0xcf,0x4f,0x3c
@@ -21,8 +28,9 @@ testKey128 =  getIV $ pack [0x2b,0x7e,0x15,0x16
                            ,0x08,0x09,0x0A,0x0B
                            ,0x0C,0x0D,0x0E,0x0F]
 
+
 testKey192 :: (Initializable g) => IV g
-testKey192 =  getIV $ pack [0x8e,0x73,0xb0,0xf7
+testKey192 =  genIV $ pack [0x8e,0x73,0xb0,0xf7
                            ,0xda,0x0e,0x64,0x52
                            ,0xc8,0x10,0xf3,0x2b
                            ,0x80,0x90,0x79,0xe5
@@ -35,7 +43,7 @@ testKey192 =  getIV $ pack [0x8e,0x73,0xb0,0xf7
 
 
 testKey256 :: (Initializable g) => IV g
-testKey256 =  getIV $ pack [0x60,0x3d,0xeb,0x10
+testKey256 =  genIV $ pack [0x60,0x3d,0xeb,0x10
                            ,0x15,0xca,0x71,0xbe
                            ,0x2b,0x73,0xae,0xf0
                            ,0x85,0x7d,0x77,0x81
@@ -49,35 +57,35 @@ testKey256 =  getIV $ pack [0x60,0x3d,0xeb,0x10
                            ,0x0C,0x0D,0x0E,0x0F]
 
 nBlocks :: (Gadget g) => g -> BLOCKS (PrimitiveOf g)
-nBlocks g = 100 * recommendedBlocks g
+nBlocks g = 10 * recommendedBlocks g
 
-benchmarksTinyDefault mode = [ benchCipher (r128 mode (undefined :: Encryption)) "AES128 ECB Reference Encryption" testKey128
-                             , benchCipher (c128 mode (undefined :: Encryption)) "AES128 ECB CPortable Encryption" testKey128 ]
+benchCipher g gname iv = benchGadgetWith g gname iv (nBlocks g)
+
+benchmarksTinyDefault mode = [ benchCipher (r128 mode (undefined :: Encryption)) "AES128 Reference Encryption" testKey128
+                             , benchCipher (c128 mode (undefined :: Encryption)) "AES128 CPortable Encryption" testKey128 ]
   where
-    benchCipher g gname iv = benchGadgetWith g gname iv (nBlocks g)
     r128 :: (Gadget (Ref128 mode stage)) => mode -> stage -> Ref128 mode stage
     r128 = undefined
     c128 :: (Gadget (CPortable128 mode stage)) => mode -> stage -> CPortable128 mode stage
     c128 = undefined
 
-benchmarksDefault mode = [ benchCipher (r128 mode encr) "AES128 ECB Reference Encryption" testKey128
-                         , benchCipher (c128 mode encr) "AES128 ECB CPortable Encryption" testKey128
-                         , benchCipher (r128 mode decr) "AES128 ECB Reference Decryption" testKey128
-                         , benchCipher (c128 mode decr) "AES128 ECB CPortable Decryption" testKey128
-                         , benchCipher (r192 mode encr) "AES192 ECB Reference Encryption" testKey192
-                         , benchCipher (c192 mode encr) "AES192 ECB CPortable Encryption" testKey192
-                         , benchCipher (r192 mode decr) "AES192 ECB Reference Decryption" testKey192
-                         , benchCipher (c192 mode decr) "AES192 ECB CPortable Decryption" testKey192
-                         , benchCipher (r256 mode encr) "AES256 ECB Reference Encryption" testKey256
-                         , benchCipher (c256 mode encr) "AES256 ECB CPortable Encryption" testKey256
-                         , benchCipher (r256 mode decr) "AES256 ECB Reference Decryption" testKey256
-                         , benchCipher (c256 mode decr) "AES256 ECB CPortable Decryption" testKey256 ]
+benchmarksDefault mode = [ benchCipher (r128 mode encr) "AES128 Reference Encryption" testKey128
+                         , benchCipher (c128 mode encr) "AES128 CPortable Encryption" testKey128
+                         , benchCipher (r128 mode decr) "AES128 Reference Decryption" testKey128
+                         , benchCipher (c128 mode decr) "AES128 CPortable Decryption" testKey128
+                         , benchCipher (r192 mode encr) "AES192 Reference Encryption" testKey192
+                         , benchCipher (c192 mode encr) "AES192 CPortable Encryption" testKey192
+                         , benchCipher (r192 mode decr) "AES192 Reference Decryption" testKey192
+                         , benchCipher (c192 mode decr) "AES192 CPortable Decryption" testKey192
+                         , benchCipher (r256 mode encr) "AES256 Reference Encryption" testKey256
+                         , benchCipher (c256 mode encr) "AES256 CPortable Encryption" testKey256
+                         , benchCipher (r256 mode decr) "AES256 Reference Decryption" testKey256
+                         , benchCipher (c256 mode decr) "AES256 CPortable Decryption" testKey256 ]
   where
     encr :: Encryption
     encr = undefined
     decr :: Decryption
     decr = undefined
-    benchCipher g gname iv = benchGadgetWith g gname iv (nBlocks g)
     r128 :: (Gadget (Ref128 mode stage)) => mode -> stage -> Ref128 mode stage
     r128 = undefined
     r192 :: (Gadget (Ref192 mode stage)) => mode -> stage -> Ref192 mode stage

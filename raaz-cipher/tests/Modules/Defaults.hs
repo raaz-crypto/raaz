@@ -3,21 +3,22 @@
 
 module Modules.Defaults where
 
-import           Data.ByteString          (ByteString,pack)
+import           Data.ByteString        (ByteString,pack)
+import qualified Data.ByteString        as BS
 import           Data.Typeable
 
-import           Test.Framework           (Test,testGroup)
+import           Test.Framework         (Test,testGroup)
 
-import           Raaz.Test                ()
+import           Raaz.Test              ()
 import           Raaz.Test.Cipher
-import           Raaz.Test.Gadget         (testGadget)
+import           Raaz.Test.Gadget       (testGadget)
 import           Raaz.Primitives
 import           Raaz.Primitives.Cipher
 
 
 import           Raaz.Cipher.AES.Type
 
-import           Modules.Block.Ref        ()
+import           Modules.Block.Ref      ()
 
 
 testKey128 :: ByteString
@@ -67,10 +68,13 @@ cportableVsReference :: ( CipherGadget g1
                         , Eq (PrimitiveOf (g1 Encryption))
                         , Eq (PrimitiveOf (g1 Decryption)))
                       => (g1 Encryption) -> (g2 Encryption) -> ByteString -> [Test]
-cportableVsReference ge1 ge2 iv =
+cportableVsReference ge1 ge2 iv' =
   [ testGadget ge1 ge2 (getIV iv) "CPortable vs Reference Encryption"
   , testGadget (gadD ge1) (gadD ge2) (getIV iv) "CPortable vs Reference Decryption"]
   where
+    getPrim :: (Gadget (g Encryption)) => g Encryption -> PrimitiveOf (g Encryption)
+    getPrim _ = undefined
+    iv = BS.take (fromIntegral $ ivSize $ getPrim ge1) iv'
     gadD :: g Encryption -> g Decryption
     gadD _ = undefined
 

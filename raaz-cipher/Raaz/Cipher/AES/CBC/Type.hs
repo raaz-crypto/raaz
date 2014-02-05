@@ -51,34 +51,28 @@ instance Primitive (AES256 CBC Decryption) where
 
 -- | First KEY then 128bit initialization vector
 getIVCBC :: (Storable k) => ByteString -> k -> (ByteString,ByteString)
-getIVCBC bs k = (key,iv)
-  where
-      key = BS.take sizek bs
-      rest = BS.drop sizek bs
-      iv = BS.take sizeiv rest
-      sizek = sizeOf k
-      sizeiv = sizeOf (undefined :: STATE)
+getIVCBC bs k = BS.splitAt (sizeOf k) bs
 
 instance Initializable (AES128 CBC Encryption) where
-  ivSize _ = BYTES 16
+  ivSize _ = BYTES (16 + 16)
   getIV src = AES128EIV $ getIVCBC src (undefined :: KEY128)
 
 instance Initializable (AES128 CBC Decryption) where
-  ivSize _ = BYTES 16
+  ivSize _ = BYTES (16 + 16)
   getIV src = AES128DIV $ getIVCBC src (undefined :: KEY128)
 
 instance Initializable (AES192 CBC Encryption) where
-  ivSize _ = BYTES 24
+  ivSize _ = BYTES (24 + 16)
   getIV src = AES192EIV $ getIVCBC src (undefined :: KEY192)
 
 instance Initializable (AES192 CBC Decryption) where
-  ivSize _ = BYTES 24
+  ivSize _ = BYTES (24 + 16)
   getIV src = AES192DIV $ getIVCBC src (undefined :: KEY192)
 
 instance Initializable (AES256 CBC Encryption) where
-  ivSize _ = BYTES 32
+  ivSize _ = BYTES (32 + 16)
   getIV src = AES256EIV $ getIVCBC src (undefined :: KEY256)
 
 instance Initializable (AES256 CBC Decryption) where
-  ivSize _ = BYTES 32
+  ivSize _ = BYTES (32 + 16)
   getIV src = AES256DIV $ getIVCBC src (undefined :: KEY256)

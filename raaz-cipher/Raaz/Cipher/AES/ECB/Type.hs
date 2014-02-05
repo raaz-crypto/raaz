@@ -5,13 +5,10 @@
 module Raaz.Cipher.AES.ECB.Type where
 
 import           Data.ByteString           (ByteString)
-import qualified Data.ByteString           as BS
-import           Foreign.Storable
 import           Raaz.Primitives
 import           Raaz.Primitives.Cipher
 import           Raaz.Types
 
-import           Raaz.Cipher.AES.Ref.Type
 import           Raaz.Cipher.AES.Ref.Internal ()
 import           Raaz.Cipher.AES.Internal
 
@@ -51,38 +48,24 @@ instance Primitive (AES256 ECB Decryption) where
 
 instance Initializable (AES128 ECB Encryption) where
   ivSize _ = BYTES 16
-  getIV bs = AES128EIV (BS.take sz bs)
-    where
-      sz = sizeOf (undefined :: KEY128)
+  getIV = AES128EIV
 
 instance Initializable (AES128 ECB Decryption) where
   ivSize _ = BYTES 16
-  getIV bs = AES128DIV (BS.take sz bs)
-    where
-      sz = sizeOf (undefined :: KEY128)
+  getIV = AES128DIV
 
 instance Initializable (AES192 ECB Encryption) where
   ivSize _ = BYTES 24
-  getIV bs = AES192EIV (BS.take sz bs)
-    where
-      sz = sizeOf (undefined :: KEY192)
+  getIV = AES192EIV
 
 instance Initializable (AES192 ECB Decryption) where
   ivSize _ = BYTES 24
-  getIV bs = AES192DIV (BS.take sz bs)
-    where
-      sz = sizeOf (undefined :: KEY192)
-
+  getIV = AES192DIV
 
 instance Initializable (AES256 ECB Encryption) where
   ivSize _ = BYTES 32
-  getIV bs = AES256EIV (BS.take sz bs)
-    where
-      sz = sizeOf (undefined :: KEY256)
-
+  getIV = AES256EIV
 
 instance Initializable (AES256 ECB Decryption) where
   ivSize _ = BYTES 32
-  getIV bs = AES256DIV (BS.take sz bs)
-    where
-      sz = sizeOf (undefined :: KEY256)
+  getIV = AES256DIV
