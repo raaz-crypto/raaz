@@ -10,25 +10,30 @@ A cryptographic cipher abstraction.
 
 module Raaz.Primitives.Cipher
        ( CipherGadget
-       , ECB, CBC, CTR
-       , Encryption, Decryption
        , StreamGadget
+       -- * Block Cipher Modes
+       , ECB, CBC, CTR
+       -- * Stages
+       , Encryption, Decryption
        ) where
 
 import           Data.Typeable
 
 import           Raaz.Primitives
 
--- | Block Ciphers can work in a number of modes which is captured by
--- this datatype
-data ECB deriving (Typeable)   -- ^ Electronic codebook
-data CBC deriving (Typeable)   -- ^ Cipher-block chaining
-data CTR deriving (Typeable)   -- ^ Counter
+-- | Electronic codebook
+data ECB deriving (Typeable)
 
--- | Ciphers work in two stages
--- * Encryption
--- * Decryption
+-- | Cipher-block chaining
+data CBC deriving (Typeable)
+
+-- | Counter
+data CTR deriving (Typeable)
+
+-- | Encryption
 data Encryption deriving (Typeable)
+
+-- | Decryption
 data Decryption deriving (Typeable)
 
 -- | This class captures encryption and decryption by a Cipher. User
