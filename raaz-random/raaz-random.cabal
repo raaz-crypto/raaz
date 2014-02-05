@@ -54,3 +54,4 @@ test-Suite tests
                --
                , raaz-primitives                >=0.0.0.1 && < 0.0.0.2
                , raaz-random                    >=0.0.0.1 && < 0.0.0.2
+               , raaz-cipher                    >=0.0.0.1 && < 0.0.0.2

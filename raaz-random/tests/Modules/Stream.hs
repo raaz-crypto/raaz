@@ -11,37 +11,45 @@ import           Test.QuickCheck.Monadic              (run, assert, monadicIO)
 
 import           Raaz.Primitives
 import           Raaz.Primitives.Cipher
+import qualified Raaz.Util.ByteString                 as BU
 import           Raaz.Memory
 import           Raaz.Types
 
-import Raaz.Random
+import           Raaz.Cipher.AES.Type
+import           Raaz.Cipher.AES.CTR
+
+import           Raaz.Random
 
 -- | Type to capture only integers from 1 to 10
-newtype Sized = Sized Int deriving Show
+newtype Sized = Sized (BYTES Int) deriving Show
 
 instance Arbitrary Sized where
-  arbitrary = Sized <$> choose (0,100000)
+  arbitrary = Sized . BYTES <$> choose (0,100000)
 
-newtype TestIV = TestIV ByteString deriving Show
+data TestIV g = TestIV ByteString deriving Show
 
-instance Arbitrary (TestIV) where
-  arbitrary = TestIV . BS.pack
-                       <$> vectorOf 1024 arbitrary
+instance Initializable p => Arbitrary (TestIV p) where
+  arbitrary = gen undefined
+    where
+      gen :: Initializable p => p -> Gen (TestIV p)
+      gen p = TestIV . BS.pack <$> vectorOf (fromIntegral $ ivSize p) arbitrary
 
 prop_length :: (StreamGadget g, Initializable (PrimitiveOf g))
             => g
-            -> TestIV
-            -> Sized -- ^ Number of bytes to generate
+            -> TestIV (PrimitiveOf g)
+            -> Sized    -- ^ Number of bytes to generate
             -> Property
 prop_length g' (TestIV bsiv) (Sized sz) = monadicIO $ do
-  g <- run $ createGadget g'
-  run $ initialize g (getIV bsiv)
-  src <- run $ fromGadget g
-  bs <- undefined -- generate bytestring from src
-  assert (BS.length bs == sz)
+  bs <- run $ generateBytes
+  assert (BU.length bs == sz)
   where
-    createGadget :: Gadget g => g -> IO g
+    generateBytes = do
+      g <- createGadget g'
+      initialize g (getIV bsiv)
+      genBytes g sz
+    createGadget :: StreamGadget g => g -> IO (RandomSource g)
     createGadget _ = newGadget
 
 tests :: [Test]
-tests = []
+tests = [ testProperty "AES CTR 128"
+          $ prop_length (undefined :: (CPortable128 CTR Encryption)) ]
