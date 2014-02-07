@@ -10,12 +10,16 @@ module Raaz.Hash.Sha512.Type
 import Control.Applicative ((<$>), (<*>))
 import Data.Bits(xor, (.|.))
 import Data.Default
+import Data.Monoid
 import Data.Typeable(Typeable)
+import Foreign.Ptr(castPtr)
 import Foreign.Storable(Storable(..))
 
+import Raaz.Parse
 import Raaz.Primitives
 import Raaz.Types
 import Raaz.Util.Ptr(loadFromIndex, storeAtIndex)
+import Raaz.Write
 
 import Raaz.Hash.Sha.Util
 
@@ -48,61 +52,49 @@ instance Eq SHA512 where
 instance Storable SHA512 where
   sizeOf    _ = 8 * sizeOf (undefined :: Word64BE)
   alignment _ = alignment  (undefined :: Word64BE)
-  peekByteOff ptr pos = SHA512 <$> peekByteOff ptr pos0
-                               <*> peekByteOff ptr pos1
-                               <*> peekByteOff ptr pos2
-                               <*> peekByteOff ptr pos3
-                               <*> peekByteOff ptr pos4
-                               <*> peekByteOff ptr pos5
-                               <*> peekByteOff ptr pos6
-                               <*> peekByteOff ptr pos7
-    where pos0   = pos
-          pos1   = pos0 + offset
-          pos2   = pos1 + offset
-          pos3   = pos2 + offset
-          pos4   = pos3 + offset
-          pos5   = pos4 + offset
-          pos6   = pos5 + offset
-          pos7   = pos6 + offset
-          offset = sizeOf (undefined:: Word64BE)
 
-  pokeByteOff ptr pos (SHA512 h0 h1 h2 h3 h4 h5 h6 h7)
-      =  pokeByteOff ptr pos0 h0
-      >> pokeByteOff ptr pos1 h1
-      >> pokeByteOff ptr pos2 h2
-      >> pokeByteOff ptr pos3 h3
-      >> pokeByteOff ptr pos4 h4
-      >> pokeByteOff ptr pos5 h5
-      >> pokeByteOff ptr pos6 h6
-      >> pokeByteOff ptr pos7 h7
-    where pos0   = pos
-          pos1   = pos0 + offset
-          pos2   = pos1 + offset
-          pos3   = pos2 + offset
-          pos4   = pos3 + offset
-          pos5   = pos4 + offset
-          pos6   = pos5 + offset
-          pos7   = pos6 + offset
-          offset = sizeOf (undefined:: Word64BE)
+  peek ptr = runParser cptr parseSHA512
+    where parseSHA512 = SHA512 <$> parseStorable
+                               <*> parseStorable
+                               <*> parseStorable
+                               <*> parseStorable
+                               <*> parseStorable
+                               <*> parseStorable
+                               <*> parseStorable
+                               <*> parseStorable
+          cptr = castPtr ptr
+
+  poke ptr (SHA512 h0 h1 h2 h3 h4 h5 h6 h7) =  runWrite cptr writeSHA512
+    where writeSHA512 =  writeStorable h0
+                      <> writeStorable h1
+                      <> writeStorable h2
+                      <> writeStorable h3
+                      <> writeStorable h4
+                      <> writeStorable h5
+                      <> writeStorable h6
+                      <> writeStorable h7
+          cptr = castPtr ptr
 
 instance CryptoStore SHA512 where
-  load cptr = SHA512 <$> load cptr
-                     <*> loadFromIndex cptr 1
-                     <*> loadFromIndex cptr 2
-                     <*> loadFromIndex cptr 3
-                     <*> loadFromIndex cptr 4
-                     <*> loadFromIndex cptr 5
-                     <*> loadFromIndex cptr 6
-                     <*> loadFromIndex cptr 7
+  load cptr = runParser cptr parseSHA512
+    where parseSHA512 = SHA512 <$> parse
+                               <*> parse
+                               <*> parse
+                               <*> parse
+                               <*> parse
+                               <*> parse
+                               <*> parse
+                               <*> parse
 
-  store cptr (SHA512 h0 h1 h2 h3 h4 h5 h6 h7) =  store cptr h0
-                                              >> storeAtIndex cptr 1 h1
-                                              >> storeAtIndex cptr 2 h2
-                                              >> storeAtIndex cptr 3 h3
-                                              >> storeAtIndex cptr 4 h4
-                                              >> storeAtIndex cptr 5 h5
-                                              >> storeAtIndex cptr 6 h6
-                                              >> storeAtIndex cptr 7 h7
+  store cptr (SHA512 h0 h1 h2 h3 h4 h5 h6 h7) =  runWrite cptr writeSHA512
+    where writeSHA512 =  write h0
+                      <> write h1
+                      <> write h2
+                      <> write h3
+                      <> write h4
+                      <> write h5
+                      <> write h6
+                      <> write h7
 
 instance Primitive SHA512 where
   blockSize _ = cryptoCoerce $ BITS (1024 :: Int)
