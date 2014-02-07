@@ -19,12 +19,16 @@ module Raaz.Hash.Sha384.Type
 import Control.Applicative ((<$>), (<*>))
 import Data.Bits(xor, (.|.))
 import Data.Default
+import Data.Monoid
 import Data.Typeable(Typeable)
+import Foreign.Ptr(castPtr)
 import Foreign.Storable(Storable(..))
 
+import Raaz.Parse
 import Raaz.Primitives
 import Raaz.Types
 import Raaz.Util.Ptr(loadFromIndex, storeAtIndex)
+import Raaz.Write
 
 import Raaz.Hash.Sha.Util
 import Raaz.Hash.Sha512.Type(SHA512(..))
@@ -55,49 +59,41 @@ instance Eq SHA384 where
 instance Storable SHA384 where
   sizeOf    _ = 6 * sizeOf (undefined :: Word64BE)
   alignment _ = alignment  (undefined :: Word64BE)
-  peekByteOff ptr pos = SHA384 <$> peekByteOff ptr pos0
-                               <*> peekByteOff ptr pos1
-                               <*> peekByteOff ptr pos2
-                               <*> peekByteOff ptr pos3
-                               <*> peekByteOff ptr pos4
-                               <*> peekByteOff ptr pos5
-    where pos0   = pos
-          pos1   = pos0 + offset
-          pos2   = pos1 + offset
-          pos3   = pos2 + offset
-          pos4   = pos3 + offset
-          pos5   = pos4 + offset
-          offset = sizeOf (undefined:: Word64BE)
 
-  pokeByteOff ptr pos (SHA384 h0 h1 h2 h3 h4 h5)
-      =  pokeByteOff ptr pos0 h0
-      >> pokeByteOff ptr pos1 h1
-      >> pokeByteOff ptr pos2 h2
-      >> pokeByteOff ptr pos3 h3
-      >> pokeByteOff ptr pos4 h4
-      >> pokeByteOff ptr pos5 h5
-    where pos0   = pos
-          pos1   = pos0 + offset
-          pos2   = pos1 + offset
-          pos3   = pos2 + offset
-          pos4   = pos3 + offset
-          pos5   = pos4 + offset
-          offset = sizeOf (undefined:: Word64BE)
+  peek ptr = runParser cptr parseSHA384
+    where parseSHA384 = SHA384 <$> parseStorable
+                               <*> parseStorable
+                               <*> parseStorable
+                               <*> parseStorable
+                               <*> parseStorable
+                               <*> parseStorable
+          cptr = castPtr ptr
+
+  poke ptr (SHA384 h0 h1 h2 h3 h4 h5) =  runWrite cptr writeSHA384
+    where writeSHA384 =  writeStorable h0
+                      <> writeStorable h1
+                      <> writeStorable h2
+                      <> writeStorable h3
+                      <> writeStorable h4
+                      <> writeStorable h5
+          cptr = castPtr ptr
 
 instance CryptoStore SHA384 where
-  load cptr = SHA384 <$> load cptr
-                     <*> loadFromIndex cptr 1
-                     <*> loadFromIndex cptr 2
-                     <*> loadFromIndex cptr 3
-                     <*> loadFromIndex cptr 4
-                     <*> loadFromIndex cptr 5
+  load cptr = runParser cptr parseSHA384
+    where parseSHA384 = SHA384 <$> parse
+                               <*> parse
+                               <*> parse
+                               <*> parse
+                               <*> parse
+                               <*> parse
 
-  store cptr (SHA384 h0 h1 h2 h3 h4 h5) =  store cptr h0
-                                        >> storeAtIndex cptr 1 h1
-                                        >> storeAtIndex cptr 2 h2
-                                        >> storeAtIndex cptr 3 h3
-                                        >> storeAtIndex cptr 4 h4
-                                        >> storeAtIndex cptr 5 h5
+  store cptr (SHA384 h0 h1 h2 h3 h4 h5) =  runWrite cptr writeSHA384
+    where writeSHA384 =  write h0
+                      <> write h1
+                      <> write h2
+                      <> write h3
+                      <> write h4
+                      <> write h5
 
 instance Primitive SHA384 where
   blockSize _ = cryptoCoerce $ BITS (1024 :: Int)
