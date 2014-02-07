@@ -19,12 +19,15 @@ module Raaz.Hash.Sha224.Type
 import Control.Applicative ((<$>), (<*>))
 import Data.Bits(xor, (.|.))
 import Data.Default
+import Data.Monoid
 import Data.Typeable(Typeable)
+import Foreign.Ptr(castPtr)
 import Foreign.Storable(Storable(..))
 
+import Raaz.Parse
 import Raaz.Primitives
 import Raaz.Types
-import Raaz.Util.Ptr(loadFromIndex, storeAtIndex)
+import Raaz.Write
 
 import Raaz.Hash.Sha.Util
 import Raaz.Hash.Sha256.Type(SHA256(..))
@@ -56,55 +59,45 @@ instance Eq SHA224 where
 instance Storable SHA224 where
   sizeOf    _ = 7 * sizeOf (undefined :: Word32BE)
   alignment _ = alignment  (undefined :: Word32BE)
-  peekByteOff ptr pos = SHA224 <$> peekByteOff ptr pos0
-                               <*> peekByteOff ptr pos1
-                               <*> peekByteOff ptr pos2
-                               <*> peekByteOff ptr pos3
-                               <*> peekByteOff ptr pos4
-                               <*> peekByteOff ptr pos5
-                               <*> peekByteOff ptr pos6
-    where pos0   = pos
-          pos1   = pos0 + offset
-          pos2   = pos1 + offset
-          pos3   = pos2 + offset
-          pos4   = pos3 + offset
-          pos5   = pos4 + offset
-          pos6   = pos5 + offset
-          offset = sizeOf (undefined:: Word32BE)
 
-  pokeByteOff ptr pos (SHA224 h0 h1 h2 h3 h4 h5 h6)
-      =  pokeByteOff ptr pos0 h0
-      >> pokeByteOff ptr pos1 h1
-      >> pokeByteOff ptr pos2 h2
-      >> pokeByteOff ptr pos3 h3
-      >> pokeByteOff ptr pos4 h4
-      >> pokeByteOff ptr pos5 h5
-      >> pokeByteOff ptr pos6 h6
-    where pos0   = pos
-          pos1   = pos0 + offset
-          pos2   = pos1 + offset
-          pos3   = pos2 + offset
-          pos4   = pos3 + offset
-          pos5   = pos4 + offset
-          pos6   = pos5 + offset
-          offset = sizeOf (undefined:: Word32BE)
+  peek ptr = runParser cptr parseSHA224
+    where parseSHA224 = SHA224 <$> parseStorable
+                               <*> parseStorable
+                               <*> parseStorable
+                               <*> parseStorable
+                               <*> parseStorable
+                               <*> parseStorable
+                               <*> parseStorable
+          cptr = castPtr ptr
+
+  poke ptr (SHA224 h0 h1 h2 h3 h4 h5 h6) =  runWrite cptr writeSHA224
+    where writeSHA224 =  writeStorable h0
+                      <> writeStorable h1
+                      <> writeStorable h2
+                      <> writeStorable h3
+                      <> writeStorable h4
+                      <> writeStorable h5
+                      <> writeStorable h6
+          cptr = castPtr ptr
 
 instance CryptoStore SHA224 where
-  load cptr = SHA224 <$> load cptr
-                     <*> loadFromIndex cptr 1
-                     <*> loadFromIndex cptr 2
-                     <*> loadFromIndex cptr 3
-                     <*> loadFromIndex cptr 4
-                     <*> loadFromIndex cptr 5
-                     <*> loadFromIndex cptr 6
+  load cptr = runParser cptr parseSHA224
+    where parseSHA224 = SHA224 <$> parse
+                               <*> parse
+                               <*> parse
+                               <*> parse
+                               <*> parse
+                               <*> parse
+                               <*> parse
 
-  store cptr (SHA224 h0 h1 h2 h3 h4 h5 h6) =  store cptr h0
-                                           >> storeAtIndex cptr 1 h1
-                                           >> storeAtIndex cptr 2 h2
-                                           >> storeAtIndex cptr 3 h3
-                                           >> storeAtIndex cptr 4 h4
-                                           >> storeAtIndex cptr 5 h5
-                                           >> storeAtIndex cptr 6 h6
+  store cptr (SHA224 h0 h1 h2 h3 h4 h5 h6) =  runWrite cptr writeSHA224
+    where writeSHA224 =  write h0
+                      <> write h1
+                      <> write h2
+                      <> write h3
+                      <> write h4
+                      <> write h5
+                      <> write h6
 
 instance Primitive SHA224 where
   blockSize _ = cryptoCoerce $ BITS (512 :: Int)
