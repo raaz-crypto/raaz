@@ -18,7 +18,6 @@ import Foreign.Storable(Storable(..))
 import Raaz.Parse
 import Raaz.Primitives
 import Raaz.Types
-import Raaz.Util.Ptr(loadFromIndex, storeAtIndex)
 import Raaz.Write
 
 import Raaz.Hash.Sha.Util
