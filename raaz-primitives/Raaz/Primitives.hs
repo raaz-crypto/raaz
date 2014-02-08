@@ -18,7 +18,8 @@ module Raaz.Primitives
          -- * Type safe lengths in units of blocks.
          -- $typesafelengths$
 
-         Primitive(..), Gadget(..), newGadget, newInitializedGadget, primitiveOf
+         Primitive(..), Gadget(..), newGadget, newInitializedGadget
+       , primitiveOf, withGadget
        , CGadget(..), HGadget(..)
        , SafePrimitive
        , Initializable(..)
@@ -177,6 +178,13 @@ class ( Gadget g
 -- to satisy types as the actual value returned is `undefined`.
 inverseGadget :: HasInverse g => g -> Inverse g
 inverseGadget _ = undefined
+
+-- | This function runs an action that expects a gadget as input.
+withGadget :: Gadget g
+           => IV (PrimitiveOf g) -- ^ IV to initialize the gadget with.
+           -> (g -> IO a)        -- ^ Action to run
+           -> IO a
+withGadget iv action = newInitializedGadget iv >>= action
 
 -------------------- Primitives with padding ---------------------------
 
