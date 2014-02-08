@@ -122,24 +122,19 @@ instance Storable a => Memory (CryptoCell a) where
   newMemory = mal undefined
     where mal :: Storable a => a -> IO (CryptoCell a)
           mal = fmap CryptoCell . mallocForeignPtrBytes . sizeOf
-
   freeMemory (CryptoCell fptr) = finalizeForeignPtr fptr
-
   copyMemory scell dcell = withCell scell do1
     where do1 sptr = withCell dcell (do2 sptr)
           do2 sptr dptr = memcpy dptr sptr (BYTES $ sizeOf (getA scell))
           getA :: CryptoCell a -> a
           getA _ = undefined
-
-  withSecureMemory f bk = allocSec undefined bk >>= f
-   where wordAlign size | extra == 0 = size
-                        | otherwise  = size + alignSize - extra
-           where alignSize = sizeOf (undefined :: CryptoAlign)
-                 extra = size `rem` alignSize
-
-         allocSec :: Storable a => a -> PoolRef -> IO (CryptoCell a)
-         allocSec a pref = allocSecureMem (BYTES $ wordAlign $ sizeOf a) pref
-               >>= maybe (fail "SecureMemory Exhausted") (return . CryptoCell)
+  withSecureMemory f bk = with undefined f
+    where
+      with :: Storable a => a -> (CryptoCell a -> IO b) -> IO b
+      with a action = withSecureMem bytes (action . CryptoCell) bk
+        where
+          bytes :: BYTES Int
+          bytes = fromIntegral $ sizeOf a
 
 -- | Types which can be stored in a buffer.
 class Bufferable b where
@@ -172,15 +167,10 @@ instance Bufferable b => Memory (Buffer b) where
   copyMemory (Buffer sz sf) (Buffer _ df) = withForeignPtr sf do1
     where do1 sptr = withForeignPtr df (do2 sptr)
           do2 sptr dptr = memcpy dptr sptr (BYTES sz)
-  withSecureMemory f bk = allocSec undefined bk >>= f
-   where
-     wordAlign :: BYTES Int -> BYTES Int
-     wordAlign size | extra == 0 = size
-                    | otherwise  = size + alignSize - extra
-           where alignSize = fromIntegral $ sizeOf (undefined :: CryptoAlign)
-                 extra = size `rem` alignSize
-     allocSec :: Bufferable b => b -> PoolRef -> IO (Buffer b)
-     allocSec b pref = allocSecureMem (wordAlign size) pref
-         >>= maybe (fail "SecureMemory Exhausted") (return . Buffer size)
-       where
-         size = cryptoCoerce $ sizeOfBuffer b
+  withSecureMemory f bk = with undefined f
+    where
+      with :: Bufferable a => a -> (Buffer a -> IO b) -> IO b
+      with a action = withSecureMem bytes (action . Buffer bytes) bk
+        where
+          bytes :: BYTES Int
+          bytes = sizeOfBuffer a
