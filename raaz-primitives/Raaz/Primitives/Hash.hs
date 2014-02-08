@@ -55,12 +55,12 @@ sourceHash' :: ( ByteSource src
             => g    -- ^ Gadget
             -> src  -- ^ Message
             -> IO (PrimitiveOf g)
-sourceHash' g src = do
-  gad <- new g
-  transformGadget gad src
-  finalize gad
-   where new :: (Hash h, Gadget g, h ~ PrimitiveOf g) => g -> IO g
-         new _ = newInitializedGadget def
+sourceHash' g src = withGadget def $ go g
+  where go :: ( Gadget g1, Hash (PrimitiveOf g1))
+            => g1 -> g1 -> IO (PrimitiveOf g1)
+        go _ gad =  do
+          transformGadget gad src
+          finalize gad
 
 {-# INLINEABLE sourceHash' #-}
 
