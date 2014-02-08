@@ -27,16 +27,19 @@ module Raaz.Util.SecureMemory
        , allocSecureMem
        , initPoolRef
        , freeSecureMem
+       , withSecureMem
        ) where
 
-import Control.Arrow             (first)
-import Data.Traversable          (traverse)
+import Control.Arrow          (first)
+import Control.Exception      (finally)
+import Data.Traversable       (traverse)
 import Data.IORef
 import Foreign.Concurrent
+import Foreign.ForeignPtr     (finalizeForeignPtr)
 
 import Raaz.Types
 import Raaz.Util.Ptr
-import Raaz.System.Parameters    (pageSize)
+import Raaz.System.Parameters (pageSize)
 
 foreign import ccall unsafe "cbits/raaz/memory.c memorylock"
   c_mlock :: CryptoPtr -> Int -> IO Int
@@ -158,19 +161,32 @@ initPoolRef size = newIORef =<< initPool size
 -- in the `PoolRef`. Returns `Nothing` if enough free memory is not
 -- available in the pool.
 allocSecureMem :: CryptoCoerce size (BYTES Int)
-         => size
-         -> PoolRef
-         -> IO (Maybe ForeignCryptoPtr)
+               => size
+               -> PoolRef
+               -> IO (Maybe ForeignCryptoPtr)
 allocSecureMem size bkpr = atomicModifyIORef bkpr (allocFromPool size)
                          >>= traverse createFptr
   where
     createFptr cptr = newForeignPtr cptr $ freeSecureMem cptr bkpr
 
--- | Marks the associated block as free.
+-- | Marks the associated block as free. This will rarely be used as
+-- you can directly run the finalizer associated with the
+-- `ForeignCryptoPtr`.
 freeSecureMem :: CryptoPtr
               -> PoolRef
               -> IO ()
 freeSecureMem cptr poolref = atomicModifyIORef poolref $ (,()) . freeInPool cptr
+
+-- | Runs the action after allocating a secure memory of given size.
+withSecureMem :: CryptoCoerce size (BYTES Int)
+              => size                        -- ^ Size
+              -> (ForeignCryptoPtr -> IO b)  -- ^ Action
+              -> PoolRef                     -- ^ Pool
+              -> IO b
+withSecureMem sz action pool = allocSecureMem sz pool
+                             >>= maybe (fail "SecureMemory Exhausted") runAction
+  where
+    runAction mem = finally (action mem) $ finalizeForeignPtr mem
 
 --------------------- Pages -------------------------------------
 
