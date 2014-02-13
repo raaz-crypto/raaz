@@ -134,17 +134,19 @@ fillFromGadget g bsz bfr = do
       gadblksz = blockSize (getPrim g)
       nblks  = bsz `quot` gadblksz
 
+-- | Generates given number of random bytes.
 genBytes :: StreamGadget g => RandomSource g -> BYTES Int -> IO ByteString
 genBytes src n = create (fromIntegral n) (fillFromGadget src n . castPtr)
 
+-- | Generates given number of nonzero random bytes.
 genBytesNonZero :: StreamGadget g => RandomSource g -> BYTES Int -> IO ByteString
 genBytesNonZero src n = go 0 []
   where
-    go m xs | m >= n = return $ BS.take (fromIntegral n) $ toStrict $ BL.fromChunks xs
-            | otherwise = do
-              b <- genBytes src (n-m)
-              let nonzero = BS.filter (/=0x00) b
-              go (BU.length nonzero + m) (nonzero:xs)
+    go !m !xs | m >= n = return $ BS.take (fromIntegral n) $ toStrict $ BL.fromChunks xs
+              | otherwise = do
+                b <- genBytes src (n-m)
+                let nonzero = BS.filter (/=0x00) b
+                go (BU.length nonzero + m) (nonzero:xs)
 
 -- | Converts `BL.ByteString` to `BS.ByteString`.
 toStrict :: BL.ByteString -> BS.ByteString
