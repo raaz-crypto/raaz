@@ -1,12 +1,12 @@
 {-|
 
-This module contains some generic tests cases for CryptoStore
-instances. Whenever a new instance of CryptoStore is defined, consider
+This module contains some generic tests cases for EndianStore
+instances. Whenever a new instance of EndianStore is defined, consider
 using them.
 
 -}
 
-module Raaz.Test.CryptoStore
+module Raaz.Test.EndianStore
        ( testStoreLoad
        ) where
 
@@ -18,11 +18,11 @@ import Test.Framework.Providers.QuickCheck2(testProperty)
 import Test.QuickCheck(Property, Arbitrary)
 import Test.QuickCheck.Monadic(run, assert, monadicIO)
 
-import Raaz.Types( cryptoAlignment, CryptoStore(..))
+import Raaz.Types( cryptoAlignment, EndianStore(..))
 
 
 -- | This is where the actual store/load is performed.
-storeLoad :: (CryptoStore a, Eq a) => a -> IO Bool
+storeLoad :: (EndianStore a, Eq a) => a -> IO Bool
 storeLoad a = allocaBytesAligned (sizeOf a) cryptoAlignment runStoreLoad
   where runStoreLoad ptr = do store ptr a
                               y <- load ptr
@@ -30,7 +30,7 @@ storeLoad a = allocaBytesAligned (sizeOf a) cryptoAlignment runStoreLoad
 
 -- | This is the property generator. The first value is an unused
 -- value and is given to satisfy the typechecker.
-prop_StoreLoad :: ( CryptoStore a
+prop_StoreLoad :: ( EndianStore a
                   , Eq a
                   , Show a
                   )
@@ -46,14 +46,14 @@ prop_StoreLoad _ a = monadicIO $ do y <- run $ storeLoad a
 -- typical use would look something like:
 --
 -- > data Foo = ... deriving (Typeable, Eq, Show)
--- > instance CryptoStore Foo where
+-- > instance EndianStore Foo where
 -- >      ...
 -- > instance Aribitrary Foo where
 -- >      ...
 -- > main = defaultMain [ testStoreLoad (undefined :: Foo) ]
 --
 --
-testStoreLoad :: ( CryptoStore a
+testStoreLoad :: ( EndianStore a
                  , Eq a
                  , Show a
                  , Arbitrary a

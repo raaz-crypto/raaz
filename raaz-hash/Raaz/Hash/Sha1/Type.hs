@@ -66,7 +66,7 @@ instance Storable SHA1 where
                     <> writeStorable h4
           cptr = castPtr ptr
 
-instance CryptoStore SHA1 where
+instance EndianStore SHA1 where
   load cptr = runParser cptr parseSHA1
     where parseSHA1 = SHA1 <$> parse
                            <*> parse

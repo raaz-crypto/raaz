@@ -45,11 +45,11 @@ writeStorable a = Write $ \ cptr -> do
   poke (castPtr cptr) a
   return $ cptr `movePtr` byteSize a
 
--- | Writes an instance of `CryptoStore`. Endian safety is take into
+-- | Writes an instance of `EndianStore`. Endian safety is take into
 -- account here. This is what you would need when you write network
 -- packets for example. You can also use this to define the `load`
--- function in a compicated `CryptoStore` instance.
-write :: CryptoStore a => a -> Write
+-- function in a compicated `EndianStore` instance.
+write :: EndianStore a => a -> Write
 write a = Write $ \ cptr -> do
   store cptr a
   return $ cptr `movePtr` byteSize a

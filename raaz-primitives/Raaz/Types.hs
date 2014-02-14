@@ -23,7 +23,7 @@ module Raaz.Types
          -- $length$
          Word32LE, Word32BE
        , Word64LE, Word64BE
-       , CryptoStore(..), toByteString
+       , EndianStore(..), toByteString
 
        , BYTES(..), BITS(..)
        , CryptoCoerce(..)
@@ -65,7 +65,7 @@ import Test.QuickCheck(Arbitrary)
 -- `load` and `store` takes care of endian coversion automatically.
 --
 -- This module also provide explicitly endianness encoded versions of
--- Word32 and Word64 which are instances of `CryptoStore`. These types
+-- Word32 and Word64 which are instances of `EndianStore`. These types
 -- inherit their parent type's `Num` instance (besides `Ord`, `Eq`
 -- etc). The advantage is the following uniformity in their usage in
 -- Haskell code:
@@ -90,7 +90,7 @@ import Test.QuickCheck(Arbitrary)
 --
 -- > data SHA1 = SHA1 Word32BE Word32BE Word32BE Word32BE Word32BE
 --
--- Then the CryptoStore instance boils down to storing the words in
+-- Then the EndianStore instance boils down to storing the words in
 -- correct order.
 
 
@@ -101,7 +101,7 @@ import Test.QuickCheck(Arbitrary)
 -- strings or peeked/poked from a memory location it is advisable to
 -- define an instance of this class. Using store and load will then
 -- prevent endian confusion.
-class Storable w => CryptoStore w where
+class Storable w => EndianStore w where
 
   -- | Store the given value at the locating pointed by the pointer
   store :: CryptoPtr   -- ^ the location.
@@ -112,7 +112,7 @@ class Storable w => CryptoStore w where
   load  :: CryptoPtr -> IO w
 
 -- | Generate a bytestring representation of the object.
-toByteString :: CryptoStore w => w -> ByteString
+toByteString :: EndianStore w => w -> ByteString
 toByteString w = unsafeCreate (sizeOf w) putit
       where putit ptr = store (castPtr ptr) w
 
@@ -210,27 +210,27 @@ fromWord64BE :: Word64BE -> Word64
 {-# INLINE fromWord64BE #-}
 fromWord64BE (BE64 w) = fromBE64 w
 
-instance CryptoStore Word32LE where
+instance EndianStore Word32LE where
   {-# INLINE load  #-}
   {-# INLINE store #-}
   load      = fmap toWord32LE . peek . castPtr
   store ptr = poke (castPtr ptr) . fromWord32LE
 
 
-instance CryptoStore Word32BE where
+instance EndianStore Word32BE where
   {-# INLINE load  #-}
   {-# INLINE store #-}
   load      = fmap toWord32BE . peek . castPtr
   store ptr = poke (castPtr ptr) . fromWord32BE
 
 
-instance CryptoStore Word64LE where
+instance EndianStore Word64LE where
   {-# INLINE load  #-}
   {-# INLINE store #-}
   load      = fmap toWord64LE . peek . castPtr
   store ptr = poke (castPtr ptr) . fromWord64LE
 
-instance CryptoStore Word64BE where
+instance EndianStore Word64BE where
   {-# INLINE load  #-}
   {-# INLINE store #-}
   load      = fmap toWord64BE . peek . castPtr
@@ -284,7 +284,7 @@ class CryptoCoerce s t where
 -- instance is guranteed to do the appropriate scaling.
 newtype BYTES a  = BYTES a
         deriving ( Arbitrary, Show, Eq, Ord, Enum, Integral
-                 , Real, Num, Storable, CryptoStore
+                 , Real, Num, Storable, EndianStore
                  )
 
 -- | Type safe lengths/offsets in units of bits. If the function
@@ -293,7 +293,7 @@ newtype BYTES a  = BYTES a
 -- instance is guranteed to do the appropriate scaling.
 newtype BITS  a  = BITS  a
         deriving ( Arbitrary, Show, Eq, Ord, Enum, Integral
-                 , Real, Num, Storable, CryptoStore
+                 , Real, Num, Storable, EndianStore
                  )
 
 instance ( Integral by
