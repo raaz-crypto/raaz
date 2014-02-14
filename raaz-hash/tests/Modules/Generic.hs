@@ -24,7 +24,7 @@ import Test.QuickCheck(Arbitrary)
 import Raaz.Primitives
 import Raaz.Primitives.Hash
 import Raaz.Types
-import Raaz.Test.CryptoStore
+import Raaz.Test.EndianStore
 import Raaz.Test.Cipher
 import Raaz.Util.ByteString (toHex)
 
@@ -78,7 +78,7 @@ testLengthDivisibility h = testProperty name
 -- type checker. The second argument is a list which consists of pairs
 -- of a string its hash (expressed as a bytestring in hex).
 
-testStandardHashValues :: (CryptoStore h, Hash h, Typeable h)
+testStandardHashValues :: (EndianStore h, Hash h, Typeable h)
                        => h                             -- ^ hash
                                                         -- value
                                                         -- (ignored)

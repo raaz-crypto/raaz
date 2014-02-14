@@ -43,7 +43,7 @@ library
                  , Raaz.Types
                  , Raaz.Test
                  , Raaz.Test.Cipher
-                 , Raaz.Test.CryptoStore
+                 , Raaz.Test.EndianStore
                  , Raaz.Test.Gadget
                  , Raaz.Util.ByteString
                  , Raaz.Util.Gadget
