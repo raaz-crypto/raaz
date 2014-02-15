@@ -18,7 +18,6 @@ import Paths_raaz(version)
 import Raaz.Hash
 import Raaz.Primitives.Hash(Hash)
 
-import Raaz.Util.ByteString(toHex)
 
 data Shasum = Shasum { hashType :: String
                      , check    :: Bool
