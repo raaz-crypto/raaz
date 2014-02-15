@@ -77,7 +77,7 @@ instance Storable SHA384 where
                       <> writeStorable h5
           cptr = castPtr ptr
 
-instance CryptoStore SHA384 where
+instance EndianStore SHA384 where
   load cptr = runParser cptr parseSHA384
     where parseSHA384 = SHA384 <$> parse
                                <*> parse

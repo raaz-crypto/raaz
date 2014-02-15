@@ -80,7 +80,7 @@ instance Storable SHA224 where
                       <> writeStorable h6
           cptr = castPtr ptr
 
-instance CryptoStore SHA224 where
+instance EndianStore SHA224 where
   load cptr = runParser cptr parseSHA224
     where parseSHA224 = SHA224 <$> parse
                                <*> parse

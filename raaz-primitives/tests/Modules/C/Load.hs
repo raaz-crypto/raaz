@@ -43,7 +43,7 @@ arraySize :: Int
 arraySize = 42
 
 -- | This is where the actual store/load is performed.
-hStoreCLoad :: ( CryptoStore b
+hStoreCLoad :: ( EndianStore b
                , Eq b
                , Num b
                , Integral a
@@ -61,7 +61,7 @@ hStoreCLoad loader b =  allocaBuffer sz runAll
 
 -- | This is the property generator. The first value is an unused
 -- value and is given to satisfy the typechecker.
-prop_HStoreCLoad :: ( CryptoStore b
+prop_HStoreCLoad :: ( EndianStore b
                     , Num b
                     , Eq b
                     , Show b

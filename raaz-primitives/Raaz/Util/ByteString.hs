@@ -63,7 +63,7 @@ unsafeNCopyToCryptoPtr n bs cptr = withForeignPtr fptr $
 
 -- | Converts a crypto storable instances to its hexadecimal
 -- representation.
-toHex :: CryptoStore a => a -> ByteString
+toHex :: EndianStore a => a -> ByteString
 toHex = hex . toByteString
 
 -- | Converts bytestring to hexadecimal representation.

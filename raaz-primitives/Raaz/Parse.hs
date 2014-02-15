@@ -49,8 +49,8 @@ parseStorable = do a <- getPtr >>= lift . peek
 -- | Parse a crypto value. Endian safety is take into account
 -- here. This is what you would need when you parse packets from an
 -- external source. You can also use this to define the `load`
--- function in a compicated `CryptoStore` instance.
-parse :: CryptoStore a => Parser a
+-- function in a compicated `EndianStore` instance.
+parse :: EndianStore a => Parser a
 parse = do a <- getPtr >>= lift . load
            modify $ flip movePtr $ byteSize a
            return a

@@ -43,7 +43,7 @@ class ( SafePrimitive h
       , Default (IV h)
       , CryptoPrimitive h
       , Eq h
-      , CryptoStore h
+      , EndianStore h
       ) => Hash h where
 
 -- | Hash a given byte source.
@@ -122,7 +122,7 @@ hashFile fp = withBinaryFile fp ReadMode sourceHash
 -- is essentially the `Eq` instance for the underlying hash and hence
 -- is safe against timing attack (provided the underlying hashs --
 -- comparison is safe under timing attack).
-newtype HMAC h = HMAC h deriving (Eq, Storable, CryptoStore)
+newtype HMAC h = HMAC h deriving (Eq, Storable, EndianStore)
 
 -- | A function that is often used to keep type checker happy.
 getHash :: HMAC h -> h
@@ -140,22 +140,22 @@ data Gadget g => HMACGadget g =
 
 
 
-instance (Primitive p, CryptoStore p) => Memory (HMACBuffer p) where
+instance (Primitive p, EndianStore p) => Memory (HMACBuffer p) where
   newMemory = allocMem undefined
     where
-      allocMem :: (Primitive p, CryptoStore p) => p -> IO (HMACBuffer p)
+      allocMem :: (Primitive p, EndianStore p) => p -> IO (HMACBuffer p)
       allocMem p = let BYTES len = cryptoCoerce $ size p
                    in fmap HMACBuffer $ mallocForeignPtrBytes len
-      size :: (Primitive p, CryptoStore p) => p -> BLOCKS p
+      size :: (Primitive p, EndianStore p) => p -> BLOCKS p
       size p = blocksOf 1 p + cryptoCoerce (BYTES $ sizeOf p)
 
   freeMemory (HMACBuffer fptr) = finalizeForeignPtr fptr
   withSecureMemory f bk = allocSec undefined bk >>= f
    where
      -- Assuming Blocks are always word aligned
-     size :: (Primitive p, CryptoStore p) => p -> BLOCKS p
+     size :: (Primitive p, EndianStore p) => p -> BLOCKS p
      size p = blocksOf 1 p + cryptoCoerce (BYTES $ sizeOf p)
-     allocSec :: (Primitive p, CryptoStore p)
+     allocSec :: (Primitive p, EndianStore p)
               => p
               -> BookKeeper
               -> IO (HMACBuffer p)

@@ -69,7 +69,7 @@ movePtr cptr offset = cptr `plusPtr` bytes
 
 -- | Store the given value as the @n@-th element of the array
 -- pointed by the crypto pointer.
-storeAtIndex :: CryptoStore w
+storeAtIndex :: EndianStore w
              => CryptoPtr -- ^ the pointer to the first element of the
                           -- array
              -> Int       -- ^ the index of the array
@@ -81,7 +81,7 @@ storeAtIndex cptr index w = storeAt cptr offset w
 
 -- | Store the given value at an offset from the crypto pointer. The
 -- offset is given in type safe units.
-storeAt :: ( CryptoStore w
+storeAt :: ( EndianStore w
            , CryptoCoerce offset (BYTES Int)
            )
         => CryptoPtr   -- ^ the pointer
@@ -92,19 +92,19 @@ storeAt :: ( CryptoStore w
 storeAt cptr offset = store $ cptr `movePtr` offset
 
 -- | Load the @n@-th value of an array pointed by the crypto pointer.
-loadFromIndex :: CryptoStore w
+loadFromIndex :: EndianStore w
               => CryptoPtr -- ^ the pointer to the first element of
                            -- the array
               -> Int       -- ^ the index of the array
               -> IO w
 {-# INLINE loadFromIndex #-}
 loadFromIndex cptr index = loadP undefined
-   where loadP ::  (CryptoStore w, Storable w) => w -> IO w
+   where loadP ::  (EndianStore w, Storable w) => w -> IO w
          loadP w = loadFrom cptr offset
            where offset = toEnum index * byteSize w
 
 -- | Load from a given offset. The offset is given in type safe units.
-loadFrom :: ( CryptoStore w
+loadFrom :: ( EndianStore w
             , CryptoCoerce offset (BYTES Int)
             )
          => CryptoPtr -- ^ the pointer

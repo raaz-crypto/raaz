@@ -10,7 +10,7 @@ import Test.Framework.Providers.QuickCheck2 (testProperty)
 
 import Raaz.Test()
 import Raaz.Types
-import Raaz.Test.CryptoStore
+import Raaz.Test.EndianStore
 
 -- | This test captures the property that bytestring encodings of Little
 -- Endian word is same as reversing the bytestring encoding of Big endian word.
