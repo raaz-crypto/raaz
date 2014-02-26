@@ -12,6 +12,8 @@ Portable C implementation of SHA224 hash.
 
 module Raaz.Hash.Sha224.CPortable () where
 
+import Control.Applicative ( (<$>) )
+
 import Raaz.Memory
 import Raaz.Primitives
 
@@ -23,10 +25,8 @@ instance Gadget (CGadget SHA224) where
   type PrimitiveOf (CGadget SHA224) = SHA224
   type MemoryOf (CGadget SHA224) = CryptoCell SHA256
   newGadgetWithMemory = return . CGadget
-  initialize (CGadget cc) (SHA224IV sha) = cellStore cc sha
-  finalize (CGadget cc) = sha256Tosha224 `fmap` cellLoad cc
-    where sha256Tosha224 (SHA256 h0 h1 h2 h3 h4 h5 h6 _)
-            = SHA224 h0 h1 h2 h3 h4 h5 h6
+  initialize (CGadget cc) (SHA224Cxt sha) = cellStore cc sha
+  finalize (CGadget cc) = SHA224Cxt <$> cellLoad cc
   apply (CGadget cc) n cptr = sha256Compress cc n' cptr
     where n' = blocksOf (fromIntegral n) (undefined :: SHA256)
 

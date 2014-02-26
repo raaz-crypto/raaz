@@ -13,7 +13,7 @@ binary instance etc.
 
 module Raaz.Hash.Sha224.Type
        ( SHA224(..)
-       , IV(SHA224IV)
+       , Cxt(SHA224Cxt)
        ) where
 
 import Control.Applicative ((<$>), (<*>))
@@ -102,7 +102,7 @@ instance EndianStore SHA224 where
 instance Primitive SHA224 where
   blockSize _ = cryptoCoerce $ BITS (512 :: Int)
   {-# INLINE blockSize #-}
-  newtype IV SHA224 = SHA224IV SHA256
+  newtype Cxt SHA224 = SHA224Cxt SHA256
 
 instance SafePrimitive SHA224
 
@@ -111,8 +111,8 @@ instance HasPadding SHA224 where
   padLength = padLength64
   padding   = padding64
 
-instance Default (IV SHA224) where
-  def = SHA224IV $ SHA256 0xc1059ed8
+instance Default (Cxt SHA224) where
+  def = SHA224Cxt $ SHA256 0xc1059ed8
                           0x367cd507
                           0x3070dd17
                           0xf70e5939
