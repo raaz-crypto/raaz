@@ -15,6 +15,7 @@ module Raaz.Hash.Sha256.CPortable
        ( sha256Compress
        ) where
 
+import Control.Applicative ( (<$>) )
 
 import Foreign.Ptr
 
@@ -38,8 +39,8 @@ instance Gadget (CGadget SHA256) where
   type PrimitiveOf (CGadget SHA256) = SHA256
   type MemoryOf (CGadget SHA256) = CryptoCell SHA256
   newGadgetWithMemory = return . CGadget
-  initialize (CGadget cc) (SHA256IV sha1) = cellStore cc sha1
-  finalize (CGadget cc) = cellLoad cc
+  initialize (CGadget cc) (SHA256Cxt sha1) = cellStore cc sha1
+  finalize (CGadget cc) = SHA256Cxt <$> cellLoad cc
   apply (CGadget cc) n cptr = sha256Compress cc n cptr
 
 instance PaddableGadget (CGadget SHA256)
