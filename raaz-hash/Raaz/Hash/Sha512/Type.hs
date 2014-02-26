@@ -4,7 +4,7 @@
 
 module Raaz.Hash.Sha512.Type
        ( SHA512(..)
-       , IV(SHA512IV)
+       , Cxt(SHA512Cxt)
        ) where
 
 import Control.Applicative ((<$>), (<*>))
@@ -98,7 +98,7 @@ instance EndianStore SHA512 where
 instance Primitive SHA512 where
   blockSize _ = cryptoCoerce $ BITS (1024 :: Int)
   {-# INLINE blockSize #-}
-  newtype IV SHA512 = SHA512IV SHA512
+  newtype Cxt SHA512 = SHA512Cxt SHA512
 
 instance SafePrimitive SHA512
 
@@ -107,8 +107,8 @@ instance HasPadding SHA512 where
   padLength = padLength128
   padding   = padding128
 
-instance Default (IV SHA512) where
-  def = SHA512IV $ SHA512 0x6a09e667f3bcc908
+instance Default (Cxt SHA512) where
+  def = SHA512Cxt $ SHA512 0x6a09e667f3bcc908
                           0xbb67ae8584caa73b
                           0x3c6ef372fe94f82b
                           0xa54ff53a5f1d36f1
