@@ -13,7 +13,7 @@ instance etc.
 -}
 module Raaz.Hash.Sha1.Type
        ( SHA1(..)
-       , IV(SHA1IV)
+       , Cxt(SHA1Cxt)
        ) where
 
 import Control.Applicative ((<$>), (<*>))
@@ -84,7 +84,7 @@ instance EndianStore SHA1 where
 instance Primitive SHA1 where
   blockSize _ = cryptoCoerce $ BITS (512 :: Int)
   {-# INLINE blockSize #-}
-  newtype IV SHA1 = SHA1IV SHA1
+  newtype Cxt SHA1 = SHA1Cxt SHA1
 
 instance SafePrimitive SHA1
 
@@ -93,8 +93,8 @@ instance HasPadding SHA1 where
   padLength = padLength64
   padding   = padding64
 
-instance Default (IV SHA1) where
-  def = SHA1IV $ SHA1 0x67452301
+instance Default (Cxt SHA1) where
+  def = SHA1Cxt $ SHA1 0x67452301
                       0xefcdab89
                       0x98badcfe
                       0x10325476
