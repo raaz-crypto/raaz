@@ -5,14 +5,12 @@
 
 module Raaz.Cipher.AES.CTR.CPortable () where
 
-import           Data.ByteString          (ByteString)
-import qualified Data.ByteString          as BS
 import           Foreign.Storable         (sizeOf)
 import           Raaz.Memory
 import           Raaz.Primitives
 import           Raaz.Primitives.Cipher
 import           Raaz.Types
-import           Raaz.Util.ByteString     (withByteString, unsafeCopyToCryptoPtr)
+import           Raaz.Util.Ptr            (allocaBuffer)
 
 import           Raaz.Cipher.AES.CTR.Type
 import           Raaz.Cipher.AES.Ref.Type
@@ -41,10 +39,9 @@ instance Gadget (CPortable128 CTR Encryption) where
   type MemoryOf (CPortable128 CTR Encryption) = (CryptoCell Expanded128, CryptoCell STATE)
   newGadgetWithMemory cc = return $ CPortable128 cc
   initialize (CPortable128 (ek,civ)) (AES128EIV (bs,iv)) =
-    initialWith (ek,civ) (bs,iv) sz expand
+    initialWith (ek,civ) (bs,iv) expand
    where
-     expand k inp = c_expand k inp 0
-     sz = sizeOf (undefined :: KEY128)
+     expand kcptr ekcptr = c_expand ekcptr kcptr 0
   finalize _ = return AES128
   apply (CPortable128 (ek,civ)) n cptr = withCell ek (withCell civ . doStuff)
     where
@@ -55,10 +52,9 @@ instance Gadget (CPortable128 CTR Decryption) where
   type MemoryOf (CPortable128 CTR Decryption) = (CryptoCell Expanded128, CryptoCell STATE)
   newGadgetWithMemory cc = return $ CPortable128 cc
   initialize (CPortable128 (ek,civ)) (AES128DIV (bs,iv)) =
-    initialWith (ek,civ) (bs,iv) sz expand
+    initialWith (ek,civ) (bs,iv) expand
    where
-     expand k inp = c_expand k inp 0
-     sz = sizeOf (undefined :: KEY128)
+     expand kcptr ekcptr = c_expand ekcptr kcptr 0
   finalize _ = return AES128
   apply (CPortable128 (ek,civ)) n cptr = withCell ek (withCell civ . doStuff)
     where
@@ -72,10 +68,9 @@ instance Gadget (CPortable192 CTR Encryption) where
   type MemoryOf (CPortable192 CTR Encryption) = (CryptoCell Expanded192, CryptoCell STATE)
   newGadgetWithMemory cc = return $ CPortable192 cc
   initialize (CPortable192 (ek,civ)) (AES192EIV (bs,iv)) =
-    initialWith (ek,civ) (bs,iv) sz expand
+    initialWith (ek,civ) (bs,iv) expand
    where
-     expand k inp = c_expand k inp 1
-     sz = sizeOf (undefined :: KEY192)
+     expand kcptr ekcptr = c_expand ekcptr kcptr 1
   finalize _ = return AES192
   apply (CPortable192 (ek,civ)) n cptr = withCell ek (withCell civ . doStuff)
     where
@@ -86,10 +81,9 @@ instance Gadget (CPortable192 CTR Decryption) where
   type MemoryOf (CPortable192 CTR Decryption) = (CryptoCell Expanded192, CryptoCell STATE)
   newGadgetWithMemory cc = return $ CPortable192 cc
   initialize (CPortable192 (ek,civ)) (AES192DIV (bs,iv)) =
-    initialWith (ek,civ) (bs,iv) sz expand
+    initialWith (ek,civ) (bs,iv) expand
    where
-     expand k inp = c_expand k inp 1
-     sz = sizeOf (undefined :: KEY192)
+     expand kcptr ekcptr = c_expand ekcptr kcptr 1
   finalize _ = return AES192
   apply (CPortable192 (ek,civ)) n cptr = withCell ek (withCell civ . doStuff)
     where
@@ -103,10 +97,9 @@ instance Gadget (CPortable256 CTR Encryption) where
   type MemoryOf (CPortable256 CTR Encryption) = (CryptoCell Expanded256, CryptoCell STATE)
   newGadgetWithMemory cc = return $ CPortable256 cc
   initialize (CPortable256 (ek,civ)) (AES256EIV (bs,iv)) =
-    initialWith (ek,civ) (bs,iv) sz expand
+    initialWith (ek,civ) (bs,iv) expand
    where
-     expand k inp = c_expand k inp 2
-     sz = sizeOf (undefined :: KEY256)
+     expand kcptr ekcptr = c_expand ekcptr kcptr 2
   finalize _ = return AES256
   apply (CPortable256 (ek,civ)) n cptr = withCell ek (withCell civ . doStuff)
     where
@@ -117,26 +110,25 @@ instance Gadget (CPortable256 CTR Decryption) where
   type MemoryOf (CPortable256 CTR Decryption) = (CryptoCell Expanded256, CryptoCell STATE)
   newGadgetWithMemory cc = return $ CPortable256 cc
   initialize (CPortable256 (ek,civ)) (AES256DIV (bs,iv)) =
-    initialWith (ek,civ) (bs,iv) sz expand
+    initialWith (ek,civ) (bs,iv) expand
    where
-     expand k inp = c_expand k inp 2
-     sz = sizeOf (undefined :: KEY256)
+     expand kcptr ekcptr = c_expand ekcptr kcptr 2
   finalize _ = return AES256
   apply (CPortable256 (ek,civ)) n cptr = withCell ek (withCell civ . doStuff)
     where
       doStuff ekptr ivptr = c_ctr_encrypt ekptr cptr ivptr (fromIntegral n) 2
 
 
-initialWith :: (CryptoCell ek, CryptoCell STATE)
-            -> (ByteString, ByteString)
-            -> Int
+initialWith :: EndianStore k
+            => (CryptoCell ek, CryptoCell STATE)
+            -> (k, STATE)
             -> (CryptoPtr -> CryptoPtr -> IO ())
             -> IO ()
-initialWith (ek,civ) (bsk,bsiv) sz with
-  | BS.length bsk == sz && BS.length bsiv == blksz = do
-    withCell ek (withByteString bsk . with)
-    withCell civ (unsafeCopyToCryptoPtr bsiv)
-  | otherwise = error "Unable to fill key with given data"
+initialWith (ek,civ) (k,iv) with = allocaBuffer szk $ \kptr -> do
+  store kptr k
+  withCell ek (with kptr)
+  withCell civ (flip store iv)
   where
-    blksz = sizeOf (undefined :: STATE)
+    szk :: BYTES Int
+    szk = BYTES $ sizeOf k
 {-# INLINE initialWith #-}

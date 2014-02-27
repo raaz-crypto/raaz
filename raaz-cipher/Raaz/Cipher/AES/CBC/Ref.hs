@@ -6,7 +6,6 @@ module Raaz.Cipher.AES.CBC.Ref () where
 
 import Control.Applicative
 import Control.Monad
-import Foreign.Ptr
 import Foreign.Storable
 
 import Raaz.Memory
@@ -27,8 +26,8 @@ instance Gadget (Ref128 CBC Encryption) where
   type MemoryOf (Ref128 CBC Encryption) = (CryptoCell Expanded128, CryptoCell STATE)
   newGadgetWithMemory cc = return $ Ref128 cc
   initialize (Ref128 (ek,s)) (AES128EIV (k,iv)) = do
-    cellStore ek (expand128 $ fromByteString k)
-    cellStore s $ fromByteString iv
+    cellStore ek $ expand128 k
+    cellStore s iv
   finalize _ = return AES128
   apply g@(Ref128 mem) = applyE g mem encrypt128
 
@@ -37,8 +36,8 @@ instance Gadget (Ref128 CBC Decryption) where
   type MemoryOf (Ref128 CBC Decryption) = (CryptoCell Expanded128, CryptoCell STATE)
   newGadgetWithMemory cc = return $ Ref128 cc
   initialize (Ref128 (ek,s)) (AES128DIV (k,iv)) = do
-    cellStore ek (expand128 $ fromByteString k)
-    cellStore s $ fromByteString iv
+    cellStore ek $ expand128 k
+    cellStore s iv
   finalize _ = return AES128
   apply g@(Ref128 mem) = applyD g mem decrypt128
 
@@ -50,8 +49,8 @@ instance Gadget (Ref192 CBC Encryption) where
   type MemoryOf (Ref192 CBC Encryption) = (CryptoCell Expanded192, CryptoCell STATE)
   newGadgetWithMemory cc = return $ Ref192 cc
   initialize (Ref192 (ek,s)) (AES192EIV (k,iv)) = do
-    cellStore ek (expand192 $ fromByteString k)
-    cellStore s $ fromByteString iv
+    cellStore ek $ expand192 k
+    cellStore s iv
   finalize _ = return AES192
   apply g@(Ref192 mem) = applyE g mem encrypt192
 
@@ -60,8 +59,8 @@ instance Gadget (Ref192 CBC Decryption) where
   type MemoryOf (Ref192 CBC Decryption) = (CryptoCell Expanded192, CryptoCell STATE)
   newGadgetWithMemory cc = return $ Ref192 cc
   initialize (Ref192 (ek,s)) (AES192DIV (k,iv)) =  do
-    cellStore ek (expand192 $ fromByteString k)
-    cellStore s $ fromByteString iv
+    cellStore ek $ expand192 k
+    cellStore s iv
   finalize _ = return AES192
   apply g@(Ref192 mem) = applyD g mem decrypt192
 
@@ -73,8 +72,8 @@ instance Gadget (Ref256 CBC Encryption) where
   type MemoryOf (Ref256 CBC Encryption) = (CryptoCell Expanded256, CryptoCell STATE)
   newGadgetWithMemory cc = return $ Ref256 cc
   initialize (Ref256 (ek,s)) (AES256EIV (k,iv)) = do
-    cellStore ek (expand256 $ fromByteString k)
-    cellStore s $ fromByteString iv
+    cellStore ek $ expand256 k
+    cellStore s iv
   finalize _ = return AES256
   apply g@(Ref256 mem) = applyE g mem encrypt256
 
@@ -83,8 +82,8 @@ instance Gadget (Ref256 CBC Decryption) where
   type MemoryOf (Ref256 CBC Decryption) = (CryptoCell Expanded256, CryptoCell STATE)
   newGadgetWithMemory cc = return $ Ref256 cc
   initialize (Ref256 (ek,s)) (AES256DIV (k,iv)) = do
-    cellStore ek (expand256 $ fromByteString k)
-    cellStore s $ fromByteString iv
+    cellStore ek $ expand256 k
+    cellStore s iv
   finalize _ = return AES256
   apply g@(Ref256 mem) = applyD g mem decrypt256
 
@@ -115,9 +114,9 @@ applyE g tup with = loadAndApply moveAndHash g tup
     where
       sz = blockSize (getPrim g)
       moveAndHash expanded (cxt,ptr) _ = do
-        blk <- peek (castPtr ptr)
+        blk <- load ptr
         let newCxt = with (blk `xorState` cxt) expanded
-        poke (castPtr ptr) newCxt
+        store ptr newCxt
         return (newCxt, ptr `movePtr` sz)
 
 applyD :: (Gadget g, Storable k) => g
@@ -130,7 +129,7 @@ applyD g tup with = loadAndApply moveAndHash g tup
     where
       sz = blockSize (getPrim g)
       moveAndHash expanded (cxt,ptr) _ = do
-        blk <- peek (castPtr ptr)
+        blk <- load ptr
         let newCxt = with blk expanded
-        poke (castPtr ptr) (newCxt `xorState` cxt)
+        store ptr (newCxt `xorState` cxt)
         return (blk, ptr `movePtr` sz)
