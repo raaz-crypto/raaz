@@ -11,24 +11,26 @@ module Raaz.Util.ByteString
        , length
        , hex, toHex
        , withByteString
+       , fromByteString, fromByteStringStorable
        , createFrom
        ) where
 
-import           Prelude hiding (length)
+import           Prelude            hiding (length)
 import           Data.Bits
-import qualified Data.ByteString as B
-import           Data.ByteString(ByteString)
+import qualified Data.ByteString    as B
+import           Data.ByteString    (ByteString)
 import           Data.ByteString.Internal( toForeignPtr
                                          , c2w, unsafeCreate
                                          , create
                                          )
-import           Foreign.ForeignPtr(withForeignPtr)
-import           Foreign.Ptr(castPtr, plusPtr)
-import           Foreign.Storable(poke, peek)
+import           Foreign.ForeignPtr (withForeignPtr)
+import           Foreign.Ptr        (castPtr, plusPtr)
+import           Foreign.Storable   (poke, peek, Storable)
 
+import           System.IO.Unsafe   (unsafePerformIO)
 
-import Raaz.Types
-import Raaz.Util.Ptr
+import           Raaz.Types
+import           Raaz.Util.Ptr
 
 -- | A typesafe length for Bytestring
 length :: ByteString -> BYTES Int
@@ -98,6 +100,14 @@ hex bs = unsafeCreate (2 * n) filler
 withByteString :: ByteString -> (CryptoPtr -> IO a) -> IO a
 withByteString bs f = withForeignPtr fptr (f . flip plusPtr off . castPtr)
   where (fptr, off, _) = toForeignPtr bs
+
+-- | Get the value from the bytestring using `load`.
+fromByteString :: EndianStore k => ByteString -> k
+fromByteString src = unsafePerformIO $ withByteString src (load . castPtr)
+
+-- | Get the value from the bytestring using `peek`.
+fromByteStringStorable :: Storable k => ByteString -> k
+fromByteStringStorable src = unsafePerformIO $ withByteString src (peek . castPtr)
 
 -- | The IO action @createFrom n cptr@ creates a bytestring by copying
 -- @n@ bytes from the pointer @cptr@.
