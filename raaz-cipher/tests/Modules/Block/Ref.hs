@@ -14,12 +14,6 @@ import Raaz.Cipher.AES.Internal
 import Raaz.Cipher.AES.Ref.Internal
 
 
-instance Arbitrary SplitWord32 where
-  arbitrary = SplitWord32 <$> arbitrary
-                          <*> arbitrary
-                          <*> arbitrary
-                          <*> arbitrary
-
 instance Arbitrary STATE where
   arbitrary = STATE <$> arbitrary
                     <*> arbitrary
