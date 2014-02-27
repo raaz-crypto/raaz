@@ -16,25 +16,25 @@ module Raaz.Cipher.AES.Internal
 import Raaz.Cipher.AES.Ref.Type
 
 import Data.Typeable
-import Raaz.Memory
+import Raaz.Primitives
 
 -- | Reference Implementation for AES128 in CBC Mode
-data Ref128 m s = Ref128 (CryptoCell Expanded128, CryptoCell STATE)
+data Ref128 m s = Ref128 (MemoryOf (Ref128 m s))
 
 -- | Reference Implementation for AES192 in CBC Mode
-data Ref192 m s = Ref192 (CryptoCell Expanded192, CryptoCell STATE)
+data Ref192 m s = Ref192 (MemoryOf (Ref192 m s))
 
 -- | Reference Implementation for AES256 in CBC Mode
-data Ref256 m s = Ref256 (CryptoCell Expanded256, CryptoCell STATE)
+data Ref256 m s = Ref256 (MemoryOf (Ref256 m s))
 
 -- | CPortable Implementation for AES128 in CBC Mode
-data CPortable128 m s = CPortable128 (CryptoCell Expanded128, CryptoCell STATE)
+data CPortable128 m s = CPortable128 (MemoryOf (CPortable128 m s))
 
 -- | CPortable Implementation for AES192 in CBC Mode
-data CPortable192 m s = CPortable192 (CryptoCell Expanded192, CryptoCell STATE)
+data CPortable192 m s = CPortable192 (MemoryOf (CPortable192 m s))
 
 -- | CPortable Implementation for AES256 in CBC Mode
-data CPortable256 m s = CPortable256 (CryptoCell Expanded256, CryptoCell STATE)
+data CPortable256 m s = CPortable256 (MemoryOf (CPortable256 m s))
 
 data AES128 m s = AES128 deriving (Show,Eq,Typeable)
 
