@@ -18,12 +18,13 @@ module Raaz.Primitives
          -- * Type safe lengths in units of blocks.
          -- $typesafelengths$
 
-         Primitive(..), Gadget(..), newGadget, newInitializedGadget
+         Primitive(..), Gadget(..), newGadget, newInitializedGadget, primitiveOf
        , CGadget(..), HGadget(..)
        , SafePrimitive
        , Initializable(..)
        , HasPadding(..)
        , CryptoPrimitive(..)
+       , HasInverse(..), inverseGadget
        , BLOCKS, blocksOf
        , transformGadget, transformGadgetFile
        ) where
@@ -159,6 +160,23 @@ newInitializedGadget iv = do
 -- with its memory allocated.
 newGadget :: Gadget g => IO g
 newGadget = newMemory >>= newGadgetWithMemory
+
+-- | Gives the primitive of a gadget. This function should only be
+-- used to satisy types as the actual value returned is `undefined`.
+primitiveOf :: Gadget g => g -> PrimitiveOf g
+primitiveOf _ = undefined
+
+-- | This represents Gadgets with inverses. For example, encryption
+-- gadget can have decryption gadget as its inverse.
+class ( Gadget g
+      , Gadget (Inverse g)
+      ) => HasInverse g where
+  type Inverse g :: *
+
+-- | Gives the inverse of a gadget. This function should only be used
+-- to satisy types as the actual value returned is `undefined`.
+inverseGadget :: HasInverse g => g -> Inverse g
+inverseGadget _ = undefined
 
 -------------------- Primitives with padding ---------------------------
 
