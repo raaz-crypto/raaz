@@ -23,6 +23,7 @@ module Raaz.Cipher.AES.Ref.Internal
 import Data.Bits
 import Data.Word
 
+import Raaz.Types
 
 import Raaz.Cipher.AES.Ref.Type
 import Raaz.Cipher.Util.GF
@@ -593,141 +594,131 @@ invSubBytes (STATE s0 s1 s2 s3) = STATE (invSubWord s0)
 
 shiftRows :: STATE -> STATE
 shiftRows (STATE s0 s1 s2 s3) = STATE s0
-                                      (rotWord1 s1)
-                                      (rotWord2 s2)
-                                      (rotWord3 s3)
+                                      (s1 `rotateL` 8)
+                                      (s2 `rotateL` 16)
+                                      (s3 `rotateL` 24)
 {-# INLINE shiftRows #-}
 
 invShiftRows :: STATE -> STATE
 invShiftRows (STATE s0 s1 s2 s3) = STATE s0
-                                      (rotWord3 s1)
-                                      (rotWord2 s2)
-                                      (rotWord1 s3)
+                                      (s1 `rotateL` 24)
+                                      (s2 `rotateL` 16)
+                                      (s3 `rotateL` 8)
 {-# INLINE invShiftRows #-}
 
 mixColumns :: STATE -> STATE
-mixColumns (STATE (SplitWord32 s00 s01 s02 s03)
-                  (SplitWord32 s10 s11 s12 s13)
-                  (SplitWord32 s20 s21 s22 s23)
-                  (SplitWord32 s30 s31 s32 s33)) =
-            STATE (SplitWord32 r00 r01 r02 r03)
-                  (SplitWord32 r10 r11 r12 r13)
-                  (SplitWord32 r20 r21 r22 r23)
-                  (SplitWord32 r30 r31 r32 r33)
+mixColumns state@(STATE s0 s1 s2 s3) = STATE r0 r1 r2 r3
   where
-    mixColumn :: (Word8,Word8,Word8,Word8) -> (Word8,Word8,Word8,Word8)
-    mixColumn (s0,s1,s2,s3) =
-      ( xtime02 s0 `xor` xtime03 s1 `xor` s2         `xor` s3
-      , s0         `xor` xtime02 s1 `xor` xtime03 s2 `xor` s3
-      , s0         `xor` s1         `xor` xtime02 s2 `xor` xtime03 s3
-      , xtime03 s0 `xor` s1         `xor` s2         `xor` xtime02 s3      )
-    (r00, r10, r20, r30) = mixColumn (s00, s10, s20, s30)
-    (r01, r11, r21, r31) = mixColumn (s01, s11, s21, s31)
-    (r02, r12, r22, r32) = mixColumn (s02, s12, s22, s32)
-    (r03, r13, r23, r33) = mixColumn (s03, s13, s23, s33)
-{-# INLINEABLE mixColumns #-}
+    r0' = s1 `xor` s2 `xor` s3
+    r1' = s0 `xor` s2 `xor` s3
+    r2' = s0 `xor` s1 `xor` s3
+    r3' = s0 `xor` s1 `xor` s2
+    (STATE s0' s1' s2' s3') = fmapState mult02 state
+    r0 = r0' `xor` s0' `xor` s1'
+    r1 = r1' `xor` s1' `xor` s2'
+    r2 = r2' `xor` s2' `xor` s3'
+    r3 = r3' `xor` s0' `xor` s3'
+{-# INLINE mixColumns #-}
 
 invMixColumns :: STATE -> STATE
-invMixColumns (STATE (SplitWord32 r00 r01 r02 r03)
-                     (SplitWord32 r10 r11 r12 r13)
-                     (SplitWord32 r20 r21 r22 r23)
-                     (SplitWord32 r30 r31 r32 r33)) =
-               STATE (SplitWord32 s00 s01 s02 s03)
-                     (SplitWord32 s10 s11 s12 s13)
-                     (SplitWord32 s20 s21 s22 s23)
-                     (SplitWord32 s30 s31 s32 s33)
+invMixColumns state@(STATE s0 s1 s2 s3) = STATE u0 u1 u2 u3
   where
-    invMixColumn :: (Word8,Word8,Word8,Word8) -> (Word8,Word8,Word8,Word8)
-    invMixColumn (s0,s1,s2,s3) =
-      ( xtime0e s0 `xor` xtime0b s1 `xor` xtime0d s2 `xor` xtime09 s3
-      , xtime09 s0 `xor` xtime0e s1 `xor` xtime0b s2 `xor` xtime0d s3
-      , xtime0d s0 `xor` xtime09 s1 `xor` xtime0e s2 `xor` xtime0b s3
-      , xtime0b s0 `xor` xtime0d s1 `xor` xtime09 s2 `xor` xtime0e s3
-      )
-
-    (s00, s10, s20, s30) = invMixColumn (r00, r10, r20, r30)
-    (s01, s11, s21, s31) = invMixColumn (r01, r11, r21, r31)
-    (s02, s12, s22, s32) = invMixColumn (r02, r12, r22, r32)
-    (s03, s13, s23, s33) = invMixColumn (r03, r13, r23, r33)
-{-# INLINEABLE invMixColumns #-}
+    r0' = s1 `xor` s2 `xor` s3
+    r1' = s0 `xor` s2 `xor` s3
+    r2' = s0 `xor` s1 `xor` s3
+    r3' = s0 `xor` s1 `xor` s2
+    (STATE s0' s1' s2' s3') = fmapState mult02 state
+    r0 = r0' `xor` s0' `xor` s1'
+    r1 = r1' `xor` s1' `xor` s2'
+    r2 = r2' `xor` s2' `xor` s3'
+    r3 = r3' `xor` s0' `xor` s3'
+    t0' = mult02 $ s0' `xor` s2'
+    t1' = mult02 $ s1' `xor` s3'
+    t0 =  r0 `xor` t0'
+    t1 =  r1 `xor` t1'
+    t2 =  r2 `xor` t0'
+    t3 =  r3 `xor` t1'
+    u0' = (mult02 t0') `xor` (mult02 t1')
+    u0 = t0 `xor` u0'
+    u1 = t1 `xor` u0'
+    u2 = t2 `xor` u0'
+    u3 = t3 `xor` u0'
+{-# INLINE invMixColumns #-}
 
 addRoundKey :: STATE -> STATE -> STATE
 addRoundKey (STATE s0 s1 s2 s3)
             (STATE k0 k1 k2 k3) =
-  STATE (s0 `xor'` k0) (s1 `xor'` k1) (s2 `xor'` k2) (s3 `xor'` k3)
-{-# INLINEABLE addRoundKey #-}
+  STATE (s0 `xor` k0) (s1 `xor` k1) (s2 `xor` k2) (s3 `xor` k3)
+{-# INLINE addRoundKey #-}
 
 invAddRoundKey :: STATE -> STATE -> STATE
 invAddRoundKey = addRoundKey
+{-# INLINE invAddRoundKey #-}
 
-transpose :: STATE -> STATE
-transpose (STATE (SplitWord32 s00 s01 s02 s03)
-                 (SplitWord32 s10 s11 s12 s13)
-                 (SplitWord32 s20 s21 s22 s23)
-                 (SplitWord32 s30 s31 s32 s33)) =
-           STATE (SplitWord32 s00 s10 s20 s30)
-                 (SplitWord32 s01 s11 s21 s31)
-                 (SplitWord32 s02 s12 s22 s32)
-                 (SplitWord32 s03 s13 s23 s33)
-{-# INLINEABLE transpose #-}
-
-invSubWord :: SplitWord32 -> SplitWord32
-invSubWord (SplitWord32 w0 w1 w2 w3) = SplitWord32 (invSbox w0)
-                                                   (invSbox w1)
-                                                   (invSbox w2)
-                                                   (invSbox w3)
+invSubWord :: Word32BE -> Word32BE
+invSubWord = subWordWith invSbox
 {-# INLINE invSubWord #-}
 
-subWord :: SplitWord32 -> SplitWord32
-subWord (SplitWord32 w0 w1 w2 w3) = SplitWord32 (sbox w0)
-                                                (sbox w1)
-                                                (sbox w2)
-                                                (sbox w3)
+subWord :: Word32BE -> Word32BE
+subWord = subWordWith sbox
 {-# INLINE subWord #-}
 
-rotWord1 :: SplitWord32 -> SplitWord32
-rotWord1 (SplitWord32 w0 w1 w2 w3) = SplitWord32 w1 w2 w3 w0
-{-# INLINE rotWord1 #-}
+subWordWith :: (Word8 -> Word8) -> Word32BE -> Word32BE
+subWordWith with w = w0' `xor` w1' `xor` w2' `xor` w3'
+  where
+    w0 = fromIntegral (w `shiftR` 24)
+    w1 = fromIntegral (w `shiftR` 16)
+    w2 = fromIntegral (w `shiftR` 8)
+    w3 = fromIntegral w
+    w3' = fromIntegral $ with w3
+    w2' = (fromIntegral $ with w2) `shiftL` 8
+    w1' = (fromIntegral $ with w1) `shiftL` 16
+    w0' = (fromIntegral $ with w0) `shiftL` 24
+{-# INLINE subWordWith #-}
 
-rotWord2 :: SplitWord32 -> SplitWord32
-rotWord2 (SplitWord32 w0 w1 w2 w3) = SplitWord32 w2 w3 w0 w1
-{-# INLINE rotWord2 #-}
-
-rotWord3 :: SplitWord32 -> SplitWord32
-rotWord3 (SplitWord32 w0 w1 w2 w3) = SplitWord32 w3 w0 w1 w2
-{-# INLINE rotWord3 #-}
-
-rcon :: Int -> SplitWord32
-rcon i = SplitWord32 (xpower (i-1) 0x01) 0x00 0x00 0x00
-{-# INLINE rcon #-}
+rcon :: Int -> Word32BE
+rcon 0 = 0x8d000000
+rcon 1 = 0x01000000
+rcon 2 = 0x02000000
+rcon 3 = 0x04000000
+rcon 4 = 0x08000000
+rcon 5 = 0x10000000
+rcon 6 = 0x20000000
+rcon 7 = 0x40000000
+rcon 8 = 0x80000000
+rcon 9 = 0x1b000000
+rcon 10 = 0x36000000
+rcon 11 = 0x6c000000
+rcon 12 = 0xd8000000
+rcon 13 = 0xab000000
+rcon _    = error "Illegal lookup in rcon"
 
 xorState :: STATE -> STATE -> STATE
 xorState = addRoundKey
+{-# INLINE xorState #-}
+
+expand :: Word32BE -> Word32BE -> Word32BE
+expand w sb = w `xor` ((fromIntegral $ sbox (fromIntegral sb)) `shiftL` 24)
+{-# INLINE expand #-}
+
+rotateXor :: Word32BE -> Word32BE
+rotateXor w = w `xor` (w `shiftR` 8) `xor` (w `shiftR` 16) `xor` (w `shiftR` 24)
+{-# INLINE rotateXor #-}
 
 expand128 :: KEY128 -> Expanded128
 expand128 (KEY128 w0 w1 w2 w3) =
-    Expanded128 (transpose s00)
-                (transpose s01)
-                (transpose s02)
-                (transpose s03)
-                (transpose s04)
-                (transpose s05)
-                (transpose s06)
-                (transpose s07)
-                (transpose s08)
-                (transpose s09)
-                (transpose s10)
+    Expanded128 s00 s01 s02 s03
+                s04 s05 s06 s07
+                s08 s09 s10
     where
-      whennk i w = subWord (rotWord1 w) `xor'` rcon (i `div` 4)
       next :: Int -> STATE -> STATE
-      next i  (STATE s0 s1 s2 s3) =
-               STATE t0 t1 t2 t3
+      next i  (STATE s0 s1 s2 s3) = fmapState rotateXor $ STATE r0 r1 r2 r3
         where
-          t0 = s0 `xor'` (whennk (i*4) s3)
-          t1 = s1 `xor'` t0
-          t2 = s2 `xor'` t1
-          t3 = s3 `xor'` t2
-      s00 = STATE w0 w1 w2 w3
+          r0 = expand s0 s1 `xor` rcon i
+          r1 = expand s1 s2
+          r2 = expand s2 s3
+          r3 = expand s3 s0
+      s00 = transpose $ STATE w0 w1 w2 w3
       s01 = next 1 s00
       s02 = next 2 s01
       s03 = next 3 s02
@@ -741,10 +732,10 @@ expand128 (KEY128 w0 w1 w2 w3) =
 
 encrypt128 :: STATE -> Expanded128 -> STATE
 encrypt128 inp (Expanded128 k00 k01 k02 k03 k04 k05 k06 k07 k08 k09 k10)
-  = transpose s10
+  = s10
     where
       aesRound k = flip addRoundKey k . mixColumns . shiftRows . subBytes
-      s00 = addRoundKey (transpose inp) k00
+      s00 = addRoundKey inp k00
       s01 = aesRound k01 s00
       s02 = aesRound k02 s01
       s03 = aesRound k03 s02
@@ -758,10 +749,10 @@ encrypt128 inp (Expanded128 k00 k01 k02 k03 k04 k05 k06 k07 k08 k09 k10)
 
 decrypt128 :: STATE -> Expanded128 -> STATE
 decrypt128 inp (Expanded128 k00 k01 k02 k03 k04 k05 k06 k07 k08 k09 k10)
-  = transpose s10
+  = s10
     where
       aesRound k =  invMixColumns . flip invAddRoundKey k . invSubBytes . invShiftRows
-      s00 = addRoundKey (transpose inp) k10
+      s00 = addRoundKey inp k10
       s01 = aesRound k09 s00
       s02 = aesRound k08 s01
       s03 = aesRound k07 s02
@@ -775,64 +766,79 @@ decrypt128 inp (Expanded128 k00 k01 k02 k03 k04 k05 k06 k07 k08 k09 k10)
 
 expand192 :: KEY192 -> Expanded192
 expand192 (KEY192 w0 w1 w2 w3 w4 w5) =
-    Expanded192 (transpose s00)
-                (transpose s01)
-                (transpose s02)
-                (transpose s03)
-                (transpose s04)
-                (transpose s05)
-                (transpose s06)
-                (transpose s07)
-                (transpose s08)
-                (transpose s09)
-                (transpose s10)
-                (transpose s11)
-                (transpose s12)
+    Expanded192 s00 s01 s02 s03 s04 s05 s06
+                s07 s08 s09 s10 s11 s12
     where
-      whennk i w = subWord (rotWord1 w) `xor'` rcon i
-      next :: Int
-           -> (SplitWord32, SplitWord32, SplitWord32 ,SplitWord32 ,SplitWord32 ,SplitWord32)
-           -> (SplitWord32, SplitWord32, SplitWord32 ,SplitWord32 ,SplitWord32 ,SplitWord32)
-      next i  (s0,s1,s2,s3,s4,s5) =
-              (t0,t1,t2,t3,t4,t5)
+      next1 :: Int -> STATE -> STATE -> STATE
+      next1 i (STATE s0 s1 s2 s3) (STATE s4 s5 s6 s7) =
+        fmapState rotateXor $ STATE r0 r1 r2 r3
         where
-          t0 = s0 `xor'` (whennk i s5)
-          t1 = s1 `xor'` t0
-          t2 = s2 `xor'` t1
-          t3 = s3 `xor'` t2
-          t4 = s4 `xor'` t3
-          t5 = s5 `xor'` t4
-      s00 = STATE w0 w1 w2 w3
-      (t00,t01,t02,t03,t04,t05) = next 1 (w0,w1,w2,w3,w4,w5)
-      s01 = STATE w4 w5 t00 t01
-      s02 = STATE t02 t03 t04 t05
-      (t10,t11,t12,t13,t14,t15) = next 2 (t00,t01,t02,t03,t04,t05)
-      (t20,t21,t22,t23,t24,t25) = next 3 (t10,t11,t12,t13,t14,t15)
-      s03 = STATE t10 t11 t12 t13
-      s04 = STATE t14 t15 t20 t21
-      s05 = STATE t22 t23 t24 t25
-      (t30,t31,t32,t33,t34,t35) = next 4 (t20,t21,t22,t23,t24,t25)
-      (t40,t41,t42,t43,t44,t45) = next 5 (t30,t31,t32,t33,t34,t35)
-      s06 = STATE t30 t31 t32 t33
-      s07 = STATE t34 t35 t40 t41
-      s08 = STATE t42 t43 t44 t45
-      (t50,t51,t52,t53,t54,t55) = next 6 (t40,t41,t42,t43,t44,t45)
-      (t60,t61,t62,t63,t64,t65) = next 7 (t50,t51,t52,t53,t54,t55)
-      s09 = STATE t50 t51 t52 t53
-      s10 = STATE t54 t55 t60 t61
-      s11 = STATE t62 t63 t64 t65
-      s12 = STATE t0 t1 t2 t3
-        where t0 = t60 `xor'` (whennk 8 t65)
-              t1 = t61 `xor'` t0
-              t2 = t62 `xor'` t1
-              t3 = t63 `xor'` t2
+          r0 = expand s0 s5 `xor` rcon i
+          r1 = expand s1 s6
+          r2 = expand s2 s7
+          r3 = expand s3 s4
+      next2 :: STATE -> STATE -> STATE
+      next2 (STATE s0 s1 s2 s3) (STATE s4 s5 s6 s7) =
+        fmapState shiftXor $ STATE r0 r1 r2 r3
+        where
+          shiftXor w = w `xor` (w `shiftR` 8)
+          r0 = s0 `xor` ((s4 `shiftL` 8) .&. 0x0000ff00)
+          r1 = s1 `xor` ((s5 `shiftL` 8) .&. 0x0000ff00)
+          r2 = s2 `xor` ((s6 `shiftL` 8) .&. 0x0000ff00)
+          r3 = s3 `xor` ((s7 `shiftL` 8) .&. 0x0000ff00)
+      getExpanded1 :: STATE -> STATE -> STATE
+      getExpanded1 (STATE s0 s1 s2 s3) (STATE s4 s5 s6 s7) =
+        STATE r0 r1 r2 r3
+        where
+          r0 = (s0 `shiftL` 16) .|. (s4 `shiftR` 16)
+          r1 = (s1 `shiftL` 16) .|. (s5 `shiftR` 16)
+          r2 = (s2 `shiftL` 16) .|. (s6 `shiftR` 16)
+          r3 = (s3 `shiftL` 16) .|. (s7 `shiftR` 16)
+      getExpanded2 :: STATE -> STATE -> STATE
+      getExpanded2 (STATE s0 s1 s2 s3) (STATE s4 s5 s6 s7) =
+        STATE r0 r1 r2 r3
+        where
+          r0 = (s0 `shiftL` 16) .|. s4
+          r1 = (s1 `shiftL` 16) .|. s5
+          r2 = (s2 `shiftL` 16) .|. s6
+          r3 = (s3 `shiftL` 16) .|. s7
+      t00 = transpose $ STATE w0 w1 w2 w3
+      t01 = transpose $ STATE 0  0  w4 w5
+      s00 = t00
+      t02 = next1 1 t00 t01
+      t03 = next2   t01 t02
+      s01 = getExpanded1 t01 t02
+      s02 = getExpanded2 t02 t03
+      t04 = next1 2 t02 t03
+      t05 = next2   t03 t04
+      s03 = t04
+      t06 = next1 3 t04 t05
+      t07 = next2   t05 t06
+      s04 = getExpanded1 t05 t06
+      s05 = getExpanded2 t06 t07
+      t08 = next1 4 t06 t07
+      t09 = next2   t07 t08
+      s06 = t08
+      t10 = next1 5 t08 t09
+      t11 = next2   t09 t10
+      s07 = getExpanded1 t09 t10
+      s08 = getExpanded2 t10 t11
+      t12 = next1 6 t10 t11
+      t13 = next2   t11 t12
+      s09 = t12
+      t14 = next1 7 t12 t13
+      t15 = next2   t13 t14
+      s10 = getExpanded1 t13 t14
+      s11 = getExpanded2 t14 t15
+      s12 = next1 8 t14 t15
+
 
 encrypt192 :: STATE -> Expanded192 -> STATE
 encrypt192 inp (Expanded192 k00 k01 k02 k03 k04 k05 k06 k07 k08 k09 k10
-                            k11 k12) = transpose s12
+                            k11 k12) = s12
     where
       aesRound k = flip addRoundKey k . mixColumns . shiftRows . subBytes
-      s00 = addRoundKey (transpose inp) k00
+      s00 = addRoundKey inp k00
       s01 = aesRound k01 s00
       s02 = aesRound k02 s01
       s03 = aesRound k03 s02
@@ -848,10 +854,10 @@ encrypt192 inp (Expanded192 k00 k01 k02 k03 k04 k05 k06 k07 k08 k09 k10
 
 decrypt192 :: STATE -> Expanded192 -> STATE
 decrypt192 inp (Expanded192 k00 k01 k02 k03 k04 k05 k06 k07 k08 k09 k10
-                           k11 k12) = transpose s12
+                           k11 k12) = s12
     where
       aesRound k =  invMixColumns . flip invAddRoundKey k . invSubBytes . invShiftRows
-      s00 = addRoundKey (transpose inp) k12
+      s00 = addRoundKey inp k12
       s01 = aesRound k11 s00
       s02 = aesRound k10 s01
       s03 = aesRound k09 s02
@@ -867,43 +873,29 @@ decrypt192 inp (Expanded192 k00 k01 k02 k03 k04 k05 k06 k07 k08 k09 k10
 
 expand256 :: KEY256 -> Expanded256
 expand256 (KEY256 w0 w1 w2 w3 w4 w5 w6 w7) =
-    Expanded256 (transpose s00)
-                (transpose s01)
-                (transpose s02)
-                (transpose s03)
-                (transpose s04)
-                (transpose s05)
-                (transpose s06)
-                (transpose s07)
-                (transpose s08)
-                (transpose s09)
-                (transpose s10)
-                (transpose s11)
-                (transpose s12)
-                (transpose s13)
-                (transpose s14)
+    Expanded256 s00 s01 s02 s03
+                s04 s05 s06 s07
+                s08 s09 s10 s11
+                s12 s13 s14
     where
-      whennk i w = (subWord (rotWord1 w)) `xor'` rcon i
       next1 :: Int -> STATE -> STATE -> STATE
-      next1 i (STATE r0 r1 r2 r3)
-              (STATE _ _ _ t3) =
-              (STATE s0 s1 s2 s3)
+      next1 i (STATE s0 s1 s2 s3) (STATE s4 s5 s6 s7) =
+        fmapState rotateXor $ STATE r0 r1 r2 r3
         where
-          s0 = r0 `xor'` (whennk i t3)
-          s1 = r1 `xor'` s0
-          s2 = r2 `xor'` s1
-          s3 = r3 `xor'` s2
+          r0 = expand s0 s5 `xor` rcon i
+          r1 = expand s1 s6
+          r2 = expand s2 s7
+          r3 = expand s3 s4
       next2 :: STATE -> STATE -> STATE
-      next2 (STATE r0 r1 r2 r3)
-            (STATE _ _ _ t3) =
-            (STATE s0 s1 s2 s3)
+      next2 (STATE s0 s1 s2 s3) (STATE s4 s5 s6 s7) =
+        fmapState rotateXor $ STATE r0 r1 r2 r3
         where
-          s0 = r0 `xor'` subWord t3
-          s1 = r1 `xor'` s0
-          s2 = r2 `xor'` s1
-          s3 = r3 `xor'` s2
-      s00 = STATE w0 w1 w2 w3
-      s01 = STATE w4 w5 w6 w7
+          r0 = expand s0 s4
+          r1 = expand s1 s5
+          r2 = expand s2 s6
+          r3 = expand s3 s7
+      s00 = transpose $ STATE w0 w1 w2 w3
+      s01 = transpose $ STATE w4 w5 w6 w7
       s02 = next1 1 s00 s01
       s03 = next2   s01 s02
       s04 = next1 2 s02 s03
@@ -920,10 +912,10 @@ expand256 (KEY256 w0 w1 w2 w3 w4 w5 w6 w7) =
 
 encrypt256 :: STATE -> Expanded256 -> STATE
 encrypt256 inp (Expanded256 k00 k01 k02 k03 k04 k05 k06 k07 k08 k09 k10
-                           k11 k12 k13 k14) = transpose s14
+                           k11 k12 k13 k14) = s14
     where
       aesRound k = flip addRoundKey k . mixColumns . shiftRows . subBytes
-      s00 = addRoundKey (transpose inp) k00
+      s00 = addRoundKey inp k00
       s01 = aesRound k01 s00
       s02 = aesRound k02 s01
       s03 = aesRound k03 s02
@@ -941,10 +933,10 @@ encrypt256 inp (Expanded256 k00 k01 k02 k03 k04 k05 k06 k07 k08 k09 k10
 
 decrypt256 :: STATE -> Expanded256 -> STATE
 decrypt256 inp (Expanded256 k00 k01 k02 k03 k04 k05 k06 k07 k08 k09 k10
-                           k11 k12 k13 k14) = transpose s14
+                           k11 k12 k13 k14) = s14
     where
       aesRound k =  invMixColumns . flip invAddRoundKey k . invSubBytes . invShiftRows
-      s00 = addRoundKey (transpose inp) k14
+      s00 = addRoundKey inp k14
       s01 = aesRound k13 s00
       s02 = aesRound k12 s01
       s03 = aesRound k11 s02

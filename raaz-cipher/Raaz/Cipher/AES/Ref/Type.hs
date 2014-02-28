@@ -1,136 +1,148 @@
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE FlexibleInstances          #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 module Raaz.Cipher.AES.Ref.Type
-       ( SplitWord32(..)
-       , STATE(..)
+       ( STATE(..)
        , KEY128(..)
        , Expanded128(..)
        , KEY192(..)
        , Expanded192(..)
        , KEY256(..)
        , Expanded256(..)
-       , xor'
-       , fromByteString
+       , AESIV(..)
        , incrState
-       , stateToList
+       , fmapState
+       , constructWord32BE
+       , transpose
+       , invTranspose
        )where
 
 import Control.Applicative ((<$>), (<*>))
 import Data.Bits           (xor, (.|.),Bits(..))
-import Data.ByteString     (ByteString)
-import Data.Word
+import Data.Monoid         ((<>))
 import Data.Typeable       (Typeable)
+import Foreign.Ptr         (castPtr)
 import Foreign.Storable    (sizeOf,Storable(..))
 import Numeric             (showHex)
-import System.IO.Unsafe    (unsafePerformIO)
 
-import Raaz.ByteSource
-import Raaz.Memory
 import Raaz.Types
-
-
-data SplitWord32 = SplitWord32 {-# UNPACK #-} !Word8
-                               {-# UNPACK #-} !Word8
-                               {-# UNPACK #-} !Word8
-                               {-# UNPACK #-} !Word8
-                 deriving (Typeable)
-
--- | Special show instance to display in hex instead of decimal
-instance Show SplitWord32 where
-  show (SplitWord32 w1 w2 w3 w4) =   showHex w1
-                                   . showHex w2
-                                   . showHex w3
-                                   . showHex w4
-                                   $ ""
+import Raaz.Parse
+import Raaz.Write
 
 -- | AES State
-data STATE = STATE {-# UNPACK #-} !SplitWord32
-                   {-# UNPACK #-} !SplitWord32
-                   {-# UNPACK #-} !SplitWord32
-                   {-# UNPACK #-} !SplitWord32
-         deriving (Show, Typeable)
+data STATE = STATE {-# UNPACK #-} !Word32BE
+                   {-# UNPACK #-} !Word32BE
+                   {-# UNPACK #-} !Word32BE
+                   {-# UNPACK #-} !Word32BE
+         deriving Typeable
+
+showWord32 :: Word32BE -> ShowS
+showWord32 w = showString $ "0x" ++ replicate (8 - length hex) '0' ++ hex
+  where
+    hex = showHex w ""
+
+instance Show STATE where
+  show (STATE w0 w1 w2 w3) = showString "STATE "
+                           . showWord32 w0
+                           . showChar ' '
+                           . showWord32 w1
+                           . showChar ' '
+                           . showWord32 w2
+                           . showChar ' '
+                           $ showWord32 w3 ""
+
+-- | AES IV (Used in CBC and CTR mode)
+newtype AESIV = AESIV STATE
+         deriving (Show,Typeable,Eq,Storable)
 
 -- | 128 Bit Key
-data KEY128 = KEY128 {-# UNPACK #-} !SplitWord32
-                     {-# UNPACK #-} !SplitWord32
-                     {-# UNPACK #-} !SplitWord32
-                     {-# UNPACK #-} !SplitWord32
-         deriving (Show, Typeable)
+data KEY128 = KEY128 {-# UNPACK #-} !Word32BE
+                     {-# UNPACK #-} !Word32BE
+              {-# UNPACK #-} !Word32BE
+                     {-# UNPACK #-} !Word32BE
+         deriving Typeable
+
+instance Show KEY128 where
+  show (KEY128 w0 w1 w2 w3) = showString "KEY128 "
+                            . showWord32 w0
+                            . showChar ' '
+                            . showWord32 w1
+                            . showChar ' '
+                            . showWord32 w2
+                            . showChar ' '
+                            $ showWord32 w3 ""
 
 -- | 192 Bit Key
-data KEY192 = KEY192 {-# UNPACK #-} !SplitWord32
-                     {-# UNPACK #-} !SplitWord32
-                     {-# UNPACK #-} !SplitWord32
-                     {-# UNPACK #-} !SplitWord32
-                     {-# UNPACK #-} !SplitWord32
-                     {-# UNPACK #-} !SplitWord32
-         deriving (Show, Typeable)
+data KEY192 = KEY192 {-# UNPACK #-} !Word32BE
+                     {-# UNPACK #-} !Word32BE
+                     {-# UNPACK #-} !Word32BE
+                     {-# UNPACK #-} !Word32BE
+                     {-# UNPACK #-} !Word32BE
+                     {-# UNPACK #-} !Word32BE
+         deriving Typeable
+
+instance Show KEY192 where
+  show (KEY192 w0 w1 w2 w3 w4 w5) = showString "KEY192 "
+                                  . showWord32 w0
+                                  . showChar ' '
+                                  . showWord32 w1
+                                  . showChar ' '
+                                  . showWord32 w2
+                                  . showChar ' '
+                                  . showWord32 w3
+                                  . showChar ' '
+                                  . showWord32 w4
+                                  . showChar ' '
+                                  $ showWord32 w5 ""
 
 -- | 256 Bit Key
-data KEY256 = KEY256 {-# UNPACK #-} !SplitWord32
-                     {-# UNPACK #-} !SplitWord32
-                     {-# UNPACK #-} !SplitWord32
-                     {-# UNPACK #-} !SplitWord32
-                     {-# UNPACK #-} !SplitWord32
-                     {-# UNPACK #-} !SplitWord32
-                     {-# UNPACK #-} !SplitWord32
-                     {-# UNPACK #-} !SplitWord32
-         deriving (Show, Typeable)
+data KEY256 = KEY256 {-# UNPACK #-} !Word32BE
+                     {-# UNPACK #-} !Word32BE
+                     {-# UNPACK #-} !Word32BE
+                     {-# UNPACK #-} !Word32BE
+                     {-# UNPACK #-} !Word32BE
+                     {-# UNPACK #-} !Word32BE
+                     {-# UNPACK #-} !Word32BE
+                     {-# UNPACK #-} !Word32BE
+         deriving Typeable
 
--- | Incrments the STATE considering it to be a byte string. Used in
--- AES CTR mode.
+instance Show KEY256 where
+  show (KEY256 w0 w1 w2 w3 w4 w5 w6 w7) = showString "KEY256 "
+                                        . showWord32 w0
+                                        . showChar ' '
+                                        . showWord32 w1
+                                        . showChar ' '
+                                        . showWord32 w2
+                                        . showChar ' '
+                                        . showWord32 w3
+                                        . showChar ' '
+                                        . showWord32 w4
+                                        . showChar ' '
+                                        . showWord32 w5
+                                        . showChar ' '
+                                        . showWord32 w6
+                                        . showChar ' '
+                                        $ showWord32 w7 ""
+
+-- | Incrments the STATE considering it to be a byte string. It is
+-- sligthly different because of transposing of data during load and
+-- store. Used in AES CTR mode.
 incrState :: STATE -> STATE
-incrState (STATE (SplitWord32 w00 w01 w02 w03)
-                 (SplitWord32 w10 w11 w12 w13)
-                 (SplitWord32 w20 w21 w22 w23)
-                 (SplitWord32 w30 w31 w32 w33)) =
-           STATE (SplitWord32 r00 r01 r02 r03)
-                 (SplitWord32 r10 r11 r12 r13)
-                 (SplitWord32 r20 r21 r22 r23)
-                 (SplitWord32 r30 r31 r32 r33)
+incrState = transpose . incr . invTranspose
   where
-    ifincr prev this = if prev == 0 then this + 1 else this
-    r33 = w33 + 1
-    r32 = ifincr r33 w32
-    r31 = ifincr r32 w31
-    r30 = ifincr r31 w30
-    r23 = ifincr r30 w23
-    r22 = ifincr r23 w22
-    r21 = ifincr r22 w21
-    r20 = ifincr r21 w20
-    r13 = ifincr r20 w13
-    r12 = ifincr r13 w12
-    r11 = ifincr r12 w11
-    r10 = ifincr r11 w10
-    r03 = ifincr r10 w03
-    r02 = ifincr r03 w02
-    r01 = ifincr r02 w01
-    r00 = ifincr r01 w00
-
-
-stateToList :: STATE -> [Word8]
-stateToList (STATE sp0 sp1 sp2 sp3) = concatMap swToList [sp0,sp1,sp2,sp3]
-  where
-    swToList :: SplitWord32 -> [Word8]
-    swToList (SplitWord32 w0 w1 w2 w3) = [w0,w1,w2,w3]
-
--- | Get the value from the bytestring. Used internally for keys only.
-fromByteString :: (Storable k) => ByteString -> k
-fromByteString src = unsafePerformIO $ using undefined
-  where
-    using :: Storable k => k -> IO k
-    using k = do
-      m <- newMemory
-      withCell m doStuff
-      cellLoad m
+    incr (STATE w0 w1 w2 w3) = STATE r0 r1 r2 r3
       where
-        size = sizeOf k
-        doStuff cptr = withFillResult (const $ return ()) errorKey
-                       =<< fillBytes (BYTES size) src cptr
-          where
-            errorKey = error "Unable to fill key with available data"
+        ifincr prev this = if prev == 0 then this + 1 else this
+        r3 = w3 + 1
+        r2 = ifincr r3 w2
+        r1 = ifincr r2 w1
+        r0 = ifincr r1 w0
+
+-- | Maps a function over `STATE`.
+fmapState :: (Word32BE -> Word32BE) -> STATE -> STATE
+fmapState f (STATE s0 s1 s2 s3) = STATE (f s0) (f s1) (f s2) (f s3)
 
 -- | Expanded Key for 128 Bit Key
 data Expanded128 =
@@ -183,214 +195,148 @@ data Expanded256 =
                 {-# UNPACK #-} !STATE
         deriving (Show, Typeable)
 
--- | Timing independed equality testing for SplitWord32
-instance Eq SplitWord32 where
-  (==) (SplitWord32 r0 r1 r2 r3)
-       (SplitWord32 s0 s1 s2 s3) =  xor r0 s0
-                                .|. xor r1 s1
-                                .|. xor r2 s2
-                                .|. xor r3 s3
-                                == 0
-
 -- | Timing independent equality testing for STATE
 instance Eq STATE where
   (==) (STATE r0 r1 r2 r3)
-       (STATE s0 s1 s2 s3) =  xor' r0 s0
-                          .||. xor' r1 s1
-                          .||. xor' r2 s2
-                          .||. xor' r3 s3
-                          == SplitWord32 0 0 0 0
+       (STATE s0 s1 s2 s3) =  xor r0 s0
+                          .|. xor r1 s1
+                          .|. xor r2 s2
+                          .|. xor r3 s3
+                          == 0
 
 -- | Timing independent equality testing for KEY128
 instance Eq KEY128 where
   (==) (KEY128 r0 r1 r2 r3)
-       (KEY128 s0 s1 s2 s3) =   xor' r0 s0
-                           .||. xor' r1 s1
-                           .||. xor' r2 s2
-                           .||. xor' r3 s3
-                           == SplitWord32 0 0 0 0
+       (KEY128 s0 s1 s2 s3) =  xor r0 s0
+                           .|. xor r1 s1
+                           .|. xor r2 s2
+                           .|. xor r3 s3
+                           == 0
 
 -- | Timing independent equality testing for KEY192
 instance Eq KEY192 where
   (==) (KEY192 r0 r1 r2 r3 r4 r5)
-       (KEY192 s0 s1 s2 s3 s4 s5) =   xor' r0 s0
-                                 .||. xor' r1 s1
-                                 .||. xor' r2 s2
-                                 .||. xor' r3 s3
-                                 .||. xor' r4 s4
-                                 .||. xor' r5 s5
-                                 == SplitWord32 0 0 0 0
+       (KEY192 s0 s1 s2 s3 s4 s5) =  xor r0 s0
+                                 .|. xor r1 s1
+                                 .|. xor r2 s2
+                                 .|. xor r3 s3
+                                 .|. xor r4 s4
+                                 .|. xor r5 s5
+                                 == 0
 
 -- | Timing independent equality testing for KEY256
 instance Eq KEY256 where
   (==) (KEY256 r0 r1 r2 r3 r4 r5 r6 r7)
-       (KEY256 s0 s1 s2 s3 s4 s5 s6 s7) =   xor' r0 s0
-                                       .||. xor' r1 s1
-                                       .||. xor' r2 s2
-                                       .||. xor' r3 s3
-                                       .||. xor' r4 s4
-                                       .||. xor' r5 s5
-                                       .||. xor' r6 s6
-                                       .||. xor' r7 s7
-                                       == SplitWord32 0 0 0 0
+       (KEY256 s0 s1 s2 s3 s4 s5 s6 s7) =  xor r0 s0
+                                       .|. xor r1 s1
+                                       .|. xor r2 s2
+                                       .|. xor r3 s3
+                                       .|. xor r4 s4
+                                       .|. xor r5 s5
+                                       .|. xor r6 s6
+                                       .|. xor r7 s7
+                                       == 0
 
-xor' :: SplitWord32 -> SplitWord32 -> SplitWord32
-xor' (SplitWord32 r0 r1 r2 r3)
-     (SplitWord32 s0 s1 s2 s3) = SplitWord32 (r0 `xor` s0)
-                                             (r1 `xor` s1)
-                                             (r2 `xor` s2)
-                                             (r3 `xor` s3)
-{-# INLINE xor' #-}
+parseState :: Parser STATE
+parseState = STATE <$> parse
+                   <*> parse
+                   <*> parse
+                   <*> parse
 
-(.||.) :: SplitWord32 -> SplitWord32 -> SplitWord32
-(.||.) (SplitWord32 r0 r1 r2 r3)
-       (SplitWord32 s0 s1 s2 s3) = SplitWord32 (r0 .|. s0)
-                                               (r1 .|. s1)
-                                               (r2 .|. s2)
-                                               (r3 .|. s3)
-{-# INLINE (.||.) #-}
+writeState :: STATE -> Write
+writeState (STATE s0 s1 s2 s3) = write s0
+                              <> write s1
+                              <> write s2
+                              <> write s3
 
-instance Storable SplitWord32 where
-  sizeOf    _ = 4 * sizeOf (undefined :: Word8)
-  alignment _ = alignment  (undefined :: CryptoAlign)
-  peekByteOff ptr pos = SplitWord32 <$> peekByteOff ptr pos0
-                                    <*> peekByteOff ptr pos1
-                                    <*> peekByteOff ptr pos2
-                                    <*> peekByteOff ptr pos3
-    where pos0   = pos
-          pos1   = pos0 + offset
-          pos2   = pos1 + offset
-          pos3   = pos2 + offset
-          offset = sizeOf (undefined:: Word8)
-  pokeByteOff ptr pos (SplitWord32 r0 r1 r2 r3)
-      =  pokeByteOff ptr pos0 r0
-      >> pokeByteOff ptr pos1 r1
-      >> pokeByteOff ptr pos2 r2
-      >> pokeByteOff ptr pos3 r3
-    where pos0   = pos
-          pos1   = pos0 + offset
-          pos2   = pos1 + offset
-          pos3   = pos2 + offset
-          offset = sizeOf (undefined:: Word8)
 
 instance Storable STATE where
-  sizeOf    _ = 4 * sizeOf (undefined :: SplitWord32)
-  alignment _ = alignment  (undefined :: SplitWord32)
-  peekByteOff ptr pos = STATE <$> peekByteOff ptr pos0
-                              <*> peekByteOff ptr pos1
-                              <*> peekByteOff ptr pos2
-                              <*> peekByteOff ptr pos3
-    where pos0   = pos
-          pos1   = pos0 + offset
-          pos2   = pos1 + offset
-          pos3   = pos2 + offset
-          offset = sizeOf (undefined:: SplitWord32)
-  pokeByteOff ptr pos (STATE r0 r1 r2 r3)
-      =  pokeByteOff ptr pos0 r0
-      >> pokeByteOff ptr pos1 r1
-      >> pokeByteOff ptr pos2 r2
-      >> pokeByteOff ptr pos3 r3
-    where pos0   = pos
-          pos1   = pos0 + offset
-          pos2   = pos1 + offset
-          pos3   = pos2 + offset
-          offset = sizeOf (undefined:: SplitWord32)
+  sizeOf    _ = 4 * sizeOf (undefined :: Word32BE)
+  alignment _ = alignment  (undefined :: CryptoAlign)
+  peek cptr = runParser (castPtr cptr) parseState
+  poke cptr state = runWrite (castPtr cptr) $ writeState state
+
+instance EndianStore STATE where
+  load cptr = runParser cptr (transpose <$> parseState)
+  store cptr state = runWrite cptr $ writeState $ invTranspose state
+
+parseKey128 :: Parser KEY128
+parseKey128 = KEY128 <$> parse
+                     <*> parse
+                     <*> parse
+                     <*> parse
+
+writeKey128 :: KEY128 -> Write
+writeKey128 (KEY128 s0 s1 s2 s3) = write s0
+                                <> write s1
+                                <> write s2
+                                <> write s3
 
 instance Storable KEY128 where
-  sizeOf    _ = 4 * sizeOf (undefined :: SplitWord32)
-  alignment _ = alignment  (undefined :: SplitWord32)
-  peekByteOff ptr pos = KEY128 <$> peekByteOff ptr pos0
-                               <*> peekByteOff ptr pos1
-                               <*> peekByteOff ptr pos2
-                               <*> peekByteOff ptr pos3
-    where pos0   = pos
-          pos1   = pos0 + offset
-          pos2   = pos1 + offset
-          pos3   = pos2 + offset
-          offset = sizeOf (undefined:: SplitWord32)
-  pokeByteOff ptr pos (KEY128 h0 h1 h2 h3)
-      =  pokeByteOff ptr pos0 h0
-      >> pokeByteOff ptr pos1 h1
-      >> pokeByteOff ptr pos2 h2
-      >> pokeByteOff ptr pos3 h3
-    where pos0   = pos
-          pos1   = pos0 + offset
-          pos2   = pos1 + offset
-          pos3   = pos2 + offset
-          offset = sizeOf (undefined:: SplitWord32)
+  sizeOf    _ = 4 * sizeOf (undefined :: Word32BE)
+  alignment _ = alignment  (undefined :: CryptoAlign)
+  peek cptr = runParser (castPtr cptr) parseKey128
+  poke cptr key128 = runWrite (castPtr cptr) $ writeKey128 key128
+
+instance EndianStore KEY128 where
+  load cptr = runParser cptr parseKey128
+  store cptr key128 = runWrite cptr $ writeKey128 key128
+
+parseKey192 :: Parser KEY192
+parseKey192 = KEY192 <$> parse
+                     <*> parse
+                     <*> parse
+                     <*> parse
+                     <*> parse
+                     <*> parse
+
+writeKey192 :: KEY192 -> Write
+writeKey192 (KEY192 s0 s1 s2 s3 s4 s5) = write s0
+                                      <> write s1
+                                      <> write s2
+                                      <> write s3
+                                      <> write s4
+                                      <> write s5
 
 instance Storable KEY192 where
-  sizeOf    _ = 6 * sizeOf (undefined :: SplitWord32)
-  alignment _ = alignment  (undefined :: SplitWord32)
-  peekByteOff ptr pos = KEY192 <$> peekByteOff ptr pos0
-                               <*> peekByteOff ptr pos1
-                               <*> peekByteOff ptr pos2
-                               <*> peekByteOff ptr pos3
-                               <*> peekByteOff ptr pos4
-                               <*> peekByteOff ptr pos5
-    where pos0   = pos
-          pos1   = pos0 + offset
-          pos2   = pos1 + offset
-          pos3   = pos2 + offset
-          pos4   = pos3 + offset
-          pos5   = pos4 + offset
-          offset = sizeOf (undefined:: SplitWord32)
+  sizeOf    _ = 6 * sizeOf (undefined :: Word32BE)
+  alignment _ = alignment  (undefined :: CryptoAlign)
+  peek cptr = runParser (castPtr cptr) parseKey192
+  poke cptr key192 = runWrite (castPtr cptr) $ writeKey192 key192
 
-  pokeByteOff ptr pos (KEY192 h0 h1 h2 h3 h4 h5)
-      =  pokeByteOff ptr pos0 h0
-      >> pokeByteOff ptr pos1 h1
-      >> pokeByteOff ptr pos2 h2
-      >> pokeByteOff ptr pos3 h3
-      >> pokeByteOff ptr pos4 h4
-      >> pokeByteOff ptr pos5 h5
-    where pos0   = pos
-          pos1   = pos0 + offset
-          pos2   = pos1 + offset
-          pos3   = pos2 + offset
-          pos4   = pos3 + offset
-          pos5   = pos4 + offset
-          offset = sizeOf (undefined:: SplitWord32)
+instance EndianStore KEY192 where
+  load cptr = runParser cptr parseKey192
+  store cptr key192 = runWrite cptr $ writeKey192 key192
+
+parseKey256 :: Parser KEY256
+parseKey256 = KEY256 <$> parse
+                     <*> parse
+                     <*> parse
+                     <*> parse
+                     <*> parse
+                     <*> parse
+                     <*> parse
+                     <*> parse
+
+writeKey256 :: KEY256 -> Write
+writeKey256 (KEY256 s0 s1 s2 s3 s4 s5 s6 s7) = write s0
+                                            <> write s1
+                                            <> write s2
+                                            <> write s3
+                                            <> write s4
+                                            <> write s5
+                                            <> write s6
+                                            <> write s7
 
 instance Storable KEY256 where
-  sizeOf    _ = 8 * sizeOf (undefined :: SplitWord32)
-  alignment _ = alignment  (undefined :: SplitWord32)
-  peekByteOff ptr pos = KEY256 <$> peekByteOff ptr pos0
-                               <*> peekByteOff ptr pos1
-                               <*> peekByteOff ptr pos2
-                               <*> peekByteOff ptr pos3
-                               <*> peekByteOff ptr pos4
-                               <*> peekByteOff ptr pos5
-                               <*> peekByteOff ptr pos6
-                               <*> peekByteOff ptr pos7
-    where pos0   = pos
-          pos1   = pos0 + offset
-          pos2   = pos1 + offset
-          pos3   = pos2 + offset
-          pos4   = pos3 + offset
-          pos5   = pos4 + offset
-          pos6   = pos5 + offset
-          pos7   = pos6 + offset
-          offset = sizeOf (undefined:: SplitWord32)
+  sizeOf    _ = 8 * sizeOf (undefined :: Word32BE)
+  alignment _ = alignment  (undefined :: CryptoAlign)
+  peek cptr = runParser (castPtr cptr) parseKey256
+  poke cptr key256 = runWrite (castPtr cptr) $ writeKey256 key256
 
-  pokeByteOff ptr pos (KEY256 h0 h1 h2 h3 h4 h5 h6 h7)
-      =  pokeByteOff ptr pos0 h0
-      >> pokeByteOff ptr pos1 h1
-      >> pokeByteOff ptr pos2 h2
-      >> pokeByteOff ptr pos3 h3
-      >> pokeByteOff ptr pos4 h4
-      >> pokeByteOff ptr pos5 h5
-      >> pokeByteOff ptr pos6 h6
-      >> pokeByteOff ptr pos7 h7
-    where pos0   = pos
-          pos1   = pos0 + offset
-          pos2   = pos1 + offset
-          pos3   = pos2 + offset
-          pos4   = pos3 + offset
-          pos5   = pos4 + offset
-          pos6   = pos5 + offset
-          pos7   = pos6 + offset
-          offset = sizeOf (undefined:: SplitWord32)
-
+instance EndianStore KEY256 where
+  load cptr = runParser cptr parseKey256
+  store cptr key256 = runWrite cptr $ writeKey256 key256
 
 instance Storable Expanded128 where
   sizeOf    _ = 11 * sizeOf (undefined :: STATE)
@@ -573,3 +519,60 @@ instance Storable Expanded256 where
           pos13   = pos12 + offset
           pos14   = pos13 + offset
           offset = sizeOf (undefined:: STATE)
+
+-- | Constructs a Word32BE from Least significan 8 bits of given 4 words
+constructWord32BE :: Word32BE -> Word32BE -> Word32BE -> Word32BE -> Word32BE
+constructWord32BE w0 w1 w2 w3 = r3 `xor` r2 `xor` r1 `xor` r0
+  where
+    mask w = w .&. 0x000000FF
+    r3 = mask w3
+    r2 = mask w2 `shiftL` 8
+    r1 = mask w1 `shiftL` 16
+    r0 = mask w0 `shiftL` 24
+
+-- | Transpose of the STATE
+transpose :: STATE -> STATE
+transpose (STATE w0 w1 w2 w3) =
+           STATE (constructWord32BE s00 s01 s02 s03)
+                 (constructWord32BE s10 s11 s12 s13)
+                 (constructWord32BE s20 s21 s22 s23)
+                 (constructWord32BE w0 w1 w2 w3)
+  where
+    s20 = w0 `shiftR` 8
+    s21 = w1 `shiftR` 8
+    s22 = w2 `shiftR` 8
+    s23 = w3 `shiftR` 8
+    s10 = w0 `shiftR` 16
+    s11 = w1 `shiftR` 16
+    s12 = w2 `shiftR` 16
+    s13 = w3 `shiftR` 16
+    s00 = w0 `shiftR` 24
+    s01 = w1 `shiftR` 24
+    s02 = w2 `shiftR` 24
+    s03 = w3 `shiftR` 24
+{-# INLINE transpose #-}
+
+-- | Reverse of Transpose of STATE
+invTranspose :: STATE -> STATE
+invTranspose (STATE w0 w1 w2 w3) =
+           STATE (constructWord32BE s00 s01 s02 s03)
+                 (constructWord32BE s10 s11 s12 s13)
+                 (constructWord32BE s20 s21 s22 s23)
+                 (constructWord32BE s30 s31 s32 s33)
+  where
+    s00 = w0 `shiftR` 24
+    s10 = w0 `shiftR` 16
+    s20 = w0 `shiftR` 8
+    s30 = w0
+    s01 = w1 `shiftR` 24
+    s11 = w1 `shiftR` 16
+    s21 = w1 `shiftR` 8
+    s31 = w1
+    s02 = w2 `shiftR` 24
+    s12 = w2 `shiftR` 16
+    s22 = w2 `shiftR` 8
+    s32 = w2
+    s03 = w3 `shiftR` 24
+    s13 = w3 `shiftR` 16
+    s23 = w3 `shiftR` 8
+    s33 = w3
