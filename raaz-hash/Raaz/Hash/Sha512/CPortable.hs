@@ -4,15 +4,14 @@ Portable C implementation of SHA512 hash.
 
 -}
 
-{-# LANGUAGE ForeignFunctionInterface #-}
-{-# LANGUAGE EmptyDataDecls           #-}
-{-# LANGUAGE TypeFamilies             #-}
-{-# CFILES raaz/hash/sha512/portable.c  #-}
+{-# LANGUAGE ForeignFunctionInterface  #-}
+{-# LANGUAGE EmptyDataDecls            #-}
+{-# LANGUAGE TypeFamilies              #-}
+{-# LANGUAGE FlexibleInstances         #-}
+{-# OPTIONS_GHC -fno-warn-orphans      #-}
+{-# CFILES raaz/hash/sha512/portable.c #-}
 
-module Raaz.Hash.Sha512.CPortable
-       ( CPortable
-       , sha512Compress
-       ) where
+module Raaz.Hash.Sha512.CPortable (sha512Compress) where
 
 import Foreign.Ptr
 
@@ -21,9 +20,6 @@ import Raaz.Primitives
 import Raaz.Types
 
 import Raaz.Hash.Sha512.Type
-
--- | Portable C implementation
-data CPortable = CPortable (CryptoCell SHA512)
 
 foreign import ccall unsafe
   "raaz/hash/sha512/portable.h raazHashSha512PortableCompress"
@@ -35,10 +31,10 @@ sha512Compress cc nblocks buffer = withCell cc action
         n = fromEnum nblocks
 {-# INLINE sha512Compress #-}
 
-instance Gadget CPortable where
-  type PrimitiveOf CPortable = SHA512
-  type MemoryOf CPortable = CryptoCell SHA512
-  newGadgetWithMemory cc = return $ CPortable cc
-  initialize (CPortable cc) (SHA512IV sha1) = cellStore cc sha1
-  finalize (CPortable cc) = cellLoad cc
-  apply (CPortable cc) n cptr = sha512Compress cc n cptr
+instance Gadget (CGadget SHA512) where
+  type PrimitiveOf (CGadget SHA512) = SHA512
+  type MemoryOf (CGadget SHA512) = CryptoCell SHA512
+  newGadgetWithMemory = return . CGadget
+  initialize (CGadget cc) (SHA512IV sha1) = cellStore cc sha1
+  finalize (CGadget cc) = cellLoad cc
+  apply (CGadget cc) = sha512Compress cc
