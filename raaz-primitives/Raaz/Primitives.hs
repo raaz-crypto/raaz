@@ -19,6 +19,7 @@ module Raaz.Primitives
          -- $typesafelengths$
 
          Primitive(..), Gadget(..), newGadget, newInitializedGadget
+       , CGadget(..), HGadget(..)
        , SafePrimitive
        , Initializable(..)
        , HasPadding(..)
@@ -278,6 +279,20 @@ instance ( Primitive p
 -- sometimes required to make the type checker happy.
 blocksOf :: Primitive p =>  Int -> p -> BLOCKS p
 blocksOf n _ = BLOCKS n
+
+-------------------- Supported Implementations -------------------------
+
+-- | `HGadget` is pure Haskell gadget implemenation used as the
+-- Reference implementation of the `Primitive`. Most of the times it
+-- is around 3-4 times slower than `CPortable` version.
+newtype HGadget p = HGadget (MemoryOf (HGadget p))
+
+-- | This is the portable C gadget implementation. It is usually
+-- recommended over `HGadget` because of being faster than
+-- it. Howerer, No architecture specific optimizations are done in
+-- this implementation.
+newtype CGadget p = CGadget (MemoryOf (CGadget p))
+
 
 -------------------- Some helper functions -----------------------------
 
