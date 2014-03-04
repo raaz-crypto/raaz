@@ -19,7 +19,6 @@ import           Test.Framework.Providers.QuickCheck2 (testProperty)
 import           Test.QuickCheck
 import           Test.QuickCheck.Monadic              (run, assert, monadicIO)
 
-import           Raaz.Memory
 import           Raaz.Primitives
 import qualified Raaz.Util.ByteString                 as BU
 import           Raaz.Util.Ptr
@@ -43,25 +42,26 @@ instance Primitive p => Arbitrary (TestData p) where
       generate p s = TestData . B.pack
                      <$> vectorOf (s * (fromIntegral $ blockSize p)) arbitrary
 
-prop_Gadget :: (Gadget g, Gadget ref, PrimitiveOf g ~ PrimitiveOf ref, Eq (PrimitiveOf g))
+prop_Gadget :: (Gadget g, Gadget ref, PrimitiveOf g ~ PrimitiveOf ref, Eq (Cxt (PrimitiveOf g)))
             => ref
             -> g
-            -> IV (PrimitiveOf g)
+            -> Cxt (PrimitiveOf g)
             -> TestData (PrimitiveOf g)
             -> Property
-prop_Gadget ref' g' iv (TestData bs) = monadicIO $ do
+prop_Gadget ref' g' cxt (TestData bs) = monadicIO $ do
   g   <- run $ createGadget g'
-  run $ initialize g iv
+  run $ initialize g cxt
   ref <- run $ createGadget ref'
-  run $ initialize ref iv
-  outg <- run $ allocaBuffer bsize (with g)
-  outref <- run $ allocaBuffer bsize (with ref)
+  run $ initialize ref cxt
+  (gcxt,outg) <- run $ allocaBuffer bsize (with g)
+  (refcxt,outref) <- run $ allocaBuffer bsize (with ref)
   assert (outg == outref)
+  assert (gcxt == refcxt)
   where
     bsize = BU.length bs
     createGadget :: Gadget g => g -> IO g
     createGadget _ = newGadget
-    with :: Gadget g => g -> CryptoPtr -> IO (PrimitiveOf g, ByteString)
+    with :: Gadget g => g -> CryptoPtr -> IO (Cxt (PrimitiveOf g), ByteString)
     with g cptr =  do
       BU.unsafeCopyToCryptoPtr bs cptr
       apply g (fromIntegral numBlocks) cptr
@@ -78,12 +78,12 @@ prop_Gadget ref' g' iv (TestData bs) = monadicIO $ do
 testGadget :: ( Gadget g
               , Gadget ref
               , PrimitiveOf g ~ PrimitiveOf ref
-              , Eq (PrimitiveOf g)
+              , Eq (Cxt (PrimitiveOf g))
               )
            => g
            -> ref
-           -> IV (PrimitiveOf g)
+           -> Cxt (PrimitiveOf g)
            -> String
            -> Test
-testGadget g ref iv msg = testProperty msg
-                                   $ prop_Gadget g ref iv
+testGadget g ref cxt msg = testProperty msg
+                                   $ prop_Gadget g ref cxt
