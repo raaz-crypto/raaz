@@ -16,6 +16,7 @@ module Raaz.Primitives.Hash
        , hashFile', hashFile
        ) where
 
+import           Control.Applicative  ((<$>))
 import           Data.Default
 import qualified Data.ByteString      as B
 import qualified Data.ByteString.Lazy as L
