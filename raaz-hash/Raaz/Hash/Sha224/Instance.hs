@@ -5,49 +5,39 @@ This module defines the hash instances for sha224 hash.
 -}
 
 {-# LANGUAGE TypeFamilies         #-}
+{-# LANGUAGE FlexibleInstances    #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module Raaz.Hash.Sha224.Instance (CPortable, Ref) where
+module Raaz.Hash.Sha224.Instance () where
 
 import Control.Applicative ( (<$>) )
-import Control.Monad       ( foldM )
 
 import Raaz.Memory
 import Raaz.Primitives
 import Raaz.Primitives.Hash
-import Raaz.Util.Ptr
 
 
 import Raaz.Hash.Sha256.Type
 import Raaz.Hash.Sha224.Type
-import Raaz.Hash.Sha256.Ref
-import Raaz.Hash.Sha224.CPortable
+import Raaz.Hash.Sha256.Instance
+import Raaz.Hash.Sha224.CPortable ()
 
 
 ----------------------------- SHA224 -------------------------------------------
 
 instance CryptoPrimitive SHA224 where
-  type Recommended SHA224 = CPortable
-  type Reference SHA224   = Ref
+  type Recommended SHA224 = CGadget SHA224
+  type Reference SHA224   = HGadget SHA224
 
-instance Hash SHA224 where
+instance Hash SHA224
 
--- | Ref Implementation
-data Ref = Ref (CryptoCell SHA256)
-
-instance Gadget Ref where
-  type PrimitiveOf Ref = SHA224
-  type MemoryOf Ref = CryptoCell SHA256
-  newGadgetWithMemory cc = return $ Ref cc
-  initialize (Ref cc) (SHA224IV sha1) = cellStore cc sha1
-  finalize (Ref cc) = sha256Tosha224 <$> cellLoad cc
+instance Gadget (HGadget SHA224) where
+  type PrimitiveOf (HGadget SHA224) = SHA224
+  type MemoryOf (HGadget SHA224) = CryptoCell SHA256
+  newGadgetWithMemory = return . HGadget
+  initialize (HGadget cc) (SHA224IV sha1) = cellStore cc sha1
+  finalize (HGadget cc) = sha256Tosha224 <$> cellLoad cc
     where sha256Tosha224 (SHA256 h0 h1 h2 h3 h4 h5 h6 _)
             = SHA224 h0 h1 h2 h3 h4 h5 h6
-  apply (Ref cc) n cptr = do
-    initial <- cellLoad cc
-    final <- fst <$> foldM moveAndHash (initial,cptr) [1..n]
-    cellStore cc final
-    where
-      sz = blockSize (undefined :: SHA256)
-      moveAndHash (cxt,ptr) _ = do newCxt <- sha256CompressSingle cxt ptr
-                                   return (newCxt, ptr `movePtr` sz)
+  apply (HGadget cc) n cptr = sha256Compress cc n' cptr
+    where n' = blocksOf (fromIntegral n) (undefined :: SHA256)

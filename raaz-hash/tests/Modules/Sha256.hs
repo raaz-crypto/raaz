@@ -23,14 +23,7 @@ instance Arbitrary SHA256 where
                      <*> arbitrary
                      <*> arbitrary
 
-tests = allHashTests (undefined ::SHA256) exampleStrings ++ [testCPortable]
-
-testCPortable = testGadget g ref def "CPortable vs Reference"
-  where
-    g :: CPortable
-    g = undefined
-    ref :: Ref
-    ref = undefined
+tests = allHashTests (undefined ::SHA256) exampleStrings
 
 exampleStrings :: [(B.ByteString,B.ByteString)]
 exampleStrings = map convertToByteString

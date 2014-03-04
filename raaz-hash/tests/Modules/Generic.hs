@@ -3,6 +3,9 @@
 Generic tests for Hashes.
 
 -}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeFamilies        #-}
 
 module Modules.Generic
        ( testPadLengthVsPadding
@@ -12,28 +15,40 @@ module Modules.Generic
        , shorten
        ) where
 
-import qualified Data.ByteString as B
-import Data.Typeable
-import Data.Word
-import Test.Framework(Test, testGroup)
-import Test.Framework.Providers.QuickCheck2(testProperty)
-import Test.HUnit ((~?=), test, (~:) )
-import Test.Framework.Providers.HUnit(hUnitTestToTests)
-import Test.QuickCheck(Arbitrary)
+import qualified Data.ByteString                      as B
+import           Data.Default
+import           Data.Typeable
+import           Data.Word
+import           Test.Framework                       (Test, testGroup)
+import           Test.Framework.Providers.QuickCheck2 (testProperty)
+import           Test.HUnit                           ((~?=), test, (~:) )
+import           Test.Framework.Providers.HUnit       (hUnitTestToTests)
+import           Test.QuickCheck                      (Arbitrary)
 
-import Raaz.Primitives
-import Raaz.Primitives.Hash
-import Raaz.Types
-import Raaz.Test.EndianStore
-import Raaz.Test.Cipher
-import Raaz.Util.ByteString (toHex)
+import           Raaz.Primitives
+import           Raaz.Primitives.Hash
+import           Raaz.Types
+import           Raaz.Test.EndianStore
+import           Raaz.Test.Cipher
+import           Raaz.Test.Gadget
+import           Raaz.Util.ByteString                 (toHex)
 
 
 -- | This runs all the test for a given hash. The second argument to
 -- the function is a list of pairs of bytestring and their
 -- corresponding hash value which is used as a unit testing test
 -- suites.
-allHashTests :: ( Arbitrary h, Show h, Hash h, Typeable h )
+allHashTests :: ( Arbitrary h
+                , Show h
+                , Hash h
+                , Typeable h
+                , PrimitiveOf (CGadget h) ~ h
+                , PrimitiveOf (HGadget h) ~ h
+                , Default (IV h)
+                , Gadget (HGadget h)
+                , Gadget (CGadget h)
+                , Eq h
+                )
              => h         -- ^ dummy hash type to satisfy the type checker
              -> [(B.ByteString,B.ByteString)]
                           -- ^ string hash pairs
@@ -42,6 +57,7 @@ allHashTests h pairs = [ testStoreLoad h
                        , testPadLengthVsPadding h
                        , testLengthDivisibility h
                        , testGroup unitTestName unitTests
+                       , testCGadgetvsHGadget h
                        ]
     where unitTestName  = unwords [show $ typeOf h, "Unit tests"]
           unitTests     = testStandardHashValues h pairs
@@ -89,3 +105,18 @@ testStandardHashValues h = hUnitTestToTests . test . map checkHash
   where getHash a = toHex $ hash a `asTypeOf` h
         label a   = show (typeOf h) ++ " " ++ shorten (show a)
         checkHash (a,b) = label a ~: getHash a ~?= b
+
+
+testCGadgetvsHGadget :: ( PrimitiveOf (CGadget p) ~ p
+                        , PrimitiveOf (HGadget p) ~ p
+                        , Default (IV p)
+                        , Gadget (HGadget p)
+                        , Gadget (CGadget p)
+                        , Eq p
+                        ) => p -> Test
+testCGadgetvsHGadget p = testGadget (g p) (ref p) def "CGadget vs HGadget"
+  where
+    g :: p -> CGadget p
+    g _ = undefined
+    ref :: p -> HGadget p
+    ref _ = undefined

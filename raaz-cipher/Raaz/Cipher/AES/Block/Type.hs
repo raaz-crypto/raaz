@@ -1,9 +1,11 @@
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE FlexibleInstances          #-}
+{-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE DataKinds                  #-}
 
-module Raaz.Cipher.AES.Ref.Type
+module Raaz.Cipher.AES.Block.Type
        ( STATE(..)
        , KEY128(..)
        , Expanded128(..)
@@ -11,7 +13,6 @@ module Raaz.Cipher.AES.Ref.Type
        , Expanded192(..)
        , KEY256(..)
        , Expanded256(..)
-       , AESIV(..)
        , incrState
        , fmapState
        , constructWord32BE
@@ -19,14 +20,15 @@ module Raaz.Cipher.AES.Ref.Type
        , invTranspose
        )where
 
-import Control.Applicative ((<$>), (<*>))
-import Data.Bits           (xor, (.|.),Bits(..))
-import Data.Monoid         ((<>))
-import Data.Typeable       (Typeable)
-import Foreign.Ptr         (castPtr)
-import Foreign.Storable    (sizeOf,Storable(..))
-import Numeric             (showHex)
+import Control.Applicative  ((<$>), (<*>))
+import Data.Bits            (xor, (.|.),Bits(..))
+import Data.Monoid          ((<>))
+import Data.Typeable        (Typeable)
+import Foreign.Ptr          (castPtr)
+import Foreign.Storable     (sizeOf,Storable(..))
+import Numeric              (showHex)
 
+import Raaz.Memory
 import Raaz.Types
 import Raaz.Parse
 import Raaz.Write
@@ -38,11 +40,6 @@ data STATE = STATE {-# UNPACK #-} !Word32BE
                    {-# UNPACK #-} !Word32BE
          deriving Typeable
 
-showWord32 :: Word32BE -> ShowS
-showWord32 w = showString $ "0x" ++ replicate (8 - length hex) '0' ++ hex
-  where
-    hex = showHex w ""
-
 instance Show STATE where
   show (STATE w0 w1 w2 w3) = showString "STATE "
                            . showWord32 w0
@@ -52,79 +49,6 @@ instance Show STATE where
                            . showWord32 w2
                            . showChar ' '
                            $ showWord32 w3 ""
-
--- | AES IV (Used in CBC and CTR mode)
-newtype AESIV = AESIV STATE
-         deriving (Show,Typeable,Eq,Storable)
-
--- | 128 Bit Key
-data KEY128 = KEY128 {-# UNPACK #-} !Word32BE
-                     {-# UNPACK #-} !Word32BE
-              {-# UNPACK #-} !Word32BE
-                     {-# UNPACK #-} !Word32BE
-         deriving Typeable
-
-instance Show KEY128 where
-  show (KEY128 w0 w1 w2 w3) = showString "KEY128 "
-                            . showWord32 w0
-                            . showChar ' '
-                            . showWord32 w1
-                            . showChar ' '
-                            . showWord32 w2
-                            . showChar ' '
-                            $ showWord32 w3 ""
-
--- | 192 Bit Key
-data KEY192 = KEY192 {-# UNPACK #-} !Word32BE
-                     {-# UNPACK #-} !Word32BE
-                     {-# UNPACK #-} !Word32BE
-                     {-# UNPACK #-} !Word32BE
-                     {-# UNPACK #-} !Word32BE
-                     {-# UNPACK #-} !Word32BE
-         deriving Typeable
-
-instance Show KEY192 where
-  show (KEY192 w0 w1 w2 w3 w4 w5) = showString "KEY192 "
-                                  . showWord32 w0
-                                  . showChar ' '
-                                  . showWord32 w1
-                                  . showChar ' '
-                                  . showWord32 w2
-                                  . showChar ' '
-                                  . showWord32 w3
-                                  . showChar ' '
-                                  . showWord32 w4
-                                  . showChar ' '
-                                  $ showWord32 w5 ""
-
--- | 256 Bit Key
-data KEY256 = KEY256 {-# UNPACK #-} !Word32BE
-                     {-# UNPACK #-} !Word32BE
-                     {-# UNPACK #-} !Word32BE
-                     {-# UNPACK #-} !Word32BE
-                     {-# UNPACK #-} !Word32BE
-                     {-# UNPACK #-} !Word32BE
-                     {-# UNPACK #-} !Word32BE
-                     {-# UNPACK #-} !Word32BE
-         deriving Typeable
-
-instance Show KEY256 where
-  show (KEY256 w0 w1 w2 w3 w4 w5 w6 w7) = showString "KEY256 "
-                                        . showWord32 w0
-                                        . showChar ' '
-                                        . showWord32 w1
-                                        . showChar ' '
-                                        . showWord32 w2
-                                        . showChar ' '
-                                        . showWord32 w3
-                                        . showChar ' '
-                                        . showWord32 w4
-                                        . showChar ' '
-                                        . showWord32 w5
-                                        . showChar ' '
-                                        . showWord32 w6
-                                        . showChar ' '
-                                        $ showWord32 w7 ""
 
 -- | Incrments the STATE considering it to be a byte string. It is
 -- sligthly different because of transposing of data during load and
@@ -204,39 +128,6 @@ instance Eq STATE where
                           .|. xor r3 s3
                           == 0
 
--- | Timing independent equality testing for KEY128
-instance Eq KEY128 where
-  (==) (KEY128 r0 r1 r2 r3)
-       (KEY128 s0 s1 s2 s3) =  xor r0 s0
-                           .|. xor r1 s1
-                           .|. xor r2 s2
-                           .|. xor r3 s3
-                           == 0
-
--- | Timing independent equality testing for KEY192
-instance Eq KEY192 where
-  (==) (KEY192 r0 r1 r2 r3 r4 r5)
-       (KEY192 s0 s1 s2 s3 s4 s5) =  xor r0 s0
-                                 .|. xor r1 s1
-                                 .|. xor r2 s2
-                                 .|. xor r3 s3
-                                 .|. xor r4 s4
-                                 .|. xor r5 s5
-                                 == 0
-
--- | Timing independent equality testing for KEY256
-instance Eq KEY256 where
-  (==) (KEY256 r0 r1 r2 r3 r4 r5 r6 r7)
-       (KEY256 s0 s1 s2 s3 s4 s5 s6 s7) =  xor r0 s0
-                                       .|. xor r1 s1
-                                       .|. xor r2 s2
-                                       .|. xor r3 s3
-                                       .|. xor r4 s4
-                                       .|. xor r5 s5
-                                       .|. xor r6 s6
-                                       .|. xor r7 s7
-                                       == 0
-
 parseState :: Parser STATE
 parseState = STATE <$> parse
                    <*> parse
@@ -259,84 +150,6 @@ instance Storable STATE where
 instance EndianStore STATE where
   load cptr = runParser cptr (transpose <$> parseState)
   store cptr state = runWrite cptr $ writeState $ invTranspose state
-
-parseKey128 :: Parser KEY128
-parseKey128 = KEY128 <$> parse
-                     <*> parse
-                     <*> parse
-                     <*> parse
-
-writeKey128 :: KEY128 -> Write
-writeKey128 (KEY128 s0 s1 s2 s3) = write s0
-                                <> write s1
-                                <> write s2
-                                <> write s3
-
-instance Storable KEY128 where
-  sizeOf    _ = 4 * sizeOf (undefined :: Word32BE)
-  alignment _ = alignment  (undefined :: CryptoAlign)
-  peek cptr = runParser (castPtr cptr) parseKey128
-  poke cptr key128 = runWrite (castPtr cptr) $ writeKey128 key128
-
-instance EndianStore KEY128 where
-  load cptr = runParser cptr parseKey128
-  store cptr key128 = runWrite cptr $ writeKey128 key128
-
-parseKey192 :: Parser KEY192
-parseKey192 = KEY192 <$> parse
-                     <*> parse
-                     <*> parse
-                     <*> parse
-                     <*> parse
-                     <*> parse
-
-writeKey192 :: KEY192 -> Write
-writeKey192 (KEY192 s0 s1 s2 s3 s4 s5) = write s0
-                                      <> write s1
-                                      <> write s2
-                                      <> write s3
-                                      <> write s4
-                                      <> write s5
-
-instance Storable KEY192 where
-  sizeOf    _ = 6 * sizeOf (undefined :: Word32BE)
-  alignment _ = alignment  (undefined :: CryptoAlign)
-  peek cptr = runParser (castPtr cptr) parseKey192
-  poke cptr key192 = runWrite (castPtr cptr) $ writeKey192 key192
-
-instance EndianStore KEY192 where
-  load cptr = runParser cptr parseKey192
-  store cptr key192 = runWrite cptr $ writeKey192 key192
-
-parseKey256 :: Parser KEY256
-parseKey256 = KEY256 <$> parse
-                     <*> parse
-                     <*> parse
-                     <*> parse
-                     <*> parse
-                     <*> parse
-                     <*> parse
-                     <*> parse
-
-writeKey256 :: KEY256 -> Write
-writeKey256 (KEY256 s0 s1 s2 s3 s4 s5 s6 s7) = write s0
-                                            <> write s1
-                                            <> write s2
-                                            <> write s3
-                                            <> write s4
-                                            <> write s5
-                                            <> write s6
-                                            <> write s7
-
-instance Storable KEY256 where
-  sizeOf    _ = 8 * sizeOf (undefined :: Word32BE)
-  alignment _ = alignment  (undefined :: CryptoAlign)
-  peek cptr = runParser (castPtr cptr) parseKey256
-  poke cptr key256 = runWrite (castPtr cptr) $ writeKey256 key256
-
-instance EndianStore KEY256 where
-  load cptr = runParser cptr parseKey256
-  store cptr key256 = runWrite cptr $ writeKey256 key256
 
 instance Storable Expanded128 where
   sizeOf    _ = 11 * sizeOf (undefined :: STATE)
@@ -576,3 +389,191 @@ invTranspose (STATE w0 w1 w2 w3) =
     s13 = w3 `shiftR` 16
     s23 = w3 `shiftR` 8
     s33 = w3
+
+-- | 128 Bit Key
+data KEY128 = KEY128 {-# UNPACK #-} !Word32BE
+                     {-# UNPACK #-} !Word32BE
+                     {-# UNPACK #-} !Word32BE
+                     {-# UNPACK #-} !Word32BE
+         deriving Typeable
+
+-- | Hexadecimal Show instance
+instance Show KEY128 where
+  show (KEY128 w0 w1 w2 w3) = showString "KEY128 "
+                            . showWord32 w0
+                            . showChar ' '
+                            . showWord32 w1
+                            . showChar ' '
+                            . showWord32 w2
+                            . showChar ' '
+                            $ showWord32 w3 ""
+
+-- | 192 Bit Key
+data KEY192 = KEY192 {-# UNPACK #-} !Word32BE
+                     {-# UNPACK #-} !Word32BE
+                     {-# UNPACK #-} !Word32BE
+                     {-# UNPACK #-} !Word32BE
+                     {-# UNPACK #-} !Word32BE
+                     {-# UNPACK #-} !Word32BE
+         deriving Typeable
+
+-- | Hexadecimal Show instance
+instance Show KEY192 where
+  show (KEY192 w0 w1 w2 w3 w4 w5) = showString "KEY192 "
+                                  . showWord32 w0
+                                  . showChar ' '
+                                  . showWord32 w1
+                                  . showChar ' '
+                                  . showWord32 w2
+                                  . showChar ' '
+                                  . showWord32 w3
+                                  . showChar ' '
+                                  . showWord32 w4
+                                  . showChar ' '
+                                  $ showWord32 w5 ""
+
+-- | 256 Bit Key
+data KEY256 = KEY256 {-# UNPACK #-} !Word32BE
+                     {-# UNPACK #-} !Word32BE
+                     {-# UNPACK #-} !Word32BE
+                     {-# UNPACK #-} !Word32BE
+                     {-# UNPACK #-} !Word32BE
+                     {-# UNPACK #-} !Word32BE
+                     {-# UNPACK #-} !Word32BE
+                     {-# UNPACK #-} !Word32BE
+         deriving Typeable
+
+-- | Hexadecimal Show instance
+instance Show KEY256 where
+  show (KEY256 w0 w1 w2 w3 w4 w5 w6 w7) = showString "KEY256 "
+                                        . showWord32 w0
+                                        . showChar ' '
+                                        . showWord32 w1
+                                        . showChar ' '
+                                        . showWord32 w2
+                                        . showChar ' '
+                                        . showWord32 w3
+                                        . showChar ' '
+                                        . showWord32 w4
+                                        . showChar ' '
+                                        . showWord32 w5
+                                        . showChar ' '
+                                        . showWord32 w6
+                                        . showChar ' '
+                                        $ showWord32 w7 ""
+
+-- | Timing independent equality testing for KEY128
+instance Eq KEY128 where
+  (==) (KEY128 r0 r1 r2 r3)
+       (KEY128 s0 s1 s2 s3) =  xor r0 s0
+                           .|. xor r1 s1
+                           .|. xor r2 s2
+                           .|. xor r3 s3
+                           == 0
+
+-- | Timing independent equality testing for KEY192
+instance Eq KEY192 where
+  (==) (KEY192 r0 r1 r2 r3 r4 r5)
+       (KEY192 s0 s1 s2 s3 s4 s5) =  xor r0 s0
+                                 .|. xor r1 s1
+                                 .|. xor r2 s2
+                                 .|. xor r3 s3
+                                 .|. xor r4 s4
+                                 .|. xor r5 s5
+                                 == 0
+
+-- | Timing independent equality testing for KEY256
+instance Eq KEY256 where
+  (==) (KEY256 r0 r1 r2 r3 r4 r5 r6 r7)
+       (KEY256 s0 s1 s2 s3 s4 s5 s6 s7) =  xor r0 s0
+                                       .|. xor r1 s1
+                                       .|. xor r2 s2
+                                       .|. xor r3 s3
+                                       .|. xor r4 s4
+                                       .|. xor r5 s5
+                                       .|. xor r6 s6
+                                       .|. xor r7 s7
+                                       == 0
+
+parseKey128 :: Parser KEY128
+parseKey128 = KEY128 <$> parse
+                     <*> parse
+                     <*> parse
+                     <*> parse
+
+writeKey128 :: KEY128 -> Write
+writeKey128 (KEY128 s0 s1 s2 s3) = write s0
+                                <> write s1
+                                <> write s2
+                                <> write s3
+
+instance Storable KEY128 where
+  sizeOf    _ = 4 * sizeOf (undefined :: Word32BE)
+  alignment _ = alignment  (undefined :: CryptoAlign)
+  peek cptr = runParser (castPtr cptr) parseKey128
+  poke cptr key128 = runWrite (castPtr cptr) $ writeKey128 key128
+
+instance EndianStore KEY128 where
+  load cptr = runParser cptr parseKey128
+  store cptr key128 = runWrite cptr $ writeKey128 key128
+
+parseKey192 :: Parser KEY192
+parseKey192 = KEY192 <$> parse
+                     <*> parse
+                     <*> parse
+                     <*> parse
+                     <*> parse
+                     <*> parse
+
+writeKey192 :: KEY192 -> Write
+writeKey192 (KEY192 s0 s1 s2 s3 s4 s5) = write s0
+                                      <> write s1
+                                      <> write s2
+                                      <> write s3
+                                      <> write s4
+                                      <> write s5
+
+instance Storable KEY192 where
+  sizeOf    _ = 6 * sizeOf (undefined :: Word32BE)
+  alignment _ = alignment  (undefined :: CryptoAlign)
+  peek cptr = runParser (castPtr cptr) parseKey192
+  poke cptr key192 = runWrite (castPtr cptr) $ writeKey192 key192
+
+instance EndianStore KEY192 where
+  load cptr = runParser cptr parseKey192
+  store cptr key192 = runWrite cptr $ writeKey192 key192
+
+parseKey256 :: Parser KEY256
+parseKey256 = KEY256 <$> parse
+                     <*> parse
+                     <*> parse
+                     <*> parse
+                     <*> parse
+                     <*> parse
+                     <*> parse
+                     <*> parse
+
+writeKey256 :: KEY256 -> Write
+writeKey256 (KEY256 s0 s1 s2 s3 s4 s5 s6 s7) = write s0
+                                            <> write s1
+                                            <> write s2
+                                            <> write s3
+                                            <> write s4
+                                            <> write s5
+                                            <> write s6
+                                            <> write s7
+
+instance Storable KEY256 where
+  sizeOf    _ = 8 * sizeOf (undefined :: Word32BE)
+  alignment _ = alignment  (undefined :: CryptoAlign)
+  peek cptr = runParser (castPtr cptr) parseKey256
+  poke cptr key256 = runWrite (castPtr cptr) $ writeKey256 key256
+
+instance EndianStore KEY256 where
+  load cptr = runParser cptr parseKey256
+  store cptr key256 = runWrite cptr $ writeKey256 key256
+
+showWord32 :: Word32BE -> ShowS
+showWord32 w = showString $ "0x" ++ replicate (8 - length hex) '0' ++ hex
+  where
+    hex = showHex w ""

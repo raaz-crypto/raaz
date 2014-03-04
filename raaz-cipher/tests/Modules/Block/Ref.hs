@@ -11,7 +11,6 @@ import Test.QuickCheck                      (Arbitrary(..))
 
 import Raaz.Test                            ()
 import Raaz.Cipher.AES.Internal
-import Raaz.Cipher.AES.Ref.Internal
 
 
 instance Arbitrary STATE where
