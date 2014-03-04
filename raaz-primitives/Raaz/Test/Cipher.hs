@@ -4,6 +4,7 @@ Generic tests for Hash implementations.
 
 -}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE DataKinds        #-}
 
 module Raaz.Test.Cipher
        ( testStandardCiphers
@@ -19,25 +20,24 @@ import           Test.HUnit                     ((~?=), test, (~:) )
 import           Test.Framework.Providers.HUnit (hUnitTestToTests)
 
 import           Raaz.ByteSource
-import           Raaz.Memory
 import           Raaz.Types
 import           Raaz.Primitives
 import           Raaz.Primitives.Cipher
 import           Raaz.Util.ByteString           (hex)
 
 -- | Checks standard plaintext - ciphertext for the given cipher
-testStandardCiphers  :: (CipherGadget g)
-                     => g Encryption
+testStandardCiphers  :: ( HasInverse g
+                        , Initializable (PrimitiveOf g)
+                        , Initializable (PrimitiveOf (Inverse g)) )
+                     => g
                      -> [(ByteString,ByteString,ByteString)] -- ^ (key, planetext,ciphertest)
                      -> String                               -- ^ Header
                      -> [Test]
 testStandardCiphers ge triples msg = hUnitTestToTests $ test $ map checkCipher triples
   where label a    = msg ++ " " ++ shorten (show $ hex a)
         checkCipher (k,a,b) =
-          label a ~: test  ["Encryption" ~: (encrypt ge k a) ~?= b
-                           ,"Decryption" ~: (decrypt (dec ge) k b) ~?= a]
-        dec :: (CipherGadget g) => g Encryption-> (g Decryption)
-        dec _ = undefined
+          label a ~: test  ["Encryption" ~: (applyGadget ge k a) ~?= b
+                           ,"Decryption" ~: (applyGadget (inverseGadget ge) k b) ~?= a]
 
 -- | Similar to the above function except this returns strict
 -- ByteString rather than Lazy ByteString and works on finite
@@ -70,13 +70,13 @@ createAndApply' g key src = do
       createGadget _ = newGadget
 {-# INLINEABLE createAndApply' #-}
 
-encrypt :: CipherGadget g => g Encryption -> ByteString -> ByteString -> ByteString
-encrypt g k = unsafePerformIO . createAndApply' g k
-{-# NOINLINE encrypt #-}
-
-decrypt :: CipherGadget g => g Decryption -> ByteString -> ByteString -> ByteString
-decrypt g k = unsafePerformIO . createAndApply' g k
-{-# NOINLINE decrypt #-}
+applyGadget :: (Gadget g, Initializable (PrimitiveOf g))
+            => g
+            -> ByteString
+            -> ByteString
+            -> ByteString
+applyGadget g k = unsafePerformIO . createAndApply' g k
+{-# NOINLINE applyGadget #-}
 
 -- | While displaying the input truncate it to these many characters.
 maxLength :: Int

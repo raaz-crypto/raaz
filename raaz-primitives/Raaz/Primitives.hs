@@ -18,11 +18,13 @@ module Raaz.Primitives
          -- * Type safe lengths in units of blocks.
          -- $typesafelengths$
 
-         Primitive(..), Gadget(..), newGadget, newInitializedGadget
+         Primitive(..), Gadget(..), newGadget, newInitializedGadget, primitiveOf
+       , CGadget(..), HGadget(..)
        , SafePrimitive
        , Initializable(..)
        , HasPadding(..)
        , CryptoPrimitive(..)
+       , HasInverse(..), inverseGadget
        , BLOCKS, blocksOf
        , transformGadget, transformGadgetFile
        ) where
@@ -159,6 +161,23 @@ newInitializedGadget iv = do
 newGadget :: Gadget g => IO g
 newGadget = newMemory >>= newGadgetWithMemory
 
+-- | Gives the primitive of a gadget. This function should only be
+-- used to satisy types as the actual value returned is `undefined`.
+primitiveOf :: Gadget g => g -> PrimitiveOf g
+primitiveOf _ = undefined
+
+-- | This represents Gadgets with inverses. For example, encryption
+-- gadget can have decryption gadget as its inverse.
+class ( Gadget g
+      , Gadget (Inverse g)
+      ) => HasInverse g where
+  type Inverse g :: *
+
+-- | Gives the inverse of a gadget. This function should only be used
+-- to satisy types as the actual value returned is `undefined`.
+inverseGadget :: HasInverse g => g -> Inverse g
+inverseGadget _ = undefined
+
 -------------------- Primitives with padding ---------------------------
 
 -- | Block primitives have a padding method. The obvious reason for
@@ -278,6 +297,20 @@ instance ( Primitive p
 -- sometimes required to make the type checker happy.
 blocksOf :: Primitive p =>  Int -> p -> BLOCKS p
 blocksOf n _ = BLOCKS n
+
+-------------------- Supported Implementations -------------------------
+
+-- | `HGadget` is pure Haskell gadget implemenation used as the
+-- Reference implementation of the `Primitive`. Most of the times it
+-- is around 3-4 times slower than `CPortable` version.
+newtype HGadget p = HGadget (MemoryOf (HGadget p))
+
+-- | This is the portable C gadget implementation. It is usually
+-- recommended over `HGadget` because of being faster than
+-- it. Howerer, No architecture specific optimizations are done in
+-- this implementation.
+newtype CGadget p = CGadget (MemoryOf (CGadget p))
+
 
 -------------------- Some helper functions -----------------------------
 

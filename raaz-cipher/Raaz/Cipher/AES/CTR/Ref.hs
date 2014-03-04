@@ -18,86 +18,70 @@ import Raaz.Types
 import Raaz.Util.Ptr
 
 import Raaz.Cipher.AES.CTR.Type
-import Raaz.Cipher.AES.Ref.Type
-import Raaz.Cipher.AES.Ref.Internal
 import Raaz.Cipher.AES.Internal
 
---------------------- AES128 ---------------------------------------------------
 
-instance Gadget (Ref128 CTR Encryption) where
-  type PrimitiveOf (Ref128 CTR Encryption) = AES128 CTR Encryption
-  type MemoryOf (Ref128 CTR Encryption) = (CryptoCell Expanded128, CryptoCell STATE)
-  newGadgetWithMemory cc = return $ Ref128 cc
-  initialize (Ref128 (ek,s)) (AES128EIV (k,iv)) = do
-    cellStore ek $ expand128 k
+instance Gadget (HGadget (Cipher AES KEY128 CTR Encryption)) where
+  type PrimitiveOf (HGadget (Cipher AES KEY128 CTR Encryption)) = Cipher AES KEY128 CTR Encryption
+  type MemoryOf (HGadget (Cipher AES KEY128 CTR Encryption)) = (CryptoCell Expanded128, CryptoCell STATE)
+  newGadgetWithMemory = return . HGadget
+  initialize (HGadget (ek,s)) (AESIV (k,iv)) = do
+    hExpand128 k ek
     cellStore s iv
-  finalize _ = return AES128
-  apply g@(Ref128 mem) = applyGad g mem encrypt128
+  finalize _ = return Cipher
+  apply g = applyGad g encrypt128
 
-instance Gadget (Ref128 CTR Decryption) where
-  type PrimitiveOf (Ref128 CTR Decryption) = AES128 CTR Decryption
-  type MemoryOf (Ref128 CTR Decryption) = (CryptoCell Expanded128, CryptoCell STATE)
-  newGadgetWithMemory cc = return $ Ref128 cc
-  initialize (Ref128 (ek,s)) (AES128DIV (k,iv)) = do
-    cellStore ek $ expand128 k
+instance Gadget (HGadget (Cipher AES KEY128 CTR Decryption)) where
+  type PrimitiveOf (HGadget (Cipher AES KEY128 CTR Decryption)) = Cipher AES KEY128 CTR Decryption
+  type MemoryOf (HGadget (Cipher AES KEY128 CTR Decryption)) = (CryptoCell Expanded128, CryptoCell STATE)
+  newGadgetWithMemory = return . HGadget
+  initialize (HGadget (ek,s)) (AESIV (k,iv)) = do
+    hExpand128 k ek
     cellStore s iv
-  finalize _ = return AES128
-  apply g@(Ref128 mem) = applyGad g mem encrypt128
+  finalize _ = return Cipher
+  apply g = applyGad g encrypt128
 
-
---------------------- AES192 ---------------------------------------------------
-
-instance Gadget (Ref192 CTR Encryption) where
-  type PrimitiveOf (Ref192 CTR Encryption) = AES192 CTR Encryption
-  type MemoryOf (Ref192 CTR Encryption) = (CryptoCell Expanded192, CryptoCell STATE)
-  newGadgetWithMemory cc = return $ Ref192 cc
-  initialize (Ref192 (ek,s)) (AES192EIV (k,iv)) = do
-    cellStore ek $ expand192 k
+instance Gadget (HGadget (Cipher AES KEY192 CTR Encryption)) where
+  type PrimitiveOf (HGadget (Cipher AES KEY192 CTR Encryption)) = Cipher AES KEY192 CTR Encryption
+  type MemoryOf (HGadget (Cipher AES KEY192 CTR Encryption)) = (CryptoCell Expanded192, CryptoCell STATE)
+  newGadgetWithMemory = return . HGadget
+  initialize (HGadget (ek,s)) (AESIV (k,iv)) = do
+    hExpand192 k ek
     cellStore s iv
-  finalize _ = return AES192
-  apply g@(Ref192 mem) = applyGad g mem encrypt192
+  finalize _ = return Cipher
+  apply g = applyGad g encrypt192
 
-instance Gadget (Ref192 CTR Decryption) where
-  type PrimitiveOf (Ref192 CTR Decryption) = AES192 CTR Decryption
-  type MemoryOf (Ref192 CTR Decryption) = (CryptoCell Expanded192, CryptoCell STATE)
-  newGadgetWithMemory cc = return $ Ref192 cc
-  initialize (Ref192 (ek,s)) (AES192DIV (k,iv)) =  do
-    cellStore ek $ expand192 k
+instance Gadget (HGadget (Cipher AES KEY192 CTR Decryption)) where
+  type PrimitiveOf (HGadget (Cipher AES KEY192 CTR Decryption)) = Cipher AES KEY192 CTR Decryption
+  type MemoryOf (HGadget (Cipher AES KEY192 CTR Decryption)) = (CryptoCell Expanded192, CryptoCell STATE)
+  newGadgetWithMemory = return . HGadget
+  initialize (HGadget (ek,s)) (AESIV (k,iv)) = do
+    hExpand192 k ek
     cellStore s iv
-  finalize _ = return AES192
-  apply g@(Ref192 mem) = applyGad g mem encrypt192
+  finalize _ = return Cipher
+  apply g = applyGad g encrypt192
 
-
---------------------- AES256 ---------------------------------------------------
-
-instance Gadget (Ref256 CTR Encryption) where
-  type PrimitiveOf (Ref256 CTR Encryption) = AES256 CTR Encryption
-  type MemoryOf (Ref256 CTR Encryption) = (CryptoCell Expanded256, CryptoCell STATE)
-  newGadgetWithMemory cc = return $ Ref256 cc
-  initialize (Ref256 (ek,s)) (AES256EIV (k,iv)) = do
-    cellStore ek $ expand256 k
+instance Gadget (HGadget (Cipher AES KEY256 CTR Encryption)) where
+  type PrimitiveOf (HGadget (Cipher AES KEY256 CTR Encryption)) = Cipher AES KEY256 CTR Encryption
+  type MemoryOf (HGadget (Cipher AES KEY256 CTR Encryption)) = (CryptoCell Expanded256, CryptoCell STATE)
+  newGadgetWithMemory = return . HGadget
+  initialize (HGadget (ek,s)) (AESIV (k,iv)) = do
+    hExpand256 k ek
     cellStore s iv
-  finalize _ = return AES256
-  apply g@(Ref256 mem) = applyGad g mem encrypt256
+  finalize _ = return Cipher
+  apply g = applyGad g encrypt256
 
-instance Gadget (Ref256 CTR Decryption) where
-  type PrimitiveOf (Ref256 CTR Decryption) = AES256 CTR Decryption
-  type MemoryOf (Ref256 CTR Decryption) = (CryptoCell Expanded256, CryptoCell STATE)
-  newGadgetWithMemory cc = return $ Ref256 cc
-  initialize (Ref256 (ek,s)) (AES256DIV (k,iv)) = do
-    cellStore ek $ expand256 k
+instance Gadget (HGadget (Cipher AES KEY256 CTR Decryption)) where
+  type PrimitiveOf (HGadget (Cipher AES KEY256 CTR Decryption)) = Cipher AES KEY256 CTR Decryption
+  type MemoryOf (HGadget (Cipher AES KEY256 CTR Decryption)) = (CryptoCell Expanded256, CryptoCell STATE)
+  newGadgetWithMemory = return . HGadget
+  initialize (HGadget (ek,s)) (AESIV (k,iv)) = do
+    hExpand256 k ek
     cellStore s iv
-  finalize _ = return AES256
-  apply g@(Ref256 mem) = applyGad g mem encrypt256
+  finalize _ = return Cipher
+  apply g = applyGad g encrypt256
 
-
-applyGad :: (Gadget g, Storable k) => g
-                                -> (CryptoCell k,CryptoCell STATE)
-                                -> (STATE -> k -> STATE)
-                                -> BLOCKS (PrimitiveOf g)
-                                -> CryptoPtr
-                                -> IO ()
-applyGad g (ex,s) with n cptr = do
+applyGad g@(HGadget (ex,s)) with n cptr = do
     expanded <- cellLoad ex
     initial <- cellLoad s
     (newiv,restptr) <- foldM (moveAndHash expanded) (initial,cptr) [1..nblks]

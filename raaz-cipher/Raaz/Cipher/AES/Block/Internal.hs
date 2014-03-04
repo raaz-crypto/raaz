@@ -4,10 +4,15 @@ This module implements the reference implementation for AES. It is
 verbatim translation of the standard and doesn't perform any optimizations
 
 -}
-{-# LANGUAGE TypeFamilies          #-}
-{-# OPTIONS_GHC -fno-warn-orphans  #-}
+{-# LANGUAGE ForeignFunctionInterface  #-}
+{-# LANGUAGE FlexibleContexts          #-}
+{-# LANGUAGE FlexibleInstances         #-}
+{-# LANGUAGE TypeFamilies              #-}
+{-# LANGUAGE DeriveDataTypeable        #-}
+{-# OPTIONS_GHC -fno-warn-orphans      #-}
+{-# CFILES raaz/cipher/cportable/aes.c #-}
 
-module Raaz.Cipher.AES.Ref.Internal
+module Raaz.Cipher.AES.Block.Internal
        ( expand128
        , encrypt128
        , decrypt128
@@ -18,14 +23,21 @@ module Raaz.Cipher.AES.Ref.Internal
        , encrypt256
        , decrypt256
        , xorState
+       , hExpand128, hExpand192, hExpand256
+       , cExpand128, cExpand192, cExpand256
        ) where
 
 import Data.Bits
+import Data.Typeable
 import Data.Word
+import Foreign.Storable         (sizeOf,Storable)
 
+import Raaz.Primitives
+import Raaz.Memory
 import Raaz.Types
+import Raaz.Util.Ptr            (allocaBuffer)
 
-import Raaz.Cipher.AES.Ref.Type
+import Raaz.Cipher.AES.Block.Type
 import Raaz.Cipher.Util.GF
 
 
@@ -951,3 +963,43 @@ decrypt256 inp (Expanded256 k00 k01 k02 k03 k04 k05 k06 k07 k08 k09 k10
       s12 = aesRound k02 s11
       s13 = aesRound k01 s12
       s14 = invAddRoundKey (invSubBytes $ invShiftRows s13) k00
+
+hExpand128 :: KEY128 -> CryptoCell Expanded128 -> IO ()
+hExpand128 k excell = cellStore excell (expand128 k)
+
+hExpand192 :: KEY192 -> CryptoCell Expanded192 -> IO ()
+hExpand192 k excell = cellStore excell (expand192 k)
+
+hExpand256 :: KEY256 -> CryptoCell Expanded256 -> IO ()
+hExpand256 k excell = cellStore excell (expand256 k)
+
+foreign import ccall unsafe
+  "raaz/cipher/cportable/aes.c raazCipherAESExpand"
+  c_expand  :: CryptoPtr  -- ^ expanded key
+            -> CryptoPtr  -- ^ key
+            -> Int        -- ^ Key type
+            -> IO ()
+
+cExpansionWith :: (EndianStore k, Storable ek)
+               => CryptoCell ek
+               -> k
+               -> (CryptoPtr -> CryptoPtr -> Int -> IO ())
+               -> Int
+               -> IO ()
+cExpansionWith ek k with i = allocaBuffer szk $ \kptr -> do
+  store kptr k
+  withCell ek $ expand kptr
+  where
+    expand kptr ekptr = with ekptr kptr i
+    szk :: BYTES Int
+    szk = BYTES $ sizeOf k
+{-# INLINE cExpansionWith #-}
+
+cExpand128 :: KEY128 -> CryptoCell Expanded128 -> IO ()
+cExpand128 k excell = cExpansionWith excell k c_expand 0
+
+cExpand192 :: KEY192 -> CryptoCell Expanded192 -> IO ()
+cExpand192 k excell = cExpansionWith excell k c_expand 1
+
+cExpand256 :: KEY256 -> CryptoCell Expanded256 -> IO ()
+cExpand256 k excell = cExpansionWith excell k c_expand 2

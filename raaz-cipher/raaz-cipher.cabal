@@ -20,12 +20,12 @@ source-repository head
 library
   exposed-modules: Raaz.Cipher.AES.Type
                  , Raaz.Cipher.AES.Internal
-                 , Raaz.Cipher.AES.Ref.Internal
+                 , Raaz.Cipher.AES.Block.Internal
                  , Raaz.Cipher.AES.CBC
                  , Raaz.Cipher.AES.CTR
                  , Raaz.Cipher.AES.ECB
   other-modules: Raaz.Cipher.Util.GF
-               , Raaz.Cipher.AES.Ref.Type
+               , Raaz.Cipher.AES.Block.Type
                , Raaz.Cipher.AES.CBC.CPortable
                , Raaz.Cipher.AES.CBC.Instance
                , Raaz.Cipher.AES.CBC.Ref
