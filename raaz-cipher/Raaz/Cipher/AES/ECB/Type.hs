@@ -17,11 +17,12 @@ import Raaz.Cipher.AES.Internal
 instance Primitive (Cipher AES k ECB e) where
   blockSize _ = cryptoCoerce $ BITS (128 :: Int)
   {-# INLINE blockSize #-}
-  newtype IV (Cipher AES k ECB e) = AESIV k
+  newtype Cxt (Cipher AES k ECB e) = AESCxt k
+    deriving (Show, Eq)
 
 instance EndianStore k => Initializable (Cipher AES k ECB e) where
   ivSize _ = BYTES ksz
     where
       ksz = sizeOf (undefined :: k)
   {-# INLINE ivSize #-}
-  getIV = AESIV . fromByteString
+  getIV = AESCxt . fromByteString
