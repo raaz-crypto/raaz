@@ -13,6 +13,7 @@ module Raaz.Cipher.AES.Block.Type
        , Expanded192(..)
        , KEY256(..)
        , Expanded256(..)
+       , AESCxt(..)
        , incrState
        , fmapState
        , constructWord32BE
@@ -49,6 +50,79 @@ instance Show STATE where
                            . showWord32 w2
                            . showChar ' '
                            $ showWord32 w3 ""
+
+-- | AES Cxt (Used in CBC and CTR mode)
+newtype AESCxt = AESCxt STATE
+         deriving (Show,Typeable,Eq,Storable)
+
+-- | 128 Bit Key
+data KEY128 = KEY128 {-# UNPACK #-} !Word32BE
+                     {-# UNPACK #-} !Word32BE
+                     {-# UNPACK #-} !Word32BE
+                     {-# UNPACK #-} !Word32BE
+         deriving Typeable
+
+instance Show KEY128 where
+  show (KEY128 w0 w1 w2 w3) = showString "KEY128 "
+                            . showWord32 w0
+                            . showChar ' '
+                            . showWord32 w1
+                            . showChar ' '
+                            . showWord32 w2
+                            . showChar ' '
+                            $ showWord32 w3 ""
+
+-- | 192 Bit Key
+data KEY192 = KEY192 {-# UNPACK #-} !Word32BE
+                     {-# UNPACK #-} !Word32BE
+                     {-# UNPACK #-} !Word32BE
+                     {-# UNPACK #-} !Word32BE
+                     {-# UNPACK #-} !Word32BE
+                     {-# UNPACK #-} !Word32BE
+         deriving Typeable
+
+instance Show KEY192 where
+  show (KEY192 w0 w1 w2 w3 w4 w5) = showString "KEY192 "
+                                  . showWord32 w0
+                                  . showChar ' '
+                                  . showWord32 w1
+                                  . showChar ' '
+                                  . showWord32 w2
+                                  . showChar ' '
+                                  . showWord32 w3
+                                  . showChar ' '
+                                  . showWord32 w4
+                                  . showChar ' '
+                                  $ showWord32 w5 ""
+
+-- | 256 Bit Key
+data KEY256 = KEY256 {-# UNPACK #-} !Word32BE
+                     {-# UNPACK #-} !Word32BE
+                     {-# UNPACK #-} !Word32BE
+                     {-# UNPACK #-} !Word32BE
+                     {-# UNPACK #-} !Word32BE
+                     {-# UNPACK #-} !Word32BE
+                     {-# UNPACK #-} !Word32BE
+                     {-# UNPACK #-} !Word32BE
+         deriving Typeable
+
+instance Show KEY256 where
+  show (KEY256 w0 w1 w2 w3 w4 w5 w6 w7) = showString "KEY256 "
+                                        . showWord32 w0
+                                        . showChar ' '
+                                        . showWord32 w1
+                                        . showChar ' '
+                                        . showWord32 w2
+                                        . showChar ' '
+                                        . showWord32 w3
+                                        . showChar ' '
+                                        . showWord32 w4
+                                        . showChar ' '
+                                        . showWord32 w5
+                                        . showChar ' '
+                                        . showWord32 w6
+                                        . showChar ' '
+                                        $ showWord32 w7 ""
 
 -- | Incrments the STATE considering it to be a byte string. It is
 -- sligthly different because of transposing of data during load and
