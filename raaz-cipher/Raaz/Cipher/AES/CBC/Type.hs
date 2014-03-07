@@ -5,7 +5,6 @@
 
 module Raaz.Cipher.AES.CBC.Type where
 
-import           Data.ByteString              (ByteString)
 import qualified Data.ByteString              as BS
 import           Foreign.Storable             (sizeOf)
 import           Raaz.Primitives
@@ -19,7 +18,8 @@ import           Raaz.Cipher.AES.Internal
 instance Primitive (Cipher AES k CBC e) where
   blockSize _ = cryptoCoerce $ BITS (128 :: Int)
   {-# INLINE blockSize #-}
-  newtype IV (Cipher AES k CBC e) = AESIV (k, STATE)
+  newtype Cxt (Cipher AES k CBC e) = AESCxt (k, STATE)
+    deriving (Show, Eq)
 
 instance EndianStore k => Initializable (Cipher AES k CBC e) where
   ivSize _ = BYTES (ksz + ssz)
@@ -27,7 +27,7 @@ instance EndianStore k => Initializable (Cipher AES k CBC e) where
       ksz = sizeOf (undefined :: k)
       ssz = sizeOf (undefined :: STATE)
   {-# INLINE ivSize #-}
-  getIV = AESIV . getIVCBC
+  getIV = AESCxt . getIVCBC
     where
       getIVCBC bs = (k,fromByteString ivbs)
         where
