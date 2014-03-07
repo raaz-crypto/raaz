@@ -102,7 +102,7 @@ instance EndianStore SHA224 where
 instance Primitive SHA224 where
   blockSize _ = cryptoCoerce $ BITS (512 :: Int)
   {-# INLINE blockSize #-}
-  newtype Cxt SHA224 = SHA224Cxt SHA256
+  newtype Cxt SHA224 = SHA224Cxt SHA256 deriving Eq
 
 instance SafePrimitive SHA224
 
