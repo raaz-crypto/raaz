@@ -16,30 +16,20 @@ module Raaz.Primitives.Hash
        , hashFile', hashFile
        ) where
 
-import           Control.Applicative  ((<$>))
-import           Control.Monad        (foldM)
 import           Data.Default
-import           Data.Word            (Word64)
-import           Data.Bits
 import qualified Data.ByteString      as B
 import qualified Data.ByteString.Lazy as L
-import           Foreign.Storable     (Storable(..))
-import           Foreign.ForeignPtr.Safe
 import           Prelude              hiding (length)
 import           System.IO            (withBinaryFile, IOMode(ReadMode), Handle)
 import           System.IO.Unsafe     (unsafePerformIO)
 
 import           Raaz.ByteSource
-import           Raaz.Memory
 import           Raaz.Primitives
 import           Raaz.Types
-import           Raaz.Util.ByteString (length)
-import           Raaz.Util.Ptr
-import           Raaz.Util.SecureMemory
 
 
 class ( SafePrimitive h
-      , HasPadding h
+      , PaddableGadget (Recommended h)
       , Default (IV h)
       , CryptoPrimitive h
       , Eq h
@@ -49,14 +39,14 @@ class ( SafePrimitive h
 -- | Hash a given byte source.
 sourceHash' :: ( ByteSource src
                , Hash h
-               , Gadget g
+               , PaddableGadget g
                , h ~ PrimitiveOf g
                )
             => g    -- ^ Gadget
             -> src  -- ^ Message
             -> IO (PrimitiveOf g)
 sourceHash' g src = withGadget def $ go g
-  where go :: ( Gadget g1, Hash (PrimitiveOf g1))
+  where go :: ( Gadget g1, Hash (PrimitiveOf g1), PaddableGadget g1)
             => g1 -> g1 -> IO (PrimitiveOf g1)
         go _ gad =  do
           transformGadget gad src
@@ -79,7 +69,7 @@ sourceHash src = go undefined
 -- | Compute the Hash of Pure Byte Source. Implementation dependent.
 hash' :: ( PureByteSource src
          , Hash h
-         , Gadget g
+         , PaddableGadget g
          , h ~ PrimitiveOf g
          )
       => g    -- ^ Gadget
@@ -100,7 +90,7 @@ hash = unsafePerformIO . sourceHash
 
 -- | Hash a given file given `FilePath`. Implementation dependent.
 hashFile' :: ( Hash h
-             , Gadget g
+             , PaddableGadget g
              , h ~ PrimitiveOf g
              )
           => g           -- ^ Implementation
