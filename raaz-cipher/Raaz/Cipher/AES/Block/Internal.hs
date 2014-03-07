@@ -14,12 +14,15 @@ verbatim translation of the standard and doesn't perform any optimizations
 
 module Raaz.Cipher.AES.Block.Internal
        ( expand128
+       , compress128
        , encrypt128
        , decrypt128
        , expand192
+       , compress192
        , encrypt192
        , decrypt192
        , expand256
+       , compress256
        , encrypt256
        , decrypt256
        , xorState
@@ -1003,3 +1006,19 @@ cExpand192 k excell = cExpansionWith excell k c_expand 1
 
 cExpand256 :: KEY256 -> CryptoCell Expanded256 -> IO ()
 cExpand256 k excell = cExpansionWith excell k c_expand 2
+
+compress128 :: Expanded128 -> KEY128
+compress128 (Expanded128 s0 _ _ _ _ _ _ _ _ _ _) = KEY128 r0 r1 r2 r3
+	where (STATE r0 r1 r2 r3) = invTranspose s0
+
+compress192 :: Expanded192 -> KEY192
+compress192 (Expanded192 s0 s1 _ _ _ _ _ _ _ _ _ _ _) =
+	KEY192 r0 r1 r2 r3 r4 r5
+	where (STATE r0 r1 r2 r3) = invTranspose s0
+	      (STATE r4 r5 _ _) = invTranspose s1
+	      
+compress256 :: Expanded256 -> KEY256
+compress256 (Expanded256 s0 s1 _ _ _ _ _ _ _ _ _ _ _ _ _) =
+    KEY256 r0 r1 r2 r3 r4 r5 r6 r7
+	where (STATE r0 r1 r2 r3) = invTranspose s0
+	      (STATE r4 r5 r6 r7) = invTranspose s1
