@@ -59,7 +59,6 @@ testKey256 =  pack [0x60,0x3d,0xeb,0x10
                    ,0x0C,0x0D,0x0E,0x0F]
 
 
-
 cportableVsReference :: ( HasInverse g1
                         , HasInverse g2
                         , (PrimitiveOf g1 ~ PrimitiveOf g2)

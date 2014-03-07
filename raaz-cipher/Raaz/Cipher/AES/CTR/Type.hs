@@ -18,8 +18,7 @@ import           Raaz.Cipher.AES.Internal
 instance Primitive (Cipher AES k CTR e) where
   blockSize _ = cryptoCoerce $ BITS (8 :: Int)
   {-# INLINE blockSize #-}
-  newtype Cxt (Cipher AES k CTR e) = AESCxt (k, STATE)
-    deriving (Show, Eq)
+  newtype Cxt (Cipher AES k CTR e) = AESCxt (k, STATE) deriving Eq
 
 instance EndianStore k => Initializable (Cipher AES k CTR e) where
   ivSize _ = BYTES (ksz + ssz)
