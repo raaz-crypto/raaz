@@ -41,3 +41,5 @@ instance Gadget (HGadget SHA224) where
             = SHA224 h0 h1 h2 h3 h4 h5 h6
   apply (HGadget cc) n cptr = sha256Compress cc n' cptr
     where n' = blocksOf (fromIntegral n) (undefined :: SHA256)
+
+instance PaddableGadget (HGadget SHA224)
