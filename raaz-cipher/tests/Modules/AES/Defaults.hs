@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TypeFamilies      #-}
 
-module Modules.Defaults where
+module Modules.AES.Defaults where
 
 import           Data.ByteString        (ByteString,pack)
 import qualified Data.ByteString        as BS
@@ -18,7 +18,7 @@ import           Raaz.Primitives.Cipher
 
 import           Raaz.Cipher.AES.Type
 
-import           Modules.Block.Ref      ()
+import           Modules.AES.Block      ()
 
 
 testKey128 :: ByteString
@@ -75,12 +75,12 @@ cportableVsReference ge1 ge2 iv' =
     iv = BS.take (fromIntegral $ cxtSize $ primitiveOf ge1) iv'
 
 testsDefault m s128 s192 s256 =
-      [ testGroup ("AES128 " ++ mode ++ " Reference") $ (testStandardCiphers (pr128 m) s128 "")
-      , testGroup ("AES192 " ++ mode ++ " Reference") $ (testStandardCiphers (pr192 m) s192 "")
-      , testGroup ("AES256 " ++ mode ++ " Reference") $ (testStandardCiphers (pr256 m) s256 "")
-      , testGroup ("AES128 " ++ mode ++ " CPortable") $ (testStandardCiphers (pc128 m) s128 "")
-      , testGroup ("AES192 " ++ mode ++ " CPortable") $ (testStandardCiphers (pc192 m) s192 "")
-      , testGroup ("AES256 " ++ mode ++ " CPortable") $ (testStandardCiphers (pc256 m) s256 "")
+      [ testStandardCiphers (pr128 m) s128 $ "AES128 " ++ mode ++ " HGadget"
+      , testStandardCiphers (pr192 m) s192 $ "AES192 " ++ mode ++ " HGadget"
+      , testStandardCiphers (pr256 m) s256 $ "AES256 " ++ mode ++ " HGadget"
+      , testStandardCiphers (pc128 m) s128 $ "AES128 " ++ mode ++ " CGadget"
+      , testStandardCiphers (pc192 m) s192 $ "AES192 " ++ mode ++ " CGadget"
+      , testStandardCiphers (pc256 m) s256 $ "AES256 " ++ mode ++ " CGadget"
       , testGroup ("AES128 " ++ mode ++ " CPortable vs Reference") $ cportableVsReference (pr128 m) (pc128 m) testKey128
       , testGroup ("AES192 " ++ mode ++ " CPortable vs Reference") $ cportableVsReference (pr192 m) (pc192 m) testKey192
       , testGroup ("AES256 " ++ mode ++ " CPortable vs Reference") $ cportableVsReference (pr256 m) (pc256 m) testKey256

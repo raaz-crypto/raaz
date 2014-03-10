@@ -1,4 +1,4 @@
-module Modules.ECB
+module Modules.AES.ECB
        ( tests
        ) where
 
@@ -11,7 +11,7 @@ import Raaz.Cipher.AES.Type
 
 import Raaz.Cipher.AES.ECB
 
-import Modules.Defaults
+import Modules.AES.Defaults
 
 -- From http://www.inconteam.com/software-development/41-encryption/55-aes-test-vectors
 standard128Vector :: [(ByteString,ByteString,ByteString)]

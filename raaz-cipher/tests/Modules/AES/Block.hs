@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Modules.Block.Ref
+module Modules.AES.Block
        ( tests
        ) where
 
@@ -7,7 +7,6 @@ import Control.Applicative
 import Test.Framework                       (Test)
 import Test.Framework.Providers.QuickCheck2 (testProperty)
 import Test.QuickCheck                      (Arbitrary(..))
-
 
 import Raaz.Test                            ()
 import Raaz.Cipher.AES.Internal
