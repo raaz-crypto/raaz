@@ -36,3 +36,5 @@ instance Gadget (CGadget SHA1) where
   initialize (CGadget cc) (SHA1IV sha1) = cellStore cc sha1
   finalize (CGadget cc) = cellLoad cc
   apply (CGadget cc) n cptr = sha1Compress cc n cptr
+
+instance PaddableGadget (CGadget SHA1)

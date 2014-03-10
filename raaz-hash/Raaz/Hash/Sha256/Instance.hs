@@ -50,3 +50,5 @@ instance Gadget (HGadget SHA256) where
   initialize (HGadget cc) (SHA256IV sha1) = cellStore cc sha1
   finalize (HGadget cc) = cellLoad cc
   apply (HGadget cc) = sha256Compress cc
+
+instance PaddableGadget (HGadget SHA256)

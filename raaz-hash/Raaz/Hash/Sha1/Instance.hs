@@ -44,3 +44,5 @@ instance Gadget (HGadget SHA1) where
       sz = blockSize (undefined :: SHA1)
       moveAndHash (cxt,ptr) _ = do newCxt <- sha1CompressSingle cxt ptr
                                    return (newCxt, ptr `movePtr` sz)
+
+instance PaddableGadget (HGadget SHA1)
