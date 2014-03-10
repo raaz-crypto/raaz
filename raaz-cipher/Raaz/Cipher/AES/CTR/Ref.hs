@@ -22,9 +22,9 @@ import Raaz.Cipher.AES.CTR.Type
 import Raaz.Cipher.AES.Internal
 
 
-instance Gadget (HGadget (Cipher AES KEY128 CTR Encryption)) where
-  type PrimitiveOf (HGadget (Cipher AES KEY128 CTR Encryption)) = Cipher AES KEY128 CTR Encryption
-  type MemoryOf (HGadget (Cipher AES KEY128 CTR Encryption)) = (CryptoCell Expanded128, CryptoCell STATE)
+instance Gadget (HGadget (Cipher (AES CTR) KEY128 Encryption)) where
+  type PrimitiveOf (HGadget (Cipher (AES CTR) KEY128 Encryption)) = Cipher (AES CTR) KEY128 Encryption
+  type MemoryOf (HGadget (Cipher (AES CTR) KEY128 Encryption)) = (CryptoCell Expanded128, CryptoCell STATE)
   newGadgetWithMemory = return . HGadget
   initialize (HGadget (ek,s)) (AESCxt (k,iv)) = do
     hExpand128 k ek
@@ -35,9 +35,9 @@ instance Gadget (HGadget (Cipher AES KEY128 CTR Encryption)) where
     return $ AESCxt (key,state)
   apply g = applyGad g encrypt128
 
-instance Gadget (HGadget (Cipher AES KEY128 CTR Decryption)) where
-  type PrimitiveOf (HGadget (Cipher AES KEY128 CTR Decryption)) = Cipher AES KEY128 CTR Decryption
-  type MemoryOf (HGadget (Cipher AES KEY128 CTR Decryption)) = (CryptoCell Expanded128, CryptoCell STATE)
+instance Gadget (HGadget (Cipher (AES CTR) KEY128 Decryption)) where
+  type PrimitiveOf (HGadget (Cipher (AES CTR) KEY128 Decryption)) = Cipher (AES CTR) KEY128 Decryption
+  type MemoryOf (HGadget (Cipher (AES CTR) KEY128 Decryption)) = (CryptoCell Expanded128, CryptoCell STATE)
   newGadgetWithMemory = return . HGadget
   initialize (HGadget (ek,s)) (AESCxt (k,iv)) = do
     hExpand128 k ek
@@ -48,9 +48,9 @@ instance Gadget (HGadget (Cipher AES KEY128 CTR Decryption)) where
     return $ AESCxt (key,state)
   apply g = applyGad g encrypt128
 
-instance Gadget (HGadget (Cipher AES KEY192 CTR Encryption)) where
-  type PrimitiveOf (HGadget (Cipher AES KEY192 CTR Encryption)) = Cipher AES KEY192 CTR Encryption
-  type MemoryOf (HGadget (Cipher AES KEY192 CTR Encryption)) = (CryptoCell Expanded192, CryptoCell STATE)
+instance Gadget (HGadget (Cipher (AES CTR) KEY192 Encryption)) where
+  type PrimitiveOf (HGadget (Cipher (AES CTR) KEY192 Encryption)) = Cipher (AES CTR) KEY192 Encryption
+  type MemoryOf (HGadget (Cipher (AES CTR) KEY192 Encryption)) = (CryptoCell Expanded192, CryptoCell STATE)
   newGadgetWithMemory = return . HGadget
   initialize (HGadget (ek,s)) (AESCxt (k,iv)) = do
     hExpand192 k ek
@@ -61,9 +61,9 @@ instance Gadget (HGadget (Cipher AES KEY192 CTR Encryption)) where
     return $ AESCxt (key,state)
   apply g = applyGad g encrypt192
 
-instance Gadget (HGadget (Cipher AES KEY192 CTR Decryption)) where
-  type PrimitiveOf (HGadget (Cipher AES KEY192 CTR Decryption)) = Cipher AES KEY192 CTR Decryption
-  type MemoryOf (HGadget (Cipher AES KEY192 CTR Decryption)) = (CryptoCell Expanded192, CryptoCell STATE)
+instance Gadget (HGadget (Cipher (AES CTR) KEY192 Decryption)) where
+  type PrimitiveOf (HGadget (Cipher (AES CTR) KEY192 Decryption)) = Cipher (AES CTR) KEY192 Decryption
+  type MemoryOf (HGadget (Cipher (AES CTR) KEY192 Decryption)) = (CryptoCell Expanded192, CryptoCell STATE)
   newGadgetWithMemory = return . HGadget
   initialize (HGadget (ek,s)) (AESCxt (k,iv)) = do
     hExpand192 k ek
@@ -74,9 +74,9 @@ instance Gadget (HGadget (Cipher AES KEY192 CTR Decryption)) where
     return $ AESCxt (key,state)
   apply g = applyGad g encrypt192
 
-instance Gadget (HGadget (Cipher AES KEY256 CTR Encryption)) where
-  type PrimitiveOf (HGadget (Cipher AES KEY256 CTR Encryption)) = Cipher AES KEY256 CTR Encryption
-  type MemoryOf (HGadget (Cipher AES KEY256 CTR Encryption)) = (CryptoCell Expanded256, CryptoCell STATE)
+instance Gadget (HGadget (Cipher (AES CTR) KEY256 Encryption)) where
+  type PrimitiveOf (HGadget (Cipher (AES CTR) KEY256 Encryption)) = Cipher (AES CTR) KEY256 Encryption
+  type MemoryOf (HGadget (Cipher (AES CTR) KEY256 Encryption)) = (CryptoCell Expanded256, CryptoCell STATE)
   newGadgetWithMemory = return . HGadget
   initialize (HGadget (ek,s)) (AESCxt (k,iv)) = do
     hExpand256 k ek
@@ -87,9 +87,9 @@ instance Gadget (HGadget (Cipher AES KEY256 CTR Encryption)) where
     return $ AESCxt (key,state)
   apply g = applyGad g encrypt256
 
-instance Gadget (HGadget (Cipher AES KEY256 CTR Decryption)) where
-  type PrimitiveOf (HGadget (Cipher AES KEY256 CTR Decryption)) = Cipher AES KEY256 CTR Decryption
-  type MemoryOf (HGadget (Cipher AES KEY256 CTR Decryption)) = (CryptoCell Expanded256, CryptoCell STATE)
+instance Gadget (HGadget (Cipher (AES CTR) KEY256 Decryption)) where
+  type PrimitiveOf (HGadget (Cipher (AES CTR) KEY256 Decryption)) = Cipher (AES CTR) KEY256 Decryption
+  type MemoryOf (HGadget (Cipher (AES CTR) KEY256 Decryption)) = (CryptoCell Expanded256, CryptoCell STATE)
   newGadgetWithMemory = return . HGadget
   initialize (HGadget (ek,s)) (AESCxt (k,iv)) = do
     hExpand256 k ek
