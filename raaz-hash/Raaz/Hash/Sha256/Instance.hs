@@ -8,7 +8,7 @@ This module defines the hash instances for sha256 hash.
 {-# LANGUAGE FlexibleInstances    #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module Raaz.Hash.Sha256.Instance (sha256Compress) where
+module Raaz.Hash.Sha256.Instance (sha256CompressSingle) where
 
 import Control.Applicative ( (<$>) )
 import Control.Monad       ( foldM )
@@ -47,8 +47,15 @@ instance Gadget (HGadget SHA256) where
   type PrimitiveOf (HGadget SHA256) = SHA256
   type MemoryOf (HGadget SHA256) = CryptoCell SHA256
   newGadgetWithMemory = return . HGadget
-  initialize (HGadget cc) (SHA256IV sha1) = cellStore cc sha1
-  finalize (HGadget cc) = cellLoad cc
-  apply (HGadget cc) = sha256Compress cc
+  initialize (HGadget cc) (SHA256Cxt sha1) = cellStore cc sha1
+  finalize (HGadget cc) = SHA256Cxt <$> cellLoad cc
+  apply (HGadget cc) n cptr = do
+    initial <- cellLoad cc
+    final <- fst <$> foldM moveAndHash (initial,cptr) [1..n]
+    cellStore cc final
+    where
+      sz = blockSize (undefined :: SHA256)
+      moveAndHash (cxt,ptr) _ = do newCxt <- sha256CompressSingle cxt ptr
+                                   return (newCxt, ptr `movePtr` sz)
 
 instance PaddableGadget (HGadget SHA256)

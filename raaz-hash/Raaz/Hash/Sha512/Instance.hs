@@ -8,7 +8,7 @@ This module defines the hash instances for sha512 hash.
 {-# LANGUAGE FlexibleInstances    #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module Raaz.Hash.Sha512.Instance (sha512Compress) where
+module Raaz.Hash.Sha512.Instance (sha512CompressSingle) where
 
 import Control.Applicative ( (<$>) )
 import Control.Monad       ( foldM )

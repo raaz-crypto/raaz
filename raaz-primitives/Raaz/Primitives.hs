@@ -201,7 +201,7 @@ inverseGadget _ = undefined
 
 -- | This function runs an action that expects a gadget as input.
 withGadget :: Gadget g
-           => IV (PrimitiveOf g) -- ^ IV to initialize the gadget with.
+           => Cxt (PrimitiveOf g) -- ^ IV to initialize the gadget with.
            -> (g -> IO a)        -- ^ Action to run
            -> IO a
 withGadget iv action = newInitializedGadget iv >>= action

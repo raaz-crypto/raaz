@@ -11,11 +11,12 @@ This module defines the hash instances for sha224 hash.
 module Raaz.Hash.Sha224.Instance () where
 
 import Control.Applicative ( (<$>) )
+import Control.Monad       ( foldM )
 
 import Raaz.Memory
 import Raaz.Primitives
 import Raaz.Primitives.Hash
-
+import Raaz.Util.Ptr
 
 import Raaz.Hash.Sha256.Type
 import Raaz.Hash.Sha224.Type
