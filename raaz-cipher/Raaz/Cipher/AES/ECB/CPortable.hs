@@ -33,9 +33,9 @@ foreign import ccall unsafe
                  -> Int        -- ^ Key type
                  -> IO ()
 
-instance Gadget (CGadget (Cipher AES KEY128 ECB Encryption)) where
-  type PrimitiveOf (CGadget (Cipher AES KEY128 ECB Encryption)) = Cipher AES KEY128 ECB Encryption
-  type MemoryOf (CGadget (Cipher AES KEY128 ECB Encryption)) = CryptoCell Expanded128
+instance Gadget (CGadget (Cipher (AES ECB) KEY128 Encryption)) where
+  type PrimitiveOf (CGadget (Cipher (AES ECB) KEY128 Encryption)) = Cipher (AES ECB) KEY128 Encryption
+  type MemoryOf (CGadget (Cipher (AES ECB) KEY128 Encryption)) = CryptoCell Expanded128
   newGadgetWithMemory = return . CGadget
   initialize (CGadget ek) (AESCxt k) = cExpand128 k ek
   finalize (CGadget ek) = do
@@ -43,9 +43,9 @@ instance Gadget (CGadget (Cipher AES KEY128 ECB Encryption)) where
     return $ AESCxt key
   apply = loadAndApply c_ecb_encrypt 0
 
-instance Gadget (CGadget (Cipher AES KEY128 ECB Decryption)) where
-  type PrimitiveOf (CGadget (Cipher AES KEY128 ECB Decryption)) = Cipher AES KEY128 ECB Decryption
-  type MemoryOf (CGadget (Cipher AES KEY128 ECB Decryption)) = CryptoCell Expanded128
+instance Gadget (CGadget (Cipher (AES ECB) KEY128 Decryption)) where
+  type PrimitiveOf (CGadget (Cipher (AES ECB) KEY128 Decryption)) = Cipher (AES ECB) KEY128 Decryption
+  type MemoryOf (CGadget (Cipher (AES ECB) KEY128 Decryption)) = CryptoCell Expanded128
   newGadgetWithMemory = return . CGadget
   initialize (CGadget ek) (AESCxt k) = cExpand128 k ek
   finalize (CGadget ek) = do
@@ -53,9 +53,9 @@ instance Gadget (CGadget (Cipher AES KEY128 ECB Decryption)) where
     return $ AESCxt key
   apply = loadAndApply c_ecb_decrypt 0
 
-instance Gadget (CGadget (Cipher AES KEY192 ECB Encryption)) where
-  type PrimitiveOf (CGadget (Cipher AES KEY192 ECB Encryption)) = Cipher AES KEY192 ECB Encryption
-  type MemoryOf (CGadget (Cipher AES KEY192 ECB Encryption)) = CryptoCell Expanded192
+instance Gadget (CGadget (Cipher (AES ECB) KEY192 Encryption)) where
+  type PrimitiveOf (CGadget (Cipher (AES ECB) KEY192 Encryption)) = Cipher (AES ECB) KEY192 Encryption
+  type MemoryOf (CGadget (Cipher (AES ECB) KEY192 Encryption)) = CryptoCell Expanded192
   newGadgetWithMemory = return . CGadget
   initialize (CGadget ek) (AESCxt k) = cExpand192 k ek
   finalize (CGadget ek) = do
@@ -63,9 +63,9 @@ instance Gadget (CGadget (Cipher AES KEY192 ECB Encryption)) where
     return $ AESCxt key
   apply = loadAndApply c_ecb_encrypt 1
 
-instance Gadget (CGadget (Cipher AES KEY192 ECB Decryption)) where
-  type PrimitiveOf (CGadget (Cipher AES KEY192 ECB Decryption)) = Cipher AES KEY192 ECB Decryption
-  type MemoryOf (CGadget (Cipher AES KEY192 ECB Decryption)) = CryptoCell Expanded192
+instance Gadget (CGadget (Cipher (AES ECB) KEY192 Decryption)) where
+  type PrimitiveOf (CGadget (Cipher (AES ECB) KEY192 Decryption)) = Cipher (AES ECB) KEY192 Decryption
+  type MemoryOf (CGadget (Cipher (AES ECB) KEY192 Decryption)) = CryptoCell Expanded192
   newGadgetWithMemory = return . CGadget
   initialize (CGadget ek) (AESCxt k) = cExpand192 k ek
   finalize (CGadget ek) = do
@@ -73,9 +73,9 @@ instance Gadget (CGadget (Cipher AES KEY192 ECB Decryption)) where
     return $ AESCxt key
   apply = loadAndApply c_ecb_decrypt 1
 
-instance Gadget (CGadget (Cipher AES KEY256 ECB Encryption)) where
-  type PrimitiveOf (CGadget (Cipher AES KEY256 ECB Encryption)) = Cipher AES KEY256 ECB Encryption
-  type MemoryOf (CGadget (Cipher AES KEY256 ECB Encryption)) = CryptoCell Expanded256
+instance Gadget (CGadget (Cipher (AES ECB) KEY256 Encryption)) where
+  type PrimitiveOf (CGadget (Cipher (AES ECB) KEY256 Encryption)) = Cipher (AES ECB) KEY256 Encryption
+  type MemoryOf (CGadget (Cipher (AES ECB) KEY256 Encryption)) = CryptoCell Expanded256
   newGadgetWithMemory = return . CGadget
   initialize (CGadget ek) (AESCxt k) = cExpand256 k ek
   finalize (CGadget ek) = do
@@ -83,9 +83,9 @@ instance Gadget (CGadget (Cipher AES KEY256 ECB Encryption)) where
     return $ AESCxt key
   apply = loadAndApply c_ecb_encrypt 2
 
-instance Gadget (CGadget (Cipher AES KEY256 ECB Decryption)) where
-  type PrimitiveOf (CGadget (Cipher AES KEY256 ECB Decryption)) = Cipher AES KEY256 ECB Decryption
-  type MemoryOf (CGadget (Cipher AES KEY256 ECB Decryption)) = CryptoCell Expanded256
+instance Gadget (CGadget (Cipher (AES ECB) KEY256 Decryption)) where
+  type PrimitiveOf (CGadget (Cipher (AES ECB) KEY256 Decryption)) = Cipher (AES ECB) KEY256 Decryption
+  type MemoryOf (CGadget (Cipher (AES ECB) KEY256 Decryption)) = CryptoCell Expanded256
   newGadgetWithMemory = return . CGadget
   initialize (CGadget ek) (AESCxt k) = cExpand256 k ek
   finalize (CGadget ek) = do

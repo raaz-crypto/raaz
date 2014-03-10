@@ -86,16 +86,16 @@ testsDefault m s128 s192 s256 =
       , testGroup ("AES256 " ++ mode ++ " CPortable vs Reference") $ cportableVsReference (pr256 m) (pc256 m) testKey256
       ]
       where
-        pr128 :: m -> HGadget (Cipher AES KEY128 m Encryption)
+        pr128 :: m -> HGadget (Cipher (AES m) KEY128 Encryption)
         pr128 _ = undefined
-        pr192 :: m -> HGadget (Cipher AES KEY192 m Encryption)
+        pr192 :: m -> HGadget (Cipher (AES m) KEY192 Encryption)
         pr192 _ = undefined
-        pr256 :: m -> HGadget (Cipher AES KEY256 m Encryption)
+        pr256 :: m -> HGadget (Cipher (AES m) KEY256 Encryption)
         pr256 _ = undefined
-        pc128 :: m -> CGadget (Cipher AES KEY128 m Encryption)
+        pc128 :: m -> CGadget (Cipher (AES m) KEY128 Encryption)
         pc128 _ = undefined
-        pc192 :: m -> CGadget (Cipher AES KEY192 m Encryption)
+        pc192 :: m -> CGadget (Cipher (AES m) KEY192 Encryption)
         pc192 _ = undefined
-        pc256 :: m -> CGadget (Cipher AES KEY256 m Encryption)
+        pc256 :: m -> CGadget (Cipher (AES m) KEY256 Encryption)
         pc256 _ = undefined
         mode = show $ typeOf m
