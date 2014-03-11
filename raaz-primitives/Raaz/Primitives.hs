@@ -10,6 +10,7 @@ might be better of using the more high level interface.
 {-# LANGUAGE MultiParamTypeClasses       #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving  #-}
 {-# LANGUAGE FlexibleContexts            #-}
+{-# LANGUAGE DefaultSignatures           #-}
 
 module Raaz.Primitives
        ( -- * Primtives and gadgets.
@@ -20,6 +21,7 @@ module Raaz.Primitives
 
          Primitive(..), Gadget(..), newGadget, newInitializedGadget
        , primitiveOf, withGadget
+       , PaddableGadget(..)
        , CGadget(..), HGadget(..)
        , SafePrimitive
        , Initializable(..)
@@ -166,6 +168,24 @@ newGadget = newMemory >>= newGadgetWithMemory
 -- used to satisy types as the actual value returned is `undefined`.
 primitiveOf :: Gadget g => g -> PrimitiveOf g
 primitiveOf _ = undefined
+
+-- | This class captures `Gadget`s which have some padding strategy
+-- defined.
+class (Gadget g,HasPadding (PrimitiveOf g)) => PaddableGadget g where
+  -- | It pads the data with the required padding and processes it. It
+  -- expects that enough space is already available for padding. A
+  -- default implementation is provided which pads the data and then
+  -- calls `apply` of the underlying gadget.
+  unsafeApplyLast :: g                      -- ^ Gadget
+                  -> BLOCKS (PrimitiveOf g) -- ^ Number of Blocks processed so far
+                  -> BYTES Int              -- ^ Bytes to process
+                  -> CryptoPtr              -- ^ Location
+                  -> IO ()
+  unsafeApplyLast g blocks bytes cptr = do
+    let bits = cryptoCoerce bytes :: BITS Word64
+        len  = cryptoCoerce blocks + bits
+    unsafePad (primitiveOf g) len (cptr `movePtr` bytes)
+    apply g (cryptoCoerce (bytes + padLength (primitiveOf g) len)) cptr
 
 -- | This represents Gadgets with inverses. For example, encryption
 -- gadget can have decryption gadget as its inverse.
@@ -326,35 +346,25 @@ newtype CGadget p = CGadget (MemoryOf (CGadget p))
 -- used when we care only about the final context and not the contents
 -- of the procesed buffer.
 transformGadget :: ( ByteSource src
-                   , Gadget g
-                   , HasPadding (PrimitiveOf g)
+                   , PaddableGadget g
                    )
                 => g         -- ^ Gadget
                 -> src       -- ^ The byte source
                 -> IO ()
 {-# INLINEABLE transformGadget #-}
-
 transformGadget g src = allocaBuffer bufSize $ go 0 src
   where nBlocks = recommendedBlocks g
         bufSize = nBlocks + maxAdditionalBlocks p
-        p       = getPrimitive g
-        getPrimitive :: Gadget g => g -> PrimitiveOf g
-        getPrimitive _ = undefined
+        p       = primitiveOf g
         go k source cptr =   fill nBlocks source cptr
                              >>= withFillResult continue endIt
            where continue rest = do apply g nBlocks cptr
                                     go (k + nBlocks) rest cptr
-                 endIt r       = do unsafePad p bits padPtr
-                                    apply g blks cptr
+                 endIt r       = unsafeApplyLast g k len cptr
                        where len    = cryptoCoerce nBlocks - r
-                             bits   = cryptoCoerce k + cryptoCoerce len
-                             padPtr = cptr `movePtr` len
-                             blks   = cryptoCoerce $ len + padLength p bits
 
 -- | A version of `transformContext` which takes a filename instead.
-transformGadgetFile :: ( Gadget g
-                       , HasPadding (PrimitiveOf g)
-                       )
+transformGadgetFile :: PaddableGadget g
                     => g          -- ^ Gadget
                     -> FilePath   -- ^ The file name.
                     -> IO ()

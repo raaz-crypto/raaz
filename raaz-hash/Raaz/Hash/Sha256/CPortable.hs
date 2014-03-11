@@ -41,3 +41,5 @@ instance Gadget (CGadget SHA256) where
   initialize (CGadget cc) (SHA256IV sha1) = cellStore cc sha1
   finalize (CGadget cc) = cellLoad cc
   apply (CGadget cc) n cptr = sha256Compress cc n cptr
+
+instance PaddableGadget (CGadget SHA256)

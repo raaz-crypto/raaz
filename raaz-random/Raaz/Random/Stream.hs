@@ -51,10 +51,11 @@ newtype RandomPrim p = RandomPrim p
 zeroOutBuffer :: Buffer g -> IO ()
 zeroOutBuffer buff = withBuffer buff (\cptr -> memset cptr 0 (bufferSize buff))
 
+-- | Buffer for storing random data.
 newtype GadgetBuff g = GadgetBuff g
 
 instance (Gadget g) => Bufferable (GadgetBuff g) where
-  sizeOfBuffer (GadgetBuff g) = fromIntegral $ recommendedBlocks g
+  sizeOfBuffer (GadgetBuff g) = cryptoCoerce $ recommendedBlocks g
 
 -- | Create a `RandomSource` from a `StreamGadget`.
 fromGadget :: StreamGadget g
