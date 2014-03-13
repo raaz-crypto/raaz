@@ -14,15 +14,18 @@ verbatim translation of the standard and doesn't perform any optimizations
 
 module Raaz.Cipher.AES.Block.Internal
        ( expand128
-       , compress128
+       , cCompress128
+       , hCompress128
        , encrypt128
        , decrypt128
        , expand192
-       , compress192
+       , cCompress192
+       , hCompress192
        , encrypt192
        , decrypt192
        , expand256
-       , compress256
+       , cCompress256
+       , hCompress256
        , encrypt256
        , decrypt256
        , xorState
@@ -31,11 +34,9 @@ module Raaz.Cipher.AES.Block.Internal
        ) where
 
 import Data.Bits
-import Data.Typeable
 import Data.Word
 import Foreign.Storable         (sizeOf,Storable)
 
-import Raaz.Primitives
 import Raaz.Memory
 import Raaz.Types
 import Raaz.Util.Ptr            (allocaBuffer)
@@ -1007,18 +1008,44 @@ cExpand192 k excell = cExpansionWith excell k c_expand 1
 cExpand256 :: KEY256 -> CryptoCell Expanded256 -> IO ()
 cExpand256 k excell = cExpansionWith excell k c_expand 2
 
-compress128 :: Expanded128 -> KEY128
-compress128 (Expanded128 s0 _ _ _ _ _ _ _ _ _ _) = KEY128 r0 r1 r2 r3
+hCompress128 :: Expanded128 -> KEY128
+hCompress128 (Expanded128 s0 _ _ _ _ _ _ _ _ _ _) = KEY128 r0 r1 r2 r3
 	where (STATE r0 r1 r2 r3) = invTranspose s0
 
-compress192 :: Expanded192 -> KEY192
-compress192 (Expanded192 s0 s1 _ _ _ _ _ _ _ _ _ _ _) =
+hCompress192 :: Expanded192 -> KEY192
+hCompress192 (Expanded192 s0 s1 _ _ _ _ _ _ _ _ _ _ _) =
 	KEY192 r0 r1 r2 r3 r4 r5
 	where (STATE r0 r1 r2 r3) = invTranspose s0
 	      (STATE r4 r5 _ _) = invTranspose s1
 	      
-compress256 :: Expanded256 -> KEY256
-compress256 (Expanded256 s0 s1 _ _ _ _ _ _ _ _ _ _ _ _ _) =
+hCompress256 :: Expanded256 -> KEY256
+hCompress256 (Expanded256 s0 s1 _ _ _ _ _ _ _ _ _ _ _ _ _) =
     KEY256 r0 r1 r2 r3 r4 r5 r6 r7
 	where (STATE r0 r1 r2 r3) = invTranspose s0
 	      (STATE r4 r5 r6 r7) = invTranspose s1
+
+inverseWord :: Word32BE -> Word32BE
+inverseWord w = w0 `xor` w1 `xor` w2 `xor` w3
+    where 
+      w0 = (w `shiftR` 24) .&. (0x000000ff)
+      w1 = (w `shiftR`  8) .&. (0x0000ff00)
+      w2 = (w `shiftL`  8) .&. (0x00ff0000)
+      w3 = (w `shiftL` 24) .&. (0xff000000)  
+      
+cCompress128 :: Expanded128 -> KEY128
+cCompress128 (Expanded128 s0 _ _ _ _ _ _ _ _ _ _) = 
+    KEY128 r0 r1 r2 r3
+	  where (STATE r0 r1 r2 r3) = invTranspose $ fmapState inverseWord s0
+
+cCompress192 :: Expanded192 -> KEY192
+cCompress192 (Expanded192 s0 s1 _ _ _ _ _ _ _ _ _ _ _) =
+	KEY192 r0 r1 r2 r3 r4 r5
+	where (STATE r0 r1 r2 r3) = invTranspose $ fmapState inverseWord s0
+	      (STATE r4 r5 _ _) = invTranspose $ fmapState inverseWord s1
+	      
+cCompress256 :: Expanded256 -> KEY256
+cCompress256 (Expanded256 s0 s1 _ _ _ _ _ _ _ _ _ _ _ _ _) =
+    KEY256 r0 r1 r2 r3 r4 r5 r6 r7
+	where (STATE r0 r1 r2 r3) = invTranspose $ fmapState inverseWord s0
+	      (STATE r4 r5 r6 r7) = invTranspose $ fmapState inverseWord s1
+
