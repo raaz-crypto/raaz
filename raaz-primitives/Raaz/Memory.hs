@@ -156,9 +156,9 @@ instance Storable a => Memory (CryptoCell a) where
 
 -- | Types which can be stored in a buffer.
 class Bufferable b where
-  sizeOfBuffer :: b -> BYTES Int
-  default sizeOfBuffer :: Storable b => b -> BYTES Int
-  sizeOfBuffer = fromIntegral . sizeOf
+  maxSizeOf :: b -> BYTES Int
+  default maxSizeOf :: Storable b => b -> BYTES Int
+  maxSizeOf = fromIntegral . sizeOf
 
 -- | Buffer whose size depends on the `Bufferable` instance of @b@.
 data Buffer b = Buffer {-# UNPACK #-} !(BYTES Int)
@@ -180,7 +180,7 @@ instance Bufferable b => Memory (Buffer b) where
     where mal :: Bufferable b => b -> IO (Buffer b)
           mal b = fmap (Buffer size) $ mallocForeignPtrBytes (fromIntegral size)
             where
-              size = sizeOfBuffer b
+              size = maxSizeOf b
   freeMemory (Buffer _ fptr) = finalizeForeignPtr fptr
   copyMemory (Buffer sz sf) (Buffer _ df) = withForeignPtr sf do1
     where do1 sptr = withForeignPtr df (do2 sptr)
@@ -191,4 +191,4 @@ instance Bufferable b => Memory (Buffer b) where
       with a action = withSecureMem bytes (action . Buffer bytes) bk
         where
           bytes :: BYTES Int
-          bytes = sizeOfBuffer a
+          bytes = maxSizeOf a
