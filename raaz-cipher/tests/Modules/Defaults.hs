@@ -65,8 +65,8 @@ cportableVsReference :: ( HasInverse g1
                         , (PrimitiveOf (Inverse g1) ~ PrimitiveOf (Inverse g2))
                         , Initializable (PrimitiveOf g1)
                         , Initializable (PrimitiveOf (Inverse g1))
-                        , Eq (PrimitiveOf g1)
-                        , Eq (PrimitiveOf (Inverse g1)))
+                        , Eq (Cxt (PrimitiveOf g1))
+                        , Eq (Cxt (PrimitiveOf (Inverse g1))))
                      => g1 -> g2 -> ByteString -> [Test]
 cportableVsReference ge1 ge2 iv' =
   [ testGadget ge1 ge2 (getIV iv) "CPortable vs Reference Encryption"
