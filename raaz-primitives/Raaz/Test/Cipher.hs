@@ -22,7 +22,6 @@ import           Test.Framework.Providers.HUnit (hUnitTestToTests)
 import           Raaz.ByteSource
 import           Raaz.Types
 import           Raaz.Primitives
-import           Raaz.Primitives.Cipher
 import           Raaz.Util.ByteString           (hex)
 
 -- | Checks standard plaintext - ciphertext for the given cipher
