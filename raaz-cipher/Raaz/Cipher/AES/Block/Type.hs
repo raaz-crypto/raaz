@@ -13,6 +13,7 @@ module Raaz.Cipher.AES.Block.Type
        , Expanded192(..)
        , KEY256(..)
        , Expanded256(..)
+       , AEScxt(..)
        , incrState
        , fmapState
        , constructWord32BE
@@ -28,7 +29,6 @@ import Foreign.Ptr          (castPtr)
 import Foreign.Storable     (sizeOf,Storable(..))
 import Numeric              (showHex)
 
-import Raaz.Memory
 import Raaz.Types
 import Raaz.Parse
 import Raaz.Write
@@ -49,6 +49,10 @@ instance Show STATE where
                            . showWord32 w2
                            . showChar ' '
                            $ showWord32 w3 ""
+
+-- | AES Cxt (Used in CBC and CTR mode)
+newtype AEScxt = AEScxt STATE
+         deriving (Show,Typeable,Eq,Storable)
 
 -- | Incrments the STATE considering it to be a byte string. It is
 -- sligthly different because of transposing of data during load and

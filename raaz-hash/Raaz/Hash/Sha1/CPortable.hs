@@ -13,6 +13,8 @@ Portable C implementation of SHA1 hash.
 
 module Raaz.Hash.Sha1.CPortable () where
 
+import Control.Applicative ( (<$>) )
+
 import Raaz.Memory
 import Raaz.Primitives
 import Raaz.Types
@@ -33,8 +35,8 @@ instance Gadget (CGadget SHA1) where
   type PrimitiveOf (CGadget SHA1) = SHA1
   type MemoryOf (CGadget SHA1) = CryptoCell SHA1
   newGadgetWithMemory = return . CGadget
-  initialize (CGadget cc) (SHA1IV sha1) = cellStore cc sha1
-  finalize (CGadget cc) = cellLoad cc
+  initialize (CGadget cc) (SHA1Cxt sha1) = cellStore cc sha1
+  finalize (CGadget cc) = SHA1Cxt <$> cellLoad cc
   apply (CGadget cc) n cptr = sha1Compress cc n cptr
 
 instance PaddableGadget (CGadget SHA1)

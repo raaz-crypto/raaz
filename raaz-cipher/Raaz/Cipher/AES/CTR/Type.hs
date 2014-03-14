@@ -5,9 +5,8 @@
 
 module Raaz.Cipher.AES.CTR.Type where
 
-import           Data.ByteString              (ByteString)
 import qualified Data.ByteString              as BS
-import           Foreign.Storable
+import           Foreign.Storable             (sizeOf)
 import           Raaz.Primitives
 import           Raaz.Primitives.Cipher
 import           Raaz.Types
@@ -19,7 +18,7 @@ import           Raaz.Cipher.AES.Internal
 instance Primitive (Cipher AES k CTR e) where
   blockSize _ = cryptoCoerce $ BITS (8 :: Int)
   {-# INLINE blockSize #-}
-  newtype IV (Cipher AES k CTR e) = AESIV (k, STATE)
+  newtype Cxt (Cipher AES k CTR e) = AESCxt (k, STATE) deriving Eq
 
 instance EndianStore k => Initializable (Cipher AES k CTR e) where
   ivSize _ = BYTES (ksz + ssz)
@@ -27,7 +26,7 @@ instance EndianStore k => Initializable (Cipher AES k CTR e) where
       ksz = sizeOf (undefined :: k)
       ssz = sizeOf (undefined :: STATE)
   {-# INLINE ivSize #-}
-  getIV = AESIV . getIVCTR
+  getIV = AESCxt . getIVCTR
     where
       getIVCTR bs = (k,fromByteString ivbs)
         where

@@ -70,7 +70,7 @@ import           Raaz.Util.Ptr
 -- | Abstraction that captures a crypto primitives. Every primitive
 -- that that we provide is a type which is an instance of this
 -- class. A primitive consists of the following (1) A block size and
--- (2) an intialisation value (captured by the data family `IV`). For
+-- (2) an intialisation value (captured by the data family `Cxt`). For
 -- a stream primitive (like a stream cipher) the block size is 1.
 --
 class Primitive p where
@@ -78,8 +78,8 @@ class Primitive p where
   -- | The block size.
   blockSize :: p -> BYTES Int
 
-  -- | The initialisation value.
-  data IV p :: *
+  -- | The context.
+  data Cxt p :: *
 
 -- | A safe primitive is a primitive whose computation does not need
 -- modification of the input. Examples of safe primitives are
@@ -93,7 +93,7 @@ class Primitive p => SafePrimitive p where
 -- are hmac's.
 class Primitive p => Initializable p where
   ivSize :: p -> BYTES Int
-  getIV :: ByteString -> IV p
+  getIV :: ByteString -> Cxt p
 
 -----------------   A cryptographic gadget. ----------------------------
 
@@ -130,11 +130,11 @@ class ( Primitive (PrimitiveOf g), Memory (MemoryOf g) )
   -- | Initializes the gadget. For each computation of the primitive,
   -- the gadget needs to be initialised so that the internal memory is
   -- reset to the start.
-  initialize :: g -> IV (PrimitiveOf g) -> IO ()
+  initialize :: g -> Cxt (PrimitiveOf g) -> IO ()
 
   -- | Finalize the data. This does not destroy the gadget and the
   -- gadget can be used again after initialisation.
-  finalize :: g -> IO (PrimitiveOf g)
+  finalize :: g -> IO (Cxt (PrimitiveOf g))
 
   -- | The recommended number of blocks to process at a time. While
   -- processing files, bytestrings it makes sense to handle multiple
@@ -151,15 +151,15 @@ class ( Primitive (PrimitiveOf g), Memory (MemoryOf g) )
   apply :: g -> BLOCKS (PrimitiveOf g) -> CryptoPtr -> IO ()
 
 
--- | The function @newInitializedGadget iv@ creates a new instance of
--- the gadget with its memory allocated and initialised to @iv@.
-newInitializedGadget :: Gadget g => IV (PrimitiveOf g) -> IO g
-newInitializedGadget iv = do
+-- | The function @newInitializedGadget cxt@ creates a new instance of
+-- the gadget with its memory allocated and initialised to @cxt@.
+newInitializedGadget :: Gadget g => Cxt (PrimitiveOf g) -> IO g
+newInitializedGadget cxt = do
   g <- newGadget
-  initialize g iv
+  initialize g cxt
   return g
 
--- | The function @newGadget iv@ creates a new instance of the gadget
+-- | The function @newGadget cxt@ creates a new instance of the gadget
 -- with its memory allocated.
 newGadget :: Gadget g => IO g
 newGadget = newMemory >>= newGadgetWithMemory
@@ -201,7 +201,7 @@ inverseGadget _ = undefined
 
 -- | This function runs an action that expects a gadget as input.
 withGadget :: Gadget g
-           => IV (PrimitiveOf g) -- ^ IV to initialize the gadget with.
+           => Cxt (PrimitiveOf g) -- ^ IV to initialize the gadget with.
            -> (g -> IO a)        -- ^ Action to run
            -> IO a
 withGadget iv action = newInitializedGadget iv >>= action

@@ -4,6 +4,7 @@ module Modules.Defaults (benchmarksDefault, benchmarksTinyDefault) where
 import           Criterion.Main
 import           Data.ByteString          (ByteString,pack)
 import qualified Data.ByteString          as BS
+import           Data.Typeable
 
 import           Raaz.Primitives
 import           Raaz.Benchmark.Gadget
@@ -12,13 +13,13 @@ import           Raaz.Primitives.Cipher
 import           Raaz.Cipher.AES.Internal
 import           Raaz.Cipher.AES.ECB
 
-genIV :: (Initializable p) => ByteString -> IV p
+genIV :: (Initializable p) => ByteString -> Cxt p
 genIV bs = generateIV undefined bs
   where
-    generateIV :: (Initializable p) => p -> ByteString -> IV p
+    generateIV :: (Initializable p) => p -> ByteString -> Cxt p
     generateIV p = getIV . BS.take (fromIntegral $ ivSize p)
 
-testKey128 :: (Initializable g) => IV g
+testKey128 :: (Initializable g) => Cxt g
 testKey128 =  genIV $ pack [0x2b,0x7e,0x15,0x16
                            ,0x28,0xae,0xd2,0xa6
                            ,0xab,0xf7,0x15,0x88
@@ -29,7 +30,7 @@ testKey128 =  genIV $ pack [0x2b,0x7e,0x15,0x16
                            ,0x0C,0x0D,0x0E,0x0F]
 
 
-testKey192 :: (Initializable g) => IV g
+testKey192 :: (Initializable g) => Cxt g
 testKey192 =  genIV $ pack [0x8e,0x73,0xb0,0xf7
                            ,0xda,0x0e,0x64,0x52
                            ,0xc8,0x10,0xf3,0x2b
@@ -42,7 +43,7 @@ testKey192 =  genIV $ pack [0x8e,0x73,0xb0,0xf7
                            ,0x0C,0x0D,0x0E,0x0F]
 
 
-testKey256 :: (Initializable g) => IV g
+testKey256 :: (Initializable g) => Cxt g
 testKey256 =  genIV $ pack [0x60,0x3d,0xeb,0x10
                            ,0x15,0xca,0x71,0xbe
                            ,0x2b,0x73,0xae,0xf0
@@ -61,40 +62,42 @@ nBlocks g = 10 * recommendedBlocks g
 
 benchCipher g gname iv = benchGadgetWith g gname iv (nBlocks g)
 
-benchmarksTinyDefault mode = [ benchCipher (r128 mode (undefined :: Encryption)) "AES128 Reference Encryption" testKey128
-                             , benchCipher (c128 mode (undefined :: Encryption)) "AES128 CPortable Encryption" testKey128 ]
+benchmarksTinyDefault m = [ benchCipher (pr128 m) ("AES128 " ++ mode ++ " Reference Encryption") testKey128
+                          , benchCipher (pc128 m) ("AES128 " ++ mode ++ " CPortable Encryption") testKey128 ]
   where
-    r128 :: (Gadget (Ref128 mode stage)) => mode -> stage -> Ref128 mode stage
-    r128 = undefined
-    c128 :: (Gadget (CPortable128 mode stage)) => mode -> stage -> CPortable128 mode stage
-    c128 = undefined
+    pr128 :: Gadget (HGadget (Cipher AES KEY128 m Encryption)) => m -> HGadget (Cipher AES KEY128 m Encryption)
+    pr128 = undefined
+    pc128 :: Gadget (CGadget (Cipher AES KEY128 m Encryption)) => m -> CGadget (Cipher AES KEY128 m Encryption)
+    pc128 = undefined
+    mode = show $ typeOf m
 
-benchmarksDefault mode = [ benchCipher (r128 mode encr) "AES128 Reference Encryption" testKey128
-                         , benchCipher (c128 mode encr) "AES128 CPortable Encryption" testKey128
-                         , benchCipher (r128 mode decr) "AES128 Reference Decryption" testKey128
-                         , benchCipher (c128 mode decr) "AES128 CPortable Decryption" testKey128
-                         , benchCipher (r192 mode encr) "AES192 Reference Encryption" testKey192
-                         , benchCipher (c192 mode encr) "AES192 CPortable Encryption" testKey192
-                         , benchCipher (r192 mode decr) "AES192 Reference Decryption" testKey192
-                         , benchCipher (c192 mode decr) "AES192 CPortable Decryption" testKey192
-                         , benchCipher (r256 mode encr) "AES256 Reference Encryption" testKey256
-                         , benchCipher (c256 mode encr) "AES256 CPortable Encryption" testKey256
-                         , benchCipher (r256 mode decr) "AES256 Reference Decryption" testKey256
-                         , benchCipher (c256 mode decr) "AES256 CPortable Decryption" testKey256 ]
+benchmarksDefault m = [ benchCipher (pr128 m encr) ("AES128 " ++ mode ++ " Reference Encryption") testKey128
+                      , benchCipher (pc128 m encr) ("AES128 " ++ mode ++ " CPortable Encryption") testKey128
+                      , benchCipher (pr128 m decr) ("AES128 " ++ mode ++ " Reference Decryption") testKey128
+                      , benchCipher (pc128 m decr) ("AES128 " ++ mode ++ " CPortable Decryption") testKey128
+                      , benchCipher (pr192 m encr) ("AES192 " ++ mode ++ " Reference Encryption") testKey192
+                      , benchCipher (pc192 m encr) ("AES192 " ++ mode ++ " CPortable Encryption") testKey192
+                      , benchCipher (pr192 m decr) ("AES192 " ++ mode ++ " Reference Decryption") testKey192
+                      , benchCipher (pc192 m decr) ("AES192 " ++ mode ++ " CPortable Decryption") testKey192
+                      , benchCipher (pr256 m encr) ("AES256 " ++ mode ++ " Reference Encryption") testKey256
+                      , benchCipher (pc256 m encr) ("AES256 " ++ mode ++ " CPortable Encryption") testKey256
+                      , benchCipher (pr256 m decr) ("AES256 " ++ mode ++ " Reference Decryption") testKey256
+                      , benchCipher (pc256 m decr) ("AES256 " ++ mode ++ " CPortable Decryption") testKey256 ]
   where
     encr :: Encryption
     encr = undefined
     decr :: Decryption
     decr = undefined
-    r128 :: (Gadget (Ref128 mode stage)) => mode -> stage -> Ref128 mode stage
-    r128 = undefined
-    r192 :: (Gadget (Ref192 mode stage)) => mode -> stage -> Ref192 mode stage
-    r192 = undefined
-    r256 :: (Gadget (Ref256 mode stage)) => mode -> stage -> Ref256 mode stage
-    r256 = undefined
-    c128 :: (Gadget (CPortable128 mode stage)) => mode -> stage -> CPortable128 mode stage
-    c128 = undefined
-    c192 :: (Gadget (CPortable192 mode stage)) => mode -> stage -> CPortable192 mode stage
-    c192 = undefined
-    c256 :: (Gadget (CPortable256 mode stage)) => mode -> stage -> CPortable256 mode stage
-    c256 = undefined
+    pr128 :: Gadget (HGadget (Cipher AES KEY128 m stage)) => m -> stage -> HGadget (Cipher AES KEY128 m stage)
+    pr128 = undefined
+    pr192 :: Gadget (HGadget (Cipher AES KEY192 m stage)) => m -> stage -> HGadget (Cipher AES KEY192 m stage)
+    pr192 = undefined
+    pr256 :: Gadget (HGadget (Cipher AES KEY256 m stage)) => m -> stage -> HGadget (Cipher AES KEY256 m stage)
+    pr256 = undefined
+    pc128 :: Gadget (CGadget (Cipher AES KEY128 m stage)) => m -> stage -> CGadget (Cipher AES KEY128 m stage)
+    pc128 = undefined
+    pc192 :: Gadget (CGadget (Cipher AES KEY192 m stage)) => m -> stage -> CGadget (Cipher AES KEY192 m stage)
+    pc192 = undefined
+    pc256 :: Gadget (CGadget (Cipher AES KEY256 m stage)) => m -> stage -> CGadget (Cipher AES KEY256 m stage)
+    pc256 = undefined
+    mode = show $ typeOf m
