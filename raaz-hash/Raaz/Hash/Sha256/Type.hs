@@ -4,7 +4,7 @@
 
 module Raaz.Hash.Sha256.Type
        ( SHA256(..)
-       , IV(SHA256IV)
+       , Cxt(SHA256Cxt)
        ) where
 
 import Control.Applicative ((<$>), (<*>))
@@ -98,7 +98,7 @@ instance EndianStore SHA256 where
 instance Primitive SHA256 where
   blockSize _ = cryptoCoerce $ BITS (512 :: Int)
   {-# INLINE blockSize #-}
-  newtype IV SHA256 = SHA256IV SHA256
+  newtype Cxt SHA256 = SHA256Cxt SHA256 deriving Eq
 
 instance SafePrimitive SHA256
 
@@ -107,8 +107,8 @@ instance HasPadding SHA256 where
   padLength = padLength64
   padding   = padding64
 
-instance Default (IV SHA256) where
-  def = SHA256IV $ SHA256 0x6a09e667
+instance Default (Cxt SHA256) where
+  def = SHA256Cxt $ SHA256 0x6a09e667
                           0xbb67ae85
                           0x3c6ef372
                           0xa54ff53a

@@ -8,7 +8,6 @@ module Raaz.Cipher.AES.CBC.Ref () where
 
 import Control.Applicative
 import Control.Monad
-import Foreign.Storable
 
 import Raaz.Memory
 import Raaz.Primitives
@@ -24,60 +23,78 @@ instance Gadget (HGadget (Cipher AES KEY128 CBC Encryption)) where
   type PrimitiveOf (HGadget (Cipher AES KEY128 CBC Encryption)) = Cipher AES KEY128 CBC Encryption
   type MemoryOf (HGadget (Cipher AES KEY128 CBC Encryption)) = (CryptoCell Expanded128, CryptoCell STATE)
   newGadgetWithMemory = return . HGadget
-  initialize (HGadget (ek,s)) (AESIV (k,iv)) = do
+  initialize (HGadget (ek,s)) (AESCxt (k,iv)) = do
     hExpand128 k ek
     cellStore s iv
-  finalize _ = return Cipher
+  finalize (HGadget (ek,s)) = do
+    key <- hCompress128 <$> cellLoad ek
+    state <- cellLoad s
+    return $ AESCxt (key,state)
   apply g = loadAndApply moveAndEncrypt g encrypt128
 
 instance Gadget (HGadget (Cipher AES KEY128 CBC Decryption)) where
   type PrimitiveOf (HGadget (Cipher AES KEY128 CBC Decryption)) = Cipher AES KEY128 CBC Decryption
   type MemoryOf (HGadget (Cipher AES KEY128 CBC Decryption)) = (CryptoCell Expanded128, CryptoCell STATE)
   newGadgetWithMemory = return . HGadget
-  initialize (HGadget (ek,s)) (AESIV (k,iv)) = do
+  initialize (HGadget (ek,s)) (AESCxt (k,iv)) = do
     hExpand128 k ek
     cellStore s iv
-  finalize _ = return Cipher
+  finalize (HGadget (ek,s)) = do
+    key <- hCompress128 <$> cellLoad ek
+    state <- cellLoad s
+    return $ AESCxt (key,state)
   apply g = loadAndApply moveAndDecrypt g decrypt128
 
 instance Gadget (HGadget (Cipher AES KEY192 CBC Encryption)) where
   type PrimitiveOf (HGadget (Cipher AES KEY192 CBC Encryption)) = Cipher AES KEY192 CBC Encryption
   type MemoryOf (HGadget (Cipher AES KEY192 CBC Encryption)) = (CryptoCell Expanded192, CryptoCell STATE)
   newGadgetWithMemory = return . HGadget
-  initialize (HGadget (ek,s)) (AESIV (k,iv)) = do
+  initialize (HGadget (ek,s)) (AESCxt (k,iv)) = do
     hExpand192 k ek
     cellStore s iv
-  finalize _ = return Cipher
+  finalize (HGadget (ek,s)) = do
+    key <- hCompress192 <$> cellLoad ek
+    state <- cellLoad s
+    return $ AESCxt (key,state)
   apply g = loadAndApply moveAndEncrypt g encrypt192
 
 instance Gadget (HGadget (Cipher AES KEY192 CBC Decryption)) where
   type PrimitiveOf (HGadget (Cipher AES KEY192 CBC Decryption)) = Cipher AES KEY192 CBC Decryption
   type MemoryOf (HGadget (Cipher AES KEY192 CBC Decryption)) = (CryptoCell Expanded192, CryptoCell STATE)
   newGadgetWithMemory = return . HGadget
-  initialize (HGadget (ek,s)) (AESIV (k,iv)) = do
+  initialize (HGadget (ek,s)) (AESCxt (k,iv)) = do
     hExpand192 k ek
     cellStore s iv
-  finalize _ = return Cipher
+  finalize (HGadget (ek,s)) = do
+    key <- hCompress192 <$> cellLoad ek
+    state <- cellLoad s
+    return $ AESCxt (key,state)
   apply g = loadAndApply moveAndDecrypt g decrypt192
 
 instance Gadget (HGadget (Cipher AES KEY256 CBC Encryption)) where
   type PrimitiveOf (HGadget (Cipher AES KEY256 CBC Encryption)) = Cipher AES KEY256 CBC Encryption
   type MemoryOf (HGadget (Cipher AES KEY256 CBC Encryption)) = (CryptoCell Expanded256, CryptoCell STATE)
   newGadgetWithMemory = return . HGadget
-  initialize (HGadget (ek,s)) (AESIV (k,iv)) = do
+  initialize (HGadget (ek,s)) (AESCxt (k,iv)) = do
     hExpand256 k ek
     cellStore s iv
-  finalize _ = return Cipher
+  finalize (HGadget (ek,s)) = do
+    key <- hCompress256 <$> cellLoad ek
+    state <- cellLoad s
+    return $ AESCxt (key,state)
   apply g = loadAndApply moveAndEncrypt g encrypt256
 
 instance Gadget (HGadget (Cipher AES KEY256 CBC Decryption)) where
   type PrimitiveOf (HGadget (Cipher AES KEY256 CBC Decryption)) = Cipher AES KEY256 CBC Decryption
   type MemoryOf (HGadget (Cipher AES KEY256 CBC Decryption)) = (CryptoCell Expanded256, CryptoCell STATE)
   newGadgetWithMemory = return . HGadget
-  initialize (HGadget (ek,s)) (AESIV (k,iv)) = do
+  initialize (HGadget (ek,s)) (AESCxt (k,iv)) = do
     hExpand256 k ek
     cellStore s iv
-  finalize _ = return Cipher
+  finalize (HGadget (ek,s)) = do
+    key <- hCompress256 <$> cellLoad ek
+    state <- cellLoad s
+    return $ AESCxt (key,state)
   apply g = loadAndApply moveAndDecrypt g decrypt256
 
 

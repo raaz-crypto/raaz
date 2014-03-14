@@ -44,10 +44,10 @@ allHashTests :: ( Arbitrary h
                 , Typeable h
                 , PrimitiveOf (CGadget h) ~ h
                 , PrimitiveOf (HGadget h) ~ h
-                , Default (IV h)
+                , Default (Cxt h)
                 , Gadget (HGadget h)
                 , Gadget (CGadget h)
-                , Eq h
+                , Eq (Cxt h)
                 )
              => h         -- ^ dummy hash type to satisfy the type checker
              -> [(B.ByteString,B.ByteString)]
@@ -109,10 +109,10 @@ testStandardHashValues h = hUnitTestToTests . test . map checkHash
 
 testCGadgetvsHGadget :: ( PrimitiveOf (CGadget p) ~ p
                         , PrimitiveOf (HGadget p) ~ p
-                        , Default (IV p)
+                        , Default (Cxt p)
                         , Gadget (HGadget p)
                         , Gadget (CGadget p)
-                        , Eq p
+                        , Eq (Cxt p)
                         ) => p -> Test
 testCGadgetvsHGadget p = testGadget (g p) (ref p) def "CGadget vs HGadget"
   where

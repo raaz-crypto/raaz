@@ -9,8 +9,6 @@ module Raaz.Benchmark.Gadget
 import Criterion.Main
 import Data.Typeable
 
-
-import Raaz.Memory
 import Raaz.Primitives
 import Raaz.Types
 import Raaz.Util.Ptr
@@ -19,7 +17,7 @@ import Raaz.Util.Ptr
 benchGadget  :: ( Gadget g, Typeable (PrimitiveOf g) )
              => g                      -- ^ Gadget
              -> String                 -- ^ Gadget name
-             -> IV (PrimitiveOf g)     -- ^ Gadget IV
+             -> Cxt (PrimitiveOf g)     -- ^ Gadget Cxt
              -> CryptoPtr              -- ^ Buffer on which to benchmark
              -> BLOCKS (PrimitiveOf g) -- ^ Size of Buffer
              -> Benchmark
@@ -30,7 +28,7 @@ benchGadget g' gname iv cptr nblks = bench name $ applyGadget g' iv cptr nblks
 benchGadgetWith :: ( Gadget g, Typeable (PrimitiveOf g) )
                 => g                      -- ^ Gadget
                 -> String                 -- ^ Gadget name
-                -> IV (PrimitiveOf g)     -- ^ Gadget IV
+                -> Cxt (PrimitiveOf g)     -- ^ Gadget Cxt
                 -> BLOCKS (PrimitiveOf g) -- ^ Size of random buffer which will be allocated
                 -> Benchmark
 benchGadgetWith g' gname iv nblks = bench name $ allocaBuffer nblks go
@@ -40,7 +38,7 @@ benchGadgetWith g' gname iv nblks = bench name $ allocaBuffer nblks go
 
 applyGadget :: ( Gadget g )
             => g
-            -> IV (PrimitiveOf g)
+            -> Cxt (PrimitiveOf g)
             -> CryptoPtr
             -> BLOCKS (PrimitiveOf g)
             -> IO ()

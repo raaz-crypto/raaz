@@ -74,14 +74,14 @@ instance Primitive p => Primitive (RandomPrim p) where
     where
       getPrim :: RandomPrim p -> p
       getPrim _ = undefined
-  newtype IV (RandomPrim p) = RSIV (IV p)
+  newtype Cxt (RandomPrim p) = RSCxt (Cxt p)
 
 instance Initializable p => Initializable (RandomPrim p) where
   ivSize rs = ivSize (getPrim rs)
     where
       getPrim :: RandomPrim p -> p
       getPrim _ = undefined
-  getIV bs = RSIV (getIV bs)
+  getIV bs = RSCxt (getIV bs)
 
 instance StreamGadget g => Gadget (RandomSource g) where
   type PrimitiveOf (RandomSource g) = RandomPrim (PrimitiveOf g)
@@ -92,15 +92,13 @@ instance StreamGadget g => Gadget (RandomSource g) where
     celloffset <- newMemory
     cellcounter <- newMemory
     return $ RandomSource g buffer celloffset cellcounter
-  initialize (RandomSource g buffer celloffset cellcounter) (RSIV iv) = do
+  initialize (RandomSource g buffer celloffset cellcounter) (RSCxt iv) = do
     initialize g iv
     zeroOutBuffer buffer
     cellStore celloffset (bufferSize buffer)
     cellStore cellcounter 0
   -- | Finalize is of no use for a random number generator.
-  finalize (RandomSource g _ _ _) = do
-    p <- finalize g
-    return (RandomPrim p)
+  finalize _ = undefined
   apply rs blks cptr = void $ fillBytes (cryptoCoerce blks) rs cptr
 
 instance StreamGadget g => ByteSource (RandomSource g) where

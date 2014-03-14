@@ -9,13 +9,14 @@ A cryptographic hash function abstraction.
 {-# LANGUAGE FlexibleContexts           #-}
 
 module Raaz.Primitives.Hash
-       ( Hash
+       ( Hash(..)
        -- , HMAC(..)
        , sourceHash', sourceHash
        , hash', hash
        , hashFile', hashFile
        ) where
 
+import           Control.Applicative  ((<$>))
 import           Data.Default
 import qualified Data.ByteString      as B
 import qualified Data.ByteString.Lazy as L
@@ -30,11 +31,15 @@ import           Raaz.Types
 
 class ( SafePrimitive h
       , PaddableGadget (Recommended h)
-      , Default (IV h)
+      , HasPadding h
+      , Default (Cxt h)
       , CryptoPrimitive h
       , Eq h
       , EndianStore h
       ) => Hash h where
+  cxtToHash :: (Cxt h) -> h
+
+
 
 -- | Hash a given byte source.
 sourceHash' :: ( ByteSource src
@@ -45,12 +50,13 @@ sourceHash' :: ( ByteSource src
             => g    -- ^ Gadget
             -> src  -- ^ Message
             -> IO (PrimitiveOf g)
+
 sourceHash' g src = withGadget def $ go g
   where go :: ( Gadget g1, Hash (PrimitiveOf g1), PaddableGadget g1)
             => g1 -> g1 -> IO (PrimitiveOf g1)
         go _ gad =  do
           transformGadget gad src
-          finalize gad
+          cxtToHash <$> finalize gad
 
 {-# INLINEABLE sourceHash' #-}
 
@@ -121,7 +127,7 @@ getHash _ = undefined
 instance Primitive h => Primitive (HMAC h) where
   blockSize = blockSize . getHash
   -- | Stores inner and outer pad
-  newtype IV (HMAC h) = HMACSecret B.ByteString
+  newtype Cxt (HMAC h) = HMACSecret B.ByteString
 
 newtype HMACBuffer p = HMACBuffer ForeignCryptoPtr deriving Eq
 

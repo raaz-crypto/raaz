@@ -526,12 +526,15 @@ void raazCipherAESCBCEncrypt(Word32 *key, Word8 *input, Word8 *iv, Word32 nblock
         input += 16;
         nblocks--;
     }
+    Copy128(iv, input - 16);
 }
 
 void raazCipherAESCBCDecrypt(Word32 *key, Word8 *input, Word8 *iv, Word32 nblocks, KEY k)
 {
     Word8 *ptr;
     ptr = input + (nblocks - 1)*16;
+    Word8 *ivCopy = (Word8 *) malloc (16 * sizeof(Word8));
+    Copy128(ivCopy, ptr);
     while(nblocks > 1)
     {
         raazCipherAESBlockDecrypt(key,ptr,k);
@@ -544,6 +547,7 @@ void raazCipherAESCBCDecrypt(Word32 *key, Word8 *input, Word8 *iv, Word32 nblock
         raazCipherAESBlockDecrypt(key,ptr,k);
         Xor128(ptr,ptr,iv);
     }
+    Copy128(iv, ivCopy);    
 }
 
 #define Incr128(ptr)               \

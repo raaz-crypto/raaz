@@ -59,15 +59,14 @@ testKey256 =  pack [0x60,0x3d,0xeb,0x10
                    ,0x0C,0x0D,0x0E,0x0F]
 
 
-
 cportableVsReference :: ( HasInverse g1
                         , HasInverse g2
                         , (PrimitiveOf g1 ~ PrimitiveOf g2)
                         , (PrimitiveOf (Inverse g1) ~ PrimitiveOf (Inverse g2))
                         , Initializable (PrimitiveOf g1)
                         , Initializable (PrimitiveOf (Inverse g1))
-                        , Eq (PrimitiveOf g1)
-                        , Eq (PrimitiveOf (Inverse g1)))
+                        , Eq (Cxt (PrimitiveOf g1))
+                        , Eq (Cxt (PrimitiveOf (Inverse g1))))
                      => g1 -> g2 -> ByteString -> [Test]
 cportableVsReference ge1 ge2 iv' =
   [ testGadget ge1 ge2 (getIV iv) "CPortable vs Reference Encryption"
