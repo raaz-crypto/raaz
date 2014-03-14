@@ -10,6 +10,9 @@ include Makefile.configure # Read in configuration
 .PHONY: echo-variables        # Shows make variables. mainly for debugging
 .PHONY: travis-before-install # Sets up the travis environment.
 .PHONY: hlint   # runs hlint on the sources
+.PHONY: local-repo local-repo-clean # Local repo rules.
+.PHONY: src-tarball # Creates the source tarballs in the respective directories.
+
 #
 # For each package we have a target with the same name and a target
 # with the suffix clean. The former builds the package and the latter
@@ -31,6 +34,8 @@ PACKAGE_CLEAN=$(addsuffix -clean, ${PACKAGES})
 
 
 TEST_PATH=dist/build/tests/tests # path to the tests in any package.
+
+export PACKAGES
 
 #
 # Sets up the cabal config. The directory platform contains the cabal
@@ -73,6 +78,15 @@ CABAL=cabal
 
 endif
 
+# Building the local repo
+
+local-repo: src-tarball
+	./scripts/raaz-repo ${PACKAGES}
+	make -C local-repo index
+
+local-repo-clean:
+	make -C local-repo clean
+
 # This target just prints the setting of each relevant
 # variable. Useful for debugging.
 
@@ -96,7 +110,6 @@ ${PACKAGES}:
 	${CABAL} build;\
 	${CABAL} test;\
 	${CABAL} check;\
-	${CABAL} sdist;\
 	${CABAL} haddock;\
 	${CABAL} install
 
@@ -107,8 +120,15 @@ tests:
 		cd ..;\
 		)
 
+src-tarball:
+	$(foreach pkg, ${PACKAGES},\
+		  cd ${pkg};\
+		  ${CABAL} sdist;\
+		  cd ..;\
+		)
 
-clean:   ${PACKAGE_CLEAN}
+
+clean:   ${PACKAGE_CLEAN} local-repo-clean
 
 ${PACKAGE_CLEAN}:
 	cd $(patsubst %-clean,%,$@);\
