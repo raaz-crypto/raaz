@@ -11,6 +11,7 @@ env:
   # config files in the platform subdirectory.
   - HASKELL_PLATFORM=2012.2.0.0 GHC_VERSION=7.4.1 CABAL_VERSION=1.18
   - HASKELL_PLATFORM=2013.2.0.0 GHC_VERSION=7.6.3 CABAL_VERSION=1.18
+  - GHC_VERSION=7.8.1 CABAL_VERSION=1.18
 before_install:
   - "make travis-before-install"
   - "make echo-variables"
