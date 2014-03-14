@@ -12,6 +12,7 @@ include Makefile.configure # Read in configuration
 .PHONY: hlint   # runs hlint on the sources
 .PHONY: local-repo local-repo-clean # Local repo rules.
 .PHONY: src-tarball # Creates the source tarballs in the respective directories.
+.PHONY: scripts     # builds the scripts in the scripts directory
 
 #
 # For each package we have a target with the same name and a target
@@ -90,6 +91,8 @@ local-repo-clean:
 # This target just prints the setting of each relevant
 # variable. Useful for debugging.
 
+scripts:
+	make -C scripts all
 echo-variables:
 	@echo Makefile variables.
 	@echo -e '\t'CABAL_VERSION=${CABAL_VERSION}
