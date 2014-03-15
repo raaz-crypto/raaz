@@ -32,7 +32,7 @@ instance Initializable p => Arbitrary (TestIV p) where
   arbitrary = gen undefined
     where
       gen :: Initializable p => p -> Gen (TestIV p)
-      gen p = TestIV . BS.pack <$> vectorOf (fromIntegral $ ivSize p) arbitrary
+      gen p = TestIV . BS.pack <$> vectorOf (fromIntegral $ cxtSize p) arbitrary
 
 prop_length :: (StreamGadget g, Initializable (PrimitiveOf g))
             => g
@@ -45,7 +45,7 @@ prop_length g' (TestIV bsiv) (Sized sz) = monadicIO $ do
   where
     generateBytes = do
       g <- createGadget g'
-      initialize g (getIV bsiv)
+      initialize g (getCxt bsiv)
       genBytes g sz
     createGadget :: StreamGadget g => g -> IO (RandomSource g)
     createGadget _ = newGadget

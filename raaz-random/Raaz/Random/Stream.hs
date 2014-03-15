@@ -77,11 +77,11 @@ instance Primitive p => Primitive (RandomPrim p) where
   newtype Cxt (RandomPrim p) = RSCxt (Cxt p)
 
 instance Initializable p => Initializable (RandomPrim p) where
-  ivSize rs = ivSize (getPrim rs)
+  cxtSize rs = cxtSize (getPrim rs)
     where
       getPrim :: RandomPrim p -> p
       getPrim _ = undefined
-  getIV bs = RSCxt (getIV bs)
+  getCxt bs = RSCxt (getCxt bs)
 
 instance StreamGadget g => Gadget (RandomSource g) where
   type PrimitiveOf (RandomSource g) = RandomPrim (PrimitiveOf g)
