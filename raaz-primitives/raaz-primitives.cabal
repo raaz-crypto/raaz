@@ -22,6 +22,34 @@ cabal-version: >=1.9.2
 
 bug-reports: https://github.com/piyush-kurur/raaz/issues
 
+-- These files are used by the setup script.
+extra-source-files: Config.hs
+                    Config/Cache.hs
+                    Config/Cache/Linux.hs
+                    Config/Page.hs
+                    Config/Page/Linux.hs
+                    Config/ffi/htobe32/DESCRIPTION
+                    Config/ffi/htobe32/Test.hs
+                    Config/ffi/htobe32/test.c
+                    Config/ffi/htobe64/DESCRIPTION
+                    Config/ffi/htobe64/Test.hs
+                    Config/ffi/htobe64/test.c
+                    Config/ffi/htole32/DESCRIPTION
+                    Config/ffi/htole32/Test.hs
+                    Config/ffi/htole32/test.c
+                    Config/ffi/htole64/DESCRIPTION
+                    Config/ffi/htole64/Test.hs
+                    Config/ffi/htole64/test.c
+                    Config/ffi/memalign/DESCRIPTION
+                    Config/ffi/memalign/Test.hs
+                    Config/ffi/memalign/test.c
+                    Config/ffi/mlock/DESCRIPTION
+                    Config/ffi/mlock/Test.hs
+                    Config/ffi/mlock/test.c
+                    Config/ffi/mlockall/DESCRIPTION
+                    Config/ffi/mlockall/Test.hs
+                    Config/ffi/mlockall/test.c
+
 source-repository head
   type: git
   location: https://github.com/piyush-kurur/raaz
