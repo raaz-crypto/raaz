@@ -62,7 +62,7 @@ createAndApply' :: (Gadget g, Initializable (PrimitiveOf g))
                 -> IO ByteString            -- ^ Encrypted data
 createAndApply' g key src = do
   ng <- createGadget g
-  initialize ng (getIV key)
+  initialize ng (getCxt key)
   unsafeTransformUnsafeGadget' ng src
     where
       createGadget :: (Gadget g) => g -> IO g
