@@ -20,8 +20,8 @@ instance Primitive (Cipher AES k ECB e) where
   newtype Cxt (Cipher AES k ECB e) = AESCxt k deriving Eq
 
 instance EndianStore k => Initializable (Cipher AES k ECB e) where
-  ivSize _ = BYTES ksz
+  cxtSize _ = BYTES ksz
     where
       ksz = sizeOf (undefined :: k)
-  {-# INLINE ivSize #-}
-  getIV = AESCxt . fromByteString
+  {-# INLINE cxtSize #-}
+  getCxt = AESCxt . fromByteString

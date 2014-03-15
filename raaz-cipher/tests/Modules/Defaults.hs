@@ -69,10 +69,10 @@ cportableVsReference :: ( HasInverse g1
                         , Eq (Cxt (PrimitiveOf (Inverse g1))))
                      => g1 -> g2 -> ByteString -> [Test]
 cportableVsReference ge1 ge2 iv' =
-  [ testGadget ge1 ge2 (getIV iv) "CPortable vs Reference Encryption"
-  , testGadget (inverseGadget ge1) (inverseGadget ge2) (getIV iv) "CPortable vs Reference Decryption"]
+  [ testGadget ge1 ge2 (getCxt iv) "CPortable vs Reference Encryption"
+  , testGadget (inverseGadget ge1) (inverseGadget ge2) (getCxt iv) "CPortable vs Reference Decryption"]
   where
-    iv = BS.take (fromIntegral $ ivSize $ primitiveOf ge1) iv'
+    iv = BS.take (fromIntegral $ cxtSize $ primitiveOf ge1) iv'
 
 testsDefault m s128 s192 s256 =
       [ testGroup ("AES128 " ++ mode ++ " Reference") $ (testStandardCiphers (pr128 m) s128 "")

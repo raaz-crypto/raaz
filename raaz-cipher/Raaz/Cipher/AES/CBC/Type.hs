@@ -21,14 +21,14 @@ instance Primitive (Cipher AES k CBC e) where
   newtype Cxt (Cipher AES k CBC e) = AESCxt (k, STATE) deriving Eq
 
 instance EndianStore k => Initializable (Cipher AES k CBC e) where
-  ivSize _ = BYTES (ksz + ssz)
+  cxtSize _ = BYTES (ksz + ssz)
     where
       ksz = sizeOf (undefined :: k)
       ssz = sizeOf (undefined :: STATE)
-  {-# INLINE ivSize #-}
-  getIV = AESCxt . getIVCBC
+  {-# INLINE cxtSize #-}
+  getCxt = AESCxt . getCxtCBC
     where
-      getIVCBC bs = (k,fromByteString ivbs)
+      getCxtCBC bs = (k,fromByteString ivbs)
         where
           k = fromByteString kbs
           (kbs,ivbs) = BS.splitAt (sizeOf k) bs
