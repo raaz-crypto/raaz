@@ -117,8 +117,6 @@ test-Suite tests
      cc-options:
 
   c-sources: cbits/raaz/tests/load_test.c
-  include-dirs: cbits
-  includes: raaz/tests/load_test.h
 
   build-depends: base                           >= 4.5 && < 4.8
                , bytestring                     >= 0.9 && < 0.11
