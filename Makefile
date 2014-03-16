@@ -134,6 +134,10 @@ tests:
 		)
 
 src-tarball:
+	cd raaz-primitives; \
+	   ${CABAL} install --only-dependencies; \
+	   ${CABAL} configure; \
+	   cd ..
 	$(foreach pkg, ${PACKAGES},\
 		  cd ${pkg};\
 		  ${CABAL} sdist;\
