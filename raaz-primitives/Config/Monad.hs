@@ -3,7 +3,7 @@
 The configuration monad.
 
 -}
-module Raaz.Config.Monad
+module Config.Monad
        ( ConfigM
        , doIO
        , message, messageLn

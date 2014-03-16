@@ -8,7 +8,7 @@ import Control.Exception(catch)
 import Data.Char(isDigit, isSpace)
 import Prelude hiding (catch)
 
-import Raaz.Config.Monad
+import Config.Monad
 
 -- | Gets the L1 and L2 cache for a linux machine.
 cache :: ConfigM (Int, Int)

@@ -9,7 +9,7 @@ module Config.Page
        ) where
 import System.Info
 
-import           Raaz.Config.Monad
+import           Config.Monad
 import qualified Config.Page.Linux as Linux
 
 pageSize :: ConfigM Int

@@ -15,8 +15,8 @@ module Config
 import Control.Monad
 import System.FilePath
 
-import Raaz.Config.Monad
-import Raaz.Config.FFI
+import Config.Monad
+import Config.FFI
 import Config.Cache(cache)
 import Config.Page(pageSize)
 

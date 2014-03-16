@@ -7,7 +7,7 @@ Page Size on Linux platform.
 
 module Config.Page.Linux ( getPageSize ) where
 
-import Raaz.Config.Monad
+import Config.Monad
 
 foreign import ccall unsafe "unistd.h getpagesize" c_getpagesize :: IO Int
 

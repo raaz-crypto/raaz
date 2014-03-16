@@ -26,6 +26,8 @@ bug-reports: https://github.com/piyush-kurur/raaz/issues
 extra-source-files: Config.hs
                     Config/Cache.hs
                     Config/Cache/Linux.hs
+                    Config/FFI.hs
+                    Config/Monad.hs
                     Config/Page.hs
                     Config/Page/Linux.hs
                     Config/ffi/htobe32/DESCRIPTION
