@@ -92,10 +92,6 @@ library
                , test-framework                 >= 0.6 && < 0.9
                , test-framework-hunit           >= 0.2 && < 0.4
                , test-framework-quickcheck2     >= 0.2 && < 0.4
-               --
-               -- Dependency on other raaz-packages.
-               --
-               , raaz-config                    >= 0.0.0.1 && < 0.0.0.2
   ghc-options: -Wall
 
   c-sources: cbits/raaz/memory.c
