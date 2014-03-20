@@ -19,7 +19,7 @@ import           Raaz.Primitives.Cipher
 import           Raaz.Cipher.AES.Type
 
 import           Modules.AES.Block      ()
-
+import           Modules.Util
 
 testKey128 :: ByteString
 testKey128 =  pack [0x2b,0x7e,0x15,0x16
@@ -57,22 +57,6 @@ testKey256 =  pack [0x60,0x3d,0xeb,0x10
                    ,0x04,0x05,0x06,0x07
                    ,0x08,0x09,0x0A,0x0B
                    ,0x0C,0x0D,0x0E,0x0F]
-
-
-cportableVsReference :: ( HasInverse g1
-                        , HasInverse g2
-                        , (PrimitiveOf g1 ~ PrimitiveOf g2)
-                        , (PrimitiveOf (Inverse g1) ~ PrimitiveOf (Inverse g2))
-                        , Initializable (PrimitiveOf g1)
-                        , Initializable (PrimitiveOf (Inverse g1))
-                        , Eq (Cxt (PrimitiveOf g1))
-                        , Eq (Cxt (PrimitiveOf (Inverse g1))))
-                     => g1 -> g2 -> ByteString -> [Test]
-cportableVsReference ge1 ge2 iv' =
-  [ testGadget ge1 ge2 (getCxt iv) "CPortable vs Reference Encryption"
-  , testGadget (inverseGadget ge1) (inverseGadget ge2) (getCxt iv) "CPortable vs Reference Decryption"]
-  where
-    iv = BS.take (fromIntegral $ cxtSize $ primitiveOf ge1) iv'
 
 testsDefault m s128 s192 s256 =
       [ testStandardCiphers (pr128 m) s128 $ "AES128 " ++ mode ++ " HGadget"
