@@ -3,16 +3,19 @@
 This module provides required instances for Salsa20 Cipher.
 
 -}
-{-# LANGUAGE TypeFamilies                #-}
-{-# LANGUAGE FlexibleInstances           #-}
-{-# LANGUAGE ScopedTypeVariables         #-}
-{-# OPTIONS_GHC -fno-warn-orphans        #-}
+{-# LANGUAGE TypeFamilies                  #-}
+{-# LANGUAGE FlexibleInstances             #-}
+{-# LANGUAGE ScopedTypeVariables           #-}
+{-# LANGUAGE ForeignFunctionInterface      #-}
+{-# OPTIONS_GHC -fno-warn-orphans          #-}
+{-# CFILES raaz/cipher/cportable/salsa20.c #-}
+
 module Raaz.Cipher.Salsa20.Instances () where
 
 import Control.Applicative
 import Control.Monad
 import Data.Bits
-import Data.ByteString                    (ByteString,unpack)
+import Data.ByteString                    (unpack)
 import qualified Data.ByteString as BS
 import Data.Word
 import Foreign.Ptr
@@ -25,6 +28,68 @@ import Raaz.Util.ByteString
 import Raaz.Util.Ptr
 
 import Raaz.Cipher.Salsa20.Internal
+
+import qualified Data.ByteString.Internal as BI
+
+foreign import ccall unsafe
+  "raaz/cipher/cportable/salsa20.c expand128"
+  c_expand128  :: CryptoPtr -- ^ IV = (Key || Nonce || Counter)
+               -> CryptoPtr -- ^ expanded key
+               -> IO ()
+
+foreign import ccall unsafe
+  "raaz/cipher/cportable/salsa20.c expand256"
+  c_expand256  :: CryptoPtr  -- ^ IV = (Key || Nonce || Counter)
+               -> CryptoPtr  -- ^ expanded key
+               -> IO ()
+
+cExpansionWith :: EndianStore k
+                => (CryptoPtr -> CryptoPtr -> IO ())
+                -> CryptoCell Matrix
+                -> k
+                -> Nonce
+                -> Counter
+                -> IO ()
+cExpansionWith with mc key nonce cntr = withCell mc (expand key nonce  cntr)
+  where
+    szk = BYTES $ sizeOf key + sizeOf nonce + sizeOf cntr
+    expand k n c mptr = allocaBuffer szk $ \tempptr -> do
+      store tempptr k
+      let tempptrn = tempptr `plusPtr` sizeOf k
+      store tempptrn n
+      let tempptrc = tempptrn `plusPtr` sizeOf n
+      store tempptrc c
+      with tempptr mptr
+{-# INLINE cExpansionWith #-}
+
+cExpand128 :: CryptoCell Matrix -> KEY128 -> Nonce -> Counter -> IO ()
+cExpand128 = cExpansionWith c_expand128
+{-# INLINE cExpand128 #-}
+
+cExpand256 :: CryptoCell Matrix -> KEY256 -> Nonce -> Counter -> IO ()
+cExpand256 = cExpansionWith c_expand256
+{-# INLINE cExpand256 #-}
+
+foreign import ccall unsafe
+  "raaz/cipher/cportable/salsa20.c salsa20_20"
+  c_salsa20_20  :: CryptoPtr  -- ^ Expanded Key
+                -> CryptoPtr  -- ^ Input
+                -> BYTES Int  -- ^ Number of Bytes
+                -> IO ()
+
+foreign import ccall unsafe
+  "raaz/cipher/cportable/salsa20.c salsa20_12"
+  c_salsa20_12  :: CryptoPtr  -- ^ Expanded Key
+                -> CryptoPtr  -- ^ Input
+                -> BYTES Int  -- ^ Number of Bytes
+                -> IO ()
+
+foreign import ccall unsafe
+  "raaz/cipher/cportable/salsa20.c salsa20_8"
+  c_salsa20_8  :: CryptoPtr  -- ^ Expanded Key
+               -> CryptoPtr  -- ^ Input
+               -> BYTES Int  -- ^ Number of Bytes
+               -> IO ()
 
 
 -------------------------------- Salsa20 Group 20 -------------------------
@@ -45,9 +110,9 @@ instance EndianStore k => Initializable (Cipher (Salsa20 R20) k e) where
       nsz = sizeOf (undefined :: Nonce)
       csz = sizeOf (undefined :: Counter)
   {-# INLINE cxtSize #-}
-  getCxt = Salsa20_20Cxt . getCxt
+  getCxt = Salsa20_20Cxt . get
     where
-      getCxt bs = (k,n,c)
+      get bs = (k,n,c)
         where
           k = fromByteString kbs
           n = fromByteString nbs
@@ -96,36 +161,36 @@ instance Gadget (CGadget (Cipher (Salsa20 R20) KEY128 Encryption)) where
   type PrimitiveOf (CGadget (Cipher (Salsa20 R20) KEY128 Encryption)) = Cipher (Salsa20 R20) KEY128 Encryption
   type MemoryOf (CGadget (Cipher (Salsa20 R20) KEY128 Encryption)) = CryptoCell Matrix
   newGadgetWithMemory = return . CGadget
-  initialize (CGadget mc) (Salsa20_20Cxt (k,n,s)) = cellStore mc $ expand128 k n s
+  initialize (CGadget mc) (Salsa20_20Cxt (k,n,s)) = cExpand128 mc k n s
   finalize (CGadget mc) = Salsa20_20Cxt . compress128 <$> cellLoad mc
-  apply g = undefined
+  apply = applyCGad c_salsa20_20
 
 -- | CPortable Gadget instance for Salsa 20 with 16 Byte KEY
 instance Gadget (CGadget (Cipher (Salsa20 R20) KEY128 Decryption)) where
   type PrimitiveOf (CGadget (Cipher (Salsa20 R20) KEY128 Decryption)) = Cipher (Salsa20 R20) KEY128 Decryption
   type MemoryOf (CGadget (Cipher (Salsa20 R20) KEY128 Decryption)) = CryptoCell Matrix
   newGadgetWithMemory = return . CGadget
-  initialize (CGadget mc) (Salsa20_20Cxt (k,n,s)) = cellStore mc $ expand128 k n s
+  initialize (CGadget mc) (Salsa20_20Cxt (k,n,s)) = cExpand128 mc k n s
   finalize (CGadget mc) = Salsa20_20Cxt . compress128 <$> cellLoad mc
-  apply g = undefined
+  apply = applyCGad c_salsa20_20
 
 -- | CPortable Gadget instance for Salsa 20 with 32 Byte KEY
 instance Gadget (CGadget (Cipher (Salsa20 R20) KEY256 Encryption)) where
   type PrimitiveOf (CGadget (Cipher (Salsa20 R20) KEY256 Encryption)) = Cipher (Salsa20 R20) KEY256 Encryption
   type MemoryOf (CGadget (Cipher (Salsa20 R20) KEY256 Encryption)) = CryptoCell Matrix
   newGadgetWithMemory = return . CGadget
-  initialize (CGadget mc) (Salsa20_20Cxt (k,n,s)) = cellStore mc $ expand256 k n s
+  initialize (CGadget mc) (Salsa20_20Cxt (k,n,s)) = cExpand256 mc k n s
   finalize (CGadget mc) = Salsa20_20Cxt . compress256 <$> cellLoad mc
-  apply g = undefined
+  apply = applyCGad c_salsa20_20
 
 -- | CPortable Gadget instance for Salsa 20 with 32 Byte KEY
 instance Gadget (CGadget (Cipher (Salsa20 R20) KEY256 Decryption)) where
   type PrimitiveOf (CGadget (Cipher (Salsa20 R20) KEY256 Decryption)) = Cipher (Salsa20 R20) KEY256 Decryption
   type MemoryOf (CGadget (Cipher (Salsa20 R20) KEY256 Decryption)) = CryptoCell Matrix
   newGadgetWithMemory = return . CGadget
-  initialize (CGadget mc) (Salsa20_20Cxt (k,n,s)) = cellStore mc $ expand256 k n s
+  initialize (CGadget mc) (Salsa20_20Cxt (k,n,s)) = cExpand256 mc k n s
   finalize (CGadget mc) = Salsa20_20Cxt . compress256 <$> cellLoad mc
-  apply g = undefined
+  apply = applyCGad c_salsa20_20
 
 ------------------------------------------ Salsa20 Round 12 --------------------
 
@@ -146,9 +211,9 @@ instance EndianStore k => Initializable (Cipher (Salsa20 R12) k e) where
       nsz = sizeOf (undefined :: Nonce)
       csz = sizeOf (undefined :: Counter)
   {-# INLINE cxtSize #-}
-  getCxt = Salsa20_12Cxt . getCxt
+  getCxt = Salsa20_12Cxt . get
     where
-      getCxt bs = (k,n,c)
+      get bs = (k,n,c)
         where
           k = fromByteString kbs
           n = fromByteString nbs
@@ -197,36 +262,36 @@ instance Gadget (CGadget (Cipher (Salsa20 R12) KEY128 Encryption)) where
   type PrimitiveOf (CGadget (Cipher (Salsa20 R12) KEY128 Encryption)) = Cipher (Salsa20 R12) KEY128 Encryption
   type MemoryOf (CGadget (Cipher (Salsa20 R12) KEY128 Encryption)) = CryptoCell Matrix
   newGadgetWithMemory = return . CGadget
-  initialize (CGadget mc) (Salsa20_12Cxt (k,n,s)) = cellStore mc $ expand128 k n s
+  initialize (CGadget mc) (Salsa20_12Cxt (k,n,s)) = cExpand128 mc k n s
   finalize (CGadget mc) = Salsa20_12Cxt . compress128 <$> cellLoad mc
-  apply g = undefined
+  apply = applyCGad c_salsa20_12
 
 -- | CPortable Gadget instance for Salsa 20 with 16 Byte KEY
 instance Gadget (CGadget (Cipher (Salsa20 R12) KEY128 Decryption)) where
   type PrimitiveOf (CGadget (Cipher (Salsa20 R12) KEY128 Decryption)) = Cipher (Salsa20 R12) KEY128 Decryption
   type MemoryOf (CGadget (Cipher (Salsa20 R12) KEY128 Decryption)) = CryptoCell Matrix
   newGadgetWithMemory = return . CGadget
-  initialize (CGadget mc) (Salsa20_12Cxt (k,n,s)) = cellStore mc $ expand128 k n s
+  initialize (CGadget mc) (Salsa20_12Cxt (k,n,s)) = cExpand128 mc k n s
   finalize (CGadget mc) = Salsa20_12Cxt . compress128 <$> cellLoad mc
-  apply g = undefined
+  apply = applyCGad c_salsa20_12
 
 -- | CPortable Gadget instance for Salsa 20 with 32 Byte KEY
 instance Gadget (CGadget (Cipher (Salsa20 R12) KEY256 Encryption)) where
   type PrimitiveOf (CGadget (Cipher (Salsa20 R12) KEY256 Encryption)) = Cipher (Salsa20 R12) KEY256 Encryption
   type MemoryOf (CGadget (Cipher (Salsa20 R12) KEY256 Encryption)) = CryptoCell Matrix
   newGadgetWithMemory = return . CGadget
-  initialize (CGadget mc) (Salsa20_12Cxt (k,n,s)) = cellStore mc $ expand256 k n s
+  initialize (CGadget mc) (Salsa20_12Cxt (k,n,s)) = cExpand256 mc k n s
   finalize (CGadget mc) = Salsa20_12Cxt . compress256 <$> cellLoad mc
-  apply g = undefined
+  apply = applyCGad c_salsa20_12
 
 -- | CPortable Gadget instance for Salsa 20 with 32 Byte KEY
 instance Gadget (CGadget (Cipher (Salsa20 R12) KEY256 Decryption)) where
   type PrimitiveOf (CGadget (Cipher (Salsa20 R12) KEY256 Decryption)) = Cipher (Salsa20 R12) KEY256 Decryption
   type MemoryOf (CGadget (Cipher (Salsa20 R12) KEY256 Decryption)) = CryptoCell Matrix
   newGadgetWithMemory = return . CGadget
-  initialize (CGadget mc) (Salsa20_12Cxt (k,n,s)) = cellStore mc $ expand256 k n s
+  initialize (CGadget mc) (Salsa20_12Cxt (k,n,s)) = cExpand256 mc k n s
   finalize (CGadget mc) = Salsa20_12Cxt . compress256 <$> cellLoad mc
-  apply g = undefined
+  apply = applyCGad c_salsa20_12
 
 ------------------------------------------------ Salsa20 Round 8 ---------------
 
@@ -247,9 +312,9 @@ instance EndianStore k => Initializable (Cipher (Salsa20 R8) k e) where
       nsz = sizeOf (undefined :: Nonce)
       csz = sizeOf (undefined :: Counter)
   {-# INLINE cxtSize #-}
-  getCxt = Salsa20_8Cxt . getCxt
+  getCxt = Salsa20_8Cxt . get
     where
-      getCxt bs = (k,n,c)
+      get bs = (k,n,c)
         where
           k = fromByteString kbs
           n = fromByteString nbs
@@ -298,36 +363,36 @@ instance Gadget (CGadget (Cipher (Salsa20 R8) KEY128 Encryption)) where
   type PrimitiveOf (CGadget (Cipher (Salsa20 R8) KEY128 Encryption)) = Cipher (Salsa20 R8) KEY128 Encryption
   type MemoryOf (CGadget (Cipher (Salsa20 R8) KEY128 Encryption)) = CryptoCell Matrix
   newGadgetWithMemory = return . CGadget
-  initialize (CGadget mc) (Salsa20_8Cxt (k,n,s)) = cellStore mc $ expand128 k n s
+  initialize (CGadget mc) (Salsa20_8Cxt (k,n,s)) = cExpand128 mc k n s
   finalize (CGadget mc) = Salsa20_8Cxt . compress128 <$> cellLoad mc
-  apply g = undefined
+  apply = applyCGad c_salsa20_8
 
 -- | CPortable Gadget instance for Salsa 20 with 16 Byte KEY
 instance Gadget (CGadget (Cipher (Salsa20 R8) KEY128 Decryption)) where
   type PrimitiveOf (CGadget (Cipher (Salsa20 R8) KEY128 Decryption)) = Cipher (Salsa20 R8) KEY128 Decryption
   type MemoryOf (CGadget (Cipher (Salsa20 R8) KEY128 Decryption)) = CryptoCell Matrix
   newGadgetWithMemory = return . CGadget
-  initialize (CGadget mc) (Salsa20_8Cxt (k,n,s)) = cellStore mc $ expand128 k n s
+  initialize (CGadget mc) (Salsa20_8Cxt (k,n,s)) = cExpand128 mc k n s
   finalize (CGadget mc) = Salsa20_8Cxt . compress128 <$> cellLoad mc
-  apply g = undefined
+  apply = applyCGad c_salsa20_8
 
 -- | CPortable Gadget instance for Salsa 20 with 32 Byte KEY
 instance Gadget (CGadget (Cipher (Salsa20 R8) KEY256 Encryption)) where
   type PrimitiveOf (CGadget (Cipher (Salsa20 R8) KEY256 Encryption)) = Cipher (Salsa20 R8) KEY256 Encryption
   type MemoryOf (CGadget (Cipher (Salsa20 R8) KEY256 Encryption)) = CryptoCell Matrix
   newGadgetWithMemory = return . CGadget
-  initialize (CGadget mc) (Salsa20_8Cxt (k,n,s)) = cellStore mc $ expand256 k n s
+  initialize (CGadget mc) (Salsa20_8Cxt (k,n,s)) = cExpand256 mc k n s
   finalize (CGadget mc) = Salsa20_8Cxt . compress256 <$> cellLoad mc
-  apply g = undefined
+  apply = applyCGad c_salsa20_8
 
 -- | CPortable Gadget instance for Salsa 20 with 32 Byte KEY
 instance Gadget (CGadget (Cipher (Salsa20 R8) KEY256 Decryption)) where
   type PrimitiveOf (CGadget (Cipher (Salsa20 R8) KEY256 Decryption)) = Cipher (Salsa20 R8) KEY256 Decryption
   type MemoryOf (CGadget (Cipher (Salsa20 R8) KEY256 Decryption)) = CryptoCell Matrix
   newGadgetWithMemory = return . CGadget
-  initialize (CGadget mc) (Salsa20_8Cxt (k,n,s)) = cellStore mc $ expand256 k n s
+  initialize (CGadget mc) (Salsa20_8Cxt (k,n,s)) = cExpand256 mc k n s
   finalize (CGadget mc) = Salsa20_8Cxt . compress256 <$> cellLoad mc
-  apply g = undefined
+  apply = applyCGad c_salsa20_8
 
 
 applyGad g@(HGadget mc) with n cptr = do
@@ -360,6 +425,11 @@ applyGad g@(HGadget mc) with n cptr = do
       blocksz = BYTES 64
       realsz = blocksz `div` sz
 {-# INLINE applyGad #-}
+
+applyCGad with (CGadget mc) n cptr = withCell mc go
+  where
+    go mptr = with mptr cptr (cryptoCoerce n :: BYTES Int)
+{-# INLINE applyCGad #-}
 
 instance CryptoPrimitive (Cipher (Salsa20 R20) KEY128 Encryption) where
   type Recommended (Cipher (Salsa20 R20) KEY128 Encryption) = CGadget (Cipher (Salsa20 R20) KEY128 Encryption)
