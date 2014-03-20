@@ -58,6 +58,7 @@ library
   ghc-options: -Wall
 
   c-sources: cbits/raaz/cipher/cportable/aes.c
+           , cbits/raaz/cipher/cportable/salsa20.c
   include-dirs: cbits
 
 
