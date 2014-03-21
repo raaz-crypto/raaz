@@ -9,7 +9,12 @@ include Makefile.configure # Read in configuration
 .PHONY: tests   # Runs the tests. Assumes that install is already done.
 .PHONY: echo-variables        # Shows make variables. mainly for debugging
 .PHONY: travis-before-install # Sets up the travis environment.
+.PHONY: travis-cabal-config   # Sets up the travis cabal config file
 .PHONY: hlint   # runs hlint on the sources
+.PHONY: local-repo local-repo-clean # Local repo rules.
+.PHONY: src-tarball # Creates the source tarballs in the respective directories.
+.PHONY: scripts     # builds the scripts in the scripts directory
+
 #
 # For each package we have a target with the same name and a target
 # with the suffix clean. The former builds the package and the latter
@@ -32,6 +37,8 @@ PACKAGE_CLEAN=$(addsuffix -clean, ${PACKAGES})
 
 TEST_PATH=dist/build/tests/tests # path to the tests in any package.
 
+export PACKAGES
+
 #
 # Sets up the cabal config. The directory platform contains the cabal
 # config file to use for each platform. Typically you need to put the
@@ -39,8 +46,18 @@ TEST_PATH=dist/build/tests/tests # path to the tests in any package.
 # the default config to use.
 #
 
-HASKELL_PLATFORM ?= default
-CABAL_CONFIG=platform/${HASKELL_PLATFORM}.cabal.config
+ROOTDIR=$(abspath .)
+LOCALREPO=${ROOTDIR}/local-repo
+
+ifdef HASKELL_PLATFORM
+
+PLATFORM_CABAL=${ROOTDIR}/platform/${HASKELL_PLATFORM}.cabal
+
+else
+
+PLATFORM_CABAL=
+
+endif
 
 #
 # In a travis build, you can set explicit versions for ghc and cabal
@@ -48,6 +65,8 @@ CABAL_CONFIG=platform/${HASKELL_PLATFORM}.cabal.config
 # that you would want this to be done is in the env section of your
 # .travis.yml.
 #
+
+
 
 ifdef GHC_VERSION	# For explicit ghc version
 
@@ -73,8 +92,23 @@ CABAL=cabal
 
 endif
 
+# Building the local repo
+
+local-repo: src-tarball scripts
+	./scripts/raaz-repo ${PACKAGES}
+	make -C local-repo index
+
+local-repo-clean:
+	make -C local-repo clean
+
+travis-cabal-config: scripts
+	scripts/cabal-config ${ROOTDIR} local-repo ${PLATFORM_CABAL} \
+		>> ~/.cabal/config
 # This target just prints the setting of each relevant
 # variable. Useful for debugging.
+
+scripts:
+	make -C scripts all
 
 echo-variables:
 	@echo Makefile variables.
@@ -85,20 +119,12 @@ echo-variables:
 
 	@echo -e '\t'ghc,cabal: ${GHC_PKG} ${CABAL_PKG}
 
-install: ${PACKAGES}
+install: local-repo
+	${CABAL} install --only-dependencies ${PACKAGES}
+	${CABAL} install --enable-tests --enable-benchmarks \
+		 --enable-documentation ${PACKAGES}
 	@echo User packages installed
 	ghc-pkg list --user
-
-${PACKAGES}:
-	cp ${CABAL_CONFIG} $@/cabal.config
-	cd $@;\
-	${CABAL} configure --enable-tests --enable-benchmarks -v2;\
-	${CABAL} build;\
-	${CABAL} test;\
-	${CABAL} check;\
-	${CABAL} sdist;\
-	${CABAL} haddock;\
-	${CABAL} install
 
 tests:
 	$(foreach pkg, ${PACKAGES},\
@@ -107,8 +133,19 @@ tests:
 		cd ..;\
 		)
 
+src-tarball:
+	cd raaz-primitives; \
+	   ${CABAL} install --only-dependencies; \
+	   ${CABAL} configure; \
+	   cd ..
+	$(foreach pkg, ${PACKAGES},\
+		  cd ${pkg};\
+		  ${CABAL} sdist;\
+		  cd ..;\
+		)
 
-clean:   ${PACKAGE_CLEAN}
+
+clean:   ${PACKAGE_CLEAN} local-repo-clean
 
 ${PACKAGE_CLEAN}:
 	cd $(patsubst %-clean,%,$@);\
