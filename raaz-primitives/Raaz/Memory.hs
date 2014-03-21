@@ -97,6 +97,24 @@ instance (Memory a, Memory b, Memory c) => Memory (a,b,c) where
     where sec c = withSecureMemory sec2 bk
             where sec2 b = withSecureMemory (\a -> f (a,b,c)) bk
 
+instance (Memory a, Memory b, Memory c, Memory d) => Memory (a,b,c,d) where
+  newMemory = (,,,) <$> newMemory
+                    <*> newMemory
+                    <*> newMemory
+                    <*> newMemory
+  freeMemory (a,b,c,d) =  freeMemory a
+                       >> freeMemory b
+                       >> freeMemory c
+                       >> freeMemory d
+  copyMemory (sa,sb,sc,sd) (da,db,dc,dd) =  copyMemory sa da
+                                         >> copyMemory sb db
+                                         >> copyMemory sc dc
+                                         >> copyMemory sd dd
+  withSecureMemory f bk = withSecureMemory sec bk
+    where sec d = withSecureMemory sec2 bk
+            where sec2 c = withSecureMemory sec3 bk
+                    where sec3 b = withSecureMemory (\a -> f (a,b,c,d)) bk
+
 -- | A memory location to store a value of type having `Storable`
 -- instance.
 newtype CryptoCell a = CryptoCell ForeignCryptoPtr
