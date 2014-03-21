@@ -52,4 +52,4 @@ prop_length g' (TestIV bsiv) (Sized sz) = monadicIO $ do
 
 tests :: [Test]
 tests = [ testProperty "AES CTR 128"
-          $ prop_length (undefined :: (CPortable128 CTR Encryption)) ]
+          $ prop_length (undefined :: (CGadget (Cipher AES KEY128 CTR Encryption))) ]
