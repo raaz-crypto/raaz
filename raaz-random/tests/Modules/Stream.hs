@@ -1,5 +1,6 @@
-{-# LANGUAGE FlexibleContexts #-}
-module Modules.Stream (tests) where
+{-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+module Modules.Stream (createGadget,testWith, TestIV(..)) where
 
 import           Control.Applicative                  ((<$>))
 import           Data.ByteString                      (ByteString)
@@ -15,10 +16,8 @@ import qualified Raaz.Util.ByteString                 as BU
 import           Raaz.Memory
 import           Raaz.Types
 
-import           Raaz.Cipher.AES.Type
-import           Raaz.Cipher.AES.CTR
-
 import           Raaz.Random
+
 
 -- | Type to capture only integers from 1 to 10
 newtype Sized = Sized (BYTES Int) deriving Show
@@ -34,6 +33,12 @@ instance Initializable p => Arbitrary (TestIV p) where
       gen :: Initializable p => p -> Gen (TestIV p)
       gen p = TestIV . BS.pack <$> vectorOf (fromIntegral $ cxtSize p) arbitrary
 
+createGadget :: (StreamGadget g, Initializable (PrimitiveOf g))
+             => g
+             -> ByteString
+             -> IO (RandomSource g)
+createGadget _ bsiv = newInitializedGadget (getCxt bsiv)
+
 prop_length :: (StreamGadget g, Initializable (PrimitiveOf g))
             => g
             -> TestIV (PrimitiveOf g)
@@ -44,12 +49,8 @@ prop_length g' (TestIV bsiv) (Sized sz) = monadicIO $ do
   assert (BU.length bs == sz)
   where
     generateBytes = do
-      g <- createGadget g'
-      initialize g (getCxt bsiv)
+      g <- createGadget g' bsiv
       genBytes g sz
-    createGadget :: StreamGadget g => g -> IO (RandomSource g)
-    createGadget _ = newGadget
 
-tests :: [Test]
-tests = [ testProperty "AES CTR 128"
-          $ prop_length (undefined :: (CGadget (Cipher AES KEY128 CTR Encryption))) ]
+testWith :: (StreamGadget g,Initializable (PrimitiveOf g)) => g -> [Test]
+testWith g = [ testProperty "genBytes length check" $ prop_length g ]

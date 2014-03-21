@@ -16,12 +16,14 @@ import Raaz.Primitives.Cipher
 import Raaz.Random.Stream
 import Raaz.Types
 
--- | Generates a positive number i such that 0 <= i <= m
+-- | Generates a positive number i such that 0 <= i <= m. The argument
+-- should always be positive.
 genMax :: (StreamGadget g, Integral i) => RandomSource g -> i -> IO i
 genMax _ 0 = return 0
-genMax rscr maxI = do
+genMax rscr maxI | maxI < 0  = error "Illegal arguments"
+                 | otherwise = do
   bytes <- genBytes rscr nBytes
-  return $ toInt bytes `mod` maxI
+  return $ toInt bytes `mod` (maxI + 1)
   where
     toInt = BS.foldl with 0
     with o w = o * 256 + fromIntegral w
@@ -41,7 +43,7 @@ genMax rscr maxI = do
 -- | Generates a positive number i such that l <= i <= h
 genBetween :: (StreamGadget g,Integral i) => RandomSource g -> i -> i -> IO i
 genBetween rsrc l h = do
-  n <- genMax rsrc (h-l-1)
+  n <- genMax rsrc (h-l)
   return (l+n)
 {-# SPECIALIZE genBetween :: StreamGadget g => RandomSource g -> Int      -> Int      -> IO Int      #-}
 {-# SPECIALIZE genBetween :: StreamGadget g => RandomSource g -> Integer  -> Integer  -> IO Integer  #-}
