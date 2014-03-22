@@ -1,14 +1,10 @@
 GHC ?= ghc
-PROGS=raaz-repo cabal-config
+PROGS=raaz-repo platform
 .PHONY: all clean
 
 all: ${PROGS}
 
-raaz-repo: raaz-repo.hs
-	${GHC} --make -Wall raaz-repo.hs
-
-cabal-config: cabal-config.hs
-	${GHC} --make -Wall cabal-config.hs
-
+${PROGS}:
+	${GHC} --make -Wall  $@.hs
 clean:
-	rm -f raaz-repo cabal-config *.o *.hi
+	rm -f ${PROGS} *.o *.hi
