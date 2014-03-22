@@ -13,23 +13,23 @@ generated from `StreamGadget`s.
 
 module Raaz.Random.Stream
        ( RandomSource(..)
+       , RandomPrim(..)
        , fromGadget
        , genBytes
        , genBytesNonZero
        ) where
-
+import           Control.Applicative
 import           Control.Monad                 (void)
 
 
 import           Data.ByteString.Internal      (ByteString,create)
 import qualified Data.ByteString               as BS
-import qualified Data.ByteString.Internal      as BS
 import qualified Data.ByteString.Lazy          as BL
+import qualified Data.ByteString.Internal      as BS
 import qualified Data.ByteString.Lazy.Internal as BL
-
-
-import           Foreign.Ptr                   (castPtr,plusPtr)
 import           Foreign.ForeignPtr            (withForeignPtr)
+import           Foreign.Ptr                   (castPtr,plusPtr)
+
 import           Raaz.ByteSource
 import           Raaz.Memory
 import           Raaz.Primitives
@@ -85,12 +85,14 @@ instance Initializable p => Initializable (RandomPrim p) where
 
 instance StreamGadget g => Gadget (RandomSource g) where
   type PrimitiveOf (RandomSource g) = RandomPrim (PrimitiveOf g)
-  type MemoryOf (RandomSource g) = (MemoryOf g, Buffer (GadgetBuff g))
+  type MemoryOf (RandomSource g) = ( MemoryOf g
+                                   , Buffer (GadgetBuff g)
+                                   , CryptoCell (BYTES Int)
+                                   , CryptoCell (BYTES Int)
+                                   )
   -- | Uses the buffer of recommended block size.
-  newGadgetWithMemory (gmem,buffer) = do
+  newGadgetWithMemory (gmem,buffer,celloffset,cellcounter) = do
     g <- newGadgetWithMemory gmem
-    celloffset <- newMemory
-    cellcounter <- newMemory
     return $ RandomSource g buffer celloffset cellcounter
   initialize (RandomSource g buffer celloffset cellcounter) (RSCxt iv) = do
     initialize g iv
@@ -98,7 +100,7 @@ instance StreamGadget g => Gadget (RandomSource g) where
     cellStore celloffset (bufferSize buffer)
     cellStore cellcounter 0
   -- | Finalize is of no use for a random number generator.
-  finalize _ = undefined
+  finalize (RandomSource g _ _ _) = RSCxt <$> finalize g
   apply rs blks cptr = void $ fillBytes (cryptoCoerce blks) rs cptr
 
 instance StreamGadget g => ByteSource (RandomSource g) where
