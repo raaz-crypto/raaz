@@ -7,6 +7,8 @@ import           Paths_raaz_cipher (version)
 import qualified Modules.AES       as AES
 import qualified Modules.Salsa20   as S20
 
+import           Module.Defaults
+
 pkgName = "raaz-cipher-" ++ showVersion version
 
 myConfig :: Config
@@ -16,6 +18,7 @@ myConfig = defaultConfig {
 
 main :: IO ()
 main = do putStrLn $ "Running benchmarks for " ++ pkgName
+          putStrLn $ "Data Size : " ++ show nSize
           defaultMainWith myConfig (return ()) benchmarksTiny
 
 benchmarksTiny = [ bgroup "AES" AES.benchmarksTiny
