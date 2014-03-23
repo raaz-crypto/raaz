@@ -24,7 +24,7 @@ import Raaz.Util.Ptr
 import Raaz.Util.ByteString        ( createFrom )
 
 -- | A simple parser.
-type Parser a = StateT CryptoPtr IO a
+type Parser = StateT CryptoPtr IO
 
 -- | Run the parser on a buffer.
 runParser :: CryptoPtr -> Parser a -> IO a
