@@ -1,8 +1,14 @@
-module Modules.Defaults (nBlocks) where
+module Modules.Defaults
+       ( nBlocks
+       , nSize
+       ) where
 
 import Raaz.Types
 import Raaz.Primitives
 
--- | Number of bytes to run benchmarks on. Currenty set to 1MB.
-nBlocks :: Gadget g => g -> BLOCKS (PrimitiveOf g)
-nBlocks g = cryptoCoerce (1024 * 1024 :: BYTES Int)
+-- | Number of Blocks to run benchmarks on.
+nBlocks :: (Gadget g) => g -> BLOCKS (PrimitiveOf g)
+nBlocks g = cryptoCoerce nSize
+
+nSize :: BYTES Int
+nSize = 1024 * 1024
