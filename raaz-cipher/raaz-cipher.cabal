@@ -72,11 +72,18 @@ test-Suite tests
   hs-source-dirs: tests
   main-is: Main.hs
 
-  other-modules: Modules.Block.Ref
-               , Modules.Defaults
-               , Modules.ECB
-               , Modules.CBC
-               , Modules.CTR
+  other-modules: Modules.AES
+               , Modules.AES.Block
+               , Modules.AES.Defaults
+               , Modules.AES.ECB
+               , Modules.AES.CBC
+               , Modules.AES.CTR
+               , Modules.EcryptTest
+               , Modules.EcryptTestParser
+               , Modules.Salsa20
+               , Modules.Salsa20.Block
+               , Modules.Salsa20.Stream
+               , Modules.Util
 
   build-depends: base                           >= 4.5 && < 4.8
                , bytestring                     >= 0.9 && < 0.11
@@ -98,9 +105,13 @@ benchmark bench-builder-all
   hs-source-dirs: benchmarks
   main-is: Main.hs
 
-  other-modules: Modules.ECB
-               , Modules.CBC
-               , Modules.CTR
+  other-modules: Modules.AES
+               , Modules.AES.Defaults
+               , Modules.AES.ECB
+               , Modules.AES.CBC
+               , Modules.AES.CTR
+               , Modules.Defaults
+               , Modules.Salsa20
 
   build-depends: base                           >= 4.5 && < 4.8
                , bytestring                     >= 0.9 && < 0.11
