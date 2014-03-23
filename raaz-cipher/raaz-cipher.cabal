@@ -12,6 +12,10 @@ cabal-version: >=1.9.2
 
 bug-reports: https://github.com/piyush-kurur/raaz/issues
 
+extra-source-files: ecryptTestData/salsa20_20.vectors
+                  , ecryptTestData/salsa20_12.vectors
+                  , ecryptTestData/salsa20_8.vectors
+
 source-repository head
   type: git
   location: https://github.com/piyush-kurur/raaz
@@ -24,6 +28,8 @@ library
                  , Raaz.Cipher.AES.CBC
                  , Raaz.Cipher.AES.CTR
                  , Raaz.Cipher.AES.ECB
+                 , Raaz.Cipher.Salsa20
+                 , Raaz.Cipher.Salsa20.Internal
   other-modules: Raaz.Cipher.Util.GF
                , Raaz.Cipher.AES.Block.Type
                , Raaz.Cipher.AES.CBC.CPortable
@@ -38,6 +44,9 @@ library
                , Raaz.Cipher.AES.ECB.Instance
                , Raaz.Cipher.AES.ECB.Ref
                , Raaz.Cipher.AES.ECB.Type
+               , Raaz.Cipher.Salsa20.Block.Internal
+               , Raaz.Cipher.Salsa20.Block.Type
+               , Raaz.Cipher.Salsa20.Instances
   build-depends: base                           >= 4.5 && < 4.8
                , bytestring                     >= 0.9 && < 0.11
                , data-default                   >= 0.4 && < 0.6
@@ -49,6 +58,7 @@ library
   ghc-options: -Wall
 
   c-sources: cbits/raaz/cipher/cportable/aes.c
+           , cbits/raaz/cipher/cportable/salsa20.c
   include-dirs: cbits
 
 
@@ -62,16 +72,24 @@ test-Suite tests
   hs-source-dirs: tests
   main-is: Main.hs
 
-  other-modules: Modules.Block.Ref
-               , Modules.Defaults
-               , Modules.ECB
-               , Modules.CBC
-               , Modules.CTR
+  other-modules: Modules.AES
+               , Modules.AES.Block
+               , Modules.AES.Defaults
+               , Modules.AES.ECB
+               , Modules.AES.CBC
+               , Modules.AES.CTR
+               , Modules.EcryptTest
+               , Modules.EcryptTestParser
+               , Modules.Salsa20
+               , Modules.Salsa20.Block
+               , Modules.Salsa20.Stream
+               , Modules.Util
 
   build-depends: base                           >= 4.5 && < 4.8
                , bytestring                     >= 0.9 && < 0.11
                , data-default                   >= 0.5 && < 0.6
                , HUnit                          >= 1.2 && < 1.3
+               , parsec                         >= 3.0 && < 4.0
                , QuickCheck                     >= 2.4 && < 2.7
                , test-framework                 >= 0.6 && < 0.9
                , test-framework-hunit           >= 0.2 && < 0.4
@@ -87,9 +105,13 @@ benchmark bench-builder-all
   hs-source-dirs: benchmarks
   main-is: Main.hs
 
-  other-modules: Modules.ECB
-               , Modules.CBC
-               , Modules.CTR
+  other-modules: Modules.AES
+               , Modules.AES.Defaults
+               , Modules.AES.ECB
+               , Modules.AES.CBC
+               , Modules.AES.CTR
+               , Modules.Defaults
+               , Modules.Salsa20
 
   build-depends: base                           >= 4.5 && < 4.8
                , bytestring                     >= 0.9 && < 0.11

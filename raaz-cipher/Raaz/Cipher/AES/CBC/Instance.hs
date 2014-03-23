@@ -12,62 +12,62 @@ import Raaz.Cipher.AES.CBC.Ref ()
 import Raaz.Cipher.AES.CBC.CPortable ()
 import Raaz.Cipher.AES.Internal
 
-instance CryptoPrimitive (Cipher AES KEY128 CBC Encryption) where
-  type Recommended (Cipher AES KEY128 CBC Encryption) = CGadget (Cipher AES KEY128 CBC Encryption)
-  type Reference (Cipher AES KEY128 CBC Encryption) = HGadget (Cipher AES KEY128 CBC Encryption)
+instance CryptoPrimitive (Cipher (AES CBC) KEY128 Encryption) where
+  type Recommended (Cipher (AES CBC) KEY128 Encryption) = CGadget (Cipher (AES CBC) KEY128 Encryption)
+  type Reference (Cipher (AES CBC) KEY128 Encryption) = HGadget (Cipher (AES CBC) KEY128 Encryption)
 
-instance CryptoPrimitive (Cipher AES KEY128 CBC Decryption) where
-  type Recommended (Cipher AES KEY128 CBC Decryption) = CGadget (Cipher AES KEY128 CBC Decryption)
-  type Reference (Cipher AES KEY128 CBC Decryption) = HGadget (Cipher AES KEY128 CBC Decryption)
+instance CryptoPrimitive (Cipher (AES CBC) KEY128 Decryption) where
+  type Recommended (Cipher (AES CBC) KEY128 Decryption) = CGadget (Cipher (AES CBC) KEY128 Decryption)
+  type Reference (Cipher (AES CBC) KEY128 Decryption) = HGadget (Cipher (AES CBC) KEY128 Decryption)
 
-instance CryptoPrimitive (Cipher AES KEY192 CBC Encryption) where
-  type Recommended (Cipher AES KEY192 CBC Encryption) = CGadget (Cipher AES KEY192 CBC Encryption)
-  type Reference (Cipher AES KEY192 CBC Encryption) = HGadget (Cipher AES KEY192 CBC Encryption)
+instance CryptoPrimitive (Cipher (AES CBC) KEY192 Encryption) where
+  type Recommended (Cipher (AES CBC) KEY192 Encryption) = CGadget (Cipher (AES CBC) KEY192 Encryption)
+  type Reference (Cipher (AES CBC) KEY192 Encryption) = HGadget (Cipher (AES CBC) KEY192 Encryption)
 
-instance CryptoPrimitive (Cipher AES KEY192 CBC Decryption) where
-  type Recommended (Cipher AES KEY192 CBC Decryption) = CGadget (Cipher AES KEY192 CBC Decryption)
-  type Reference (Cipher AES KEY192 CBC Decryption) = HGadget (Cipher AES KEY192 CBC Decryption)
+instance CryptoPrimitive (Cipher (AES CBC) KEY192 Decryption) where
+  type Recommended (Cipher (AES CBC) KEY192 Decryption) = CGadget (Cipher (AES CBC) KEY192 Decryption)
+  type Reference (Cipher (AES CBC) KEY192 Decryption) = HGadget (Cipher (AES CBC) KEY192 Decryption)
 
-instance CryptoPrimitive (Cipher AES KEY256 CBC Encryption) where
-  type Recommended (Cipher AES KEY256 CBC Encryption) = CGadget (Cipher AES KEY256 CBC Encryption)
-  type Reference (Cipher AES KEY256 CBC Encryption) = HGadget (Cipher AES KEY256 CBC Encryption)
+instance CryptoPrimitive (Cipher (AES CBC) KEY256 Encryption) where
+  type Recommended (Cipher (AES CBC) KEY256 Encryption) = CGadget (Cipher (AES CBC) KEY256 Encryption)
+  type Reference (Cipher (AES CBC) KEY256 Encryption) = HGadget (Cipher (AES CBC) KEY256 Encryption)
 
-instance CryptoPrimitive (Cipher AES KEY256 CBC Decryption) where
-  type Recommended (Cipher AES KEY256 CBC Decryption) = CGadget (Cipher AES KEY256 CBC Decryption)
-  type Reference (Cipher AES KEY256 CBC Decryption) = HGadget (Cipher AES KEY256 CBC Decryption)
+instance CryptoPrimitive (Cipher (AES CBC) KEY256 Decryption) where
+  type Recommended (Cipher (AES CBC) KEY256 Decryption) = CGadget (Cipher (AES CBC) KEY256 Decryption)
+  type Reference (Cipher (AES CBC) KEY256 Decryption) = HGadget (Cipher (AES CBC) KEY256 Decryption)
 
-instance HasInverse (HGadget (Cipher AES KEY128 CBC Encryption)) where
-  type Inverse (HGadget (Cipher AES KEY128 CBC Encryption)) = HGadget (Cipher AES KEY128 CBC Decryption)
+instance HasInverse (HGadget (Cipher (AES CBC) KEY128 Encryption)) where
+  type Inverse (HGadget (Cipher (AES CBC) KEY128 Encryption)) = HGadget (Cipher (AES CBC) KEY128 Decryption)
 
-instance HasInverse (HGadget (Cipher AES KEY128 CBC Decryption)) where
-  type Inverse (HGadget (Cipher AES KEY128 CBC Decryption)) = HGadget (Cipher AES KEY128 CBC Encryption)
+instance HasInverse (HGadget (Cipher (AES CBC) KEY128 Decryption)) where
+  type Inverse (HGadget (Cipher (AES CBC) KEY128 Decryption)) = HGadget (Cipher (AES CBC) KEY128 Encryption)
 
-instance HasInverse (HGadget (Cipher AES KEY192 CBC Encryption)) where
-  type Inverse (HGadget (Cipher AES KEY192 CBC Encryption)) = HGadget (Cipher AES KEY192 CBC Decryption)
+instance HasInverse (HGadget (Cipher (AES CBC) KEY192 Encryption)) where
+  type Inverse (HGadget (Cipher (AES CBC) KEY192 Encryption)) = HGadget (Cipher (AES CBC) KEY192 Decryption)
 
-instance HasInverse (HGadget (Cipher AES KEY192 CBC Decryption)) where
-  type Inverse (HGadget (Cipher AES KEY192 CBC Decryption)) = HGadget (Cipher AES KEY192 CBC Encryption)
+instance HasInverse (HGadget (Cipher (AES CBC) KEY192 Decryption)) where
+  type Inverse (HGadget (Cipher (AES CBC) KEY192 Decryption)) = HGadget (Cipher (AES CBC) KEY192 Encryption)
 
-instance HasInverse (HGadget (Cipher AES KEY256 CBC Encryption)) where
-  type Inverse (HGadget (Cipher AES KEY256 CBC Encryption)) = HGadget (Cipher AES KEY256 CBC Decryption)
+instance HasInverse (HGadget (Cipher (AES CBC) KEY256 Encryption)) where
+  type Inverse (HGadget (Cipher (AES CBC) KEY256 Encryption)) = HGadget (Cipher (AES CBC) KEY256 Decryption)
 
-instance HasInverse (HGadget (Cipher AES KEY256 CBC Decryption)) where
-  type Inverse (HGadget (Cipher AES KEY256 CBC Decryption)) = HGadget (Cipher AES KEY256 CBC Encryption)
+instance HasInverse (HGadget (Cipher (AES CBC) KEY256 Decryption)) where
+  type Inverse (HGadget (Cipher (AES CBC) KEY256 Decryption)) = HGadget (Cipher (AES CBC) KEY256 Encryption)
 
-instance HasInverse (CGadget (Cipher AES KEY128 CBC Encryption)) where
-  type Inverse (CGadget (Cipher AES KEY128 CBC Encryption)) = CGadget (Cipher AES KEY128 CBC Decryption)
+instance HasInverse (CGadget (Cipher (AES CBC) KEY128 Encryption)) where
+  type Inverse (CGadget (Cipher (AES CBC) KEY128 Encryption)) = CGadget (Cipher (AES CBC) KEY128 Decryption)
 
-instance HasInverse (CGadget (Cipher AES KEY128 CBC Decryption)) where
-  type Inverse (CGadget (Cipher AES KEY128 CBC Decryption)) = CGadget (Cipher AES KEY128 CBC Encryption)
+instance HasInverse (CGadget (Cipher (AES CBC) KEY128 Decryption)) where
+  type Inverse (CGadget (Cipher (AES CBC) KEY128 Decryption)) = CGadget (Cipher (AES CBC) KEY128 Encryption)
 
-instance HasInverse (CGadget (Cipher AES KEY192 CBC Encryption)) where
-  type Inverse (CGadget (Cipher AES KEY192 CBC Encryption)) = CGadget (Cipher AES KEY192 CBC Decryption)
+instance HasInverse (CGadget (Cipher (AES CBC) KEY192 Encryption)) where
+  type Inverse (CGadget (Cipher (AES CBC) KEY192 Encryption)) = CGadget (Cipher (AES CBC) KEY192 Decryption)
 
-instance HasInverse (CGadget (Cipher AES KEY192 CBC Decryption)) where
-  type Inverse (CGadget (Cipher AES KEY192 CBC Decryption)) = CGadget (Cipher AES KEY192 CBC Encryption)
+instance HasInverse (CGadget (Cipher (AES CBC) KEY192 Decryption)) where
+  type Inverse (CGadget (Cipher (AES CBC) KEY192 Decryption)) = CGadget (Cipher (AES CBC) KEY192 Encryption)
 
-instance HasInverse (CGadget (Cipher AES KEY256 CBC Encryption)) where
-  type Inverse (CGadget (Cipher AES KEY256 CBC Encryption)) = CGadget (Cipher AES KEY256 CBC Decryption)
+instance HasInverse (CGadget (Cipher (AES CBC) KEY256 Encryption)) where
+  type Inverse (CGadget (Cipher (AES CBC) KEY256 Encryption)) = CGadget (Cipher (AES CBC) KEY256 Decryption)
 
-instance HasInverse (CGadget (Cipher AES KEY256 CBC Decryption)) where
-  type Inverse (CGadget (Cipher AES KEY256 CBC Decryption)) = CGadget (Cipher AES KEY256 CBC Encryption)
+instance HasInverse (CGadget (Cipher (AES CBC) KEY256 Decryption)) where
+  type Inverse (CGadget (Cipher (AES CBC) KEY256 Decryption)) = CGadget (Cipher (AES CBC) KEY256 Encryption)

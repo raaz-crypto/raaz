@@ -1,4 +1,4 @@
-module Modules.CTR
+module Modules.AES.CTR
        ( tests
        ) where
 
@@ -11,7 +11,7 @@ import Raaz.Cipher.AES.Type
 
 import Raaz.Cipher.AES.CTR
 
-import Modules.Defaults
+import Modules.AES.Defaults
 
 -- From http://www.inconteam.com/software-development/41-encryption/55-aes-test-vectors
 standard128Vector :: [(ByteString,ByteString,ByteString)]

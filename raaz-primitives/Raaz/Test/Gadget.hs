@@ -7,7 +7,10 @@ implementation.
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GADTs            #-}
 
-module Raaz.Test.Gadget (testGadget) where
+module Raaz.Test.Gadget
+       ( testGadget
+       , testInverse
+       ) where
 
 import           Control.Applicative
 import           Data.ByteString                      (ByteString)
@@ -22,7 +25,6 @@ import           Test.QuickCheck.Monadic              (run, assert, monadicIO)
 import           Raaz.Primitives
 import qualified Raaz.Util.ByteString                 as BU
 import           Raaz.Util.Ptr
-import           Raaz.Types
 
 -- | Type to capture only integers from 1 to 10
 data Sized = Sized Int deriving Show
@@ -31,7 +33,7 @@ data Sized = Sized Int deriving Show
 data TestData p = TestData ByteString deriving Show
 
 instance Arbitrary Sized where
-  arbitrary = Sized <$> choose (1,10)
+  arbitrary = Sized <$> choose (1,100)
 
 instance Primitive p => Arbitrary (TestData p) where
   arbitrary = do
@@ -53,16 +55,18 @@ prop_Gadget ref' g' cxt (TestData bs) = monadicIO $ do
   run $ initialize g cxt
   ref <- run $ createGadget ref'
   run $ initialize ref cxt
-  (gcxt,outg) <- run $ allocaBuffer bsize (with g)
-  (refcxt,outref) <- run $ allocaBuffer bsize (with ref)
+  outg <- run $ onByteString g bs
+  outref <- run $ onByteString ref bs
   assert (outg == outref)
-  assert (gcxt == refcxt)
   where
-    bsize = BU.length bs
     createGadget :: Gadget g => g -> IO g
     createGadget _ = newGadget
-    with :: Gadget g => g -> CryptoPtr -> IO (Cxt (PrimitiveOf g), ByteString)
-    with g cptr =  do
+
+onByteString :: Gadget g => g -> ByteString -> IO (Cxt (PrimitiveOf g), ByteString)
+onByteString g bs =  allocaBuffer bsize with
+  where
+    bsize = BU.length bs
+    with cptr = do
       BU.unsafeCopyToCryptoPtr bs cptr
       apply g (fromIntegral numBlocks) cptr
       out <- finalize g
@@ -71,9 +75,27 @@ prop_Gadget ref' g' cxt (TestData bs) = monadicIO $ do
       where
         copyTo ptr = memcpy (castPtr ptr) cptr bsize
         numBlocks = bsize `div` oneBlock
-        oneBlock = fromIntegral $ blockSize (getPrim g')
-        getPrim :: Gadget g => g -> PrimitiveOf g
-        getPrim _ = undefined
+        oneBlock = fromIntegral $ blockSize (primitiveOf g)
+
+prop_inverse :: ( Gadget g
+                , HasInverse g
+                )
+             => g
+             -> Cxt (PrimitiveOf g)
+             -> Cxt (PrimitiveOf (Inverse g))
+             -> TestData (PrimitiveOf g)
+             -> Property
+prop_inverse g' cxtg cxtig (TestData bs) = monadicIO $ do
+  g   <- run $ createGadget g'
+  run $ initialize g cxtg
+  gInv <- run $ createGadget (inverseGadget g')
+  run $ initialize gInv cxtig
+  (_,outbs) <- run $ onByteString g bs
+  (_,bs') <- run $ onByteString gInv outbs
+  assert (bs == bs')
+  where
+    createGadget :: Gadget g => g -> IO g
+    createGadget _ = newGadget
 
 testGadget :: ( Gadget g
               , Gadget ref
@@ -87,3 +109,14 @@ testGadget :: ( Gadget g
            -> Test
 testGadget g ref cxt msg = testProperty msg
                                    $ prop_Gadget g ref cxt
+
+testInverse :: ( Gadget g
+               , HasInverse g
+               )
+            => g
+            -> Cxt (PrimitiveOf g)
+            -> Cxt (PrimitiveOf (Inverse g))
+            -> String
+            -> Test
+testInverse g cxt icxt msg = testProperty msg
+                              $ prop_inverse g cxt icxt
