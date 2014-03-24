@@ -11,7 +11,6 @@ include Makefile.configure # Read in configuration
 .PHONY: travis-before-install # Sets up the travis environment.
 .PHONY: travis-cabal-config   # Sets up the travis cabal config file
 .PHONY: hlint   # runs hlint on the sources
-.PHONY: local-repo local-repo-clean # Local repo rules.
 .PHONY: src-tarball # Creates the source tarballs in the respective directories.
 .PHONY: scripts     # builds the scripts in the scripts directory
 
@@ -47,7 +46,6 @@ export PACKAGES
 #
 
 ROOTDIR=$(abspath .)
-LOCALREPO=${ROOTDIR}/local-repo
 
 # Include the platform specific configurarions from the platform make
 # file.
@@ -84,20 +82,13 @@ CABAL=cabal
 
 endif
 
-# Building the local repo
+# Setting the cabal install DEPENDENCIES
+DEPENDENCIES=$(foreach cons, ${PACKAGE_CONSTRAINTS}\
+	,--constraint='${cons}' )
 
-local-repo: src-tarball scripts
-	./scripts/raaz-repo ${PACKAGES}
-	make -C local-repo index
-
-local-repo-clean:
-	make -C local-repo clean
-
-travis-cabal-config: scripts
-	scripts/cabal-config ${ROOTDIR} local-repo ${PLATFORM_CABAL} \
-		>> ~/.cabal/config
-# This target just prints the setting of each relevant
-# variable. Useful for debugging.
+# Package tarballs. We install directly from the tarballs
+RAAZ_TAR_GZ=$(foreach pkg, ${PACKAGES}, \
+	$(wildcard ${ROOTDIR}/${pkg}/dist/*.tar.gz))
 
 scripts:
 	make -C scripts all
@@ -110,11 +101,17 @@ echo-variables:
 	@echo -e '\t'HASKELL_PLATFORM=${HASKELL_PLATFORM}
 
 	@echo -e '\t'ghc,cabal: ${GHC_PKG} ${CABAL_PKG}
+	@echo -e '\t'DEPENDENCIES: ${DEPENDENCIES}
+	@echo -e '\t'RAAZ_TAR_GZ: ${RAAZ_TAR_GZ}
 
-install: local-repo
-	${CABAL} install --only-dependencies ${PACKAGES}
+install: src-tarball
+	${CABAL} install --only-dependencies \
+		${DEPENDENCIES} \
+		${RAAZ_TAR_GZ}
 	${CABAL} install --enable-tests --enable-benchmarks \
-		 --enable-documentation ${PACKAGES}
+		 --enable-documentation \
+		${DEPENDENCIES}\
+		${RAAZ_TAR_GZ}
 	@echo User packages installed
 	ghc-pkg list --user
 
@@ -127,7 +124,7 @@ tests:
 
 src-tarball:
 	cd raaz-primitives; \
-	   ${CABAL} install --only-dependencies; \
+	   ${CABAL} install --only-dependencies ${DEPENDENCIES}; \
 	   ${CABAL} configure; \
 	   cd ..
 	$(foreach pkg, ${PACKAGES},\

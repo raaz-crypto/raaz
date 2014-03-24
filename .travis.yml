@@ -14,8 +14,6 @@ env:
   - GHC_VERSION=7.8.1 CABAL_VERSION=1.18
 before_install:
   - "make travis-before-install"
-  - "make local-repo"
-  - "make travis-cabal-config"
   - "make echo-variables"
 install: "make install"
 script: "make  tests"
