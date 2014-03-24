@@ -13,4 +13,4 @@ import Raaz.Cipher.AES.Block.Internal
 import Raaz.Primitives.Cipher
 import Data.Typeable
 
-data AES = AES deriving (Show,Eq,Typeable)
+data AES mode = AES deriving (Show, Eq, Typeable)

@@ -55,7 +55,7 @@ zeroOutBuffer buff = withBuffer buff (\cptr -> memset cptr 0 (bufferSize buff))
 newtype GadgetBuff g = GadgetBuff g
 
 instance (Gadget g) => Bufferable (GadgetBuff g) where
-  sizeOfBuffer (GadgetBuff g) = cryptoCoerce $ recommendedBlocks g
+  maxSizeOf (GadgetBuff g) = cryptoCoerce $ recommendedBlocks g
 
 -- | Create a `RandomSource` from a `StreamGadget`.
 fromGadget :: StreamGadget g

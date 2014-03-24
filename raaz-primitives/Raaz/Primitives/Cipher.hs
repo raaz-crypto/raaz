@@ -46,7 +46,7 @@ data Encryption deriving Typeable
 data Decryption deriving Typeable
 
 -- | Type to capture Cipher Primitive
-data Cipher name key mode stage = Cipher deriving (Eq,Show,Typeable)
+data Cipher cipher key stage = Cipher deriving (Eq,Show,Typeable)
 
 -- | This class captures gadgets which can be used as stream ciphers.
 -- Any block cipher can also be seen as a stream cipher if it is run

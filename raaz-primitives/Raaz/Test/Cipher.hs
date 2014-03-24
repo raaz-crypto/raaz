@@ -4,10 +4,13 @@ Generic tests for Hash implementations.
 
 -}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE DataKinds        #-}
+{-# LANGUAGE TypeFamilies     #-}
 
 module Raaz.Test.Cipher
        ( testStandardCiphers
+       , applyGadget
+       , encryptDecrypt
+       , unitTests
        , shorten
        ) where
 
@@ -15,7 +18,7 @@ import qualified Data.ByteString                as BS
 import           Data.ByteString.Internal       (ByteString,create)
 import           Foreign.Ptr
 import           System.IO.Unsafe               (unsafePerformIO)
-import           Test.Framework                 (Test)
+import           Test.Framework                 (Test, testGroup)
 import           Test.HUnit                     ((~?=), test, (~:) )
 import           Test.Framework.Providers.HUnit (hUnitTestToTests)
 
@@ -24,23 +27,48 @@ import           Raaz.Types
 import           Raaz.Primitives
 import           Raaz.Util.ByteString           (hex)
 
+import           Raaz.Test.Gadget
+
+-- | Stansdard tests for ciphers
+testStandardCiphers :: ( HasInverse g
+                       , Initializable (PrimitiveOf g)
+                       , Initializable (PrimitiveOf (Inverse g))
+                       )
+                    => g
+                    -> [(ByteString,ByteString,ByteString)] -- ^ (key, planetext,ciphertext)
+                    -> String                               -- ^ Header
+                    -> Test
+testStandardCiphers g vec header = testGroup header [ unitTests g vec
+                                                    , encryptDecrypt g testiv
+                                                    ]
+  where
+    (testiv,_,_) = head vec
+
 -- | Checks standard plaintext - ciphertext for the given cipher
-testStandardCiphers  :: ( HasInverse g
-                        , Initializable (PrimitiveOf g)
-                        , Initializable (PrimitiveOf (Inverse g)) )
-                     => g
-                     -> [(ByteString,ByteString,ByteString)] -- ^ (key, planetext,ciphertest)
-                     -> String                               -- ^ Header
-                     -> [Test]
-testStandardCiphers ge triples msg = hUnitTestToTests $ test $ map checkCipher triples
-  where label a    = msg ++ " " ++ shorten (show $ hex a)
+unitTests  :: ( HasInverse g
+              , Initializable (PrimitiveOf g)
+              , Initializable (PrimitiveOf (Inverse g))
+              )
+           => g
+           -> [(ByteString,ByteString,ByteString)] -- ^ (key, planetext,ciphertest)
+           -> Test
+unitTests ge triples = testGroup "Unit tests" $ hUnitTestToTests $ test $ map checkCipher triples
+  where label a = shorten (show $ hex a)
         checkCipher (k,a,b) =
           label a ~: test  ["Encryption" ~: (applyGadget ge k a) ~?= b
                            ,"Decryption" ~: (applyGadget (inverseGadget ge) k b) ~?= a]
 
--- | Similar to the above function except this returns strict
--- ByteString rather than Lazy ByteString and works on finite
--- ByteSource alone.
+-- | Checks if decrypt . encrypt == id
+encryptDecrypt :: ( HasInverse g
+                  , Initializable (PrimitiveOf g)
+                  , Initializable (PrimitiveOf (Inverse g))
+                  )
+               => g           -- ^ Gadget
+               -> ByteString  -- ^ Context in ByteString
+               -> Test
+encryptDecrypt g bscxt =
+  testInverse g (getCxt bscxt) (getCxt bscxt) "encrypt . decrypt == id"
+
 unsafeTransformUnsafeGadget' :: Gadget g
                              => g          -- ^ Gadget
                              -> ByteString -- ^ The byte source
