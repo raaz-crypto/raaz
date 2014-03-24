@@ -30,8 +30,8 @@ import Foreign.Storable     (sizeOf,Storable(..))
 import Numeric              (showHex)
 
 import Raaz.Types
-import Raaz.Parse
-import Raaz.Write
+import Raaz.Parse.Unsafe
+import Raaz.Write.Unsafe
 
 -- | AES State
 data STATE = STATE {-# UNPACK #-} !Word32BE
