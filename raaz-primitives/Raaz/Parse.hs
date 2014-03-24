@@ -1,64 +1,74 @@
--- | A basic module to parse from a pointer. This a very simple parser
--- which parses a datatype from a pointer and moves the pointer by an
--- appropriate offset. No checks are done to see if the memory access
--- is proper, it is meant to be fast and not safe. So use it with
--- care.
+-- | A module to parse from CryptoBuffer. Basic checks like correct
+-- memory accesses are done to avoid buffer overflow crashes.
 
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE DeriveDataTypeable  #-}
 
 module Raaz.Parse
-       ( Parser, parse, parseStorable, parseByteString
+       ( Parser, parse, parseStorable, parseByteString, parseRest
+       , ParseException(..)
        , runParser
-       , runParser'
        ) where
 
-import Control.Applicative         ( (<$>)          )
-import Control.Monad.State.Strict
-import Data.ByteString             ( ByteString     )
-import Foreign.ForeignPtr.Safe     ( withForeignPtr )
-import Foreign.Ptr                 ( castPtr, Ptr   )
-import Foreign.Storable
+import           Control.Exception
+import           Control.Monad.State.Strict
+import           Data.ByteString            (ByteString)
+import           Data.Typeable
+import           Foreign.Storable
 
-import Raaz.Types
-import Raaz.Util.Ptr
-import Raaz.Util.ByteString        ( createFrom )
+import           Raaz.Types
 
--- | A simple parser.
-type Parser a = StateT CryptoPtr IO a
+import qualified Raaz.Parse.Unsafe          as PU
+
+-- | A safe parser. Also stores the message bytes required in the
+-- available in the buffer.
+type Parser = StateT (BYTES Int) PU.Parser
+
+data ParseException = ParseOverflow
+                    deriving (Show, Typeable)
+
+instance Exception ParseException
 
 -- | Run the parser on a buffer.
-runParser :: CryptoPtr -> Parser a -> IO a
-runParser cptr parser = evalStateT parser cptr
+runParser :: CryptoBuffer -> Parser a -> IO a
+runParser (CryptoBuffer sz cptr) parser = PU.runParser cptr (evalStateT parser sz)
 
--- | Run the parser on a buffer given by a foreign pointer.
-runParser' :: ForeignCryptoPtr -> Parser a -> IO a
-runParser' fcptr parser = withForeignPtr fcptr $ evalStateT parser
+-- | Checks for buffer overflow errors and safely decrease the buffer
+-- size.
+checkAndUpdate :: BYTES Int -> Parser ()
+checkAndUpdate parsesz = do
+  sz <- get
+  when (sz < parsesz) $ throw ParseOverflow
+  modify (flip (-) parsesz)
 
-getPtr   :: Parser (Ptr a)
-getPtr   = castPtr <$> get
-
--- | Parses a value which is an instance of Storable. Beware that this
--- parser expects that the value is stored in machine endian. Mostly
--- it is useful in defining the `peek` function in a complicated
--- `Storable` instance.
+-- | Safe version of `PU.parseStorable`. Parses a value which is an
+-- instance of Storable. Beware that this parser expects that the
+-- value is stored in machine endian.
 parseStorable :: Storable a => Parser a
-parseStorable = do a <- getPtr >>= lift . peek
-                   modify $ flip movePtr $ byteSize a
-                   return a
+parseStorable = parseWith undefined
+  where
+    parseWith :: Storable a => a -> Parser a
+    parseWith a = do
+      checkAndUpdate $ BYTES $ sizeOf a
+      lift $ PU.parseStorable
 
--- | Parse a crypto value. Endian safety is take into account
--- here. This is what you would need when you parse packets from an
--- external source. You can also use this to define the `load`
--- function in a compicated `EndianStore` instance.
+-- | Safe version of `PU.parse`. Parse a crypto value. Endian safety is
+-- take into account here. This is what you would need when you parse
+-- packets from an external source.
 parse :: EndianStore a => Parser a
-parse = do a <- getPtr >>= lift . load
-           modify $ flip movePtr $ byteSize a
-           return a
+parse = parseWith undefined
+  where
+    parseWith :: EndianStore a => a -> Parser a
+    parseWith a = do
+      checkAndUpdate $ BYTES $ sizeOf a
+      lift $ PU.parse
 
 -- | Parses a strict bytestring of a given length.
 parseByteString :: CryptoCoerce l (BYTES Int) => l -> Parser ByteString
-parseByteString l = do bs <- getPtr >>= lift . getBS
-                       modify $ flip movePtr l
-                       return bs
-  where bytes = cryptoCoerce l :: BYTES Int
-        getBS = createFrom $ fromIntegral bytes
+parseByteString l = do
+  checkAndUpdate $ cryptoCoerce l
+  lift $ PU.parseByteString l
+
+-- | Parse the rest of the buffer as strict bytestring.
+parseRest :: Parser ByteString
+parseRest = parseByteString =<< get

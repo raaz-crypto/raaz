@@ -24,10 +24,10 @@ import Data.Typeable(Typeable)
 import Foreign.Ptr(castPtr)
 import Foreign.Storable(Storable(..))
 
-import Raaz.Parse
+import Raaz.Parse.Unsafe
 import Raaz.Primitives
 import Raaz.Types
-import Raaz.Write
+import Raaz.Write.Unsafe
 
 import Raaz.Hash.Sha.Util
 import Raaz.Hash.Sha256.Type(SHA256(..))
