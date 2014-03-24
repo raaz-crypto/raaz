@@ -1,63 +1,54 @@
--- | Module to write stuff to buffers. This writer provides low level
--- writing of data to memory locations given by pointers. It does the
--- necessary pointer arithmetic to make the pointer point to the next
--- location. No range checks are done to speed up the operations and
--- hence these operations are highly unsafe. Use it with care.
+-- | Module to write stuff to buffers. Necessary range checks are done
+-- to make it safer than Raaz.Write.
 
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE DeriveDataTypeable         #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Raaz.Write
        ( Write, write, writeStorable
+       , WriteException(..)
        , writeBytes
        , runWrite
-       , runWriteForeignPtr
        ) where
 
-import Control.Monad               ( (>=>), void )
-import Data.Monoid
-import Data.Word                   ( Word8  )
-import Foreign.ForeignPtr.Safe     ( withForeignPtr )
-import Foreign.Ptr                 ( castPtr )
-import Foreign.Storable
+import           Control.Exception
+import           Data.Monoid
+import           Data.Typeable
+import           Data.Word         (Word8)
+import           Foreign.Storable
 
-import Raaz.Types
-import Raaz.Util.Ptr
+import           Raaz.Types
+import           Raaz.Util.Ptr
 
--- | The write type.
-newtype Write = Write (CryptoPtr -> IO CryptoPtr)
+import qualified Raaz.Write.Unsafe as WU
 
-instance Monoid Write where
-  mempty                               = Write return
-  mappend (Write first) (Write second) = Write (first >=> second)
+-- | The write type. Safer version of `W.Write`.
+newtype Write = Write (Sum (BYTES Int), WU.Write)
+              deriving Monoid
+
+data WriteException = WriteOverflow
+                    deriving (Show, Typeable)
+
+instance Exception WriteException
 
 -- | Perform a write action on a buffer pointed by the crypto pointer.
-runWrite :: CryptoPtr -> Write -> IO ()
-runWrite cptr (Write action) = void $ action cptr
+runWrite :: CryptoBuffer -> Write -> IO ()
+runWrite  (CryptoBuffer sz cptr) (Write (summ, wr))
+      | getSum summ > sz = throwIO WriteOverflow
+      | otherwise        = WU.runWrite cptr wr
 
--- | Perform a write action on a buffer pointed by a foreign pointer
-runWriteForeignPtr   :: ForeignCryptoPtr -> Write -> IO ()
-runWriteForeignPtr fptr (Write action) = void $ withForeignPtr fptr action
-
--- | Writes a value which is an instance of Storable. This writes the
--- value machine endian. Mostly it is useful in defining the `poke`
--- function in a complicated `Storable` instance.
+-- | Safe version of `WU.writeStorable`. Writes a value which is an
+-- instance of Storable. This writes the value machine endian.
 writeStorable :: Storable a => a -> Write
-writeStorable a = Write $ \ cptr -> do
-  poke (castPtr cptr) a
-  return $ cptr `movePtr` byteSize a
+writeStorable a = Write (Sum $ byteSize a, WU.writeStorable a)
 
--- | Writes an instance of `EndianStore`. Endian safety is take into
--- account here. This is what you would need when you write network
--- packets for example. You can also use this to define the `load`
--- function in a compicated `EndianStore` instance.
+-- | Safe version of `WU.write`. Writes an instance of
+-- `EndianStore`. Endian safety is take into account here. This is
+-- what you would need when you write network packets for example.
 write :: EndianStore a => a -> Write
-write a = Write $ \ cptr -> do
-  store cptr a
-  return $ cptr `movePtr` byteSize a
+write a = Write (Sum $ byteSize a, WU.write a)
 
 -- | The combinator @writeBytes n b@ writes @b@ as the next @n@
 -- consecutive bytes.
 writeBytes :: CryptoCoerce n (BYTES Int) => n -> Word8 -> Write
-writeBytes n b = Write $ \ cptr ->
-  memset cptr b bytes
-  >> return (cptr `movePtr` n)
-  where bytes = cryptoCoerce n :: BYTES Int
+writeBytes n b = Write (Sum $ cryptoCoerce n, WU.writeBytes n b)
