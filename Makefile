@@ -49,26 +49,18 @@ export PACKAGES
 ROOTDIR=$(abspath .)
 LOCALREPO=${ROOTDIR}/local-repo
 
+# Include the platform specific configurarions from the platform make
+# file.
+
 ifdef HASKELL_PLATFORM
-
-PLATFORM_CABAL=${ROOTDIR}/platform/${HASKELL_PLATFORM}.cabal
-
-else
-
-PLATFORM_CABAL=
-
+include ${ROOTDIR}/platform/${HASKELL_PLATFORM}/Makefile.configure
 endif
 
-#
-# In a travis build, you can set explicit versions for ghc and cabal
-# by setting the variables GHC_VERSION and CABAL_VERSION. The place
-# that you would want this to be done is in the env section of your
-# .travis.yml.
-#
+# In travis builds you can set particular versions of the compiler. In
+# particular, the platform specific Makefile.configure should set the
+# appropriate GHC version.
 
-
-
-ifdef GHC_VERSION	# For explicit ghc version
+ifdef GHC_VERSION
 
 GHC_PKG=ghc-${GHC_VERSION}
 PATH:=/opt/ghc/${GHC_VERSION}/bin:${PATH}
@@ -77,7 +69,7 @@ else
 
 GHC_PKG=ghc
 
-endif			# For explicit ghc version
+endif
 
 
 ifdef CABAL_VERSION
