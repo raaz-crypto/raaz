@@ -90,6 +90,8 @@ DEPENDENCIES=$(foreach cons, ${PACKAGE_CONSTRAINTS}\
 RAAZ_TAR_GZ=$(foreach pkg, ${PACKAGES}, \
 	$(wildcard ${ROOTDIR}/${pkg}/dist/*.tar.gz))
 
+CABAL_INSTALL= ${CABAL} install ${DEPENDENCIES}
+
 scripts:
 	make -C scripts all
 
@@ -105,12 +107,10 @@ echo-variables:
 	@echo -e '\t'RAAZ_TAR_GZ: ${RAAZ_TAR_GZ}
 
 install: src-tarball
-	${CABAL} install --only-dependencies \
-		${DEPENDENCIES} \
+	${CABAL_INSTALL} --only-dependencies \
 		${RAAZ_TAR_GZ}
-	${CABAL} install --enable-tests --enable-benchmarks \
+	${CABAL_INSTALL} --enable-tests --enable-benchmarks \
 		 --enable-documentation \
-		${DEPENDENCIES}\
 		${RAAZ_TAR_GZ}
 	@echo User packages installed
 	ghc-pkg list --user
@@ -124,8 +124,8 @@ tests:
 
 src-tarball:
 	cd raaz-primitives; \
-	   ${CABAL} install --only-dependencies ${DEPENDENCIES}; \
-	   ${CABAL} configure; \
+	   ${CABAL_INSTALL} --only-dependencies; \
+	   ${CABAL} configure;\
 	   cd ..
 	$(foreach pkg, ${PACKAGES},\
 		  cd ${pkg};\
