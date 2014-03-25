@@ -15,7 +15,7 @@ import           Data.Monoid          ( (<>)        )
 import           Data.Word            ( Word8       )
 import           Foreign.Storable     (Storable(..))
 import           Foreign.ForeignPtr.Safe
-import           Prelude              hiding (length)
+import           Prelude              hiding (length, replicate)
 import           System.IO            (withBinaryFile, IOMode(ReadMode), Handle)
 import           System.IO.Unsafe     (unsafePerformIO)
 
@@ -32,31 +32,48 @@ import Raaz.Primitives
 import Raaz.Primitives.Hash
 
 
--- | The HMAC associated to a hash value. The `Eq` instance for HMAC
--- is essentially the `Eq` instance for the underlying hash and hence
--- is safe against timing attack provided the underlying hash
--- comparison is safe under timing attack.
+-- | The HMAC associated to a hash value. The HMAC type is essentially
+-- the underlying hash type wrapped inside a newtype. Therefore the
+-- `Eq` instance for HMAC is essentially the `Eq` instance for the
+-- underlying hash. It is safe against timing attack provided the
+-- underlying hash comparison is safe under timing attack.
 newtype HMAC h = HMAC h deriving (Eq, Storable, EndianStore)
+
+-- | A function that is often used to keep type checker happy.
+getHash :: HMAC h -> h
+getHash _ = undefined
 
 
 instance Primitive h => Primitive (HMAC h) where
+
+  -- | The block size is the same as the block size of the underlying
+  -- hash.
   blockSize         = blockSize . getHash
+
+  -- The HMAC algorithm first hashes the inner pad concatnated with
+  -- the message. It then hashes the result with the outer pad
+  -- prefixed. The inner and outer pads are 1 block in size hence
+  -- instead of keeping the pads, we keep the context obtained after
+  -- processing the first block inside the HMAC context.
   data Cxt (HMAC h) = HMACCxt { innerCxt :: Cxt h
                               , outerCxt :: Cxt h
                               }
 
 instance SafePrimitive h => SafePrimitive (HMAC h)
 
+-------------------- HMAC context from the key -----------------------
+
 instance Hash h => Initializable (HMAC h) where
   cxtSize   = error "hmac cxtSize is unbounded"
+
+  -- The HMAC context can be built out of the starting string. The
+  -- inner and outer pads are strings of one block size. We store the
+  -- context obtaining from hashing these strings.
   getCxt bs = cxt
     where cxt = HMACCxt { innerCxt = hmacCxt thisHash 0x36 key
-                       , outerCxt = hmacCxt thisHash 0x5c key
-                       }
-          key = if length bs > sz
-                then toByteString (hash bs `asTypeOf` thisHash)
-                else bs
-          sz        = blockSize thisHash
+                        , outerCxt = hmacCxt thisHash 0x5c key
+                        }
+          key       = hmacShortenKey thisHash bs
           thisHmac  = getPrim cxt
           thisHash  = getHash thisHmac
           --
@@ -66,22 +83,31 @@ instance Hash h => Initializable (HMAC h) where
           getPrim _ = undefined
 
 
+-- | Shorten a key that is longer than the block size.
+hmacShortenKey :: Hash h
+               => h            -- ^ underlying hash
+               -> B.ByteString -- ^ the key.
+               -> B.ByteString
+hmacShortenKey h key
+  | length key > blockSize h = toByteString (hash key `asTypeOf` h)
+  | otherwise                = key
 
 -- | This function computes the padded key for for a given byteString.
--- We will assume that the key is of size atmost the block size.
+-- We will assume that the key is of size at most the block size.
 hmacPad :: BYTES Int    -- ^ Block size
         -> Word8        -- ^ The pad character
         -> B.ByteString -- ^ the pad size
         -> B.ByteString
-hmacPad (BYTES bSize) pad key =  B.map (xor pad) key
-                              <> B.replicate extra pad
-  where extra = bSize - B.length key
+hmacPad sz pad key =  B.map (xor pad) key
+                              <> replicate extra pad
+  where extra = sz - length key
 
--- | Compute the hmac Cxt for a given padded key.
+-- | Compute the hmac cxt for a given key and its pad character. The
+-- key is assumed of size at most the block size.
 hmacCxt :: Hash h
        => h             -- ^ underlying hash
        -> Word8         -- ^ pad character
-       -> B.ByteString  -- ^ padded key
+       -> B.ByteString  -- ^ key
        -> Cxt h
 hmacCxt h pad key  = unsafePerformIO $ withGadget def $ go h
   where go :: Hash hsh => hsh -> Recommended hsh -> IO (Cxt hsh)
@@ -92,17 +118,17 @@ hmacCxt h pad key  = unsafePerformIO $ withGadget def $ go h
           where sz        = blockSize hsh
                 paddedKey = hmacPad sz pad key
 
--- | A function that is often used to keep type checker happy.
-getHash :: HMAC h -> h
-getHash _ = undefined
-
-
+----------------- Padding strategy of HMAC ------------------------
 
 instance HasPadding h => HasPadding (HMAC h) where
   --
+  -- The hmac algorithm is
+  --
   --     hmac = hash (outer-pad + hash ( innerpad + message) )
-  -- The extra size of blocks 1 hmac is to account for the the inner
-  -- pad that is already hashed before the actual data worked on with.
+  --
+  -- The extra size of one block in hmac is to account for the the
+  -- inner pad that is already hashed before the actual data is
+  -- processed.
 
   padLength hmac bits = padLength h bits'
     where h     = getHash hmac
