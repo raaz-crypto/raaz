@@ -5,13 +5,14 @@
 
 module Raaz.Cipher.AES.CBC.Type where
 
-import qualified Data.ByteString              as BS
-import           Foreign.Storable             (sizeOf)
+import qualified Data.ByteString                as BS
+import           Foreign.Storable               (sizeOf)
 import           Raaz.Primitives
 import           Raaz.Primitives.Cipher
 import           Raaz.Types
 import           Raaz.Util.ByteString
 
+import           Raaz.Cipher.AES.Block.Internal
 import           Raaz.Cipher.AES.Internal
 
 

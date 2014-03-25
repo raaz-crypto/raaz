@@ -24,7 +24,6 @@ source-repository head
 library
   exposed-modules: Raaz.Cipher.AES.Type
                  , Raaz.Cipher.AES.Internal
-                 , Raaz.Cipher.AES.Block.Internal
                  , Raaz.Cipher.AES.CBC
                  , Raaz.Cipher.AES.CTR
                  , Raaz.Cipher.AES.ECB
@@ -47,6 +46,7 @@ library
                , Raaz.Cipher.Salsa20.Block.Internal
                , Raaz.Cipher.Salsa20.Block.Type
                , Raaz.Cipher.Salsa20.Instances
+               , Raaz.Cipher.AES.Block.Internal
   build-depends: base                           >= 4.5 && < 4.8
                , bytestring                     >= 0.9 && < 0.11
                , data-default                   >= 0.4 && < 0.6

@@ -16,6 +16,7 @@ import Raaz.Types
 import Raaz.Util.Ptr
 
 import Raaz.Cipher.AES.ECB.Type
+import Raaz.Cipher.AES.Block.Internal
 import Raaz.Cipher.AES.Internal
 
 instance Gadget (HGadget (Cipher (AES ECB) KEY128 Encryption)) where

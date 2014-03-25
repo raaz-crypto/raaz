@@ -1,12 +1,24 @@
+{- |
+
+This module exports internals of Salsa20 implementation and should not
+be used directly by the user.
+
+-}
+
 {-# LANGUAGE DeriveDataTypeable #-}
 module Raaz.Cipher.Salsa20.Internal
-       ( module Raaz.Cipher.Salsa20.Block.Type
-       , module Raaz.Primitives.Cipher
+       ( Salsa20
+       , R20
+       , R12
+       , R8
+       , KEY128
+       , KEY256
+       , Nonce
+       , Counter
+         -- * This is exported for tests and should not be used directly.
+       , Matrix(..)
+       , STATE(..)
        , module Raaz.Cipher.Salsa20.Block.Internal
-       , Salsa20(..)
-       , R20(..)
-       , R12(..)
-       , R8(..)
        ) where
 
 import Raaz.Cipher.Salsa20.Block.Type

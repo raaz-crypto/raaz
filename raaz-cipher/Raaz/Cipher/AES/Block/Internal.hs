@@ -31,6 +31,7 @@ module Raaz.Cipher.AES.Block.Internal
        , xorState
        , hExpand128, hExpand192, hExpand256
        , cExpand128, cExpand192, cExpand256
+       , module Raaz.Cipher.AES.Block.Type
        ) where
 
 import Data.Bits
