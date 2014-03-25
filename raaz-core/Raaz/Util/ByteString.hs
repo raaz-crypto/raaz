@@ -8,14 +8,14 @@ Some utility function for byte strings.
 module Raaz.Util.ByteString
        ( unsafeCopyToCryptoPtr
        , unsafeNCopyToCryptoPtr
-       , length
+       , length, replicate
        , hex, toHex
        , withByteString
        , fromByteString, fromByteStringStorable
        , createFrom
        ) where
 
-import           Prelude            hiding (length)
+import           Prelude            hiding (length, replicate)
 import           Data.Bits
 import qualified Data.ByteString    as B
 import           Data.ByteString    (ByteString)
@@ -23,6 +23,7 @@ import           Data.ByteString.Internal( toForeignPtr
                                          , c2w, unsafeCreate
                                          , create
                                          )
+import           Data.Word
 import           Foreign.ForeignPtr (withForeignPtr)
 import           Foreign.Ptr        (castPtr, plusPtr)
 import           Foreign.Storable   (poke, peek, Storable)
@@ -35,6 +36,11 @@ import           Raaz.Util.Ptr
 -- | A typesafe length for Bytestring
 length :: ByteString -> BYTES Int
 length = BYTES . B.length
+
+-- | A type safe version of replicate
+replicate :: CryptoCoerce l (BYTES Int) => l -> Word8 -> ByteString
+replicate l = B.replicate sz
+  where BYTES sz = cryptoCoerce l
 
 -- | Copy the bytestring to the crypto buffer. This operation leads to
 -- undefined behaviour if the crypto pointer points to an area smaller
