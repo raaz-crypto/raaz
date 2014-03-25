@@ -24,9 +24,7 @@ module Raaz.Cipher.Salsa20.Internal
 import Raaz.Cipher.Salsa20.Block.Type
 import Raaz.Cipher.Salsa20.Block.Internal
 
-import Raaz.Primitives.Cipher
 import Data.Typeable
-import Raaz.Primitives
 
 -- | Salsa20 with given rounds
 data Salsa20 r = Salsa20 deriving (Show, Eq, Typeable)
