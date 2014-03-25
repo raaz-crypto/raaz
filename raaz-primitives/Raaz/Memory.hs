@@ -16,9 +16,9 @@ module Raaz.Memory
        , withCell
          -- Buffer
        , Bufferable(..)
-       , Buffer
-       , bufferSize
-       , withBuffer
+       , MemoryBuf
+       , memoryBufSize
+       , withMemoryBuf
        ) where
 
 
@@ -160,35 +160,37 @@ class Bufferable b where
   default maxSizeOf :: Storable b => b -> BYTES Int
   maxSizeOf = fromIntegral . sizeOf
 
--- | Buffer whose size depends on the `Bufferable` instance of @b@.
-data Buffer b = Buffer {-# UNPACK #-} !(BYTES Int)
-                       {-# UNPACK #-} !ForeignCryptoPtr
+-- | A memory buffer whose size depends on the `Bufferable` instance
+-- of @b@.
+data MemoryBuf b = MemoryBuf {-# UNPACK #-} !(BYTES Int)
+                             {-# UNPACK #-} !ForeignCryptoPtr
 
 -- | Size of the buffer.
-bufferSize :: Buffer b -> BYTES Int
-bufferSize (Buffer sz _) = sz
-{-# INLINE bufferSize #-}
+memoryBufSize :: MemoryBuf b -> BYTES Int
+memoryBufSize (MemoryBuf sz _) = sz
+{-# INLINE memoryBufSize #-}
 
--- | Perform some pointer action on Buffer.
-withBuffer :: Buffer a -> (CryptoPtr -> IO b) -> IO b
-withBuffer (Buffer _ fp) = withForeignPtr fp
-{-# INLINE withBuffer #-}
+-- | Perform some pointer action on `MemoryBuf`.
+withMemoryBuf :: MemoryBuf a -> (CryptoPtr -> IO b) -> IO b
+withMemoryBuf (MemoryBuf _ fp) = withForeignPtr fp
+{-# INLINE withMemoryBuf #-}
 
--- | Memory instance of Buffer
-instance Bufferable b => Memory (Buffer b) where
+-- | Memory instance of `MemoryBuf`
+instance Bufferable b => Memory (MemoryBuf b) where
   newMemory = mal undefined
-    where mal :: Bufferable b => b -> IO (Buffer b)
-          mal b = fmap (Buffer size) $ mallocForeignPtrBytes (fromIntegral size)
+    where mal :: Bufferable b => b -> IO (MemoryBuf b)
+          mal b = fmap (MemoryBuf size)
+                  $ mallocForeignPtrBytes (fromIntegral size)
             where
               size = maxSizeOf b
-  freeMemory (Buffer _ fptr) = finalizeForeignPtr fptr
-  copyMemory (Buffer sz sf) (Buffer _ df) = withForeignPtr sf do1
+  freeMemory (MemoryBuf _ fptr) = finalizeForeignPtr fptr
+  copyMemory (MemoryBuf sz sf) (MemoryBuf _ df) = withForeignPtr sf do1
     where do1 sptr = withForeignPtr df (do2 sptr)
           do2 sptr dptr = memcpy dptr sptr (BYTES sz)
   withSecureMemory f bk = with undefined f
     where
-      with :: Bufferable a => a -> (Buffer a -> IO b) -> IO b
-      with a action = withSecureMem bytes (action . Buffer bytes) bk
+      with :: Bufferable a => a -> (MemoryBuf a -> IO b) -> IO b
+      with a action = withSecureMem bytes (action . MemoryBuf bytes) bk
         where
           bytes :: BYTES Int
           bytes = maxSizeOf a
