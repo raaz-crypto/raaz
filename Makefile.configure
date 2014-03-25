@@ -11,3 +11,22 @@ INSTALL_OPTS=
 PACKAGES= raaz raaz-random raaz-cipher \
           raaz-hash raaz-ssh raaz-benchmarks \
           raaz-primitives
+
+# Set this variable to add those constraints to the cabal process.
+# For every constraint cons in this variable, we add a
+# --constraint=cons command like for the cabal install process. This
+# variable is usually set by the platform specific configuration
+# files.
+
+PACKAGE_CONSTAINTS=
+
+# Set this to use a different GHC version (in multiple travis
+# build). Better set in the Travis build matrix/or platform specific
+# config files.
+
+GHC_VERSION=
+
+# Version of cabal to use. Again better set in travis build matrix or
+# platform specific config files.
+
+CABAL_VERSION=

@@ -11,7 +11,6 @@ include Makefile.configure # Read in configuration
 .PHONY: travis-before-install # Sets up the travis environment.
 .PHONY: travis-cabal-config   # Sets up the travis cabal config file
 .PHONY: hlint   # runs hlint on the sources
-.PHONY: local-repo local-repo-clean # Local repo rules.
 .PHONY: src-tarball # Creates the source tarballs in the respective directories.
 .PHONY: scripts     # builds the scripts in the scripts directory
 
@@ -47,28 +46,19 @@ export PACKAGES
 #
 
 ROOTDIR=$(abspath .)
-LOCALREPO=${ROOTDIR}/local-repo
+
+# Include the platform specific configurarions from the platform make
+# file.
 
 ifdef HASKELL_PLATFORM
-
-PLATFORM_CABAL=${ROOTDIR}/platform/${HASKELL_PLATFORM}.cabal
-
-else
-
-PLATFORM_CABAL=
-
+include ${ROOTDIR}/platform/${HASKELL_PLATFORM}/Makefile.configure
 endif
 
-#
-# In a travis build, you can set explicit versions for ghc and cabal
-# by setting the variables GHC_VERSION and CABAL_VERSION. The place
-# that you would want this to be done is in the env section of your
-# .travis.yml.
-#
+# In travis builds you can set particular versions of the compiler. In
+# particular, the platform specific Makefile.configure should set the
+# appropriate GHC version.
 
-
-
-ifdef GHC_VERSION	# For explicit ghc version
+ifdef GHC_VERSION
 
 GHC_PKG=ghc-${GHC_VERSION}
 PATH:=/opt/ghc/${GHC_VERSION}/bin:${PATH}
@@ -77,7 +67,7 @@ else
 
 GHC_PKG=ghc
 
-endif			# For explicit ghc version
+endif
 
 
 ifdef CABAL_VERSION
@@ -92,20 +82,15 @@ CABAL=cabal
 
 endif
 
-# Building the local repo
+# Setting the cabal install DEPENDENCIES
+DEPENDENCIES=$(foreach cons, ${PACKAGE_CONSTRAINTS}\
+	,--constraint='${cons}' )
 
-local-repo: src-tarball scripts
-	./scripts/raaz-repo ${PACKAGES}
-	make -C local-repo index
+# Package tarballs. We install directly from the tarballs
+RAAZ_TAR_GZ=$(foreach pkg, ${PACKAGES}, \
+	$(wildcard ${ROOTDIR}/${pkg}/dist/*.tar.gz))
 
-local-repo-clean:
-	make -C local-repo clean
-
-travis-cabal-config: scripts
-	scripts/cabal-config ${ROOTDIR} local-repo ${PLATFORM_CABAL} \
-		>> ~/.cabal/config
-# This target just prints the setting of each relevant
-# variable. Useful for debugging.
+CABAL_INSTALL= ${CABAL} install ${DEPENDENCIES}
 
 scripts:
 	make -C scripts all
@@ -118,11 +103,15 @@ echo-variables:
 	@echo -e '\t'HASKELL_PLATFORM=${HASKELL_PLATFORM}
 
 	@echo -e '\t'ghc,cabal: ${GHC_PKG} ${CABAL_PKG}
+	@echo -e '\t'DEPENDENCIES: ${DEPENDENCIES}
+	@echo -e '\t'RAAZ_TAR_GZ: ${RAAZ_TAR_GZ}
 
-install: local-repo
-	${CABAL} install --only-dependencies ${PACKAGES}
-	${CABAL} install --enable-tests --enable-benchmarks \
-		 --enable-documentation ${PACKAGES}
+install: src-tarball
+	${CABAL_INSTALL} --only-dependencies \
+		${RAAZ_TAR_GZ}
+	${CABAL_INSTALL} --enable-tests --enable-benchmarks \
+		 --enable-documentation \
+		${RAAZ_TAR_GZ}
 	@echo User packages installed
 	ghc-pkg list --user
 
@@ -135,8 +124,8 @@ tests:
 
 src-tarball:
 	cd raaz-primitives; \
-	   ${CABAL} install --only-dependencies; \
-	   ${CABAL} configure; \
+	   ${CABAL_INSTALL} --only-dependencies; \
+	   ${CABAL} configure;\
 	   cd ..
 	$(foreach pkg, ${PACKAGES},\
 		  cd ${pkg};\
