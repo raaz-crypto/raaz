@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TypeFamilies      #-}
 
-module Modules.Defaults where
+module Modules.AES.Defaults where
 
 import           Data.ByteString        (ByteString,pack)
 import qualified Data.ByteString        as BS
@@ -18,8 +18,8 @@ import           Raaz.Primitives.Cipher
 
 import           Raaz.Cipher.AES.Type
 
-import           Modules.Block.Ref      ()
-
+import           Modules.AES.Block      ()
+import           Modules.Util
 
 testKey128 :: ByteString
 testKey128 =  pack [0x2b,0x7e,0x15,0x16
@@ -58,44 +58,28 @@ testKey256 =  pack [0x60,0x3d,0xeb,0x10
                    ,0x08,0x09,0x0A,0x0B
                    ,0x0C,0x0D,0x0E,0x0F]
 
-
-cportableVsReference :: ( HasInverse g1
-                        , HasInverse g2
-                        , (PrimitiveOf g1 ~ PrimitiveOf g2)
-                        , (PrimitiveOf (Inverse g1) ~ PrimitiveOf (Inverse g2))
-                        , Initializable (PrimitiveOf g1)
-                        , Initializable (PrimitiveOf (Inverse g1))
-                        , Eq (Cxt (PrimitiveOf g1))
-                        , Eq (Cxt (PrimitiveOf (Inverse g1))))
-                     => g1 -> g2 -> ByteString -> [Test]
-cportableVsReference ge1 ge2 iv' =
-  [ testGadget ge1 ge2 (getCxt iv) "CPortable vs Reference Encryption"
-  , testGadget (inverseGadget ge1) (inverseGadget ge2) (getCxt iv) "CPortable vs Reference Decryption"]
-  where
-    iv = BS.take (fromIntegral $ cxtSize $ primitiveOf ge1) iv'
-
 testsDefault m s128 s192 s256 =
-      [ testGroup ("AES128 " ++ mode ++ " Reference") $ (testStandardCiphers (pr128 m) s128 "")
-      , testGroup ("AES192 " ++ mode ++ " Reference") $ (testStandardCiphers (pr192 m) s192 "")
-      , testGroup ("AES256 " ++ mode ++ " Reference") $ (testStandardCiphers (pr256 m) s256 "")
-      , testGroup ("AES128 " ++ mode ++ " CPortable") $ (testStandardCiphers (pc128 m) s128 "")
-      , testGroup ("AES192 " ++ mode ++ " CPortable") $ (testStandardCiphers (pc192 m) s192 "")
-      , testGroup ("AES256 " ++ mode ++ " CPortable") $ (testStandardCiphers (pc256 m) s256 "")
+      [ testStandardCiphers (pr128 m) s128 $ "AES128 " ++ mode ++ " HGadget"
+      , testStandardCiphers (pr192 m) s192 $ "AES192 " ++ mode ++ " HGadget"
+      , testStandardCiphers (pr256 m) s256 $ "AES256 " ++ mode ++ " HGadget"
+      , testStandardCiphers (pc128 m) s128 $ "AES128 " ++ mode ++ " CGadget"
+      , testStandardCiphers (pc192 m) s192 $ "AES192 " ++ mode ++ " CGadget"
+      , testStandardCiphers (pc256 m) s256 $ "AES256 " ++ mode ++ " CGadget"
       , testGroup ("AES128 " ++ mode ++ " CPortable vs Reference") $ cportableVsReference (pr128 m) (pc128 m) testKey128
       , testGroup ("AES192 " ++ mode ++ " CPortable vs Reference") $ cportableVsReference (pr192 m) (pc192 m) testKey192
       , testGroup ("AES256 " ++ mode ++ " CPortable vs Reference") $ cportableVsReference (pr256 m) (pc256 m) testKey256
       ]
       where
-        pr128 :: m -> HGadget (Cipher AES KEY128 m Encryption)
+        pr128 :: m -> HGadget (Cipher (AES m) KEY128 Encryption)
         pr128 _ = undefined
-        pr192 :: m -> HGadget (Cipher AES KEY192 m Encryption)
+        pr192 :: m -> HGadget (Cipher (AES m) KEY192 Encryption)
         pr192 _ = undefined
-        pr256 :: m -> HGadget (Cipher AES KEY256 m Encryption)
+        pr256 :: m -> HGadget (Cipher (AES m) KEY256 Encryption)
         pr256 _ = undefined
-        pc128 :: m -> CGadget (Cipher AES KEY128 m Encryption)
+        pc128 :: m -> CGadget (Cipher (AES m) KEY128 Encryption)
         pc128 _ = undefined
-        pc192 :: m -> CGadget (Cipher AES KEY192 m Encryption)
+        pc192 :: m -> CGadget (Cipher (AES m) KEY192 Encryption)
         pc192 _ = undefined
-        pc256 :: m -> CGadget (Cipher AES KEY256 m Encryption)
+        pc256 :: m -> CGadget (Cipher (AES m) KEY256 Encryption)
         pc256 _ = undefined
         mode = show $ typeOf m

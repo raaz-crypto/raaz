@@ -1,4 +1,4 @@
-module Modules.CBC
+module Modules.AES.CBC
        ( tests
        ) where
 
@@ -10,7 +10,7 @@ import Raaz.Cipher.AES.Type
 
 import Raaz.Cipher.AES.CBC
 
-import Modules.Defaults
+import Modules.AES.Defaults
 
 
 -- From http://www.inconteam.com/software-development/41-encryption/55-aes-test-vectors

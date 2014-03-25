@@ -17,7 +17,7 @@ import Raaz.Util.Ptr
 benchGadget  :: ( Gadget g, Typeable (PrimitiveOf g) )
              => g                      -- ^ Gadget
              -> String                 -- ^ Gadget name
-             -> Cxt (PrimitiveOf g)     -- ^ Gadget Cxt
+             -> Cxt (PrimitiveOf g)    -- ^ Gadget Cxt
              -> CryptoPtr              -- ^ Buffer on which to benchmark
              -> BLOCKS (PrimitiveOf g) -- ^ Size of Buffer
              -> Benchmark
@@ -25,10 +25,11 @@ benchGadget g' gname iv cptr nblks = bench name $ applyGadget g' iv cptr nblks
   where
     name = getName g' gname
 
+-- | Allocates the buffer and performs the benchmark
 benchGadgetWith :: ( Gadget g, Typeable (PrimitiveOf g) )
                 => g                      -- ^ Gadget
                 -> String                 -- ^ Gadget name
-                -> Cxt (PrimitiveOf g)     -- ^ Gadget Cxt
+                -> Cxt (PrimitiveOf g)    -- ^ Gadget Cxt
                 -> BLOCKS (PrimitiveOf g) -- ^ Size of random buffer which will be allocated
                 -> Benchmark
 benchGadgetWith g' gname iv nblks = bench name $ allocaBuffer nblks go
@@ -46,7 +47,6 @@ applyGadget g' iv cptr nblks = do
   g <- createGadget g'
   initialize g iv
   apply g nblks cptr
-  _ <- finalize g
   return ()
   where
     createGadget :: Gadget g => g -> IO g
@@ -58,10 +58,8 @@ getName :: ( Gadget g, Typeable (PrimitiveOf g) )
         -> String
 getName g gname = name
   where
-    getPrim :: Gadget g => g -> PrimitiveOf g
-    getPrim _ = undefined
     name = concat [ "Primitive: "
-                  , show (typeOf $ getPrim g)
+                  , show (typeOf $ primitiveOf g)
                   , " => Gadget: "
                   , gname
                   ]

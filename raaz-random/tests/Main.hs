@@ -8,7 +8,7 @@ import qualified Modules.Number         as Number
 import           Raaz.Primitives
 import           Raaz.Primitives.Cipher
 import           Raaz.Cipher.AES.CTR
-import           Raaz.Cipher.AES.Type
+import           Raaz.Cipher.AES.Internal
 
 pkgName = "raaz-random-" ++ showVersion version
 
@@ -20,5 +20,5 @@ tests = [ testGroup "Raaz.Random.Stream" (Stream.testWith g)
         , testGroup "Raaz.Random.Number" (Number.testWith g)
         ]
   where
-    g :: CGadget (Cipher AES KEY128 CTR Encryption)
+    g :: CGadget (Cipher (AES CTR) KEY128 Encryption)
     g = undefined

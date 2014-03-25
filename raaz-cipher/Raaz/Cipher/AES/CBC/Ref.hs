@@ -19,9 +19,9 @@ import Raaz.Cipher.AES.CBC.Type
 import Raaz.Cipher.AES.Internal
 
 
-instance Gadget (HGadget (Cipher AES KEY128 CBC Encryption)) where
-  type PrimitiveOf (HGadget (Cipher AES KEY128 CBC Encryption)) = Cipher AES KEY128 CBC Encryption
-  type MemoryOf (HGadget (Cipher AES KEY128 CBC Encryption)) = (CryptoCell Expanded128, CryptoCell STATE)
+instance Gadget (HGadget (Cipher (AES CBC) KEY128 Encryption)) where
+  type PrimitiveOf (HGadget (Cipher (AES CBC) KEY128 Encryption)) = Cipher (AES CBC) KEY128 Encryption
+  type MemoryOf (HGadget (Cipher (AES CBC) KEY128 Encryption)) = (CryptoCell Expanded128, CryptoCell STATE)
   newGadgetWithMemory = return . HGadget
   initialize (HGadget (ek,s)) (AESCxt (k,iv)) = do
     hExpand128 k ek
@@ -32,9 +32,9 @@ instance Gadget (HGadget (Cipher AES KEY128 CBC Encryption)) where
     return $ AESCxt (key,state)
   apply g = loadAndApply moveAndEncrypt g encrypt128
 
-instance Gadget (HGadget (Cipher AES KEY128 CBC Decryption)) where
-  type PrimitiveOf (HGadget (Cipher AES KEY128 CBC Decryption)) = Cipher AES KEY128 CBC Decryption
-  type MemoryOf (HGadget (Cipher AES KEY128 CBC Decryption)) = (CryptoCell Expanded128, CryptoCell STATE)
+instance Gadget (HGadget (Cipher (AES CBC) KEY128 Decryption)) where
+  type PrimitiveOf (HGadget (Cipher (AES CBC) KEY128 Decryption)) = Cipher (AES CBC) KEY128 Decryption
+  type MemoryOf (HGadget (Cipher (AES CBC) KEY128 Decryption)) = (CryptoCell Expanded128, CryptoCell STATE)
   newGadgetWithMemory = return . HGadget
   initialize (HGadget (ek,s)) (AESCxt (k,iv)) = do
     hExpand128 k ek
@@ -45,9 +45,9 @@ instance Gadget (HGadget (Cipher AES KEY128 CBC Decryption)) where
     return $ AESCxt (key,state)
   apply g = loadAndApply moveAndDecrypt g decrypt128
 
-instance Gadget (HGadget (Cipher AES KEY192 CBC Encryption)) where
-  type PrimitiveOf (HGadget (Cipher AES KEY192 CBC Encryption)) = Cipher AES KEY192 CBC Encryption
-  type MemoryOf (HGadget (Cipher AES KEY192 CBC Encryption)) = (CryptoCell Expanded192, CryptoCell STATE)
+instance Gadget (HGadget (Cipher (AES CBC) KEY192 Encryption)) where
+  type PrimitiveOf (HGadget (Cipher (AES CBC) KEY192 Encryption)) = Cipher (AES CBC) KEY192 Encryption
+  type MemoryOf (HGadget (Cipher (AES CBC) KEY192 Encryption)) = (CryptoCell Expanded192, CryptoCell STATE)
   newGadgetWithMemory = return . HGadget
   initialize (HGadget (ek,s)) (AESCxt (k,iv)) = do
     hExpand192 k ek
@@ -58,9 +58,9 @@ instance Gadget (HGadget (Cipher AES KEY192 CBC Encryption)) where
     return $ AESCxt (key,state)
   apply g = loadAndApply moveAndEncrypt g encrypt192
 
-instance Gadget (HGadget (Cipher AES KEY192 CBC Decryption)) where
-  type PrimitiveOf (HGadget (Cipher AES KEY192 CBC Decryption)) = Cipher AES KEY192 CBC Decryption
-  type MemoryOf (HGadget (Cipher AES KEY192 CBC Decryption)) = (CryptoCell Expanded192, CryptoCell STATE)
+instance Gadget (HGadget (Cipher (AES CBC) KEY192 Decryption)) where
+  type PrimitiveOf (HGadget (Cipher (AES CBC) KEY192 Decryption)) = Cipher (AES CBC) KEY192 Decryption
+  type MemoryOf (HGadget (Cipher (AES CBC) KEY192 Decryption)) = (CryptoCell Expanded192, CryptoCell STATE)
   newGadgetWithMemory = return . HGadget
   initialize (HGadget (ek,s)) (AESCxt (k,iv)) = do
     hExpand192 k ek
@@ -71,9 +71,9 @@ instance Gadget (HGadget (Cipher AES KEY192 CBC Decryption)) where
     return $ AESCxt (key,state)
   apply g = loadAndApply moveAndDecrypt g decrypt192
 
-instance Gadget (HGadget (Cipher AES KEY256 CBC Encryption)) where
-  type PrimitiveOf (HGadget (Cipher AES KEY256 CBC Encryption)) = Cipher AES KEY256 CBC Encryption
-  type MemoryOf (HGadget (Cipher AES KEY256 CBC Encryption)) = (CryptoCell Expanded256, CryptoCell STATE)
+instance Gadget (HGadget (Cipher (AES CBC) KEY256 Encryption)) where
+  type PrimitiveOf (HGadget (Cipher (AES CBC) KEY256 Encryption)) = Cipher (AES CBC) KEY256 Encryption
+  type MemoryOf (HGadget (Cipher (AES CBC) KEY256 Encryption)) = (CryptoCell Expanded256, CryptoCell STATE)
   newGadgetWithMemory = return . HGadget
   initialize (HGadget (ek,s)) (AESCxt (k,iv)) = do
     hExpand256 k ek
@@ -84,9 +84,9 @@ instance Gadget (HGadget (Cipher AES KEY256 CBC Encryption)) where
     return $ AESCxt (key,state)
   apply g = loadAndApply moveAndEncrypt g encrypt256
 
-instance Gadget (HGadget (Cipher AES KEY256 CBC Decryption)) where
-  type PrimitiveOf (HGadget (Cipher AES KEY256 CBC Decryption)) = Cipher AES KEY256 CBC Decryption
-  type MemoryOf (HGadget (Cipher AES KEY256 CBC Decryption)) = (CryptoCell Expanded256, CryptoCell STATE)
+instance Gadget (HGadget (Cipher (AES CBC) KEY256 Decryption)) where
+  type PrimitiveOf (HGadget (Cipher (AES CBC) KEY256 Decryption)) = Cipher (AES CBC) KEY256 Decryption
+  type MemoryOf (HGadget (Cipher (AES CBC) KEY256 Decryption)) = (CryptoCell Expanded256, CryptoCell STATE)
   newGadgetWithMemory = return . HGadget
   initialize (HGadget (ek,s)) (AESCxt (k,iv)) = do
     hExpand256 k ek

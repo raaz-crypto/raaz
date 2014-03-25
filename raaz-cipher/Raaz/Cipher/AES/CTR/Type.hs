@@ -15,12 +15,12 @@ import           Raaz.Util.ByteString
 import           Raaz.Cipher.AES.Internal
 
 
-instance Primitive (Cipher AES k CTR e) where
+instance Primitive (Cipher (AES CTR) k e) where
   blockSize _ = cryptoCoerce $ BITS (8 :: Int)
   {-# INLINE blockSize #-}
-  newtype Cxt (Cipher AES k CTR e) = AESCxt (k, STATE) deriving Eq
+  newtype Cxt (Cipher (AES CTR) k e) = AESCxt (k, STATE) deriving Eq
 
-instance EndianStore k => Initializable (Cipher AES k CTR e) where
+instance EndianStore k => Initializable (Cipher (AES CTR) k e) where
   cxtSize _ = BYTES (ksz + ssz)
     where
       ksz = sizeOf (undefined :: k)
