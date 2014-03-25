@@ -1,3 +1,8 @@
+{- |
+
+This module implements the core Salsa20.
+
+-}
 module Raaz.Cipher.Salsa20.Block.Internal where
 
 import           Data.List                            (foldl')

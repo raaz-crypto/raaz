@@ -23,7 +23,7 @@ import Raaz.Parse.Unsafe
 import Raaz.Write.Unsafe
 
 
--- | State which consist of 4 `Word32LE`.
+-- | State which consists of 4 `Word32LE`.
 data STATE = STATE {-# UNPACK #-} !Word32LE
                    {-# UNPACK #-} !Word32LE
                    {-# UNPACK #-} !Word32LE
@@ -96,7 +96,7 @@ instance EndianStore STATE where
   load cptr = runParser cptr parseState
   store cptr state = runWrite cptr $ writeState state
 
--- | State which consist of 4 `Word32LE`.
+-- | Matrix which consists of 4 `STATE`.
 data Matrix = Matrix {-# UNPACK #-} !STATE
                      {-# UNPACK #-} !STATE
                      {-# UNPACK #-} !STATE

@@ -23,10 +23,13 @@ import Foreign.Storable
 
 import Raaz.Memory
 import Raaz.Primitives
+import Raaz.Primitives.Cipher
 import Raaz.Types
 import Raaz.Util.ByteString
 import Raaz.Util.Ptr
 
+import Raaz.Cipher.Salsa20.Block.Internal
+import Raaz.Cipher.Salsa20.Block.Type
 import Raaz.Cipher.Salsa20.Internal
 
 import qualified Data.ByteString.Internal as BI

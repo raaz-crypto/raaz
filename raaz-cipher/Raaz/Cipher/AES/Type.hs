@@ -1,11 +1,12 @@
 module Raaz.Cipher.AES.Type
-       ( KEY128
+       (
+         -- * 128 Bit Key
+         KEY128
+         -- * 192 Bit Key
        , KEY192
+         -- * 256 Bit Key
        , KEY256
-       , Expanded128
-       , Expanded192
-       , Expanded256
-       , Cipher
+         -- * AES data type
        , AES
        )where
 

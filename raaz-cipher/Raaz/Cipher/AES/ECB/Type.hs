@@ -5,12 +5,13 @@
 
 module Raaz.Cipher.AES.ECB.Type where
 
-import Foreign.Storable             (sizeOf)
+import Foreign.Storable               (sizeOf)
 import Raaz.Primitives
 import Raaz.Primitives.Cipher
 import Raaz.Types
 import Raaz.Util.ByteString
 
+import Raaz.Cipher.AES.Block.Internal
 import Raaz.Cipher.AES.Internal
 
 

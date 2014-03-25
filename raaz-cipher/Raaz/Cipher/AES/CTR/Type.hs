@@ -12,6 +12,7 @@ import           Raaz.Primitives.Cipher
 import           Raaz.Types
 import           Raaz.Util.ByteString
 
+import           Raaz.Cipher.AES.Block.Internal
 import           Raaz.Cipher.AES.Internal
 
 
