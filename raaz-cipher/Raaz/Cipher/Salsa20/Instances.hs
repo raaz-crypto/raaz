@@ -32,8 +32,6 @@ import Raaz.Cipher.Salsa20.Block.Internal
 import Raaz.Cipher.Salsa20.Block.Type
 import Raaz.Cipher.Salsa20.Internal
 
-import qualified Data.ByteString.Internal as BI
-
 foreign import ccall unsafe
   "raaz/cipher/cportable/salsa20.c expand128"
   c_expand128  :: CryptoPtr -- ^ IV = (Key || Nonce || Counter)

@@ -24,5 +24,5 @@ module Raaz.Cipher.Salsa20
 import Raaz.Primitives
 import Raaz.Primitives.Cipher
 
-import Raaz.Cipher.Salsa20.Instances
+import Raaz.Cipher.Salsa20.Instances()
 import Raaz.Cipher.Salsa20.Internal
