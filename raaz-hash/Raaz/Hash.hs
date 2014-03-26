@@ -88,3 +88,6 @@ import Raaz.Util.ByteString    ( toHex                      )
 -- > sha1Checksum :: FilePath -> IO ByteString
 -- >            -- compute the  sha1 checksum
 -- > sha1Checksum = fmap toHex . sha1File
+
+
+{-# ANN module "HLint: ignore Use import/export shortcut" #-}
