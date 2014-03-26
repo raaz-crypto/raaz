@@ -7,9 +7,10 @@ A cryptographic hash function abstraction.
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE EmptyDataDecls             #-}
 
 module Raaz.Primitives.Hash
-       ( Hash
+       ( Hash(..), HashMemoryBuf
        , sourceHash', sourceHash
        , hash', hash
        , hashFile', hashFile
@@ -24,8 +25,11 @@ import           System.IO            (withBinaryFile, IOMode(ReadMode), Handle)
 import           System.IO.Unsafe     (unsafePerformIO)
 
 import           Raaz.ByteSource
+import           Raaz.Memory
 import           Raaz.Primitives
 import           Raaz.Types
+import           Raaz.Util.Ptr        ( byteSize )
+
 
 -- | Type class capturing a cryptographic hash. The important
 -- properties of a hash are
@@ -49,6 +53,21 @@ class ( SafePrimitive h
       , h ~ Digest h
       , Digestible h
       ) => Hash h
+
+-- | Often we want to hash some data which is itself the hash of some
+-- other data. e.g. computing iterated hash of a password or hmac. We
+-- define a memory buffer for such applications.
+type HashMemoryBuf h = MemoryBuf (HashMemoryBufSize h)
+
+-- | The `Bufferable` type used to define `HashMemoryBuffer`
+data HashMemoryBufSize h
+
+instance Hash h => Bufferable (HashMemoryBufSize h) where
+  maxSizeOf hbsz = padLength thisHash (cryptoCoerce sz) + sz
+    where sz       = byteSize thisHash
+          thisHash = getH hbsz
+          getH     :: HashMemoryBufSize h -> h
+          getH _   = undefined
 
 -- | Hash a given byte source.
 sourceHash' :: ( ByteSource src
