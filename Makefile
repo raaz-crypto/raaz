@@ -134,7 +134,7 @@ src-tarball:
 		)
 
 
-clean:   ${PACKAGE_CLEAN} local-repo-clean
+clean:   ${PACKAGE_CLEAN}
 
 ${PACKAGE_CLEAN}:
 	cd $(patsubst %-clean,%,$@);\
