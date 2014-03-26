@@ -41,15 +41,15 @@ import qualified Raaz.Util.ByteString          as BU
 -- | A buffered random source which uses a stream gadget as the
 -- underlying source for generating random bytes.
 data RandomSource g = RandomSource g
-                                   (Buffer (GadgetBuff g))
+                                   (MemoryBuf (GadgetBuff g))
                                    (CryptoCell (BYTES Int))
                                    (CryptoCell (BYTES Int)) -- ^ Gadget, Buffer, Offset in Buffer, Bytes generated so far
 
 -- | Primitive for Random Source
 newtype RandomPrim p = RandomPrim p
 
-zeroOutBuffer :: Buffer g -> IO ()
-zeroOutBuffer buff = withBuffer buff (\cptr -> memset cptr 0 (bufferSize buff))
+zeroOutMemoryBuf :: MemoryBuf g -> IO ()
+zeroOutMemoryBuf buff = withMemoryBuf buff (\cptr -> memset cptr 0 (memoryBufSize buff))
 
 -- | Buffer for storing random data.
 newtype GadgetBuff g = GadgetBuff g
@@ -65,7 +65,7 @@ fromGadget g = do
   buffer <- newMemory
   offset <- newMemory
   counter <- newMemory
-  cellStore offset (bufferSize buffer)
+  cellStore offset (memoryBufSize buffer)
   cellStore counter 0
   return (RandomSource g buffer offset counter)
 
@@ -86,7 +86,7 @@ instance Initializable p => Initializable (RandomPrim p) where
 instance StreamGadget g => Gadget (RandomSource g) where
   type PrimitiveOf (RandomSource g) = RandomPrim (PrimitiveOf g)
   type MemoryOf (RandomSource g) = ( MemoryOf g
-                                   , Buffer (GadgetBuff g)
+                                   , MemoryBuf (GadgetBuff g)
                                    , CryptoCell (BYTES Int)
                                    , CryptoCell (BYTES Int)
                                    )
@@ -96,8 +96,8 @@ instance StreamGadget g => Gadget (RandomSource g) where
     return $ RandomSource g buffer celloffset cellcounter
   initialize (RandomSource g buffer celloffset cellcounter) (RSCxt iv) = do
     initialize g iv
-    zeroOutBuffer buffer
-    cellStore celloffset (bufferSize buffer)
+    zeroOutMemoryBuf buffer
+    cellStore celloffset (memoryBufSize buffer)
     cellStore cellcounter 0
   -- | Finalize is of no use for a random number generator.
   finalize (RandomSource g _ _ _) = RSCxt <$> finalize g
@@ -112,12 +112,12 @@ instance StreamGadget g => ByteSource (RandomSource g) where
     return $ Remaining rs
       where
         go !sz !offst !outptr
-          | netsz >= sz = withBuffer buff (\bfr -> memcpy outptr (movePtr bfr offst) sz >> return (offst + sz))
+          | netsz >= sz = withMemoryBuf buff (\bfr -> memcpy outptr (movePtr bfr offst) sz >> return (offst + sz))
           | otherwise = do
-              withBuffer buff doWithBuffer
+              withMemoryBuf buff doWithBuffer
               go (sz - netsz) 0 (movePtr outptr netsz)
                 where
-                  bsz = bufferSize buff
+                  bsz = memoryBufSize buff
                   netsz = bsz - offst
                   doWithBuffer bfr = memcpy outptr (movePtr bfr offst) netsz
                                   >> fillFromGadget g bsz bfr
