@@ -7,9 +7,11 @@ This module implements Modular arithmetic on Integers.
 {-# LANGUAGE BangPatterns  #-}
 module Raaz.Number.Modular
     ( Modular(..)
+    , powModuloSlow
     ) where
 
 import Data.Bits
+import Raaz.Number.Util
 
 #if MIN_VERSION_integer_gmp(0,5,1)
 import GHC.Integer.GMP.Internals
@@ -55,12 +57,12 @@ instance Modular Integer where
 
 -- | Modular exponentiation @x^n mod m@ using binary exponentiation.
 powModuloSlow :: Integer -> Integer -> Integer -> Integer
-powModuloSlow x n m = go x n 1
+powModuloSlow x n m = go x nbits 1
  where
-  go _   0 !result = result `mod` m
-  go !b !e !result = go b' e' result'
+  nbits             = fromEnum $ numberOfBits n
+  go _   0 !result  = result `mod` m
+  go !b !nb !result = go b' (nb-1) result'
    where
     !b'      = (b * b) `mod` m
-    !e'      = e `shiftR` 1
-    !result' | odd e       = (result * b)
-             | otherwise   = result
+    !result' | testBit n (nbits - nb) = result * b
+             | otherwise              = result
