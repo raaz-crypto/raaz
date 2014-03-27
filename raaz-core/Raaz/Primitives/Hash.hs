@@ -20,6 +20,7 @@ import           Control.Applicative  ((<$>))
 import           Data.Default
 import qualified Data.ByteString      as B
 import qualified Data.ByteString.Lazy as L
+import           Foreign.Storable     ( Storable )
 import           Prelude              hiding (length)
 import           System.IO            (withBinaryFile, IOMode(ReadMode), Handle)
 import           System.IO.Unsafe     (unsafePerformIO)
@@ -52,6 +53,7 @@ class ( SafePrimitive h
       , EndianStore h
       , h ~ Digest h
       , Digestible h
+      , Storable (Cxt h)
       ) => Hash h
 
 -- | Often we want to hash some data which is itself the hash of some

@@ -4,6 +4,8 @@
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE UndecidableInstances       #-}
+
 module Raaz.Primitives.HMAC
        ( HMAC(..)
        ) where
@@ -14,22 +16,16 @@ import           Data.Default         ( def )
 import           Data.Monoid          ( (<>)        )
 import           Data.Word            ( Word8       )
 import           Foreign.Storable     (Storable(..))
-import           Foreign.ForeignPtr.Safe
 import           Prelude              hiding (length, replicate)
-import           System.IO            (withBinaryFile, IOMode(ReadMode), Handle)
 import           System.IO.Unsafe     (unsafePerformIO)
 
-import           Raaz.ByteSource
 import           Raaz.Memory
 import           Raaz.Primitives
+import           Raaz.Primitives.Hash
 import           Raaz.Types
 import           Raaz.Util.ByteString
 import           Raaz.Util.Ptr
-import           Raaz.Util.SecureMemory
 
-import Raaz.Memory
-import Raaz.Primitives
-import Raaz.Primitives.Hash
 
 
 -- | The HMAC associated to a hash value. The HMAC type is essentially
@@ -58,8 +54,6 @@ instance Primitive h => Primitive (HMAC h) where
   data Cxt (HMAC h) = HMACCxt { innerCxt :: Cxt h
                               , outerCxt :: Cxt h
                               }
-
-instance SafePrimitive h => SafePrimitive (HMAC h)
 
 -------------------- HMAC context from the key -----------------------
 
@@ -120,6 +114,14 @@ hmacCxt h pad key  = unsafePerformIO $ withGadget def $ go h
 
 ----------------- Padding strategy of HMAC ------------------------
 
+-- The padding strategy of HMAC is the same as that of the underlying
+-- hash. All one needs is that the length should be 1 blocksize more
+-- as we need to account for the extra block which is the inner pad.
+
+instance (PaddableGadget g, Hash (PrimitiveOf g))
+         => PaddableGadget (HMACGadget g)
+
+
 instance HasPadding h => HasPadding (HMAC h) where
   --
   -- The hmac algorithm is
@@ -146,92 +148,62 @@ instance HasPadding h => HasPadding (HMAC h) where
                        . maxAdditionalBlocks
                        . getHash
 
-{--
 
-instance Gadget g => Gadget (HMAC g) where
+data HMACGadget g =
+  HMACGadget { hashGadget   :: g
+                               -- ^ The gaget
+             , outerCxtCell :: CryptoCell (Cxt (PrimitiveOf g))
+                               -- ^ cell to store the outer cxt
+             , hmacBuffer   :: HashMemoryBuf (PrimitiveOf g)
+                               -- ^ the buffer used for hashing the
+                               -- hash ( innerpad ++ message)
+             }
 
-  type PrimitiveOf (HMAC g) = HMAC (PrimitiveOf g)
+instance (Gadget g, Hash (PrimitiveOf g), PaddableGadget g)
+         => Gadget (HMACGadget g) where
 
-  type MemoryOf (HMAC g) = (MemoryOf g, HMACBuffer (PrimitiveOf g))
+  type PrimitiveOf (HMACGadget g) = HMAC (PrimitiveOf g)
 
-  newGadget (gmem,hbuff) = do
-    g <- newGadget gmem
-    return $ HMACGadget g hbuff
+  type MemoryOf (HMACGadget g) = ( MemoryOf g
+                                 , CryptoCell (Cxt (PrimitiveOf g))
+                                 , HashMemoryBuf (PrimitiveOf g)
+                                 )
 
-  initialize (HMACGadget g hbuff) (HMACSecret bs)  = do
-    initialize g def
-    initHMAC (HMACGadget g hbuff) bs
+  newGadgetWithMemory (gmem, cxtCell, hbuff) = do
+    g <- newGadgetWithMemory gmem
+    return HMACGadget { hashGadget   = g
+                      , outerCxtCell = cxtCell
+                      , hmacBuffer   = hbuff
+                      }
 
-  finalize (HMACGadget g (HMACBuffer fcptr)) = do
-    fv <- finalize g
-    withForeignPtr fcptr (flip store fv . flip movePtr (oneBlock g))
-    withForeignPtr fcptr (unsafePad (getPrim g) mlen)
-    initialize g def
-    withForeignPtr fcptr (apply g (2 * oneBlock g))
-    HMAC <$> finalize g
-    where
-      mlen = cryptoCoerce $ BYTES $ sizeOf (getPrim g) + len
-      getPrim :: Gadget g => g -> PrimitiveOf g
-      getPrim _ = undefined
-      oneBlock :: Gadget g => g -> BLOCKS (PrimitiveOf g)
-      oneBlock g' = blocksOf 1 (getPrim g')
-      BYTES len   = cryptoCoerce $ oneBlock g
+  initialize hg cxt  = do
+    -- use the inner pad to initialize the
+    -- hash gadget.
+    initialize (hashGadget hg) $ innerCxt cxt
+    -- Store the outer context in the cxtCell to use
+    -- in the outer stage.
+    cellStore (outerCxtCell hg) $ outerCxt cxt
+
+
+  finalize hg = do
+    innerHash <- fmap cxtToHash $ finalize g -- hash (inner pad ++ message)
+    oc        <- cellLoad cell               -- outer context
+    -- hash ( outerpad ++ inner hash)
+    do initialize g oc  -- Now the first block consisting of outer pad
+                        -- is hashed.
+       -- Store the inner hash in the buffer and hash it.
+       withMemoryBuf buf $ \ cptr -> do
+             store cptr innerHash
+             unsafeApplyLast g 1 (byteSize innerHash) cptr
+             hcxt <- finalize g
+             return $ HMACCxt hcxt hcxt
+    where g    = hashGadget hg
+          cell = outerCxtCell hg
+          buf  = hmacBuffer hg
 
   recommendedBlocks = toEnum . fromEnum . recommendedBlocks . getHash'
     where getHash' :: Gadget g => HMACGadget g -> g
-          getHash' (HMACGadget g _) = g
+          getHash' (HMACGadget g _ _) = g
 
-  apply (HMACGadget g _) blks = apply g blks'
+  apply (HMACGadget g _ _) blks = apply g blks'
     where blks' = toEnum $ fromEnum blks
-
--- instance (CryptoPrimitive p, PrimitiveOf (HMACGadget (Recommended p)) ~ HMAC p)
---          => CryptoPrimitive (HMAC p) where
---   type Recommended (HMAC p) = HMACGadget (Recommended p)
---   type Reference   (HMAC p) = HMACGadget (Reference p)
-
--- The instance is a straight forward definition from the
--- corresponding hash. Recall that hmac is computed as follows
---
--- > hmac k m = hashByteString $ k2 ++ innerhash
--- >          where inner = toByteString $ hashByteString (k1 ++ m)
--- >
---
--- where k1 and k2 are the inner and outer pad respectively each of 1
--- block length. The HasPadding instance of HMAC has to account for an
--- additional block of data arising out of the concatination of k1 in
--- front of the message.
-
-
-initHMAC :: HashGadget g
-         => HMACGadget g
-         -> B.ByteString
-         -> IO ()
-initHMAC hmacg@(HMACGadget g _) bs = go hmacg
-  where
-    go :: HashGadget g => HMACGadget g -> IO ()
-    go (HMACGadget g' _)
-      | length bs <= blkSize = initHMAC' hmacg bs
-      | otherwise            = initHMAC' hmacg $ toByteString
-                                               $ hash' g' bs
-    getPrim :: Gadget g => g -> PrimitiveOf g
-    getPrim _ = undefined
-    blkSize = cryptoCoerce $ blocksOf 1 (getPrim g)
-
-initHMAC' :: HashGadget g
-          => HMACGadget g
-          -> B.ByteString
-          -> IO ()
-initHMAC' (HMACGadget g (HMACBuffer fptr)) bs = do
-  _ <- withForeignPtr fptr $ fillBytes (BYTES len) ipad
-  withForeignPtr fptr $ apply g (oneBlock g)
-  _ <- withForeignPtr fptr $ fillBytes (BYTES len) opad
-  return ()
-  where
-    oneBlock :: Gadget g => g -> BLOCKS (PrimitiveOf g)
-    oneBlock _ = blocksOf 1 undefined
-    bsPad = B.append bs $ B.replicate (len - bslen) 0
-    opad  = B.map (xor 0x5c) bsPad
-    ipad  = B.map (xor 0x36) bsPad
-    BYTES len   = cryptoCoerce $ oneBlock g
-    BYTES bslen = length bs
---}
