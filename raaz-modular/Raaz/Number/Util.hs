@@ -1,5 +1,14 @@
 {-# LANGUAGE BangPatterns #-}
-module Raaz.Number.Util where
+module Raaz.Number.Util
+       ( numberOfBits
+         -- * Integer to Bytestring conversion
+       , i2osp
+       , os2ip
+         -- * Timing independed operations
+       , safeAnd
+       , safeAll
+       , safeAllBS
+       ) where
 
 import           Data.Bits
 import           Data.List       (foldl')
@@ -9,17 +18,6 @@ import qualified Data.ByteString as BS
 
 import           Raaz.Types
 
--- | Modular exponentiation @x^n mod m@
-powModulo :: Integer -> Integer -> Integer -> Integer
-powModulo x n m = go x n 1
- where
-  go _   0 !result = result
-  go !b !e !result = go b' e' result'
-   where
-    !b'      = (b * b) `rem` m
-    !e'      = e `shiftR` 1
-    !result' | testBit e 0 = (result * b) `rem` m
-             | otherwise   = result
 
 -- | Number of Bits required to represent the number
 numberOfBits :: Integral i => i -> BITS Int
@@ -30,53 +28,38 @@ numberOfBits i = go i 0
 {-# SPECIALIZE numberOfBits :: Int -> BITS Int #-}
 {-# SPECIALIZE numberOfBits :: Integer -> BITS Int #-}
 
--- | A byte with first @i@ bits as 1 and rest 0
-mask :: BITS Int -> Word8
-mask 0 = 0x00
-mask 1 = 0x80
-mask 2 = 0xc0
-mask 3 = 0xe0
-mask 4 = 0xf0
-mask 5 = 0xf8
-mask 6 = 0xfc
-mask 7 = 0xfe
-mask 8 = 0xff
-mask _ = error "mask: Wrong number of bits"
-
--- | Checks if the first n Bits of Bytestring are 0. Undefined
--- behaviour when length is less than the given number of bits.
-checkZeroBits :: BITS Int -> ByteString -> Bool
-checkZeroBits b bs = BS.all (== 0x00) (BS.take extraBytes bs)
-                     && ((mask remBits .&. BS.index bs extraBytes) == 0x00)
-  where
-    (q,r) = b `quotRem` 8
-    (extraBytes,remBits) = if r == 0 then (fromIntegral $ q-1,8) else (fromIntegral q,r)
-
--- | Zeroes out the given number of Bits from the ByteString.
-zeroBits :: BITS Int -> ByteString -> ByteString
-zeroBits b bs = BS.concat [ BS.replicate extraBytes 0x00
-                          , BS.singleton $ complement (mask remBits) .&.
-                            BS.index bs extraBytes
-                          , BS.drop (extraBytes + 1) bs
-                          ]
-  where
-    (q,r) = b `quotRem` 8
-    (extraBytes,remBits) = if r == 0 then (fromIntegral $ q-1,8) else (fromIntegral q,r)
-
--- | Convert Bits to Bytes ceiling to the next byte. It might happen
--- that this overflows.
-ceilToBytes :: BITS Int -> BYTES Int
-ceilToBytes b = fromIntegral $ if r == 0 then q else q + 1
-  where
-    (q,r) = b `quotRem` 8
-
--- | Timing attack resistent function to check if all elements are True.
+-- | Timing attack resistant function to check if all elements are True.
 safeAll :: [Bool] -> Bool
 safeAll = foldl' safeAnd True
+
+-- | Determines if all elements of the ByteString satisfy the
+-- predicate in a timing attack resistant manner.
+safeAllBS :: (Word8 -> Bool) -> ByteString -> Bool
+safeAllBS f = safeAll . map f . BS.unpack
 
 -- | Safe `&&` without shortcircuiting to make it data independent.
 safeAnd :: Bool -> Bool -> Bool
 safeAnd True True = True
 safeAnd True False = False
-safeAnd False True = True
+safeAnd False True = False
 safeAnd False False = False
+
+-- | Converts non-negative Integer to ByteString
+i2osp :: Integer          -- ^ Non Negative Integer
+      -> BYTES Int        -- ^ Intended Length of Octet Stream
+      -> ByteString       -- ^ ByteString of given Length
+i2osp x xLen = base256 x
+  where
+    base256 = BS.reverse . fst . BS.unfoldrN (fromIntegral xLen) with
+    with b | b <= 0    = Just (0,0)
+           | otherwise = Just (fromIntegral $ b `rem` 256, b `quot` 256)
+{-# INLINE i2osp #-}
+
+
+-- | Converts Octet String to non-negative integer
+os2ip :: ByteString  -- ^ ByteString
+      -> Integer     -- ^ Non Negative Integer
+os2ip = BS.foldl with 0
+  where
+    with o w = o * 256 + fromIntegral w
+{-# INLINE os2ip #-}
