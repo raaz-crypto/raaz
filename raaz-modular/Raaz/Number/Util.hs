@@ -52,7 +52,8 @@ i2osp x xLen = base256 x
   where
     base256 = BS.reverse . fst . BS.unfoldrN (fromIntegral xLen) with
     with b | b <= 0    = Just (0,0)
-           | otherwise = Just (fromIntegral $ b `rem` 256, b `quot` 256)
+           | otherwise = Just (fromIntegral r, q)
+      where (q,r) = b `quotRem` 256
 {-# INLINE i2osp #-}
 
 

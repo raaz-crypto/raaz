@@ -1,28 +1,55 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE TypeFamilies               #-}
+{-# LANGUAGE BangPatterns               #-}
+{-# LANGUAGE DeriveDataTypeable         #-}
 module Raaz.Number.Internals
        ( Word128
+       , Word256
+       , Word512
+       , Word1024
+       , Word2048
+       , Word4096
+       , Word8192
        ) where
 
-import           Control.Applicative
-import           Data.Bits
-import qualified Data.ByteString     as BS
-import           Data.Monoid
-import           Data.Word
-import           Foreign.Ptr
-import           Foreign.Storable
+import Control.Applicative
+import Data.Bits
+import Data.Monoid
+import Data.Typeable
+import Data.Word
+import Foreign.Ptr
+import Foreign.Storable
 
-import           Raaz.Types
-import           Raaz.Parse.Unsafe
-import           Raaz.Write.Unsafe
+import Raaz.Types
+import Raaz.Parse.Unsafe
+import Raaz.Write.Unsafe
 
 
-import           Raaz.Number.Modular
-import           Raaz.Number.Util
+import Raaz.Number.Modular
+import Raaz.Number.Util
+
+
+-- | Parses an integer which is of given number of Bytes. Note it
+-- assumes that bytes given is a multiple of 8.
+parseInteger :: BYTES Int -> Parser Integer
+parseInteger = go 0
+  where
+    go !result 0 = return result
+    go !result n = parseStorable >>= with
+      where
+        with :: Word64 -> Parser Integer
+        with m = go (result * 18446744073709551616 + toInteger m) (n - 8) -- result * 2^64 + m
+
+-- | Writes an integer of given number of Bytes. Note it assumes that
+-- bytes given is a multiple of 8.
+writeInteger :: BYTES Int -> Integer -> Write
+writeInteger 0  _  = mempty
+writeInteger !n !i = writeInteger (n-8) q <> writeStorable (fromInteger r :: Word64)
+      where (q,r)  = i `quotRem` 18446744073709551616
 
 -- | 128 Bit Word
 newtype Word128 = Word128 Integer
-                  deriving (Integral, Show, Ord, Real, Modular)
+                  deriving (Integral, Show, Ord, Real, Modular, Typeable)
 
 -- | Reduced Int to lower order 128 Bits
 narrowWord128 :: Integer -> Integer
@@ -74,9 +101,15 @@ instance Bits Word128 where
   bit                             = bitDefault
   testBit                         = testBitDefault
 
+instance Storable Word128 where
+  sizeOf _             = 16
+  alignment _          = alignment (undefined :: Word64BE)
+  peek ptr             = runParser (castPtr ptr) (Word128 <$> parseInteger 16)
+  poke ptr (Word128 i) = runWrite (castPtr ptr) (writeInteger 16 i)
+
 -- | 256 Bit Word
 newtype Word256 = Word256 Integer
-                  deriving (Integral, Show, Ord, Real, Modular)
+                  deriving (Integral, Show, Ord, Real, Modular, Typeable)
 
 -- | Reduced Int to lower order 256 Bits
 narrowWord256 :: Integer -> Integer
@@ -128,9 +161,15 @@ instance Bits Word256 where
   bit                             = bitDefault
   testBit                         = testBitDefault
 
+instance Storable Word256 where
+  sizeOf _             = 32
+  alignment _          = alignment (undefined :: Word64BE)
+  peek ptr             = runParser (castPtr ptr) (Word256 <$> parseInteger 32)
+  poke ptr (Word256 i) = runWrite (castPtr ptr) (writeInteger 32 i)
+
 -- | 512 Bit Word
 newtype Word512 = Word512 Integer
-                  deriving (Integral, Show, Ord, Real, Modular)
+                  deriving (Integral, Show, Ord, Real, Modular, Typeable)
 
 -- | Reduced Int to lower order 512 Bits
 narrowWord512 :: Integer -> Integer
@@ -182,9 +221,15 @@ instance Bits Word512 where
   bit                             = bitDefault
   testBit                         = testBitDefault
 
+instance Storable Word512 where
+  sizeOf _             = 64
+  alignment _          = alignment (undefined :: Word64BE)
+  peek ptr             = runParser (castPtr ptr) (Word512 <$> parseInteger 64)
+  poke ptr (Word512 i) = runWrite (castPtr ptr) (writeInteger 64 i)
+
 -- | 1024 Bit Word
 newtype Word1024 = Word1024 Integer
-                  deriving (Integral, Show, Ord, Real, Modular)
+                  deriving (Integral, Show, Ord, Real, Modular, Typeable)
 
 -- | Reduced Int to lower order 1024 Bits
 narrowWord1024 :: Integer -> Integer
@@ -236,9 +281,15 @@ instance Bits Word1024 where
   bit                               = bitDefault
   testBit                           = testBitDefault
 
+instance Storable Word1024 where
+  sizeOf _             = 128
+  alignment _          = alignment (undefined :: Word64BE)
+  peek ptr             = runParser (castPtr ptr) (Word1024 <$> parseInteger 128)
+  poke ptr (Word1024 i) = runWrite (castPtr ptr) (writeInteger 128 i)
+
 -- | 2048 Bit Word
 newtype Word2048 = Word2048 Integer
-                  deriving (Integral, Show, Ord, Real, Modular)
+                  deriving (Integral, Show, Ord, Real, Modular, Typeable)
 
 -- | Reduced Int to lower order 2048 Bits
 narrowWord2048 :: Integer -> Integer
@@ -290,9 +341,15 @@ instance Bits Word2048 where
   bit                               = bitDefault
   testBit                           = testBitDefault
 
+instance Storable Word2048 where
+  sizeOf _             = 256
+  alignment _          = alignment (undefined :: Word64BE)
+  peek ptr             = runParser (castPtr ptr) (Word2048 <$> parseInteger 256)
+  poke ptr (Word2048 i) = runWrite (castPtr ptr) (writeInteger 256 i)
+
 -- | 4096 Bit Word
 newtype Word4096 = Word4096 Integer
-                  deriving (Integral, Show, Ord, Real, Modular)
+                  deriving (Integral, Show, Ord, Real, Modular, Typeable)
 
 -- | Reduced Int to lower order 4096 Bits
 narrowWord4096 :: Integer -> Integer
@@ -344,9 +401,15 @@ instance Bits Word4096 where
   bit                               = bitDefault
   testBit                           = testBitDefault
 
+instance Storable Word4096 where
+  sizeOf _             = 512
+  alignment _          = alignment (undefined :: Word64BE)
+  peek ptr             = runParser (castPtr ptr) (Word4096 <$> parseInteger 512)
+  poke ptr (Word4096 i) = runWrite (castPtr ptr) (writeInteger 512 i)
+
 -- | 8192 Bit Word
 newtype Word8192 = Word8192 Integer
-                  deriving (Integral, Show, Ord, Real, Modular)
+                  deriving (Integral, Show, Ord, Real, Modular, Typeable)
 
 -- | Reduced Int to lower order 8192 Bits
 narrowWord8192 :: Integer -> Integer
@@ -397,3 +460,9 @@ instance Bits Word8192 where
   popCount                          = popCountDefault
   bit                               = bitDefault
   testBit                           = testBitDefault
+
+instance Storable Word8192 where
+  sizeOf _             = 1024
+  alignment _          = alignment (undefined :: Word64BE)
+  peek ptr             = runParser (castPtr ptr) (Word8192 <$> parseInteger 1024)
+  poke ptr (Word8192 i) = runWrite (castPtr ptr) (writeInteger 1024 i)
