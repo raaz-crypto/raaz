@@ -7,20 +7,22 @@
 {-# LANGUAGE FlexibleContexts #-}
 module Raaz.Write.Unsafe
        ( Write, write, writeStorable
-       , writeBytes
+       , writeBytes, writeByteString
        , runWrite
        , runWriteForeignPtr
        ) where
 
-import Control.Monad               ( (>=>), void )
+import Control.Monad           ( (>=>), void )
+import Data.ByteString         ( ByteString )
 import Data.Monoid
-import Data.Word                   ( Word8  )
-import Foreign.ForeignPtr.Safe     ( withForeignPtr )
-import Foreign.Ptr                 ( castPtr )
+import Data.Word               ( Word8  )
+import Foreign.ForeignPtr.Safe ( withForeignPtr )
+import Foreign.Ptr             ( castPtr )
 import Foreign.Storable
 
 import Raaz.Types
 import Raaz.Util.Ptr
+import Raaz.Util.ByteString    as BU
 
 -- | The write type.
 newtype Write = Write (CryptoPtr -> IO CryptoPtr)
@@ -60,3 +62,9 @@ writeBytes :: CryptoCoerce n (BYTES Int) => n -> Word8 -> Write
 writeBytes n b = Write $ \ cptr ->
   memset cptr b bytes >> return (cptr `movePtr` n)
   where bytes = cryptoCoerce n :: BYTES Int
+
+-- | Writes a strict bytestring.
+writeByteString :: ByteString -> Write
+writeByteString bs = Write $ \ cptr ->
+  BU.unsafeCopyToCryptoPtr bs cptr >> return (cptr `movePtr` n)
+  where n = BU.length bs

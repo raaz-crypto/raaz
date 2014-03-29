@@ -7,20 +7,22 @@
 module Raaz.Write
        ( Write, write, writeStorable
        , WriteException(..)
-       , writeBytes
+       , writeBytes, writeByteString
        , runWrite
        ) where
 
 import           Control.Exception
+import           Data.ByteString      (ByteString)
 import           Data.Monoid
 import           Data.Typeable
-import           Data.Word         (Word8)
+import           Data.Word            (Word8)
 import           Foreign.Storable
 
 import           Raaz.Types
 import           Raaz.Util.Ptr
+import           Raaz.Util.ByteString as BU
 
-import qualified Raaz.Write.Unsafe as WU
+import qualified Raaz.Write.Unsafe    as WU
 
 -- | The write type. Safer version of `W.Write`.
 newtype Write = Write (Sum (BYTES Int), WU.Write)
@@ -52,3 +54,8 @@ write a = Write (Sum $ byteSize a, WU.write a)
 -- consecutive bytes.
 writeBytes :: CryptoCoerce n (BYTES Int) => n -> Word8 -> Write
 writeBytes n b = Write (Sum $ cryptoCoerce n, WU.writeBytes n b)
+
+-- | Writes a strict bytestring.
+writeByteString :: ByteString -> Write
+writeByteString bs = Write (Sum n, WU.writeByteString bs)
+  where n = BU.length bs
