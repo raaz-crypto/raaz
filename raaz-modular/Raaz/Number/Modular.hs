@@ -52,9 +52,6 @@ instance Modular Integer where
   powModuloSafe = powModuloSlow
 #endif
 
-{-# SPECIALIZE powModulo     :: Integer -> Integer -> Integer -> Integer #-}
-{-# SPECIALIZE powModuloSafe :: Integer -> Integer -> Integer -> Integer #-}
-
 -- | Modular exponentiation @x^n mod m@ using binary exponentiation.
 powModuloSlow :: Integer -> Integer -> Integer -> Integer
 powModuloSlow x n m = go x nbits 1
