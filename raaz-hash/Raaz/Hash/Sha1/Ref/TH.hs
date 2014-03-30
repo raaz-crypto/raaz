@@ -24,12 +24,12 @@ import Raaz.Hash.Sha1.Type(SHA1(..))
 -- block. This is used internally for efficient code generation using
 -- Template Haskell.
 oneRound :: DecsQ
-oneRound = sequence $ [typeSig, funD name [cls]]
+oneRound = sequence [typeSig, funD name [cls]]
   where
     name = mkName "roundF"
     cls = clause (args1:args2) (normalB (LetE <$> roundLoop <*>
-                                      [| addHash $(s $ -1) $(s $ 79) |])) []
-    args1 = subP "s" $ (-1 :: Int)
+                                      [| addHash $(s $ -1) $(s 79) |])) []
+    args1 = subP "s" (-1 :: Int)
     args2 = map (subP "m") [0..15 :: Int]
     typeSig = sigD name $ appT (appT arrowT (conT ''SHA1)) $
                 foldl (const . appT wordtype) (conT ''SHA1) [1..16 :: Int]
@@ -42,7 +42,7 @@ roundLoop = declarations [wDecs,kDecs,transDecs] [0..79]
   where
     transDecs = variable' "s" ''SHA1 body
       where
-        body j = [| trans j $(s $ j-1) $(k $ j) $(w $ j) |]
+        body j = [| trans j $(s $ j-1) $(k j) $(w j) |]
     wDecs     = variable' "w" ''Word32BE body
       where
         body j | j<16      = subE "m" j

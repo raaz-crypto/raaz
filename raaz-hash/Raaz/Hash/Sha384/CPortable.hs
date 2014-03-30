@@ -4,8 +4,6 @@ Portable C implementation of SHA384 hash.
 
 -}
 
-{-# LANGUAGE ForeignFunctionInterface #-}
-{-# LANGUAGE EmptyDataDecls           #-}
 {-# LANGUAGE TypeFamilies             #-}
 {-# LANGUAGE FlexibleInstances        #-}
 {-# OPTIONS_GHC -fno-warn-orphans     #-}
@@ -27,7 +25,7 @@ instance Gadget (CGadget SHA384) where
   newGadgetWithMemory = return . CGadget
   initialize (CGadget cc) (SHA384Cxt sha) = cellStore cc sha
   finalize (CGadget cc) = SHA384Cxt <$> cellLoad cc
-  apply (CGadget cc) n cptr = sha512Compress cc n' cptr
+  apply (CGadget cc) n  = sha512Compress cc n'
     where n' = blocksOf (fromIntegral n) (undefined :: SHA512)
 
 instance PaddableGadget (CGadget SHA384)

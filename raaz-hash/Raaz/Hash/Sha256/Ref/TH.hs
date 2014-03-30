@@ -25,11 +25,11 @@ import Raaz.Hash.Sha256.Type(SHA256(..))
 -- block. This is used internally for efficient code generation using
 -- Template Haskell.
 oneRound :: DecsQ
-oneRound = sequence $ [typeSig, funD name [cls]]
+oneRound = sequence [typeSig, funD name [cls]]
   where
     name = mkName "roundF"
     cls = clause (args1:args2) (normalB (LetE <$> roundLoop <*>
-                                      [| addHash $(s $ -1) $(s $ 63) |])) []
+                                      [| addHash $(s $ -1) $(s 63) |])) []
     args1 = subP "s" (-1 :: Int)
     args2 = map (subP "m") [0..15 :: Int]
     typeSig = sigD name $ appT (appT arrowT (conT ''SHA256)) $
@@ -44,7 +44,7 @@ roundLoop = liftM2 (++) kDecs $ declarations [transDecs,wDecs] [0..63]
     transDecs :: Int -> DecsQ
     transDecs = variable' "s" ''SHA256 body
       where
-        body j = [| trans $(s $ j-1) $(k $ j) $(w $ j) |]
+        body j = [| trans $(s $ j-1) $(k j) $(w j) |]
     wDecs :: Int -> DecsQ
     wDecs = variable' "w" ''Word32BE body
       where

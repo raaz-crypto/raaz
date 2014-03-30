@@ -4,8 +4,6 @@ Portable C implementation of SHA224 hash.
 
 -}
 
-{-# LANGUAGE ForeignFunctionInterface #-}
-{-# LANGUAGE EmptyDataDecls           #-}
 {-# LANGUAGE FlexibleInstances        #-}
 {-# OPTIONS_GHC -fno-warn-orphans     #-}
 {-# LANGUAGE TypeFamilies             #-}
@@ -27,7 +25,7 @@ instance Gadget (CGadget SHA224) where
   newGadgetWithMemory = return . CGadget
   initialize (CGadget cc) (SHA224Cxt sha) = cellStore cc sha
   finalize (CGadget cc) = SHA224Cxt <$> cellLoad cc
-  apply (CGadget cc) n cptr = sha256Compress cc n' cptr
+  apply (CGadget cc) n  = sha256Compress cc n'
     where n' = blocksOf (fromIntegral n) (undefined :: SHA256)
 
 instance PaddableGadget (CGadget SHA224)
