@@ -90,8 +90,8 @@ instance SafePrimitive SHA1
 
 instance HasPadding SHA1 where
   maxAdditionalBlocks _ = 1
-  padLength = padLength64
-  padding   = padding64
+  padLength = shaPadLength 8
+  padding   = shaPadding   8
 
 instance Default (Cxt SHA1) where
   def = SHA1Cxt $ SHA1 0x67452301

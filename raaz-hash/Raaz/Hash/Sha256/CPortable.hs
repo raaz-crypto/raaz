@@ -5,7 +5,6 @@ Portable C implementation of SHA256 hash.
 -}
 
 {-# LANGUAGE ForeignFunctionInterface  #-}
-{-# LANGUAGE EmptyDataDecls            #-}
 {-# LANGUAGE TypeFamilies              #-}
 {-# LANGUAGE FlexibleInstances         #-}
 {-# OPTIONS_GHC -fno-warn-orphans      #-}
@@ -41,6 +40,6 @@ instance Gadget (CGadget SHA256) where
   newGadgetWithMemory = return . CGadget
   initialize (CGadget cc) (SHA256Cxt sha1) = cellStore cc sha1
   finalize (CGadget cc) = SHA256Cxt <$> cellLoad cc
-  apply (CGadget cc) n cptr = sha256Compress cc n cptr
+  apply (CGadget cc)  = sha256Compress cc
 
 instance PaddableGadget (CGadget SHA256)

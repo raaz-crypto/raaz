@@ -5,7 +5,6 @@ Portable C implementation of SHA1 hash.
 -}
 
 {-# LANGUAGE ForeignFunctionInterface #-}
-{-# LANGUAGE EmptyDataDecls           #-}
 {-# LANGUAGE TypeFamilies             #-}
 {-# LANGUAGE FlexibleInstances        #-}
 {-# OPTIONS_GHC -fno-warn-orphans     #-}
@@ -37,6 +36,6 @@ instance Gadget (CGadget SHA1) where
   newGadgetWithMemory = return . CGadget
   initialize (CGadget cc) (SHA1Cxt sha1) = cellStore cc sha1
   finalize (CGadget cc) = SHA1Cxt <$> cellLoad cc
-  apply (CGadget cc) n cptr = sha1Compress cc n cptr
+  apply (CGadget cc)    = sha1Compress cc
 
 instance PaddableGadget (CGadget SHA1)

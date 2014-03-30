@@ -33,7 +33,7 @@ instance CryptoPrimitive SHA384 where
 instance Hash SHA384 where
   cxtToHash (SHA384Cxt h) = sha512Tosha384 h
     where sha512Tosha384 (SHA512 h0 h1 h2 h3 h4 h5 _ _)
-            = (SHA384 h0 h1 h2 h3 h4 h5)
+            = SHA384 h0 h1 h2 h3 h4 h5
 
 instance Gadget (HGadget SHA384) where
   type PrimitiveOf (HGadget SHA384) = SHA384
