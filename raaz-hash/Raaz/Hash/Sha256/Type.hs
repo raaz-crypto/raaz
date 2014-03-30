@@ -104,8 +104,8 @@ instance SafePrimitive SHA256
 
 instance HasPadding SHA256 where
   maxAdditionalBlocks _ = 1
-  padLength = padLength64
-  padding   = padding64
+  padLength = shaPadLength 8
+  padding   = shaPadding   8
 
 instance Default (Cxt SHA256) where
   def = SHA256Cxt $ SHA256 0x6a09e667

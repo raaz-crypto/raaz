@@ -103,8 +103,8 @@ instance SafePrimitive SHA384
 
 instance HasPadding SHA384 where
   maxAdditionalBlocks _ = 1
-  padLength = padLength128
-  padding   = padding128
+  padLength = shaPadLength 16
+  padding   = shaPadding   16
 
 instance Default (Cxt SHA384) where
   def = SHA384Cxt $ SHA512 0xcbbb9d5dc1059ed8
