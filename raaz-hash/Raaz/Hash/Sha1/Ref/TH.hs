@@ -57,31 +57,18 @@ roundLoop = declarations [wDecs,kDecs,transDecs] [0..79]
 
 -- | The round functions
 trans :: Int -> SHA1 -> Word32BE -> Word32BE -> SHA1
-trans i (SHA1 a b c d e) k' w' | i <= 19 = SHA1 a' b' c' d' e'
-  where a' = rotateL a 5 + ((b .&. c) `xor` (complement b .&. d)) + e + k' + w'
+trans r (SHA1 a b c d e) k' w'  = SHA1 a' b' c' d' e'
+  where f i x y z
+          | i <= 19   = (x .&. y) `xor` (complement x .&. z)
+          | i <= 39   =  x `xor` y `xor` z
+          | i <= 59   = (x .&. (y .|. z)) .|. (y .&. z)
+          | i <= 79   =  x `xor` y `xor` z
+          | otherwise = error "sha1:ref: Wrong index used for trans"
+        a' = rotateL a 5 + f r b c d + e + k' + w'
         b' = a
         c' = rotateL b 30
         d' = c
         e' = d
-trans i (SHA1 a b c d e) k' w' | i <= 39 = SHA1 a' b' c' d' e'
-  where a' = rotateL a 5 + (b `xor` c `xor` d) + e + k' + w'
-        b' = a
-        c' = rotateL b 30
-        d' = c
-        e' = d
-trans i (SHA1 a b c d e) k' w' | i <= 59 = SHA1 a' b' c' d' e'
-  where a' = rotateL a 5 + ((b .&. (c .|. d)) .|. (c .&. d)) + e + k' + w'
-        b' = a
-        c' = rotateL b 30
-        d' = c
-        e' = d
-trans i (SHA1 a b c d e) k' w' | i <= 79 = SHA1 a' b' c' d' e'
-  where a' = rotateL a 5 + (b `xor` c `xor` d) + e + k' + w'
-        b' = a
-        c' = rotateL b 30
-        d' = c
-        e' = d
-trans _ _ _ _ = error "Wrong index used for trans"
 {-# INLINE trans #-}
 
 addHash :: SHA1 -> SHA1 -> SHA1
