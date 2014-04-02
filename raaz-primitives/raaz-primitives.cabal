@@ -68,6 +68,7 @@ library
                  , Raaz.Parse.Unsafe
                  , Raaz.Primitives
                  , Raaz.Primitives.Hash
+                 , Raaz.Primitives.CryptoMode
 --                 , Raaz.Primitives.MAC
                  , Raaz.Primitives.Cipher
                  , Raaz.System.Parameters
