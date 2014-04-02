@@ -95,6 +95,17 @@ class Primitive p => Initializable p where
   cxtSize :: p -> BYTES Int
   getCxt  :: ByteString -> Cxt p
 
+-- | Privitives which can be digested to a final value (captures by
+-- associated type family `Digest`)
+class Primitive p => Digestible p where
+    -- | Final Value
+  type Digest p :: *
+  -- | Convert the `Cxt` to `Digest`. Note that this operation might
+  -- be irreversible. For example in Blake hash, the information about
+  -- the number of blocks hashed so far is lost after you digest the
+  -- context.
+  digestCxt :: Cxt p -> Digest p
+
 -----------------   A cryptographic gadget. ----------------------------
 
 -- | A gadget implements a primitive. It has three phases: (1) the

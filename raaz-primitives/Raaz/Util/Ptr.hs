@@ -134,6 +134,7 @@ memcpy :: CryptoCoerce l (BYTES Int)
        -> l         -- ^ Number of Bytes to copy
        -> IO ()
 memcpy p q l = void $ c_memcpy p q $ cryptoCoerce l
+{-# SPECIALIZE memcpy :: CryptoPtr -> CryptoPtr -> BYTES Int -> IO () #-}
 
 foreign import ccall unsafe "string.h memmove" c_memmove
     :: CryptoPtr -> CryptoPtr -> BYTES Int -> IO CryptoPtr
@@ -145,7 +146,7 @@ memmove :: CryptoCoerce l (BYTES Int)
         -> l         -- ^ Number of Bytes to copy
         -> IO ()
 memmove p q l = void $ c_memmove p q $ cryptoCoerce l
-
+{-# SPECIALIZE memmove :: CryptoPtr -> CryptoPtr -> BYTES Int -> IO () #-}
 
 foreign import ccall unsafe "string.h memset" c_memset
     :: CryptoPtr -> Word8 -> BYTES Int -> IO CryptoPtr
@@ -157,3 +158,4 @@ memset :: CryptoCoerce l (BYTES Int)
        -> l         -- ^ Number of bytes to set
        -> IO ()
 memset p w l = void $ c_memset p w $ cryptoCoerce l
+{-# SPECIALIZE memset :: CryptoPtr -> Word8 -> BYTES Int -> IO () #-}
