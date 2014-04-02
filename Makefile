@@ -83,7 +83,8 @@ CABAL=cabal
 endif
 
 # Setting the cabal install DEPENDENCIES
-DEPENDENCIES=$(foreach cons, ${PACKAGE_CONSTRAINTS}\
+DEPENDENCIES=$(foreach cons, ${PACKAGE_CONSTRAINTS} \
+			     ${ADDITIONAL_CONSTRAINTS}\
 	,--constraint='${cons}' )
 
 # Package tarballs. We install directly from the tarballs

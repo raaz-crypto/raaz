@@ -30,3 +30,7 @@ GHC_VERSION=
 # platform specific config files.
 
 CABAL_VERSION=
+
+# Additional constraints on packages so that it builds properly.
+
+ADDITIONAL_CONSTRAINTS=hastache<0.6
