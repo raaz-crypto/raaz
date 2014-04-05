@@ -1,4 +1,4 @@
-{-
+{- |
 
 This module is for testing a gadget against the reference
 implementation.
@@ -44,6 +44,7 @@ instance Primitive p => Arbitrary (TestData p) where
       generate p s = TestData . B.pack
                      <$> vectorOf (s * (fromIntegral $ blockSize p)) arbitrary
 
+-- | Quickcheck property of testing a gadget against a reference one.
 prop_Gadget :: (Gadget g, Gadget ref, PrimitiveOf g ~ PrimitiveOf ref, Eq (Cxt (PrimitiveOf g)))
             => ref
             -> g
@@ -62,6 +63,7 @@ prop_Gadget ref' g' cxt (TestData bs) = monadicIO $ do
     createGadget :: Gadget g => g -> IO g
     createGadget _ = newGadget
 
+-- | Apply a gadget on the given bytestring.
 onByteString :: Gadget g => g -> ByteString -> IO (Cxt (PrimitiveOf g), ByteString)
 onByteString g bs =  allocaBuffer bsize with
   where
@@ -77,6 +79,7 @@ onByteString g bs =  allocaBuffer bsize with
         numBlocks = bsize `div` oneBlock
         oneBlock = fromIntegral $ blockSize (primitiveOf g)
 
+-- | Quickcheck test for gadget . inverseGadget is identity
 prop_inverse :: ( Gadget g
                 , HasInverse g
                 )
@@ -97,26 +100,30 @@ prop_inverse g' cxtg cxtig (TestData bs) = monadicIO $ do
     createGadget :: Gadget g => g -> IO g
     createGadget _ = newGadget
 
+-- | Tests the given gadget against a reference one.
 testGadget :: ( Gadget g
+              , HasName g
               , Gadget ref
+              , HasName ref
               , PrimitiveOf g ~ PrimitiveOf ref
               , Eq (Cxt (PrimitiveOf g))
               )
            => g
            -> ref
            -> Cxt (PrimitiveOf g)
-           -> String
            -> Test
-testGadget g ref cxt msg = testProperty msg
-                                   $ prop_Gadget g ref cxt
+testGadget g ref cxt = testProperty msg $ prop_Gadget g ref cxt
+  where msg = getName g ++ " VS " ++ getName ref
 
+-- | Tests g . inverseGadget g == id
 testInverse :: ( Gadget g
                , HasInverse g
+               , HasName g
+               , HasName (Inverse g)
                )
             => g
             -> Cxt (PrimitiveOf g)
             -> Cxt (PrimitiveOf (Inverse g))
-            -> String
             -> Test
-testInverse g cxt icxt msg = testProperty msg
-                              $ prop_inverse g cxt icxt
+testInverse g cxt icxt = testProperty msg $ prop_inverse g cxt icxt
+  where msg = getName g ++ " . " ++ getName (inverseGadget g) ++ " == id"
