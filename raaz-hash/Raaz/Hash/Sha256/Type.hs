@@ -47,6 +47,7 @@ instance Eq SHA256 where
       .|. xor g7 h7
       == 0
 
+instance HasName SHA256
 
 instance Storable SHA256 where
   sizeOf    _ = 8 * sizeOf (undefined :: Word32BE)
