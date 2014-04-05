@@ -48,6 +48,7 @@ allHashTests :: ( Arbitrary h
                 , Gadget (HGadget h)
                 , Gadget (CGadget h)
                 , Eq (Cxt h)
+                , HasName h
                 )
              => h         -- ^ dummy hash type to satisfy the type checker
              -> [(B.ByteString,B.ByteString)]
@@ -113,8 +114,9 @@ testCGadgetvsHGadget :: ( PrimitiveOf (CGadget p) ~ p
                         , Gadget (HGadget p)
                         , Gadget (CGadget p)
                         , Eq (Cxt p)
+                        , HasName p
                         ) => p -> Test
-testCGadgetvsHGadget p = testGadget (g p) (ref p) def "CGadget vs HGadget"
+testCGadgetvsHGadget p = testGadget (g p) (ref p) def
   where
     g :: p -> CGadget p
     g _ = undefined
