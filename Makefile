@@ -13,7 +13,7 @@ include Makefile.configure # Read in configuration
 .PHONY: hlint   # runs hlint on the sources
 .PHONY: src-tarball # Creates the source tarballs in the respective directories.
 .PHONY: scripts     # builds the scripts in the scripts directory
-
+.PHONY: tags        # create the ctags and etags files
 #
 # For each package we have a target with the same name and a target
 # with the suffix clean. The former builds the package and the latter
@@ -159,3 +159,6 @@ travis-before-install:
 
 hlint:
 	hlint ${PACKAGES}
+
+tags:
+	hasktags -b -S".hs,.lhs,hsc" .
