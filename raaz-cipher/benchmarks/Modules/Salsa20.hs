@@ -22,22 +22,22 @@ testKey256 :: ByteString
 testKey256 =  pack [1..48]
 
 
-benchCipher g gname iv = benchGadgetWith g gname iv (nBlocks g)
+benchCipher g iv = benchGadgetWith g iv (nBlocks g)
 
 benchmarksTiny = take 2 benchmarks
 
-benchmarks = [ benchCipher s20_128  "Salsa20/20 KEY128 HGadget" (getCxt testKey128)
-             , benchCipher cs20_128 "Salsa20/20 KEY128 CGadget" (getCxt testKey128)
-             , benchCipher s12_128  "Salsa20/12 KEY128 HGadget" (getCxt testKey128)
-             , benchCipher cs12_128 "Salsa20/12 KEY128 CGadget" (getCxt testKey128)
-             , benchCipher s8_128  "Salsa20/8 KEY128 HGadget" (getCxt testKey128)
-             , benchCipher cs8_128 "Salsa20/8 KEY128 CGadget" (getCxt testKey128)
-             , benchCipher s20_256  "Salsa20/20 KEY256 HGadget" (getCxt testKey256)
-             , benchCipher cs20_256 "Salsa20/20 KEY256 CGadget" (getCxt testKey256)
-             , benchCipher s12_256  "Salsa20/12 KEY256 HGadget" (getCxt testKey256)
-             , benchCipher cs12_256 "Salsa20/12 KEY256 CGadget" (getCxt testKey256)
-             , benchCipher s8_256  "Salsa20/8 KEY256 HGadget" (getCxt testKey256)
-             , benchCipher cs8_256 "Salsa20/8 KEY256 CGadget" (getCxt testKey256)
+benchmarks = [ benchCipher s20_128  (getCxt testKey128)
+             , benchCipher cs20_128 (getCxt testKey128)
+             , benchCipher s12_128  (getCxt testKey128)
+             , benchCipher cs12_128 (getCxt testKey128)
+             , benchCipher s8_128  (getCxt testKey128)
+             , benchCipher cs8_128 (getCxt testKey128)
+             , benchCipher s20_256  (getCxt testKey256)
+             , benchCipher cs20_256 (getCxt testKey256)
+             , benchCipher s12_256  (getCxt testKey256)
+             , benchCipher cs12_256 (getCxt testKey256)
+             , benchCipher s8_256  (getCxt testKey256)
+             , benchCipher cs8_256 (getCxt testKey256)
              ]
   where
     s20_128 :: HGadget (Cipher (Salsa20 R20) KEY128 Encryption)

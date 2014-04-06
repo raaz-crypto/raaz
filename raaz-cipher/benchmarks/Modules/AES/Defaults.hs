@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
 module Modules.AES.Defaults (benchmarksDefault, benchmarksTinyDefault) where
 
 import           Criterion.Main
@@ -59,29 +60,22 @@ testKey256 =  genCxt $ pack [0x60,0x3d,0xeb,0x10
                             ,0x08,0x09,0x0A,0x0B
                             ,0x0C,0x0D,0x0E,0x0F]
 
-benchCipher g gname iv = benchGadgetWith g gname iv (nBlocks g)
+benchCipher g iv = benchGadgetWith g iv (nBlocks g)
 
-benchmarksTinyDefault m = [ benchCipher (pr128 m) ("AES128 " ++ mode ++ " Reference Encryption") testKey128
-                          , benchCipher (pc128 m) ("AES128 " ++ mode ++ " CPortable Encryption") testKey128 ]
-  where
-    pr128 :: Gadget (HGadget (Cipher (AES m) KEY128 Encryption)) => m -> HGadget (Cipher (AES m) KEY128 Encryption)
-    pr128 = undefined
-    pc128 :: Gadget (CGadget (Cipher (AES m) KEY128 Encryption)) => m -> CGadget (Cipher (AES m) KEY128 Encryption)
-    pc128 = undefined
-    mode = show $ typeOf m
+benchmarksTinyDefault = take 2 . benchmarksDefault
 
-benchmarksDefault m = [ benchCipher (pr128 m encr) ("AES128 " ++ mode ++ " Reference Encryption") testKey128
-                      , benchCipher (pc128 m encr) ("AES128 " ++ mode ++ " CPortable Encryption") testKey128
-                      , benchCipher (pr128 m decr) ("AES128 " ++ mode ++ " Reference Decryption") testKey128
-                      , benchCipher (pc128 m decr) ("AES128 " ++ mode ++ " CPortable Decryption") testKey128
-                      , benchCipher (pr192 m encr) ("AES192 " ++ mode ++ " Reference Encryption") testKey192
-                      , benchCipher (pc192 m encr) ("AES192 " ++ mode ++ " CPortable Encryption") testKey192
-                      , benchCipher (pr192 m decr) ("AES192 " ++ mode ++ " Reference Decryption") testKey192
-                      , benchCipher (pc192 m decr) ("AES192 " ++ mode ++ " CPortable Decryption") testKey192
-                      , benchCipher (pr256 m encr) ("AES256 " ++ mode ++ " Reference Encryption") testKey256
-                      , benchCipher (pc256 m encr) ("AES256 " ++ mode ++ " CPortable Encryption") testKey256
-                      , benchCipher (pr256 m decr) ("AES256 " ++ mode ++ " Reference Decryption") testKey256
-                      , benchCipher (pc256 m decr) ("AES256 " ++ mode ++ " CPortable Decryption") testKey256 ]
+benchmarksDefault m = [ benchCipher (pr128 m encr) testKey128
+                      , benchCipher (pc128 m encr) testKey128
+                      , benchCipher (pr128 m decr) testKey128
+                      , benchCipher (pc128 m decr) testKey128
+                      , benchCipher (pr192 m encr) testKey192
+                      , benchCipher (pc192 m encr) testKey192
+                      , benchCipher (pr192 m decr) testKey192
+                      , benchCipher (pc192 m decr) testKey192
+                      , benchCipher (pr256 m encr) testKey256
+                      , benchCipher (pc256 m encr) testKey256
+                      , benchCipher (pr256 m decr) testKey256
+                      , benchCipher (pc256 m decr) testKey256 ]
   where
     encr :: Encryption
     encr = undefined
