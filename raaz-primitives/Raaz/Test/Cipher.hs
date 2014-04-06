@@ -31,17 +31,19 @@ import           Raaz.Test.Gadget
 
 -- | Stansdard tests for ciphers
 testStandardCiphers :: ( HasInverse g
+                       , HasName g
+                       , HasName (Inverse g)
                        , Initializable (PrimitiveOf g)
                        , Initializable (PrimitiveOf (Inverse g))
                        )
                     => g
                     -> [(ByteString,ByteString,ByteString)] -- ^ (key, planetext,ciphertext)
-                    -> String                               -- ^ Header
                     -> Test
-testStandardCiphers g vec header = testGroup header [ unitTests g vec
-                                                    , encryptDecrypt g testiv
-                                                    ]
+testStandardCiphers g vec = testGroup name [ unitTests g vec
+                                           , encryptDecrypt g testiv
+                                           ]
   where
+    name = getName g ++ " && " ++ getName (inverseGadget g)
     (testiv,_,_) = head vec
 
 -- | Checks standard plaintext - ciphertext for the given cipher
@@ -60,14 +62,15 @@ unitTests ge triples = testGroup "Unit tests" $ hUnitTestToTests $ test $ map ch
 
 -- | Checks if decrypt . encrypt == id
 encryptDecrypt :: ( HasInverse g
+                  , HasName g
+                  , HasName (Inverse g)
                   , Initializable (PrimitiveOf g)
                   , Initializable (PrimitiveOf (Inverse g))
                   )
                => g           -- ^ Gadget
                -> ByteString  -- ^ Context in ByteString
                -> Test
-encryptDecrypt g bscxt =
-  testInverse g (getCxt bscxt) (getCxt bscxt) "encrypt . decrypt == id"
+encryptDecrypt g bscxt = testInverse g (getCxt bscxt) (getCxt bscxt)
 
 unsafeTransformUnsafeGadget' :: Gadget g
                              => g          -- ^ Gadget
@@ -97,11 +100,13 @@ createAndApply' g key src = do
       createGadget _ = newGadget
 {-# INLINEABLE createAndApply' #-}
 
+-- | Returns the result of applying a gadget with the given iv on the
+-- given bytestring.
 applyGadget :: (Gadget g, Initializable (PrimitiveOf g))
             => g
-            -> ByteString
-            -> ByteString
-            -> ByteString
+            -> ByteString -- ^ Cxt
+            -> ByteString -- ^ Data
+            -> ByteString -- ^ Output
 applyGadget g k = unsafePerformIO . createAndApply' g k
 {-# NOINLINE applyGadget #-}
 

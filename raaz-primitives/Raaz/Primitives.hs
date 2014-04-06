@@ -21,6 +21,7 @@ module Raaz.Primitives
 
          Primitive(..), Gadget(..), newGadget, newInitializedGadget
        , primitiveOf, withGadget
+       , HasName(..)
        , PaddableGadget(..)
        , CGadget(..), HGadget(..)
        , SafePrimitive
@@ -34,6 +35,7 @@ module Raaz.Primitives
 
 import qualified Data.ByteString          as B
 import           Data.ByteString.Internal (ByteString, unsafeCreate)
+import           Data.Typeable            (Typeable, typeOf)
 import           Data.Word                (Word64)
 import           Foreign.Ptr              (castPtr)
 import           System.IO                (withFile, IOMode(ReadMode))
@@ -252,6 +254,16 @@ class Primitive p => HasPadding p where
   -- know the size to be allocated for your message buffers.
   maxAdditionalBlocks :: p -> BLOCKS p
 
+---------------------- HasName --------------------------------------------
+
+-- | Types which have names. This is mainly used in test cases and
+-- benchmarks to get the name of the primitive. A default instance is
+-- provided for types with `Typeable` instances.
+class HasName a where
+  getName :: a -> String
+  default getName :: Typeable a => a -> String
+  getName = show . typeOf
+
 ---------------------- A crypto primitive ------------------------------
 
 -- | A crypto primitive is a primitive together with a recommended
@@ -338,6 +350,18 @@ newtype HGadget p = HGadget (MemoryOf (HGadget p))
 -- it. Howerer, No architecture specific optimizations are done in
 -- this implementation.
 newtype CGadget p = CGadget (MemoryOf (CGadget p))
+
+-- | If primitive has a name then HGadget has a name
+instance HasName p => HasName (HGadget p) where
+  getName g = "HGadget " ++ getName (getP g)
+    where getP :: HGadget p -> p
+          getP _ = undefined
+
+-- | If primitive has a name the CGadget has a name
+instance HasName p => HasName (CGadget p) where
+  getName g = "CGadget " ++ getName (getP g)
+    where getP :: CGadget p -> p
+          getP _ = undefined
 
 
 -------------------- Some helper functions -----------------------------

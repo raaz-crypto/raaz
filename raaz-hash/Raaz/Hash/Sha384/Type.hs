@@ -54,6 +54,7 @@ instance Eq SHA384 where
       .|. xor g5 h5
       == 0
 
+instance HasName SHA384
 
 instance Storable SHA384 where
   sizeOf    _ = 6 * sizeOf (undefined :: Word64BE)
