@@ -48,7 +48,7 @@ data Direction = Encryption
                deriving (Show, Eq)
 
 -- | Type to capture Cipher Primitive
-data Cipher cipher key (stage :: Direction) = Cipher deriving (Eq,Show)
+data Cipher cipher key (direction :: Direction) = Cipher deriving (Eq,Show)
 #else
 
 -- | Electronic codebook
@@ -60,14 +60,23 @@ data CBC = CBC deriving (Show, Eq)
 -- | Counter
 data CTR = CTR deriving (Show,Eq)
 
+{-# DEPRECATED ECB, CBC, CTR
+  "Will be changed to Data Constructor of type Mode from ghc7.6 onwards" #-}
+
 -- | Encryption
 data Encryption = Encryption deriving (Show, Eq)
 
 -- | Decryption
 data Decryption = Decryption deriving (Show, Eq)
 
+{-# DEPRECATED Encryption, Decryption
+  "Will be changed to Data Constructor of type Direction from ghc7.6 onwards" #-}
+
 -- | Type to capture Cipher Primitive
-data Cipher cipher key stage = Cipher deriving (Eq,Show)
+data Cipher cipher key direction = Cipher deriving (Eq,Show)
+
+{-# DEPRECATED Cipher
+  "Kind restrictions will be used in direction from ghc7.6 onwards" #-}
 #endif
 
 -- | This class captures gadgets which can be used as stream ciphers.

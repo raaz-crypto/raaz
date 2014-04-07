@@ -39,6 +39,9 @@ import Data.Typeable
 data AES (mode :: Mode) = AES deriving (Show, Eq)
 #else
 data AES mode = AES deriving (Show, Eq)
+
+{-# DEPRECATED AES
+  "Mode will be kind restricted from ghc7.6 onwards" #-}
 #endif
 
 instance HasName (Cipher (AES ECB) KEY128 Encryption) where
