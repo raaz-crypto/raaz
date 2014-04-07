@@ -47,6 +47,8 @@ instance Eq SHA1 where
                                                    .|. xor g4 h4
                                                    == 0
 
+instance HasName SHA1
+
 instance Storable SHA1 where
   sizeOf    _ = 5 * sizeOf (undefined :: Word32BE)
   alignment _ = alignment  (undefined :: Word32BE)

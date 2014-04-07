@@ -47,6 +47,7 @@ instance Eq SHA512 where
       .|. xor g7 h7
       == 0
 
+instance HasName SHA512
 
 instance Storable SHA512 where
   sizeOf    _ = 8 * sizeOf (undefined :: Word64BE)

@@ -6,6 +6,7 @@ be used directly by the user.
 -}
 
 {-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE FlexibleInstances  #-}
 module Raaz.Cipher.Salsa20.Internal
        ( Salsa20
        , R20
@@ -20,6 +21,9 @@ module Raaz.Cipher.Salsa20.Internal
        , STATE(..)
        , module Raaz.Cipher.Salsa20.Block.Internal
        ) where
+
+import Raaz.Primitives
+import Raaz.Primitives.Cipher
 
 import Raaz.Cipher.Salsa20.Block.Type
 import Raaz.Cipher.Salsa20.Block.Internal
@@ -37,3 +41,39 @@ data R12 = R12 deriving (Show, Eq, Typeable)
 
 -- | 8 Rounds
 data R8  = R8 deriving (Show, Eq, Typeable)
+
+instance HasName (Cipher (Salsa20 R20) KEY128 Encryption) where
+  getName _ = "Salsa20/20 KEY128 Encryption"
+
+instance HasName (Cipher (Salsa20 R20) KEY256 Encryption) where
+  getName _ = "Salsa20/20 KEY256 Encryption"
+
+instance HasName (Cipher (Salsa20 R20) KEY128 Decryption) where
+  getName _ = "Salsa20/20 KEY128 Decryption"
+
+instance HasName (Cipher (Salsa20 R20) KEY256 Decryption) where
+  getName _ = "Salsa20/20 KEY256 Decryption"
+
+instance HasName (Cipher (Salsa20 R12) KEY128 Encryption) where
+  getName _ = "Salsa20/12 KEY128 Encryption"
+
+instance HasName (Cipher (Salsa20 R12) KEY256 Encryption) where
+  getName _ = "Salsa20/12 KEY256 Encryption"
+
+instance HasName (Cipher (Salsa20 R12) KEY128 Decryption) where
+  getName _ = "Salsa20/12 KEY128 Decryption"
+
+instance HasName (Cipher (Salsa20 R12) KEY256 Decryption) where
+  getName _ = "Salsa20/12 KEY256 Decryption"
+
+instance HasName (Cipher (Salsa20 R8) KEY128 Encryption) where
+  getName _ = "Salsa20/8 KEY128 Encryption"
+
+instance HasName (Cipher (Salsa20 R8) KEY256 Encryption) where
+  getName _ = "Salsa20/8 KEY256 Encryption"
+
+instance HasName (Cipher (Salsa20 R8) KEY128 Decryption) where
+  getName _ = "Salsa20/8 KEY128 Decryption"
+
+instance HasName (Cipher (Salsa20 R8) KEY256 Decryption) where
+  getName _ = "Salsa20/8 KEY256 Decryption"

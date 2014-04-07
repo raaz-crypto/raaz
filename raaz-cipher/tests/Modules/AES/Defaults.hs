@@ -59,15 +59,15 @@ testKey256 =  pack [0x60,0x3d,0xeb,0x10
                    ,0x0C,0x0D,0x0E,0x0F]
 
 testsDefault m s128 s192 s256 =
-      [ testStandardCiphers (pr128 m) s128 $ "AES128 " ++ mode ++ " HGadget"
-      , testStandardCiphers (pr192 m) s192 $ "AES192 " ++ mode ++ " HGadget"
-      , testStandardCiphers (pr256 m) s256 $ "AES256 " ++ mode ++ " HGadget"
-      , testStandardCiphers (pc128 m) s128 $ "AES128 " ++ mode ++ " CGadget"
-      , testStandardCiphers (pc192 m) s192 $ "AES192 " ++ mode ++ " CGadget"
-      , testStandardCiphers (pc256 m) s256 $ "AES256 " ++ mode ++ " CGadget"
-      , testGroup ("AES128 " ++ mode ++ " CPortable vs Reference") $ cportableVsReference (pr128 m) (pc128 m) testKey128
-      , testGroup ("AES192 " ++ mode ++ " CPortable vs Reference") $ cportableVsReference (pr192 m) (pc192 m) testKey192
-      , testGroup ("AES256 " ++ mode ++ " CPortable vs Reference") $ cportableVsReference (pr256 m) (pc256 m) testKey256
+      [ testStandardCiphers (pr128 m) s128
+      , testStandardCiphers (pr192 m) s192
+      , testStandardCiphers (pr256 m) s256
+      , testStandardCiphers (pc128 m) s128
+      , testStandardCiphers (pc192 m) s192
+      , testStandardCiphers (pc256 m) s256
+      , cportableVsReference (pr128 m) (pc128 m) testKey128
+      , cportableVsReference (pr192 m) (pc192 m) testKey192
+      , cportableVsReference (pr256 m) (pc256 m) testKey256
       ]
       where
         pr128 :: m -> HGadget (Cipher (AES m) KEY128 Encryption)

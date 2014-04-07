@@ -44,12 +44,12 @@ testVector g (EcryptTest n k iv s digest) = n ~: (testXor : map testExpected s)
             where
               actual = (BS.take (t - f + 1) $ BS.drop f $ encodedString)
 
-testAll :: (Gadget g, Initializable (PrimitiveOf g))
+testAll :: (Gadget g, HasName g, Initializable (PrimitiveOf g))
         => g
         -> FilePath             -- Path of Testfile
         -> (EcryptTest -> Bool) -- Filtering function
-        -> String               -- msg
         -> TF.Test
-testAll g fp with msg = buildTest $ do
+testAll g fp with = buildTest $ do
   vec <- parseTestVector fp
   return $ testGroup msg $ hUnitTestToTests $ test $ map (testVector g) $ filter with vec
+  where msg = getName g
