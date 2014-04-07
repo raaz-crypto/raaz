@@ -64,33 +64,21 @@ benchCipher g iv = benchGadgetWith g iv (nBlocks g)
 
 benchmarksTinyDefault = take 2 . benchmarksDefault
 
-benchmarksDefault m = [ benchCipher (pr128 m encr) testKey128
-                      , benchCipher (pc128 m encr) testKey128
-                      , benchCipher (pr128 m decr) testKey128
-                      , benchCipher (pc128 m decr) testKey128
-                      , benchCipher (pr192 m encr) testKey192
-                      , benchCipher (pc192 m encr) testKey192
-                      , benchCipher (pr192 m decr) testKey192
-                      , benchCipher (pc192 m decr) testKey192
-                      , benchCipher (pr256 m encr) testKey256
-                      , benchCipher (pc256 m encr) testKey256
-                      , benchCipher (pr256 m decr) testKey256
-                      , benchCipher (pc256 m decr) testKey256 ]
+benchmarksDefault p = [ benchCipher (toH $ prim128 p) testKey128
+                      , benchCipher (toC $ prim128 p) testKey128
+                      , benchCipher (toH $ prim192 p) testKey192
+                      , benchCipher (toC $ prim192 p) testKey192
+                      , benchCipher (toH $ prim256 p) testKey256
+                      , benchCipher (toC $ prim256 p) testKey256
+                      ]
   where
-    encr :: Encryption
-    encr = undefined
-    decr :: Decryption
-    decr = undefined
-    pr128 :: Gadget (HGadget (Cipher (AES m) KEY128 stage)) => m -> stage -> HGadget (Cipher (AES m) KEY128 stage)
-    pr128 = undefined
-    pr192 :: Gadget (HGadget (Cipher (AES m) KEY192 stage)) => m -> stage -> HGadget (Cipher (AES m) KEY192 stage)
-    pr192 = undefined
-    pr256 :: Gadget (HGadget (Cipher (AES m) KEY256 stage)) => m -> stage -> HGadget (Cipher (AES m) KEY256 stage)
-    pr256 = undefined
-    pc128 :: Gadget (CGadget (Cipher (AES m) KEY128 stage)) => m -> stage -> CGadget (Cipher (AES m) KEY128 stage)
-    pc128 = undefined
-    pc192 :: Gadget (CGadget (Cipher (AES m) KEY192 stage)) => m -> stage -> CGadget (Cipher (AES m) KEY192 stage)
-    pc192 = undefined
-    pc256 :: Gadget (CGadget (Cipher (AES m) KEY256 stage)) => m -> stage -> CGadget (Cipher (AES m) KEY256 stage)
-    pc256 = undefined
-    mode = show $ typeOf m
+    prim128 :: Cipher name k d -> Cipher name KEY128 d
+    prim128 _ = undefined
+    prim192 :: Cipher name k d-> Cipher name KEY192 d
+    prim192 _ = undefined
+    prim256 :: Cipher name k d-> Cipher name KEY256 d
+    prim256 _ = undefined
+    toH :: p -> HGadget p
+    toH _ = undefined
+    toC :: p -> CGadget p
+    toC _ = undefined
