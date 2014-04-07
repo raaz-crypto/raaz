@@ -27,6 +27,7 @@ library
                  , Raaz.Cipher.AES.CBC
                  , Raaz.Cipher.AES.CTR
                  , Raaz.Cipher.AES.ECB
+                 , Raaz.Cipher.AES
                  , Raaz.Cipher.Salsa20
                  , Raaz.Cipher.Salsa20.Internal
   other-modules: Raaz.Cipher.Util.GF
@@ -56,6 +57,10 @@ library
                --
                , raaz-primitives                >=0.0.0.1 && < 0.0.0.2
   ghc-options: -Wall
+
+  if impl(ghc >= 7.6)
+    cpp-options: -DUseKinds
+    extensions: DataKinds
 
   c-sources: cbits/raaz/cipher/cportable/aes.c
            , cbits/raaz/cipher/cportable/salsa20.c
@@ -100,6 +105,9 @@ test-Suite tests
                , raaz-primitives                >=0.0.0.1 && < 0.0.0.2
                , raaz-cipher                    >=0.0.0.1 && < 0.0.0.2
 
+  if impl(ghc >= 7.6)
+    extensions: DataKinds
+
 benchmark bench-builder-all
   type: exitcode-stdio-1.0
   hs-source-dirs: benchmarks
@@ -123,3 +131,6 @@ benchmark bench-builder-all
                , raaz-primitives                >=0.0.0.1 && < 0.0.0.2
                , raaz-benchmarks                >=0.0.0.1 && < 0.0.0.2
                , raaz-cipher                    >=0.0.0.1 && < 0.0.0.2
+
+  if impl(ghc >= 7.6)
+    extensions: DataKinds

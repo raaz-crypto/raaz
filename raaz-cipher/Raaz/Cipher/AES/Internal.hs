@@ -7,6 +7,7 @@ used directly by the user.
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE TypeFamilies       #-}
 {-# LANGUAGE FlexibleInstances  #-}
+{-# LANGUAGE CPP                #-}
 module Raaz.Cipher.AES.Internal
        ( AES(..)
        , STATE(..)
@@ -34,7 +35,11 @@ import Raaz.Primitives.Cipher
 import Data.Typeable
 
 -- | AES Data type with associated modes.
+#if UseKinds
+data AES (mode :: Mode) = AES deriving (Show, Eq)
+#else
 data AES mode = AES deriving (Show, Eq)
+#endif
 
 instance HasName (Cipher (AES ECB) KEY128 Encryption) where
   getName _ = "AES128 ECB Encryption"

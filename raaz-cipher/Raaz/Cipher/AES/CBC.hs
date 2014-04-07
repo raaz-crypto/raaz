@@ -13,8 +13,7 @@ first block.
 
 
 -}
-module Raaz.Cipher.AES.CBC (CBC) where
-
+module Raaz.Cipher.AES.CBC () where
 
 import Raaz.Primitives.Cipher
 import Raaz.Cipher.AES.CBC.CPortable ()
