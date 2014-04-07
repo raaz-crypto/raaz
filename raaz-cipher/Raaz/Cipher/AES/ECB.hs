@@ -12,7 +12,7 @@ cryptographic protocols at all.
 << http://upload.wikimedia.org/wikipedia/commons/thumb/e/e6/ECB_decryption.svg/601px-ECB_decryption.svg.png >>
 
 -}
-module Raaz.Cipher.AES.ECB (ECB) where
+module Raaz.Cipher.AES.ECB () where
 
 import Raaz.Primitives.Cipher
 import Raaz.Cipher.AES.ECB.CPortable ()

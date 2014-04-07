@@ -58,28 +58,25 @@ testKey256 =  pack [0x60,0x3d,0xeb,0x10
                    ,0x08,0x09,0x0A,0x0B
                    ,0x0C,0x0D,0x0E,0x0F]
 
-testsDefault m s128 s192 s256 =
-      [ testStandardCiphers (pr128 m) s128
-      , testStandardCiphers (pr192 m) s192
-      , testStandardCiphers (pr256 m) s256
-      , testStandardCiphers (pc128 m) s128
-      , testStandardCiphers (pc192 m) s192
-      , testStandardCiphers (pc256 m) s256
-      , cportableVsReference (pr128 m) (pc128 m) testKey128
-      , cportableVsReference (pr192 m) (pc192 m) testKey192
-      , cportableVsReference (pr256 m) (pc256 m) testKey256
+testsDefault p s128 s192 s256 =
+      [ testStandardCiphers (toH $ p128 p) s128
+      , testStandardCiphers (toH $ p192 p) s192
+      , testStandardCiphers (toH $ p256 p) s256
+      , testStandardCiphers (toC $ p128 p) s128
+      , testStandardCiphers (toC $ p192 p) s192
+      , testStandardCiphers (toC $ p256 p) s256
+      , cportableVsReference (toH $ p128 p) (toC $ p128 p) testKey128
+      , cportableVsReference (toH $ p192 p) (toC $ p192 p) testKey192
+      , cportableVsReference (toH $ p256 p) (toC $ p256 p) testKey256
       ]
       where
-        pr128 :: m -> HGadget (Cipher (AES m) KEY128 Encryption)
-        pr128 _ = undefined
-        pr192 :: m -> HGadget (Cipher (AES m) KEY192 Encryption)
-        pr192 _ = undefined
-        pr256 :: m -> HGadget (Cipher (AES m) KEY256 Encryption)
-        pr256 _ = undefined
-        pc128 :: m -> CGadget (Cipher (AES m) KEY128 Encryption)
-        pc128 _ = undefined
-        pc192 :: m -> CGadget (Cipher (AES m) KEY192 Encryption)
-        pc192 _ = undefined
-        pc256 :: m -> CGadget (Cipher (AES m) KEY256 Encryption)
-        pc256 _ = undefined
-        mode = show $ typeOf m
+        toH :: p -> HGadget p
+        toH _ = undefined
+        toC :: p -> CGadget p
+        toC _ = undefined
+        p128 :: Cipher name key stage -> Cipher name KEY128 stage
+        p128 = undefined
+        p192 :: Cipher name key stage -> Cipher name KEY192 stage
+        p192 = undefined
+        p256 :: Cipher name key stage -> Cipher name KEY256 stage
+        p256 = undefined

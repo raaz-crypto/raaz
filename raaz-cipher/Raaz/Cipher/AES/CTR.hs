@@ -13,7 +13,7 @@ increment-by-one counter is the simplest and most popular.
 
 -}
 
-module Raaz.Cipher.AES.CTR (CTR) where
+module Raaz.Cipher.AES.CTR () where
 
 import Raaz.Primitives.Cipher
 import Raaz.Cipher.AES.CTR.CPortable ()
