@@ -5,13 +5,18 @@ be used directly by the user.
 
 -}
 
-{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE KindSignatures     #-}
 {-# LANGUAGE FlexibleInstances  #-}
+{-# LANGUAGE CPP                #-}
 module Raaz.Cipher.Salsa20.Internal
-       ( Salsa20
-       , R20
-       , R12
-       , R8
+       ( Salsa20(..)
+#if UseKinds
+       , Rounds(..)
+#else
+       , R20(..)
+       , R12(..)
+       , R8(..)
+#endif
        , KEY128
        , KEY256
        , Nonce
@@ -28,19 +33,26 @@ import Raaz.Primitives.Cipher
 import Raaz.Cipher.Salsa20.Block.Type
 import Raaz.Cipher.Salsa20.Block.Internal
 
-import Data.Typeable
-
 -- | Salsa20 with given rounds
-data Salsa20 r = Salsa20 deriving (Show, Eq, Typeable)
+#if UseKinds
+data Salsa20 (r :: Rounds) = Salsa20 deriving (Show, Eq)
+
+-- | Rounds in Salsa20 core
+data Rounds = R20
+            | R12
+            | R8
+#else
+data Salsa20 r = Salsa20 deriving (Show, Eq)
 
 -- | 20 Rounds
-data R20 = R20 deriving (Show, Eq, Typeable)
+data R20 = R20 deriving (Show, Eq)
 
 -- | 12 Rounds
-data R12 = R12 deriving (Show, Eq, Typeable)
+data R12 = R12 deriving (Show, Eq)
 
 -- | 8 Rounds
-data R8  = R8 deriving (Show, Eq, Typeable)
+data R8  = R8 deriving (Show, Eq)
+#endif
 
 instance HasName (Cipher (Salsa20 R20) KEY128 Encryption) where
   getName _ = "Salsa20/20 KEY128 Encryption"

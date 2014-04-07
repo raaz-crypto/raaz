@@ -10,11 +10,17 @@ Salsa20 with all the three variants of 20 rounds, 12 rounds and 8
 rounds are implemented here.
 
 -}
+{-# LANGUAGE CPP #-}
+
 module Raaz.Cipher.Salsa20
        ( Salsa20
        , KEY128
        , KEY256
+#if UseKinds
+       , Rounds(..)
+#else
        , R20, R12, R8
+#endif
        , Nonce
        , Counter
        , module Raaz.Primitives
