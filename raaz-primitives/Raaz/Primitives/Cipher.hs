@@ -4,9 +4,10 @@ A cryptographic cipher abstraction.
 
 -}
 
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE KindSignatures        #-}
 {-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE EmptyDataDecls        #-}
-{-# LANGUAGE DeriveDataTypeable    #-}
+{-# LANGUAGE CPP                   #-}
 
 module Raaz.Primitives.Cipher
        ( StreamGadget
@@ -16,37 +17,58 @@ module Raaz.Primitives.Cipher
        --
        -- A block cipher can be run in many different modes. These
        -- types capture the different modes of operation.
-       , ECB, CBC, CTR
-
+#if UseKinds
+       , Mode(..)
+#else
+       , ECB(..), CBC(..), CTR(..)
+#endif
        -- * Cipher gadget
        --
        -- A cipher that is a gadget should support both encryption and
        -- decryption. These mutually inverse operation are
        -- differentianted via a type argument.
-       , Encryption, Decryption
+#if UseKinds
+       , Direction(..)
+#else
+       , Encryption(..), Decryption(..)
+#endif
        ) where
-
-import           Data.Typeable
 
 import           Raaz.Primitives
 
--- | Electronic codebook
-data ECB deriving Typeable
+#if UseKinds
+data Mode = ECB -- ^ Electronic codebook
+          | CBC -- ^ Cipher-block chaining
+          | CTR -- ^ Counter
+            deriving (Show, Eq)
 
--- | Cipher-block chaining
-data CBC deriving Typeable
-
--- | Counter
-data CTR deriving Typeable
-
--- | Encryption
-data Encryption deriving Typeable
-
--- | Decryption
-data Decryption deriving Typeable
+-- | Direction of operation of cipher
+data Direction = Encryption
+               | Decryption
+               deriving (Show, Eq)
 
 -- | Type to capture Cipher Primitive
-data Cipher cipher key stage = Cipher deriving (Eq,Show,Typeable)
+data Cipher cipher key (stage :: Direction) = Cipher deriving (Eq,Show)
+#else
+
+-- | Electronic codebook
+data ECB = ECB deriving (Show, Eq)
+
+-- | Cipher-block chaining
+data CBC = CBC deriving (Show, Eq)
+
+-- | Counter
+data CTR = CTR deriving (Show,Eq)
+
+-- | Encryption
+data Encryption = Encryption deriving (Show, Eq)
+
+-- | Decryption
+data Decryption = Decryption deriving (Show, Eq)
+
+-- | Type to capture Cipher Primitive
+data Cipher cipher key stage = Cipher deriving (Eq,Show)
+#endif
 
 -- | This class captures gadgets which can be used as stream ciphers.
 -- Any block cipher can also be seen as a stream cipher if it is run
