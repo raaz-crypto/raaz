@@ -7,7 +7,7 @@
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Raaz.Write
-       ( Write, runWrite
+       ( Write, runWrite, tryWrite
        , write, writeStorable
        , WriteException(..)
        , writeBytes, writeByteString
@@ -55,6 +55,16 @@ runWrite :: CryptoBuffer   -- ^ The buffer to which the bytes are to
 runWrite  (CryptoBuffer sz cptr) (Write (summ, wr))
       | getSum summ > sz = throwIO WriteOverflow
       | otherwise        = WU.runWrite cptr wr
+
+-- | The function tries the write action on the buffer and returns
+-- `True` if successfull.
+tryWrite :: CryptoBuffer  -- ^ The buffer to which the bytes are to
+                          -- be written.
+         -> Write         -- ^ The write action.
+         -> IO Bool
+tryWrite (CryptoBuffer sz cptr) (Write (summ, wr))
+  | getSum summ > sz = return False
+  | otherwise        = WU.runWrite cptr wr >> return True
 
 -- | The expression @`writeStorable` a@ gives a write action that
 -- stores a value @a@ in machine endian. The type of the value @a@ has
