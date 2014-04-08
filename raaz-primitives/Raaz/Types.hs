@@ -62,7 +62,7 @@ import Test.QuickCheck(Arbitrary)
 -- One of the most common source of implementation problems in crypto
 -- algorithms is the correct dealing of endianness. Endianness matters
 -- only when we first load the data from the buffer or when we finally
--- write the data out. The class `CrytoStore` via its member functions
+-- write the data out. The class `EndianStore` via its member functions
 -- `load` and `store` takes care of endian coversion automatically.
 --
 -- This module also provide explicitly endianness encoded versions of
