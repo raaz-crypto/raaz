@@ -67,27 +67,27 @@ tests =
       where
         keySize :: BYTES Int -> EcryptTest -> Bool
         keySize w (EcryptTest _ k _ _ _) = BU.length k == w
-        s20_128 :: HGadget (Cipher (Salsa20 R20) KEY128 Encryption)
+        s20_128 :: HGadget (Cipher (Salsa20 R20) KEY128 EncryptMode)
         s20_128 = undefined
-        s20_256 :: HGadget (Cipher (Salsa20 R20) KEY256 Encryption)
+        s20_256 :: HGadget (Cipher (Salsa20 R20) KEY256 EncryptMode)
         s20_256 = undefined
-        s12_128 :: HGadget (Cipher (Salsa20 R12) KEY128 Encryption)
+        s12_128 :: HGadget (Cipher (Salsa20 R12) KEY128 EncryptMode)
         s12_128 = undefined
-        s12_256 :: HGadget (Cipher (Salsa20 R12) KEY256 Encryption)
+        s12_256 :: HGadget (Cipher (Salsa20 R12) KEY256 EncryptMode)
         s12_256 = undefined
-        s8_128 :: HGadget (Cipher (Salsa20 R8) KEY128 Encryption)
+        s8_128 :: HGadget (Cipher (Salsa20 R8) KEY128 EncryptMode)
         s8_128 = undefined
-        s8_256 :: HGadget (Cipher (Salsa20 R8) KEY256 Encryption)
+        s8_256 :: HGadget (Cipher (Salsa20 R8) KEY256 EncryptMode)
         s8_256 = undefined
-        cs20_128 :: CGadget (Cipher (Salsa20 R20) KEY128 Encryption)
+        cs20_128 :: CGadget (Cipher (Salsa20 R20) KEY128 EncryptMode)
         cs20_128 = undefined
-        cs20_256 :: CGadget (Cipher (Salsa20 R20) KEY256 Encryption)
+        cs20_256 :: CGadget (Cipher (Salsa20 R20) KEY256 EncryptMode)
         cs20_256 = undefined
-        cs12_128 :: CGadget (Cipher (Salsa20 R12) KEY128 Encryption)
+        cs12_128 :: CGadget (Cipher (Salsa20 R12) KEY128 EncryptMode)
         cs12_128 = undefined
-        cs12_256 :: CGadget (Cipher (Salsa20 R12) KEY256 Encryption)
+        cs12_256 :: CGadget (Cipher (Salsa20 R12) KEY256 EncryptMode)
         cs12_256 = undefined
-        cs8_128 :: CGadget (Cipher (Salsa20 R8) KEY128 Encryption)
+        cs8_128 :: CGadget (Cipher (Salsa20 R8) KEY128 EncryptMode)
         cs8_128 = undefined
-        cs8_256 :: CGadget (Cipher (Salsa20 R8) KEY256 Encryption)
+        cs8_256 :: CGadget (Cipher (Salsa20 R8) KEY256 EncryptMode)
         cs8_256 = undefined
