@@ -96,6 +96,9 @@ library
                , test-framework-quickcheck2     >= 0.2 && < 0.4
   ghc-options: -Wall
 
+  if impl(ghc >= 7.6)
+     cpp-options: -DUseKinds
+
   c-sources: cbits/raaz/memory.c
   include-dirs: includes
   includes: raaz/primitives.h

@@ -74,5 +74,8 @@ standard256Vector =
     , pack [0xb2,0xeb,0x05,0xe2,0xc3,0x9b,0xe9,0xfc,0xda,0x6c,0x19,0x07,0x8c,0x6a,0x9d,0x1b] )
   ]
 
+cbc :: Cipher (AES CBC) KEY128 Encryption
+cbc = undefined
+
 tests :: [Test]
-tests = testsDefault (undefined :: CBC) standard128Vector standard192Vector standard256Vector
+tests = testsDefault cbc standard128Vector standard192Vector standard256Vector

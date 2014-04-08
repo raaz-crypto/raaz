@@ -56,6 +56,8 @@ standard256Vector =
            ,0xdf,0xc9,0xc5,0x8d,0xb6,0x7a,0xad,0xa6,0x13,0xc2,0xdd,0x08,0x45,0x79,0x41,0xa6] )
   ]
 
+ctr :: Cipher (AES CTR) KEY128 Encryption
+ctr = undefined
 
 tests :: [Test]
-tests = testsDefault (undefined :: CTR) standard128Vector standard192Vector standard256Vector
+tests = testsDefault ctr standard128Vector standard192Vector standard256Vector
