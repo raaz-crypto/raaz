@@ -22,19 +22,11 @@ module Raaz.Primitives.Cipher
 #else
        , ECB(..), CBC(..), CTR(..)
 #endif
-       -- * Cipher gadget
-       --
-       -- A cipher that is a gadget should support both encryption and
-       -- decryption. These mutually inverse operation are
-       -- differentianted via a type argument.
-#if UseKinds
-       , Direction(..)
-#else
-       , Encryption(..), Decryption(..)
-#endif
+       , module Raaz.Primitives.CryptoMode
        ) where
 
-import           Raaz.Primitives
+import Raaz.Primitives
+import Raaz.Primitives.CryptoMode
 
 #if UseKinds
 data Mode = ECB -- ^ Electronic codebook
@@ -42,13 +34,8 @@ data Mode = ECB -- ^ Electronic codebook
           | CTR -- ^ Counter
             deriving (Show, Eq)
 
--- | Direction of operation of cipher
-data Direction = Encryption
-               | Decryption
-               deriving (Show, Eq)
-
 -- | Type to capture Cipher Primitive
-data Cipher cipher key (direction :: Direction) = Cipher deriving (Eq,Show)
+data Cipher cipher key (direction :: CryptoMode) = Cipher deriving (Eq,Show)
 #else
 
 -- | Electronic codebook
@@ -62,15 +49,6 @@ data CTR = CTR deriving (Show,Eq)
 
 {-# DEPRECATED ECB, CBC, CTR
   "Will be changed to Data Constructor of type Mode from ghc7.6 onwards" #-}
-
--- | Encryption
-data Encryption = Encryption deriving (Show, Eq)
-
--- | Decryption
-data Decryption = Decryption deriving (Show, Eq)
-
-{-# DEPRECATED Encryption, Decryption
-  "Will be changed to Data Constructor of type Direction from ghc7.6 onwards" #-}
 
 -- | Type to capture Cipher Primitive
 data Cipher cipher key direction = Cipher deriving (Eq,Show)
