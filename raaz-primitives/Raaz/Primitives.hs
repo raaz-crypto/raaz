@@ -51,11 +51,11 @@ import           Raaz.Util.Ptr
 -- The raaz cryptographic engine is centered around two kinds of
 -- stuff: (1) /primitives/ and (2) /gadgets/ to compute those
 -- primitives. Typical cryptographic primitives are hashes, macs,
--- ciphers, signature algorithms etc. A gadget can be thought of as a
--- device or algorithm that implements the primitive. However, it is
--- not merely a function. Usually they have internal memory elements
--- or associated with them and they require explicit initialisation
--- and finalisation. Therefore the device analogy is often better.
+-- ciphers, signature algorithms etc. A gadget is a device or
+-- algorithm that implements the primitive. However, it is not merely
+-- a function. Often, they have internal memory elements associated
+-- with them and require explicit initialisation and
+-- finalisation. Therefore the device analogy is often better.
 --
 -- As a library, raaz believes in providing multiple gadgets for a
 -- given primitive. Of these two are of at most importance. There is
