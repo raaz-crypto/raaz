@@ -122,72 +122,72 @@ instance EndianStore k => Initializable (Cipher (Salsa20 R20) k e) where
           (nbs,cbs) = BS.splitAt (sizeOf n) rest
 
 -- | Reference Gadget instance for Salsa 20 with 16 Byte KEY
-instance Gadget (HGadget (Cipher (Salsa20 R20) KEY128 Encryption)) where
-  type PrimitiveOf (HGadget (Cipher (Salsa20 R20) KEY128 Encryption)) = Cipher (Salsa20 R20) KEY128 Encryption
-  type MemoryOf (HGadget (Cipher (Salsa20 R20) KEY128 Encryption)) = CryptoCell Matrix
+instance Gadget (HGadget (Cipher (Salsa20 R20) KEY128 EncryptMode)) where
+  type PrimitiveOf (HGadget (Cipher (Salsa20 R20) KEY128 EncryptMode)) = Cipher (Salsa20 R20) KEY128 EncryptMode
+  type MemoryOf (HGadget (Cipher (Salsa20 R20) KEY128 EncryptMode)) = CryptoCell Matrix
   newGadgetWithMemory = return . HGadget
   initialize (HGadget mc) (Salsa20_20Cxt (k,n,s)) = cellStore mc $ expand128 k n s
   finalize (HGadget mc) = Salsa20_20Cxt . compress128 <$> cellLoad mc
   apply g = applyGad g (salsa20 20)
 
 -- | Reference Gadget instance for Salsa 20 with 16 Byte KEY
-instance Gadget (HGadget (Cipher (Salsa20 R20) KEY128 Decryption)) where
-  type PrimitiveOf (HGadget (Cipher (Salsa20 R20) KEY128 Decryption)) = Cipher (Salsa20 R20) KEY128 Decryption
-  type MemoryOf (HGadget (Cipher (Salsa20 R20) KEY128 Decryption)) = CryptoCell Matrix
+instance Gadget (HGadget (Cipher (Salsa20 R20) KEY128 DecryptMode)) where
+  type PrimitiveOf (HGadget (Cipher (Salsa20 R20) KEY128 DecryptMode)) = Cipher (Salsa20 R20) KEY128 DecryptMode
+  type MemoryOf (HGadget (Cipher (Salsa20 R20) KEY128 DecryptMode)) = CryptoCell Matrix
   newGadgetWithMemory = return . HGadget
   initialize (HGadget mc) (Salsa20_20Cxt (k,n,s)) = cellStore mc $ expand128 k n s
   finalize (HGadget mc) = Salsa20_20Cxt . compress128 <$> cellLoad mc
   apply g = applyGad g (salsa20 20)
 
 -- | Reference Gadget instance for Salsa 20 with 32 Byte KEY
-instance Gadget (HGadget (Cipher (Salsa20 R20) KEY256 Encryption)) where
-  type PrimitiveOf (HGadget (Cipher (Salsa20 R20) KEY256 Encryption)) = Cipher (Salsa20 R20) KEY256 Encryption
-  type MemoryOf (HGadget (Cipher (Salsa20 R20) KEY256 Encryption)) = CryptoCell Matrix
+instance Gadget (HGadget (Cipher (Salsa20 R20) KEY256 EncryptMode)) where
+  type PrimitiveOf (HGadget (Cipher (Salsa20 R20) KEY256 EncryptMode)) = Cipher (Salsa20 R20) KEY256 EncryptMode
+  type MemoryOf (HGadget (Cipher (Salsa20 R20) KEY256 EncryptMode)) = CryptoCell Matrix
   newGadgetWithMemory = return . HGadget
   initialize (HGadget mc) (Salsa20_20Cxt (k,n,s)) = cellStore mc $ expand256 k n s
   finalize (HGadget mc) = Salsa20_20Cxt . compress256 <$> cellLoad mc
   apply g = applyGad g (salsa20 20)
 
 -- | Reference Gadget instance for Salsa 20 with 32 Byte KEY
-instance Gadget (HGadget (Cipher (Salsa20 R20) KEY256 Decryption)) where
-  type PrimitiveOf (HGadget (Cipher (Salsa20 R20) KEY256 Decryption)) = Cipher (Salsa20 R20) KEY256 Decryption
-  type MemoryOf (HGadget (Cipher (Salsa20 R20) KEY256 Decryption)) = CryptoCell Matrix
+instance Gadget (HGadget (Cipher (Salsa20 R20) KEY256 DecryptMode)) where
+  type PrimitiveOf (HGadget (Cipher (Salsa20 R20) KEY256 DecryptMode)) = Cipher (Salsa20 R20) KEY256 DecryptMode
+  type MemoryOf (HGadget (Cipher (Salsa20 R20) KEY256 DecryptMode)) = CryptoCell Matrix
   newGadgetWithMemory = return . HGadget
   initialize (HGadget mc) (Salsa20_20Cxt (k,n,s)) = cellStore mc $ expand256 k n s
   finalize (HGadget mc) = Salsa20_20Cxt . compress256 <$> cellLoad mc
   apply g = applyGad g (salsa20 20)
 
 -- | CPortable Gadget instance for Salsa 20 with 16 Byte KEY
-instance Gadget (CGadget (Cipher (Salsa20 R20) KEY128 Encryption)) where
-  type PrimitiveOf (CGadget (Cipher (Salsa20 R20) KEY128 Encryption)) = Cipher (Salsa20 R20) KEY128 Encryption
-  type MemoryOf (CGadget (Cipher (Salsa20 R20) KEY128 Encryption)) = CryptoCell Matrix
+instance Gadget (CGadget (Cipher (Salsa20 R20) KEY128 EncryptMode)) where
+  type PrimitiveOf (CGadget (Cipher (Salsa20 R20) KEY128 EncryptMode)) = Cipher (Salsa20 R20) KEY128 EncryptMode
+  type MemoryOf (CGadget (Cipher (Salsa20 R20) KEY128 EncryptMode)) = CryptoCell Matrix
   newGadgetWithMemory = return . CGadget
   initialize (CGadget mc) (Salsa20_20Cxt (k,n,s)) = cExpand128 mc k n s
   finalize (CGadget mc) = Salsa20_20Cxt . compress128 <$> cellLoad mc
   apply = applyCGad c_salsa20_20
 
 -- | CPortable Gadget instance for Salsa 20 with 16 Byte KEY
-instance Gadget (CGadget (Cipher (Salsa20 R20) KEY128 Decryption)) where
-  type PrimitiveOf (CGadget (Cipher (Salsa20 R20) KEY128 Decryption)) = Cipher (Salsa20 R20) KEY128 Decryption
-  type MemoryOf (CGadget (Cipher (Salsa20 R20) KEY128 Decryption)) = CryptoCell Matrix
+instance Gadget (CGadget (Cipher (Salsa20 R20) KEY128 DecryptMode)) where
+  type PrimitiveOf (CGadget (Cipher (Salsa20 R20) KEY128 DecryptMode)) = Cipher (Salsa20 R20) KEY128 DecryptMode
+  type MemoryOf (CGadget (Cipher (Salsa20 R20) KEY128 DecryptMode)) = CryptoCell Matrix
   newGadgetWithMemory = return . CGadget
   initialize (CGadget mc) (Salsa20_20Cxt (k,n,s)) = cExpand128 mc k n s
   finalize (CGadget mc) = Salsa20_20Cxt . compress128 <$> cellLoad mc
   apply = applyCGad c_salsa20_20
 
 -- | CPortable Gadget instance for Salsa 20 with 32 Byte KEY
-instance Gadget (CGadget (Cipher (Salsa20 R20) KEY256 Encryption)) where
-  type PrimitiveOf (CGadget (Cipher (Salsa20 R20) KEY256 Encryption)) = Cipher (Salsa20 R20) KEY256 Encryption
-  type MemoryOf (CGadget (Cipher (Salsa20 R20) KEY256 Encryption)) = CryptoCell Matrix
+instance Gadget (CGadget (Cipher (Salsa20 R20) KEY256 EncryptMode)) where
+  type PrimitiveOf (CGadget (Cipher (Salsa20 R20) KEY256 EncryptMode)) = Cipher (Salsa20 R20) KEY256 EncryptMode
+  type MemoryOf (CGadget (Cipher (Salsa20 R20) KEY256 EncryptMode)) = CryptoCell Matrix
   newGadgetWithMemory = return . CGadget
   initialize (CGadget mc) (Salsa20_20Cxt (k,n,s)) = cExpand256 mc k n s
   finalize (CGadget mc) = Salsa20_20Cxt . compress256 <$> cellLoad mc
   apply = applyCGad c_salsa20_20
 
 -- | CPortable Gadget instance for Salsa 20 with 32 Byte KEY
-instance Gadget (CGadget (Cipher (Salsa20 R20) KEY256 Decryption)) where
-  type PrimitiveOf (CGadget (Cipher (Salsa20 R20) KEY256 Decryption)) = Cipher (Salsa20 R20) KEY256 Decryption
-  type MemoryOf (CGadget (Cipher (Salsa20 R20) KEY256 Decryption)) = CryptoCell Matrix
+instance Gadget (CGadget (Cipher (Salsa20 R20) KEY256 DecryptMode)) where
+  type PrimitiveOf (CGadget (Cipher (Salsa20 R20) KEY256 DecryptMode)) = Cipher (Salsa20 R20) KEY256 DecryptMode
+  type MemoryOf (CGadget (Cipher (Salsa20 R20) KEY256 DecryptMode)) = CryptoCell Matrix
   newGadgetWithMemory = return . CGadget
   initialize (CGadget mc) (Salsa20_20Cxt (k,n,s)) = cExpand256 mc k n s
   finalize (CGadget mc) = Salsa20_20Cxt . compress256 <$> cellLoad mc
@@ -223,72 +223,72 @@ instance EndianStore k => Initializable (Cipher (Salsa20 R12) k e) where
           (nbs,cbs) = BS.splitAt (sizeOf n) rest
 
 -- | Reference Gadget instance for Salsa 20 with 16 Byte KEY
-instance Gadget (HGadget (Cipher (Salsa20 R12) KEY128 Encryption)) where
-  type PrimitiveOf (HGadget (Cipher (Salsa20 R12) KEY128 Encryption)) = Cipher (Salsa20 R12) KEY128 Encryption
-  type MemoryOf (HGadget (Cipher (Salsa20 R12) KEY128 Encryption)) = CryptoCell Matrix
+instance Gadget (HGadget (Cipher (Salsa20 R12) KEY128 EncryptMode)) where
+  type PrimitiveOf (HGadget (Cipher (Salsa20 R12) KEY128 EncryptMode)) = Cipher (Salsa20 R12) KEY128 EncryptMode
+  type MemoryOf (HGadget (Cipher (Salsa20 R12) KEY128 EncryptMode)) = CryptoCell Matrix
   newGadgetWithMemory = return . HGadget
   initialize (HGadget mc) (Salsa20_12Cxt (k,n,s)) = cellStore mc $ expand128 k n s
   finalize (HGadget mc) = Salsa20_12Cxt . compress128 <$> cellLoad mc
   apply g = applyGad g (salsa20 12)
 
 -- | Reference Gadget instance for Salsa 20 with 16 Byte KEY
-instance Gadget (HGadget (Cipher (Salsa20 R12) KEY128 Decryption)) where
-  type PrimitiveOf (HGadget (Cipher (Salsa20 R12) KEY128 Decryption)) = Cipher (Salsa20 R12) KEY128 Decryption
-  type MemoryOf (HGadget (Cipher (Salsa20 R12) KEY128 Decryption)) = CryptoCell Matrix
+instance Gadget (HGadget (Cipher (Salsa20 R12) KEY128 DecryptMode)) where
+  type PrimitiveOf (HGadget (Cipher (Salsa20 R12) KEY128 DecryptMode)) = Cipher (Salsa20 R12) KEY128 DecryptMode
+  type MemoryOf (HGadget (Cipher (Salsa20 R12) KEY128 DecryptMode)) = CryptoCell Matrix
   newGadgetWithMemory = return . HGadget
   initialize (HGadget mc) (Salsa20_12Cxt (k,n,s)) = cellStore mc $ expand128 k n s
   finalize (HGadget mc) = Salsa20_12Cxt . compress128 <$> cellLoad mc
   apply g = applyGad g (salsa20 12)
 
 -- | Reference Gadget instance for Salsa 20 with 32 Byte KEY
-instance Gadget (HGadget (Cipher (Salsa20 R12) KEY256 Encryption)) where
-  type PrimitiveOf (HGadget (Cipher (Salsa20 R12) KEY256 Encryption)) = Cipher (Salsa20 R12) KEY256 Encryption
-  type MemoryOf (HGadget (Cipher (Salsa20 R12) KEY256 Encryption)) = CryptoCell Matrix
+instance Gadget (HGadget (Cipher (Salsa20 R12) KEY256 EncryptMode)) where
+  type PrimitiveOf (HGadget (Cipher (Salsa20 R12) KEY256 EncryptMode)) = Cipher (Salsa20 R12) KEY256 EncryptMode
+  type MemoryOf (HGadget (Cipher (Salsa20 R12) KEY256 EncryptMode)) = CryptoCell Matrix
   newGadgetWithMemory = return . HGadget
   initialize (HGadget mc) (Salsa20_12Cxt (k,n,s)) = cellStore mc $ expand256 k n s
   finalize (HGadget mc) = Salsa20_12Cxt . compress256 <$> cellLoad mc
   apply g = applyGad g (salsa20 12)
 
 -- | Reference Gadget instance for Salsa 20 with 32 Byte KEY
-instance Gadget (HGadget (Cipher (Salsa20 R12) KEY256 Decryption)) where
-  type PrimitiveOf (HGadget (Cipher (Salsa20 R12) KEY256 Decryption)) = Cipher (Salsa20 R12) KEY256 Decryption
-  type MemoryOf (HGadget (Cipher (Salsa20 R12) KEY256 Decryption)) = CryptoCell Matrix
+instance Gadget (HGadget (Cipher (Salsa20 R12) KEY256 DecryptMode)) where
+  type PrimitiveOf (HGadget (Cipher (Salsa20 R12) KEY256 DecryptMode)) = Cipher (Salsa20 R12) KEY256 DecryptMode
+  type MemoryOf (HGadget (Cipher (Salsa20 R12) KEY256 DecryptMode)) = CryptoCell Matrix
   newGadgetWithMemory = return . HGadget
   initialize (HGadget mc) (Salsa20_12Cxt (k,n,s)) = cellStore mc $ expand256 k n s
   finalize (HGadget mc) = Salsa20_12Cxt . compress256 <$> cellLoad mc
   apply g = applyGad g (salsa20 12)
 
 -- | CPortable Gadget instance for Salsa 20 with 16 Byte KEY
-instance Gadget (CGadget (Cipher (Salsa20 R12) KEY128 Encryption)) where
-  type PrimitiveOf (CGadget (Cipher (Salsa20 R12) KEY128 Encryption)) = Cipher (Salsa20 R12) KEY128 Encryption
-  type MemoryOf (CGadget (Cipher (Salsa20 R12) KEY128 Encryption)) = CryptoCell Matrix
+instance Gadget (CGadget (Cipher (Salsa20 R12) KEY128 EncryptMode)) where
+  type PrimitiveOf (CGadget (Cipher (Salsa20 R12) KEY128 EncryptMode)) = Cipher (Salsa20 R12) KEY128 EncryptMode
+  type MemoryOf (CGadget (Cipher (Salsa20 R12) KEY128 EncryptMode)) = CryptoCell Matrix
   newGadgetWithMemory = return . CGadget
   initialize (CGadget mc) (Salsa20_12Cxt (k,n,s)) = cExpand128 mc k n s
   finalize (CGadget mc) = Salsa20_12Cxt . compress128 <$> cellLoad mc
   apply = applyCGad c_salsa20_12
 
 -- | CPortable Gadget instance for Salsa 20 with 16 Byte KEY
-instance Gadget (CGadget (Cipher (Salsa20 R12) KEY128 Decryption)) where
-  type PrimitiveOf (CGadget (Cipher (Salsa20 R12) KEY128 Decryption)) = Cipher (Salsa20 R12) KEY128 Decryption
-  type MemoryOf (CGadget (Cipher (Salsa20 R12) KEY128 Decryption)) = CryptoCell Matrix
+instance Gadget (CGadget (Cipher (Salsa20 R12) KEY128 DecryptMode)) where
+  type PrimitiveOf (CGadget (Cipher (Salsa20 R12) KEY128 DecryptMode)) = Cipher (Salsa20 R12) KEY128 DecryptMode
+  type MemoryOf (CGadget (Cipher (Salsa20 R12) KEY128 DecryptMode)) = CryptoCell Matrix
   newGadgetWithMemory = return . CGadget
   initialize (CGadget mc) (Salsa20_12Cxt (k,n,s)) = cExpand128 mc k n s
   finalize (CGadget mc) = Salsa20_12Cxt . compress128 <$> cellLoad mc
   apply = applyCGad c_salsa20_12
 
 -- | CPortable Gadget instance for Salsa 20 with 32 Byte KEY
-instance Gadget (CGadget (Cipher (Salsa20 R12) KEY256 Encryption)) where
-  type PrimitiveOf (CGadget (Cipher (Salsa20 R12) KEY256 Encryption)) = Cipher (Salsa20 R12) KEY256 Encryption
-  type MemoryOf (CGadget (Cipher (Salsa20 R12) KEY256 Encryption)) = CryptoCell Matrix
+instance Gadget (CGadget (Cipher (Salsa20 R12) KEY256 EncryptMode)) where
+  type PrimitiveOf (CGadget (Cipher (Salsa20 R12) KEY256 EncryptMode)) = Cipher (Salsa20 R12) KEY256 EncryptMode
+  type MemoryOf (CGadget (Cipher (Salsa20 R12) KEY256 EncryptMode)) = CryptoCell Matrix
   newGadgetWithMemory = return . CGadget
   initialize (CGadget mc) (Salsa20_12Cxt (k,n,s)) = cExpand256 mc k n s
   finalize (CGadget mc) = Salsa20_12Cxt . compress256 <$> cellLoad mc
   apply = applyCGad c_salsa20_12
 
 -- | CPortable Gadget instance for Salsa 20 with 32 Byte KEY
-instance Gadget (CGadget (Cipher (Salsa20 R12) KEY256 Decryption)) where
-  type PrimitiveOf (CGadget (Cipher (Salsa20 R12) KEY256 Decryption)) = Cipher (Salsa20 R12) KEY256 Decryption
-  type MemoryOf (CGadget (Cipher (Salsa20 R12) KEY256 Decryption)) = CryptoCell Matrix
+instance Gadget (CGadget (Cipher (Salsa20 R12) KEY256 DecryptMode)) where
+  type PrimitiveOf (CGadget (Cipher (Salsa20 R12) KEY256 DecryptMode)) = Cipher (Salsa20 R12) KEY256 DecryptMode
+  type MemoryOf (CGadget (Cipher (Salsa20 R12) KEY256 DecryptMode)) = CryptoCell Matrix
   newGadgetWithMemory = return . CGadget
   initialize (CGadget mc) (Salsa20_12Cxt (k,n,s)) = cExpand256 mc k n s
   finalize (CGadget mc) = Salsa20_12Cxt . compress256 <$> cellLoad mc
@@ -324,72 +324,72 @@ instance EndianStore k => Initializable (Cipher (Salsa20 R8) k e) where
           (nbs,cbs) = BS.splitAt (sizeOf n) rest
 
 -- | Reference Gadget instance for Salsa 20 with 16 Byte KEY
-instance Gadget (HGadget (Cipher (Salsa20 R8) KEY128 Encryption)) where
-  type PrimitiveOf (HGadget (Cipher (Salsa20 R8) KEY128 Encryption)) = Cipher (Salsa20 R8) KEY128 Encryption
-  type MemoryOf (HGadget (Cipher (Salsa20 R8) KEY128 Encryption)) = CryptoCell Matrix
+instance Gadget (HGadget (Cipher (Salsa20 R8) KEY128 EncryptMode)) where
+  type PrimitiveOf (HGadget (Cipher (Salsa20 R8) KEY128 EncryptMode)) = Cipher (Salsa20 R8) KEY128 EncryptMode
+  type MemoryOf (HGadget (Cipher (Salsa20 R8) KEY128 EncryptMode)) = CryptoCell Matrix
   newGadgetWithMemory = return . HGadget
   initialize (HGadget mc) (Salsa20_8Cxt (k,n,s)) = cellStore mc $ expand128 k n s
   finalize (HGadget mc) = Salsa20_8Cxt . compress128 <$> cellLoad mc
   apply g = applyGad g (salsa20 8)
 
 -- | Reference Gadget instance for Salsa 20 with 16 Byte KEY
-instance Gadget (HGadget (Cipher (Salsa20 R8) KEY128 Decryption)) where
-  type PrimitiveOf (HGadget (Cipher (Salsa20 R8) KEY128 Decryption)) = Cipher (Salsa20 R8) KEY128 Decryption
-  type MemoryOf (HGadget (Cipher (Salsa20 R8) KEY128 Decryption)) = CryptoCell Matrix
+instance Gadget (HGadget (Cipher (Salsa20 R8) KEY128 DecryptMode)) where
+  type PrimitiveOf (HGadget (Cipher (Salsa20 R8) KEY128 DecryptMode)) = Cipher (Salsa20 R8) KEY128 DecryptMode
+  type MemoryOf (HGadget (Cipher (Salsa20 R8) KEY128 DecryptMode)) = CryptoCell Matrix
   newGadgetWithMemory = return . HGadget
   initialize (HGadget mc) (Salsa20_8Cxt (k,n,s)) = cellStore mc $ expand128 k n s
   finalize (HGadget mc) = Salsa20_8Cxt . compress128 <$> cellLoad mc
   apply g = applyGad g (salsa20 8)
 
 -- | Reference Gadget instance for Salsa 20 with 32 Byte KEY
-instance Gadget (HGadget (Cipher (Salsa20 R8) KEY256 Encryption)) where
-  type PrimitiveOf (HGadget (Cipher (Salsa20 R8) KEY256 Encryption)) = Cipher (Salsa20 R8) KEY256 Encryption
-  type MemoryOf (HGadget (Cipher (Salsa20 R8) KEY256 Encryption)) = CryptoCell Matrix
+instance Gadget (HGadget (Cipher (Salsa20 R8) KEY256 EncryptMode)) where
+  type PrimitiveOf (HGadget (Cipher (Salsa20 R8) KEY256 EncryptMode)) = Cipher (Salsa20 R8) KEY256 EncryptMode
+  type MemoryOf (HGadget (Cipher (Salsa20 R8) KEY256 EncryptMode)) = CryptoCell Matrix
   newGadgetWithMemory = return . HGadget
   initialize (HGadget mc) (Salsa20_8Cxt (k,n,s)) = cellStore mc $ expand256 k n s
   finalize (HGadget mc) = Salsa20_8Cxt . compress256 <$> cellLoad mc
   apply g = applyGad g (salsa20 8)
 
 -- | Reference Gadget instance for Salsa 20 with 32 Byte KEY
-instance Gadget (HGadget (Cipher (Salsa20 R8) KEY256 Decryption)) where
-  type PrimitiveOf (HGadget (Cipher (Salsa20 R8) KEY256 Decryption)) = Cipher (Salsa20 R8) KEY256 Decryption
-  type MemoryOf (HGadget (Cipher (Salsa20 R8) KEY256 Decryption)) = CryptoCell Matrix
+instance Gadget (HGadget (Cipher (Salsa20 R8) KEY256 DecryptMode)) where
+  type PrimitiveOf (HGadget (Cipher (Salsa20 R8) KEY256 DecryptMode)) = Cipher (Salsa20 R8) KEY256 DecryptMode
+  type MemoryOf (HGadget (Cipher (Salsa20 R8) KEY256 DecryptMode)) = CryptoCell Matrix
   newGadgetWithMemory = return . HGadget
   initialize (HGadget mc) (Salsa20_8Cxt (k,n,s)) = cellStore mc $ expand256 k n s
   finalize (HGadget mc) = Salsa20_8Cxt . compress256 <$> cellLoad mc
   apply g = applyGad g (salsa20 8)
 
 -- | CPortable Gadget instance for Salsa 20 with 16 Byte KEY
-instance Gadget (CGadget (Cipher (Salsa20 R8) KEY128 Encryption)) where
-  type PrimitiveOf (CGadget (Cipher (Salsa20 R8) KEY128 Encryption)) = Cipher (Salsa20 R8) KEY128 Encryption
-  type MemoryOf (CGadget (Cipher (Salsa20 R8) KEY128 Encryption)) = CryptoCell Matrix
+instance Gadget (CGadget (Cipher (Salsa20 R8) KEY128 EncryptMode)) where
+  type PrimitiveOf (CGadget (Cipher (Salsa20 R8) KEY128 EncryptMode)) = Cipher (Salsa20 R8) KEY128 EncryptMode
+  type MemoryOf (CGadget (Cipher (Salsa20 R8) KEY128 EncryptMode)) = CryptoCell Matrix
   newGadgetWithMemory = return . CGadget
   initialize (CGadget mc) (Salsa20_8Cxt (k,n,s)) = cExpand128 mc k n s
   finalize (CGadget mc) = Salsa20_8Cxt . compress128 <$> cellLoad mc
   apply = applyCGad c_salsa20_8
 
 -- | CPortable Gadget instance for Salsa 20 with 16 Byte KEY
-instance Gadget (CGadget (Cipher (Salsa20 R8) KEY128 Decryption)) where
-  type PrimitiveOf (CGadget (Cipher (Salsa20 R8) KEY128 Decryption)) = Cipher (Salsa20 R8) KEY128 Decryption
-  type MemoryOf (CGadget (Cipher (Salsa20 R8) KEY128 Decryption)) = CryptoCell Matrix
+instance Gadget (CGadget (Cipher (Salsa20 R8) KEY128 DecryptMode)) where
+  type PrimitiveOf (CGadget (Cipher (Salsa20 R8) KEY128 DecryptMode)) = Cipher (Salsa20 R8) KEY128 DecryptMode
+  type MemoryOf (CGadget (Cipher (Salsa20 R8) KEY128 DecryptMode)) = CryptoCell Matrix
   newGadgetWithMemory = return . CGadget
   initialize (CGadget mc) (Salsa20_8Cxt (k,n,s)) = cExpand128 mc k n s
   finalize (CGadget mc) = Salsa20_8Cxt . compress128 <$> cellLoad mc
   apply = applyCGad c_salsa20_8
 
 -- | CPortable Gadget instance for Salsa 20 with 32 Byte KEY
-instance Gadget (CGadget (Cipher (Salsa20 R8) KEY256 Encryption)) where
-  type PrimitiveOf (CGadget (Cipher (Salsa20 R8) KEY256 Encryption)) = Cipher (Salsa20 R8) KEY256 Encryption
-  type MemoryOf (CGadget (Cipher (Salsa20 R8) KEY256 Encryption)) = CryptoCell Matrix
+instance Gadget (CGadget (Cipher (Salsa20 R8) KEY256 EncryptMode)) where
+  type PrimitiveOf (CGadget (Cipher (Salsa20 R8) KEY256 EncryptMode)) = Cipher (Salsa20 R8) KEY256 EncryptMode
+  type MemoryOf (CGadget (Cipher (Salsa20 R8) KEY256 EncryptMode)) = CryptoCell Matrix
   newGadgetWithMemory = return . CGadget
   initialize (CGadget mc) (Salsa20_8Cxt (k,n,s)) = cExpand256 mc k n s
   finalize (CGadget mc) = Salsa20_8Cxt . compress256 <$> cellLoad mc
   apply = applyCGad c_salsa20_8
 
 -- | CPortable Gadget instance for Salsa 20 with 32 Byte KEY
-instance Gadget (CGadget (Cipher (Salsa20 R8) KEY256 Decryption)) where
-  type PrimitiveOf (CGadget (Cipher (Salsa20 R8) KEY256 Decryption)) = Cipher (Salsa20 R8) KEY256 Decryption
-  type MemoryOf (CGadget (Cipher (Salsa20 R8) KEY256 Decryption)) = CryptoCell Matrix
+instance Gadget (CGadget (Cipher (Salsa20 R8) KEY256 DecryptMode)) where
+  type PrimitiveOf (CGadget (Cipher (Salsa20 R8) KEY256 DecryptMode)) = Cipher (Salsa20 R8) KEY256 DecryptMode
+  type MemoryOf (CGadget (Cipher (Salsa20 R8) KEY256 DecryptMode)) = CryptoCell Matrix
   newGadgetWithMemory = return . CGadget
   initialize (CGadget mc) (Salsa20_8Cxt (k,n,s)) = cExpand256 mc k n s
   finalize (CGadget mc) = Salsa20_8Cxt . compress256 <$> cellLoad mc
@@ -432,154 +432,154 @@ applyCGad with (CGadget mc) n cptr = withCell mc go
     go mptr = with mptr cptr (cryptoCoerce n :: BYTES Int)
 {-# INLINE applyCGad #-}
 
-instance CryptoPrimitive (Cipher (Salsa20 R20) KEY128 Encryption) where
-  type Recommended (Cipher (Salsa20 R20) KEY128 Encryption) = CGadget (Cipher (Salsa20 R20) KEY128 Encryption)
-  type Reference (Cipher (Salsa20 R20) KEY128 Encryption) = HGadget (Cipher (Salsa20 R20) KEY128 Encryption)
+instance CryptoPrimitive (Cipher (Salsa20 R20) KEY128 EncryptMode) where
+  type Recommended (Cipher (Salsa20 R20) KEY128 EncryptMode) = CGadget (Cipher (Salsa20 R20) KEY128 EncryptMode)
+  type Reference (Cipher (Salsa20 R20) KEY128 EncryptMode) = HGadget (Cipher (Salsa20 R20) KEY128 EncryptMode)
 
-instance CryptoPrimitive (Cipher (Salsa20 R20) KEY128 Decryption) where
-  type Recommended (Cipher (Salsa20 R20) KEY128 Decryption) = CGadget (Cipher (Salsa20 R20) KEY128 Decryption)
-  type Reference (Cipher (Salsa20 R20) KEY128 Decryption) = HGadget (Cipher (Salsa20 R20) KEY128 Decryption)
+instance CryptoPrimitive (Cipher (Salsa20 R20) KEY128 DecryptMode) where
+  type Recommended (Cipher (Salsa20 R20) KEY128 DecryptMode) = CGadget (Cipher (Salsa20 R20) KEY128 DecryptMode)
+  type Reference (Cipher (Salsa20 R20) KEY128 DecryptMode) = HGadget (Cipher (Salsa20 R20) KEY128 DecryptMode)
 
-instance CryptoPrimitive (Cipher (Salsa20 R20) KEY256 Encryption) where
-  type Recommended (Cipher (Salsa20 R20) KEY256 Encryption) = CGadget (Cipher (Salsa20 R20) KEY256 Encryption)
-  type Reference (Cipher (Salsa20 R20) KEY256 Encryption) = HGadget (Cipher (Salsa20 R20) KEY256 Encryption)
+instance CryptoPrimitive (Cipher (Salsa20 R20) KEY256 EncryptMode) where
+  type Recommended (Cipher (Salsa20 R20) KEY256 EncryptMode) = CGadget (Cipher (Salsa20 R20) KEY256 EncryptMode)
+  type Reference (Cipher (Salsa20 R20) KEY256 EncryptMode) = HGadget (Cipher (Salsa20 R20) KEY256 EncryptMode)
 
-instance CryptoPrimitive (Cipher (Salsa20 R20) KEY256 Decryption) where
-  type Recommended (Cipher (Salsa20 R20) KEY256 Decryption) = CGadget (Cipher (Salsa20 R20) KEY256 Decryption)
-  type Reference (Cipher (Salsa20 R20) KEY256 Decryption) = HGadget (Cipher (Salsa20 R20) KEY256 Decryption)
+instance CryptoPrimitive (Cipher (Salsa20 R20) KEY256 DecryptMode) where
+  type Recommended (Cipher (Salsa20 R20) KEY256 DecryptMode) = CGadget (Cipher (Salsa20 R20) KEY256 DecryptMode)
+  type Reference (Cipher (Salsa20 R20) KEY256 DecryptMode) = HGadget (Cipher (Salsa20 R20) KEY256 DecryptMode)
 
-instance StreamGadget (CGadget (Cipher (Salsa20 R20) KEY128 Encryption))
-instance StreamGadget (CGadget (Cipher (Salsa20 R20) KEY128 Decryption))
-instance StreamGadget (CGadget (Cipher (Salsa20 R20) KEY256 Encryption))
-instance StreamGadget (CGadget (Cipher (Salsa20 R20) KEY256 Decryption))
+instance StreamGadget (CGadget (Cipher (Salsa20 R20) KEY128 EncryptMode))
+instance StreamGadget (CGadget (Cipher (Salsa20 R20) KEY128 DecryptMode))
+instance StreamGadget (CGadget (Cipher (Salsa20 R20) KEY256 EncryptMode))
+instance StreamGadget (CGadget (Cipher (Salsa20 R20) KEY256 DecryptMode))
 
-instance StreamGadget (HGadget (Cipher (Salsa20 R20) KEY128 Encryption))
-instance StreamGadget (HGadget (Cipher (Salsa20 R20) KEY128 Decryption))
-instance StreamGadget (HGadget (Cipher (Salsa20 R20) KEY256 Encryption))
-instance StreamGadget (HGadget (Cipher (Salsa20 R20) KEY256 Decryption))
+instance StreamGadget (HGadget (Cipher (Salsa20 R20) KEY128 EncryptMode))
+instance StreamGadget (HGadget (Cipher (Salsa20 R20) KEY128 DecryptMode))
+instance StreamGadget (HGadget (Cipher (Salsa20 R20) KEY256 EncryptMode))
+instance StreamGadget (HGadget (Cipher (Salsa20 R20) KEY256 DecryptMode))
 
-instance HasInverse (HGadget (Cipher (Salsa20 R20) KEY128 Encryption)) where
-  type Inverse (HGadget (Cipher (Salsa20 R20) KEY128 Encryption)) = HGadget (Cipher (Salsa20 R20) KEY128 Decryption)
+instance HasInverse (HGadget (Cipher (Salsa20 R20) KEY128 EncryptMode)) where
+  type Inverse (HGadget (Cipher (Salsa20 R20) KEY128 EncryptMode)) = HGadget (Cipher (Salsa20 R20) KEY128 DecryptMode)
 
-instance HasInverse (HGadget (Cipher (Salsa20 R20) KEY128 Decryption)) where
-  type Inverse (HGadget (Cipher (Salsa20 R20) KEY128 Decryption)) = HGadget (Cipher (Salsa20 R20) KEY128 Encryption)
+instance HasInverse (HGadget (Cipher (Salsa20 R20) KEY128 DecryptMode)) where
+  type Inverse (HGadget (Cipher (Salsa20 R20) KEY128 DecryptMode)) = HGadget (Cipher (Salsa20 R20) KEY128 EncryptMode)
 
-instance HasInverse (HGadget (Cipher (Salsa20 R20) KEY256 Encryption)) where
-  type Inverse (HGadget (Cipher (Salsa20 R20) KEY256 Encryption)) = HGadget (Cipher (Salsa20 R20) KEY256 Decryption)
+instance HasInverse (HGadget (Cipher (Salsa20 R20) KEY256 EncryptMode)) where
+  type Inverse (HGadget (Cipher (Salsa20 R20) KEY256 EncryptMode)) = HGadget (Cipher (Salsa20 R20) KEY256 DecryptMode)
 
-instance HasInverse (HGadget (Cipher (Salsa20 R20) KEY256 Decryption)) where
-  type Inverse (HGadget (Cipher (Salsa20 R20) KEY256 Decryption)) = HGadget (Cipher (Salsa20 R20) KEY256 Encryption)
+instance HasInverse (HGadget (Cipher (Salsa20 R20) KEY256 DecryptMode)) where
+  type Inverse (HGadget (Cipher (Salsa20 R20) KEY256 DecryptMode)) = HGadget (Cipher (Salsa20 R20) KEY256 EncryptMode)
 
-instance HasInverse (CGadget (Cipher (Salsa20 R20) KEY128 Encryption)) where
-  type Inverse (CGadget (Cipher (Salsa20 R20) KEY128 Encryption)) = CGadget (Cipher (Salsa20 R20) KEY128 Decryption)
+instance HasInverse (CGadget (Cipher (Salsa20 R20) KEY128 EncryptMode)) where
+  type Inverse (CGadget (Cipher (Salsa20 R20) KEY128 EncryptMode)) = CGadget (Cipher (Salsa20 R20) KEY128 DecryptMode)
 
-instance HasInverse (CGadget (Cipher (Salsa20 R20) KEY128 Decryption)) where
-  type Inverse (CGadget (Cipher (Salsa20 R20) KEY128 Decryption)) = CGadget (Cipher (Salsa20 R20) KEY128 Encryption)
+instance HasInverse (CGadget (Cipher (Salsa20 R20) KEY128 DecryptMode)) where
+  type Inverse (CGadget (Cipher (Salsa20 R20) KEY128 DecryptMode)) = CGadget (Cipher (Salsa20 R20) KEY128 EncryptMode)
 
-instance HasInverse (CGadget (Cipher (Salsa20 R20) KEY256 Encryption)) where
-  type Inverse (CGadget (Cipher (Salsa20 R20) KEY256 Encryption)) = CGadget (Cipher (Salsa20 R20) KEY256 Decryption)
+instance HasInverse (CGadget (Cipher (Salsa20 R20) KEY256 EncryptMode)) where
+  type Inverse (CGadget (Cipher (Salsa20 R20) KEY256 EncryptMode)) = CGadget (Cipher (Salsa20 R20) KEY256 DecryptMode)
 
-instance HasInverse (CGadget (Cipher (Salsa20 R20) KEY256 Decryption)) where
-  type Inverse (CGadget (Cipher (Salsa20 R20) KEY256 Decryption)) = CGadget (Cipher (Salsa20 R20) KEY256 Encryption)
-
-
-instance CryptoPrimitive (Cipher (Salsa20 R12) KEY128 Encryption) where
-  type Recommended (Cipher (Salsa20 R12) KEY128 Encryption) = CGadget (Cipher (Salsa20 R12) KEY128 Encryption)
-  type Reference (Cipher (Salsa20 R12) KEY128 Encryption) = HGadget (Cipher (Salsa20 R12) KEY128 Encryption)
-
-instance CryptoPrimitive (Cipher (Salsa20 R12) KEY128 Decryption) where
-  type Recommended (Cipher (Salsa20 R12) KEY128 Decryption) = CGadget (Cipher (Salsa20 R12) KEY128 Decryption)
-  type Reference (Cipher (Salsa20 R12) KEY128 Decryption) = HGadget (Cipher (Salsa20 R12) KEY128 Decryption)
-
-instance CryptoPrimitive (Cipher (Salsa20 R12) KEY256 Encryption) where
-  type Recommended (Cipher (Salsa20 R12) KEY256 Encryption) = CGadget (Cipher (Salsa20 R12) KEY256 Encryption)
-  type Reference (Cipher (Salsa20 R12) KEY256 Encryption) = HGadget (Cipher (Salsa20 R12) KEY256 Encryption)
-
-instance CryptoPrimitive (Cipher (Salsa20 R12) KEY256 Decryption) where
-  type Recommended (Cipher (Salsa20 R12) KEY256 Decryption) = CGadget (Cipher (Salsa20 R12) KEY256 Decryption)
-  type Reference (Cipher (Salsa20 R12) KEY256 Decryption) = HGadget (Cipher (Salsa20 R12) KEY256 Decryption)
-
-instance StreamGadget (CGadget (Cipher (Salsa20 R12) KEY128 Encryption))
-instance StreamGadget (CGadget (Cipher (Salsa20 R12) KEY128 Decryption))
-instance StreamGadget (CGadget (Cipher (Salsa20 R12) KEY256 Encryption))
-instance StreamGadget (CGadget (Cipher (Salsa20 R12) KEY256 Decryption))
-
-instance StreamGadget (HGadget (Cipher (Salsa20 R12) KEY128 Encryption))
-instance StreamGadget (HGadget (Cipher (Salsa20 R12) KEY128 Decryption))
-instance StreamGadget (HGadget (Cipher (Salsa20 R12) KEY256 Encryption))
-instance StreamGadget (HGadget (Cipher (Salsa20 R12) KEY256 Decryption))
-
-instance HasInverse (HGadget (Cipher (Salsa20 R12) KEY128 Encryption)) where
-  type Inverse (HGadget (Cipher (Salsa20 R12) KEY128 Encryption)) = HGadget (Cipher (Salsa20 R12) KEY128 Decryption)
-
-instance HasInverse (HGadget (Cipher (Salsa20 R12) KEY128 Decryption)) where
-  type Inverse (HGadget (Cipher (Salsa20 R12) KEY128 Decryption)) = HGadget (Cipher (Salsa20 R12) KEY128 Encryption)
-
-instance HasInverse (HGadget (Cipher (Salsa20 R12) KEY256 Encryption)) where
-  type Inverse (HGadget (Cipher (Salsa20 R12) KEY256 Encryption)) = HGadget (Cipher (Salsa20 R12) KEY256 Decryption)
-
-instance HasInverse (HGadget (Cipher (Salsa20 R12) KEY256 Decryption)) where
-  type Inverse (HGadget (Cipher (Salsa20 R12) KEY256 Decryption)) = HGadget (Cipher (Salsa20 R12) KEY256 Encryption)
-
-instance HasInverse (CGadget (Cipher (Salsa20 R12) KEY128 Encryption)) where
-  type Inverse (CGadget (Cipher (Salsa20 R12) KEY128 Encryption)) = CGadget (Cipher (Salsa20 R12) KEY128 Decryption)
-
-instance HasInverse (CGadget (Cipher (Salsa20 R12) KEY128 Decryption)) where
-  type Inverse (CGadget (Cipher (Salsa20 R12) KEY128 Decryption)) = CGadget (Cipher (Salsa20 R12) KEY128 Encryption)
-
-instance HasInverse (CGadget (Cipher (Salsa20 R12) KEY256 Encryption)) where
-  type Inverse (CGadget (Cipher (Salsa20 R12) KEY256 Encryption)) = CGadget (Cipher (Salsa20 R12) KEY256 Decryption)
-
-instance HasInverse (CGadget (Cipher (Salsa20 R12) KEY256 Decryption)) where
-  type Inverse (CGadget (Cipher (Salsa20 R12) KEY256 Decryption)) = CGadget (Cipher (Salsa20 R12) KEY256 Encryption)
+instance HasInverse (CGadget (Cipher (Salsa20 R20) KEY256 DecryptMode)) where
+  type Inverse (CGadget (Cipher (Salsa20 R20) KEY256 DecryptMode)) = CGadget (Cipher (Salsa20 R20) KEY256 EncryptMode)
 
 
-instance CryptoPrimitive (Cipher (Salsa20 R8) KEY128 Encryption) where
-  type Recommended (Cipher (Salsa20 R8) KEY128 Encryption) = CGadget (Cipher (Salsa20 R8) KEY128 Encryption)
-  type Reference (Cipher (Salsa20 R8) KEY128 Encryption) = HGadget (Cipher (Salsa20 R8) KEY128 Encryption)
+instance CryptoPrimitive (Cipher (Salsa20 R12) KEY128 EncryptMode) where
+  type Recommended (Cipher (Salsa20 R12) KEY128 EncryptMode) = CGadget (Cipher (Salsa20 R12) KEY128 EncryptMode)
+  type Reference (Cipher (Salsa20 R12) KEY128 EncryptMode) = HGadget (Cipher (Salsa20 R12) KEY128 EncryptMode)
 
-instance CryptoPrimitive (Cipher (Salsa20 R8) KEY128 Decryption) where
-  type Recommended (Cipher (Salsa20 R8) KEY128 Decryption) = CGadget (Cipher (Salsa20 R8) KEY128 Decryption)
-  type Reference (Cipher (Salsa20 R8) KEY128 Decryption) = HGadget (Cipher (Salsa20 R8) KEY128 Decryption)
+instance CryptoPrimitive (Cipher (Salsa20 R12) KEY128 DecryptMode) where
+  type Recommended (Cipher (Salsa20 R12) KEY128 DecryptMode) = CGadget (Cipher (Salsa20 R12) KEY128 DecryptMode)
+  type Reference (Cipher (Salsa20 R12) KEY128 DecryptMode) = HGadget (Cipher (Salsa20 R12) KEY128 DecryptMode)
 
-instance CryptoPrimitive (Cipher (Salsa20 R8) KEY256 Encryption) where
-  type Recommended (Cipher (Salsa20 R8) KEY256 Encryption) = CGadget (Cipher (Salsa20 R8) KEY256 Encryption)
-  type Reference (Cipher (Salsa20 R8) KEY256 Encryption) = HGadget (Cipher (Salsa20 R8) KEY256 Encryption)
+instance CryptoPrimitive (Cipher (Salsa20 R12) KEY256 EncryptMode) where
+  type Recommended (Cipher (Salsa20 R12) KEY256 EncryptMode) = CGadget (Cipher (Salsa20 R12) KEY256 EncryptMode)
+  type Reference (Cipher (Salsa20 R12) KEY256 EncryptMode) = HGadget (Cipher (Salsa20 R12) KEY256 EncryptMode)
 
-instance CryptoPrimitive (Cipher (Salsa20 R8) KEY256 Decryption) where
-  type Recommended (Cipher (Salsa20 R8) KEY256 Decryption) = CGadget (Cipher (Salsa20 R8) KEY256 Decryption)
-  type Reference (Cipher (Salsa20 R8) KEY256 Decryption) = HGadget (Cipher (Salsa20 R8) KEY256 Decryption)
+instance CryptoPrimitive (Cipher (Salsa20 R12) KEY256 DecryptMode) where
+  type Recommended (Cipher (Salsa20 R12) KEY256 DecryptMode) = CGadget (Cipher (Salsa20 R12) KEY256 DecryptMode)
+  type Reference (Cipher (Salsa20 R12) KEY256 DecryptMode) = HGadget (Cipher (Salsa20 R12) KEY256 DecryptMode)
 
-instance StreamGadget (CGadget (Cipher (Salsa20 R8) KEY128 Encryption))
-instance StreamGadget (CGadget (Cipher (Salsa20 R8) KEY128 Decryption))
-instance StreamGadget (CGadget (Cipher (Salsa20 R8) KEY256 Encryption))
-instance StreamGadget (CGadget (Cipher (Salsa20 R8) KEY256 Decryption))
+instance StreamGadget (CGadget (Cipher (Salsa20 R12) KEY128 EncryptMode))
+instance StreamGadget (CGadget (Cipher (Salsa20 R12) KEY128 DecryptMode))
+instance StreamGadget (CGadget (Cipher (Salsa20 R12) KEY256 EncryptMode))
+instance StreamGadget (CGadget (Cipher (Salsa20 R12) KEY256 DecryptMode))
 
-instance StreamGadget (HGadget (Cipher (Salsa20 R8) KEY128 Encryption))
-instance StreamGadget (HGadget (Cipher (Salsa20 R8) KEY128 Decryption))
-instance StreamGadget (HGadget (Cipher (Salsa20 R8) KEY256 Encryption))
-instance StreamGadget (HGadget (Cipher (Salsa20 R8) KEY256 Decryption))
+instance StreamGadget (HGadget (Cipher (Salsa20 R12) KEY128 EncryptMode))
+instance StreamGadget (HGadget (Cipher (Salsa20 R12) KEY128 DecryptMode))
+instance StreamGadget (HGadget (Cipher (Salsa20 R12) KEY256 EncryptMode))
+instance StreamGadget (HGadget (Cipher (Salsa20 R12) KEY256 DecryptMode))
 
-instance HasInverse (HGadget (Cipher (Salsa20 R8) KEY128 Encryption)) where
-  type Inverse (HGadget (Cipher (Salsa20 R8) KEY128 Encryption)) = HGadget (Cipher (Salsa20 R8) KEY128 Decryption)
+instance HasInverse (HGadget (Cipher (Salsa20 R12) KEY128 EncryptMode)) where
+  type Inverse (HGadget (Cipher (Salsa20 R12) KEY128 EncryptMode)) = HGadget (Cipher (Salsa20 R12) KEY128 DecryptMode)
 
-instance HasInverse (HGadget (Cipher (Salsa20 R8) KEY128 Decryption)) where
-  type Inverse (HGadget (Cipher (Salsa20 R8) KEY128 Decryption)) = HGadget (Cipher (Salsa20 R8) KEY128 Encryption)
+instance HasInverse (HGadget (Cipher (Salsa20 R12) KEY128 DecryptMode)) where
+  type Inverse (HGadget (Cipher (Salsa20 R12) KEY128 DecryptMode)) = HGadget (Cipher (Salsa20 R12) KEY128 EncryptMode)
 
-instance HasInverse (HGadget (Cipher (Salsa20 R8) KEY256 Encryption)) where
-  type Inverse (HGadget (Cipher (Salsa20 R8) KEY256 Encryption)) = HGadget (Cipher (Salsa20 R8) KEY256 Decryption)
+instance HasInverse (HGadget (Cipher (Salsa20 R12) KEY256 EncryptMode)) where
+  type Inverse (HGadget (Cipher (Salsa20 R12) KEY256 EncryptMode)) = HGadget (Cipher (Salsa20 R12) KEY256 DecryptMode)
 
-instance HasInverse (HGadget (Cipher (Salsa20 R8) KEY256 Decryption)) where
-  type Inverse (HGadget (Cipher (Salsa20 R8) KEY256 Decryption)) = HGadget (Cipher (Salsa20 R8) KEY256 Encryption)
+instance HasInverse (HGadget (Cipher (Salsa20 R12) KEY256 DecryptMode)) where
+  type Inverse (HGadget (Cipher (Salsa20 R12) KEY256 DecryptMode)) = HGadget (Cipher (Salsa20 R12) KEY256 EncryptMode)
 
-instance HasInverse (CGadget (Cipher (Salsa20 R8) KEY128 Encryption)) where
-  type Inverse (CGadget (Cipher (Salsa20 R8) KEY128 Encryption)) = CGadget (Cipher (Salsa20 R8) KEY128 Decryption)
+instance HasInverse (CGadget (Cipher (Salsa20 R12) KEY128 EncryptMode)) where
+  type Inverse (CGadget (Cipher (Salsa20 R12) KEY128 EncryptMode)) = CGadget (Cipher (Salsa20 R12) KEY128 DecryptMode)
 
-instance HasInverse (CGadget (Cipher (Salsa20 R8) KEY128 Decryption)) where
-  type Inverse (CGadget (Cipher (Salsa20 R8) KEY128 Decryption)) = CGadget (Cipher (Salsa20 R8) KEY128 Encryption)
+instance HasInverse (CGadget (Cipher (Salsa20 R12) KEY128 DecryptMode)) where
+  type Inverse (CGadget (Cipher (Salsa20 R12) KEY128 DecryptMode)) = CGadget (Cipher (Salsa20 R12) KEY128 EncryptMode)
 
-instance HasInverse (CGadget (Cipher (Salsa20 R8) KEY256 Encryption)) where
-  type Inverse (CGadget (Cipher (Salsa20 R8) KEY256 Encryption)) = CGadget (Cipher (Salsa20 R8) KEY256 Decryption)
+instance HasInverse (CGadget (Cipher (Salsa20 R12) KEY256 EncryptMode)) where
+  type Inverse (CGadget (Cipher (Salsa20 R12) KEY256 EncryptMode)) = CGadget (Cipher (Salsa20 R12) KEY256 DecryptMode)
 
-instance HasInverse (CGadget (Cipher (Salsa20 R8) KEY256 Decryption)) where
-  type Inverse (CGadget (Cipher (Salsa20 R8) KEY256 Decryption)) = CGadget (Cipher (Salsa20 R8) KEY256 Encryption)
+instance HasInverse (CGadget (Cipher (Salsa20 R12) KEY256 DecryptMode)) where
+  type Inverse (CGadget (Cipher (Salsa20 R12) KEY256 DecryptMode)) = CGadget (Cipher (Salsa20 R12) KEY256 EncryptMode)
+
+
+instance CryptoPrimitive (Cipher (Salsa20 R8) KEY128 EncryptMode) where
+  type Recommended (Cipher (Salsa20 R8) KEY128 EncryptMode) = CGadget (Cipher (Salsa20 R8) KEY128 EncryptMode)
+  type Reference (Cipher (Salsa20 R8) KEY128 EncryptMode) = HGadget (Cipher (Salsa20 R8) KEY128 EncryptMode)
+
+instance CryptoPrimitive (Cipher (Salsa20 R8) KEY128 DecryptMode) where
+  type Recommended (Cipher (Salsa20 R8) KEY128 DecryptMode) = CGadget (Cipher (Salsa20 R8) KEY128 DecryptMode)
+  type Reference (Cipher (Salsa20 R8) KEY128 DecryptMode) = HGadget (Cipher (Salsa20 R8) KEY128 DecryptMode)
+
+instance CryptoPrimitive (Cipher (Salsa20 R8) KEY256 EncryptMode) where
+  type Recommended (Cipher (Salsa20 R8) KEY256 EncryptMode) = CGadget (Cipher (Salsa20 R8) KEY256 EncryptMode)
+  type Reference (Cipher (Salsa20 R8) KEY256 EncryptMode) = HGadget (Cipher (Salsa20 R8) KEY256 EncryptMode)
+
+instance CryptoPrimitive (Cipher (Salsa20 R8) KEY256 DecryptMode) where
+  type Recommended (Cipher (Salsa20 R8) KEY256 DecryptMode) = CGadget (Cipher (Salsa20 R8) KEY256 DecryptMode)
+  type Reference (Cipher (Salsa20 R8) KEY256 DecryptMode) = HGadget (Cipher (Salsa20 R8) KEY256 DecryptMode)
+
+instance StreamGadget (CGadget (Cipher (Salsa20 R8) KEY128 EncryptMode))
+instance StreamGadget (CGadget (Cipher (Salsa20 R8) KEY128 DecryptMode))
+instance StreamGadget (CGadget (Cipher (Salsa20 R8) KEY256 EncryptMode))
+instance StreamGadget (CGadget (Cipher (Salsa20 R8) KEY256 DecryptMode))
+
+instance StreamGadget (HGadget (Cipher (Salsa20 R8) KEY128 EncryptMode))
+instance StreamGadget (HGadget (Cipher (Salsa20 R8) KEY128 DecryptMode))
+instance StreamGadget (HGadget (Cipher (Salsa20 R8) KEY256 EncryptMode))
+instance StreamGadget (HGadget (Cipher (Salsa20 R8) KEY256 DecryptMode))
+
+instance HasInverse (HGadget (Cipher (Salsa20 R8) KEY128 EncryptMode)) where
+  type Inverse (HGadget (Cipher (Salsa20 R8) KEY128 EncryptMode)) = HGadget (Cipher (Salsa20 R8) KEY128 DecryptMode)
+
+instance HasInverse (HGadget (Cipher (Salsa20 R8) KEY128 DecryptMode)) where
+  type Inverse (HGadget (Cipher (Salsa20 R8) KEY128 DecryptMode)) = HGadget (Cipher (Salsa20 R8) KEY128 EncryptMode)
+
+instance HasInverse (HGadget (Cipher (Salsa20 R8) KEY256 EncryptMode)) where
+  type Inverse (HGadget (Cipher (Salsa20 R8) KEY256 EncryptMode)) = HGadget (Cipher (Salsa20 R8) KEY256 DecryptMode)
+
+instance HasInverse (HGadget (Cipher (Salsa20 R8) KEY256 DecryptMode)) where
+  type Inverse (HGadget (Cipher (Salsa20 R8) KEY256 DecryptMode)) = HGadget (Cipher (Salsa20 R8) KEY256 EncryptMode)
+
+instance HasInverse (CGadget (Cipher (Salsa20 R8) KEY128 EncryptMode)) where
+  type Inverse (CGadget (Cipher (Salsa20 R8) KEY128 EncryptMode)) = CGadget (Cipher (Salsa20 R8) KEY128 DecryptMode)
+
+instance HasInverse (CGadget (Cipher (Salsa20 R8) KEY128 DecryptMode)) where
+  type Inverse (CGadget (Cipher (Salsa20 R8) KEY128 DecryptMode)) = CGadget (Cipher (Salsa20 R8) KEY128 EncryptMode)
+
+instance HasInverse (CGadget (Cipher (Salsa20 R8) KEY256 EncryptMode)) where
+  type Inverse (CGadget (Cipher (Salsa20 R8) KEY256 EncryptMode)) = CGadget (Cipher (Salsa20 R8) KEY256 DecryptMode)
+
+instance HasInverse (CGadget (Cipher (Salsa20 R8) KEY256 DecryptMode)) where
+  type Inverse (CGadget (Cipher (Salsa20 R8) KEY256 DecryptMode)) = CGadget (Cipher (Salsa20 R8) KEY256 EncryptMode)
