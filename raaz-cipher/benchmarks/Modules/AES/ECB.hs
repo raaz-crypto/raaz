@@ -8,10 +8,10 @@ import Raaz.Cipher.AES
 
 import Modules.AES.Defaults
 
-ecb :: Cipher (AES ECB) KEY128 Encryption
+ecb :: Cipher (AES ECB) KEY128 EncryptMode
 ecb = undefined
 
-ecbd :: Cipher (AES ECB) KEY128 Decryption
+ecbd :: Cipher (AES ECB) KEY128 DecryptMode
 ecbd = undefined
 
 benchmarks :: [Benchmark]
