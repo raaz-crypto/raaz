@@ -1,14 +1,17 @@
--- | Module to write stuff to buffers. Necessary range checks are done
--- to make it safer than Raaz.Write.
+-- | Module to write stuff to buffers. As opposed to similar functions
+-- exposed in "Raaz.Write.Unsafe", the writes exposed here are safe as
+-- necessary range checks are done on the buffer before writing stuff
+-- to it.
 
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Raaz.Write
-       ( Write, write, writeStorable
+       ( Write, runWrite
+       , write, writeStorable
        , WriteException(..)
        , writeBytes, writeByteString
-       , runWrite
+
        ) where
 
 import           Control.Exception
@@ -24,29 +27,50 @@ import           Raaz.Util.ByteString as BU
 
 import qualified Raaz.Write.Unsafe    as WU
 
--- | The write type. Safer version of `W.Write`.
+-- | A write is an action which when executed using `runWrite` writes
+-- bytes to the input buffer. It is similar to the `WU.Write` type
+-- exposed from the "Raaz.Write.Unsafe" module except that it keeps
+-- track of the total bytes that would be written to the buffer if the
+-- action is run. The `runWrite` action will raise an error if the
+-- buffer it is provided with is of size smaller. `Write`s are monoid
+-- and hence can be concatnated using the `<>` operator.
 newtype Write = Write (Sum (BYTES Int), WU.Write)
               deriving Monoid
 
+-- | The type of the exception raised when there is an overflow of the
+-- cryptobuffer.
 data WriteException = WriteOverflow
                     deriving (Show, Typeable)
 
 instance Exception WriteException
 
 -- | Perform a write action on a buffer pointed by the crypto pointer.
-runWrite :: CryptoBuffer -> Write -> IO ()
+-- This expression @`runWrite` buf wr@ will raise `WriteOverflow`
+-- /without/ writing any bytes if size of @buf@ is smaller than the
+-- bytes that @wr@ has in it.
+runWrite :: CryptoBuffer   -- ^ The buffer to which the bytes are to
+                           -- be written.
+         -> Write          -- ^ The write action.
+         -> IO ()
 runWrite  (CryptoBuffer sz cptr) (Write (summ, wr))
       | getSum summ > sz = throwIO WriteOverflow
       | otherwise        = WU.runWrite cptr wr
 
--- | Safe version of `WU.writeStorable`. Writes a value which is an
--- instance of Storable. This writes the value machine endian.
+-- | The expression @`writeStorable` a@ gives a write action that
+-- stores a value @a@ in machine endian. The type of the value @a@ has
+-- to be an instance of `Storable`. This should be used when we want
+-- to talk with C functions and not when talking to the outside world
+-- (otherwise this could lead to endian confusion). To take care of
+-- endianness use the `write` combinator.
 writeStorable :: Storable a => a -> Write
 writeStorable a = Write (Sum $ byteSize a, WU.writeStorable a)
 
--- | Safe version of `WU.write`. Writes an instance of
--- `EndianStore`. Endian safety is take into account here. This is
--- what you would need when you write network packets for example.
+
+-- | The expression @`write` a@ gives a write action that stores a
+-- value @a@. One needs the type of the value @a@ to be an instance of
+-- `EndianStore`. Proper endian conversion is done irrespective of
+-- what the machine endianness is. The man use of this write is to
+-- serialize data for the consumption of the outside world.
 write :: EndianStore a => a -> Write
 write a = Write (Sum $ byteSize a, WU.write a)
 
