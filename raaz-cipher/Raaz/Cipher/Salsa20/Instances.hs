@@ -5,6 +5,7 @@ This module provides required instances for Salsa20 Cipher.
 -}
 {-# LANGUAGE TypeFamilies                  #-}
 {-# LANGUAGE FlexibleInstances             #-}
+{-# LANGUAGE FlexibleContexts              #-}
 {-# LANGUAGE ScopedTypeVariables           #-}
 {-# LANGUAGE ForeignFunctionInterface      #-}
 {-# OPTIONS_GHC -fno-warn-orphans          #-}
@@ -395,7 +396,8 @@ instance Gadget (CGadget (Cipher (Salsa20 R8) KEY256 DecryptMode)) where
   finalize (CGadget mc) = Salsa20_8Cxt . compress256 <$> cellLoad mc
   apply = applyCGad c_salsa20_8
 
-
+applyGad :: (Integral i, Gadget (HGadget t), MemoryOf (HGadget t) ~ CryptoCell Matrix)
+            => HGadget t -> (Matrix -> Matrix) -> i -> CryptoPtr -> IO ()
 applyGad g@(HGadget mc) with n cptr = do
     state <- cellLoad mc
     (newstate,restptr) <- foldM moveAndHash (state,cptr) [1..nblks]
@@ -427,6 +429,8 @@ applyGad g@(HGadget mc) with n cptr = do
       realsz = blocksz `div` sz
 {-# INLINE applyGad #-}
 
+applyCGad :: (CryptoCoerce s (BYTES Int),MemoryOf (CGadget t) ~ CryptoCell a)
+             => (CryptoPtr -> x -> BYTES Int -> IO b) -> CGadget t -> s -> x -> IO b
 applyCGad with (CGadget mc) n cptr = withCell mc go
   where
     go mptr = with mptr cptr (cryptoCoerce n :: BYTES Int)
