@@ -25,5 +25,6 @@ l1Cache = #const RAAZ_L1_CACHE
 l2Cache :: BYTES Int
 l2Cache = #const RAAZ_L2_CACHE
 
+-- | The page size in bytes.
 pageSize :: BYTES Int
 pageSize = #const RAAZ_PAGE_SIZE
