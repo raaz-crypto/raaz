@@ -28,7 +28,6 @@ module Raaz.Primitives
        , Initializable(..)
        , HasPadding(..)
        , CryptoPrimitive(..)
-       , HasInverse(..), inverseGadget
        , BLOCKS, blocksOf
        , transformGadget, transformGadgetFile
        , Digestible(..)
@@ -202,18 +201,6 @@ class (Gadget g,HasPadding (PrimitiveOf g)) => PaddableGadget g where
         len  = cryptoCoerce blocks + bits
     unsafePad (primitiveOf g) len (cptr `movePtr` bytes)
     apply g (cryptoCoerce (bytes + padLength (primitiveOf g) len)) cptr
-
--- | This represents Gadgets with inverses. For example, encryption
--- gadget can have decryption gadget as its inverse.
-class ( Gadget g
-      , Gadget (Inverse g)
-      ) => HasInverse g where
-  type Inverse g :: *
-
--- | Gives the inverse of a gadget. This function should only be used
--- to satisy types as the actual value returned is `undefined`.
-inverseGadget :: HasInverse g => g -> Inverse g
-inverseGadget _ = undefined
 
 -- | This function runs an action that expects a gadget as input.
 withGadget :: Gadget g

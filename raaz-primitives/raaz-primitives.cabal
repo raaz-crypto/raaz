@@ -99,6 +99,7 @@ library
 
   if impl(ghc >= 7.6)
      cpp-options: -DUseKinds
+     extensions: DataKinds
 
   c-sources: cbits/raaz/memory.c
   include-dirs: includes

@@ -25,52 +25,70 @@ import           Test.Framework.Providers.HUnit (hUnitTestToTests)
 import           Raaz.ByteSource
 import           Raaz.Types
 import           Raaz.Primitives
+import           Raaz.Primitives.Cipher
 import           Raaz.Util.ByteString           (hex)
 
 import           Raaz.Test.Gadget
 
 -- | Stansdard tests for ciphers
-testStandardCiphers :: ( HasInverse g
+testStandardCiphers :: ( Gadget g
+                       , Gadget g'
                        , HasName g
-                       , HasName (Inverse g)
+                       , HasName g'
                        , Initializable (PrimitiveOf g)
-                       , Initializable (PrimitiveOf (Inverse g))
+                       , Initializable (PrimitiveOf g')
+                       , Encrypt p
+                       , p EncryptMode ~ PrimitiveOf g
+                       , p DecryptMode ~ PrimitiveOf g'
                        )
                     => g
-                    -> [(ByteString,ByteString,ByteString)] -- ^ (key, planetext,ciphertext)
+                    -> g'
+                    -> [(ByteString,ByteString,ByteString)] -- ^ (key, planetext, ciphertext)
                     -> Test
-testStandardCiphers g vec = testGroup name [ unitTests g vec
-                                           , encryptDecrypt g testiv
-                                           ]
+testStandardCiphers g g' vec = testGroup name [ unitTests g g' vec
+                                              , encryptDecrypt g g' testiv
+                                              ]
   where
-    name = getName g ++ " && " ++ getName (inverseGadget g)
-    (testiv,_,_) = head vec
+    name = getName g ++ " && " ++ getName g'
+    (testiv, _ , _) = head vec
 
 -- | Checks standard plaintext - ciphertext for the given cipher
-unitTests  :: ( HasInverse g
+unitTests  :: ( Gadget g
+              , Gadget g'
+              , HasName g
+              , HasName g'
               , Initializable (PrimitiveOf g)
-              , Initializable (PrimitiveOf (Inverse g))
+              , Initializable (PrimitiveOf g')
+              , Encrypt p
+              , p EncryptMode ~ PrimitiveOf g
+              , p DecryptMode ~ PrimitiveOf g'
               )
            => g
+           -> g'
            -> [(ByteString,ByteString,ByteString)] -- ^ (key, planetext,ciphertest)
            -> Test
-unitTests ge triples = testGroup "Unit tests" $ hUnitTestToTests $ test $ map checkCipher triples
+unitTests ge gd triples = testGroup "Unit tests" $ hUnitTestToTests $ test $ map checkCipher triples
   where label a = shorten (show $ hex a)
         checkCipher (k,a,b) =
           label a ~: test  ["Encryption" ~: (applyGadget ge k a) ~?= b
-                           ,"Decryption" ~: (applyGadget (inverseGadget ge) k b) ~?= a]
+                           ,"Decryption" ~: (applyGadget gd k b) ~?= a]
 
 -- | Checks if decrypt . encrypt == id
-encryptDecrypt :: ( HasInverse g
+encryptDecrypt :: ( Gadget g
+                  , Gadget g'
                   , HasName g
-                  , HasName (Inverse g)
+                  , HasName g'
                   , Initializable (PrimitiveOf g)
-                  , Initializable (PrimitiveOf (Inverse g))
+                  , Initializable (PrimitiveOf g')
+                  , Encrypt p
+                  , p EncryptMode ~ PrimitiveOf g
+                  , p DecryptMode ~ PrimitiveOf g'
                   )
-               => g           -- ^ Gadget
+               => g
+               -> g'
                -> ByteString  -- ^ Context in ByteString
                -> Test
-encryptDecrypt g bscxt = testInverse g (getCxt bscxt) (getCxt bscxt)
+encryptDecrypt g g' bscxt = testInverse g g' (getCxt bscxt) (getCxt bscxt)
 
 unsafeTransformUnsafeGadget' :: Gadget g
                              => g          -- ^ Gadget
