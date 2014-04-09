@@ -583,3 +583,48 @@ instance HasInverse (CGadget (Cipher (Salsa20 R8) KEY256 EncryptMode)) where
 
 instance HasInverse (CGadget (Cipher (Salsa20 R8) KEY256 DecryptMode)) where
   type Inverse (CGadget (Cipher (Salsa20 R8) KEY256 DecryptMode)) = CGadget (Cipher (Salsa20 R8) KEY256 EncryptMode)
+
+counter0 :: Counter
+counter0 = Counter (SplitWord64 0 0)
+
+instance Encrypt (Cipher (Salsa20 R20) KEY128) where
+  encryptCxt (k,n) = Salsa20_20Cxt (k,n,counter0)
+  decryptCxt (k,n) = Salsa20_20Cxt (k,n,counter0)
+
+instance Encrypt (Cipher (Salsa20 R20) KEY256) where
+  encryptCxt (k,n) = Salsa20_20Cxt (k,n,counter0)
+  decryptCxt (k,n) = Salsa20_20Cxt (k,n,counter0)
+
+instance Encrypt (Cipher (Salsa20 R12) KEY128) where
+  encryptCxt (k,n) = Salsa20_12Cxt (k,n,counter0)
+  decryptCxt (k,n) = Salsa20_12Cxt (k,n,counter0)
+
+instance Encrypt (Cipher (Salsa20 R12) KEY256) where
+  encryptCxt (k,n) = Salsa20_12Cxt (k,n,counter0)
+  decryptCxt (k,n) = Salsa20_12Cxt (k,n,counter0)
+
+instance Encrypt (Cipher (Salsa20 R8) KEY128) where
+  encryptCxt (k,n) = Salsa20_8Cxt (k,n,counter0)
+  decryptCxt (k,n) = Salsa20_8Cxt (k,n,counter0)
+
+instance Encrypt (Cipher (Salsa20 R8) KEY256) where
+  encryptCxt (k,n) = Salsa20_8Cxt (k,n,counter0)
+  decryptCxt (k,n) = Salsa20_8Cxt (k,n,counter0)
+
+type instance Key (Cipher (Salsa20 R20) KEY128) EncryptMode = (KEY128,Nonce)
+type instance Key (Cipher (Salsa20 R20) KEY128) DecryptMode = (KEY128,Nonce)
+
+type instance Key (Cipher (Salsa20 R20) KEY256) EncryptMode = (KEY256,Nonce)
+type instance Key (Cipher (Salsa20 R20) KEY256) DecryptMode = (KEY256,Nonce)
+
+type instance Key (Cipher (Salsa20 R12) KEY128) EncryptMode = (KEY128,Nonce)
+type instance Key (Cipher (Salsa20 R12) KEY128) DecryptMode = (KEY128,Nonce)
+
+type instance Key (Cipher (Salsa20 R12) KEY256) EncryptMode = (KEY256,Nonce)
+type instance Key (Cipher (Salsa20 R12) KEY256) DecryptMode = (KEY256,Nonce)
+
+type instance Key (Cipher (Salsa20 R8) KEY128) EncryptMode = (KEY128,Nonce)
+type instance Key (Cipher (Salsa20 R8) KEY128) DecryptMode = (KEY128,Nonce)
+
+type instance Key (Cipher (Salsa20 R8) KEY256) EncryptMode = (KEY256,Nonce)
+type instance Key (Cipher (Salsa20 R8) KEY256) DecryptMode = (KEY256,Nonce)

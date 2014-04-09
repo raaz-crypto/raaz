@@ -26,3 +26,24 @@ instance EndianStore k => Initializable (Cipher (AES ECB) k e) where
       ksz = sizeOf (undefined :: k)
   {-# INLINE cxtSize #-}
   getCxt = AESCxt . fromByteString
+
+instance Encrypt (Cipher (AES ECB) KEY128) where
+  encryptCxt = AESCxt
+  decryptCxt = AESCxt
+
+instance Encrypt (Cipher (AES ECB) KEY192) where
+  encryptCxt = AESCxt
+  decryptCxt = AESCxt
+
+instance Encrypt (Cipher (AES ECB) KEY256) where
+  encryptCxt = AESCxt
+  decryptCxt = AESCxt
+
+type instance Key (Cipher (AES ECB) KEY128) EncryptMode = KEY128
+type instance Key (Cipher (AES ECB) KEY128) DecryptMode = KEY128
+
+type instance Key (Cipher (AES ECB) KEY192) EncryptMode = KEY192
+type instance Key (Cipher (AES ECB) KEY192) DecryptMode = KEY192
+
+type instance Key (Cipher (AES ECB) KEY256) EncryptMode = KEY256
+type instance Key (Cipher (AES ECB) KEY256) DecryptMode = KEY256
