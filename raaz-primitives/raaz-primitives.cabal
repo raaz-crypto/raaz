@@ -71,6 +71,7 @@ library
                  , Raaz.Primitives.CryptoMode
 --                 , Raaz.Primitives.MAC
                  , Raaz.Primitives.Cipher
+                 , Raaz.Serialize
                  , Raaz.System.Parameters
                  , Raaz.Types
                  , Raaz.Test
