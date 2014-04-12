@@ -11,11 +11,8 @@ import Modules.AES.Defaults
 ctr :: Cipher (AES CTR) KEY128 EncryptMode
 ctr = undefined
 
-ctrd :: Cipher (AES CTR) KEY128 DecryptMode
-ctrd = undefined
-
 benchmarks :: [Benchmark]
-benchmarks = benchmarksDefault ctr ++ benchmarksDefault ctrd
+benchmarks = benchmarksDefault ctr
 
 benchmarksTiny :: [Benchmark]
 benchmarksTiny = benchmarksTinyDefault ctr

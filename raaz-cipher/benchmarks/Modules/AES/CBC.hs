@@ -11,11 +11,8 @@ import Modules.AES.Defaults
 cbc :: Cipher (AES CBC) KEY128 EncryptMode
 cbc = undefined
 
-cbcd :: Cipher (AES CBC) KEY128 DecryptMode
-cbcd = undefined
-
 benchmarks :: [Benchmark]
-benchmarks = benchmarksDefault cbc ++ benchmarksDefault cbcd
+benchmarks = benchmarksDefault cbc
 
 benchmarksTiny :: [Benchmark]
 benchmarksTiny = benchmarksTinyDefault cbc
