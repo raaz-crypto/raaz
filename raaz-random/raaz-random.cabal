@@ -30,7 +30,7 @@ library
                --
                -- Raaz dependencies
                --
-               , raaz-primitives                >=0.0.0.1 && < 0.0.0.2
+               , raaz-core                      >=0.0.0.1 && < 0.0.0.2
   ghc-options: -Wall
 
   if os(linux)
@@ -57,7 +57,7 @@ test-Suite tests
                --
                -- Raaz dependencies
                --
-               , raaz-primitives                >=0.0.0.1 && < 0.0.0.2
+               , raaz-core                      >=0.0.0.1 && < 0.0.0.2
                , raaz-random                    >=0.0.0.1 && < 0.0.0.2
                , raaz-cipher                    >=0.0.0.1 && < 0.0.0.2
 
