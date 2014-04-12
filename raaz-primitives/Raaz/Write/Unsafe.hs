@@ -2,7 +2,13 @@
 -- writing of data to memory locations given by pointers. It does the
 -- necessary pointer arithmetic to make the pointer point to the next
 -- location. No range checks are done to speed up the operations and
--- hence these operations are highly unsafe. Use it with care.
+-- hence these operations are highly unsafe. If you want proper range
+-- checks please use "Raaz.Write" instead.
+--
+-- An important use case for these unsafe functions is in the
+-- definition of `Storable` and `EndianStore` instances of complicated
+-- data types.
+
 
 {-# LANGUAGE FlexibleContexts #-}
 module Raaz.Write.Unsafe
@@ -24,7 +30,12 @@ import Raaz.Types
 import Raaz.Util.Ptr
 import Raaz.Util.ByteString    as BU
 
--- | The write type.
+-- | A write is an action which when executed using `runWrite` writes
+-- bytes to the input buffer. The action takes care of updating the
+-- pointer location but nothing more is done. In particular, it is the
+-- responsibility of the programmer to make sure that there is enough
+-- space in the buffer for the data. `Write`s are monoid and hence can
+-- be concatnated using the `<>` operator.
 newtype Write = Write (CryptoPtr -> IO CryptoPtr)
 
 instance Monoid Write where
@@ -40,8 +51,9 @@ runWriteForeignPtr   :: ForeignCryptoPtr -> Write -> IO ()
 runWriteForeignPtr fptr (Write action) = void $ withForeignPtr fptr action
 
 -- | Writes a value which is an instance of Storable. This writes the
--- value machine endian. Mostly it is useful in defining the `poke`
--- function in a complicated `Storable` instance.
+-- value in the machine endian. A common use case for this function is
+-- in defining the `poke` function for a complicated `Storable`
+-- instance.
 writeStorable :: Storable a => a -> Write
 writeStorable a = Write $ \ cptr -> do
   poke (castPtr cptr) a
@@ -49,8 +61,8 @@ writeStorable a = Write $ \ cptr -> do
 
 -- | Writes an instance of `EndianStore`. Endian safety is take into
 -- account here. This is what you would need when you write network
--- packets for example. You can also use this to define the `load`
--- function in a compicated `EndianStore` instance.
+-- packets for example. You can also use this to define the `store`
+-- function in a complicated `EndianStore` instance.
 write :: EndianStore a => a -> Write
 write a = Write $ \ cptr -> do
   store cptr a
@@ -63,7 +75,7 @@ writeBytes n b = Write $ \ cptr ->
   memset cptr b bytes >> return (cptr `movePtr` n)
   where bytes = cryptoCoerce n :: BYTES Int
 
--- | Writes a strict bytestring.
+-- | Writes a strict `ByteString`.
 writeByteString :: ByteString -> Write
 writeByteString bs = Write $ \ cptr ->
   BU.unsafeCopyToCryptoPtr bs cptr >> return (cptr `movePtr` n)
