@@ -20,5 +20,5 @@ tests = [ testGroup "Raaz.Random.Stream" (Stream.testWith g)
         , testGroup "Raaz.Random.Number" (Number.testWith g)
         ]
   where
-    g :: CGadget (Cipher (AES CTR) KEY128 Encryption)
+    g :: CGadget (Cipher (AES CTR) KEY128 EncryptMode)
     g = undefined
