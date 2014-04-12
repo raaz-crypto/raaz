@@ -3,10 +3,11 @@
 This module abstracts basic cryptographic primitive operations.
 
 -}
-{-# LANGUAGE DataKinds      #-}
-{-# LANGUAGE KindSignatures #-}
-{-# LANGUAGE TypeFamilies   #-}
-{-# LANGUAGE CPP            #-}
+{-# LANGUAGE DataKinds        #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE KindSignatures   #-}
+{-# LANGUAGE TypeFamilies     #-}
+{-# LANGUAGE CPP              #-}
 module Raaz.Primitives.CryptoMode
        (
          -- * Cryptographic Modes
@@ -25,6 +26,7 @@ module Raaz.Primitives.CryptoMode
        ) where
 
 import Raaz.Primitives
+import Raaz.Serialize
 
 -- | A primitive cryptographic operation consists of the following
 --
@@ -81,6 +83,8 @@ class ( Digestible (prim AuthMode)
       , Digestible (prim VerifyMode)
       , Digest (prim AuthMode) ~ prim VerifyMode
       , Digest (prim VerifyMode) ~ Bool
+      , CryptoSerialize (Key prim AuthMode)
+      , CryptoSerialize (Key prim VerifyMode)
       ) => Auth prim where
   authCxt :: Key prim AuthMode-> Cxt (prim AuthMode)
   verifyCxt :: Key prim VerifyMode -> prim VerifyMode -> Cxt (prim VerifyMode)
@@ -88,7 +92,9 @@ class ( Digestible (prim AuthMode)
 -- | This class captures primitives which support encryption. Note
 -- that the `ForwardKey` and `BackwardKey` might not be always same
 -- (example, public key encryption).
-class Encrypt prim where
+class ( CryptoSerialize (Key prim EncryptMode)
+      , CryptoSerialize (Key prim DecryptMode)
+      ) => Encrypt prim where
   encryptCxt :: Key prim EncryptMode -> Cxt (prim EncryptMode)
   decryptCxt :: Key prim DecryptMode -> Cxt (prim DecryptMode)
 
@@ -99,6 +105,8 @@ class ( Digestible (prim AuthEncryptMode)
       , Digestible (prim VerifyDecryptMode)
       , Digest (prim AuthEncryptMode) ~ prim VerifyDecryptMode
       , Digest (prim VerifyDecryptMode) ~ Bool
+      , CryptoSerialize (Key prim AuthEncryptMode)
+      , CryptoSerialize (Key prim VerifyDecryptMode)
       ) => AuthEncrypt prim where
   authEncryptCxt :: Key prim AuthEncryptMode -> Cxt (prim AuthEncryptMode)
   verifyDecryptCxt :: Key prim VerifyDecryptMode -> Cxt (prim VerifyDecryptMode)

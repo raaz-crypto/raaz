@@ -25,7 +25,6 @@ module Raaz.Primitives
        , PaddableGadget(..)
        , CGadget(..), HGadget(..)
        , SafePrimitive
-       , Initializable(..)
        , HasPadding(..)
        , CryptoPrimitive(..)
        , BLOCKS, blocksOf
@@ -90,12 +89,6 @@ class Primitive p where
 -- function of a gadget for a safe primitive should not modify the
 -- input buffer.
 class Primitive p => SafePrimitive p where
-
--- | Primitives that are initialisable via a `ByteString`. Examples
--- are hmac's.
-class Primitive p => Initializable p where
-  cxtSize :: p -> BYTES Int
-  getCxt  :: ByteString -> Cxt p
 
 -- | Privitives which can be digested to a final value (captured by
 -- associated type family `Digest`).

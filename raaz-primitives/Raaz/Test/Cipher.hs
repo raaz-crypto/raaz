@@ -27,16 +27,15 @@ import           Raaz.Types
 import           Raaz.Primitives
 import           Raaz.Primitives.Cipher
 import           Raaz.Util.ByteString           (hex)
-
+import           Raaz.Serialize
 import           Raaz.Test.Gadget
+
 
 -- | Stansdard tests for ciphers
 testStandardCiphers :: ( Gadget g
                        , Gadget g'
                        , HasName g
                        , HasName g'
-                       , Initializable (PrimitiveOf g)
-                       , Initializable (PrimitiveOf g')
                        , Encrypt p
                        , p EncryptMode ~ PrimitiveOf g
                        , p DecryptMode ~ PrimitiveOf g'
@@ -57,8 +56,6 @@ unitTests  :: ( Gadget g
               , Gadget g'
               , HasName g
               , HasName g'
-              , Initializable (PrimitiveOf g)
-              , Initializable (PrimitiveOf g')
               , Encrypt p
               , p EncryptMode ~ PrimitiveOf g
               , p DecryptMode ~ PrimitiveOf g'
@@ -69,17 +66,19 @@ unitTests  :: ( Gadget g
            -> Test
 unitTests ge gd triples = testGroup "Unit tests" $ hUnitTestToTests $ test $ map checkCipher triples
   where label a = shorten (show $ hex a)
-        checkCipher (k,a,b) =
-          label a ~: test  ["Encryption" ~: (applyGadget ge k a) ~?= b
-                           ,"Decryption" ~: (applyGadget gd k b) ~?= a]
+        checkCipher (bk,a,b) =
+          label a ~: test  ["Encryption" ~: (applyGadget ge ek a) ~?= b
+                           ,"Decryption" ~: (applyGadget gd dk b) ~?= a]
+          where
+            ek = encryptCxt $ fromByteString bk
+            dk = decryptCxt $ fromByteString bk
+
 
 -- | Checks if decrypt . encrypt == id
 encryptDecrypt :: ( Gadget g
                   , Gadget g'
                   , HasName g
                   , HasName g'
-                  , Initializable (PrimitiveOf g)
-                  , Initializable (PrimitiveOf g')
                   , Encrypt p
                   , p EncryptMode ~ PrimitiveOf g
                   , p DecryptMode ~ PrimitiveOf g'
@@ -88,7 +87,8 @@ encryptDecrypt :: ( Gadget g
                -> g'
                -> ByteString  -- ^ Context in ByteString
                -> Test
-encryptDecrypt g g' bscxt = testInverse g g' (getCxt bscxt) (getCxt bscxt)
+encryptDecrypt g g' bscxt = testInverse g g' (encryptCxt $ fromByteString bscxt)
+                                             (decryptCxt $ fromByteString bscxt)
 
 unsafeTransformUnsafeGadget' :: Gadget g
                              => g          -- ^ Gadget
@@ -104,14 +104,14 @@ unsafeTransformUnsafeGadget' g src = do
 
 -- | Encrypts/Decrypts a bytestring using the given gadget. It only
 -- encrypts in multiple of BlockSize, so user must ensure that.
-createAndApply' :: (Gadget g, Initializable (PrimitiveOf g))
+createAndApply' :: Gadget g
                 => g
-                -> ByteString               -- ^ Key and IV
+                -> Cxt (PrimitiveOf g)      -- ^ Key and IV
                 -> ByteString               -- ^ Plain data
                 -> IO ByteString            -- ^ Encrypted data
 createAndApply' g key src = do
   ng <- createGadget g
-  initialize ng (getCxt key)
+  initialize ng key
   unsafeTransformUnsafeGadget' ng src
     where
       createGadget :: (Gadget g) => g -> IO g
@@ -120,9 +120,9 @@ createAndApply' g key src = do
 
 -- | Returns the result of applying a gadget with the given iv on the
 -- given bytestring.
-applyGadget :: (Gadget g, Initializable (PrimitiveOf g))
+applyGadget :: Gadget g
             => g
-            -> ByteString -- ^ Cxt
+            -> Cxt (PrimitiveOf g)
             -> ByteString -- ^ Data
             -> ByteString -- ^ Output
 applyGadget g k = unsafePerformIO . createAndApply' g k
