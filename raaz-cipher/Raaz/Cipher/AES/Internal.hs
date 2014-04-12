@@ -4,7 +4,6 @@ This module exports internals of AES implementation and should not be
 used directly by the user.
 
 -}
-{-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE TypeFamilies       #-}
 {-# LANGUAGE FlexibleInstances  #-}
 {-# LANGUAGE CPP                #-}
@@ -32,7 +31,6 @@ import Raaz.Cipher.AES.Block.Internal
 
 import Raaz.Primitives
 import Raaz.Primitives.Cipher
-import Data.Typeable
 
 -- | AES Data type with associated modes.
 #if UseKinds

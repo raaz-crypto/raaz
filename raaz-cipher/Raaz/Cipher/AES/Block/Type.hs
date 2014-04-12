@@ -29,6 +29,7 @@ import Foreign.Ptr          (castPtr)
 import Foreign.Storable     (sizeOf,Storable(..))
 import Numeric              (showHex)
 
+import Raaz.Serialize
 import Raaz.Types
 import Raaz.Parse.Unsafe
 import Raaz.Write.Unsafe
@@ -154,6 +155,8 @@ instance Storable STATE where
 instance EndianStore STATE where
   load cptr = runParser cptr (transpose <$> parseState)
   store cptr state = runWrite cptr $ writeState $ invTranspose state
+
+instance CryptoSerialize STATE
 
 instance Storable Expanded128 where
   sizeOf    _ = 11 * sizeOf (undefined :: STATE)
@@ -521,6 +524,8 @@ instance EndianStore KEY128 where
   load cptr = runParser cptr parseKey128
   store cptr key128 = runWrite cptr $ writeKey128 key128
 
+instance CryptoSerialize KEY128
+
 parseKey192 :: Parser KEY192
 parseKey192 = KEY192 <$> parse
                      <*> parse
@@ -546,6 +551,8 @@ instance Storable KEY192 where
 instance EndianStore KEY192 where
   load cptr = runParser cptr parseKey192
   store cptr key192 = runWrite cptr $ writeKey192 key192
+
+instance CryptoSerialize KEY192
 
 parseKey256 :: Parser KEY256
 parseKey256 = KEY256 <$> parse
@@ -576,6 +583,8 @@ instance Storable KEY256 where
 instance EndianStore KEY256 where
   load cptr = runParser cptr parseKey256
   store cptr key256 = runWrite cptr $ writeKey256 key256
+
+instance CryptoSerialize KEY256
 
 showWord32 :: Word32BE -> ShowS
 showWord32 w = showString $ "0x" ++ replicate (8 - length hex) '0' ++ hex

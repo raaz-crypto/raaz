@@ -48,39 +48,3 @@ instance StreamGadget (HGadget (Cipher (AES CTR) KEY192 EncryptMode))
 instance StreamGadget (HGadget (Cipher (AES CTR) KEY192 DecryptMode))
 instance StreamGadget (HGadget (Cipher (AES CTR) KEY256 EncryptMode))
 instance StreamGadget (HGadget (Cipher (AES CTR) KEY256 DecryptMode))
-
-instance HasInverse (HGadget (Cipher (AES CTR) KEY128 EncryptMode)) where
-  type Inverse (HGadget (Cipher (AES CTR) KEY128 EncryptMode)) = HGadget (Cipher (AES CTR) KEY128 DecryptMode)
-
-instance HasInverse (HGadget (Cipher (AES CTR) KEY128 DecryptMode)) where
-  type Inverse (HGadget (Cipher (AES CTR) KEY128 DecryptMode)) = HGadget (Cipher (AES CTR) KEY128 EncryptMode)
-
-instance HasInverse (HGadget (Cipher (AES CTR) KEY192 EncryptMode)) where
-  type Inverse (HGadget (Cipher (AES CTR) KEY192 EncryptMode)) = HGadget (Cipher (AES CTR) KEY192 DecryptMode)
-
-instance HasInverse (HGadget (Cipher (AES CTR) KEY192 DecryptMode)) where
-  type Inverse (HGadget (Cipher (AES CTR) KEY192 DecryptMode)) = HGadget (Cipher (AES CTR) KEY192 EncryptMode)
-
-instance HasInverse (HGadget (Cipher (AES CTR) KEY256 EncryptMode)) where
-  type Inverse (HGadget (Cipher (AES CTR) KEY256 EncryptMode)) = HGadget (Cipher (AES CTR) KEY256 DecryptMode)
-
-instance HasInverse (HGadget (Cipher (AES CTR) KEY256 DecryptMode)) where
-  type Inverse (HGadget (Cipher (AES CTR) KEY256 DecryptMode)) = HGadget (Cipher (AES CTR) KEY256 EncryptMode)
-
-instance HasInverse (CGadget (Cipher (AES CTR) KEY128 EncryptMode)) where
-  type Inverse (CGadget (Cipher (AES CTR) KEY128 EncryptMode)) = CGadget (Cipher (AES CTR) KEY128 DecryptMode)
-
-instance HasInverse (CGadget (Cipher (AES CTR) KEY128 DecryptMode)) where
-  type Inverse (CGadget (Cipher (AES CTR) KEY128 DecryptMode)) = CGadget (Cipher (AES CTR) KEY128 EncryptMode)
-
-instance HasInverse (CGadget (Cipher (AES CTR) KEY192 EncryptMode)) where
-  type Inverse (CGadget (Cipher (AES CTR) KEY192 EncryptMode)) = CGadget (Cipher (AES CTR) KEY192 DecryptMode)
-
-instance HasInverse (CGadget (Cipher (AES CTR) KEY192 DecryptMode)) where
-  type Inverse (CGadget (Cipher (AES CTR) KEY192 DecryptMode)) = CGadget (Cipher (AES CTR) KEY192 EncryptMode)
-
-instance HasInverse (CGadget (Cipher (AES CTR) KEY256 EncryptMode)) where
-  type Inverse (CGadget (Cipher (AES CTR) KEY256 EncryptMode)) = CGadget (Cipher (AES CTR) KEY256 DecryptMode)
-
-instance HasInverse (CGadget (Cipher (AES CTR) KEY256 DecryptMode)) where
-  type Inverse (CGadget (Cipher (AES CTR) KEY256 DecryptMode)) = CGadget (Cipher (AES CTR) KEY256 EncryptMode)
