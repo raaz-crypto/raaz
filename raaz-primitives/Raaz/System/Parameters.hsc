@@ -1,4 +1,4 @@
-{-| 
+{-|
 
 This module exposes some system dependent constants like cache sizes
 etc to the Haskell world.
