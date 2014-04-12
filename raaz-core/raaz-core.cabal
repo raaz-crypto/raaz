@@ -1,15 +1,15 @@
-name:    raaz-primitives
+name:    raaz-core
 version: 0.0.0.1
 
-synopsis:    Cryptographic primitives for the raaz library
+synopsis: The core of the raaz cryptographic library.
 
-description: This package abstracts out cryptographic primitives like
-  hashes, ciphers, macs etc by providing types, type classes
-  etc. Implementation of specific implementations are in packages of
-  their own. We also provides common types and functions that might be
-  used accross the other raaz packages here.
+description: This package defines core types and classes that is used
+  by the rest of the raaz library. We also provides common types and
+  functions that might be used accross the other raaz packages here.
+  Besides the basic types and classes, it defines cryptographic
+  primitives like hashes, ciphers, macs etc..
 
-homepage:    http://github.com/piyush-kurur/raaz
+homepage: http://github.com/piyush-kurur/raaz
 
 license:      BSD3
 license-file: LICENSE
@@ -55,7 +55,7 @@ extra-source-files: Config.hs
 source-repository head
   type: git
   location: https://github.com/piyush-kurur/raaz
-  subdir: raaz-primitives
+  subdir: raaz-core
 
 flag auto-configure
   description: Detects and configurs system parameters automatically
@@ -139,4 +139,4 @@ test-Suite tests
                --
                -- Dependency on other raaz packages.
                --
-               , raaz-primitives             >= 0.0.0.1 && < 0.0.0.2
+               , raaz-core                      >= 0.0.0.1 && < 0.0.0.2
