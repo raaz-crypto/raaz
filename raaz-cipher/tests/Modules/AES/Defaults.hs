@@ -58,25 +58,40 @@ testKey256 =  pack [0x60,0x3d,0xeb,0x10
                    ,0x08,0x09,0x0A,0x0B
                    ,0x0C,0x0D,0x0E,0x0F]
 
+
 testsDefault p s128 s192 s256 =
-      [ testStandardCiphers (toH $ p128 p) s128
-      , testStandardCiphers (toH $ p192 p) s192
-      , testStandardCiphers (toH $ p256 p) s256
-      , testStandardCiphers (toC $ p128 p) s128
-      , testStandardCiphers (toC $ p192 p) s192
-      , testStandardCiphers (toC $ p256 p) s256
-      , cportableVsReference (toH $ p128 p) (toC $ p128 p) testKey128
-      , cportableVsReference (toH $ p192 p) (toC $ p192 p) testKey192
-      , cportableVsReference (toH $ p256 p) (toC $ p256 p) testKey256
+      [ testStandardCiphers (toH $ p128 p) (toH $ inv $ p128 p) s128
+      , testStandardCiphers (toH $ p192 p) (toH $ inv $ p192 p) s192
+      , testStandardCiphers (toH $ p256 p) (toH $ inv $ p256 p) s256
+      , testStandardCiphers (toC $ p128 p) (toC $ inv $ p128 p) s128
+      , testStandardCiphers (toC $ p192 p) (toC $ inv $ p192 p) s192
+      , testStandardCiphers (toC $ p256 p) (toC $ inv $ p256 p) s256
+      , cportableVsReference (toH $ p128 p)
+                             (toH $ inv $ p128 p)
+                             (toC $ p128 p)
+                             (toC $ inv $ p128 p)
+                             testKey128
+      , cportableVsReference (toH $ p192 p)
+                             (toH $ inv $ p192 p)
+                             (toC $ p192 p)
+                             (toC $ inv $ p192 p)
+                             testKey192
+      , cportableVsReference (toH $ p256 p)
+                             (toH $ inv $ p256 p)
+                             (toC $ p256 p)
+                             (toC $ inv $ p256 p)
+                             testKey256
       ]
       where
         toH :: p -> HGadget p
         toH _ = undefined
         toC :: p -> CGadget p
         toC _ = undefined
-        p128 :: Cipher name key stage -> Cipher name KEY128 stage
+        inv :: Cipher name key EncryptMode -> Cipher name key DecryptMode
+        inv = undefined
+        p128 :: Cipher name key EncryptMode -> Cipher name KEY128 EncryptMode
         p128 = undefined
-        p192 :: Cipher name key stage -> Cipher name KEY192 stage
+        p192 :: Cipher name key EncryptMode -> Cipher name KEY192 EncryptMode
         p192 = undefined
-        p256 :: Cipher name key stage -> Cipher name KEY256 stage
+        p256 :: Cipher name key EncryptMode -> Cipher name KEY256 EncryptMode
         p256 = undefined

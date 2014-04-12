@@ -3,28 +3,29 @@
 
 module Modules.Util where
 
-import           Data.ByteString  (ByteString)
-import qualified Data.ByteString  as BS
-import           Test.Framework   (Test, testGroup)
+import Data.ByteString  (ByteString)
+import Test.Framework   (Test, testGroup)
 
-import           Raaz.Primitives
-import           Raaz.Test.Gadget
+import Raaz.Primitives
+import Raaz.Primitives.Cipher
+import Raaz.Serialize
+import Raaz.Test.Gadget
 
-cportableVsReference :: ( HasInverse g1
-                        , HasInverse g2
-                        , HasName g1
+cportableVsReference :: ( HasName g1
+                        , HasName g1'
                         , HasName g2
-                        , HasName (Inverse g1)
-                        , HasName (Inverse g2)
-                        , (PrimitiveOf g1 ~ PrimitiveOf g2)
-                        , (PrimitiveOf (Inverse g1) ~ PrimitiveOf (Inverse g2))
-                        , Initializable (PrimitiveOf g1)
-                        , Initializable (PrimitiveOf (Inverse g1))
+                        , HasName g2'
+                        , Gadget g1, Gadget g1'
+                        , Gadget g2, Gadget g2'
+                        , PrimitiveOf g1 ~ PrimitiveOf g2
+                        , PrimitiveOf g1' ~ PrimitiveOf g2'
+                        , Encrypt p
+                        , p EncryptMode ~ PrimitiveOf g1
+                        , p DecryptMode ~ PrimitiveOf g1'
                         , Eq (Cxt (PrimitiveOf g1))
-                        , Eq (Cxt (PrimitiveOf (Inverse g1))))
-                     => g1 -> g2 -> ByteString -> Test
-cportableVsReference ge1 ge2 iv' = testGroup ""
-  [ testGadget ge1 ge2 (getCxt iv)
-  , testGadget (inverseGadget ge1) (inverseGadget ge2) (getCxt iv) ]
-  where
-    iv = BS.take (fromIntegral $ cxtSize $ primitiveOf ge1) iv'
+                        , Eq (Cxt (PrimitiveOf g1'))
+                        )
+                     => g1 -> g1' -> g2 -> g2' -> ByteString -> Test
+cportableVsReference g1 g1' g2 g2' iv = testGroup ""
+  [ testGadget g1 g2 (encryptCxt $ fromByteString iv)
+  , testGadget g1' g2' (decryptCxt $ fromByteString iv) ]
