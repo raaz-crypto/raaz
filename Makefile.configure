@@ -10,7 +10,7 @@ INSTALL_OPTS=
 
 PACKAGES= raaz raaz-random raaz-cipher \
           raaz-hash raaz-ssh raaz-benchmarks \
-          raaz-primitives raaz-modular
+          raaz-core raaz-modular
 
 # Set this variable to add those constraints to the cabal process.
 # For every constraint cons in this variable, we add a
