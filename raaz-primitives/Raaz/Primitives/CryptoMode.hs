@@ -81,13 +81,12 @@ type family Key (prim :: * -> *) mode :: *
 -- direction.
 class ( Digestible (prim AuthMode)
       , Digestible (prim VerifyMode)
-      , Digest (prim AuthMode) ~ prim VerifyMode
       , Digest (prim VerifyMode) ~ Bool
       , CryptoSerialize (Key prim AuthMode)
       , CryptoSerialize (Key prim VerifyMode)
       ) => Auth prim where
   authCxt :: Key prim AuthMode-> Cxt (prim AuthMode)
-  verifyCxt :: Key prim VerifyMode -> prim VerifyMode -> Cxt (prim VerifyMode)
+  verifyCxt :: Key prim VerifyMode -> Digest (prim AuthMode) -> Cxt (prim VerifyMode)
 
 -- | This class captures primitives which support encryption. Note
 -- that the `ForwardKey` and `BackwardKey` might not be always same
