@@ -9,7 +9,7 @@ A cryptographic hash function abstraction.
 {-# LANGUAGE FlexibleContexts           #-}
 
 module Raaz.Primitives.Hash
-       ( Hash(..)
+       ( Hash
        -- , HMAC(..)
        , sourceHash', sourceHash
        , hash', hash
@@ -36,9 +36,9 @@ class ( SafePrimitive h
       , CryptoPrimitive h
       , Eq h
       , EndianStore h
-      ) => Hash h where
-  cxtToHash :: (Cxt h) -> h
-
+      , h ~ Digest h
+      , Digestible h
+      ) => Hash h
 
 
 -- | Hash a given byte source.
@@ -56,7 +56,7 @@ sourceHash' g src = withGadget def $ go g
             => g1 -> g1 -> IO (PrimitiveOf g1)
         go _ gad =  do
           transformGadget gad src
-          cxtToHash <$> finalize gad
+          digestCxt <$> finalize gad
 
 {-# INLINEABLE sourceHash' #-}
 
