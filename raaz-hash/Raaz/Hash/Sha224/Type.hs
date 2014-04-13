@@ -30,7 +30,8 @@ import Raaz.Types
 import Raaz.Write.Unsafe
 
 import Raaz.Hash.Sha.Util
-import Raaz.Hash.Sha256.Type(SHA256(..))
+import Raaz.Hash.Sha256.Type
+import Raaz.Hash.Sha256.Instance
 
 ----------------------------- SHA224 -------------------------------------------
 
@@ -56,6 +57,12 @@ instance Eq SHA224 where
       == 0
 
 instance HasName SHA224
+
+instance Digestible SHA224 where
+  type Digest SHA224 = SHA224
+  digestCxt (SHA224Cxt h) = sha256Tosha224 h
+    where sha256Tosha224 (SHA256 h0 h1 h2 h3 h4 h5 h6 _)
+		= SHA224 h0 h1 h2 h3 h4 h5 h6
 
 instance Storable SHA224 where
   sizeOf    _ = 7 * sizeOf (undefined :: Word32BE)
