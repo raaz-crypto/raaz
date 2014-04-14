@@ -58,7 +58,7 @@ instance HasName SHA384
 
 instance Digestible SHA384 where
   type Digest SHA384 = SHA384
-  digestCxt (SHA384Cxt h) = sha512Tosha384 h
+  toDigest (SHA384Cxt h) = sha512Tosha384 h
     where sha512Tosha384 (SHA512 h0 h1 h2 h3 h4 h5 _ _)
             = SHA384 h0 h1 h2 h3 h4 h5
 

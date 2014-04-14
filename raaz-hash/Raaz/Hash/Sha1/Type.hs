@@ -51,7 +51,7 @@ instance HasName SHA1
 
 instance Digestible SHA1 where
   type Digest SHA1 = SHA1
-  digestCxt (SHA1Cxt h) = h
+  toDigest (SHA1Cxt h) = h
 
 instance Storable SHA1 where
   sizeOf    _ = 5 * sizeOf (undefined :: Word32BE)

@@ -60,7 +60,7 @@ instance HasName SHA224
 
 instance Digestible SHA224 where
   type Digest SHA224 = SHA224
-  digestCxt (SHA224Cxt h) = sha256Tosha224 h
+  toDigest (SHA224Cxt h) = sha256Tosha224 h
     where sha256Tosha224 (SHA256 h0 h1 h2 h3 h4 h5 h6 _)
 		= SHA224 h0 h1 h2 h3 h4 h5 h6
 

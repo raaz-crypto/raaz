@@ -101,7 +101,7 @@ class Primitive p => Digestible p where
   -- be irreversible. For example in Blake hash, the information about
   -- the number of blocks hashed so far is lost after you digest the
   -- context.
-  digestCxt :: Cxt p -> Digest p
+  toDigest :: Cxt p -> Digest p
 
 -----------------   A cryptographic gadget. ----------------------------
 

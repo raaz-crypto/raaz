@@ -51,7 +51,7 @@ instance HasName SHA256
 
 instance Digestible SHA256 where
   type Digest SHA256 = SHA256
-  digestCxt (SHA256Cxt h) = h
+  toDigest (SHA256Cxt h) = h
 
 instance Storable SHA256 where
   sizeOf    _ = 8 * sizeOf (undefined :: Word32BE)

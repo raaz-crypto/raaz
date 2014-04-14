@@ -56,7 +56,7 @@ sourceHash' g src = withGadget def $ go g
             => g1 -> g1 -> IO (PrimitiveOf g1)
         go _ gad =  do
           transformGadget gad src
-          digestCxt <$> finalize gad
+          toDigest <$> finalize gad
 
 {-# INLINEABLE sourceHash' #-}
 
