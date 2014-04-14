@@ -60,38 +60,38 @@ data R8  = R8 deriving (Show, Eq)
   "Will be changed to Data Constructor of type Rounds from ghc7.6 onwards" #-}
 #endif
 
-instance HasName (Cipher (Salsa20 R20) KEY128 Encryption) where
-  getName _ = "Salsa20/20 KEY128 Encryption"
+instance HasName (Cipher (Salsa20 R20) KEY128 EncryptMode) where
+  getName _ = "Salsa20/20 KEY128 EncryptMode"
 
-instance HasName (Cipher (Salsa20 R20) KEY256 Encryption) where
-  getName _ = "Salsa20/20 KEY256 Encryption"
+instance HasName (Cipher (Salsa20 R20) KEY256 EncryptMode) where
+  getName _ = "Salsa20/20 KEY256 EncryptMode"
 
-instance HasName (Cipher (Salsa20 R20) KEY128 Decryption) where
-  getName _ = "Salsa20/20 KEY128 Decryption"
+instance HasName (Cipher (Salsa20 R20) KEY128 DecryptMode) where
+  getName _ = "Salsa20/20 KEY128 DecryptMode"
 
-instance HasName (Cipher (Salsa20 R20) KEY256 Decryption) where
-  getName _ = "Salsa20/20 KEY256 Decryption"
+instance HasName (Cipher (Salsa20 R20) KEY256 DecryptMode) where
+  getName _ = "Salsa20/20 KEY256 DecryptMode"
 
-instance HasName (Cipher (Salsa20 R12) KEY128 Encryption) where
-  getName _ = "Salsa20/12 KEY128 Encryption"
+instance HasName (Cipher (Salsa20 R12) KEY128 EncryptMode) where
+  getName _ = "Salsa20/12 KEY128 EncryptMode"
 
-instance HasName (Cipher (Salsa20 R12) KEY256 Encryption) where
-  getName _ = "Salsa20/12 KEY256 Encryption"
+instance HasName (Cipher (Salsa20 R12) KEY256 EncryptMode) where
+  getName _ = "Salsa20/12 KEY256 EncryptMode"
 
-instance HasName (Cipher (Salsa20 R12) KEY128 Decryption) where
-  getName _ = "Salsa20/12 KEY128 Decryption"
+instance HasName (Cipher (Salsa20 R12) KEY128 DecryptMode) where
+  getName _ = "Salsa20/12 KEY128 DecryptMode"
 
-instance HasName (Cipher (Salsa20 R12) KEY256 Decryption) where
-  getName _ = "Salsa20/12 KEY256 Decryption"
+instance HasName (Cipher (Salsa20 R12) KEY256 DecryptMode) where
+  getName _ = "Salsa20/12 KEY256 DecryptMode"
 
-instance HasName (Cipher (Salsa20 R8) KEY128 Encryption) where
-  getName _ = "Salsa20/8 KEY128 Encryption"
+instance HasName (Cipher (Salsa20 R8) KEY128 EncryptMode) where
+  getName _ = "Salsa20/8 KEY128 EncryptMode"
 
-instance HasName (Cipher (Salsa20 R8) KEY256 Encryption) where
-  getName _ = "Salsa20/8 KEY256 Encryption"
+instance HasName (Cipher (Salsa20 R8) KEY256 EncryptMode) where
+  getName _ = "Salsa20/8 KEY256 EncryptMode"
 
-instance HasName (Cipher (Salsa20 R8) KEY128 Decryption) where
-  getName _ = "Salsa20/8 KEY128 Decryption"
+instance HasName (Cipher (Salsa20 R8) KEY128 DecryptMode) where
+  getName _ = "Salsa20/8 KEY128 DecryptMode"
 
-instance HasName (Cipher (Salsa20 R8) KEY256 Decryption) where
-  getName _ = "Salsa20/8 KEY256 Decryption"
+instance HasName (Cipher (Salsa20 R8) KEY256 DecryptMode) where
+  getName _ = "Salsa20/8 KEY256 DecryptMode"

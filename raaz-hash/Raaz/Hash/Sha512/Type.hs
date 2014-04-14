@@ -49,6 +49,10 @@ instance Eq SHA512 where
 
 instance HasName SHA512
 
+instance Digestible SHA512 where
+  type Digest SHA512 = SHA512
+  toDigest (SHA512Cxt h) = h
+
 instance Storable SHA512 where
   sizeOf    _ = 8 * sizeOf (undefined :: Word64BE)
   alignment _ = alignment  (undefined :: Word64BE)

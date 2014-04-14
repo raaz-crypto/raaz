@@ -25,9 +25,9 @@ foreign import ccall unsafe
                  -> Int        -- ^ Key Type
                  -> IO ()
 
-instance Gadget (CGadget (Cipher (AES CTR) KEY128 Encryption)) where
-  type PrimitiveOf (CGadget (Cipher (AES CTR) KEY128 Encryption)) = Cipher (AES CTR) KEY128 Encryption
-  type MemoryOf (CGadget (Cipher (AES CTR) KEY128 Encryption)) = (CryptoCell Expanded128, CryptoCell STATE)
+instance Gadget (CGadget (Cipher (AES CTR) KEY128 EncryptMode)) where
+  type PrimitiveOf (CGadget (Cipher (AES CTR) KEY128 EncryptMode)) = Cipher (AES CTR) KEY128 EncryptMode
+  type MemoryOf (CGadget (Cipher (AES CTR) KEY128 EncryptMode)) = (CryptoCell Expanded128, CryptoCell STATE)
   newGadgetWithMemory = return . CGadget
   initialize (CGadget (ek,s)) (AESCxt (k,iv)) = do
     withCell s (flip store iv)
@@ -38,9 +38,9 @@ instance Gadget (CGadget (Cipher (AES CTR) KEY128 Encryption)) where
     return $ AESCxt (key, state)
   apply = loadAndApply 0
 
-instance Gadget (CGadget (Cipher (AES CTR) KEY128 Decryption)) where
-  type PrimitiveOf (CGadget (Cipher (AES CTR) KEY128 Decryption)) = Cipher (AES CTR) KEY128 Decryption
-  type MemoryOf (CGadget (Cipher (AES CTR) KEY128 Decryption)) = (CryptoCell Expanded128, CryptoCell STATE)
+instance Gadget (CGadget (Cipher (AES CTR) KEY128 DecryptMode)) where
+  type PrimitiveOf (CGadget (Cipher (AES CTR) KEY128 DecryptMode)) = Cipher (AES CTR) KEY128 DecryptMode
+  type MemoryOf (CGadget (Cipher (AES CTR) KEY128 DecryptMode)) = (CryptoCell Expanded128, CryptoCell STATE)
   newGadgetWithMemory = return . CGadget
   initialize (CGadget (ek,s)) (AESCxt (k,iv)) = do
     withCell s (flip store iv)
@@ -51,9 +51,9 @@ instance Gadget (CGadget (Cipher (AES CTR) KEY128 Decryption)) where
     return $ AESCxt (key, state)
   apply = loadAndApply 0
 
-instance Gadget (CGadget (Cipher (AES CTR) KEY192 Encryption)) where
-  type PrimitiveOf (CGadget (Cipher (AES CTR) KEY192 Encryption)) = Cipher (AES CTR) KEY192 Encryption
-  type MemoryOf (CGadget (Cipher (AES CTR) KEY192 Encryption)) = (CryptoCell Expanded192, CryptoCell STATE)
+instance Gadget (CGadget (Cipher (AES CTR) KEY192 EncryptMode)) where
+  type PrimitiveOf (CGadget (Cipher (AES CTR) KEY192 EncryptMode)) = Cipher (AES CTR) KEY192 EncryptMode
+  type MemoryOf (CGadget (Cipher (AES CTR) KEY192 EncryptMode)) = (CryptoCell Expanded192, CryptoCell STATE)
   newGadgetWithMemory = return . CGadget
   initialize (CGadget (ek,s)) (AESCxt (k,iv)) = do
     withCell s (flip store iv)
@@ -64,9 +64,9 @@ instance Gadget (CGadget (Cipher (AES CTR) KEY192 Encryption)) where
     return $ AESCxt (key, state)
   apply = loadAndApply 1
 
-instance Gadget (CGadget (Cipher (AES CTR) KEY192 Decryption)) where
-  type PrimitiveOf (CGadget (Cipher (AES CTR) KEY192 Decryption)) = Cipher (AES CTR) KEY192 Decryption
-  type MemoryOf (CGadget (Cipher (AES CTR) KEY192 Decryption)) = (CryptoCell Expanded192, CryptoCell STATE)
+instance Gadget (CGadget (Cipher (AES CTR) KEY192 DecryptMode)) where
+  type PrimitiveOf (CGadget (Cipher (AES CTR) KEY192 DecryptMode)) = Cipher (AES CTR) KEY192 DecryptMode
+  type MemoryOf (CGadget (Cipher (AES CTR) KEY192 DecryptMode)) = (CryptoCell Expanded192, CryptoCell STATE)
   newGadgetWithMemory = return . CGadget
   initialize (CGadget (ek,s)) (AESCxt (k,iv)) = do
     withCell s (flip store iv)
@@ -77,9 +77,9 @@ instance Gadget (CGadget (Cipher (AES CTR) KEY192 Decryption)) where
     return $ AESCxt (key, state)
   apply = loadAndApply 1
 
-instance Gadget (CGadget (Cipher (AES CTR) KEY256 Encryption)) where
-  type PrimitiveOf (CGadget (Cipher (AES CTR) KEY256 Encryption)) = Cipher (AES CTR) KEY256 Encryption
-  type MemoryOf (CGadget (Cipher (AES CTR) KEY256 Encryption)) = (CryptoCell Expanded256, CryptoCell STATE)
+instance Gadget (CGadget (Cipher (AES CTR) KEY256 EncryptMode)) where
+  type PrimitiveOf (CGadget (Cipher (AES CTR) KEY256 EncryptMode)) = Cipher (AES CTR) KEY256 EncryptMode
+  type MemoryOf (CGadget (Cipher (AES CTR) KEY256 EncryptMode)) = (CryptoCell Expanded256, CryptoCell STATE)
   newGadgetWithMemory = return . CGadget
   initialize (CGadget (ek,s)) (AESCxt (k,iv)) = do
     withCell s (flip store iv)
@@ -90,9 +90,9 @@ instance Gadget (CGadget (Cipher (AES CTR) KEY256 Encryption)) where
     return $ AESCxt (key, state)
   apply = loadAndApply 2
 
-instance Gadget (CGadget (Cipher (AES CTR) KEY256 Decryption)) where
-  type PrimitiveOf (CGadget (Cipher (AES CTR) KEY256 Decryption)) = Cipher (AES CTR) KEY256 Decryption
-  type MemoryOf (CGadget (Cipher (AES CTR) KEY256 Decryption)) = (CryptoCell Expanded256, CryptoCell STATE)
+instance Gadget (CGadget (Cipher (AES CTR) KEY256 DecryptMode)) where
+  type PrimitiveOf (CGadget (Cipher (AES CTR) KEY256 DecryptMode)) = Cipher (AES CTR) KEY256 DecryptMode
+  type MemoryOf (CGadget (Cipher (AES CTR) KEY256 DecryptMode)) = (CryptoCell Expanded256, CryptoCell STATE)
   newGadgetWithMemory = return . CGadget
   initialize (CGadget (ek,s)) (AESCxt (k,iv)) = do
     withCell s (flip store iv)

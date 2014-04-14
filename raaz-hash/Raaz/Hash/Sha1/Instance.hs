@@ -28,8 +28,7 @@ instance CryptoPrimitive SHA1 where
   type Recommended SHA1 = CGadget SHA1
   type Reference SHA1 = HGadget SHA1
 
-instance Hash SHA1 where
-  cxtToHash (SHA1Cxt h) = h
+instance Hash SHA1
 
 instance Gadget (HGadget SHA1) where
   type PrimitiveOf (HGadget SHA1) = SHA1

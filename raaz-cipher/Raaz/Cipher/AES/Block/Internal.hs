@@ -993,9 +993,9 @@ cExpansionWith :: (EndianStore k, Storable ek)
                -> IO ()
 cExpansionWith ek k with i = allocaBuffer szk $ \kptr -> do
   store kptr k
-  withCell ek $ expand kptr
+  withCell ek $ expnd kptr
   where
-    expand kptr ekptr = with ekptr kptr i
+    expnd kptr ekptr = with ekptr kptr i
     szk :: BYTES Int
     szk = BYTES $ sizeOf k
 {-# INLINE cExpansionWith #-}

@@ -1,4 +1,5 @@
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleContexts   #-}
+{-# LANGUAGE TypeFamilies       #-}
 module Modules.Number (testWith) where
 
 import           Control.Applicative                  ((<$>))
@@ -15,7 +16,7 @@ import qualified Raaz.Util.ByteString                 as BU
 import           Raaz.Memory
 import           Raaz.Types
 
-import           Modules.Stream                       (createGadget,TestIV(..))
+import           Modules.Stream                       (createGadget, testiv)
 import           Raaz.Random
 
 import Data.Word
@@ -28,35 +29,45 @@ instance Arbitrary MinMax where
     mi <- choose (0,ma)
     return $ MinMax mi ma
 
-prop_max :: (StreamGadget g, Initializable (PrimitiveOf g))
+prop_max :: ( StreamGadget g
+            , PrimitiveOf g ~ prim EncryptMode
+            , Encrypt prim
+            )
          => g
-         -> TestIV (PrimitiveOf g)
+         -> Key prim EncryptMode
          -> Positive Int
          -> Property
-prop_max g' (TestIV bsiv) maxi = monadicIO $ do
+prop_max g' k maxi = monadicIO $ do
   i <- run $ generateInt
   assert (i >= 0)
   assert (i <= maxi)
   where
     generateInt = do
-      g <- createGadget g' bsiv
+      g <- createGadget g' k
       genMax g maxi
 
-prop_between :: (StreamGadget g, Initializable (PrimitiveOf g))
+prop_between :: ( StreamGadget g
+                , PrimitiveOf g ~ prim EncryptMode
+                , Encrypt prim
+                )
              => g
-             -> TestIV (PrimitiveOf g)
+             -> Key prim EncryptMode
              -> MinMax
              -> Property
-prop_between g' (TestIV bsiv) (MinMax mini maxi) = maxi > mini ==> monadicIO $ do
+prop_between g' k (MinMax mini maxi) = maxi > mini ==> monadicIO $ do
   i <- run $ generateInt
   assert (i >= mini)
   assert (i <= maxi)
   where
     generateInt = do
-      g <- createGadget g' bsiv
+      g <- createGadget g' k
       genBetween g mini maxi
 
-testWith :: (StreamGadget g,Initializable (PrimitiveOf g)) => g -> [Test]
-testWith g = [ testProperty "genMax domain check" $ prop_max g
-             , testProperty "genBetween domain check" $ prop_between g
+testWith :: ( StreamGadget g
+            , PrimitiveOf g ~ prim EncryptMode
+            , Encrypt prim
+            )
+         => g -> [Test]
+testWith g = [ testProperty "genMax domain check" $ prop_max g testiv
+             , testProperty "genBetween domain check" $ prop_between g testiv
              ]

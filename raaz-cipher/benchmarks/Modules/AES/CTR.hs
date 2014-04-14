@@ -8,14 +8,11 @@ import Raaz.Cipher.AES
 
 import Modules.AES.Defaults
 
-ctr :: Cipher (AES CTR) KEY128 Encryption
+ctr :: Cipher (AES CTR) KEY128 EncryptMode
 ctr = undefined
 
-ctrd :: Cipher (AES CTR) KEY128 Decryption
-ctrd = undefined
-
 benchmarks :: [Benchmark]
-benchmarks = benchmarksDefault ctr ++ benchmarksDefault ctrd
+benchmarks = benchmarksDefault ctr
 
 benchmarksTiny :: [Benchmark]
 benchmarksTiny = benchmarksTinyDefault ctr

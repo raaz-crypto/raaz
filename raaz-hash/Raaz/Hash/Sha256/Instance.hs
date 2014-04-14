@@ -29,8 +29,7 @@ instance CryptoPrimitive SHA256 where
   type Recommended SHA256 = CGadget SHA256
   type Reference SHA256 = HGadget SHA256
 
-instance Hash SHA256 where
-  cxtToHash (SHA256Cxt h) = h
+instance Hash SHA256
 
 instance Gadget (HGadget SHA256) where
   type PrimitiveOf (HGadget SHA256) = SHA256

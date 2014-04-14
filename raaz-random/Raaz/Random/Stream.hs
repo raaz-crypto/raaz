@@ -1,4 +1,4 @@
-{-
+{- |
 
 An abstraction for buffered and unbuffered streams which can be
 generated from `StreamGadget`s.
@@ -17,18 +17,19 @@ module Raaz.Random.Stream
        , fromGadget
        , genBytes
        , genBytesNonZero
+       , Cxt(RSCxt)
        ) where
 import           Control.Applicative
 import           Control.Monad                 (void)
 
 
-import           Data.ByteString.Internal      (ByteString,create)
+import           Data.ByteString.Internal      (ByteString, create)
 import qualified Data.ByteString               as BS
-import qualified Data.ByteString.Lazy          as BL
 import qualified Data.ByteString.Internal      as BS
+import qualified Data.ByteString.Lazy          as BL
 import qualified Data.ByteString.Lazy.Internal as BL
 import           Foreign.ForeignPtr            (withForeignPtr)
-import           Foreign.Ptr                   (castPtr,plusPtr)
+import           Foreign.Ptr                   (castPtr, plusPtr)
 
 import           Raaz.ByteSource
 import           Raaz.Memory
@@ -75,13 +76,6 @@ instance Primitive p => Primitive (RandomPrim p) where
       getPrim :: RandomPrim p -> p
       getPrim _ = undefined
   newtype Cxt (RandomPrim p) = RSCxt (Cxt p)
-
-instance Initializable p => Initializable (RandomPrim p) where
-  cxtSize rs = cxtSize (getPrim rs)
-    where
-      getPrim :: RandomPrim p -> p
-      getPrim _ = undefined
-  getCxt bs = RSCxt (getCxt bs)
 
 instance StreamGadget g => Gadget (RandomSource g) where
   type PrimitiveOf (RandomSource g) = RandomPrim (PrimitiveOf g)

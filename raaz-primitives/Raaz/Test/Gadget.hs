@@ -79,22 +79,25 @@ onByteString g bs =  allocaBuffer bsize with
         numBlocks = bsize `div` oneBlock
         oneBlock = fromIntegral $ blockSize (primitiveOf g)
 
--- | Quickcheck test for gadget . inverseGadget is identity
+-- | Quickcheck test for inverseGadget . gadget is identity. Is is
+-- mainly useful in checking the working of encrypt and decrypt
+-- gadgets.
 prop_inverse :: ( Gadget g
-                , HasInverse g
+                , Gadget g'
                 )
-             => g
+             => g  -- ^ Gadget
+             -> g' -- ^ Inverse Gadget
              -> Cxt (PrimitiveOf g)
-             -> Cxt (PrimitiveOf (Inverse g))
+             -> Cxt (PrimitiveOf g')
              -> TestData (PrimitiveOf g)
              -> Property
-prop_inverse g' cxtg cxtig (TestData bs) = monadicIO $ do
-  g   <- run $ createGadget g'
-  run $ initialize g cxtg
-  gInv <- run $ createGadget (inverseGadget g')
-  run $ initialize gInv cxtig
-  (_,outbs) <- run $ onByteString g bs
-  (_,bs') <- run $ onByteString gInv outbs
+prop_inverse g1' g2' cxtg cxtig (TestData bs) = monadicIO $ do
+  g1 <- run $ createGadget g1'
+  run $ initialize g1 cxtg
+  g2 <- run $ createGadget g2'
+  run $ initialize g2 cxtig
+  (_,outbs) <- run $ onByteString g1 bs
+  (_,bs') <- run $ onByteString g2 outbs
   assert (bs == bs')
   where
     createGadget :: Gadget g => g -> IO g
@@ -117,13 +120,14 @@ testGadget g ref cxt = testProperty msg $ prop_Gadget g ref cxt
 
 -- | Tests g . inverseGadget g == id
 testInverse :: ( Gadget g
-               , HasInverse g
+               , Gadget g'
                , HasName g
-               , HasName (Inverse g)
+               , HasName g'
                )
             => g
+            -> g'
             -> Cxt (PrimitiveOf g)
-            -> Cxt (PrimitiveOf (Inverse g))
+            -> Cxt (PrimitiveOf g')
             -> Test
-testInverse g cxt icxt = testProperty msg $ prop_inverse g cxt icxt
-  where msg = getName g ++ " . " ++ getName (inverseGadget g) ++ " == id"
+testInverse g g' cxt icxt = testProperty msg $ prop_inverse g g' cxt icxt
+  where msg = getName g' ++ " . " ++ getName g ++ " == id"
