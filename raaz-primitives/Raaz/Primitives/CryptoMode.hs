@@ -75,27 +75,33 @@ type family Key (prim :: * -> *) mode :: *
 #endif
 
 -- | This class captures primitives which support generation of
--- authenticated signatures and its verification. Note that the
--- `Digest` of authentication direction of the primitive is the
--- signature and is same as the primitive for the verification
--- direction.
+-- authenticated signatures and its verification.
 class ( Digestible (prim AuthMode)
       , Digestible (prim VerifyMode)
       , Digest (prim VerifyMode) ~ Bool
       , CryptoSerialize (Key prim AuthMode)
       , CryptoSerialize (Key prim VerifyMode)
       ) => Auth prim where
-  authCxt :: Key prim AuthMode-> Cxt (prim AuthMode)
-  verifyCxt :: Key prim VerifyMode -> Digest (prim AuthMode) -> Cxt (prim VerifyMode)
+  -- | Get `AuthMode` context from the Key.
+  authCxt :: Key prim AuthMode   -- ^ Auth Key
+          -> Cxt (prim AuthMode) -- ^ Context
 
--- | This class captures primitives which support encryption. Note
--- that the `ForwardKey` and `BackwardKey` might not be always same
--- (example, public key encryption).
+  -- | Get `VerifyMode` context from Key and signature.
+  verifyCxt :: Key prim VerifyMode    -- ^ Verify key
+            -> Digest (prim AuthMode) -- ^ Signature
+            -> Cxt (prim VerifyMode)  -- ^ Context
+
+-- | This class captures primitives which support encryption.
 class ( CryptoSerialize (Key prim EncryptMode)
       , CryptoSerialize (Key prim DecryptMode)
       ) => Encrypt prim where
-  encryptCxt :: Key prim EncryptMode -> Cxt (prim EncryptMode)
-  decryptCxt :: Key prim DecryptMode -> Cxt (prim DecryptMode)
+  -- | Get `EncryptMode` context from encryption key.
+  encryptCxt :: Key prim EncryptMode   -- ^ Encrypt key
+             -> Cxt (prim EncryptMode) -- ^ Context
+
+  -- | Get `DecryptMode` context from decryption key.
+  decryptCxt :: Key prim DecryptMode   -- ^ Decrypt key
+             -> Cxt (prim DecryptMode) -- ^ Context
 
 -- | This class captures primitives which support authenticated
 -- encryption. A default `AuthEncrypt` instance can be provided
@@ -107,5 +113,10 @@ class ( Digestible (prim AuthEncryptMode)
       , CryptoSerialize (Key prim AuthEncryptMode)
       , CryptoSerialize (Key prim VerifyDecryptMode)
       ) => AuthEncrypt prim where
-  authEncryptCxt :: Key prim AuthEncryptMode -> Cxt (prim AuthEncryptMode)
-  verifyDecryptCxt :: Key prim VerifyDecryptMode -> Cxt (prim VerifyDecryptMode)
+  -- | Get `AuthEncryptMode` context from key.
+  authEncryptCxt :: Key prim AuthEncryptMode   -- ^ Auth Encrypt key
+                 -> Cxt (prim AuthEncryptMode) -- ^ Context
+
+  -- | Get `VerifyDecryptMode` context from key.
+  verifyDecryptCxt :: Key prim VerifyDecryptMode   -- ^ Auth Decrypt key
+                   -> Cxt (prim VerifyDecryptMode) -- ^ Context
