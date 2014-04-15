@@ -30,10 +30,7 @@ instance CryptoPrimitive SHA224 where
   type Recommended SHA224 = CGadget SHA224
   type Reference SHA224   = HGadget SHA224
 
-instance Hash SHA224 where
-  cxtToHash (SHA224Cxt h) = sha256Tosha224 h
-    where sha256Tosha224 (SHA256 h0 h1 h2 h3 h4 h5 h6 _)
-		= SHA224 h0 h1 h2 h3 h4 h5 h6
+instance Hash SHA224
 
 instance Gadget (HGadget SHA224) where
   type PrimitiveOf (HGadget SHA224) = SHA224

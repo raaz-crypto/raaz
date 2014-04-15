@@ -13,7 +13,7 @@ import Raaz.Cipher.AES.ECB
 
 import Modules.AES.Defaults
 
--- From http://www.inconteam.com/software-development/41-encryption/55-aes-test-vectors
+-- From http://www.inconteam.com/software-development/41-encryptMode/55-aes-test-vectors
 standard128Vector :: [(ByteString,ByteString,ByteString)]
 standard128Vector =
   [ ( pack [0x2b,0x7e,0x15,0x16,0x28,0xae,0xd2,0xa6,0xab,0xf7,0x15,0x88,0x09,0xcf,0x4f,0x3c]
@@ -62,7 +62,7 @@ standard256Vector =
     , pack [0x23,0x30,0x4b,0x7a,0x39,0xf9,0xf3,0xff,0x06,0x7d,0x8d,0x8f,0x9e,0x24,0xec,0xc7] )
   ]
 
-ecb :: Cipher (AES ECB) KEY128 Encryption
+ecb :: Cipher (AES ECB) KEY128 EncryptMode
 ecb = undefined
 
 tests :: [Test]

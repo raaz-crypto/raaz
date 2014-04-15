@@ -14,7 +14,6 @@ cryptographic protocols at all.
 -}
 module Raaz.Cipher.AES.ECB () where
 
-import Raaz.Primitives.Cipher
 import Raaz.Cipher.AES.ECB.CPortable ()
 import Raaz.Cipher.AES.ECB.Instance  ()
 import Raaz.Cipher.AES.ECB.Ref       ()

@@ -25,12 +25,11 @@ module Raaz.Primitives
        , PaddableGadget(..)
        , CGadget(..), HGadget(..)
        , SafePrimitive
-       , Initializable(..)
        , HasPadding(..)
        , CryptoPrimitive(..)
-       , HasInverse(..), inverseGadget
        , BLOCKS, blocksOf
        , transformGadget, transformGadgetFile
+       , Digestible(..)
        ) where
 
 import qualified Data.ByteString          as B
@@ -91,11 +90,18 @@ class Primitive p where
 -- input buffer.
 class Primitive p => SafePrimitive p where
 
--- | Primitives that are initialisable via a `ByteString`. Examples
--- are hmac's.
-class Primitive p => Initializable p where
-  cxtSize :: p -> BYTES Int
-  getCxt  :: ByteString -> Cxt p
+-- | Privitives which can be digested to a final value (captured by
+-- associated type family `Digest`).
+class Primitive p => Digestible p where
+
+  -- | Final Value
+  type Digest p :: *
+
+  -- | Converts the `Cxt` to `Digest`. Note that this operation might
+  -- be irreversible. For example in Blake hash, the information about
+  -- the number of blocks hashed so far is lost after you digest the
+  -- context.
+  toDigest :: Cxt p -> Digest p
 
 -----------------   A cryptographic gadget. ----------------------------
 
@@ -188,18 +194,6 @@ class (Gadget g,HasPadding (PrimitiveOf g)) => PaddableGadget g where
         len  = cryptoCoerce blocks + bits
     unsafePad (primitiveOf g) len (cptr `movePtr` bytes)
     apply g (cryptoCoerce (bytes + padLength (primitiveOf g) len)) cptr
-
--- | This represents Gadgets with inverses. For example, encryption
--- gadget can have decryption gadget as its inverse.
-class ( Gadget g
-      , Gadget (Inverse g)
-      ) => HasInverse g where
-  type Inverse g :: *
-
--- | Gives the inverse of a gadget. This function should only be used
--- to satisy types as the actual value returned is `undefined`.
-inverseGadget :: HasInverse g => g -> Inverse g
-inverseGadget _ = undefined
 
 -- | This function runs an action that expects a gadget as input.
 withGadget :: Gadget g

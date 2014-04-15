@@ -11,62 +11,26 @@ import Raaz.Cipher.AES.ECB.Ref       ()
 import Raaz.Cipher.AES.ECB.CPortable ()
 import Raaz.Cipher.AES.Internal
 
-instance CryptoPrimitive (Cipher (AES ECB) KEY128 Encryption) where
-  type Recommended (Cipher (AES ECB) KEY128 Encryption) = CGadget (Cipher (AES ECB) KEY128 Encryption)
-  type Reference (Cipher (AES ECB) KEY128 Encryption) = HGadget (Cipher (AES ECB) KEY128 Encryption)
+instance CryptoPrimitive (Cipher (AES ECB) KEY128 EncryptMode) where
+  type Recommended (Cipher (AES ECB) KEY128 EncryptMode) = CGadget (Cipher (AES ECB) KEY128 EncryptMode)
+  type Reference (Cipher (AES ECB) KEY128 EncryptMode) = HGadget (Cipher (AES ECB) KEY128 EncryptMode)
 
-instance CryptoPrimitive (Cipher (AES ECB) KEY128 Decryption) where
-  type Recommended (Cipher (AES ECB) KEY128 Decryption) = CGadget (Cipher (AES ECB) KEY128 Decryption)
-  type Reference (Cipher (AES ECB) KEY128 Decryption) = HGadget (Cipher (AES ECB) KEY128 Decryption)
+instance CryptoPrimitive (Cipher (AES ECB) KEY128 DecryptMode) where
+  type Recommended (Cipher (AES ECB) KEY128 DecryptMode) = CGadget (Cipher (AES ECB) KEY128 DecryptMode)
+  type Reference (Cipher (AES ECB) KEY128 DecryptMode) = HGadget (Cipher (AES ECB) KEY128 DecryptMode)
 
-instance CryptoPrimitive (Cipher (AES ECB) KEY192 Encryption) where
-  type Recommended (Cipher (AES ECB) KEY192 Encryption) = CGadget (Cipher (AES ECB) KEY192 Encryption)
-  type Reference (Cipher (AES ECB) KEY192 Encryption) = HGadget (Cipher (AES ECB) KEY192 Encryption)
+instance CryptoPrimitive (Cipher (AES ECB) KEY192 EncryptMode) where
+  type Recommended (Cipher (AES ECB) KEY192 EncryptMode) = CGadget (Cipher (AES ECB) KEY192 EncryptMode)
+  type Reference (Cipher (AES ECB) KEY192 EncryptMode) = HGadget (Cipher (AES ECB) KEY192 EncryptMode)
 
-instance CryptoPrimitive (Cipher (AES ECB) KEY192 Decryption) where
-  type Recommended (Cipher (AES ECB) KEY192 Decryption) = CGadget (Cipher (AES ECB) KEY192 Decryption)
-  type Reference (Cipher (AES ECB) KEY192 Decryption) = HGadget (Cipher (AES ECB) KEY192 Decryption)
+instance CryptoPrimitive (Cipher (AES ECB) KEY192 DecryptMode) where
+  type Recommended (Cipher (AES ECB) KEY192 DecryptMode) = CGadget (Cipher (AES ECB) KEY192 DecryptMode)
+  type Reference (Cipher (AES ECB) KEY192 DecryptMode) = HGadget (Cipher (AES ECB) KEY192 DecryptMode)
 
-instance CryptoPrimitive (Cipher (AES ECB) KEY256 Encryption) where
-  type Recommended (Cipher (AES ECB) KEY256 Encryption) = CGadget (Cipher (AES ECB) KEY256 Encryption)
-  type Reference (Cipher (AES ECB) KEY256 Encryption) = HGadget (Cipher (AES ECB) KEY256 Encryption)
+instance CryptoPrimitive (Cipher (AES ECB) KEY256 EncryptMode) where
+  type Recommended (Cipher (AES ECB) KEY256 EncryptMode) = CGadget (Cipher (AES ECB) KEY256 EncryptMode)
+  type Reference (Cipher (AES ECB) KEY256 EncryptMode) = HGadget (Cipher (AES ECB) KEY256 EncryptMode)
 
-instance CryptoPrimitive (Cipher (AES ECB) KEY256 Decryption) where
-  type Recommended (Cipher (AES ECB) KEY256 Decryption) = CGadget (Cipher (AES ECB) KEY256 Decryption)
-  type Reference (Cipher (AES ECB) KEY256 Decryption) = HGadget (Cipher (AES ECB) KEY256 Decryption)
-
-instance HasInverse (HGadget (Cipher (AES ECB) KEY128 Encryption)) where
-  type Inverse (HGadget (Cipher (AES ECB) KEY128 Encryption)) = HGadget (Cipher (AES ECB) KEY128 Decryption)
-
-instance HasInverse (HGadget (Cipher (AES ECB) KEY128 Decryption)) where
-  type Inverse (HGadget (Cipher (AES ECB) KEY128 Decryption)) = HGadget (Cipher (AES ECB) KEY128 Encryption)
-
-instance HasInverse (HGadget (Cipher (AES ECB) KEY192 Encryption)) where
-  type Inverse (HGadget (Cipher (AES ECB) KEY192 Encryption)) = HGadget (Cipher (AES ECB) KEY192 Decryption)
-
-instance HasInverse (HGadget (Cipher (AES ECB) KEY192 Decryption)) where
-  type Inverse (HGadget (Cipher (AES ECB) KEY192 Decryption)) = HGadget (Cipher (AES ECB) KEY192 Encryption)
-
-instance HasInverse (HGadget (Cipher (AES ECB) KEY256 Encryption)) where
-  type Inverse (HGadget (Cipher (AES ECB) KEY256 Encryption)) = HGadget (Cipher (AES ECB) KEY256 Decryption)
-
-instance HasInverse (HGadget (Cipher (AES ECB) KEY256 Decryption)) where
-  type Inverse (HGadget (Cipher (AES ECB) KEY256 Decryption)) = HGadget (Cipher (AES ECB) KEY256 Encryption)
-
-instance HasInverse (CGadget (Cipher (AES ECB) KEY128 Encryption)) where
-  type Inverse (CGadget (Cipher (AES ECB) KEY128 Encryption)) = CGadget (Cipher (AES ECB) KEY128 Decryption)
-
-instance HasInverse (CGadget (Cipher (AES ECB) KEY128 Decryption)) where
-  type Inverse (CGadget (Cipher (AES ECB) KEY128 Decryption)) = CGadget (Cipher (AES ECB) KEY128 Encryption)
-
-instance HasInverse (CGadget (Cipher (AES ECB) KEY192 Encryption)) where
-  type Inverse (CGadget (Cipher (AES ECB) KEY192 Encryption)) = CGadget (Cipher (AES ECB) KEY192 Decryption)
-
-instance HasInverse (CGadget (Cipher (AES ECB) KEY192 Decryption)) where
-  type Inverse (CGadget (Cipher (AES ECB) KEY192 Decryption)) = CGadget (Cipher (AES ECB) KEY192 Encryption)
-
-instance HasInverse (CGadget (Cipher (AES ECB) KEY256 Encryption)) where
-  type Inverse (CGadget (Cipher (AES ECB) KEY256 Encryption)) = CGadget (Cipher (AES ECB) KEY256 Decryption)
-
-instance HasInverse (CGadget (Cipher (AES ECB) KEY256 Decryption)) where
-  type Inverse (CGadget (Cipher (AES ECB) KEY256 Decryption)) = CGadget (Cipher (AES ECB) KEY256 Encryption)
+instance CryptoPrimitive (Cipher (AES ECB) KEY256 DecryptMode) where
+  type Recommended (Cipher (AES ECB) KEY256 DecryptMode) = CGadget (Cipher (AES ECB) KEY256 DecryptMode)
+  type Reference (Cipher (AES ECB) KEY256 DecryptMode) = HGadget (Cipher (AES ECB) KEY256 DecryptMode)

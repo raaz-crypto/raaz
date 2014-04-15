@@ -22,6 +22,7 @@ import Raaz.Types
 import Raaz.Parse.Unsafe
 import Raaz.Write.Unsafe
 
+import Raaz.Serialize
 
 -- | State which consists of 4 `Word32LE`.
 data STATE = STATE {-# UNPACK #-} !Word32LE
@@ -96,6 +97,8 @@ instance EndianStore STATE where
   load cptr = runParser cptr parseState
   store cptr state = runWrite cptr $ writeState state
 
+instance CryptoSerialize STATE
+
 -- | Matrix which consists of 4 `STATE`.
 data Matrix = Matrix {-# UNPACK #-} !STATE
                      {-# UNPACK #-} !STATE
@@ -144,6 +147,8 @@ instance Storable Matrix where
 instance EndianStore Matrix where
   load cptr = runParser cptr parseMatrix
   store cptr matrix = runWrite cptr $ writeMatrix matrix
+
+instance CryptoSerialize Matrix
 
 -- | Transpose of the `Matrix`.
 transposeMatrix :: Matrix -> Matrix
@@ -264,6 +269,8 @@ instance EndianStore KEY128 where
   load cptr = runParser cptr parseKey128
   store cptr key128 = runWrite cptr $ writeKey128 key128
 
+instance CryptoSerialize KEY128
+
 parseKey256 :: Parser KEY256
 parseKey256 = KEY256 <$> parse
                      <*> parse
@@ -293,6 +300,8 @@ instance Storable KEY256 where
 instance EndianStore KEY256 where
   load cptr = runParser cptr parseKey256
   store cptr key256 = runWrite cptr $ writeKey256 key256
+
+instance CryptoSerialize KEY256
 
 -- | Performs summation for `Matrix`.
 showWord32 :: Word32LE -> ShowS
@@ -336,10 +345,12 @@ instance EndianStore SplitWord64 where
   load cptr = runParser cptr parseSplitWord64
   store cptr splitWord64 = runWrite cptr $ writeSplitWord64 splitWord64
 
+instance CryptoSerialize SplitWord64
+
 -- | Nonce of 8 Byte.
 newtype Nonce   = Nonce SplitWord64
-  deriving (Eq, Show, Typeable, EndianStore, Storable)
+  deriving (Eq, Show, Typeable, EndianStore, Storable, CryptoSerialize)
 
 -- | Counter of 8 Byte.
 newtype Counter = Counter SplitWord64
-  deriving (Eq, Show, Typeable, EndianStore, Storable)
+  deriving (Eq, Show, Typeable, EndianStore, Storable, CryptoSerialize)

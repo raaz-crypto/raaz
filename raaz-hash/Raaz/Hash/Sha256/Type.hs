@@ -49,6 +49,10 @@ instance Eq SHA256 where
 
 instance HasName SHA256
 
+instance Digestible SHA256 where
+  type Digest SHA256 = SHA256
+  toDigest (SHA256Cxt h) = h
+
 instance Storable SHA256 where
   sizeOf    _ = 8 * sizeOf (undefined :: Word32BE)
   alignment _ = alignment  (undefined :: Word32BE)

@@ -6,21 +6,20 @@ module Raaz.ByteSource
        , PureByteSource
        , FillResult(..)
        , withFillResult
-
        ) where
 
-import           Control.Monad (liftM)
-import qualified Data.ByteString as B
+import           Control.Monad        (liftM)
+import qualified Data.ByteString      as B
 import qualified Data.ByteString.Lazy as L
 import           Prelude hiding(length)
-import           System.IO(Handle)
+import           System.IO            (Handle)
 
-import           Raaz.Types(BYTES, CryptoPtr, CryptoCoerce(..))
+import           Raaz.Types           (BYTES, CryptoPtr, CryptoCoerce(..))
 import           Raaz.Util.ByteString( unsafeCopyToCryptoPtr
                                      , unsafeNCopyToCryptoPtr
                                      , length
                                      )
-import           Raaz.Util.Ptr(movePtr, hFillBuf)
+import           Raaz.Util.Ptr        (movePtr, hFillBuf)
 
 
 -- | This type captures the result of a fill operation.
@@ -116,4 +115,4 @@ instance ByteSource src => ByteSource [src] where
 
 instance PureByteSource B.ByteString where
 instance PureByteSource L.ByteString where
-instance PureByteSource src => PureByteSource [src] where
+instance PureByteSource src => PureByteSource [src]

@@ -13,7 +13,7 @@ import Raaz.Cipher.AES.CTR
 
 import Modules.AES.Defaults
 
--- From http://www.inconteam.com/software-development/41-encryption/55-aes-test-vectors
+-- From http://www.inconteam.com/software-development/41-encryptMode/55-aes-test-vectors
 standard128Vector :: [(ByteString,ByteString,ByteString)]
 standard128Vector =
   [ ( pack [0x2b,0x7e,0x15,0x16,0x28,0xae,0xd2,0xa6,0xab,0xf7,0x15,0x88,0x09,0xcf,0x4f,0x3c
@@ -56,7 +56,7 @@ standard256Vector =
            ,0xdf,0xc9,0xc5,0x8d,0xb6,0x7a,0xad,0xa6,0x13,0xc2,0xdd,0x08,0x45,0x79,0x41,0xa6] )
   ]
 
-ctr :: Cipher (AES CTR) KEY128 Encryption
+ctr :: Cipher (AES CTR) KEY128 EncryptMode
 ctr = undefined
 
 tests :: [Test]
