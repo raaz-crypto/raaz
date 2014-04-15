@@ -87,6 +87,8 @@ instance StreamGadget g => Gadget (RandomSource g) where
   -- | Uses the buffer of recommended block size.
   newGadgetWithMemory (gmem,buffer,celloffset,cellcounter) = do
     g <- newGadgetWithMemory gmem
+    cellStore celloffset (memoryBufSize buffer)
+    cellStore cellcounter 0
     return $ RandomSource g buffer celloffset cellcounter
   initialize (RandomSource g buffer celloffset cellcounter) (RSCxt iv) = do
     initialize g iv
