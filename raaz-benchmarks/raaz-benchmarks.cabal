@@ -40,7 +40,7 @@ library
                --
                -- Dependency on other raaz packages.
                --
-               , raaz-primitives                >= 0.0.0.1 && < 0.0.0.2
+               , raaz-core                      >= 0.0.0.1 && < 0.0.0.2
   ghc-options: -Wall
 
 test-Suite tests
@@ -59,7 +59,7 @@ test-Suite tests
                --
                -- Dependencies on raaz packages.
                --
-               , raaz-primitives                >= 0.0.0.1 && < 0.0.0.2
+               , raaz-core                      >= 0.0.0.1 && < 0.0.0.2
 
   if os(linux)
      cc-options: -Wall -Werror -O3 -DRAAZ_HAVE_GCC

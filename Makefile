@@ -124,7 +124,7 @@ tests:
 		)
 
 src-tarball:
-	cd raaz-primitives; \
+	cd raaz-core; \
 	   ${CABAL_INSTALL} --only-dependencies; \
 	   ${CABAL} configure;\
 	   cd ..
