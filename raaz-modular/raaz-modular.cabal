@@ -23,9 +23,12 @@ library
                  , Raaz.Public
                  , Raaz.RSA.Signature
                  , Raaz.Number.Internals
+                 , Raaz.DH
   other-modules: Raaz.RSA.Types
                , Raaz.RSA.Signature.Instances
                , Raaz.RSA.Signature.Primitives
+               , Raaz.DH.Types
+               , Raaz.DH.Exchange
                , Raaz.Number.Util
                , Raaz.Number.Modular
   build-depends: base                           >= 4.5 && < 4.8
@@ -38,6 +41,7 @@ library
                , raaz-core                      >=0.0.0.1 && < 0.0.0.2
                , raaz-random                    >=0.0.0.1 && < 0.0.0.2
                , raaz-hash                      >=0.0.0.1 && < 0.0.0.2
+               , raaz-cipher                    >=0.0.0.1 && < 0.0.0.2
 
   ghc-options: -Wall
 
