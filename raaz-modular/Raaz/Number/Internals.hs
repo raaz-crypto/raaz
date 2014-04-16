@@ -11,10 +11,16 @@ module Raaz.Number.Internals
        , Word2048
        , Word4096
        , Word8192
+       , os2wp, w2osp
+       -- * Parse and Write
+       --
+       -- $Parser$
+       , parseWord, writeWord
+       , parseWordBE, writeWordBE
        ) where
 
-import Control.Applicative
 import Data.Bits
+import Data.ByteString     as BS
 import Data.Monoid
 import Data.Typeable
 import Data.Word
@@ -30,24 +36,51 @@ import Raaz.Number.Modular
 import Raaz.Number.Util
 
 
--- | Parses an integer which is of given number of Bytes. Note it
--- assumes that bytes given is a multiple of 8.
-parseInteger :: BYTES Int -> Parser Integer
-parseInteger = go 0
-  where
-    go !result 0 = return result
-    go !result n = parseStorable >>= with
-      where
-        with :: Word64 -> Parser Integer
-        with m = go (result * 18446744073709551616 + toInteger m) (n - 8)
-                 -- result * 2^64 + m
+-- $Parsers$
+--
+-- We have used `Word64` as the underlying native type for memory
+-- operations. Thats why these parsers should only be used on words
+-- which have a multiple of 8 byte size.
 
--- | Writes an integer of given number of Bytes. Note it assumes that
--- bytes given is a multiple of 8.
-writeInteger :: BYTES Int -> Integer -> Write
-writeInteger 0  _  = mempty
-writeInteger !n !i =  writeInteger (n-8) q
-                   <> writeStorable (fromInteger r :: Word64)
+-- | Parses a Word.
+parseWord :: (Num w, Storable w) => Parser w
+parseWord = with undefined
+  where
+    with :: (Num w, Storable w) => w -> Parser w
+    with w = go 0 (sizeOf w)
+    go :: Num w => w -> Int -> Parser w
+    go !result 0 = return result
+    go !result n = (parseStorable :: Parser Word64) >>= recurse
+      where
+        recurse m = go (result * 18446744073709551616 + fromIntegral m) (n - 8) -- result * 2^64 + m
+
+-- | Writes an Word. .
+writeWord :: (Num w, Storable w, Integral w) => w -> Write
+writeWord w = writeW (sizeOf w) w
+  where
+    writeW 0  _  = mempty
+    writeW !n !i = writeW (n-8) q <> writeStorable (fromIntegral r :: Word64)
+      where (q,r)  = i `quotRem` 18446744073709551616
+
+
+-- | Parses a Word in network byte order (Big Endian)
+parseWordBE :: (Num w, Storable w) => Parser w
+parseWordBE = with undefined
+  where
+    with :: (Num w, Storable w) => w -> Parser w
+    with w = go 0 (sizeOf w)
+    go :: Num w => w -> Int -> Parser w
+    go !result 0 = return result
+    go !result n = (parse :: Parser Word64BE) >>= recurse
+      where
+        recurse m = go (result * 18446744073709551616 + fromIntegral m) (n - 8) -- result * 2^64 + m
+
+-- | Writes an Word. .
+writeWordBE :: (Num w, Storable w, Integral w) => w -> Write
+writeWordBE w = writeW (sizeOf w) w
+  where
+    writeW 0  _  = mempty
+    writeW !n !i = writeW (n-8) q <> writeStorable (fromIntegral r :: Word64BE)
       where (q,r)  = i `quotRem` 18446744073709551616
 
 -- | 128 Bit Word
@@ -107,10 +140,10 @@ instance Bits Word128 where
 #endif
 
 instance Storable Word128 where
-  sizeOf _             = 16
-  alignment _          = alignment (undefined :: Word64BE)
-  peek ptr             = runParser (castPtr ptr) (Word128 <$> parseInteger 16)
-  poke ptr (Word128 i) = runWrite (castPtr ptr) (writeInteger 16 i)
+  sizeOf _     = 16
+  alignment _  = alignment (undefined :: Word64)
+  peek ptr     = runParser (castPtr ptr) parseWord
+  poke ptr     = runWrite (castPtr ptr) . writeWord
 
 -- | 256 Bit Word
 newtype Word256 = Word256 Integer
@@ -169,11 +202,10 @@ instance Bits Word256 where
 #endif
 
 instance Storable Word256 where
-  sizeOf _             = 32
-  alignment _          = alignment (undefined :: Word64BE)
-  peek ptr             = runParser (castPtr ptr)
-                                   (Word256 <$> parseInteger 32)
-  poke ptr (Word256 i) = runWrite (castPtr ptr) (writeInteger 32 i)
+  sizeOf _      = 32
+  alignment _   = alignment (undefined :: Word64)
+  peek ptr      = runParser (castPtr ptr) parseWord
+  poke ptr      = runWrite (castPtr ptr) . writeWord
 
 -- | 512 Bit Word
 newtype Word512 = Word512 Integer
@@ -232,10 +264,10 @@ instance Bits Word512 where
 #endif
 
 instance Storable Word512 where
-  sizeOf _             = 64
-  alignment _          = alignment (undefined :: Word64BE)
-  peek ptr             = runParser (castPtr ptr) (Word512 <$> parseInteger 64)
-  poke ptr (Word512 i) = runWrite (castPtr ptr) (writeInteger 64 i)
+  sizeOf _     = 64
+  alignment _  = alignment (undefined :: Word64)
+  peek ptr     = runParser (castPtr ptr) parseWord
+  poke ptr     = runWrite (castPtr ptr) . writeWord
 
 -- | 1024 Bit Word
 newtype Word1024 = Word1024 Integer
@@ -294,10 +326,10 @@ instance Bits Word1024 where
 #endif
 
 instance Storable Word1024 where
-  sizeOf _             = 128
-  alignment _          = alignment (undefined :: Word64BE)
-  peek ptr             = runParser (castPtr ptr) (Word1024 <$> parseInteger 128)
-  poke ptr (Word1024 i) = runWrite (castPtr ptr) (writeInteger 128 i)
+  sizeOf _     = 128
+  alignment _  = alignment (undefined :: Word64)
+  peek ptr     = runParser (castPtr ptr) parseWord
+  poke ptr     = runWrite (castPtr ptr) . writeWord
 
 -- | 2048 Bit Word
 newtype Word2048 = Word2048 Integer
@@ -356,10 +388,10 @@ instance Bits Word2048 where
 #endif
 
 instance Storable Word2048 where
-  sizeOf _             = 256
-  alignment _          = alignment (undefined :: Word64BE)
-  peek ptr             = runParser (castPtr ptr) (Word2048 <$> parseInteger 256)
-  poke ptr (Word2048 i) = runWrite (castPtr ptr) (writeInteger 256 i)
+  sizeOf _     = 256
+  alignment _  = alignment (undefined :: Word64)
+  peek ptr     = runParser (castPtr ptr) parseWord
+  poke ptr     = runWrite (castPtr ptr) . writeWord
 
 -- | 4096 Bit Word
 newtype Word4096 = Word4096 Integer
@@ -418,10 +450,10 @@ instance Bits Word4096 where
 #endif
 
 instance Storable Word4096 where
-  sizeOf _             = 512
-  alignment _          = alignment (undefined :: Word64BE)
-  peek ptr             = runParser (castPtr ptr) (Word4096 <$> parseInteger 512)
-  poke ptr (Word4096 i) = runWrite (castPtr ptr) (writeInteger 512 i)
+  sizeOf _      = 512
+  alignment _   = alignment (undefined :: Word64)
+  peek ptr      = runParser (castPtr ptr) parseWord
+  poke ptr      = runWrite (castPtr ptr) . writeWord
 
 -- | 8192 Bit Word
 newtype Word8192 = Word8192 Integer
@@ -480,7 +512,37 @@ instance Bits Word8192 where
 #endif
 
 instance Storable Word8192 where
-  sizeOf _             = 1024
-  alignment _          = alignment (undefined :: Word64BE)
-  peek ptr             = runParser (castPtr ptr) (Word8192 <$> parseInteger 1024)
-  poke ptr (Word8192 i) = runWrite (castPtr ptr) (writeInteger 1024 i)
+  sizeOf _     = 1024
+  alignment _  = alignment (undefined :: Word64)
+  peek ptr     = runParser (castPtr ptr) parseWord
+  poke ptr     = runWrite (castPtr ptr) . writeWord
+
+
+-- | Converts a Word to ByteString
+w2osp :: (Storable w, Integral w)
+      => w
+      -> ByteString
+w2osp x = base256 x
+  where
+    xLen = sizeOf x
+    base256 = BS.reverse . fst . BS.unfoldrN (fromIntegral xLen) with
+    with b | b <= 0    = Just (0,0)
+           | otherwise = Just (fromIntegral r, q)
+      where (q,r) = b `quotRem` 256
+{-# SPECIALIZE w2osp :: Word1024 -> ByteString #-}
+{-# SPECIALIZE w2osp :: Word2048 -> ByteString #-}
+{-# SPECIALIZE w2osp :: Word4096 -> ByteString #-}
+{-# SPECIALIZE w2osp :: Word8192 -> ByteString #-}
+
+
+-- | Converts ByteString to Word
+os2wp :: Num w
+      => ByteString  -- ^ ByteString
+      -> w           -- ^ Non Negative Integer
+os2wp = BS.foldl with 0
+  where
+    with o w = o * 256 + fromIntegral w
+{-# SPECIALIZE os2wp :: ByteString -> Word1024 #-}
+{-# SPECIALIZE os2wp :: ByteString -> Word2048 #-}
+{-# SPECIALIZE os2wp :: ByteString -> Word4096 #-}
+{-# SPECIALIZE os2wp :: ByteString -> Word8192 #-}
