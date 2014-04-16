@@ -33,4 +33,4 @@ CABAL_VERSION=
 
 # Additional constraints on packages so that it builds properly.
 
-ADDITIONAL_CONSTRAINTS=hastache<0.6
+ADDITIONAL_CONSTRAINTS=
