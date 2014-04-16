@@ -54,12 +54,12 @@ newtype Word128 = Word128 Integer
 
 -- | Reduced Int to lower order 128 Bits
 narrowWord128 :: Integer -> Integer
-narrowWord128 w = w `mod` pow2_129
+narrowWord128 w = w `mod` twoPow129
 {-# INLINE narrowWord128 #-}
 
-pow2_129 :: Integer
-pow2_129 = 1 `shiftL` 129
-{-# INLINE pow2_129 #-}
+twoPow129 :: Integer
+twoPow129 = 1 `shiftL` 129
+{-# INLINE twoPow129 #-}
 
 instance Num Word128 where
   (+) (Word128 a) (Word128 b) = Word128 $ narrowWord128 (a + b)
@@ -77,7 +77,7 @@ instance Eq Word128 where
 
 instance Bounded Word128 where
   minBound = 0
-  maxBound = Word128 $ pow2_129 - 1
+  maxBound = Word128 $ twoPow129 - 1
 
 instance Enum Word128 where
   succ x | x /= maxBound = x + 1
@@ -116,12 +116,12 @@ newtype Word256 = Word256 Integer
 
 -- | Reduced Int to lower order 256 Bits
 narrowWord256 :: Integer -> Integer
-narrowWord256 w = w `mod` pow2_257
+narrowWord256 w = w `mod` twoPow257
 {-# INLINE narrowWord256 #-}
 
-pow2_257 :: Integer
-pow2_257 = 1 `shiftL` 257
-{-# INLINE pow2_257 #-}
+twoPow257 :: Integer
+twoPow257 = 1 `shiftL` 257
+{-# INLINE twoPow257 #-}
 
 instance Num Word256 where
   (+) (Word256 a) (Word256 b) = Word256 $ narrowWord256 (a + b)
@@ -139,7 +139,7 @@ instance Eq Word256 where
 
 instance Bounded Word256 where
   minBound = 0
-  maxBound = Word256 $ pow2_257 - 1
+  maxBound = Word256 $ twoPow257 - 1
 
 instance Enum Word256 where
   succ x | x /= maxBound = x + 1
@@ -178,12 +178,12 @@ newtype Word512 = Word512 Integer
 
 -- | Reduced Int to lower order 512 Bits
 narrowWord512 :: Integer -> Integer
-narrowWord512 w = w `mod` pow2_513
+narrowWord512 w = w `mod` twoPow513
 {-# INLINE narrowWord512 #-}
 
-pow2_513 :: Integer
-pow2_513 = 1 `shiftL` 513
-{-# INLINE pow2_513 #-}
+twoPow513 :: Integer
+twoPow513 = 1 `shiftL` 513
+{-# INLINE twoPow513 #-}
 
 instance Num Word512 where
   (+) (Word512 a) (Word512 b) = Word512 $ narrowWord512 (a + b)
@@ -201,7 +201,7 @@ instance Eq Word512 where
 
 instance Bounded Word512 where
   minBound = 0
-  maxBound = Word512 $ pow2_513 - 1
+  maxBound = Word512 $ twoPow513 - 1
 
 instance Enum Word512 where
   succ x | x /= maxBound = x + 1
@@ -240,12 +240,12 @@ newtype Word1024 = Word1024 Integer
 
 -- | Reduced Int to lower order 1024 Bits
 narrowWord1024 :: Integer -> Integer
-narrowWord1024 w = w `mod` pow2_1025
+narrowWord1024 w = w `mod` twoPow1025
 {-# INLINE narrowWord1024 #-}
 
-pow2_1025 :: Integer
-pow2_1025 = 1 `shiftL` 1025
-{-# INLINE pow2_1025 #-}
+twoPow1025 :: Integer
+twoPow1025 = 1 `shiftL` 1025
+{-# INLINE twoPow1025 #-}
 
 instance Num Word1024 where
   (+) (Word1024 a) (Word1024 b) = Word1024 $ narrowWord1024 (a + b)
@@ -263,7 +263,7 @@ instance Eq Word1024 where
 
 instance Bounded Word1024 where
   minBound = 0
-  maxBound = Word1024 $ pow2_1025 - 1
+  maxBound = Word1024 $ twoPow1025 - 1
 
 instance Enum Word1024 where
   succ x | x /= maxBound = x + 1
@@ -302,12 +302,12 @@ newtype Word2048 = Word2048 Integer
 
 -- | Reduced Int to lower order 2048 Bits
 narrowWord2048 :: Integer -> Integer
-narrowWord2048 w = w `mod` pow2_2049
+narrowWord2048 w = w `mod` twoPow2049
 {-# INLINE narrowWord2048 #-}
 
-pow2_2049 :: Integer
-pow2_2049 = 1 `shiftL` 2049
-{-# INLINE pow2_2049 #-}
+twoPow2049 :: Integer
+twoPow2049 = 1 `shiftL` 2049
+{-# INLINE twoPow2049 #-}
 
 instance Num Word2048 where
   (+) (Word2048 a) (Word2048 b) = Word2048 $ narrowWord2048 (a + b)
@@ -325,7 +325,7 @@ instance Eq Word2048 where
 
 instance Bounded Word2048 where
   minBound = 0
-  maxBound = Word2048 $ pow2_2049 - 1
+  maxBound = Word2048 $ twoPow2049 - 1
 
 instance Enum Word2048 where
   succ x | x /= maxBound = x + 1
@@ -364,12 +364,12 @@ newtype Word4096 = Word4096 Integer
 
 -- | Reduced Int to lower order 4096 Bits
 narrowWord4096 :: Integer -> Integer
-narrowWord4096 w = w `mod` pow2_4097
+narrowWord4096 w = w `mod` twoPow4097
 {-# INLINE narrowWord4096 #-}
 
-pow2_4097 :: Integer
-pow2_4097 = 1 `shiftL` 4097
-{-# INLINE pow2_4097 #-}
+twoPow4097 :: Integer
+twoPow4097 = 1 `shiftL` 4097
+{-# INLINE twoPow4097 #-}
 
 instance Num Word4096 where
   (+) (Word4096 a) (Word4096 b) = Word4096 $ narrowWord4096 (a + b)
@@ -387,7 +387,7 @@ instance Eq Word4096 where
 
 instance Bounded Word4096 where
   minBound = 0
-  maxBound = Word4096 $ pow2_4097 - 1
+  maxBound = Word4096 $ twoPow4097 - 1
 
 instance Enum Word4096 where
   succ x | x /= maxBound = x + 1
@@ -426,12 +426,12 @@ newtype Word8192 = Word8192 Integer
 
 -- | Reduced Int to lower order 8192 Bits
 narrowWord8192 :: Integer -> Integer
-narrowWord8192 w = w `mod` pow2_8193
+narrowWord8192 w = w `mod` twoPow8193
 {-# INLINE narrowWord8192 #-}
 
-pow2_8193 :: Integer
-pow2_8193 = 1 `shiftL` 8193
-{-# INLINE pow2_8193 #-}
+twoPow8193 :: Integer
+twoPow8193 = 1 `shiftL` 8193
+{-# INLINE twoPow8193 #-}
 
 instance Num Word8192 where
   (+) (Word8192 a) (Word8192 b) = Word8192 $ narrowWord8192 (a + b)
@@ -449,7 +449,7 @@ instance Eq Word8192 where
 
 instance Bounded Word8192 where
   minBound = 0
-  maxBound = Word8192 $ pow2_8193 - 1
+  maxBound = Word8192 $ twoPow8193 - 1
 
 instance Enum Word8192 where
   succ x | x /= maxBound  = x + 1
