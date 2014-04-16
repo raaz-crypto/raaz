@@ -2,6 +2,7 @@
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE BangPatterns               #-}
 {-# LANGUAGE DeriveDataTypeable         #-}
+{-# LANGUAGE CPP                        #-}
 module Raaz.Number.Internals
        ( Word128
        , Word256
@@ -97,9 +98,11 @@ instance Bits Word128 where
   rotateR (Word128 w) i           = Word128 . narrowWord128 $ rotateR w i
   bitSize  _                      = 128
   isSigned _                      = False
+#if MIN_VERSION_base(4,6,0)
   popCount                        = popCountDefault
   bit                             = bitDefault
   testBit                         = testBitDefault
+#endif
 
 instance Storable Word128 where
   sizeOf _             = 16
@@ -157,9 +160,11 @@ instance Bits Word256 where
   rotateR (Word256 w) i           = Word256 . narrowWord256 $ rotateR w i
   bitSize  _                      = 256
   isSigned _                      = False
+#if MIN_VERSION_base(4,6,0)
   popCount                        = popCountDefault
   bit                             = bitDefault
   testBit                         = testBitDefault
+#endif
 
 instance Storable Word256 where
   sizeOf _             = 32
@@ -217,9 +222,11 @@ instance Bits Word512 where
   rotateR (Word512 w) i           = Word512 . narrowWord512 $ rotateR w i
   bitSize  _                      = 512
   isSigned _                      = False
+#if MIN_VERSION_base(4,6,0)
   popCount                        = popCountDefault
   bit                             = bitDefault
   testBit                         = testBitDefault
+#endif
 
 instance Storable Word512 where
   sizeOf _             = 64
@@ -277,9 +284,11 @@ instance Bits Word1024 where
   rotateR (Word1024 w) i            = Word1024 . narrowWord1024 $ rotateR w i
   bitSize  _                        = 1024
   isSigned _                        = False
+#if MIN_VERSION_base(4,6,0)
   popCount                          = popCountDefault
   bit                               = bitDefault
   testBit                           = testBitDefault
+#endif
 
 instance Storable Word1024 where
   sizeOf _             = 128
@@ -337,9 +346,11 @@ instance Bits Word2048 where
   rotateR (Word2048 w) i            = Word2048 . narrowWord2048 $ rotateR w i
   bitSize  _                        = 2048
   isSigned _                        = False
+#if MIN_VERSION_base(4,6,0)
   popCount                          = popCountDefault
   bit                               = bitDefault
   testBit                           = testBitDefault
+#endif
 
 instance Storable Word2048 where
   sizeOf _             = 256
@@ -397,9 +408,11 @@ instance Bits Word4096 where
   rotateR (Word4096 w) i            = Word4096 . narrowWord4096 $ rotateR w i
   bitSize  _                        = 4096
   isSigned _                        = False
+#if MIN_VERSION_base(4,6,0)
   popCount                          = popCountDefault
   bit                               = bitDefault
   testBit                           = testBitDefault
+#endif
 
 instance Storable Word4096 where
   sizeOf _             = 512
@@ -457,9 +470,11 @@ instance Bits Word8192 where
   rotateR (Word8192 w) i            = Word8192 . narrowWord8192 $ rotateR w i
   bitSize  _                        = 8192
   isSigned _                        = False
+#if MIN_VERSION_base(4,6,0)
   popCount                          = popCountDefault
   bit                               = bitDefault
   testBit                           = testBitDefault
+#endif
 
 instance Storable Word8192 where
   sizeOf _             = 1024
