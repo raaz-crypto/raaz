@@ -39,13 +39,15 @@ parseInteger = go 0
     go !result n = parseStorable >>= with
       where
         with :: Word64 -> Parser Integer
-        with m = go (result * 18446744073709551616 + toInteger m) (n - 8) -- result * 2^64 + m
+        with m = go (result * 18446744073709551616 + toInteger m) (n - 8)
+                 -- result * 2^64 + m
 
 -- | Writes an integer of given number of Bytes. Note it assumes that
 -- bytes given is a multiple of 8.
 writeInteger :: BYTES Int -> Integer -> Write
 writeInteger 0  _  = mempty
-writeInteger !n !i = writeInteger (n-8) q <> writeStorable (fromInteger r :: Word64)
+writeInteger !n !i =  writeInteger (n-8) q
+                   <> writeStorable (fromInteger r :: Word64)
       where (q,r)  = i `quotRem` 18446744073709551616
 
 -- | 128 Bit Word
@@ -92,10 +94,10 @@ instance Bits Word128 where
   (.|.)   (Word128 x) (Word128 y) = Word128 (x .|. y)
   xor     (Word128 x) (Word128 y) = Word128 (x `xor` y)
   complement (Word128 x)          = Word128 $ complement x
-  shiftL  (Word128 w) i           = Word128 . narrowWord128 $ shiftL w i
-  shiftR  (Word128 w) i           = Word128 . narrowWord128 $ shiftR w i
-  rotateL (Word128 w) i           = Word128 . narrowWord128 $ rotateL w i
-  rotateR (Word128 w) i           = Word128 . narrowWord128 $ rotateR w i
+  shiftL  (Word128 w) i           = Word128 $ narrowWord128 $ shiftL w i
+  shiftR  (Word128 w) i           = Word128 $ narrowWord128 $ shiftR w i
+  rotateL (Word128 w) i           = Word128 $ narrowWord128 $ rotateL w i
+  rotateR (Word128 w) i           = Word128 $ narrowWord128 $ rotateR w i
   bitSize  _                      = 128
   isSigned _                      = False
 #if MIN_VERSION_base(4,6,0)
@@ -154,10 +156,10 @@ instance Bits Word256 where
   (.|.)   (Word256 x) (Word256 y) = Word256 (x .|. y)
   xor     (Word256 x) (Word256 y) = Word256 (x `xor` y)
   complement (Word256 x)          = Word256 $ complement x
-  shiftL  (Word256 w) i           = Word256 . narrowWord256 $ shiftL w i
-  shiftR  (Word256 w) i           = Word256 . narrowWord256 $ shiftR w i
-  rotateL (Word256 w) i           = Word256 . narrowWord256 $ rotateL w i
-  rotateR (Word256 w) i           = Word256 . narrowWord256 $ rotateR w i
+  shiftL  (Word256 w) i           = Word256 $ narrowWord256 $ shiftL w i
+  shiftR  (Word256 w) i           = Word256 $ narrowWord256 $ shiftR w i
+  rotateL (Word256 w) i           = Word256 $ narrowWord256 $ rotateL w i
+  rotateR (Word256 w) i           = Word256 $ narrowWord256 $ rotateR w i
   bitSize  _                      = 256
   isSigned _                      = False
 #if MIN_VERSION_base(4,6,0)
@@ -169,7 +171,8 @@ instance Bits Word256 where
 instance Storable Word256 where
   sizeOf _             = 32
   alignment _          = alignment (undefined :: Word64BE)
-  peek ptr             = runParser (castPtr ptr) (Word256 <$> parseInteger 32)
+  peek ptr             = runParser (castPtr ptr)
+                                   (Word256 <$> parseInteger 32)
   poke ptr (Word256 i) = runWrite (castPtr ptr) (writeInteger 32 i)
 
 -- | 512 Bit Word
@@ -216,10 +219,10 @@ instance Bits Word512 where
   (.|.)   (Word512 x) (Word512 y) = Word512 (x .|. y)
   xor     (Word512 x) (Word512 y) = Word512 (x `xor` y)
   complement (Word512 x)          = Word512 $ complement x
-  shiftL  (Word512 w) i           = Word512 . narrowWord512 $ shiftL w i
-  shiftR  (Word512 w) i           = Word512 . narrowWord512 $ shiftR w i
-  rotateL (Word512 w) i           = Word512 . narrowWord512 $ rotateL w i
-  rotateR (Word512 w) i           = Word512 . narrowWord512 $ rotateR w i
+  shiftL  (Word512 w) i           = Word512 $ narrowWord512 $ shiftL w i
+  shiftR  (Word512 w) i           = Word512 $ narrowWord512 $ shiftR w i
+  rotateL (Word512 w) i           = Word512 $ narrowWord512 $ rotateL w i
+  rotateR (Word512 w) i           = Word512 $ narrowWord512 $ rotateR w i
   bitSize  _                      = 512
   isSigned _                      = False
 #if MIN_VERSION_base(4,6,0)
@@ -278,10 +281,10 @@ instance Bits Word1024 where
   (.|.)   (Word1024 x) (Word1024 y) = Word1024 (x .|. y)
   xor     (Word1024 x) (Word1024 y) = Word1024 (x `xor` y)
   complement (Word1024 x)           = Word1024 $ complement x
-  shiftL  (Word1024 w) i            = Word1024 . narrowWord1024 $ shiftL w i
-  shiftR  (Word1024 w) i            = Word1024 . narrowWord1024 $ shiftR w i
-  rotateL (Word1024 w) i            = Word1024 . narrowWord1024 $ rotateL w i
-  rotateR (Word1024 w) i            = Word1024 . narrowWord1024 $ rotateR w i
+  shiftL  (Word1024 w) i            = Word1024 $ narrowWord1024 $ shiftL w i
+  shiftR  (Word1024 w) i            = Word1024 $ narrowWord1024 $ shiftR w i
+  rotateL (Word1024 w) i            = Word1024 $ narrowWord1024 $ rotateL w i
+  rotateR (Word1024 w) i            = Word1024 $ narrowWord1024 $ rotateR w i
   bitSize  _                        = 1024
   isSigned _                        = False
 #if MIN_VERSION_base(4,6,0)
@@ -340,10 +343,10 @@ instance Bits Word2048 where
   (.|.)   (Word2048 x) (Word2048 y) = Word2048 (x .|. y)
   xor     (Word2048 x) (Word2048 y) = Word2048 (x `xor` y)
   complement (Word2048 x)           = Word2048 $ complement x
-  shiftL  (Word2048 w) i            = Word2048 . narrowWord2048 $ shiftL w i
-  shiftR  (Word2048 w) i            = Word2048 . narrowWord2048 $ shiftR w i
-  rotateL (Word2048 w) i            = Word2048 . narrowWord2048 $ rotateL w i
-  rotateR (Word2048 w) i            = Word2048 . narrowWord2048 $ rotateR w i
+  shiftL  (Word2048 w) i            = Word2048 $ narrowWord2048 $ shiftL w i
+  shiftR  (Word2048 w) i            = Word2048 $ narrowWord2048 $ shiftR w i
+  rotateL (Word2048 w) i            = Word2048 $ narrowWord2048 $ rotateL w i
+  rotateR (Word2048 w) i            = Word2048 $ narrowWord2048 $ rotateR w i
   bitSize  _                        = 2048
   isSigned _                        = False
 #if MIN_VERSION_base(4,6,0)
@@ -402,10 +405,10 @@ instance Bits Word4096 where
   (.|.)   (Word4096 x) (Word4096 y) = Word4096 (x .|. y)
   xor     (Word4096 x) (Word4096 y) = Word4096 (x `xor` y)
   complement (Word4096 x)           = Word4096 $ complement x
-  shiftL  (Word4096 w) i            = Word4096 . narrowWord4096 $ shiftL w i
-  shiftR  (Word4096 w) i            = Word4096 . narrowWord4096 $ shiftR w i
-  rotateL (Word4096 w) i            = Word4096 . narrowWord4096 $ rotateL w i
-  rotateR (Word4096 w) i            = Word4096 . narrowWord4096 $ rotateR w i
+  shiftL  (Word4096 w) i            = Word4096 $ narrowWord4096 $ shiftL w i
+  shiftR  (Word4096 w) i            = Word4096 $ narrowWord4096 $ shiftR w i
+  rotateL (Word4096 w) i            = Word4096 $ narrowWord4096 $ rotateL w i
+  rotateR (Word4096 w) i            = Word4096 $ narrowWord4096 $ rotateR w i
   bitSize  _                        = 4096
   isSigned _                        = False
 #if MIN_VERSION_base(4,6,0)
@@ -464,10 +467,10 @@ instance Bits Word8192 where
   (.|.)   (Word8192 x) (Word8192 y) = Word8192 (x .|. y)
   xor     (Word8192 x) (Word8192 y) = Word8192 (x `xor` y)
   complement (Word8192 x)           = Word8192 $ complement x
-  shiftL  (Word8192 w) i            = Word8192 . narrowWord8192 $ shiftL w i
-  shiftR  (Word8192 w) i            = Word8192 . narrowWord8192 $ shiftR w i
-  rotateL (Word8192 w) i            = Word8192 . narrowWord8192 $ rotateL w i
-  rotateR (Word8192 w) i            = Word8192 . narrowWord8192 $ rotateR w i
+  shiftL  (Word8192 w) i            = Word8192 $ narrowWord8192 $ shiftL w i
+  shiftR  (Word8192 w) i            = Word8192 $ narrowWord8192 $ shiftR w i
+  rotateL (Word8192 w) i            = Word8192 $ narrowWord8192 $ rotateL w i
+  rotateR (Word8192 w) i            = Word8192 $ narrowWord8192 $ rotateR w i
   bitSize  _                        = 8192
   isSigned _                        = False
 #if MIN_VERSION_base(4,6,0)
