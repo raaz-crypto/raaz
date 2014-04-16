@@ -19,11 +19,21 @@ source-repository head
 
 library
   exposed-modules: Raaz.Number
-                 , Raaz.Number.Util
-                 , Raaz.Number.Modular
-  other-modules: Raaz.Number.Internals
+                 , Raaz.RSA.Exception
+                 , Raaz.Public
+                 , Raaz.RSA.Signature
+                 , Raaz.Number.Internals
+                 , Raaz.DH
+  other-modules: Raaz.RSA.Types
+               , Raaz.RSA.Signature.Instances
+               , Raaz.RSA.Signature.Primitives
+               , Raaz.DH.Types
+               , Raaz.DH.Exchange
+               , Raaz.Number.Util
+               , Raaz.Number.Modular
   build-depends: base                           >= 4.5 && < 4.8
                , bytestring                     >= 0.9 && < 0.11
+               , data-default                   >= 0.4 && < 0.6
                , integer-gmp                    >= 0.4 && < 0.6
                --
                -- Raaz dependencies
@@ -31,12 +41,16 @@ library
                , raaz-core                      >=0.0.0.1 && < 0.0.0.2
                , raaz-random                    >=0.0.0.1 && < 0.0.0.2
                , raaz-hash                      >=0.0.0.1 && < 0.0.0.2
+               , raaz-cipher                    >=0.0.0.1 && < 0.0.0.2
 
   ghc-options: -Wall
 
   c-sources:
   include-dirs:
 
+  if impl(ghc >= 7.6)
+     cpp-options: -DUseKinds
+     extensions: DataKinds
 
   if os(linux)
      cc-options: -Wall -Werror -O3 -DRAAZ_HAVE_GCC
@@ -66,6 +80,9 @@ test-Suite tests
                , raaz-random                    >=0.0.0.1 && < 0.0.0.2
                , raaz-modular                   >=0.0.0.1 && < 0.0.0.2
                , raaz-hash                      >=0.0.0.1 && < 0.0.0.2
+  if impl(ghc >= 7.6)
+     extensions: DataKinds
+
 
 -- benchmark bench-builder-all
 --   type: exitcode-stdio-1.0
