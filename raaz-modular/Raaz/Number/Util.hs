@@ -10,7 +10,6 @@ module Raaz.Number.Util
        , safeAllBS
        ) where
 
-import           Data.Bits
 import           Data.List       (foldl')
 import           Data.Word
 import           Data.ByteString (ByteString)
