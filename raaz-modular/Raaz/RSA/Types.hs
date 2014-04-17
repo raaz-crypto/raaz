@@ -136,7 +136,7 @@ data RSA k h (n :: RSAMode) (mode :: CryptoMode) = RSA deriving (Show, Eq)
 #else
 data RSA k h n mode = RSA deriving (Show, Eq)
 {-# DEPRECATED RSA
-   "Kind restriction on n and mode will be added from GHC 7.6 onwards #-}
+   "Kind restriction on n and mode will be added from GHC 7.6 onwards" #-}
 #endif
 
 #if UseKinds
