@@ -9,7 +9,10 @@ module Raaz.Util.ByteString
        ( unsafeCopyToCryptoPtr
        , unsafeNCopyToCryptoPtr
        , length
-       , hex, toHex
+       , base16
+       , toBase16
+       , toBase32
+       , toBase64
        , withByteString
        , fromByteString, fromByteStringStorable
        , createFrom
@@ -19,6 +22,8 @@ import           Prelude            hiding (length)
 import           Data.Bits
 import qualified Data.ByteString    as B
 import           Data.ByteString    (ByteString)
+import           Data.ByteString.Base32 as Base32
+import           Data.ByteString.Base64 as Base64
 import           Data.ByteString.Internal( toForeignPtr
                                          , c2w, unsafeCreate
                                          , create
@@ -63,14 +68,14 @@ unsafeNCopyToCryptoPtr n bs cptr = withForeignPtr fptr $
     where (fptr, offset,_) = toForeignPtr bs
           dest    = castPtr cptr
 
--- | Converts a crypto storable instances to its hexadecimal
+-- | Converts a crypto storable instances to its hexadecimal (base-16)
 -- representation.
-toHex :: EndianStore a => a -> ByteString
-toHex = hex . toByteString
+toBase16 :: EndianStore a => a -> ByteString
+toBase16 = base16 . toByteString
 
--- | Converts bytestring to hexadecimal representation.
-hex :: ByteString -> ByteString
-hex bs = unsafeCreate (2 * n) filler
+-- | Converts bytestring to hexadecimal (base-16) representation.
+base16 :: ByteString -> ByteString
+base16 bs = unsafeCreate (2 * n) filler
   where (fptr, offset, n)      = toForeignPtr bs
 
         filler ptr = withForeignPtr fptr $
@@ -93,6 +98,16 @@ hex bs = unsafeCreate (2 * n) filler
                        poke ptr1 $ hexDigit $ bot4 x
             where ptr0 = ptr
                   ptr1 = ptr `plusPtr` 1
+
+-- | Converts a crypto storable instance to its base32
+-- representation.
+toBase32 :: EndianStore a => a -> ByteString
+toBase32 = Base32.encode . toByteString
+
+-- | Converts a crypto storable instance to its base64
+-- representation.
+toBase64 :: EndianStore a => a -> ByteString
+toBase64 = Base64.encode . toByteString
 
 -- | Works directly on the pointer associated with the
 -- `ByteString`. This function should only read and not modify the

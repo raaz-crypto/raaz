@@ -26,7 +26,7 @@ import           Raaz.ByteSource
 import           Raaz.Types
 import           Raaz.Primitives
 import           Raaz.Primitives.Cipher
-import           Raaz.Util.ByteString           (hex)
+import           Raaz.Util.ByteString           (base16)
 import           Raaz.Serialize
 import           Raaz.Test.Gadget
 
@@ -64,15 +64,15 @@ unitTests  :: ( Gadget g
            -> g'
            -> [(ByteString,ByteString,ByteString)] -- ^ (key, planetext,ciphertest)
            -> Test
+
 unitTests ge gd triples = testGroup "Unit tests" $ hUnitTestToTests $ test $ map checkCipher triples
-  where label a = shorten (show $ hex a)
+  where label a = shorten (show $ base16 a)
         checkCipher (bk,a,b) =
           label a ~: test  ["Encryption" ~: (applyGadget ge ek a) ~?= b
                            ,"Decryption" ~: (applyGadget gd dk b) ~?= a]
           where
             ek = encryptCxt $ fromByteString bk
             dk = decryptCxt $ fromByteString bk
-
 
 -- | Checks if decrypt . encrypt == id
 encryptDecrypt :: ( Gadget g
