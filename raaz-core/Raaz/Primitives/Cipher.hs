@@ -13,29 +13,29 @@ module Raaz.Primitives.Cipher
        ( StreamGadget
        , Cipher(..)
 
-       -- * Block Cipher Modes
+       -- * Block Cipher CipherModes
        --
        -- A block cipher can be run in many different modes. These
        -- types capture the different modes of operation.
 #if UseKinds
-       , Mode(..)
+       , CipherMode(..)
 #else
        , ECB(..), CBC(..), CTR(..)
 #endif
-       , module Raaz.Primitives.CryptoMode
+       , module Raaz.Primitives.Mode
        ) where
 
 import Raaz.Primitives
-import Raaz.Primitives.CryptoMode
+import Raaz.Primitives.Mode
 
 #if UseKinds
-data Mode = ECB -- ^ Electronic codebook
+data CipherMode = ECB -- ^ Electronic codebook
           | CBC -- ^ Cipher-block chaining
           | CTR -- ^ Counter
             deriving (Show, Eq)
 
 -- | Type to capture Cipher Primitive
-data Cipher cipher key (direction :: CryptoMode) = Cipher deriving (Eq,Show)
+data Cipher cipher key (direction :: Mode) = Cipher deriving (Eq,Show)
 #else
 
 -- | Electronic codebook
@@ -48,7 +48,7 @@ data CBC = CBC deriving (Show, Eq)
 data CTR = CTR deriving (Show,Eq)
 
 {-# DEPRECATED ECB, CBC, CTR
-  "Will be changed to Data Constructor of type Mode from ghc7.6 onwards" #-}
+  "Will be changed to Data Constructor of type CipherMode from ghc7.6 onwards" #-}
 
 -- | Type to capture Cipher Primitive
 data Cipher cipher key direction = Cipher deriving (Eq,Show)

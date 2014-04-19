@@ -8,11 +8,11 @@ This module abstracts basic cryptographic primitive operations.
 {-# LANGUAGE KindSignatures   #-}
 {-# LANGUAGE TypeFamilies     #-}
 {-# LANGUAGE CPP              #-}
-module Raaz.Primitives.CryptoMode
+module Raaz.Primitives.Mode
        (
-         -- * Cryptographic Modes
+         -- * Cryptographic CipherModes
 #if UseKinds
-         CryptoMode(..)
+         Mode(..)
 #else
          AuthMode(..)
        , VerifyMode(..)
@@ -42,7 +42,7 @@ import Raaz.Serialize
 --
 -- * Decryption of message and verification of its signature
 #if UseKinds
-data CryptoMode = AuthMode
+data Mode = AuthMode
                 | VerifyMode
                 | EncryptMode
                 | DecryptMode
@@ -64,12 +64,12 @@ data VerifyDecryptMode = VerifyDecryptMode deriving (Show, Eq)
 
 {-# DEPRECATED AuthMode, VerifyMode, EncryptMode, DecryptMode,
    AuthEncryptMode, VerifyDecryptMode
-   "Will be changed to Data Constructor of type CryptoMode from ghc7.6 onwards" #-}
+   "Will be changed to Data Constructor of type Mode from ghc7.6 onwards" #-}
 #endif
 
 -- | Key required for a crypto primitive in particular mode.
 #if UseKinds
-type family Key (prim :: CryptoMode -> *) (mode :: CryptoMode) :: *
+type family Key (prim :: Mode -> *) (mode :: Mode) :: *
 #else
 type family Key (prim :: * -> *) mode :: *
 #endif

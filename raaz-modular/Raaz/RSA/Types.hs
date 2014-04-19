@@ -30,7 +30,7 @@ import Raaz.Primitives
 import Raaz.Parse.Unsafe
 import Raaz.Write.Unsafe
 import Raaz.Serialize
-import Raaz.Primitives.CryptoMode
+import Raaz.Primitives.Mode
 import Raaz.Types
 
 
@@ -132,7 +132,7 @@ instance (Num w, Storable w, Integral w) => CryptoSerialize (PrivateKey w)
 -- hash used, @n@ is RSAMode (eg. `PKCS`) and @mode@ is mode of
 -- operation (eg `AuthMode`, `EncryptMode`)
 #if UseKinds
-data RSA k h (n :: RSAMode) (mode :: CryptoMode) = RSA deriving (Show, Eq)
+data RSA k h (n :: RSAMode) (mode :: Mode) = RSA deriving (Show, Eq)
 #else
 data RSA k h n mode = RSA deriving (Show, Eq)
 {-# DEPRECATED RSA
@@ -158,7 +158,7 @@ data PSS = PSS deriving (Show, Eq)
 
 -- | RSA Gadget
 #if UseKinds
-data RSAGadget k g (n :: RSAMode) (m :: CryptoMode) =
+data RSAGadget k g (n :: RSAMode) (m :: Mode) =
 #else
 data RSAGadget k g n m =
 #endif
@@ -167,9 +167,9 @@ data RSAGadget k g n m =
 
 -- | This is a helper type family to unify Auth, Verify, Encrypt and
 -- Decrypt Gadgets in the same RSAGadget. It changes the type of
--- Gadget's memory depending on CryptoMode.
+-- Gadget's memory depending on Mode.
 #if UseKinds
-type family RSAMem k (m :: CryptoMode) :: *
+type family RSAMem k (m :: Mode) :: *
 #else
 type family RSAMem k m :: *
 #endif
