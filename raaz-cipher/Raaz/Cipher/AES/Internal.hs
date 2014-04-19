@@ -34,7 +34,7 @@ import Raaz.Primitives.Cipher
 
 -- | AES Data type with associated modes.
 #if UseKinds
-data AES (mode :: Mode) = AES deriving (Show, Eq)
+data AES (mode :: CipherMode) = AES deriving (Show, Eq)
 #else
 data AES mode = AES deriving (Show, Eq)
 

@@ -20,7 +20,7 @@ import Foreign.Storable
 import Raaz.Memory
 import Raaz.Primitives
 import Raaz.Primitives.Hash
-import Raaz.Primitives.CryptoMode
+import Raaz.Primitives.Mode
 
 import Raaz.Number.Modular
 import Raaz.Public
