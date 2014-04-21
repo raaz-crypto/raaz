@@ -12,7 +12,7 @@
 #endif
 
 char * getLine (char*, size_t);
-void wipememory (void*, size_t);
+void wipememory (volatile void*, size_t);
 void * createpool(size_t);
 void freepool(void*, size_t);
 int memorylock(void*, size_t);
@@ -25,9 +25,20 @@ char * getLine(char* line, size_t len){
   return line;
 }
 
-/* Wipes the entire memory with 0 */
-void wipememory (void* mem, size_t size){
-  memset(mem, 0, size);
+/* Wipes the entire memory with 0. */
+void wipememory ( volatile void* mem, /* volatile is used to keep the
+                                      ** compiler from optimising
+                                      ** stuff.
+                                      ** BIG QUESTION: Is this
+                                      ** sufficient?
+				      */
+		  size_t size
+                )
+{
+    /* WARNING: Potentially dangerous code. Please audit all changes
+    ** carefully.
+    */
+    memset(mem, 0, size);
 }
 
 /* Creates the page aligned memory */
