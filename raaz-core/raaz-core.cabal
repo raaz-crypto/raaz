@@ -62,7 +62,8 @@ flag auto-configure
   default: True
 
 library
-  exposed-modules: Raaz.ByteSource
+  exposed-modules: Raaz.Core
+                 , Raaz.ByteSource
                  , Raaz.Memory
                  , Raaz.Parse
                  , Raaz.Parse.Unsafe
