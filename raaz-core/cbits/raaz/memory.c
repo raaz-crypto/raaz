@@ -38,7 +38,7 @@ void wipememory ( volatile void* mem, /* volatile is used to keep the
     /* WARNING: Potentially dangerous code. Please audit all changes
     ** carefully.
     */
-    memset(mem, 0, size);
+    memset((void *)mem, 0, size);
 }
 
 /* Creates the page aligned memory */
