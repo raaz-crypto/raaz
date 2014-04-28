@@ -13,6 +13,8 @@ Hacking and Discussion
 
 * For discussion see our [google groups][emailgroups] mailing list.
 
+* Hangout on irc.freenode.net (channel: #haskell-raaz).
+
 For details please refer to [our wiki][wiki].
 
 
