@@ -31,7 +31,7 @@ import Raaz.RSA.Signature.Primitives
 
 
 -- | Private Key is used for signature generation.
-type instance Key (RSA k h PKCS) AuthMode = PrivateKey k
+type instance Key (RSA k h PKCS AuthMode) = PrivateKey k
 
 -- | Primitive instance for Signature generation primitive.
 instance Hash h => Primitive (RSA k h PKCS AuthMode) where
@@ -107,7 +107,7 @@ instance ( Hash (PrimitiveOf g)
 
 
 -- | Public Key is use for signature verification
-type instance Key (RSA k h PKCS) VerifyMode = PublicKey k
+type instance Key (RSA k h PKCS VerifyMode) = PublicKey k
 
 -- | Primitive instance for Signature verification primitive.
 instance Hash h => Primitive (RSA k h PKCS VerifyMode) where
@@ -187,6 +187,6 @@ instance ( Modular k
          , Num k
          , Integral k
          , DEREncoding h
-         ) => Auth (RSA k h PKCS) where
-  authCxt priv = PKCSAuth priv def
+         ) => Sign (RSA k h PKCS) where
+  signCxt priv = PKCSAuth priv def
   verifyCxt pub sig = PKCSVerify pub sig def
