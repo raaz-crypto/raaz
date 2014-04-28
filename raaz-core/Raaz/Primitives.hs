@@ -11,6 +11,8 @@ might be better of using the more high level interface.
 {-# LANGUAGE GeneralizedNewtypeDeriving  #-}
 {-# LANGUAGE FlexibleContexts            #-}
 {-# LANGUAGE DefaultSignatures           #-}
+{-# LANGUAGE CPP                         #-}
+
 
 module Raaz.Primitives
        ( -- * Primtives and gadgets.
@@ -30,6 +32,19 @@ module Raaz.Primitives
        , BLOCKS, blocksOf
        , transformGadget, transformGadgetFile
        , Digestible(..)
+         -- * Cryptographic operation modes
+#if UseKinds
+       , Mode(..)
+#else
+       , AuthMode(..)
+       , VerifyMode(..)
+       , EncryptMode(..)
+       , DecryptMode(..)
+       , AuthEncryptMode(..)
+       , VerifyDecryptMode(..)
+#endif
+       , Key
+
        ) where
 
 import qualified Data.ByteString          as B
@@ -357,6 +372,50 @@ instance HasName p => HasName (CGadget p) where
     where getP :: CGadget p -> p
           getP _ = undefined
 
+
+--------------------- Cryptographic operation modes -------------------
+
+-- | A primitive cryptographic operation consists of the following
+--
+-- * Generation of authenticated signature
+--
+-- * Verification of the signature against the message
+--
+-- * Encryption of a message
+--
+-- * Decryption of an encrypted message
+--
+-- * Authenticated encryption
+--
+-- * Decryption of message and verification of its signature
+#if UseKinds
+data Mode = AuthMode
+          | VerifyMode
+          | EncryptMode
+          | DecryptMode
+          | AuthEncryptMode
+          | VerifyDecryptMode
+          deriving (Show, Eq)
+#else
+data AuthMode = AuthMode deriving (Show, Eq)
+
+data VerifyMode = VerifyMode deriving (Show, Eq)
+
+data EncryptMode = EncryptMode deriving (Show, Eq)
+
+data DecryptMode = DecryptMode deriving (Show, Eq)
+
+data AuthEncryptMode = AuthEncryptMode deriving (Show, Eq)
+
+data VerifyDecryptMode = VerifyDecryptMode deriving (Show, Eq)
+
+{-# DEPRECATED AuthMode, VerifyMode, EncryptMode, DecryptMode,
+   AuthEncryptMode, VerifyDecryptMode
+   "Will be changed to Data Constructor of type Mode from ghc7.6 onwards" #-}
+#endif
+
+-- | Key required for a crypto primitive in particular mode.
+type family Key prim
 
 -------------------- Some helper functions -----------------------------
 
