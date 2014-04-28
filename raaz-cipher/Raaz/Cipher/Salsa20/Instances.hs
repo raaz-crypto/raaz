@@ -482,20 +482,20 @@ instance Encrypt (Cipher (Salsa20 R8) KEY256) where
   encryptCxt (k,n) = Salsa20_8Cxt (k,n,counter0)
   decryptCxt (k,n) = Salsa20_8Cxt (k,n,counter0)
 
-type instance Key (Cipher (Salsa20 R20) KEY128) EncryptMode = (KEY128,Nonce)
-type instance Key (Cipher (Salsa20 R20) KEY128) DecryptMode = (KEY128,Nonce)
+type instance Key (Cipher (Salsa20 R20) KEY128 EncryptMode) = (KEY128,Nonce)
+type instance Key (Cipher (Salsa20 R20) KEY128 DecryptMode) = (KEY128,Nonce)
 
-type instance Key (Cipher (Salsa20 R20) KEY256) EncryptMode = (KEY256,Nonce)
-type instance Key (Cipher (Salsa20 R20) KEY256) DecryptMode = (KEY256,Nonce)
+type instance Key (Cipher (Salsa20 R20) KEY256 EncryptMode) = (KEY256,Nonce)
+type instance Key (Cipher (Salsa20 R20) KEY256 DecryptMode) = (KEY256,Nonce)
 
-type instance Key (Cipher (Salsa20 R12) KEY128) EncryptMode = (KEY128,Nonce)
-type instance Key (Cipher (Salsa20 R12) KEY128) DecryptMode = (KEY128,Nonce)
+type instance Key (Cipher (Salsa20 R12) KEY128 EncryptMode) = (KEY128,Nonce)
+type instance Key (Cipher (Salsa20 R12) KEY128 DecryptMode) = (KEY128,Nonce)
 
-type instance Key (Cipher (Salsa20 R12) KEY256) EncryptMode = (KEY256,Nonce)
-type instance Key (Cipher (Salsa20 R12) KEY256) DecryptMode = (KEY256,Nonce)
+type instance Key (Cipher (Salsa20 R12) KEY256 EncryptMode) = (KEY256,Nonce)
+type instance Key (Cipher (Salsa20 R12) KEY256 DecryptMode) = (KEY256,Nonce)
 
-type instance Key (Cipher (Salsa20 R8) KEY128) EncryptMode = (KEY128,Nonce)
-type instance Key (Cipher (Salsa20 R8) KEY128) DecryptMode = (KEY128,Nonce)
+type instance Key (Cipher (Salsa20 R8) KEY128 EncryptMode) = (KEY128,Nonce)
+type instance Key (Cipher (Salsa20 R8) KEY128 DecryptMode) = (KEY128,Nonce)
 
-type instance Key (Cipher (Salsa20 R8) KEY256) EncryptMode = (KEY256,Nonce)
-type instance Key (Cipher (Salsa20 R8) KEY256) DecryptMode = (KEY256,Nonce)
+type instance Key (Cipher (Salsa20 R8) KEY256 EncryptMode) = (KEY256,Nonce)
+type instance Key (Cipher (Salsa20 R8) KEY256 DecryptMode) = (KEY256,Nonce)

@@ -30,11 +30,11 @@ instance Encrypt (Cipher (AES CTR) KEY256) where
   encryptCxt = AESCxt
   decryptCxt = AESCxt
 
-type instance Key (Cipher (AES CTR) KEY128) EncryptMode = (KEY128,STATE)
-type instance Key (Cipher (AES CTR) KEY128) DecryptMode = (KEY128,STATE)
+type instance Key (Cipher (AES CTR) KEY128 EncryptMode) = (KEY128,STATE)
+type instance Key (Cipher (AES CTR) KEY128 DecryptMode) = (KEY128,STATE)
 
-type instance Key (Cipher (AES CTR) KEY192) EncryptMode = (KEY192,STATE)
-type instance Key (Cipher (AES CTR) KEY192) DecryptMode = (KEY192,STATE)
+type instance Key (Cipher (AES CTR) KEY192 EncryptMode) = (KEY192,STATE)
+type instance Key (Cipher (AES CTR) KEY192 DecryptMode) = (KEY192,STATE)
 
-type instance Key (Cipher (AES CTR) KEY256) EncryptMode = (KEY256,STATE)
-type instance Key (Cipher (AES CTR) KEY256) DecryptMode = (KEY256,STATE)
+type instance Key (Cipher (AES CTR) KEY256 EncryptMode) = (KEY256,STATE)
+type instance Key (Cipher (AES CTR) KEY256 DecryptMode) = (KEY256,STATE)

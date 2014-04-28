@@ -6,6 +6,7 @@ module Modules.AES.ECB
 import Data.ByteString          (ByteString,pack)
 import Test.Framework           (Test)
 
+import Raaz.Primitives
 import Raaz.Primitives.Cipher
 import Raaz.Cipher.AES.Type
 
