@@ -9,13 +9,17 @@ This module abstracts basic cryptographic primitive operations.
 {-# LANGUAGE TypeFamilies     #-}
 {-# LANGUAGE CPP              #-}
 module Raaz.Primitives.Mode
-       ( Auth(..)
+       ( Auth(..), authTag', verifyTag'
        , Sign(..)
        , Encrypt(..)
        , AuthEncrypt(..)
        ) where
 
+import Control.Applicative
+import System.IO.Unsafe    (unsafePerformIO)
+
 import Raaz.Primitives
+import Raaz.ByteSource
 import Raaz.Serialize
 
 -- | This class captures symmetric primitives which support generation
@@ -28,6 +32,38 @@ class ( Digestible prim
   -- | Get context from the Key.
   authCxt :: Key prim  -- ^ Auth Key
           -> Cxt prim  -- ^ Context
+
+-- | Generate authentication tag.
+authTag' :: ( PureByteSource src
+            , Auth prim
+            , PaddableGadget g
+            , prim ~ PrimitiveOf g
+            )
+         => g             -- ^ Type of Gadget
+         -> Key prim      -- ^ Key
+         -> src           -- ^ Message
+         -> Digest prim
+authTag' g key src = unsafePerformIO $ withGadget (authCxt key) $ go g
+  where go :: (Auth (PrimitiveOf g1), PaddableGadget g1)
+            => g1 -> g1 -> IO (Digest (PrimitiveOf g1))
+        go _ gad =  do
+          transformGadget gad src
+          toDigest <$> finalize gad
+
+-- | Verify generated tag
+verifyTag' :: ( PureByteSource src
+              , Auth prim
+              , PaddableGadget g
+              , prim ~ PrimitiveOf g
+              , Eq (Digest prim)
+              )
+           => g             -- ^ Type of Gadget
+           -> Key prim      -- ^ Key
+           -> src           -- ^ Message
+           -> Digest prim
+           -> Bool
+verifyTag' g key src tag = authTag' g key src == tag
+
 
 -- | This class captures primitives which support generation of
 -- authenticated signatures and its verification. This is assymetric
