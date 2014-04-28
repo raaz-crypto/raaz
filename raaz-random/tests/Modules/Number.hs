@@ -34,7 +34,7 @@ prop_max :: ( StreamGadget g
             , Encrypt prim
             )
          => g
-         -> Key prim EncryptMode
+         -> Key (prim EncryptMode)
          -> Positive Int
          -> Property
 prop_max g' k maxi = monadicIO $ do
@@ -51,7 +51,7 @@ prop_between :: ( StreamGadget g
                 , Encrypt prim
                 )
              => g
-             -> Key prim EncryptMode
+             -> Key (prim EncryptMode)
              -> MinMax
              -> Property
 prop_between g' k (MinMax mini maxi) = maxi > mini ==> monadicIO $ do

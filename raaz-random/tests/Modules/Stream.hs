@@ -35,7 +35,7 @@ createGadget :: ( StreamGadget g
                 , Encrypt prim
                 )
              => g
-             -> Key prim EncryptMode
+             -> Key (prim EncryptMode)
              -> IO (RandomSource g)
 createGadget _ = newInitializedGadget . RSCxt . encryptCxt
 
@@ -44,7 +44,7 @@ prop_length :: ( StreamGadget g
                , Encrypt prim
                )
             => g
-            -> Key prim EncryptMode
+            -> Key (prim EncryptMode)
             -> Sized                     -- ^ Number of bytes to generate
             -> Property
 prop_length g' k (Sized sz) = monadicIO $ do
