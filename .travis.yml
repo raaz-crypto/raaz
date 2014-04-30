@@ -1,3 +1,5 @@
+notification:
+  irc: "irc.freenode.net#haskell-raaz"
 env:
   # Default travis build. The hvr's ghc ppa seems to have some
   # problems sometimes and connection fails. We would want at-least
