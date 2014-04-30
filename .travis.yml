@@ -1,4 +1,4 @@
-notification:
+notifications:
   irc: "irc.freenode.net#haskell-raaz"
 env:
   # Default travis build. The hvr's ghc ppa seems to have some
