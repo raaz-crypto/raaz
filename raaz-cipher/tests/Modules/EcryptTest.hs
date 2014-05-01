@@ -27,13 +27,13 @@ import           Raaz.Serialize
 import           Modules.EcryptTestParser
 
 testVector :: ( Gadget g
-              , Encrypt p
+              , Cipher p
               , HasName g
-              , p EncryptMode ~ PrimitiveOf g
+              , p ~ PrimitiveOf g
               ) => g -> EcryptTest -> Test
 testVector g (EcryptTest n k iv s digest) = n ~: (testXor : map testExpected s)
     where
-        encodedString = applyGadget g (encryptCxt $ fromByteString kAndIV)
+        encodedString = applyGadget g (cipherCxt $ fromByteString kAndIV)
                                       (BS.replicate bslen 0)
         kAndIV = k `BS.append` iv
         bslen = (to $ last s) + 1
@@ -48,9 +48,9 @@ testVector g (EcryptTest n k iv s digest) = n ~: (testXor : map testExpected s)
               actual = (BS.take (t - f + 1) $ BS.drop f $ encodedString)
 
 testAll :: ( Gadget g
-           , Encrypt p
+           , Cipher p
            , HasName g
-           , p EncryptMode ~ PrimitiveOf g
+           , p ~ PrimitiveOf g
            )
         => g
         -> FilePath             -- Path of Testfile
