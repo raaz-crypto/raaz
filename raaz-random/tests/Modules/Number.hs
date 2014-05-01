@@ -30,11 +30,11 @@ instance Arbitrary MinMax where
     return $ MinMax mi ma
 
 prop_max :: ( StreamGadget g
-            , PrimitiveOf g ~ prim EncryptMode
-            , Encrypt prim
+            , PrimitiveOf g ~ prim
+            , Cipher prim
             )
          => g
-         -> Key (prim EncryptMode)
+         -> Key prim
          -> Positive Int
          -> Property
 prop_max g' k maxi = monadicIO $ do
@@ -47,11 +47,11 @@ prop_max g' k maxi = monadicIO $ do
       genMax g maxi
 
 prop_between :: ( StreamGadget g
-                , PrimitiveOf g ~ prim EncryptMode
-                , Encrypt prim
+                , PrimitiveOf g ~ prim
+                , Cipher prim
                 )
              => g
-             -> Key (prim EncryptMode)
+             -> Key prim
              -> MinMax
              -> Property
 prop_between g' k (MinMax mini maxi) = maxi > mini ==> monadicIO $ do
@@ -64,8 +64,8 @@ prop_between g' k (MinMax mini maxi) = maxi > mini ==> monadicIO $ do
       genBetween g mini maxi
 
 testWith :: ( StreamGadget g
-            , PrimitiveOf g ~ prim EncryptMode
-            , Encrypt prim
+            , PrimitiveOf g ~ prim
+            , Cipher prim
             )
          => g -> [Test]
 testWith g = [ testProperty "genMax domain check" $ prop_max g testiv

@@ -31,20 +31,20 @@ instance Arbitrary Sized where
 testiv = fromByteString $ BS.replicate 10000 1 -- Assuming no key is less than this
 
 createGadget :: ( StreamGadget g
-                , PrimitiveOf g ~ prim EncryptMode
-                , Encrypt prim
+                , prim ~ PrimitiveOf g
+                , Cipher prim
                 )
              => g
-             -> Key (prim EncryptMode)
+             -> Key prim
              -> IO (RandomSource g)
-createGadget _ = newInitializedGadget . RSCxt . encryptCxt
+createGadget _ = newInitializedGadget . RSCxt . cipherCxt
 
 prop_length :: ( StreamGadget g
-               , PrimitiveOf g ~ prim EncryptMode
-               , Encrypt prim
+               , prim ~ PrimitiveOf g
+               , Cipher prim
                )
             => g
-            -> Key (prim EncryptMode)
+            -> Key prim
             -> Sized                     -- ^ Number of bytes to generate
             -> Property
 prop_length g' k (Sized sz) = monadicIO $ do
@@ -56,7 +56,6 @@ prop_length g' k (Sized sz) = monadicIO $ do
       genBytes g sz
 
 testWith :: ( StreamGadget g
-            , PrimitiveOf g ~ prim EncryptMode
-            , Encrypt prim
+            , Cipher (PrimitiveOf g)
             ) => g -> [Test]
 testWith g = [ testProperty "genBytes length check" $ prop_length g testiv ]
