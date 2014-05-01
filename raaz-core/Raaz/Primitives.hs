@@ -32,6 +32,7 @@ module Raaz.Primitives
        , BLOCKS, blocksOf
        , transformGadget, transformGadgetFile
        , Digestible(..)
+       , CryptoInverse(..), inverse
          -- * Cryptographic operation modes
 #if UseKinds
        , Mode(..)
@@ -284,6 +285,23 @@ class ( Gadget (Recommended p)
       ) => CryptoPrimitive p where
   type Recommended p :: *
   type Reference   p :: *
+
+
+-------------------------- CryptoInverse -------------------------------
+
+-- | This class captures inverse of gadgets. Some primitives have two
+-- gadgets associated with it performing works which are inverses of
+-- each other. For example, encrypt and decrypt gadgets for the same
+-- primitive. This is however not restricted to gadgets which have the same
+-- primitives.
+class (Gadget g, Gadget (Inverse g)) => CryptoInverse g where
+  -- | Inverse of the gadget.
+  type Inverse g :: *
+
+-- | Returns inverse of the gadget. Note that this is just used to
+-- satisfy types and its value should never be inspected.
+inverse :: CryptoInverse g => g -> Inverse g
+inverse = undefined
 
 ------------------- Type safe lengths in units of block ----------------
 
