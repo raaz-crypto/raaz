@@ -62,28 +62,26 @@ benchCipher g iv = benchGadgetWith g iv (nBlocks g)
 
 benchmarksTinyDefault = take 2 . benchmarksDefault
 
-benchmarksDefault p = [ benchCipher (toH $ prim128 p) (encryptCxt testKey128)
-                      , benchCipher (toC $ prim128 p) (encryptCxt testKey128)
-                      , benchCipher (toH $ prim192 p) (encryptCxt testKey192)
-                      , benchCipher (toC $ prim192 p) (encryptCxt testKey192)
-                      , benchCipher (toH $ prim256 p) (encryptCxt testKey256)
-                      , benchCipher (toC $ prim256 p) (encryptCxt testKey256)
-                      , benchCipher (toH $ inv $ prim128 p) (decryptCxt testKey128)
-                      , benchCipher (toC $ inv $ prim128 p) (decryptCxt testKey128)
-                      , benchCipher (toH $ inv $ prim192 p) (decryptCxt testKey192)
-                      , benchCipher (toC $ inv $ prim192 p) (decryptCxt testKey192)
-                      , benchCipher (toH $ inv $ prim256 p) (decryptCxt testKey256)
-                      , benchCipher (toC $ inv $ prim256 p) (decryptCxt testKey256)
+benchmarksDefault p = [ benchCipher (toH $ prim128 p) (cipherCxt testKey128)
+                      , benchCipher (toC $ prim128 p) (cipherCxt testKey128)
+                      , benchCipher (toH $ prim192 p) (cipherCxt testKey192)
+                      , benchCipher (toC $ prim192 p) (cipherCxt testKey192)
+                      , benchCipher (toH $ prim256 p) (cipherCxt testKey256)
+                      , benchCipher (toC $ prim256 p) (cipherCxt testKey256)
+                      , benchCipher (inverse $ toH $ prim128 p) (cipherCxt testKey128)
+                      , benchCipher (inverse $ toC $ prim128 p) (cipherCxt testKey128)
+                      , benchCipher (inverse $ toH $ prim192 p) (cipherCxt testKey192)
+                      , benchCipher (inverse $ toC $ prim192 p) (cipherCxt testKey192)
+                      , benchCipher (inverse $ toH $ prim256 p) (cipherCxt testKey256)
+                      , benchCipher (inverse $ toC $ prim256 p) (cipherCxt testKey256)
                       ]
   where
-    prim128 :: Cipher name k d -> Cipher name KEY128 EncryptMode
+    prim128 :: AES m k -> AESOp m k EncryptMode
     prim128 _ = undefined
-    prim192 :: Cipher name k d-> Cipher name KEY192 EncryptMode
+    prim192 :: AES m k -> AESOp m k EncryptMode
     prim192 _ = undefined
-    prim256 :: Cipher name k d-> Cipher name KEY256 EncryptMode
+    prim256 :: AES m k -> AESOp m k EncryptMode
     prim256 _ = undefined
-    inv :: Cipher name k EncryptMode -> Cipher name k DecryptMode
-    inv = undefined
     toH :: p -> HGadget p
     toH _ = undefined
     toC :: p -> CGadget p

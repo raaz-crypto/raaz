@@ -27,41 +27,41 @@ benchCipher g iv = benchGadgetWith g iv (nBlocks g)
 
 benchmarksTiny = take 2 benchmarks
 
-benchmarks = [ benchCipher s20_128  (encryptCxt $ fromByteString testKey128)
-             , benchCipher cs20_128 (encryptCxt $ fromByteString testKey128)
-             , benchCipher s12_128  (encryptCxt $ fromByteString testKey128)
-             , benchCipher cs12_128 (encryptCxt $ fromByteString testKey128)
-             , benchCipher s8_128  (encryptCxt $ fromByteString testKey128)
-             , benchCipher cs8_128 (encryptCxt $ fromByteString testKey128)
-             , benchCipher s20_256  (encryptCxt $ fromByteString testKey256)
-             , benchCipher cs20_256 (encryptCxt $ fromByteString testKey256)
-             , benchCipher s12_256  (encryptCxt $ fromByteString testKey256)
-             , benchCipher cs12_256 (encryptCxt $ fromByteString testKey256)
-             , benchCipher s8_256  (encryptCxt $ fromByteString testKey256)
-             , benchCipher cs8_256 (encryptCxt $ fromByteString testKey256)
+benchmarks = [ benchCipher s20_128  (cipherCxt $ fromByteString testKey128)
+             , benchCipher cs20_128 (cipherCxt $ fromByteString testKey128)
+             , benchCipher s12_128  (cipherCxt $ fromByteString testKey128)
+             , benchCipher cs12_128 (cipherCxt $ fromByteString testKey128)
+             , benchCipher s8_128  (cipherCxt $ fromByteString testKey128)
+             , benchCipher cs8_128 (cipherCxt $ fromByteString testKey128)
+             , benchCipher s20_256  (cipherCxt $ fromByteString testKey256)
+             , benchCipher cs20_256 (cipherCxt $ fromByteString testKey256)
+             , benchCipher s12_256  (cipherCxt $ fromByteString testKey256)
+             , benchCipher cs12_256 (cipherCxt $ fromByteString testKey256)
+             , benchCipher s8_256  (cipherCxt $ fromByteString testKey256)
+             , benchCipher cs8_256 (cipherCxt $ fromByteString testKey256)
              ]
   where
-    s20_128 :: HGadget (Cipher (Salsa20 R20) KEY128 EncryptMode)
+    s20_128 :: HGadget (Salsa20 R20 KEY128)
     s20_128 = undefined
-    s20_256 :: HGadget (Cipher (Salsa20 R20) KEY256 EncryptMode)
+    s20_256 :: HGadget (Salsa20 R20 KEY256)
     s20_256 = undefined
-    s12_128 :: HGadget (Cipher (Salsa20 R12) KEY128 EncryptMode)
+    s12_128 :: HGadget (Salsa20 R12 KEY128)
     s12_128 = undefined
-    s12_256 :: HGadget (Cipher (Salsa20 R12) KEY256 EncryptMode)
+    s12_256 :: HGadget (Salsa20 R12 KEY256)
     s12_256 = undefined
-    s8_128 :: HGadget (Cipher (Salsa20 R8) KEY128 EncryptMode)
+    s8_128 :: HGadget (Salsa20 R8 KEY128)
     s8_128 = undefined
-    s8_256 :: HGadget (Cipher (Salsa20 R8) KEY256 EncryptMode)
+    s8_256 :: HGadget (Salsa20 R8 KEY256)
     s8_256 = undefined
-    cs20_128 :: CGadget (Cipher (Salsa20 R20) KEY128 EncryptMode)
+    cs20_128 :: CGadget (Salsa20 R20 KEY128)
     cs20_128 = undefined
-    cs20_256 :: CGadget (Cipher (Salsa20 R20) KEY256 EncryptMode)
+    cs20_256 :: CGadget (Salsa20 R20 KEY256)
     cs20_256 = undefined
-    cs12_128 :: CGadget (Cipher (Salsa20 R12) KEY128 EncryptMode)
+    cs12_128 :: CGadget (Salsa20 R12 KEY128)
     cs12_128 = undefined
-    cs12_256 :: CGadget (Cipher (Salsa20 R12) KEY256 EncryptMode)
+    cs12_256 :: CGadget (Salsa20 R12 KEY256)
     cs12_256 = undefined
-    cs8_128 :: CGadget (Cipher (Salsa20 R8) KEY128 EncryptMode)
+    cs8_128 :: CGadget (Salsa20 R8 KEY128)
     cs8_128 = undefined
-    cs8_256 :: CGadget (Cipher (Salsa20 R8) KEY256 EncryptMode)
+    cs8_256 :: CGadget (Salsa20 R8 KEY256)
     cs8_256 = undefined
