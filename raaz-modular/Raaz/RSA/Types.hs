@@ -30,7 +30,6 @@ import Raaz.Primitives
 import Raaz.Parse.Unsafe
 import Raaz.Write.Unsafe
 import Raaz.Serialize
-import Raaz.Primitives.Mode
 import Raaz.Types
 
 
