@@ -9,6 +9,7 @@ used directly by the user.
 {-# LANGUAGE CPP                #-}
 module Raaz.Cipher.AES.Internal
        ( AES(..)
+       , AESOp(..)
        , STATE(..)
        , KEY128(..)
        , KEY192(..)
@@ -34,66 +35,76 @@ import Raaz.Primitives.Cipher
 
 -- | AES Data type with associated modes.
 #if UseKinds
-data AES (mode :: CipherMode) = AES deriving (Show, Eq)
+data AES (mode :: CipherMode) key = AES deriving (Show, Eq)
 #else
-data AES mode = AES deriving (Show, Eq)
+data AES mode key = AES deriving (Show, Eq)
 
 {-# DEPRECATED AES
   "Mode will be kind restricted from ghc7.6 onwards" #-}
 #endif
 
-instance HasName (Cipher (AES ECB) KEY128 EncryptMode) where
+-- | AES with the direction of operation.
+#if UseKinds
+data AESOp (mode :: CipherMode) key (op :: Mode) = AESOp deriving (Show, Eq)
+#else
+data AESOp mode key op = AESOp deriving (Show, Eq)
+
+{-# DEPRECATED AESOp
+  "mode and op will be kind restricted from ghc7.6 onwards" #-}
+#endif
+
+instance HasName (AESOp ECB KEY128 EncryptMode) where
   getName _ = "AES128 ECB EncryptMode"
 
-instance HasName (Cipher (AES ECB) KEY192 EncryptMode) where
+instance HasName (AESOp ECB KEY192 EncryptMode) where
   getName _ = "AES192 ECB EncryptMode"
 
-instance HasName (Cipher (AES ECB) KEY256 EncryptMode) where
+instance HasName (AESOp ECB KEY256 EncryptMode) where
   getName _ = "AES256 ECB EncryptMode"
 
-instance HasName (Cipher (AES ECB) KEY128 DecryptMode) where
+instance HasName (AESOp ECB KEY128 DecryptMode) where
   getName _ = "AES128 ECB DecryptMode"
 
-instance HasName (Cipher (AES ECB) KEY192 DecryptMode) where
+instance HasName (AESOp ECB KEY192 DecryptMode) where
   getName _ = "AES192 ECB DecryptMode"
 
-instance HasName (Cipher (AES ECB) KEY256 DecryptMode) where
+instance HasName (AESOp ECB KEY256 DecryptMode) where
   getName _ = "AES256 ECB DecryptMode"
 
 
-instance HasName (Cipher (AES CBC) KEY128 EncryptMode) where
+instance HasName (AESOp CBC KEY128 EncryptMode) where
   getName _ = "AES128 CBC EncryptMode"
 
-instance HasName (Cipher (AES CBC) KEY192 EncryptMode) where
+instance HasName (AESOp CBC KEY192 EncryptMode) where
   getName _ = "AES192 CBC EncryptMode"
 
-instance HasName (Cipher (AES CBC) KEY256 EncryptMode) where
+instance HasName (AESOp CBC KEY256 EncryptMode) where
   getName _ = "AES256 CBC EncryptMode"
 
-instance HasName (Cipher (AES CBC) KEY128 DecryptMode) where
+instance HasName (AESOp CBC KEY128 DecryptMode) where
   getName _ = "AES128 CBC DecryptMode"
 
-instance HasName (Cipher (AES CBC) KEY192 DecryptMode) where
+instance HasName (AESOp CBC KEY192 DecryptMode) where
   getName _ = "AES192 CBC DecryptMode"
 
-instance HasName (Cipher (AES CBC) KEY256 DecryptMode) where
+instance HasName (AESOp CBC KEY256 DecryptMode) where
   getName _ = "AES256 CBC DecryptMode"
 
 
-instance HasName (Cipher (AES CTR) KEY128 EncryptMode) where
+instance HasName (AESOp CTR KEY128 EncryptMode) where
   getName _ = "AES128 CTR EncryptMode"
 
-instance HasName (Cipher (AES CTR) KEY192 EncryptMode) where
+instance HasName (AESOp CTR KEY192 EncryptMode) where
   getName _ = "AES192 CTR EncryptMode"
 
-instance HasName (Cipher (AES CTR) KEY256 EncryptMode) where
+instance HasName (AESOp CTR KEY256 EncryptMode) where
   getName _ = "AES256 CTR EncryptMode"
 
-instance HasName (Cipher (AES CTR) KEY128 DecryptMode) where
+instance HasName (AESOp CTR KEY128 DecryptMode) where
   getName _ = "AES128 CTR DecryptMode"
 
-instance HasName (Cipher (AES CTR) KEY192 DecryptMode) where
+instance HasName (AESOp CTR KEY192 DecryptMode) where
   getName _ = "AES192 CTR DecryptMode"
 
-instance HasName (Cipher (AES CTR) KEY256 DecryptMode) where
+instance HasName (AESOp CTR KEY256 DecryptMode) where
   getName _ = "AES256 CTR DecryptMode"

@@ -8,6 +8,7 @@ module Raaz.Cipher.AES.Type
        , KEY256
          -- * AES data type
        , AES
+       , AESOp
        )where
 
 import Raaz.Cipher.AES.Internal
