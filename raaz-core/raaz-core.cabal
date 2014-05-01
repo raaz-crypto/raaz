@@ -68,7 +68,8 @@ library
                  , Raaz.Parse.Unsafe
                  , Raaz.Primitives
                  , Raaz.Primitives.Hash
-                 , Raaz.Primitives.Mode
+                 , Raaz.Primitives.Asymmetric
+                 , Raaz.Primitives.Symmetric
 --                 , Raaz.Primitives.MAC
                  , Raaz.Primitives.Cipher
                  , Raaz.Serialize
