@@ -1,0 +1,7 @@
+*.o
+*.hi
+dist
+tags
+TAGS
+.cabal-sandbox
+*test
