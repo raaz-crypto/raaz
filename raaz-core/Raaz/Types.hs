@@ -40,8 +40,6 @@ import Data.Typeable(Typeable)
 import Foreign.Ptr
 import Foreign.Storable
 import Foreign.ForeignPtr.Safe (ForeignPtr)
-import Language.Haskell.TH(sigE, conT)
-import Language.Haskell.TH.Syntax(Lift(..))
 import System.Endian
 import Test.QuickCheck(Arbitrary)
 
@@ -237,19 +235,6 @@ instance EndianStore Word64BE where
   load      = fmap toWord64BE . peek . castPtr
   store ptr = poke (castPtr ptr) . fromWord64BE
 
-
-
-instance Lift Word32LE where
-  lift w =  sigE (lift $ toInteger w) $ conT ''Word32LE
-
-instance Lift Word32BE where
-  lift w =  sigE (lift $ toInteger w) $ conT ''Word32BE
-
-instance Lift Word64LE where
-  lift w =  sigE (lift $ toInteger w) $ conT ''Word64LE
-
-instance Lift Word64BE where
-  lift w =  sigE (lift $ toInteger w) $ conT ''Word64BE
 
 -- $length$
 --
