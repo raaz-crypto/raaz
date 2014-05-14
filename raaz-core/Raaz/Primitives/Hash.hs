@@ -7,10 +7,10 @@ A cryptographic hash function abstraction.
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE EmptyDataDecls             #-}
 
 module Raaz.Primitives.Hash
-       ( Hash
-       -- , HMAC(..)
+       ( Hash(..), HashMemoryBuf
        , sourceHash', sourceHash
        , hash', hash
        , hashFile', hashFile
@@ -20,15 +20,30 @@ import           Control.Applicative  ((<$>))
 import           Data.Default
 import qualified Data.ByteString      as B
 import qualified Data.ByteString.Lazy as L
+import           Foreign.Storable     ( Storable )
 import           Prelude              hiding (length)
 import           System.IO            (withBinaryFile, IOMode(ReadMode), Handle)
 import           System.IO.Unsafe     (unsafePerformIO)
 
 import           Raaz.ByteSource
+import           Raaz.Memory
 import           Raaz.Primitives
 import           Raaz.Types
+import           Raaz.Util.Ptr        ( byteSize )
 
 
+-- | Type class capturing a cryptographic hash. The important
+-- properties of a hash are
+--
+-- 1. There is a default starting context
+--
+-- 2. The hash value can be recovered from the final context
+--
+-- 3. There should be a padding strategy for padding non-integral
+--    multiples of block size. In raaz we allow hashing only byte
+--    messages even though standard hashes also allow hashing bit
+--    messages.
+--
 class ( SafePrimitive h
       , PaddableGadget (Recommended h)
       , HasPadding h
@@ -38,8 +53,23 @@ class ( SafePrimitive h
       , EndianStore h
       , h ~ Digest h
       , Digestible h
+      , Storable (Cxt h)
       ) => Hash h
 
+-- | Often we want to hash some data which is itself the hash of some
+-- other data. e.g. computing iterated hash of a password or hmac. We
+-- define a memory buffer for such applications.
+type HashMemoryBuf h = MemoryBuf (HashMemoryBufSize h)
+
+-- | The `Bufferable` type used to define `HashMemoryBuffer`
+data HashMemoryBufSize h
+
+instance Hash h => Bufferable (HashMemoryBufSize h) where
+  maxSizeOf hbsz = padLength thisHash (cryptoCoerce sz) + sz
+    where sz       = byteSize thisHash
+          thisHash = getH hbsz
+          getH     :: HashMemoryBufSize h -> h
+          getH _   = undefined
 
 -- | Hash a given byte source.
 sourceHash' :: ( ByteSource src
