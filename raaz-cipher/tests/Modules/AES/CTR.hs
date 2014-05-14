@@ -6,6 +6,7 @@ module Modules.AES.CTR
 import Data.ByteString               (ByteString,pack)
 import Test.Framework                (Test)
 
+import Raaz.Primitives
 import Raaz.Primitives.Cipher
 import Raaz.Cipher.AES.Type
 
@@ -56,7 +57,7 @@ standard256Vector =
            ,0xdf,0xc9,0xc5,0x8d,0xb6,0x7a,0xad,0xa6,0x13,0xc2,0xdd,0x08,0x45,0x79,0x41,0xa6] )
   ]
 
-ctr :: Cipher (AES CTR) KEY128 EncryptMode
+ctr :: AES CTR KEY128
 ctr = undefined
 
 tests :: [Test]

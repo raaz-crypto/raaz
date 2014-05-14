@@ -11,6 +11,8 @@ might be better of using the more high level interface.
 {-# LANGUAGE GeneralizedNewtypeDeriving  #-}
 {-# LANGUAGE FlexibleContexts            #-}
 {-# LANGUAGE DefaultSignatures           #-}
+{-# LANGUAGE CPP                         #-}
+
 
 module Raaz.Primitives
        ( -- * Primtives and gadgets.
@@ -30,6 +32,20 @@ module Raaz.Primitives
        , BLOCKS, blocksOf
        , transformGadget, transformGadgetFile
        , Digestible(..)
+       , CryptoInverse(..), inverse
+         -- * Cryptographic operation modes
+#if UseKinds
+       , Mode(..)
+#else
+       , SignMode(..)
+       , VerifyMode(..)
+       , EncryptMode(..)
+       , DecryptMode(..)
+       , AuthEncryptMode(..)
+       , VerifyDecryptMode(..)
+#endif
+       , Key
+
        ) where
 
 import qualified Data.ByteString          as B
@@ -270,6 +286,23 @@ class ( Gadget (Recommended p)
   type Recommended p :: *
   type Reference   p :: *
 
+
+-------------------------- CryptoInverse -------------------------------
+
+-- | This class captures inverse of gadgets. Some primitives have two
+-- gadgets associated with it performing works which are inverses of
+-- each other. For example, encrypt and decrypt gadgets for the same
+-- primitive. This is however not restricted to gadgets which have the same
+-- primitives.
+class (Gadget g, Gadget (Inverse g)) => CryptoInverse g where
+  -- | Inverse of the gadget.
+  type Inverse g :: *
+
+-- | Returns inverse of the gadget. Note that this is just used to
+-- satisfy types and its value should never be inspected.
+inverse :: CryptoInverse g => g -> Inverse g
+inverse = undefined
+
 ------------------- Type safe lengths in units of block ----------------
 
 -- $typesafelengths$
@@ -357,6 +390,50 @@ instance HasName p => HasName (CGadget p) where
     where getP :: CGadget p -> p
           getP _ = undefined
 
+
+--------------------- Cryptographic operation modes -------------------
+
+-- | A primitive cryptographic operation consists of the following
+--
+-- * Generation of authenticated signature
+--
+-- * Verification of the signature against the message
+--
+-- * Encryption of a message
+--
+-- * Decryption of an encrypted message
+--
+-- * Authenticated encryption
+--
+-- * Decryption of message and verification of its signature
+#if UseKinds
+data Mode = SignMode
+          | VerifyMode
+          | EncryptMode
+          | DecryptMode
+          | AuthEncryptMode
+          | VerifyDecryptMode
+          deriving (Show, Eq)
+#else
+data SignMode = SignMode deriving (Show, Eq)
+
+data VerifyMode = VerifyMode deriving (Show, Eq)
+
+data EncryptMode = EncryptMode deriving (Show, Eq)
+
+data DecryptMode = DecryptMode deriving (Show, Eq)
+
+data AuthEncryptMode = AuthEncryptMode deriving (Show, Eq)
+
+data VerifyDecryptMode = VerifyDecryptMode deriving (Show, Eq)
+
+{-# DEPRECATED SignMode, VerifyMode, EncryptMode, DecryptMode,
+   AuthEncryptMode, VerifyDecryptMode
+   "Will be changed to Data Constructor of type Mode from ghc7.6 onwards" #-}
+#endif
+
+-- | Key required for a crypto primitive in particular mode.
+type family Key prim
 
 -------------------- Some helper functions -----------------------------
 

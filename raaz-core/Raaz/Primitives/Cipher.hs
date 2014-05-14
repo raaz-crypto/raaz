@@ -11,7 +11,6 @@ A cryptographic cipher abstraction.
 
 module Raaz.Primitives.Cipher
        ( StreamGadget
-       , Cipher(..)
 
        -- * Block Cipher CipherModes
        --
@@ -22,20 +21,17 @@ module Raaz.Primitives.Cipher
 #else
        , ECB(..), CBC(..), CTR(..)
 #endif
-       , module Raaz.Primitives.Mode
+       , module Raaz.Primitives.Symmetric
        ) where
 
 import Raaz.Primitives
-import Raaz.Primitives.Mode
+import Raaz.Primitives.Symmetric
 
 #if UseKinds
 data CipherMode = ECB -- ^ Electronic codebook
-          | CBC -- ^ Cipher-block chaining
-          | CTR -- ^ Counter
-            deriving (Show, Eq)
-
--- | Type to capture Cipher Primitive
-data Cipher cipher key (direction :: Mode) = Cipher deriving (Eq,Show)
+                | CBC -- ^ Cipher-block chaining
+                | CTR -- ^ Counter
+                deriving (Show, Eq)
 #else
 
 -- | Electronic codebook
@@ -49,12 +45,6 @@ data CTR = CTR deriving (Show,Eq)
 
 {-# DEPRECATED ECB, CBC, CTR
   "Will be changed to Data Constructor of type CipherMode from ghc7.6 onwards" #-}
-
--- | Type to capture Cipher Primitive
-data Cipher cipher key direction = Cipher deriving (Eq,Show)
-
-{-# DEPRECATED Cipher
-  "Kind restrictions will be used in direction from ghc7.6 onwards" #-}
 #endif
 
 -- | This class captures gadgets which can be used as stream ciphers.

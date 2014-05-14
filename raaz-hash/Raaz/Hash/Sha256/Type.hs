@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE FlexibleInstances          #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 module Raaz.Hash.Sha256.Type
        ( SHA256(..)
@@ -103,7 +104,7 @@ instance EndianStore SHA256 where
 instance Primitive SHA256 where
   blockSize _ = cryptoCoerce $ BITS (512 :: Int)
   {-# INLINE blockSize #-}
-  newtype Cxt SHA256 = SHA256Cxt SHA256 deriving Eq
+  newtype Cxt SHA256 = SHA256Cxt SHA256 deriving (Eq, Storable)
 
 instance SafePrimitive SHA256
 
