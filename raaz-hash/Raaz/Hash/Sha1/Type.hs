@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE FlexibleInstances          #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 {-|
 
@@ -90,7 +91,7 @@ instance EndianStore SHA1 where
 instance Primitive SHA1 where
   blockSize _ = cryptoCoerce $ BITS (512 :: Int)
   {-# INLINE blockSize #-}
-  newtype Cxt SHA1 = SHA1Cxt SHA1 deriving Eq
+  newtype Cxt SHA1 = SHA1Cxt SHA1 deriving (Eq, Storable)
 
 instance SafePrimitive SHA1
 
