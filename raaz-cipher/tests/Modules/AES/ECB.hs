@@ -6,6 +6,7 @@ module Modules.AES.ECB
 import Data.ByteString          (ByteString,pack)
 import Test.Framework           (Test)
 
+import Raaz.Primitives
 import Raaz.Primitives.Cipher
 import Raaz.Cipher.AES.Type
 
@@ -62,7 +63,7 @@ standard256Vector =
     , pack [0x23,0x30,0x4b,0x7a,0x39,0xf9,0xf3,0xff,0x06,0x7d,0x8d,0x8f,0x9e,0x24,0xec,0xc7] )
   ]
 
-ecb :: Cipher (AES ECB) KEY128 EncryptMode
+ecb :: AES ECB KEY128
 ecb = undefined
 
 tests :: [Test]

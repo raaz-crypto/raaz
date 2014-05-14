@@ -8,7 +8,7 @@ import Raaz.Cipher.AES
 
 import Modules.AES.Defaults
 
-ctr :: Cipher (AES CTR) KEY128 EncryptMode
+ctr :: AES CTR KEY128
 ctr = undefined
 
 benchmarks :: [Benchmark]

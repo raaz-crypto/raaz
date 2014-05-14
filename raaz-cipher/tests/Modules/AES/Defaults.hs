@@ -60,38 +60,30 @@ testKey256 =  pack [0x60,0x3d,0xeb,0x10
 
 
 testsDefault p s128 s192 s256 =
-      [ testStandardCiphers (toH $ p128 p) (toH $ inv $ p128 p) s128
-      , testStandardCiphers (toH $ p192 p) (toH $ inv $ p192 p) s192
-      , testStandardCiphers (toH $ p256 p) (toH $ inv $ p256 p) s256
-      , testStandardCiphers (toC $ p128 p) (toC $ inv $ p128 p) s128
-      , testStandardCiphers (toC $ p192 p) (toC $ inv $ p192 p) s192
-      , testStandardCiphers (toC $ p256 p) (toC $ inv $ p256 p) s256
+      [ testStandardCiphers (toH $ p128 p) s128
+      , testStandardCiphers (toH $ p192 p) s192
+      , testStandardCiphers (toH $ p256 p) s256
+      , testStandardCiphers (toC $ p128 p) s128
+      , testStandardCiphers (toC $ p192 p) s192
+      , testStandardCiphers (toC $ p256 p) s256
       , cportableVsReference (toH $ p128 p)
-                             (toH $ inv $ p128 p)
                              (toC $ p128 p)
-                             (toC $ inv $ p128 p)
                              testKey128
       , cportableVsReference (toH $ p192 p)
-                             (toH $ inv $ p192 p)
                              (toC $ p192 p)
-                             (toC $ inv $ p192 p)
                              testKey192
       , cportableVsReference (toH $ p256 p)
-                             (toH $ inv $ p256 p)
                              (toC $ p256 p)
-                             (toC $ inv $ p256 p)
                              testKey256
       ]
       where
-        toH :: p -> HGadget p
+        toH :: AES mode k -> HGadget (AESOp mode k EncryptMode)
         toH _ = undefined
-        toC :: p -> CGadget p
+        toC :: AES mode k -> CGadget (AESOp mode k EncryptMode)
         toC _ = undefined
-        inv :: Cipher name key EncryptMode -> Cipher name key DecryptMode
-        inv = undefined
-        p128 :: Cipher name key EncryptMode -> Cipher name KEY128 EncryptMode
+        p128 :: AES mode key -> AES mode KEY128
         p128 = undefined
-        p192 :: Cipher name key EncryptMode -> Cipher name KEY192 EncryptMode
+        p192 :: AES mode key -> AES mode KEY192
         p192 = undefined
-        p256 :: Cipher name key EncryptMode -> Cipher name KEY256 EncryptMode
+        p256 :: AES mode key -> AES mode KEY256
         p256 = undefined

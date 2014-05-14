@@ -32,63 +32,54 @@ import           Raaz.Test.Gadget
 
 
 -- | Stansdard tests for ciphers
-testStandardCiphers :: ( Gadget g
-                       , Gadget g'
-                       , HasName g
-                       , HasName g'
-                       , Encrypt p
-                       , p EncryptMode ~ PrimitiveOf g
-                       , p DecryptMode ~ PrimitiveOf g'
+testStandardCiphers :: ( HasName g
+                       , HasName (Inverse g)
+                       , Cipher (PrimitiveOf g)
+                       , CryptoInverse g
+                       , PrimitiveOf g ~ PrimitiveOf (Inverse g)
                        )
                     => g
-                    -> g'
                     -> [(ByteString,ByteString,ByteString)] -- ^ (key, planetext, ciphertext)
                     -> Test
-testStandardCiphers g g' vec = testGroup name [ unitTests g g' vec
-                                              , encryptDecrypt g g' testiv
-                                              ]
+testStandardCiphers g vec = testGroup name [ unitTests g vec
+                                           , encryptDecrypt g testiv
+                                           ]
   where
-    name = getName g ++ " && " ++ getName g'
+    name = getName g
     (testiv, _ , _) = head vec
 
 -- | Checks standard plaintext - ciphertext for the given cipher
-unitTests  :: ( Gadget g
-              , Gadget g'
-              , HasName g
-              , HasName g'
-              , Encrypt p
-              , p EncryptMode ~ PrimitiveOf g
-              , p DecryptMode ~ PrimitiveOf g'
+unitTests  :: ( HasName g
+              , HasName (Inverse g)
+              , CryptoInverse g
+              , PrimitiveOf g ~ PrimitiveOf (Inverse g)
+              , Cipher (PrimitiveOf g)
               )
            => g
-           -> g'
-           -> [(ByteString,ByteString,ByteString)] -- ^ (key, planetext,ciphertest)
+           -> [(ByteString,ByteString,ByteString)] -- ^ (key, planetext,ciphertext)
            -> Test
-unitTests ge gd triples = testGroup "Unit tests" $ hUnitTestToTests $ test $ map checkCipher triples
+unitTests ge triples = testGroup "Unit tests" $ hUnitTestToTests $ test $ map checkCipher triples
   where label a = shorten (show $ hex a)
         checkCipher (bk,a,b) =
           label a ~: test  ["Encryption" ~: (applyGadget ge ek a) ~?= b
-                           ,"Decryption" ~: (applyGadget gd dk b) ~?= a]
+                           ,"Decryption" ~: (applyGadget (inverse ge) dk b) ~?= a]
           where
-            ek = encryptCxt $ fromByteString bk
-            dk = decryptCxt $ fromByteString bk
+            ek = cipherCxt $ fromByteString bk
+            dk = cipherCxt $ fromByteString bk
 
 
 -- | Checks if decrypt . encrypt == id
-encryptDecrypt :: ( Gadget g
-                  , Gadget g'
-                  , HasName g
-                  , HasName g'
-                  , Encrypt p
-                  , p EncryptMode ~ PrimitiveOf g
-                  , p DecryptMode ~ PrimitiveOf g'
+encryptDecrypt :: ( HasName g
+                  , HasName (Inverse g)
+                  , Cipher (PrimitiveOf g)
+                  , PrimitiveOf g ~ PrimitiveOf (Inverse g)
+                  , CryptoInverse g
                   )
                => g
-               -> g'
                -> ByteString  -- ^ Context in ByteString
                -> Test
-encryptDecrypt g g' bscxt = testInverse g g' (encryptCxt $ fromByteString bscxt)
-                                             (decryptCxt $ fromByteString bscxt)
+encryptDecrypt g bscxt = testInverse g (inverse g) (cipherCxt $ fromByteString bscxt)
+                                                   (cipherCxt $ fromByteString bscxt)
 
 unsafeTransformUnsafeGadget' :: Gadget g
                              => g          -- ^ Gadget

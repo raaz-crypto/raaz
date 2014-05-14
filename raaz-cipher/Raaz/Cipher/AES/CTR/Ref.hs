@@ -23,9 +23,9 @@ import Raaz.Cipher.AES.Block.Internal
 import Raaz.Cipher.AES.Internal
 
 
-instance Gadget (HGadget (Cipher (AES CTR) KEY128 EncryptMode)) where
-  type PrimitiveOf (HGadget (Cipher (AES CTR) KEY128 EncryptMode)) = Cipher (AES CTR) KEY128 EncryptMode
-  type MemoryOf (HGadget (Cipher (AES CTR) KEY128 EncryptMode)) = (CryptoCell Expanded128, CryptoCell STATE)
+instance Gadget (HGadget (AESOp CTR KEY128 EncryptMode)) where
+  type PrimitiveOf (HGadget (AESOp CTR KEY128 EncryptMode)) = AES CTR KEY128
+  type MemoryOf (HGadget (AESOp CTR KEY128 EncryptMode)) = (CryptoCell Expanded128, CryptoCell STATE)
   newGadgetWithMemory = return . HGadget
   initialize (HGadget (ek,s)) (AESCxt (k,iv)) = do
     hExpand128 k ek
@@ -36,22 +36,9 @@ instance Gadget (HGadget (Cipher (AES CTR) KEY128 EncryptMode)) where
     return $ AESCxt (key,state)
   apply g = applyGad g encrypt128
 
-instance Gadget (HGadget (Cipher (AES CTR) KEY128 DecryptMode)) where
-  type PrimitiveOf (HGadget (Cipher (AES CTR) KEY128 DecryptMode)) = Cipher (AES CTR) KEY128 DecryptMode
-  type MemoryOf (HGadget (Cipher (AES CTR) KEY128 DecryptMode)) = (CryptoCell Expanded128, CryptoCell STATE)
-  newGadgetWithMemory = return . HGadget
-  initialize (HGadget (ek,s)) (AESCxt (k,iv)) = do
-    hExpand128 k ek
-    cellStore s iv
-  finalize (HGadget (ek,s)) = do
-    key <- hCompress128 <$> cellLoad ek
-    state <- cellLoad s
-    return $ AESCxt (key,state)
-  apply g = applyGad g encrypt128
-
-instance Gadget (HGadget (Cipher (AES CTR) KEY192 EncryptMode)) where
-  type PrimitiveOf (HGadget (Cipher (AES CTR) KEY192 EncryptMode)) = Cipher (AES CTR) KEY192 EncryptMode
-  type MemoryOf (HGadget (Cipher (AES CTR) KEY192 EncryptMode)) = (CryptoCell Expanded192, CryptoCell STATE)
+instance Gadget (HGadget (AESOp CTR KEY192 EncryptMode)) where
+  type PrimitiveOf (HGadget (AESOp CTR KEY192 EncryptMode)) = AES CTR KEY192
+  type MemoryOf (HGadget (AESOp CTR KEY192 EncryptMode)) = (CryptoCell Expanded192, CryptoCell STATE)
   newGadgetWithMemory = return . HGadget
   initialize (HGadget (ek,s)) (AESCxt (k,iv)) = do
     hExpand192 k ek
@@ -62,22 +49,9 @@ instance Gadget (HGadget (Cipher (AES CTR) KEY192 EncryptMode)) where
     return $ AESCxt (key,state)
   apply g = applyGad g encrypt192
 
-instance Gadget (HGadget (Cipher (AES CTR) KEY192 DecryptMode)) where
-  type PrimitiveOf (HGadget (Cipher (AES CTR) KEY192 DecryptMode)) = Cipher (AES CTR) KEY192 DecryptMode
-  type MemoryOf (HGadget (Cipher (AES CTR) KEY192 DecryptMode)) = (CryptoCell Expanded192, CryptoCell STATE)
-  newGadgetWithMemory = return . HGadget
-  initialize (HGadget (ek,s)) (AESCxt (k,iv)) = do
-    hExpand192 k ek
-    cellStore s iv
-  finalize (HGadget (ek,s)) = do
-    key <- hCompress192 <$> cellLoad ek
-    state <- cellLoad s
-    return $ AESCxt (key,state)
-  apply g = applyGad g encrypt192
-
-instance Gadget (HGadget (Cipher (AES CTR) KEY256 EncryptMode)) where
-  type PrimitiveOf (HGadget (Cipher (AES CTR) KEY256 EncryptMode)) = Cipher (AES CTR) KEY256 EncryptMode
-  type MemoryOf (HGadget (Cipher (AES CTR) KEY256 EncryptMode)) = (CryptoCell Expanded256, CryptoCell STATE)
+instance Gadget (HGadget (AESOp CTR KEY256 EncryptMode)) where
+  type PrimitiveOf (HGadget (AESOp CTR KEY256 EncryptMode)) = AES CTR KEY256
+  type MemoryOf (HGadget (AESOp CTR KEY256 EncryptMode)) = (CryptoCell Expanded256, CryptoCell STATE)
   newGadgetWithMemory = return . HGadget
   initialize (HGadget (ek,s)) (AESCxt (k,iv)) = do
     hExpand256 k ek
@@ -88,19 +62,6 @@ instance Gadget (HGadget (Cipher (AES CTR) KEY256 EncryptMode)) where
     return $ AESCxt (key,state)
   apply g = applyGad g encrypt256
 
-instance Gadget (HGadget (Cipher (AES CTR) KEY256 DecryptMode)) where
-  type PrimitiveOf (HGadget (Cipher (AES CTR) KEY256 DecryptMode)) = Cipher (AES CTR) KEY256 DecryptMode
-  type MemoryOf (HGadget (Cipher (AES CTR) KEY256 DecryptMode)) = (CryptoCell Expanded256, CryptoCell STATE)
-  newGadgetWithMemory = return . HGadget
-  initialize (HGadget (ek,s)) (AESCxt (k,iv)) = do
-    hExpand256 k ek
-    cellStore s iv
-  finalize (HGadget (ek,s)) = do
-    key <- hCompress256 <$> cellLoad ek
-    state <- cellLoad s
-    return $ AESCxt (key,state)
-  apply g = applyGad g encrypt256
-  
 applyGad g@(HGadget (ex,s)) with n cptr = do
     expanded <- cellLoad ex
     initial <- cellLoad s
