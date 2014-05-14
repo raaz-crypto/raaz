@@ -32,7 +32,7 @@ import Raaz.Write.Unsafe
 
 import Raaz.Hash.Sha.Util
 import Raaz.Hash.Sha256.Type
-import Raaz.Hash.Sha256.Instance
+import Raaz.Hash.Sha256.Instance()
 
 ----------------------------- SHA224 -------------------------------------------
 
