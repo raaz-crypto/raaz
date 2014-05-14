@@ -37,7 +37,7 @@ module Raaz.Primitives
 #if UseKinds
        , Mode(..)
 #else
-       , AuthMode(..)
+       , SignMode(..)
        , VerifyMode(..)
        , EncryptMode(..)
        , DecryptMode(..)
@@ -407,7 +407,7 @@ instance HasName p => HasName (CGadget p) where
 --
 -- * Decryption of message and verification of its signature
 #if UseKinds
-data Mode = AuthMode
+data Mode = SignMode
           | VerifyMode
           | EncryptMode
           | DecryptMode
@@ -415,7 +415,7 @@ data Mode = AuthMode
           | VerifyDecryptMode
           deriving (Show, Eq)
 #else
-data AuthMode = AuthMode deriving (Show, Eq)
+data SignMode = SignMode deriving (Show, Eq)
 
 data VerifyMode = VerifyMode deriving (Show, Eq)
 
@@ -427,7 +427,7 @@ data AuthEncryptMode = AuthEncryptMode deriving (Show, Eq)
 
 data VerifyDecryptMode = VerifyDecryptMode deriving (Show, Eq)
 
-{-# DEPRECATED AuthMode, VerifyMode, EncryptMode, DecryptMode,
+{-# DEPRECATED SignMode, VerifyMode, EncryptMode, DecryptMode,
    AuthEncryptMode, VerifyDecryptMode
    "Will be changed to Data Constructor of type Mode from ghc7.6 onwards" #-}
 #endif

@@ -24,19 +24,19 @@ import Raaz.Serialize
 -- | This class captures primitives which support generation of
 -- authenticated signatures and its verification. This is assymetric
 -- version of `Auth`.
-class ( Digestible (prim AuthMode)
+class ( Digestible (prim SignMode)
       , Digestible (prim VerifyMode)
       , Digest (prim VerifyMode) ~ Bool
-      , CryptoSerialize (Key (prim AuthMode))
+      , CryptoSerialize (Key (prim SignMode))
       , CryptoSerialize (Key (prim VerifyMode))
       ) => Sign prim where
-  -- | Get `AuthMode` context from the Key.
-  signCxt :: Key (prim AuthMode) -- ^ Auth Key
-          -> Cxt (prim AuthMode) -- ^ Context
+  -- | Get `SignMode` context from the Key.
+  signCxt :: Key (prim SignMode) -- ^ Auth Key
+          -> Cxt (prim SignMode) -- ^ Context
 
   -- | Get `VerifyMode` context from Key and signature.
   verifyCxt :: Key (prim VerifyMode)  -- ^ Verify key
-            -> Digest (prim AuthMode) -- ^ Signature
+            -> Digest (prim SignMode) -- ^ Signature
             -> Cxt (prim VerifyMode)  -- ^ Context
 
 -- | This class captures primitives which support encryption.

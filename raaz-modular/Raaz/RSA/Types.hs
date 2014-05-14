@@ -129,7 +129,7 @@ instance (Num w, Storable w, Integral w) => CryptoSerialize (PrivateKey w)
 
 -- | RSA type. @k@ is key size (eg `Word1024`), @h@ is the underlying
 -- hash used, @n@ is RSAMode (eg. `PKCS`) and @mode@ is mode of
--- operation (eg `AuthMode`, `EncryptMode`)
+-- operation (eg `SignMode`, `EncryptMode`)
 #if UseKinds
 data RSA k h (n :: RSAMode) (mode :: Mode) = RSA deriving (Show, Eq)
 #else
@@ -173,7 +173,7 @@ type family RSAMem k (m :: Mode) :: *
 type family RSAMem k m :: *
 #endif
 
-type instance RSAMem k AuthMode = CryptoCell (PrivateKey k)
+type instance RSAMem k SignMode = CryptoCell (PrivateKey k)
 type instance RSAMem k VerifyMode = (CryptoCell (PublicKey k), CryptoCell k)
 
 type instance RSAMem k EncryptMode = CryptoCell (PublicKey k)

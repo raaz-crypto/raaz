@@ -31,17 +31,17 @@ import Raaz.RSA.Signature.Primitives
 
 
 -- | Private Key is used for signature generation.
-type instance Key (RSA k h PKCS AuthMode) = PrivateKey k
+type instance Key (RSA k h PKCS SignMode) = PrivateKey k
 
 -- | Primitive instance for Signature generation primitive.
-instance Hash h => Primitive (RSA k h PKCS AuthMode) where
+instance Hash h => Primitive (RSA k h PKCS SignMode) where
 
   blockSize _ = blockSize (undefined :: h)
 
-  data Cxt (RSA k h PKCS AuthMode) = PKCSAuth (PrivateKey k) (Cxt h)
+  data Cxt (RSA k h PKCS SignMode) = PKCSAuth (PrivateKey k) (Cxt h)
 
 -- | Signature generation is a safe primitive if the underlying hash is safe.
-instance Hash h => SafePrimitive (RSA k h PKCS AuthMode)
+instance Hash h => SafePrimitive (RSA k h PKCS SignMode)
 
 
 -- | Return the signature as a Word. This is where the actual signing
@@ -53,16 +53,16 @@ instance ( DEREncoding h
          , Eq k
          , Ord k
          , Hash h
-         ) => Digestible (RSA k h PKCS AuthMode) where
+         ) => Digestible (RSA k h PKCS SignMode) where
 
-  type Digest (RSA k h PKCS AuthMode) = k
+  type Digest (RSA k h PKCS SignMode) = k
 
   toDigest (PKCSAuth k hcxt) = rsaPKCSSign (toDigest hcxt) k
 
 
 -- | Padding for signature primitive is same as that of the underlying
 -- hash.
-instance Hash h => HasPadding (RSA k h PKCS AuthMode) where
+instance Hash h => HasPadding (RSA k h PKCS SignMode) where
   padLength _  = padLength (undefined :: h)
 
   padding _ = padding (undefined :: h)
@@ -77,11 +77,11 @@ instance ( Gadget g
          , Hash (PrimitiveOf g)
          , PaddableGadget g
          , Storable k
-         ) => Gadget (RSAGadget k g PKCS AuthMode) where
+         ) => Gadget (RSAGadget k g PKCS SignMode) where
 
-  type PrimitiveOf (RSAGadget k g PKCS AuthMode) = RSA k (PrimitiveOf g) PKCS AuthMode
+  type PrimitiveOf (RSAGadget k g PKCS SignMode) = RSA k (PrimitiveOf g) PKCS SignMode
 
-  type MemoryOf (RSAGadget k g PKCS AuthMode) = (CryptoCell (PrivateKey k), MemoryOf g)
+  type MemoryOf (RSAGadget k g PKCS SignMode) = (CryptoCell (PrivateKey k), MemoryOf g)
 
   newGadgetWithMemory (ck, gmem) = RSAGadget ck <$> newGadgetWithMemory gmem
 
@@ -99,7 +99,7 @@ instance ( Gadget g
 instance ( Hash (PrimitiveOf g)
          , PaddableGadget g
          , Storable k
-         ) => PaddableGadget (RSAGadget k g PKCS AuthMode) where
+         ) => PaddableGadget (RSAGadget k g PKCS SignMode) where
   unsafeApplyLast (RSAGadget _ g) blks = unsafeApplyLast g blks'
     where blks' = toEnum $ fromEnum blks
 
