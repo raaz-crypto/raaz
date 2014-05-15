@@ -46,6 +46,7 @@ import           Raaz.Util.Ptr        ( byteSize )
 --
 class ( SafePrimitive h
       , PaddableGadget (Recommended h)
+      , PaddableGadget (Reference h)
       , HasPadding h
       , Default (Cxt h)
       , CryptoPrimitive h

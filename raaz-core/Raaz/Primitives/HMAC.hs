@@ -13,6 +13,7 @@ module Raaz.Primitives.HMAC
        ( HMAC(..)
        , HMACKey
        , hmacShortenKey
+       , hmac, hmac'
        ) where
 
 import           Control.Applicative
@@ -27,6 +28,7 @@ import           Foreign.Ptr
 import           Prelude                   hiding (length, replicate)
 import           System.IO.Unsafe          (unsafePerformIO)
 
+import           Raaz.ByteSource
 import           Raaz.Memory
 import           Raaz.Primitives
 import           Raaz.Primitives.Symmetric
@@ -230,6 +232,17 @@ instance ( Hash (PrimitiveOf g)
   apply (HMACGadget g _ _) blks = apply g blks'
     where blks' = toEnum $ fromEnum blks
 
+
+-- | CryptoPrimitive instance which uses the CryptoPrimitive instance
+-- of the underlying hash.
+instance ( Hash h
+         , CryptoPrimitive h
+         , PrimitiveOf (HMACGadget (Recommended h)) ~ HMAC h
+         , PrimitiveOf (HMACGadget (Reference h)) ~ HMAC h
+         ) => CryptoPrimitive (HMAC h) where
+  type Recommended (HMAC h) = HMACGadget (Recommended h)
+  type Reference   (HMAC h) = HMACGadget (Reference h)
+
 -------------------------------- Digestible instances -----------------------
 
 instance Hash h => Digestible (HMAC h) where
@@ -251,6 +264,35 @@ instance Hash h => Auth (HMAC h) where
     where
       iCxt = hmacCxt 0x36 key
       oCxt = hmacCxt 0x5c key
+
+
+-- | Compute the HMAC of pure byte source.
+hmac :: (Hash h, PureByteSource src)
+     => B.ByteString -- ^ Key
+     -> src          -- ^ Source
+     -> HMAC h
+hmac keysrc src = out
+  where
+    key = HMACKey $ hmacShortenKey (getHash out) keysrc
+    out = authTag key src
+
+-- | Compute the HMAC of pure byte source using the given gadget. Note
+-- that the gadget supplied is just used to know the type of gadget
+-- used. You can even supply an `undefined` with the intended type of
+-- gadget.
+hmac' :: ( Hash h
+         , PureByteSource src
+         , PaddableGadget g
+         , PrimitiveOf g ~ h
+         )
+      => HMACGadget g  -- ^ HMAC Gadget type
+      -> B.ByteString  -- ^ Key
+      -> src           -- ^ Source
+      -> HMAC h
+hmac' gad keysrc src = out
+  where
+    key = HMACKey $ hmacShortenKey (getHash out) keysrc
+    out = authTag' gad key src
 
 --- | These functions are used to keep type checker happy.
 getHash :: HMAC h -> h
