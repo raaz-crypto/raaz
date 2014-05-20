@@ -21,7 +21,8 @@ module Raaz.Core.Primitives
          -- * Type safe lengths in units of blocks.
          -- $typesafelengths$
 
-         Primitive(..), Gadget(..), newGadget, newInitializedGadget
+         Primitive(..), Gadget(..)
+       , newGadget, newInitializedGadget, initialize, finalize
        , primitiveOf, withGadget
        , HasName(..)
        , PaddableGadget(..)
@@ -31,7 +32,6 @@ module Raaz.Core.Primitives
        , CryptoPrimitive(..)
        , BLOCKS, blocksOf
        , transformGadget, transformGadgetFile
-       , Digestible(..)
        , CryptoInverse(..), inverse
          -- * Cryptographic operation modes
 #if UseKinds
@@ -96,8 +96,8 @@ class Primitive p where
   -- | The block size.
   blockSize :: p -> BYTES Int
 
-  -- | The context.
-  data Cxt p :: *
+  -- \ Context
+  type Cxt p :: *
 
 -- | A safe primitive is a primitive whose computation does not need
 -- modification of the input. Examples of safe primitives are
@@ -109,16 +109,16 @@ class Primitive p => SafePrimitive p where
 
 -- | Privitives which can be digested to a final value (captured by
 -- associated type family `Digest`).
-class Primitive p => Digestible p where
+-- class Primitive p => Digestible p where
 
-  -- | Final Value
-  type Digest p :: *
+--   -- | Final Value
+--   type Digest p :: *
 
-  -- | Converts the `Cxt` to `Digest`. Note that this operation might
-  -- be irreversible. For example in Blake hash, the information about
-  -- the number of blocks hashed so far is lost after you digest the
-  -- context.
-  toDigest :: Cxt p -> Digest p
+--   -- | Converts the `Cxt` to `Digest`. Note that this operation might
+--   -- be irreversible. For example in Blake hash, the information about
+--   -- the number of blocks hashed so far is lost after you digest the
+--   -- context.
+--   toDigest :: Cxt p -> Digest p
 
 -----------------   A cryptographic gadget. ----------------------------
 
@@ -136,8 +136,11 @@ class Primitive p => Digestible p where
 -- `SafePrimitive` should ensure that the input buffer is not
 -- modified.
 
-class ( Primitive (PrimitiveOf g), Memory (MemoryOf g) )
-      => Gadget g where
+class ( Primitive (PrimitiveOf g)
+      , Memory (MemoryOf g)
+      , InitializableMemory (MemoryOf g)
+      , Cxt (PrimitiveOf g) ~ IV (MemoryOf g)
+      ) => Gadget g where
 
   -- | The primitive for which this is a gadget
   type PrimitiveOf g
@@ -152,14 +155,9 @@ class ( Primitive (PrimitiveOf g), Memory (MemoryOf g) )
   -- memory to this function.
   newGadgetWithMemory :: MemoryOf g -> IO g
 
-  -- | Initializes the gadget. For each computation of the primitive,
-  -- the gadget needs to be initialised so that the internal memory is
-  -- reset to the start.
-  initialize :: g -> Cxt (PrimitiveOf g) -> IO ()
-
-  -- | Finalize the data. This does not destroy the gadget and the
-  -- gadget can be used again after initialisation.
-  finalize :: g -> IO (Cxt (PrimitiveOf g))
+  -- | Returns the memory of the gadget. This is used while
+  -- initializing and finalizing the memory.
+  getMemory :: g -> MemoryOf g
 
   -- | The recommended number of blocks to process at a time. While
   -- processing files, bytestrings it makes sense to handle multiple
@@ -178,7 +176,7 @@ class ( Primitive (PrimitiveOf g), Memory (MemoryOf g) )
 
 -- | The function @newInitializedGadget cxt@ creates a new instance of
 -- the gadget with its memory allocated and initialised to @cxt@.
-newInitializedGadget :: Gadget g => Cxt (PrimitiveOf g) -> IO g
+newInitializedGadget :: Gadget g => IV (MemoryOf g) -> IO g
 newInitializedGadget cxt = do
   g <- newGadget
   initialize g cxt
@@ -188,6 +186,14 @@ newInitializedGadget cxt = do
 -- with its memory allocated.
 newGadget :: Gadget g => IO g
 newGadget = newMemory >>= newGadgetWithMemory
+
+initialize :: Gadget g => g -> IV (MemoryOf g) -> IO ()
+initialize = initializeMemory . getMemory
+
+finalize :: ( Gadget g
+            , FinalizableMemory (MemoryOf g)
+            ) => g -> IO (FV (MemoryOf g))
+finalize = finalizeMemory . getMemory
 
 -- | Gives the primitive of a gadget. This function should only be
 -- used to satisy types as the actual value returned is `undefined`.
@@ -214,8 +220,8 @@ class (Gadget g,HasPadding (PrimitiveOf g)) => PaddableGadget g where
 
 -- | This function runs an action that expects a gadget as input.
 withGadget :: Gadget g
-           => Cxt (PrimitiveOf g) -- ^ IV to initialize the gadget with.
-           -> (g -> IO a)        -- ^ Action to run
+           => IV (MemoryOf g) -- ^ IV to initialize the gadget with.
+           -> (g -> IO a)     -- ^ Action to run
            -> IO a
 withGadget iv action = newInitializedGadget iv >>= action
 

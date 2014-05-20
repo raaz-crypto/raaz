@@ -40,7 +40,7 @@ testStandardCiphers :: ( HasName g
                        , PrimitiveOf g ~ PrimitiveOf (Inverse g)
                        )
                     => g
-                    -> [(ByteString,ByteString,ByteString)] -- ^ (key, planetext, ciphertext)
+                    -> [(Key (PrimitiveOf g),ByteString,ByteString)] -- ^ (key, planetext, ciphertext)
                     -> Test
 testStandardCiphers g vec = testGroup name [ unitTests g vec
                                            , encryptDecrypt g testiv
@@ -57,17 +57,16 @@ unitTests  :: ( HasName g
               , Cipher (PrimitiveOf g)
               )
            => g
-           -> [(ByteString,ByteString,ByteString)] -- ^ (key, planetext,ciphertext)
+           -> [(Key (PrimitiveOf g),ByteString,ByteString)] -- ^ (key, planetext,ciphertext)
            -> Test
 unitTests ge triples = testGroup "Unit tests" $ hUnitTestToTests $ test $ map checkCipher triples
   where label a = shorten (show $ hex a)
-        checkCipher (bk,a,b) =
-          label a ~: test  ["Encryption" ~: (applyGadget ge ek a) ~?= b
-                           ,"Decryption" ~: (applyGadget (inverse ge) dk b) ~?= a]
+        checkCipher (key,a,b) =
+          label a ~: test  ["Encryption" ~: (applyGadget ge ecxt a) ~?= b
+                           ,"Decryption" ~: (applyGadget (inverse ge) dcxt b) ~?= a]
           where
-            ek = cipherCxt $ fromByteString bk
-            dk = cipherCxt $ fromByteString bk
-
+            ecxt = cipherCxt (primitiveOf ge) key
+            dcxt = cipherCxt (primitiveOf $ inverse ge) key
 
 -- | Checks if decrypt . encrypt == id
 encryptDecrypt :: ( HasName g
@@ -77,11 +76,10 @@ encryptDecrypt :: ( HasName g
                   , CryptoInverse g
                   )
                => g
-               -> ByteString  -- ^ Context in ByteString
+               -> Key (PrimitiveOf g)
                -> Test
-encryptDecrypt g bscxt = testInverse g (inverse g)
-                         (cipherCxt $ fromByteString bscxt)
-                         (cipherCxt $ fromByteString bscxt)
+encryptDecrypt g key = testInverse g (inverse g) (cipherCxt (primitiveOf g) key)
+                                                 (cipherCxt (primitiveOf g) key)
 
 
 -- TODO: Please document this.

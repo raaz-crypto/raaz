@@ -8,6 +8,7 @@
 {-# LANGUAGE ScopedTypeVariables        #-}
 {-# LANGUAGE CPP                        #-}
 {-# LANGUAGE UndecidableInstances       #-}
+{-# LANGUAGE StandaloneDeriving         #-}
 
 module Raaz.Core.Primitives.HMAC
        ( HMAC(..)
@@ -27,18 +28,13 @@ import           Data.Word                 (Word8)
 import           Foreign.Storable          (Storable(..))
 import           Foreign.Ptr
 import           Prelude                   hiding (length, replicate)
-import           System.IO.Unsafe          (unsafePerformIO)
-
 import           Raaz.Core.ByteSource
 import           Raaz.Core.Memory
 import           Raaz.Core.Primitives
 import           Raaz.Core.Primitives.Symmetric
 import           Raaz.Core.Primitives.Hash
-import           Raaz.Core.Parse
 import qualified Raaz.Core.Parse.Unsafe         as U
-import           Raaz.Core.Write
 import qualified Raaz.Core.Write.Unsafe         as U
-import           Raaz.Core.Serialize
 import           Raaz.Core.Types
 import           Raaz.Core.Util.ByteString
 import           Raaz.Core.Util.Ptr
@@ -63,19 +59,6 @@ instance Hash h => IsString (HMACKey h) where
           hsh  = getH key
           key  = HMACKey $ hmacShortenKey hsh $ fromString str
 
--- | `HMACKey` can be built from any source of 1 block size.
-instance Hash h => CryptoSerialize (HMACKey h) where
-
-  -- | The parser reads exactly 1 block of data from the buffer. Thus
-  -- user should take care that the key is exactly 1 block size. The
-  -- usual trick is to hash keys (see `hmacShortenKey`) which are
-  -- larger.
-  cryptoParse = HMACKey <$> parseByteString (blockSize (undefined :: h))
-
-  -- | Writer just writes the underlying bytestring to the buffer.
-  cryptoWrite (HMACKey bs) = writeByteString bs
-
-
 instance Hash h => Storable (HMACKey h) where
 
   sizeOf _    = fromIntegral $ blockSize (undefined :: h)
@@ -94,14 +77,7 @@ instance Primitive h => Primitive (HMAC h) where
   -- hash.
   blockSize         = blockSize . getHash
 
-  -- The HMAC algorithm first hashes the inner pad concatnated with
-  -- the message. It then hashes the result with the outer pad
-  -- prefixed. The inner and outer pads are 1 block in size hence
-  -- instead of keeping the pads, we keep the context obtained after
-  -- processing the first block inside the HMAC context.
-  data Cxt (HMAC h) = HMACCxt { innerCxt :: (Cxt h)
-                              , outerCxt  :: (Cxt h)
-                              }
+  type Cxt (HMAC h) = HMACKey h
 
 instance HasPadding h => HasPadding (HMAC h) where
   --
@@ -109,7 +85,7 @@ instance HasPadding h => HasPadding (HMAC h) where
   --
   --     hmac = hash (outer-pad + hash ( innerpad + message) )
   --
-  -- The extra size of one block in hmac is to account for the the
+  -- The extra size of one block in hmac is to account for the
   -- inner pad that is already hashed before the actual data is
   -- processed.
 
@@ -148,31 +124,13 @@ hmacPad sz pad key =  B.map (xor pad) key
                               <> replicate extra pad
   where extra = sz - length key
 
--- | Compute the hmac cxt for a given key and its pad character. The
--- key is assumed of size at most the block size.
-hmacCxt :: Hash h
-        => Word8         -- ^ pad character
-        -> HMACKey h     -- ^ key
-        -> Cxt h
-hmacCxt pad k@(HMACKey key) = unsafePerformIO $ withGadget def $ go (keyHash k)
-  where
-    keyHash :: HMACKey h -> h
-    keyHash = undefined
-    go :: Hash hsh => hsh -> Recommended hsh -> IO (Cxt hsh)
-    go hsh gad = allocaBuffer sz $ \ buf  -> do
-      unsafeNCopyToCryptoPtr sz paddedKey buf
-      apply gad 1 buf
-      finalize gad
-        where sz        = blockSize hsh
-              paddedKey = hmacPad sz pad key
-
 ----------------------------- HMAC Gadget --------------------------------------
 
 -- | HMAC Gadget with underlying hash gadget @g@.
 data HMACGadget g =
   HMACGadget { hashGadget   :: g
                                -- ^ The gaget
-             , outerCxtCell :: CryptoCell (Cxt (PrimitiveOf g))
+             , outerCxtCell :: MemoryOf g
                                -- ^ cell to store the outer cxt
              , hmacBuffer   :: HashMemoryBuf (PrimitiveOf g)
                                -- ^ the buffer used for hashing the
@@ -185,55 +143,113 @@ data HMACGadget g =
 -- hash. All one needs is that the length should be 1 blocksize more
 -- as we need to account for the extra block which is the inner pad.
 
-instance (PaddableGadget g, Hash (PrimitiveOf g))
+instance ( PaddableGadget g
+         , Hash (PrimitiveOf g)
+         , FinalizableMemory (MemoryOf g)
+         , FV (MemoryOf g) ~ Cxt (PrimitiveOf g)
+         )
          => PaddableGadget (HMACGadget g) where
-  unsafeApplyLast (HMACGadget g _ _) blks = unsafeApplyLast g (blks' + 1) -- one for inner pad already hashed
-    where blks' = toEnum $ fromEnum blks
+  unsafeApplyLast (HMACGadget g omem buf) blks bytes cptr = do
+    unsafeApplyLast g (blks' + 1) bytes cptr -- one for inner pad already hashed
+    innerHash <- getDigest g -- hash (inner pad ++ message)
+    -- hash ( outerpad ++ inner hash)
+    do copyMemory omem (getMemory g) -- outer context
+       -- Store the inner hash in the buffer and hash it.
+       withMemoryBuf buf $ \ cptr' -> do
+         store cptr' innerHash
+         unsafeApplyLast g 1 (byteSize innerHash) cptr'
+   where blks' = toEnum $ fromEnum blks
+         getDigest :: Gadget g => g -> IO (PrimitiveOf g)
+         getDigest g' = hashDigest <$> finalize g'
+
+-- | Compute the hmac cxt for a given key and its pad character. The
+-- key is assumed of size at most the block size.
+hmacCreateCxt :: (Hash h, Gadget g, PrimitiveOf g ~ h)
+              => Word8         -- ^ pad character
+              -> HMACKey h     -- ^ key
+              -> g             -- ^ Hash Gadget
+              -> HashMemoryBuf h
+              -> IO ()
+hmacCreateCxt pad k@(HMACKey key) gad buf = withMemoryBuf buf $ \cptr -> do
+  unsafeNCopyToCryptoPtr sz paddedKey cptr
+  apply gad 1 cptr
+    where sz        = blockSize (keyHash k)
+          paddedKey = hmacPad sz pad key
+          keyHash :: HMACKey h -> h
+          keyHash = undefined
+
+-- | Memory of HMAC gadget.
+newtype HMACMem g = HMACMem ( MemoryOf g                       -- Inner pad memory
+                            , MemoryOf g                       -- Outer pad Memory
+                            , HashMemoryBuf (PrimitiveOf g)    -- Buffer
+                            )
+
+deriving instance (Gadget g, Hash (PrimitiveOf g)) => Memory (HMACMem g)
+
+instance ( Gadget g
+         , Hash (PrimitiveOf g)
+         , InitializableMemory (MemoryOf g)
+         ) => InitializableMemory (HMACMem g) where
+
+  -- The HMAC algorithm first hashes the inner pad concatnated with
+  -- the message. It then hashes the result with the outer pad
+  -- prefixed. The inner and outer pads are 1 block in size hence
+  -- instead of keeping the pads, we keep the context obtained after
+  -- processing the first block inside the HMAC context.
+
+  type IV (HMACMem g) = HMACKey (PrimitiveOf g)
+
+  initializeMemory hm@(HMACMem (imem, omem, hbuf)) key = do
+
+    -- Compute inner pad
+    initializeMemory imem def
+    g <- newGadgetAs (gadgetType hm) imem
+    hmacCreateCxt 0x36 key g hbuf
+
+    -- Compute outer pad
+    initializeMemory omem def
+    g' <- newGadgetAs (gadgetType hm) omem
+    hmacCreateCxt 0x5c key g' hbuf
+    where
+      gadgetType :: Gadget g => HMACMem g -> g
+      gadgetType _ = undefined
+      newGadgetAs :: Gadget g => g -> MemoryOf g -> IO g
+      newGadgetAs _ = newGadgetWithMemory
+
+
+instance ( Gadget g
+         , Hash (PrimitiveOf g)
+         , FinalizableMemory (MemoryOf g)
+         , FV (MemoryOf g) ~ Cxt (PrimitiveOf g)
+         ) => FinalizableMemory (HMACMem g) where
+
+  type FV (HMACMem g) = HMAC (PrimitiveOf g)
+
+  finalizeMemory (HMACMem (imem,_,_)) = (HMAC . hashDigest) <$> finalizeMemory imem
+
 
 ----------------------------- Gadget Instances ---------------------------------
 
 -- Gadget instance for HMAC which computes the hmac of the message.
 instance ( Hash (PrimitiveOf g)
+         , InitializableMemory (MemoryOf g)
+         , FinalizableMemory (MemoryOf g)
+         , FV (MemoryOf g) ~ Cxt (PrimitiveOf g)
          , PaddableGadget g
          ) => Gadget (HMACGadget g) where
 
   type PrimitiveOf (HMACGadget g) = HMAC (PrimitiveOf g)
 
-  type MemoryOf (HMACGadget g) = ( MemoryOf g
-                                 , CryptoCell (Cxt (PrimitiveOf g))
-                                 , HashMemoryBuf (PrimitiveOf g)
-                                 )
+  type MemoryOf (HMACGadget g) = HMACMem g
 
-  newGadgetWithMemory (gmem, cxtCell, hbuff) = do
+  newGadgetWithMemory (HMACMem (gmem, cxtCell, hbuff)) = do
     g <- newGadgetWithMemory gmem
     return HMACGadget { hashGadget   = g
                       , outerCxtCell = cxtCell
                       , hmacBuffer   = hbuff
                       }
 
-  initialize hg cxt  = do
-    -- use the inner pad to initialize the
-    -- hash gadget.
-    initialize (hashGadget hg) $ innerCxt cxt
-    -- Store the outer context in the cxtCell to use
-    -- in the outer stage.
-    cellPoke (outerCxtCell hg) $ outerCxt cxt
-
-  finalize hg = do
-    innerHash <- fmap toDigest $ finalize g  -- hash (inner pad ++ message)
-    oc        <- cellPeek cell               -- outer context
-    -- hash ( outerpad ++ inner hash)
-    do initialize g oc  -- Now the first block consisting of outer pad
-                        -- is hashed.
-       -- Store the inner hash in the buffer and hash it.
-       withMemoryBuf buf $ \ cptr -> do
-             store cptr innerHash
-             unsafeApplyLast g 1 (byteSize innerHash) cptr
-             hcxt <- finalize g
-             return $ HMACCxt hcxt hcxt
-    where g    = hashGadget hg
-          cell = outerCxtCell hg
-          buf  = hmacBuffer hg
+  getMemory hg = HMACMem (getMemory $ hashGadget hg, outerCxtCell hg, hmacBuffer hg)
 
   recommendedBlocks = toEnum . fromEnum . recommendedBlocks . getHash'
 
@@ -251,13 +267,6 @@ instance ( Hash h
   type Recommended (HMAC h) = HMACGadget (Recommended h)
   type Reference   (HMAC h) = HMACGadget (Reference h)
 
--------------------------------- Digestible instances -----------------------
-
-instance Hash h => Digestible (HMAC h) where
-  type Digest (HMAC h)      = HMAC h
-
-  toDigest (HMACCxt icxt _) = HMAC $ toDigest icxt
-
 
 --------------------------------- HMAC Auth instance ------------------------
 
@@ -268,11 +277,7 @@ instance Hash h => Auth (HMAC h) where
   -- | The Auth context can be built out of the starting string. The
   -- inner and outer pads are strings of one block size. We store the
   -- context obtaining from hashing these strings.
-  authCxt key = HMACCxt iCxt oCxt
-    where
-      iCxt = hmacCxt 0x36 key
-      oCxt = hmacCxt 0x5c key
-
+  authCxt _ = id
 
 -- | Compute the HMAC of pure byte source.
 hmac :: (Hash h, PureByteSource src)
@@ -290,6 +295,8 @@ hmac' :: ( Hash h
          , PureByteSource src
          , PaddableGadget g
          , PrimitiveOf g ~ h
+         , FinalizableMemory (MemoryOf g)
+         , Cxt h ~ FV (MemoryOf g)
          )
       => HMACGadget g  -- ^ HMAC Gadget type
       -> HMACKey h

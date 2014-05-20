@@ -5,9 +5,12 @@ Abstraction of a memory object.
 -}
 
 {-# LANGUAGE DefaultSignatures #-}
+{-# LANGUAGE TypeFamilies      #-}
 
 module Raaz.Core.Memory
        ( Memory(..)
+       , InitializableMemory(..)
+       , FinalizableMemory(..)
          -- CryptoCell
        , CryptoCell
        , cellPeek
@@ -72,6 +75,24 @@ class Memory m where
   -- action.
   withSecureMemory :: (m -> IO a) -> PoolRef -> IO a
 
+-- | The memory which can be initialized from an initial value.
+class Memory m => InitializableMemory m where
+
+  -- | Initial value of the memory.
+  type IV m :: *
+
+  -- | Initialize memory with the give IV.
+  initializeMemory :: m -> IV m -> IO ()
+
+-- | The memory from which a final value can be extracted.
+class Memory m => FinalizableMemory m where
+
+  -- | Final value of the memory.
+  type FV m :: *
+
+  -- | Get the final value from the memory.
+  finalizeMemory :: m -> IO (FV m)
+
 instance Memory () where
   newMemory = return ()
   freeMemory _ = return ()
@@ -79,12 +100,34 @@ instance Memory () where
   withMemory f = f ()
   withSecureMemory f _ = f ()
 
+instance InitializableMemory () where
+  type IV () = ()
+  initializeMemory _ () = return ()
+
+instance FinalizableMemory () where
+  type FV () = ()
+  finalizeMemory _ = return ()
+
 instance (Memory a, Memory b) => Memory (a,b) where
   newMemory = (,) <$> newMemory <*> newMemory
   freeMemory (a,b) = freeMemory a >> freeMemory b
   copyMemory (sa,sb) (da,db) = copyMemory sa da >> copyMemory sb db
   withSecureMemory f bk = withSecureMemory sec bk
     where sec b = withSecureMemory (\a -> f (a,b)) bk
+
+instance ( InitializableMemory a
+         , InitializableMemory b
+         ) => InitializableMemory (a,b) where
+  type IV (a,b) = (IV a, IV b)
+  initializeMemory (a,b) (iva, ivb) =  initializeMemory a iva
+                                    >> initializeMemory b ivb
+
+instance ( FinalizableMemory a
+         , FinalizableMemory b
+         ) => FinalizableMemory (a,b) where
+  type FV (a,b) = (FV a, FV b)
+  finalizeMemory (a,b) =  (,) <$> finalizeMemory a
+                              <*> finalizeMemory b
 
 instance (Memory a, Memory b, Memory c) => Memory (a,b,c) where
   newMemory = (,,) <$> newMemory <*> newMemory <*> newMemory
@@ -95,6 +138,24 @@ instance (Memory a, Memory b, Memory c) => Memory (a,b,c) where
   withSecureMemory f bk = withSecureMemory sec bk
     where sec c = withSecureMemory sec2 bk
             where sec2 b = withSecureMemory (\a -> f (a,b,c)) bk
+
+instance ( InitializableMemory a
+         , InitializableMemory b
+         , InitializableMemory c
+         ) => InitializableMemory (a,b,c) where
+  type IV (a,b,c) = (IV a, IV b, IV c)
+  initializeMemory (a,b,c) (iva, ivb, ivc) =  initializeMemory a iva
+                                           >> initializeMemory b ivb
+                                           >> initializeMemory c ivc
+
+instance ( FinalizableMemory a
+         , FinalizableMemory b
+         , FinalizableMemory c
+         ) => FinalizableMemory (a,b,c) where
+  type FV (a,b,c) = (FV a, FV b, FV c)
+  finalizeMemory (a,b,c) =  (,,) <$> finalizeMemory a
+                                 <*> finalizeMemory b
+                                 <*> finalizeMemory c
 
 instance (Memory a, Memory b, Memory c, Memory d) => Memory (a,b,c,d) where
   newMemory = (,,,) <$> newMemory
@@ -113,6 +174,28 @@ instance (Memory a, Memory b, Memory c, Memory d) => Memory (a,b,c,d) where
     where sec d = withSecureMemory sec2 bk
             where sec2 c = withSecureMemory sec3 bk
                     where sec3 b = withSecureMemory (\a -> f (a,b,c,d)) bk
+
+instance ( InitializableMemory a
+         , InitializableMemory b
+         , InitializableMemory c
+         , InitializableMemory d
+         ) => InitializableMemory (a,b,c,d) where
+  type IV (a,b,c,d) = (IV a, IV b, IV c, IV d)
+  initializeMemory (a,b,c,d) (iva, ivb, ivc, ivd) =  initializeMemory a iva
+                                                  >> initializeMemory b ivb
+                                                  >> initializeMemory c ivc
+                                                  >> initializeMemory d ivd
+
+instance ( FinalizableMemory a
+         , FinalizableMemory b
+         , FinalizableMemory c
+         , FinalizableMemory d
+         ) => FinalizableMemory (a,b,c,d) where
+  type FV (a,b,c,d) = (FV a, FV b, FV c, FV d)
+  finalizeMemory (a,b,c,d) =  (,,,) <$> finalizeMemory a
+                                    <*> finalizeMemory b
+                                    <*> finalizeMemory c
+                                    <*> finalizeMemory d
 
 -- | A memory location to store a value of type having `Storable`
 -- instance.
@@ -152,6 +235,14 @@ instance Storable a => Memory (CryptoCell a) where
         where
           bytes :: BYTES Int
           bytes = fromIntegral $ sizeOf a
+
+instance Storable a => InitializableMemory (CryptoCell a) where
+  type IV (CryptoCell a) = a
+  initializeMemory = cellStore
+
+instance Storable a => FinalizableMemory (CryptoCell a) where
+  type FV (CryptoCell a) = a
+  finalizeMemory = cellLoad
 
 -- | Types which can be stored in a buffer.
 class Bufferable b where

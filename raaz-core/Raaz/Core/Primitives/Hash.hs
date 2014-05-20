@@ -10,7 +10,7 @@ A cryptographic hash function abstraction.
 {-# LANGUAGE EmptyDataDecls             #-}
 
 module Raaz.Core.Primitives.Hash
-       ( Hash, HashMemoryBuf
+       ( Hash(..), HashMemoryBuf
        , sourceHash', sourceHash
        , hash', hash
        , hashFile', hashFile
@@ -47,15 +47,19 @@ import           Raaz.Core.Util.Ptr   (byteSize)
 class ( SafePrimitive h
       , PaddableGadget (Recommended h)
       , PaddableGadget (Reference h)
+      , FinalizableMemory (MemoryOf (Recommended h))
+      , FinalizableMemory (MemoryOf (Reference h))
+      , FV (MemoryOf (Recommended h)) ~ Cxt h
+      , FV (MemoryOf (Reference h)) ~ Cxt h
       , HasPadding h
       , Default (Cxt h)
       , CryptoPrimitive h
       , Eq h
       , EndianStore h
-      , h ~ Digest h
-      , Digestible h
       , Storable (Cxt h)
-      ) => Hash h
+      ) => Hash h where
+  hashDigest :: Cxt h -> h
+
 
 -- | Often we want to hash some data which is itself the hash of some
 -- other data. e.g. computing iterated hash of a password or hmac. We
@@ -77,17 +81,23 @@ sourceHash' :: ( ByteSource src
                , Hash h
                , PaddableGadget g
                , h ~ PrimitiveOf g
+               , FinalizableMemory (MemoryOf g)
+               , FV (MemoryOf g) ~ Cxt h
                )
             => g    -- ^ Gadget
             -> src  -- ^ Message
-            -> IO (PrimitiveOf g)
+            -> IO h
 
-sourceHash' g src = withGadget def $ go g
-  where go :: ( Gadget g1, Hash (PrimitiveOf g1), PaddableGadget g1)
-            => g1 -> g1 -> IO (PrimitiveOf g1)
+sourceHash' g src = hashDigest <$> (withGadget def $ go g)
+  where go :: ( Gadget g1
+              , Hash (PrimitiveOf g1)
+              , PaddableGadget g1
+              , FinalizableMemory (MemoryOf g1)
+              )
+            => g1 -> g1 -> IO (FV (MemoryOf g1))
         go _ gad =  do
           transformGadget gad src
-          toDigest <$> finalize gad
+          finalize gad
 
 {-# INLINEABLE sourceHash' #-}
 
@@ -107,11 +117,13 @@ sourceHash src = go undefined
 hash' :: ( PureByteSource src
          , Hash h
          , PaddableGadget g
+         , FinalizableMemory (MemoryOf g)
+         , FV (MemoryOf g) ~ Cxt h
          , h ~ PrimitiveOf g
          )
       => g    -- ^ Gadget
       -> src  -- ^ Message
-      -> PrimitiveOf g
+      -> h
 hash' g = unsafePerformIO . sourceHash' g
 {-# INLINEABLE hash' #-}
 
@@ -128,11 +140,13 @@ hash = unsafePerformIO . sourceHash
 -- | Hash a given file given `FilePath`. Implementation dependent.
 hashFile' :: ( Hash h
              , PaddableGadget g
+             , FinalizableMemory (MemoryOf g)
+             , FV (MemoryOf g) ~ Cxt h
              , h ~ PrimitiveOf g
              )
           => g           -- ^ Implementation
           -> FilePath    -- ^ File to be hashed
-          -> IO (PrimitiveOf g)
+          -> IO h
 
 hashFile' g fp = withBinaryFile fp ReadMode $ sourceHash' g
 {-# INLINEABLE hashFile' #-}
