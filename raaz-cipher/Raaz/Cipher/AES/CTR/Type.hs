@@ -15,7 +15,7 @@ import Raaz.Cipher.AES.Internal
 
 
 instance Primitive (AES CTR k) where
-  blockSize _ = cryptoCoerce $ BITS (8 :: Int)
+  blockSize _ = roundFloor $ BITS (8 :: Int)
   {-# INLINE blockSize #-}
   newtype Cxt (AES CTR k) = AESCxt (k, STATE) deriving Eq
 
