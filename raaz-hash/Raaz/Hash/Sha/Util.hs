@@ -27,7 +27,7 @@ shaPadLength lenSize h l
   | r >= lenSize + 1 = r
   | otherwise        = r + blockSize h
   where lb :: BYTES Int
-        lb = cryptoCoerce l `rem` blockSize h
+        lb = roundFloor l `rem` blockSize h
         r  = blockSize h - lb
 
 -- | This computes the padding for the sha family of hashes.
@@ -43,5 +43,5 @@ shaPadding lenSize prim lBits =  singleton firstPadByte
                               <> lPad
      where pLen        = shaPadLength lenSize prim lBits
            lPad        = toByteString l
-           l           = cryptoCoerce lBits :: BITS Word64BE
+           l           = roundFloor lBits :: BITS Word64BE
            BYTES zeros = pLen - length lPad - 1
