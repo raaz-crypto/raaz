@@ -359,6 +359,91 @@ instance ( Primitive p
     where bytes :: Integral by => BITS by -> BYTES by
           bytes = cryptoCoerce
   {-# INLINE cryptoCoerce #-}
+
+
+instance ( Primitive p
+         , Num by
+         ) => Rounding (BLOCKS p) (BYTES by) where
+  roundCeil b@(BLOCKS n) = fromIntegral $ blocksize * fromIntegral n
+    where blocksize = blockSize (getPrimitiveType b)
+  {-# INLINE roundCeil #-}
+
+  roundFloor b@(BLOCKS n) = fromIntegral $ blocksize * fromIntegral n
+    where blocksize = blockSize (getPrimitiveType b)
+  {-# INLINE roundFloor #-}
+
+  roundRem b@(BLOCKS n) = (fromIntegral $ blocksize * fromIntegral n, 0)
+    where blocksize = blockSize (getPrimitiveType b)
+  {-# INLINE roundRem #-}
+
+
+instance ( Primitive p
+         , Num bits
+         ) => Rounding (BLOCKS p) (BITS bits) where
+  roundCeil b@(BLOCKS n) = roundCeil $ blocksize
+    where blocksize = blockSize (getPrimitiveType b) * fromIntegral n
+  {-# INLINE roundCeil #-}
+
+  roundFloor b@(BLOCKS n) = roundCeil $ blocksize
+    where blocksize = blockSize (getPrimitiveType b) * fromIntegral n
+  {-# INLINE roundFloor #-}
+
+  roundRem b@(BLOCKS n) = (roundCeil $ blocksize, 0)
+    where blocksize = blockSize (getPrimitiveType b) * fromIntegral n
+  {-# INLINE roundRem #-}
+
+
+instance ( Primitive p
+         , Integral by
+         ) => Rounding (BYTES by) (BLOCKS p) where
+  roundCeil by
+    | bytes == 0  = result
+    | otherwise   = result + 1
+    where result          = BLOCKS blocks
+          (blocks, bytes) = fromIntegral by `quotRem` fromIntegral size
+          BYTES size      = blockSize (getPrimitiveType result)
+  {-# INLINE roundCeil #-}
+
+  roundFloor by = result
+    where result       = BLOCKS blocks
+          BYTES blocks = fromIntegral by `quot` blockSize (getPrimitiveType result)
+  {-# INLINE roundFloor #-}
+
+  roundRem by = (result, BYTES $ fromIntegral bytes)
+    where result          = BLOCKS blocks
+          (blocks, bytes) = fromIntegral by `quotRem` fromIntegral size
+          BYTES size      = blockSize (getPrimitiveType result)
+  {-# INLINE roundRem #-}
+
+
+instance ( Primitive p
+         , Integral bi
+         ) => Rounding (BITS bi) (BLOCKS p) where
+  roundCeil bi
+    | bits == 0 = result
+    | otherwise = result + 1
+    where result         = BLOCKS blocks
+          (blocks, bits) = fromIntegral bi `quotRem` size
+          BITS size      = roundCeil $ blockSize (getPrimitiveType result)
+  {-# INLINE roundCeil #-}
+
+  roundFloor bi = result
+    where result    = BLOCKS blocks
+          blocks    = fromIntegral bi `quot` size
+          BITS size = roundCeil $ blockSize (getPrimitiveType result)
+  {-# INLINE roundFloor #-}
+
+  roundRem by = (result, BITS $ fromIntegral bits)
+    where result         = BLOCKS blocks
+          (blocks, bits) = fromIntegral by `quotRem` size
+          BITS size      = roundCeil $ blockSize (getPrimitiveType result)
+  {-# INLINE roundRem #-}
+
+
+getPrimitiveType :: BLOCKS p -> p
+getPrimitiveType _ = undefined
+
+
 -- | The expression @n `blocksOf` p@ specifies the message lengths in
 -- units of the block length of the primitive @p@. This expression is
 -- sometimes required to make the type checker happy.
