@@ -91,7 +91,7 @@ unsafeTransformUnsafeGadget' g src = do
   create size (with (BYTES size) . castPtr)
   where with size cptr = do
           _ <- fillBytes size src cptr
-          apply g (cryptoCoerce size) cptr
+          apply g (roundFloor size) cptr
 
 -- | Encrypts/Decrypts a bytestring using the given gadget. It only
 -- encrypts in multiple of BlockSize, so user must ensure that.

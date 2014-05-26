@@ -25,4 +25,4 @@ applyOnByteSource g src = allocaBuffer nBlocks $ go src
                              >>= withFillResult continue endIt
            where continue rest = do apply g nBlocks cptr
                                     go rest cptr
-                 endIt r       = apply g (cryptoCoerce r) cptr
+                 endIt r       = apply g (roundFloor r) cptr

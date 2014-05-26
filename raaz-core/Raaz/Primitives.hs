@@ -167,7 +167,7 @@ class ( Primitive (PrimitiveOf g), Memory (MemoryOf g) )
   -- improve cache performance of your program. Default setting is the
   -- number of blocks that fit in @32KB@.
   recommendedBlocks   :: g -> BLOCKS (PrimitiveOf g)
-  recommendedBlocks _ = cryptoCoerce (1024 * 32 :: BYTES Int)
+  recommendedBlocks _ = roundFloor (1024 * 32 :: BYTES Int)
 
   -- | This function actually applies the gadget on the buffer. If the
   -- underlying primitive is an instance of the class `SafePrimitive`,
@@ -206,10 +206,10 @@ class (Gadget g,HasPadding (PrimitiveOf g)) => PaddableGadget g where
                   -> CryptoPtr              -- ^ Location
                   -> IO ()
   unsafeApplyLast g blocks bytes cptr = do
-    let bits = cryptoCoerce bytes :: BITS Word64
-        len  = cryptoCoerce blocks + bits
+    let bits = roundFloor bytes :: BITS Word64
+        len  = roundFloor blocks + bits
     unsafePad (primitiveOf g) len (cptr `movePtr` bytes)
-    apply g (cryptoCoerce (bytes + padLength (primitiveOf g) len)) cptr
+    apply g (roundFloor (bytes + padLength (primitiveOf g) len)) cptr
 
 -- | This function runs an action that expects a gadget as input.
 withGadget :: Gadget g
@@ -541,7 +541,7 @@ transformGadget g src = allocaBuffer bufSize $ go 0 src
            where continue rest = do apply g nBlocks cptr
                                     go (k + nBlocks) rest cptr
                  endIt r       = unsafeApplyLast g k len cptr
-                       where len    = cryptoCoerce nBlocks - r
+                       where len    = roundFloor nBlocks - r
 
 -- | A version of `transformContext` which takes a filename instead.
 transformGadgetFile :: PaddableGadget g

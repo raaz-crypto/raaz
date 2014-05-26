@@ -86,8 +86,8 @@ write a = Write (Sum $ byteSize a, WU.write a)
 
 -- | The combinator @writeBytes n b@ writes @b@ as the next @n@
 -- consecutive bytes.
-writeBytes :: CryptoCoerce n (BYTES Int) => n -> Word8 -> Write
-writeBytes n b = Write (Sum $ cryptoCoerce n, WU.writeBytes n b)
+writeBytes :: Rounding n (BYTES Int) => n -> Word8 -> Write
+writeBytes n b = Write (Sum $ roundFloor n, WU.writeBytes n b)
 
 -- | Writes a strict bytestring.
 writeByteString :: ByteString -> Write
