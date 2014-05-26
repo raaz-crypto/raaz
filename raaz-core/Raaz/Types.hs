@@ -27,6 +27,7 @@ module Raaz.Types
 
        , BYTES(..), BITS(..)
        , CryptoCoerce(..)
+       , Rounding(..)
        , cryptoAlignment, CryptoAlign, CryptoPtr
        , ForeignCryptoPtr
        , CryptoBuffer(..), withCryptoBuffer
@@ -261,6 +262,10 @@ instance EndianStore Word64BE where
 class CryptoCoerce s t where
   cryptoCoerce :: s -> t
 
+class Rounding s t where
+  roundCeil  :: s -> t
+  roundFloor :: s -> t
+  roundRem   :: s -> (t,s)
 
 
 -- | Type safe lengths/offsets in units of bytes. If the function
@@ -312,6 +317,62 @@ instance ( Integral bi1
   {-# INLINE cryptoCoerce #-}
 
 
+instance ( Integral by
+         , Num bi
+         )
+         => Rounding (BYTES by) (BITS bi) where
+  roundCeil by = 8 * fromIntegral by
+  {-# INLINE roundCeil #-}
+
+  roundFloor by = roundCeil by
+  {-# INLINE roundFloor #-}
+
+  roundRem by = (roundCeil by, 0)
+  {-# INLINE roundRem #-}
+
+instance ( Integral bi
+         , Real bi
+         , Num by
+         )
+         => Rounding (BITS bi) (BYTES by) where
+  roundCeil bi
+    | bits == 0  = BYTES $ fromIntegral bytes
+    | otherwise  = BYTES $ fromIntegral $ bytes + 1
+    where (BITS bytes, BITS bits) = bi `quotRem` 8
+  {-# INLINE roundCeil #-}
+
+  roundFloor bi = BYTES $ fromIntegral bytes
+    where BITS bytes = bi `quot` 8
+  {-# INLINE roundFloor #-}
+
+  roundRem bi = (BYTES $ fromIntegral bytes, bits)
+    where (BITS bytes, bits) = bi `quotRem` 8
+  {-# INLINE roundRem #-}
+
+instance ( Integral by1
+         , Num by2
+         ) => Rounding (BYTES by1) (BYTES by2) where
+  roundCeil = fromIntegral
+  {-# INLINE roundCeil #-}
+
+  roundFloor = roundCeil
+  {-# INLINE roundFloor #-}
+
+  roundRem by1 = (roundCeil by1, 0)
+  {-# INLINE roundRem #-}
+
+
+instance ( Integral bi1
+         , Num bi2
+         ) => Rounding (BITS bi1) (BITS bi2) where
+  roundCeil = fromIntegral
+  {-# INLINE roundCeil #-}
+
+  roundFloor = roundCeil
+  {-# INLINE roundFloor #-}
+
+  roundRem bi1 = (roundCeil bi1, 0)
+  {-# INLINE roundRem #-}
 
 
 ------------------ Alignment fu -------------------------------
