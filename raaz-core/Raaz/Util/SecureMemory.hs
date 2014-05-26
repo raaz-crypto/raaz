@@ -209,3 +209,33 @@ instance ( Integral pg
          )
          => CryptoCoerce (PAGES pg) (BYTES by) where
   cryptoCoerce pgs = fromIntegral pgs * fromIntegral pageSize
+
+instance ( Integral by
+         , Num pg
+         )
+         => Rounding (BYTES by) (PAGES pg) where
+  roundCeil by
+    | r == 0    = fromIntegral q
+    | otherwise = fromIntegral q + 1
+    where (q,r) = fromIntegral by `quotRem` pageSize
+  {-# INLINE roundCeil #-}
+
+  roundFloor by = fromIntegral $ fromIntegral by `quot` pageSize
+  {-# INLINE roundFloor #-}
+
+  roundRem by = (fromIntegral q, fromIntegral r)
+    where (q,r) = fromIntegral by `quotRem` pageSize
+  {-# INLINE roundRem #-}
+
+instance ( Integral pg
+         , Num by
+         )
+         => Rounding (PAGES pg) (BYTES by) where
+  roundCeil pg = fromIntegral pg * fromIntegral pageSize
+  {-# INLINE roundCeil #-}
+
+  roundFloor pg = fromIntegral pg * fromIntegral pageSize
+  {-# INLINE roundFloor #-}
+
+  roundRem pg = (fromIntegral pg * fromIntegral pageSize, 0)
+  {-# INLINE roundRem #-}
