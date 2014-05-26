@@ -14,12 +14,12 @@ module Raaz.Test.EndianStore
 import Data.Typeable
 import Foreign.Marshal.Alloc
 import Foreign.Storable
-import Test.Framework(Test)
-import Test.Framework.Providers.QuickCheck2(testProperty)
-import Test.QuickCheck(Property, Arbitrary)
-import Test.QuickCheck.Monadic(run, assert, monadicIO)
+import Test.Framework                       ( Test                   )
+import Test.Framework.Providers.QuickCheck2 ( testProperty           )
+import Test.QuickCheck                      ( Property, Arbitrary    )
+import Test.QuickCheck.Monadic              ( run, assert, monadicIO )
 
-import Raaz.Types( cryptoAlignment, EndianStore(..))
+import Raaz.Types  ( cryptoAlignment, EndianStore(..) )
 
 
 -- | This is where the actual store/load is performed.
