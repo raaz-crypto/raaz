@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 module Modules.Sha1
        ( tests
        ) where
@@ -10,7 +11,7 @@ import           Test.QuickCheck          (Arbitrary(..))
 
 import Raaz.Test.Gadget
 
-import Modules.Generic(allHashTests)
+import Modules.Generic
 import Raaz.Hash.Sha1.Internal
 
 instance Arbitrary SHA1 where
@@ -21,9 +22,10 @@ instance Arbitrary SHA1 where
                    <*> arbitrary   -- h4
 
 tests = allHashTests (undefined ::SHA1) exampleStrings
+     ++ allHMACTests (undefined :: SHA1) exampleHMAC
 
 exampleStrings :: [(B.ByteString,B.ByteString)]
-exampleStrings = map convertToByteString
+exampleStrings =
   [ ( "abc"
     , "a9993e364706816aba3e25717850c26c9cd0d89d" )
   , ( "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq"
@@ -37,5 +39,27 @@ exampleStrings = map convertToByteString
   , ( "The quick brown fox jumps over the lazy dog The quick brown fox jumps over the lazy dog The quick brown fox jumps over the lazy dog The quick brown fox jumps over the lazy dog The quick brown fox jumps over the lazy dog"
     , "5957a404e7e74dc746bea2d0d47645ddb387a7de" )
   ]
- where
-   convertToByteString (a,b) = (C8.pack a, C8.pack b)
+
+exampleHMAC :: [(B.ByteString,B.ByteString,B.ByteString)]
+exampleHMAC =
+  [ ( B.replicate 20 0x0b
+    , "Hi There"
+    , "b617318655057264e28bc0b6fb378c8ef146be00"
+    )
+  , ( "Jefe"
+    , "what do ya want for nothing?"
+    ,  "effcdf6ae5eb2fa2d27416d5f184df9c259a7c79"
+    )
+  , ( B.replicate 20 0xaa
+    , B.replicate 50 0xdd
+    , "125d7342b9ac11cd91a39af48aa17b4f63f175d3"
+    )
+  , ( B.replicate 80 0xaa
+    , "Test Using Larger Than Block-Size Key - Hash Key First"
+    , "aa4ae5e15272d00e95705637ce8a3b55ed402112"
+    )
+  , ( B.replicate 80 0xaa
+    , "Test Using Larger Than Block-Size Key and Larger Than One Block-Size Data"
+    , "e8e99d0f45237d786d6bbaa7965c7808bbff1a91"
+    )
+  ]

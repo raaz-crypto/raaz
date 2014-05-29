@@ -12,6 +12,7 @@ module Modules.Generic
        , testLengthDivisibility
        , testStandardHashValues
        , allHashTests
+       , allHMACTests
        , shorten
        ) where
 
@@ -27,6 +28,7 @@ import           Test.QuickCheck                      (Arbitrary)
 
 import           Raaz.Primitives
 import           Raaz.Primitives.Hash
+import           Raaz.Primitives.HMAC
 import           Raaz.Types
 import           Raaz.Test.EndianStore
 import           Raaz.Test.Cipher
@@ -41,7 +43,6 @@ import           Raaz.Util.ByteString                 (toHex)
 allHashTests :: ( Arbitrary h
                 , Show h
                 , Hash h
-                , Typeable h
                 , PrimitiveOf (CGadget h) ~ h
                 , PrimitiveOf (HGadget h) ~ h
                 , Default (Cxt h)
@@ -49,6 +50,7 @@ allHashTests :: ( Arbitrary h
                 , Gadget (CGadget h)
                 , Eq (Cxt h)
                 , HasName h
+                , Typeable h
                 )
              => h         -- ^ dummy hash type to satisfy the type checker
              -> [(B.ByteString,B.ByteString)]
@@ -60,8 +62,23 @@ allHashTests h pairs = [ testStoreLoad h
                        , testGroup unitTestName unitTests
                        , testCGadgetvsHGadget h
                        ]
-    where unitTestName  = unwords [show $ typeOf h, "Unit tests"]
+    where unitTestName  = unwords [getName h, "Unit tests"]
           unitTests     = testStandardHashValues h pairs
+
+
+allHMACTests :: ( Arbitrary h
+                , Show h
+                , Hash h
+                , HasName h
+                )
+             => h         -- ^ dummy hash type to satisfy the type checker
+             -> [(B.ByteString,B.ByteString,B.ByteString)]
+                          -- ^ key,string,hmac
+             -> [Test]
+allHMACTests h pairs = [ testGroup unitTestName unitTests ]
+    where unitTestName  = unwords [show $ getName h, "HMAC Unit tests"]
+          unitTests     = testStandardHMACValues h pairs
+
 
 prop_padLengthVsPadding :: Hash h => h -> BITS Word64 ->  Bool
 prop_padLengthVsPadding h w = padLength h w ==
@@ -74,17 +91,17 @@ prop_LengthDivisibility h w = len `rem` blockSize h == 0
 -- | For an instance of @`Hash`@, this test checks whether the padding
 -- length computed using the function @`padLength`@ is equal to the
 -- length of the bytestring returned by the function @`padding`@.
-testPadLengthVsPadding :: ( Hash h, Typeable h ) => h -> Test
+testPadLengthVsPadding :: ( Hash h, HasName h ) => h -> Test
 testPadLengthVsPadding h =  testProperty name
                                      $ prop_padLengthVsPadding h
-    where name = show (typeOf h) ++ ": padLength vs length of padding"
+    where name = getName h ++ ": padLength vs length of padding"
 
 -- | For a compressor, this test checks whether the sum of the message
 -- length and padding length is a multiple of the block length.
-testLengthDivisibility :: ( Hash h, Typeable h ) => h -> Test
+testLengthDivisibility :: ( Hash h, HasName h ) => h -> Test
 testLengthDivisibility h = testProperty name
                            $ prop_LengthDivisibility h
-    where name = show (typeOf h) ++ ": padding + message length vs block length"
+    where name = getName h ++ ": padding + message length vs block length"
 
 -- | The specifications of hash algorithms is usually accompanied with
 -- a set of strings and their corresponding hash values so that
@@ -95,7 +112,7 @@ testLengthDivisibility h = testProperty name
 -- type checker. The second argument is a list which consists of pairs
 -- of a string its hash (expressed as a bytestring in hex).
 
-testStandardHashValues :: (EndianStore h, Hash h, Typeable h)
+testStandardHashValues :: (EndianStore h, Hash h, HasName h)
                        => h                             -- ^ hash
                                                         -- value
                                                         -- (ignored)
@@ -104,8 +121,21 @@ testStandardHashValues :: (EndianStore h, Hash h, Typeable h)
                        -> [Test]
 testStandardHashValues h = hUnitTestToTests . test . map checkHash
   where getHash a = toHex $ hash a `asTypeOf` h
-        label a   = show (typeOf h) ++ " " ++ shorten (show a)
+        label a   = getName h ++ " " ++ shorten (show a)
         checkHash (a,b) = label a ~: getHash a ~?= b
+
+testStandardHMACValues :: (EndianStore h, Hash h, HasName h)
+                       => h                             -- ^ hash
+                                                        -- value
+                                                        -- (ignored)
+                       -> [(B.ByteString,B.ByteString,B.ByteString)] -- ^ (key,data,hash)
+                       -> [Test]
+testStandardHMACValues h = hUnitTestToTests . test . map checkHMAC
+  where getHMAC k b = toHex $ hmac k b `asTypeOf` (toHMAC h)
+        toHMAC :: h -> HMAC h
+        toHMAC _ = undefined
+        label a   = "HMAC " ++ getName h ++ " " ++ shorten (show a)
+        checkHMAC (k,b,h) = label b ~: getHMAC k b ~?= h
 
 
 testCGadgetvsHGadget :: ( PrimitiveOf (CGadget p) ~ p

@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 module Modules.Sha256
        ( tests
        ) where
@@ -10,7 +11,7 @@ import           Test.QuickCheck       (Arbitrary(..))
 
 import Raaz.Test.Gadget
 
-import Modules.Generic(allHashTests)
+import Modules.Generic
 import Raaz.Hash.Sha256.Internal
 
 instance Arbitrary SHA256 where
@@ -24,9 +25,10 @@ instance Arbitrary SHA256 where
                      <*> arbitrary
 
 tests = allHashTests (undefined ::SHA256) exampleStrings
+     ++ allHMACTests (undefined :: SHA256) exampleHMAC
 
 exampleStrings :: [(B.ByteString,B.ByteString)]
-exampleStrings = map convertToByteString
+exampleStrings =
   [ ( "abc"
     , "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad" )
   , ( "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq"
@@ -40,5 +42,27 @@ exampleStrings = map convertToByteString
   , ( "The quick brown fox jumps over the lazy dog The quick brown fox jumps over the lazy dog The quick brown fox jumps over the lazy dog The quick brown fox jumps over the lazy dog The quick brown fox jumps over the lazy dog"
     , "86c55ba51d6b4aef51f4ae956077a0f661d0b876c5774fef3172c4f56092cbbd" )
   ]
- where
-   convertToByteString (a,b) = (C8.pack a, C8.pack b)
+
+exampleHMAC :: [(B.ByteString,B.ByteString,B.ByteString)]
+exampleHMAC =
+  [ ( B.replicate 20 0x0b
+    , "Hi There"
+    , "b0344c61d8db38535ca8afceaf0bf12b881dc200c9833da726e9376c2e32cff7"
+    )
+  , ( "Jefe"
+    , "what do ya want for nothing?"
+    , "5bdcc146bf60754e6a042426089575c75a003f089d2739839dec58b964ec3843"
+    )
+  , ( B.replicate 20 0xaa
+    , B.replicate 50 0xdd
+    , "773ea91e36800e46854db8ebd09181a72959098b3ef8c122d9635514ced565fe"
+    )
+  , ( B.replicate 131 0xaa
+    , "Test Using Larger Than Block-Size Key - Hash Key First"
+    , "60e431591ee0b67f0d8a26aacbf5b77f8e0bc6213728c5140546040f0ee37f54"
+    )
+  , ( B.replicate 131 0xaa
+    , "This is a test using a larger than block-size key and a larger than block-size data. The key needs to be hashed before being used by the HMAC algorithm."
+    , "9b09ffa71b942fcb27635fbcd5b0e944bfdc63644f0713938a7f51535c3a35e2"
+    )
+  ]

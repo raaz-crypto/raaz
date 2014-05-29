@@ -11,6 +11,7 @@ module Raaz.Test.EndianStore
        , testPokePeek
        ) where
 
+import Data.Typeable
 import Foreign.Marshal.Alloc
 import Foreign.Storable
 import Test.Framework                       ( Test                   )
@@ -18,7 +19,6 @@ import Test.Framework.Providers.QuickCheck2 ( testProperty           )
 import Test.QuickCheck                      ( Property, Arbitrary    )
 import Test.QuickCheck.Monadic              ( run, assert, monadicIO )
 
-import Raaz.Primitives
 import Raaz.Types  ( cryptoAlignment, EndianStore(..) )
 
 
@@ -46,12 +46,10 @@ prop_StoreLoad _ a = monadicIO $ do y <- run $ storeLoad a
 -- print the type when running the test and for nothing else. A
 -- typical use would look something like:
 --
--- > data Foo = ... deriving (Eq, Show)
+-- > data Foo = ... deriving (Typeable, Eq, Show)
 -- > instance EndianStore Foo where
 -- >      ...
 -- > instance Aribitrary Foo where
--- >      ...
--- > instance HasName Foo where
 -- >      ...
 -- > main = defaultMain [ testStoreLoad (undefined :: Foo) ]
 --
@@ -60,13 +58,13 @@ testStoreLoad :: ( EndianStore a
                  , Eq a
                  , Show a
                  , Arbitrary a
-                 , HasName a
+                 , Typeable a
                  )
               => a    -- ^ dummy argument (not used)
               -> Test
 testStoreLoad a = testProperty (aType ++ ": Store/Load ")
                                $ prop_StoreLoad a
-     where aType = getName a
+     where aType = show $ typeOf a
 
 -- | This is where the actual poke/peek is performed.
 pokePeek :: (Storable a, Eq a) => a -> IO Bool
@@ -92,12 +90,10 @@ prop_PokePeek _ a = monadicIO $ do y <- run $ pokePeek a
 -- print the type when running the test and for nothing else. A
 -- typical use would look something like:
 --
--- > data Foo = ... deriving (Eq, Show)
+-- > data Foo = ... deriving (Typeable, Eq, Show)
 -- > instance Storable Foo where
 -- >      ...
 -- > instance Aribitrary Foo where
--- >      ...
--- > instance HasName Foo where
 -- >      ...
 -- > main = defaultMain [ testPokePeek (undefined :: Foo) ]
 --
@@ -106,10 +102,10 @@ testPokePeek :: ( Storable a
                 , Eq a
                 , Show a
                 , Arbitrary a
-                , HasName a
+                , Typeable a
                 )
              => a    -- ^ dummy argument (not used)
              -> Test
 testPokePeek a = testProperty (aType ++ ": Poke/Peek ")
                                $ prop_PokePeek a
-     where aType = getName a
+     where aType = show $ typeOf a
