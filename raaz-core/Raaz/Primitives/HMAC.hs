@@ -49,11 +49,11 @@ import           Raaz.Util.Ptr
 -- `Eq` instance for HMAC is essentially the `Eq` instance for the
 -- underlying hash. It is safe against timing attack provided the
 -- underlying hash comparison is safe under timing attack.
-newtype HMAC h = HMAC h deriving (Eq, Storable, EndianStore)
+newtype HMAC h = HMAC h deriving (Eq, Storable, EndianStore, Show)
 
 -- | HMAC key which is a wrapper around `ByteString` of 1 block size
 -- of the underlying hash.
-newtype HMACKey h = HMACKey ByteString
+newtype HMACKey h = HMACKey ByteString deriving Show
 
 -- | `HMACKey` can be built from any source of 1 block size.
 instance Hash h => CryptoSerialize (HMACKey h) where
@@ -179,7 +179,7 @@ data HMACGadget g =
 
 instance (PaddableGadget g, Hash (PrimitiveOf g))
          => PaddableGadget (HMACGadget g) where
-  unsafeApplyLast (HMACGadget g _ _) blks = unsafeApplyLast g blks'
+  unsafeApplyLast (HMACGadget g _ _) blks = unsafeApplyLast g (blks' + 1) -- one for inner pad already hashed
     where blks' = toEnum $ fromEnum blks
 
 ----------------------------- Gadget Instances ---------------------------------
