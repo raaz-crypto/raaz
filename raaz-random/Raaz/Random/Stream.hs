@@ -56,7 +56,7 @@ zeroOutMemoryBuf buff = withMemoryBuf buff (\cptr -> memset cptr 0 (memoryBufSiz
 newtype GadgetBuff g = GadgetBuff g
 
 instance (Gadget g) => Bufferable (GadgetBuff g) where
-  maxSizeOf (GadgetBuff g) = cryptoCoerce $ recommendedBlocks g
+  maxSizeOf (GadgetBuff g) = roundFloor $ recommendedBlocks g
 
 -- | Create a `RandomSource` from a `StreamGadget`.
 fromGadget :: StreamGadget g
@@ -97,7 +97,7 @@ instance StreamGadget g => Gadget (RandomSource g) where
     cellStore cellcounter 0
   -- | Finalize is of no use for a random number generator.
   finalize (RandomSource g _ _ _) = RSCxt <$> finalize g
-  apply rs blks cptr = void $ fillBytes (cryptoCoerce blks) rs cptr
+  apply rs blks cptr = void $ fillBytes (roundFloor blks) rs cptr
 
 instance StreamGadget g => ByteSource (RandomSource g) where
   fillBytes nb rs@(RandomSource g buff celloffset cellcounter) cptr = do
@@ -123,7 +123,7 @@ fillFromGadget g bsz bfr = do
   -- Zero out the memory
   memset bfr 0 bsz
   -- Refill buffer
-  apply g (cryptoCoerce nblks) bfr
+  apply g (roundFloor nblks) bfr
     where
       getPrim :: (Gadget g) => g -> PrimitiveOf g
       getPrim _ = undefined

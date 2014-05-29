@@ -56,9 +56,9 @@ parse = do a <- getPtr >>= lift . load
            return a
 
 -- | Parses a strict bytestring of a given length.
-parseByteString :: CryptoCoerce l (BYTES Int) => l -> Parser ByteString
+parseByteString :: Rounding l (BYTES Int) => l -> Parser ByteString
 parseByteString l = do bs <- getPtr >>= lift . getBS
                        modify $ flip movePtr l
                        return bs
-  where bytes = cryptoCoerce l :: BYTES Int
+  where bytes = roundFloor l :: BYTES Int
         getBS = createFrom $ fromIntegral bytes

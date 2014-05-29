@@ -103,7 +103,7 @@ instance EndianStore SHA384 where
                       <> write h5
 
 instance Primitive SHA384 where
-  blockSize _ = cryptoCoerce $ BITS (1024 :: Int)
+  blockSize _ = roundFloor $ BITS (1024 :: Int)
   {-# INLINE blockSize #-}
   newtype Cxt SHA384 = SHA384Cxt SHA512 deriving (Eq, Storable)
 

@@ -93,13 +93,13 @@ data Block = Block { blockPtr    :: CryptoPtr         -- Location
 -- | Allocates the memory from the secure pool and returns the
 -- allocated `CryptoPtr`. In case of unavailability of enough free
 -- space, returns Nothing.
-allocFromPool :: CryptoCoerce size (BYTES Int)
+allocFromPool :: Rounding size (BYTES Int)
               => size
               -> Pool
               -> (Pool,Maybe CryptoPtr)
 allocFromPool size (Pool fp sz blks) = first (Pool fp sz) $ getFreeBlock blks
   where
-    bsize = cryptoCoerce size
+    bsize = roundFloor size
     getFreeBlock [] = ([], Nothing)
     getFreeBlock (b@(Block p s f):rs)
       | bsize < s && f =
@@ -130,13 +130,13 @@ freeInPool ptr (Pool fp sz blks) =
 
 -- | Creates the initial pool of secure memory of the given size. It
 -- also adds the finalizer to wipe and unlock the memory.
-initPool :: CryptoCoerce size (BYTES Int)
+initPool :: Rounding size (BYTES Int)
          => size
          -> IO Pool
 initPool size  = do
-  let tby = cryptoCoerce size :: BYTES Int
-      pg  = cryptoCoerce tby  :: PAGES Int
-      by@(BYTES psize) = cryptoCoerce pg
+  let tby = roundFloor size :: BYTES Int
+      pg  = roundCeil tby  :: PAGES Int
+      by@(BYTES psize) = roundFloor pg
   ptr <- c_createpool psize
   out <- c_mlock ptr psize
   if out < 0 then fail "mlock_fail" else do
@@ -151,7 +151,7 @@ initPool size  = do
     addFinalizers fptr = mapM_ (addForeignPtrFinalizer fptr)
 
 -- | Creates the initial `PoolRef` with the pool of given size.
-initPoolRef :: CryptoCoerce size (BYTES Int)
+initPoolRef :: Rounding size (BYTES Int)
                => size
                -> IO PoolRef
 initPoolRef size = newIORef =<< initPool size
@@ -160,7 +160,7 @@ initPoolRef size = newIORef =<< initPool size
 -- of secure memory. Also adds the finalizer to mark the block as free
 -- in the `PoolRef`. Returns `Nothing` if enough free memory is not
 -- available in the pool.
-allocSecureMem :: CryptoCoerce size (BYTES Int)
+allocSecureMem :: Rounding size (BYTES Int)
                => size
                -> PoolRef
                -> IO (Maybe ForeignCryptoPtr)
@@ -178,7 +178,7 @@ freeSecureMem :: CryptoPtr
 freeSecureMem cptr poolref = atomicModifyIORef poolref $ (,()) . freeInPool cptr
 
 -- | Runs the action after allocating a secure memory of given size.
-withSecureMem :: CryptoCoerce size (BYTES Int)
+withSecureMem :: Rounding size (BYTES Int)
               => size                        -- ^ Size
               -> (ForeignCryptoPtr -> IO b)  -- ^ Action
               -> PoolRef                     -- ^ Pool
@@ -209,3 +209,33 @@ instance ( Integral pg
          )
          => CryptoCoerce (PAGES pg) (BYTES by) where
   cryptoCoerce pgs = fromIntegral pgs * fromIntegral pageSize
+
+instance ( Integral by
+         , Num pg
+         )
+         => Rounding (BYTES by) (PAGES pg) where
+  roundCeil by
+    | r == 0    = fromIntegral q
+    | otherwise = fromIntegral q + 1
+    where (q,r) = fromIntegral by `quotRem` pageSize
+  {-# INLINE roundCeil #-}
+
+  roundFloor by = fromIntegral $ fromIntegral by `quot` pageSize
+  {-# INLINE roundFloor #-}
+
+  roundRem by = (fromIntegral q, fromIntegral r)
+    where (q,r) = fromIntegral by `quotRem` pageSize
+  {-# INLINE roundRem #-}
+
+instance ( Integral pg
+         , Num by
+         )
+         => Rounding (PAGES pg) (BYTES by) where
+  roundCeil pg = fromIntegral pg * fromIntegral pageSize
+  {-# INLINE roundCeil #-}
+
+  roundFloor pg = fromIntegral pg * fromIntegral pageSize
+  {-# INLINE roundFloor #-}
+
+  roundRem pg = (fromIntegral pg * fromIntegral pageSize, 0)
+  {-# INLINE roundRem #-}

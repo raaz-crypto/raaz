@@ -64,9 +64,9 @@ parse = parseWith undefined
       lift $ PU.parse
 
 -- | Parses a strict bytestring of a given length.
-parseByteString :: CryptoCoerce l (BYTES Int) => l -> Parser ByteString
+parseByteString :: Rounding l (BYTES Int) => l -> Parser ByteString
 parseByteString l = do
-  checkAndUpdate $ cryptoCoerce l
+  checkAndUpdate $ roundFloor l
   lift $ PU.parseByteString l
 
 -- | Parse the rest of the buffer as strict bytestring.

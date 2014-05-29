@@ -37,33 +37,33 @@ byteSize = BYTES . sizeOf
 -- allocated locally and freed once the action finishes. It is better
 -- to use this function than @`allocaBytes`@ as it does type safe
 -- scaling.
-allocaBuffer :: CryptoCoerce l (BYTES Int)
+allocaBuffer :: Rounding l (BYTES Int)
              => l                    -- ^ buffer length
              -> (CryptoPtr -> IO b)  -- ^ the action to run
              -> IO b
 {-# INLINE allocaBuffer #-}
 allocaBuffer l = allocaBytes bytes
-  where BYTES bytes = cryptoCoerce l
+  where BYTES bytes = roundFloor l
 
 -- | Creates a memory of given size. It is better to use over
 -- @`mallocBytes`@ as it uses typesafe length.
-mallocBuffer :: CryptoCoerce l (BYTES Int)
+mallocBuffer :: Rounding l (BYTES Int)
              => l                    -- ^ buffer length
              -> IO CryptoPtr
 {-# INLINE mallocBuffer #-}
 mallocBuffer l = mallocBytes bytes
-  where BYTES bytes = cryptoCoerce l
+  where BYTES bytes = roundFloor l
 
 -- | Moves a pointer by a specified offset. The offset can be of any
 -- type that supports coercion to @`BYTES` Int@. It is safer to use
 -- this function than @`plusPtr`@, as it does type safe scaling.
-movePtr :: CryptoCoerce offset (BYTES Int)
+movePtr :: Rounding offset (BYTES Int)
         => CryptoPtr
         -> offset
         -> CryptoPtr
 {-# INLINE movePtr #-}
 movePtr cptr offset = cptr `plusPtr` bytes
-  where BYTES bytes = cryptoCoerce offset
+  where BYTES bytes = roundFloor offset
 
 
 
@@ -82,7 +82,7 @@ storeAtIndex cptr index w = storeAt cptr offset w
 -- | Store the given value at an offset from the crypto pointer. The
 -- offset is given in type safe units.
 storeAt :: ( EndianStore w
-           , CryptoCoerce offset (BYTES Int)
+           , Rounding offset (BYTES Int)
            )
         => CryptoPtr   -- ^ the pointer
         -> offset      -- ^ the absolute offset in type safe length units.
@@ -105,7 +105,7 @@ loadFromIndex cptr index = loadP undefined
 
 -- | Load from a given offset. The offset is given in type safe units.
 loadFrom :: ( EndianStore w
-            , CryptoCoerce offset (BYTES Int)
+            , Rounding offset (BYTES Int)
             )
          => CryptoPtr -- ^ the pointer
          -> offset    -- ^ the offset
@@ -114,48 +114,48 @@ loadFrom :: ( EndianStore w
 loadFrom cptr offset = load $ cptr `movePtr` offset
 
 -- | A version of `hGetBuf` which works for any type safe length units.
-hFillBuf :: (CryptoCoerce bufSize (BYTES Int))
+hFillBuf :: (Rounding bufSize (BYTES Int))
          => Handle
          -> CryptoPtr
          -> bufSize
          -> IO (BYTES Int)
 {-# INLINE hFillBuf #-}
 hFillBuf handle cptr sz = fmap BYTES $ hGetBuf handle cptr bytes
-     where BYTES bytes = cryptoCoerce sz
+     where BYTES bytes = roundFloor sz
 
 -- | Some common PTR functions abstracted over type safe length.
 foreign import ccall unsafe "string.h memcpy" c_memcpy
     :: CryptoPtr -> CryptoPtr -> BYTES Int -> IO CryptoPtr
 
 -- | Copy between pointers.
-memcpy :: CryptoCoerce l (BYTES Int)
+memcpy :: Rounding l (BYTES Int)
        => CryptoPtr -- ^ Dest
        -> CryptoPtr -- ^ Src
        -> l         -- ^ Number of Bytes to copy
        -> IO ()
-memcpy p q l = void $ c_memcpy p q $ cryptoCoerce l
+memcpy p q l = void $ c_memcpy p q $ roundFloor l
 {-# SPECIALIZE memcpy :: CryptoPtr -> CryptoPtr -> BYTES Int -> IO () #-}
 
 foreign import ccall unsafe "string.h memmove" c_memmove
     :: CryptoPtr -> CryptoPtr -> BYTES Int -> IO CryptoPtr
 
 -- | Move between pointers.
-memmove :: CryptoCoerce l (BYTES Int)
+memmove :: Rounding l (BYTES Int)
         => CryptoPtr -- ^ Dest
         -> CryptoPtr -- ^ Src
         -> l         -- ^ Number of Bytes to copy
         -> IO ()
-memmove p q l = void $ c_memmove p q $ cryptoCoerce l
+memmove p q l = void $ c_memmove p q $ roundFloor l
 {-# SPECIALIZE memmove :: CryptoPtr -> CryptoPtr -> BYTES Int -> IO () #-}
 
 foreign import ccall unsafe "string.h memset" c_memset
     :: CryptoPtr -> Word8 -> BYTES Int -> IO CryptoPtr
 
 -- | Sets the given number of Bytes to the specified value.
-memset :: CryptoCoerce l (BYTES Int)
+memset :: Rounding l (BYTES Int)
        => CryptoPtr -- ^ Target
        -> Word8     -- ^ Value byte to set
        -> l         -- ^ Number of bytes to set
        -> IO ()
-memset p w l = void $ c_memset p w $ cryptoCoerce l
+memset p w l = void $ c_memset p w $ roundFloor l
 {-# SPECIALIZE memset :: CryptoPtr -> Word8 -> BYTES Int -> IO () #-}

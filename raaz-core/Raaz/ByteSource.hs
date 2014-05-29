@@ -14,7 +14,7 @@ import qualified Data.ByteString.Lazy as L
 import           Prelude hiding(length)
 import           System.IO            (Handle)
 
-import           Raaz.Types           (BYTES, CryptoPtr, CryptoCoerce(..))
+import           Raaz.Types           (BYTES, CryptoPtr, Rounding(..))
 import           Raaz.Util.ByteString( unsafeCopyToCryptoPtr
                                      , unsafeNCopyToCryptoPtr
                                      , length
@@ -54,14 +54,14 @@ class ByteSource src where
 
 
 -- | A version of fillBytes that takes type safe lengths as input.
-fill :: ( CryptoCoerce len (BYTES Int)
+fill :: ( Rounding len (BYTES Int)
         , ByteSource src
         )
      => len
      -> src
      -> CryptoPtr
      -> IO (FillResult src)
-fill = fillBytes . cryptoCoerce
+fill = fillBytes . roundFloor
 {-# INLINE fill #-}
 
 -- | A byte source src is pure if filling from it does not have any

@@ -31,7 +31,7 @@ testLEBEreverse64 :: Test
 testLEBEreverse64 = testProperty "LE64 == reverse BE64" prop_LEBEreverse64
 
 prop_bitsVsBytes :: BYTES Word32 -> Bool
-prop_bitsVsBytes by = cryptoCoerce (cryptoCoerce by :: BITS Word64) == by
+prop_bitsVsBytes by = roundFloor (roundFloor by :: BITS Word64) == by
 
 tests :: [Test]
 tests = [ testStoreLoad (undefined :: Word32LE)

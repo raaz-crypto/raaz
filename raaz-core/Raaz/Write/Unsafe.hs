@@ -70,10 +70,10 @@ write a = Write $ \ cptr -> do
 
 -- | The combinator @writeBytes n b@ writes @b@ as the next @n@
 -- consecutive bytes.
-writeBytes :: CryptoCoerce n (BYTES Int) => n -> Word8 -> Write
+writeBytes :: Rounding n (BYTES Int) => n -> Word8 -> Write
 writeBytes n b = Write $ \ cptr ->
   memset cptr b bytes >> return (cptr `movePtr` n)
-  where bytes = cryptoCoerce n :: BYTES Int
+  where bytes = roundFloor n :: BYTES Int
 
 -- | Writes a strict `ByteString`.
 writeByteString :: ByteString -> Write

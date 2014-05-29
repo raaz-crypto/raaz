@@ -38,9 +38,9 @@ length :: ByteString -> BYTES Int
 length = BYTES . B.length
 
 -- | A type safe version of replicate
-replicate :: CryptoCoerce l (BYTES Int) => l -> Word8 -> ByteString
+replicate :: Rounding l (BYTES Int) => l -> Word8 -> ByteString
 replicate l = B.replicate sz
-  where BYTES sz = cryptoCoerce l
+  where BYTES sz = roundFloor l
 
 -- | Copy the bytestring to the crypto buffer. This operation leads to
 -- undefined behaviour if the crypto pointer points to an area smaller
@@ -59,7 +59,7 @@ unsafeCopyToCryptoPtr bs cptr =  withForeignPtr fptr $
 -- units) to transfer. This operation leads to undefined behaviour if
 -- either the bytestring is shorter than @n@ or the crypto pointer
 -- points to an area smaller than @n@.
-unsafeNCopyToCryptoPtr :: CryptoCoerce n (BYTES Int)
+unsafeNCopyToCryptoPtr :: Rounding n (BYTES Int)
                        => n              -- ^ length of data to be copied
                        -> ByteString     -- ^ The source byte string
                        -> CryptoPtr      -- ^ The buffer

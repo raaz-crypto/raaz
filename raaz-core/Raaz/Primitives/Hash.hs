@@ -65,7 +65,7 @@ type HashMemoryBuf h = MemoryBuf (HashMemoryBufSize h)
 data HashMemoryBufSize h
 
 instance Hash h => Bufferable (HashMemoryBufSize h) where
-  maxSizeOf hbsz = padLength thisHash (cryptoCoerce sz) + sz
+  maxSizeOf hbsz = padLength thisHash (roundFloor sz) + sz
     where sz       = byteSize thisHash
           thisHash = getH hbsz
           getH     :: HashMemoryBufSize h -> h
