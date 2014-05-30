@@ -105,17 +105,17 @@ instance HasPadding h => HasPadding (HMAC h) where
   -- inner pad that is already hashed before the actual data is
   -- processed.
 
-  padLength hmac bits = padLength h bits'
-    where h     = getHash hmac
-          bits' = bits + roundFloor (blocksOf 1 hmac)
+  padLength hmc bits = padLength h bits'
+    where h     = getHash hmc
+          bits' = bits + roundFloor (blocksOf 1 hmc)
 
-  padding hmac bits = padding h bits'
-    where h     = getHash hmac
-          bits' = bits + roundFloor (blocksOf 1 hmac)
+  padding hmc bits = padding h bits'
+    where h     = getHash hmc
+          bits' = bits + roundFloor (blocksOf 1 hmc)
 
-  unsafePad hmac bits = unsafePad h bits'
-    where h     = getHash hmac
-          bits' = bits + roundFloor (blocksOf 1 hmac)
+  unsafePad hmc bits = unsafePad h bits'
+    where h     = getHash hmc
+          bits' = bits + roundFloor (blocksOf 1 hmc)
 
   maxAdditionalBlocks  = toEnum . fromEnum
                        . maxAdditionalBlocks
