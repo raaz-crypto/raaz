@@ -7,9 +7,11 @@ import           Control.Applicative
 import qualified Data.ByteString          as B
 import qualified Data.ByteString.Char8    as C8
 import           Data.Default
+import           Data.String
 import           Test.QuickCheck          (Arbitrary(..))
 
 import Raaz.Test.Gadget
+import Raaz.Primitives.HMAC
 
 import Modules.Generic
 import Raaz.Hash.Sha1.Internal
@@ -40,9 +42,9 @@ exampleStrings =
     , "5957a404e7e74dc746bea2d0d47645ddb387a7de" )
   ]
 
-exampleHMAC :: [(B.ByteString,B.ByteString,B.ByteString)]
+exampleHMAC :: [ (HMACKey SHA1 , B.ByteString, B.ByteString) ]
 exampleHMAC =
-  [ ( B.replicate 20 0x0b
+  [ ( fromString $ replicate 20 '\x0b'
     , "Hi There"
     , "b617318655057264e28bc0b6fb378c8ef146be00"
     )
@@ -50,15 +52,15 @@ exampleHMAC =
     , "what do ya want for nothing?"
     ,  "effcdf6ae5eb2fa2d27416d5f184df9c259a7c79"
     )
-  , ( B.replicate 20 0xaa
+  , ( fromString $ replicate 20 '\xaa'
     , B.replicate 50 0xdd
     , "125d7342b9ac11cd91a39af48aa17b4f63f175d3"
     )
-  , ( B.replicate 80 0xaa
+  , ( fromString $ replicate 80 '\xaa'
     , "Test Using Larger Than Block-Size Key - Hash Key First"
     , "aa4ae5e15272d00e95705637ce8a3b55ed402112"
     )
-  , ( B.replicate 80 0xaa
+  , ( fromString $ replicate 80 '\xaa'
     , "Test Using Larger Than Block-Size Key and Larger Than One Block-Size Data"
     , "e8e99d0f45237d786d6bbaa7965c7808bbff1a91"
     )

@@ -71,9 +71,9 @@ allHMACTests :: ( Arbitrary h
                 , Hash h
                 , HasName h
                 )
-             => h         -- ^ dummy hash type to satisfy the type checker
-             -> [(B.ByteString,B.ByteString,B.ByteString)]
-                          -- ^ key,string,hmac
+             => h
+             -> [(HMACKey h, B.ByteString, B.ByteString)]
+                          -- ^ key, string, hmac
              -> [Test]
 allHMACTests h pairs = [ testGroup unitTestName unitTests ]
     where unitTestName  = unwords [show $ getName h, "HMAC Unit tests"]
@@ -125,15 +125,11 @@ testStandardHashValues h = hUnitTestToTests . test . map checkHash
         checkHash (a,b) = label a ~: getHash a ~?= b
 
 testStandardHMACValues :: (EndianStore h, Hash h, HasName h)
-                       => h                             -- ^ hash
-                                                        -- value
-                                                        -- (ignored)
-                       -> [(B.ByteString,B.ByteString,B.ByteString)] -- ^ (key,data,hash)
+                       => h
+                       -> [(HMACKey h, B.ByteString, B.ByteString) ] -- ^ (key,data,hash)
                        -> [Test]
 testStandardHMACValues h = hUnitTestToTests . test . map checkHMAC
-  where getHMAC k b = toHex $ hmac k b `asTypeOf` (toHMAC h)
-        toHMAC :: h -> HMAC h
-        toHMAC _ = undefined
+  where getHMAC k b = toHex $ hmac k b
         label a   = "HMAC " ++ getName h ++ " " ++ shorten (show a)
         checkHMAC (k,b,h) = label b ~: getHMAC k b ~?= h
 
