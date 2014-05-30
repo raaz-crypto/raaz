@@ -276,13 +276,11 @@ instance Hash h => Auth (HMAC h) where
 
 -- | Compute the HMAC of pure byte source.
 hmac :: (Hash h, PureByteSource src)
-     => B.ByteString -- ^ Key
+     => HMACKey h
      -> src          -- ^ Source
      -> HMAC h
-hmac keysrc src = out
-  where
-    key = HMACKey $ hmacShortenKey (getHash out) keysrc
-    out = authTag key src
+hmac = authTag
+{-# INLINE hmac #-}
 
 -- | Compute the HMAC of pure byte source using the given gadget. Note
 -- that the gadget supplied is just used to know the type of gadget
@@ -294,13 +292,11 @@ hmac' :: ( Hash h
          , PrimitiveOf g ~ h
          )
       => HMACGadget g  -- ^ HMAC Gadget type
-      -> B.ByteString  -- ^ Key
+      -> HMACKey h
       -> src           -- ^ Source
       -> HMAC h
-hmac' gad keysrc src = out
-  where
-    key = HMACKey $ hmacShortenKey (getHash out) keysrc
-    out = authTag' gad key src
+hmac' = authTag'
+{-# INLINE hmac' #-}
 
 --- | These functions are used to keep type checker happy.
 getHash :: HMAC h -> h
