@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 module Modules.Sha512
        ( tests
        ) where
@@ -6,11 +7,13 @@ import           Control.Applicative
 import qualified Data.ByteString       as B
 import qualified Data.ByteString.Char8 as C8
 import           Data.Default
+import           Data.String
 import           Test.QuickCheck       (Arbitrary(..))
 
 import Raaz.Test.Gadget
+import Raaz.Primitives.HMAC
 
-import Modules.Generic(allHashTests)
+import Modules.Generic
 import Raaz.Hash.Sha512.Internal
 
 instance Arbitrary SHA512 where
@@ -25,9 +28,10 @@ instance Arbitrary SHA512 where
 
 
 tests = allHashTests (undefined ::SHA512) exampleStrings
+     ++ allHMACTests (undefined :: SHA512) exampleHMAC
 
-exampleStrings :: [(B.ByteString,B.ByteString)]
-exampleStrings = map convertToByteString
+exampleStrings :: [ (B.ByteString , B.ByteString) ]
+exampleStrings =
   [ ( "abc"
     , "ddaf35a193617abacc417349ae20413112e6fa4e89a97ea20a9eeee64b55d39a2192992a274fc1a836ba3c23a3feebbd454d4423643ce80e2a9ac94fa54ca49f" )
   , ( "abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu"
@@ -41,5 +45,27 @@ exampleStrings = map convertToByteString
   , ( "The quick brown fox jumps over the lazy dog The quick brown fox jumps over the lazy dog The quick brown fox jumps over the lazy dog The quick brown fox jumps over the lazy dog The quick brown fox jumps over the lazy dog"
     , "e489dcc2e8867d0bbeb0a35e6b94951a11affd7041ef39fa21719eb01800c29a2c3522924443939a7848fde58fb1dbd9698fece092c0c2b412c51a47602cfd38" )
   ]
- where
-   convertToByteString (a,b) = (C8.pack a, C8.pack b)
+
+exampleHMAC :: [ (HMACKey SHA512, B.ByteString, B.ByteString) ]
+exampleHMAC =
+  [ ( fromString $ replicate 20 '\x0b'
+    , "Hi There"
+    , "87aa7cdea5ef619d4ff0b4241a1d6cb02379f4e2ce4ec2787ad0b30545e17cdedaa833b7d6b8a702038b274eaea3f4e4be9d914eeb61f1702e696c203a126854"
+    )
+  , ( "Jefe"
+    , "what do ya want for nothing?"
+    , "164b7a7bfcf819e2e395fbe73b56e0a387bd64222e831fd610270cd7ea2505549758bf75c05a994a6d034f65f8f0e6fdcaeab1a34d4a6b4b636e070a38bce737"
+    )
+  , ( fromString $ replicate 20 '\xaa'
+    , B.replicate 50 0xdd
+    , "fa73b0089d56a284efb0f0756c890be9b1b5dbdd8ee81a3655f83e33b2279d39bf3e848279a722c806b485a47e67c807b946a337bee8942674278859e13292fb"
+    )
+  , ( fromString $ replicate 131 '\xaa'
+    , "Test Using Larger Than Block-Size Key - Hash Key First"
+    , "80b24263c7c1a3ebb71493c1dd7be8b49b46d1f41b4aeec1121b013783f8f3526b56d037e05f2598bd0fd2215d6a1e5295e64f73f63f0aec8b915a985d786598"
+    )
+  , ( fromString $ replicate 131 '\xaa'
+    , "This is a test using a larger than block-size key and a larger than block-size data. The key needs to be hashed before being used by the HMAC algorithm."
+    , "e37b6a775dc87dbaa4dfa9f96e5e3ffddebd71f8867289865df5a32d20cdc944b6022cac3c4982b10d5eeb55c3e4de15134676fb6de0446065c97440fa8c6a58"
+    )
+  ]

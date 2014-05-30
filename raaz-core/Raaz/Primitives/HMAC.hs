@@ -13,20 +13,23 @@ module Raaz.Primitives.HMAC
        ( HMAC(..)
        , HMACKey
        , hmacShortenKey
+       , hmac, hmac'
        ) where
 
 import           Control.Applicative
 import           Data.Bits                 (xor)
-import           Data.ByteString           (ByteString)
+import           Data.ByteString.Char8     (ByteString)
 import qualified Data.ByteString           as B
 import           Data.Default              (def)
 import           Data.Monoid               ((<>))
+import           Data.String
 import           Data.Word                 (Word8)
 import           Foreign.Storable          (Storable(..))
 import           Foreign.Ptr
 import           Prelude                   hiding (length, replicate)
 import           System.IO.Unsafe          (unsafePerformIO)
 
+import           Raaz.ByteSource
 import           Raaz.Memory
 import           Raaz.Primitives
 import           Raaz.Primitives.Symmetric
@@ -47,11 +50,18 @@ import           Raaz.Util.Ptr
 -- `Eq` instance for HMAC is essentially the `Eq` instance for the
 -- underlying hash. It is safe against timing attack provided the
 -- underlying hash comparison is safe under timing attack.
-newtype HMAC h = HMAC h deriving (Eq, Storable, EndianStore)
+newtype HMAC h = HMAC h deriving (Eq, Storable, EndianStore, Show)
 
 -- | HMAC key which is a wrapper around `ByteString` of 1 block size
 -- of the underlying hash.
-newtype HMACKey h = HMACKey ByteString
+newtype HMACKey h = HMACKey ByteString deriving Show
+
+instance Hash h => IsString (HMACKey h) where
+  fromString str = key
+    where getH :: Hash h1 => HMACKey h1 -> h1
+          getH = undefined
+          hsh  = getH key
+          key  = HMACKey $ hmacShortenKey hsh $ fromString str
 
 -- | `HMACKey` can be built from any source of 1 block size.
 instance Hash h => CryptoSerialize (HMACKey h) where
@@ -103,17 +113,17 @@ instance HasPadding h => HasPadding (HMAC h) where
   -- inner pad that is already hashed before the actual data is
   -- processed.
 
-  padLength hmac bits = padLength h bits'
-    where h     = getHash hmac
-          bits' = bits + roundFloor (blocksOf 1 hmac)
+  padLength hmc bits = padLength h bits'
+    where h     = getHash hmc
+          bits' = bits + roundFloor (blocksOf 1 hmc)
 
-  padding hmac bits = padding h bits'
-    where h     = getHash hmac
-          bits' = bits + roundFloor (blocksOf 1 hmac)
+  padding hmc bits = padding h bits'
+    where h     = getHash hmc
+          bits' = bits + roundFloor (blocksOf 1 hmc)
 
-  unsafePad hmac bits = unsafePad h bits'
-    where h     = getHash hmac
-          bits' = bits + roundFloor (blocksOf 1 hmac)
+  unsafePad hmc bits = unsafePad h bits'
+    where h     = getHash hmc
+          bits' = bits + roundFloor (blocksOf 1 hmc)
 
   maxAdditionalBlocks  = toEnum . fromEnum
                        . maxAdditionalBlocks
@@ -177,7 +187,7 @@ data HMACGadget g =
 
 instance (PaddableGadget g, Hash (PrimitiveOf g))
          => PaddableGadget (HMACGadget g) where
-  unsafeApplyLast (HMACGadget g _ _) blks = unsafeApplyLast g blks'
+  unsafeApplyLast (HMACGadget g _ _) blks = unsafeApplyLast g (blks' + 1) -- one for inner pad already hashed
     where blks' = toEnum $ fromEnum blks
 
 ----------------------------- Gadget Instances ---------------------------------
@@ -230,6 +240,17 @@ instance ( Hash (PrimitiveOf g)
   apply (HMACGadget g _ _) blks = apply g blks'
     where blks' = toEnum $ fromEnum blks
 
+
+-- | CryptoPrimitive instance which uses the CryptoPrimitive instance
+-- of the underlying hash.
+instance ( Hash h
+         , CryptoPrimitive h
+         , PrimitiveOf (HMACGadget (Recommended h)) ~ HMAC h
+         , PrimitiveOf (HMACGadget (Reference h)) ~ HMAC h
+         ) => CryptoPrimitive (HMAC h) where
+  type Recommended (HMAC h) = HMACGadget (Recommended h)
+  type Reference   (HMAC h) = HMACGadget (Reference h)
+
 -------------------------------- Digestible instances -----------------------
 
 instance Hash h => Digestible (HMAC h) where
@@ -251,6 +272,31 @@ instance Hash h => Auth (HMAC h) where
     where
       iCxt = hmacCxt 0x36 key
       oCxt = hmacCxt 0x5c key
+
+
+-- | Compute the HMAC of pure byte source.
+hmac :: (Hash h, PureByteSource src)
+     => HMACKey h
+     -> src          -- ^ Source
+     -> HMAC h
+hmac = authTag
+{-# INLINE hmac #-}
+
+-- | Compute the HMAC of pure byte source using the given gadget. Note
+-- that the gadget supplied is just used to know the type of gadget
+-- used. You can even supply an `undefined` with the intended type of
+-- gadget.
+hmac' :: ( Hash h
+         , PureByteSource src
+         , PaddableGadget g
+         , PrimitiveOf g ~ h
+         )
+      => HMACGadget g  -- ^ HMAC Gadget type
+      -> HMACKey h
+      -> src           -- ^ Source
+      -> HMAC h
+hmac' = authTag'
+{-# INLINE hmac' #-}
 
 --- | These functions are used to keep type checker happy.
 getHash :: HMAC h -> h

@@ -100,8 +100,8 @@ class Primitive p where
 
 -- | A safe primitive is a primitive whose computation does not need
 -- modification of the input. Examples of safe primitives are
--- cryptographic hashes and macs. An example of an unsafe primitive
--- cipher. A library writter is required to ensure that a `apply`
+-- cryptographic hashes and macs. An example of an unsafe primitive is
+-- cipher. A library writer is required to ensure that a `apply`
 -- function of a gadget for a safe primitive should not modify the
 -- input buffer.
 class Primitive p => SafePrimitive p where

@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 module Modules.Sha224
        ( tests
        ) where
@@ -10,7 +11,7 @@ import           Test.QuickCheck       (Arbitrary(..))
 
 import Raaz.Test.Gadget
 
-import Modules.Generic(allHashTests)
+import Modules.Generic
 import Raaz.Hash.Sha224.Internal
 
 instance Arbitrary SHA224 where
@@ -26,7 +27,7 @@ instance Arbitrary SHA224 where
 tests = allHashTests (undefined ::SHA224) exampleStrings
 
 exampleStrings :: [(B.ByteString,B.ByteString)]
-exampleStrings = map convertToByteString
+exampleStrings =
   [ ( "abc"
     , "23097d223405d8228642a477bda255b32aadbce4bda0b3f7e36c9da7" )
   , ( "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq"
@@ -40,5 +41,3 @@ exampleStrings = map convertToByteString
   , ( "The quick brown fox jumps over the lazy dog The quick brown fox jumps over the lazy dog The quick brown fox jumps over the lazy dog The quick brown fox jumps over the lazy dog The quick brown fox jumps over the lazy dog"
     , "72a1a34c088733e432fa2e61e93a3e69af178870aa6b5ce0864ca60b" )
   ]
- where
-   convertToByteString (a,b) = (C8.pack a, C8.pack b)
