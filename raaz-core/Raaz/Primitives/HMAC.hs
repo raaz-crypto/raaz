@@ -18,10 +18,11 @@ module Raaz.Primitives.HMAC
 
 import           Control.Applicative
 import           Data.Bits                 (xor)
-import           Data.ByteString           (ByteString)
+import           Data.ByteString.Char8     (ByteString)
 import qualified Data.ByteString           as B
 import           Data.Default              (def)
 import           Data.Monoid               ((<>))
+import           Data.String
 import           Data.Word                 (Word8)
 import           Foreign.Storable          (Storable(..))
 import           Foreign.Ptr
@@ -54,6 +55,13 @@ newtype HMAC h = HMAC h deriving (Eq, Storable, EndianStore, Show)
 -- | HMAC key which is a wrapper around `ByteString` of 1 block size
 -- of the underlying hash.
 newtype HMACKey h = HMACKey ByteString deriving Show
+
+instance Hash h => IsString (HMACKey h) where
+  fromString str = key
+    where getH :: Hash h1 => HMACKey h1 -> h1
+          getH = undefined
+          hsh  = getH key
+          key  = HMACKey $ hmacShortenKey hsh $ fromString str
 
 -- | `HMACKey` can be built from any source of 1 block size.
 instance Hash h => CryptoSerialize (HMACKey h) where
