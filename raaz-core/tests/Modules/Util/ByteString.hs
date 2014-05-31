@@ -14,7 +14,7 @@ import Test.Framework.Providers.QuickCheck2 (testProperty)
 import Test.QuickCheck.Monadic(run, assert, monadicIO)
 
 import Raaz.Core.Types(BYTES(..))
-import Raaz.Util.ByteString
+import Raaz.Core.Util.ByteString
 
 -- | This datatype captures a bytestring along with a number which is
 -- less than the length of this bytestring.

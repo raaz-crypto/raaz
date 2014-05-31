@@ -33,7 +33,7 @@ import           Foreign.Storable
 
 import           Raaz.Core.Memory.Internal
 import           Raaz.Core.Types
-import           Raaz.Util.Ptr
+import           Raaz.Core.Util.Ptr
 
 
 -- | Any cryptographic primitives use memory to store stuff. This

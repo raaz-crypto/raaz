@@ -82,9 +82,10 @@ library
                  , Raaz.Test.Cipher
                  , Raaz.Test.EndianStore
                  , Raaz.Test.Gadget
-                 , Raaz.Util.ByteString
-                 , Raaz.Util.Gadget
-                 , Raaz.Util.Ptr
+                 , Raaz.Core.Util
+                 , Raaz.Core.Util.ByteString
+                 , Raaz.Core.Util.Gadget
+                 , Raaz.Core.Util.Ptr
   other-modules: Raaz.Core.Memory.Internal
   build-depends: base                           >= 4.5 && < 4.8
                , bytestring                     >= 0.9 && < 0.11

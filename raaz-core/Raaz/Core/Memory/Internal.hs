@@ -40,7 +40,7 @@ import           Foreign.ForeignPtr     (finalizeForeignPtr)
 
 import           Raaz.System.Parameters (pageSize)
 import           Raaz.Core.Types
-import           Raaz.Util.Ptr
+import           Raaz.Core.Util.Ptr
 
 foreign import ccall unsafe "cbits/raaz/memory.c memorylock"
   c_mlock :: CryptoPtr -> Int -> IO Int

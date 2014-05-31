@@ -22,8 +22,8 @@ import           Data.Word            (Word8)
 import           Foreign.Storable
 
 import           Raaz.Core.Types
-import           Raaz.Util.Ptr
-import           Raaz.Util.ByteString as BU
+import           Raaz.Core.Util.Ptr
+import           Raaz.Core.Util.ByteString as BU
 
 import qualified Raaz.Core.Write.Unsafe    as WU
 

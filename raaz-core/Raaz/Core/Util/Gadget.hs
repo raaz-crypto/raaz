@@ -4,12 +4,12 @@ This module contains some abstractions built on top of gadgets
 
 -}
 
-module Raaz.Util.Gadget ( applyOnByteSource )where
+module Raaz.Core.Util.Gadget ( applyOnByteSource )where
 
 import Raaz.Core.ByteSource
 import Raaz.Core.Primitives
 import Raaz.Core.Types
-import Raaz.Util.Ptr
+import Raaz.Core.Util.Ptr
 
 -- | Apply the given gadget on the bytesource. This function is
 -- different from transformGadget as it assumes that number of bytes

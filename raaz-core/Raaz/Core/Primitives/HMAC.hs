@@ -40,8 +40,8 @@ import           Raaz.Core.Write
 import qualified Raaz.Core.Write.Unsafe         as U
 import           Raaz.Serialize
 import           Raaz.Core.Types
-import           Raaz.Util.ByteString
-import           Raaz.Util.Ptr
+import           Raaz.Core.Util.ByteString
+import           Raaz.Core.Util.Ptr
 
 
 

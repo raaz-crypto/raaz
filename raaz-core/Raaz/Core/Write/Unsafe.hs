@@ -27,8 +27,8 @@ import Foreign.Ptr             ( castPtr )
 import Foreign.Storable
 
 import Raaz.Core.Types
-import Raaz.Util.Ptr
-import Raaz.Util.ByteString    as BU
+import Raaz.Core.Util.Ptr
+import Raaz.Core.Util.ByteString    as BU
 
 -- | A write is an action which when executed using `runWrite` writes
 -- bytes to the input buffer. The action takes care of updating the
