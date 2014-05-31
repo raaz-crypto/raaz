@@ -6,7 +6,7 @@
 
 {-# LANGUAGE FlexibleContexts #-}
 
-module Raaz.Parse.Unsafe
+module Raaz.Core.Parse.Unsafe
        ( Parser, parse, parseStorable, parseByteString
        , runParser
        , runParser'
