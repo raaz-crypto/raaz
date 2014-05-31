@@ -14,7 +14,7 @@ module Raaz.System.Parameters
        , pageSize
        ) where
 
-import Raaz.Types( BYTES(..) )
+import Raaz.Core.Types( BYTES(..) )
 #include <raaz/primitives/config.h>
 
 -- | The L1 cache size.

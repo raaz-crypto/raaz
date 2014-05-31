@@ -19,7 +19,7 @@ import Test.QuickCheck
 import Test.QuickCheck.Monadic(run, assert, monadicIO)
 
 import Raaz.Test()
-import Raaz.Types
+import Raaz.Core.Types
 import Raaz.Util.Ptr
 
 foreign import ccall unsafe

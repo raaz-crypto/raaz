@@ -39,7 +39,7 @@ import qualified Raaz.Core.Parse.Unsafe         as U
 import           Raaz.Core.Write
 import qualified Raaz.Core.Write.Unsafe         as U
 import           Raaz.Serialize
-import           Raaz.Types
+import           Raaz.Core.Types
 import           Raaz.Util.ByteString
 import           Raaz.Util.Ptr
 

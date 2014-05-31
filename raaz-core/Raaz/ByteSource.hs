@@ -14,7 +14,7 @@ import qualified Data.ByteString.Lazy as L
 import           Prelude hiding(length)
 import           System.IO            (Handle)
 
-import           Raaz.Types           (BYTES, CryptoPtr, Rounding(..))
+import           Raaz.Core.Types           (BYTES, CryptoPtr, Rounding(..))
 import           Raaz.Util.ByteString( unsafeCopyToCryptoPtr
                                      , unsafeNCopyToCryptoPtr
                                      , length

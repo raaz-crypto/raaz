@@ -20,7 +20,7 @@ import System.IO.Unsafe         (unsafePerformIO)
 
 import Raaz.Core.Parse
 import Raaz.Core.Write
-import Raaz.Types
+import Raaz.Core.Types
 
 -- | Types which can be read from or written to a CryptoBuffer.
 class CryptoSerialize a where
