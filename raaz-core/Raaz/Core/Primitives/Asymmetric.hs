@@ -8,7 +8,7 @@ This module abstracts basic cryptographic primitive operations.
 {-# LANGUAGE KindSignatures   #-}
 {-# LANGUAGE TypeFamilies     #-}
 {-# LANGUAGE CPP              #-}
-module Raaz.Primitives.Asymmetric
+module Raaz.Core.Primitives.Asymmetric
        ( Sign(..)
        , Encrypt(..)
        , SignEncrypt(..)
@@ -17,7 +17,7 @@ module Raaz.Primitives.Asymmetric
 import Control.Applicative
 import System.IO.Unsafe    (unsafePerformIO)
 
-import Raaz.Primitives
+import Raaz.Core.Primitives
 import Raaz.Core.ByteSource
 import Raaz.Serialize
 

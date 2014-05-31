@@ -22,7 +22,7 @@ import           Test.Framework.Providers.QuickCheck2 (testProperty)
 import           Test.QuickCheck
 import           Test.QuickCheck.Monadic              (run, assert, monadicIO)
 
-import           Raaz.Primitives
+import           Raaz.Core.Primitives
 import qualified Raaz.Util.ByteString                 as BU
 import           Raaz.Util.Ptr
 
