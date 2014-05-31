@@ -3,7 +3,7 @@
 -- necessary pointer arithmetic to make the pointer point to the next
 -- location. No range checks are done to speed up the operations and
 -- hence these operations are highly unsafe. If you want proper range
--- checks please use "Raaz.Write" instead.
+-- checks please use "Raaz.Core.Write" instead.
 --
 -- An important use case for these unsafe functions is in the
 -- definition of `Storable` and `EndianStore` instances of complicated
@@ -11,7 +11,7 @@
 
 
 {-# LANGUAGE FlexibleContexts #-}
-module Raaz.Write.Unsafe
+module Raaz.Core.Write.Unsafe
        ( Write, write, writeStorable
        , writeBytes, writeByteString
        , runWrite

@@ -34,10 +34,10 @@ import           Raaz.Core.Memory
 import           Raaz.Primitives
 import           Raaz.Primitives.Symmetric
 import           Raaz.Primitives.Hash
-import           Raaz.Parse
-import           Raaz.Write
-import qualified Raaz.Parse.Unsafe         as U
-import qualified Raaz.Write.Unsafe         as U
+import           Raaz.Core.Parse
+import qualified Raaz.Core.Parse.Unsafe         as U
+import           Raaz.Core.Write
+import qualified Raaz.Core.Write.Unsafe         as U
 import           Raaz.Serialize
 import           Raaz.Types
 import           Raaz.Util.ByteString
