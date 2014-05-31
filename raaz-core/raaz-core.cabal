@@ -68,14 +68,14 @@ library
                  , Raaz.Core.Types
                  , Raaz.Core.Parse
                  , Raaz.Core.Parse.Unsafe
+                 , Raaz.Core.Primitives
+                 , Raaz.Core.Primitives.Hash
+                 , Raaz.Core.Primitives.Asymmetric
+                 , Raaz.Core.Primitives.Symmetric
+                 , Raaz.Core.Primitives.HMAC
+                 , Raaz.Core.Primitives.Cipher
                  , Raaz.Core.Write
                  , Raaz.Core.Write.Unsafe
-                 , Raaz.Primitives
-                 , Raaz.Primitives.Hash
-                 , Raaz.Primitives.Asymmetric
-                 , Raaz.Primitives.Symmetric
-                 , Raaz.Primitives.HMAC
-                 , Raaz.Primitives.Cipher
                  , Raaz.Serialize
                  , Raaz.System.Parameters
                  , Raaz.Test

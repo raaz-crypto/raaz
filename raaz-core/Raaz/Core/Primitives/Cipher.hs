@@ -9,7 +9,7 @@ A cryptographic cipher abstraction.
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE CPP                   #-}
 
-module Raaz.Primitives.Cipher
+module Raaz.Core.Primitives.Cipher
        ( StreamGadget
 
        -- * Block Cipher CipherModes
@@ -21,11 +21,11 @@ module Raaz.Primitives.Cipher
 #else
        , ECB(..), CBC(..), CTR(..)
 #endif
-       , module Raaz.Primitives.Symmetric
+       , module Raaz.Core.Primitives.Symmetric
        ) where
 
-import Raaz.Primitives
-import Raaz.Primitives.Symmetric
+import Raaz.Core.Primitives
+import Raaz.Core.Primitives.Symmetric
 
 #if UseKinds
 data CipherMode = ECB -- ^ Electronic codebook

@@ -9,7 +9,7 @@ A cryptographic hash function abstraction.
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE EmptyDataDecls             #-}
 
-module Raaz.Primitives.Hash
+module Raaz.Core.Primitives.Hash
        ( Hash(..), HashMemoryBuf
        , sourceHash', sourceHash
        , hash', hash
@@ -27,7 +27,7 @@ import           System.IO.Unsafe     (unsafePerformIO)
 
 import           Raaz.Core.ByteSource
 import           Raaz.Core.Memory
-import           Raaz.Primitives
+import           Raaz.Core.Primitives
 import           Raaz.Core.Types
 import           Raaz.Util.Ptr        ( byteSize )
 

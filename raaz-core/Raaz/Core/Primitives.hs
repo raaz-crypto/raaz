@@ -14,7 +14,7 @@ might be better of using the more high level interface.
 {-# LANGUAGE CPP                         #-}
 
 
-module Raaz.Primitives
+module Raaz.Core.Primitives
        ( -- * Primtives and gadgets.
          -- $primAndGadget$
 
