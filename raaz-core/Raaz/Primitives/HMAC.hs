@@ -29,7 +29,7 @@ import           Foreign.Ptr
 import           Prelude                   hiding (length, replicate)
 import           System.IO.Unsafe          (unsafePerformIO)
 
-import           Raaz.ByteSource
+import           Raaz.Core.ByteSource
 import           Raaz.Core.Memory
 import           Raaz.Primitives
 import           Raaz.Primitives.Symmetric

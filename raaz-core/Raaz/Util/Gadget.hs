@@ -6,7 +6,7 @@ This module contains some abstractions built on top of gadgets
 
 module Raaz.Util.Gadget ( applyOnByteSource )where
 
-import Raaz.ByteSource
+import Raaz.Core.ByteSource
 import Raaz.Primitives
 import Raaz.Core.Types
 import Raaz.Util.Ptr

@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 
 -- | Module define byte sources.
-module Raaz.ByteSource
+module Raaz.Core.ByteSource
        ( ByteSource(..), fill
        , PureByteSource
        , FillResult(..)
