@@ -78,10 +78,10 @@ library
                  , Raaz.Core.Write.Unsafe
                  , Raaz.Serialize
                  , Raaz.System.Parameters
-                 , Raaz.Test
-                 , Raaz.Test.Cipher
-                 , Raaz.Test.EndianStore
-                 , Raaz.Test.Gadget
+                 , Raaz.Core.Test
+                 , Raaz.Core.Test.Cipher
+                 , Raaz.Core.Test.EndianStore
+                 , Raaz.Core.Test.Gadget
                  , Raaz.Core.Util
                  , Raaz.Core.Util.ByteString
                  , Raaz.Core.Util.Gadget

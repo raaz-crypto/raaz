@@ -18,7 +18,7 @@ import Test.Framework.Providers.QuickCheck2(testProperty)
 import Test.QuickCheck
 import Test.QuickCheck.Monadic(run, assert, monadicIO)
 
-import Raaz.Test()
+import Raaz.Core.Test()
 import Raaz.Core.Types
 import Raaz.Core.Util.Ptr
 

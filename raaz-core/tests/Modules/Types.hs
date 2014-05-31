@@ -8,9 +8,9 @@ import Data.Word
 import Test.Framework
 import Test.Framework.Providers.QuickCheck2 (testProperty)
 
-import Raaz.Test()
+import Raaz.Core.Test()
 import Raaz.Core.Types
-import Raaz.Test.EndianStore
+import Raaz.Core.Test.EndianStore
 
 -- | This test captures the property that bytestring encodings of Little
 -- Endian word is same as reversing the bytestring encoding of Big endian word.
