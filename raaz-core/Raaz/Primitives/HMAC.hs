@@ -30,7 +30,7 @@ import           Prelude                   hiding (length, replicate)
 import           System.IO.Unsafe          (unsafePerformIO)
 
 import           Raaz.ByteSource
-import           Raaz.Memory
+import           Raaz.Core.Memory
 import           Raaz.Primitives
 import           Raaz.Primitives.Symmetric
 import           Raaz.Primitives.Hash

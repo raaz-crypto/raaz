@@ -6,7 +6,7 @@ Abstraction of a memory object.
 
 {-# LANGUAGE DefaultSignatures #-}
 
-module Raaz.Memory
+module Raaz.Core.Memory
        ( Memory(..)
          -- CryptoCell
        , CryptoCell
@@ -22,19 +22,18 @@ module Raaz.Memory
        ) where
 
 
-import Control.Applicative
-import Control.Exception        ( bracket )
-import Foreign.ForeignPtr.Safe  ( finalizeForeignPtr
-                                , mallocForeignPtrBytes
-                                , withForeignPtr
-                                )
-import Foreign.Ptr
-import Foreign.Storable
+import           Control.Applicative
+import           Control.Exception         (bracket)
+import           Foreign.ForeignPtr.Safe   (finalizeForeignPtr,
+                                            mallocForeignPtrBytes,
+                                            withForeignPtr)
+import           Foreign.Ptr
+import           Foreign.Storable
 
 
-import Raaz.Types
-import Raaz.Util.Ptr
-import Raaz.Util.SecureMemory
+import           Raaz.Core.Memory.Internal
+import           Raaz.Types
+import           Raaz.Util.Ptr
 
 
 -- | Any cryptographic primitives use memory to store stuff. This
@@ -156,8 +155,10 @@ instance Storable a => Memory (CryptoCell a) where
 
 -- | Types which can be stored in a buffer.
 class Bufferable b where
-  maxSizeOf :: b -> BYTES Int
+
+  maxSizeOf         ::               b -> BYTES Int
   default maxSizeOf :: Storable b => b -> BYTES Int
+
   maxSizeOf = fromIntegral . sizeOf
 
 -- | A memory buffer whose size depends on the `Bufferable` instance
