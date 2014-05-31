@@ -26,7 +26,7 @@ import           System.IO            (withBinaryFile, IOMode(ReadMode), Handle)
 import           System.IO.Unsafe     (unsafePerformIO)
 
 import           Raaz.ByteSource
-import           Raaz.Memory
+import           Raaz.Core.Memory
 import           Raaz.Primitives
 import           Raaz.Types
 import           Raaz.Util.Ptr        ( byteSize )
