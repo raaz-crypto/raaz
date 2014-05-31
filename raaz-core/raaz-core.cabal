@@ -76,8 +76,7 @@ library
                  , Raaz.Core.Primitives.Cipher
                  , Raaz.Core.Write
                  , Raaz.Core.Write.Unsafe
-                 , Raaz.Serialize
-                 , Raaz.System.Parameters
+                 , Raaz.Core.Serialize
                  , Raaz.Core.Test
                  , Raaz.Core.Test.Cipher
                  , Raaz.Core.Test.EndianStore
@@ -86,6 +85,8 @@ library
                  , Raaz.Core.Util.ByteString
                  , Raaz.Core.Util.Gadget
                  , Raaz.Core.Util.Ptr
+                 , Raaz.System.Parameters
+
   other-modules: Raaz.Core.Memory.Internal
   build-depends: base                           >= 4.5 && < 4.8
                , bytestring                     >= 0.9 && < 0.11

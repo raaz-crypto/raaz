@@ -19,7 +19,7 @@ import System.IO.Unsafe    (unsafePerformIO)
 
 import Raaz.Core.Primitives
 import Raaz.Core.ByteSource
-import Raaz.Serialize
+import Raaz.Core.Serialize
 
 -- | This class captures symmetric primitives which support generation
 -- of authentication tags. The verification is done by generating the

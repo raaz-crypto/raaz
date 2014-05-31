@@ -7,7 +7,7 @@ Serialization from and to CryptoBuffer.
 {-# LANGUAGE DefaultSignatures    #-}
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE UndecidableInstances #-}
-module Raaz.Serialize ( CryptoSerialize(..)
+module Raaz.Core.Serialize ( CryptoSerialize(..)
                       , fromByteString
                       ) where
 
