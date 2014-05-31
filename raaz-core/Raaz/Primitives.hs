@@ -55,9 +55,9 @@ import           Data.Word                (Word64)
 import           Foreign.Ptr              (castPtr)
 import           System.IO                (withFile, IOMode(ReadMode))
 
+import           Raaz.Core.ByteSource
 import           Raaz.Core.Memory
 import           Raaz.Core.Types
-import           Raaz.ByteSource
 import           Raaz.Util.ByteString
 import           Raaz.Util.Ptr
 

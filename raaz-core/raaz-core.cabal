@@ -63,13 +63,13 @@ flag auto-configure
 
 library
   exposed-modules: Raaz.Core
+                 , Raaz.Core.ByteSource
                  , Raaz.Core.Memory
                  , Raaz.Core.Types
                  , Raaz.Core.Parse
                  , Raaz.Core.Parse.Unsafe
                  , Raaz.Core.Write
                  , Raaz.Core.Write.Unsafe
-                 , Raaz.ByteSource
                  , Raaz.Primitives
                  , Raaz.Primitives.Hash
                  , Raaz.Primitives.Asymmetric

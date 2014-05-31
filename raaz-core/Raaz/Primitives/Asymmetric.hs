@@ -18,7 +18,7 @@ import Control.Applicative
 import System.IO.Unsafe    (unsafePerformIO)
 
 import Raaz.Primitives
-import Raaz.ByteSource
+import Raaz.Core.ByteSource
 import Raaz.Serialize
 
 -- | This class captures primitives which support generation of
