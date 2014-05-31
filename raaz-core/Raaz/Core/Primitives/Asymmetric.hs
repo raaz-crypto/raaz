@@ -19,7 +19,7 @@ import System.IO.Unsafe    (unsafePerformIO)
 
 import Raaz.Core.Primitives
 import Raaz.Core.ByteSource
-import Raaz.Serialize
+import Raaz.Core.Serialize
 
 -- | This class captures primitives which support generation of
 -- authenticated signatures and its verification. This is assymetric

@@ -38,7 +38,7 @@ import           Raaz.Core.Parse
 import qualified Raaz.Core.Parse.Unsafe         as U
 import           Raaz.Core.Write
 import qualified Raaz.Core.Write.Unsafe         as U
-import           Raaz.Serialize
+import           Raaz.Core.Serialize
 import           Raaz.Core.Types
 import           Raaz.Core.Util.ByteString
 import           Raaz.Core.Util.Ptr
