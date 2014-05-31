@@ -20,7 +20,7 @@ import Test.QuickCheck.Monadic(run, assert, monadicIO)
 
 import Raaz.Test()
 import Raaz.Core.Types
-import Raaz.Util.Ptr
+import Raaz.Core.Util.Ptr
 
 foreign import ccall unsafe
   "raaz/tests/platform/load_test.h raazTestsLoad32LE"

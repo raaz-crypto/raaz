@@ -58,8 +58,8 @@ import           System.IO                (withFile, IOMode(ReadMode))
 import           Raaz.Core.ByteSource
 import           Raaz.Core.Memory
 import           Raaz.Core.Types
-import           Raaz.Util.ByteString
-import           Raaz.Util.Ptr
+import           Raaz.Core.Util.ByteString
+import           Raaz.Core.Util.Ptr
 
 -- $primAndGadget$
 --

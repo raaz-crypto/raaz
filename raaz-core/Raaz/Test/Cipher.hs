@@ -26,7 +26,7 @@ import           Raaz.Core.ByteSource
 import           Raaz.Core.Types
 import           Raaz.Core.Primitives
 import           Raaz.Core.Primitives.Cipher
-import           Raaz.Util.ByteString           (hex)
+import           Raaz.Core.Util.ByteString           (hex)
 import           Raaz.Serialize
 import           Raaz.Test.Gadget
 

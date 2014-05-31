@@ -8,7 +8,7 @@ to use with type safe lengths.
 
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ForeignFunctionInterface   #-}
-module Raaz.Util.Ptr
+module Raaz.Core.Util.Ptr
        ( byteSize
        , allocaBuffer, mallocBuffer
        , movePtr

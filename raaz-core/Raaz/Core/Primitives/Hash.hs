@@ -29,7 +29,7 @@ import           Raaz.Core.ByteSource
 import           Raaz.Core.Memory
 import           Raaz.Core.Primitives
 import           Raaz.Core.Types
-import           Raaz.Util.Ptr        ( byteSize )
+import           Raaz.Core.Util.Ptr        ( byteSize )
 
 
 -- | Type class capturing a cryptographic hash. The important
