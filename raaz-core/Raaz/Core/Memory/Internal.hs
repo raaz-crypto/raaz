@@ -39,7 +39,7 @@ import           Foreign.Concurrent
 import           Foreign.ForeignPtr     (finalizeForeignPtr)
 
 import           Raaz.System.Parameters (pageSize)
-import           Raaz.Types
+import           Raaz.Core.Types
 import           Raaz.Util.Ptr
 
 foreign import ccall unsafe "cbits/raaz/memory.c memorylock"

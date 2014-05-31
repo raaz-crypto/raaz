@@ -8,7 +8,7 @@ module Raaz.Util.Gadget ( applyOnByteSource )where
 
 import Raaz.ByteSource
 import Raaz.Primitives
-import Raaz.Types
+import Raaz.Core.Types
 import Raaz.Util.Ptr
 
 -- | Apply the given gadget on the bytesource. This function is

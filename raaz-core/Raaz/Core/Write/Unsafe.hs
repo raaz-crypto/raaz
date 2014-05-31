@@ -26,7 +26,7 @@ import Foreign.ForeignPtr.Safe ( withForeignPtr )
 import Foreign.Ptr             ( castPtr )
 import Foreign.Storable
 
-import Raaz.Types
+import Raaz.Core.Types
 import Raaz.Util.Ptr
 import Raaz.Util.ByteString    as BU
 

@@ -16,8 +16,7 @@ import           Data.ByteString            (ByteString)
 import           Data.Typeable
 import           Foreign.Storable
 
-import           Raaz.Types
-
+import           Raaz.Core.Types
 import qualified Raaz.Core.Parse.Unsafe          as PU
 
 -- | A safe parser. Also stores the message bytes required in the

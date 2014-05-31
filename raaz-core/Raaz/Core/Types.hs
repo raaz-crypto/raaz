@@ -11,7 +11,7 @@ cryptographic protocols.
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE TemplateHaskell            #-}
 
-module Raaz.Types
+module Raaz.Core.Types
        (
          -- * Type safety.
          -- $typesafety$

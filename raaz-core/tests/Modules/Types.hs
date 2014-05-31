@@ -9,7 +9,7 @@ import Test.Framework
 import Test.Framework.Providers.QuickCheck2 (testProperty)
 
 import Raaz.Test()
-import Raaz.Types
+import Raaz.Core.Types
 import Raaz.Test.EndianStore
 
 -- | This test captures the property that bytestring encodings of Little

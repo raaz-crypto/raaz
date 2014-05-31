@@ -32,7 +32,7 @@ import           Foreign.Storable
 
 
 import           Raaz.Core.Memory.Internal
-import           Raaz.Types
+import           Raaz.Core.Types
 import           Raaz.Util.Ptr
 
 

@@ -28,7 +28,7 @@ import           System.IO.Unsafe     (unsafePerformIO)
 import           Raaz.ByteSource
 import           Raaz.Core.Memory
 import           Raaz.Primitives
-import           Raaz.Types
+import           Raaz.Core.Types
 import           Raaz.Util.Ptr        ( byteSize )
 
 

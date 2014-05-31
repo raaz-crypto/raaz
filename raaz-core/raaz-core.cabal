@@ -64,6 +64,7 @@ flag auto-configure
 library
   exposed-modules: Raaz.Core
                  , Raaz.Core.Memory
+                 , Raaz.Core.Types
                  , Raaz.Core.Parse
                  , Raaz.Core.Parse.Unsafe
                  , Raaz.Core.Write
@@ -77,7 +78,6 @@ library
                  , Raaz.Primitives.Cipher
                  , Raaz.Serialize
                  , Raaz.System.Parameters
-                 , Raaz.Types
                  , Raaz.Test
                  , Raaz.Test.Cipher
                  , Raaz.Test.EndianStore
