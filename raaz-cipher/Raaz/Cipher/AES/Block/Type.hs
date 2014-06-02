@@ -21,18 +21,18 @@ module Raaz.Cipher.AES.Block.Type
        , invTranspose
        )where
 
-import Control.Applicative  ((<$>), (<*>))
-import Data.Bits            (xor, (.|.),Bits(..))
-import Data.Monoid          ((<>))
-import Data.Typeable        (Typeable)
-import Foreign.Ptr          (castPtr)
-import Foreign.Storable     (sizeOf,Storable(..))
-import Numeric              (showHex)
+import Control.Applicative  ( (<$>), (<*>)         )
+import Data.Bits            ( xor, (.|.), Bits(..) )
+import Data.Monoid          ( (<>)                 )
+import Data.Typeable        ( Typeable             )
+import Foreign.Ptr          ( castPtr              )
+import Foreign.Storable     ( sizeOf,Storable(..)  )
+import Numeric              ( showHex              )
 
-import Raaz.Serialize
-import Raaz.Types
-import Raaz.Parse.Unsafe
-import Raaz.Write.Unsafe
+import Raaz.Core.Serialize
+import Raaz.Core.Types
+import Raaz.Core.Parse.Unsafe
+import Raaz.Core.Write.Unsafe
 
 -- | AES State
 data STATE = STATE {-# UNPACK #-} !Word32BE

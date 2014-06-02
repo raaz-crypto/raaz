@@ -4,23 +4,23 @@
 
 module Modules.Salsa20.Stream (tests) where
 
-import           Data.ByteString                (ByteString,pack)
+import           Data.ByteString                ( ByteString, pack )
 import qualified Data.ByteString                as BS
 import qualified Data.ByteString.Char8          as B8
 import           Data.Char
 import           Data.Typeable
 
-import           Test.Framework                 (Test,testGroup)
-import           Test.Framework.Providers.HUnit (testCase)
-import           Test.HUnit                     ((@=?))
+import           Test.Framework                 ( Test, testGroup  )
+import           Test.Framework.Providers.HUnit ( testCase         )
+import           Test.HUnit                     ( (@=?)            )
 
-import           Raaz.Test                      ()
-import           Raaz.Test.Cipher
-import           Raaz.Test.Gadget               (testGadget)
-import           Raaz.Types
-import           Raaz.Primitives
-import           Raaz.Primitives.Cipher
-import qualified Raaz.Util.ByteString           as BU
+import           Raaz.Core.Test                 ()
+import           Raaz.Core.Test.Cipher
+import           Raaz.Core.Test.Gadget          ( testGadget       )
+import           Raaz.Core.Types
+import           Raaz.Core.Primitives
+import           Raaz.Core.Primitives.Cipher
+import qualified Raaz.Core.Util.ByteString      as BU
 
 import           Raaz.Cipher.Salsa20.Internal
 import           Raaz.Cipher.Salsa20            ()

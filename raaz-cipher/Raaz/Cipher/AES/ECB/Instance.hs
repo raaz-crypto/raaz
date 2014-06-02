@@ -4,8 +4,8 @@
 
 module Raaz.Cipher.AES.ECB.Instance where
 
-import Raaz.Primitives
-import Raaz.Primitives.Cipher
+import Raaz.Core.Primitives
+import Raaz.Core.Primitives.Cipher
 
 import Raaz.Cipher.AES.ECB.Ref       ()
 import Raaz.Cipher.AES.ECB.CPortable ()

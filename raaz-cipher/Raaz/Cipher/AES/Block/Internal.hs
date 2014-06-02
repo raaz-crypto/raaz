@@ -36,11 +36,11 @@ module Raaz.Cipher.AES.Block.Internal
 
 import Data.Bits
 import Data.Word
-import Foreign.Storable         (sizeOf,Storable)
+import Foreign.Storable   ( sizeOf,Storable )
 
-import Raaz.Memory
-import Raaz.Types
-import Raaz.Util.Ptr            (allocaBuffer)
+import Raaz.Core.Memory
+import Raaz.Core.Types
+import Raaz.Core.Util.Ptr ( allocaBuffer    )
 
 import Raaz.Cipher.AES.Block.Type
 import Raaz.Cipher.Util.GF

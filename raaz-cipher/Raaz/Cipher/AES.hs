@@ -1,12 +1,12 @@
 module Raaz.Cipher.AES
        ( module Raaz.Cipher.AES.Type
-       , module Raaz.Primitives
-       , module Raaz.Primitives.Cipher
+       , module Raaz.Core.Primitives
+       , module Raaz.Core.Primitives.Cipher
        ) where
 
 import Raaz.Cipher.AES.Type
-import Raaz.Primitives
-import Raaz.Primitives.Cipher
+import Raaz.Core.Primitives
+import Raaz.Core.Primitives.Cipher
 
 import Raaz.Cipher.AES.CTR ()
 import Raaz.Cipher.AES.CBC ()

@@ -6,10 +6,10 @@
 module Raaz.Cipher.AES.CTR.CPortable () where
 
 import           Control.Applicative
-import           Raaz.Memory
-import           Raaz.Primitives
-import           Raaz.Primitives.Cipher
-import           Raaz.Types
+import           Raaz.Core.Memory
+import           Raaz.Core.Primitives
+import           Raaz.Core.Primitives.Cipher
+import           Raaz.Core.Types
 
 import           Raaz.Cipher.AES.Block.Type
 import           Raaz.Cipher.AES.Block.Internal
