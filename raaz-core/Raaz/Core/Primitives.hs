@@ -49,7 +49,7 @@ module Raaz.Core.Primitives
        ) where
 
 import qualified Data.ByteString          as B
-import           Data.ByteString.Internal (ByteString, unsafeCreate)
+import           Data.ByteString.Internal (unsafeCreate)
 import           Data.Typeable            (Typeable, typeOf)
 import           Data.Word                (Word64)
 import           Foreign.Ptr              (castPtr)
