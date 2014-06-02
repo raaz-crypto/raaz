@@ -4,21 +4,21 @@
 {-# LANGUAGE NoMonomorphismRestriction  #-}
 module Modules.Stream (createGadget,testWith, testiv) where
 
-import           Control.Applicative                  ((<$>))
-import           Data.ByteString                      (ByteString)
+import           Control.Applicative                  ( (<$>)                  )
+import           Data.ByteString                      ( ByteString             )
 import qualified Data.ByteString                      as BS
-import           Foreign.Storable                     (sizeOf)
-import           Test.Framework                       (Test)
-import           Test.Framework.Providers.QuickCheck2 (testProperty)
+import           Foreign.Storable                     ( sizeOf                 )
+import           Test.Framework                       ( Test                   )
+import           Test.Framework.Providers.QuickCheck2 ( testProperty           )
 import           Test.QuickCheck
-import           Test.QuickCheck.Monadic              (run, assert, monadicIO)
+import           Test.QuickCheck.Monadic              ( run, assert, monadicIO )
 
-import           Raaz.Primitives
-import           Raaz.Primitives.Cipher
-import qualified Raaz.Util.ByteString                 as BU
-import           Raaz.Memory
-import           Raaz.Serialize
-import           Raaz.Types
+import           Raaz.Core.Memory
+import           Raaz.Core.Primitives
+import           Raaz.Core.Primitives.Cipher
+import           Raaz.Core.Serialize
+import           Raaz.Core.Types
+import qualified Raaz.Core.Util.ByteString            as BU
 
 import           Raaz.Random
 
