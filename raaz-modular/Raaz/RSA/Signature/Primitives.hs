@@ -4,12 +4,12 @@ module Raaz.RSA.Signature.Primitives
        , rsaPKCSVerify
        ) where
 
-import           Control.Exception    (throw)
+import           Control.Exception        ( throw )
 import           Foreign.Storable
-import qualified Data.ByteString      as BS
+import qualified Data.ByteString           as BS
 
-import           Raaz.Types
-import qualified Raaz.Util.ByteString as BU
+import           Raaz.Core.Types
+import qualified Raaz.Core.Util.ByteString as BU
 
 import           Raaz.Public
 import           Raaz.RSA.Exception
