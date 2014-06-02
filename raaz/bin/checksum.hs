@@ -9,14 +9,14 @@ that is available on most Unices.
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 
-import Control.Applicative ((<$>))
-import qualified Data.ByteString.Char8 as BC
-import System.Console.CmdArgs
-import Data.Version(showVersion)
-import Paths_raaz(version)
+import           Control.Applicative    ( (<$>)       )
+import qualified Data.ByteString.Char8  as BC
+import           System.Console.CmdArgs
+import           Data.Version           ( showVersion )
+import           Paths_raaz             ( version     )
 
 import Raaz.Hash
-import Raaz.Primitives.Hash(Hash)
+import Raaz.Core.Primitives.Hash        ( Hash        )
 
 
 data Shasum = Shasum { hashType :: String
