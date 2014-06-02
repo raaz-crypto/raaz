@@ -15,14 +15,14 @@ import Data.Bits
 import Data.Monoid
 import Data.Typeable
 import Foreign.Storable
-import Foreign.Ptr         (castPtr)
-import Numeric             (showHex)
+import Foreign.Ptr         ( castPtr )
+import Numeric             ( showHex )
 
-import Raaz.Types
-import Raaz.Parse.Unsafe
-import Raaz.Write.Unsafe
+import Raaz.Core.Parse.Unsafe
+import Raaz.Core.Serialize
+import Raaz.Core.Types
+import Raaz.Core.Write.Unsafe
 
-import Raaz.Serialize
 
 -- | State which consists of 4 `Word32LE`.
 data STATE = STATE {-# UNPACK #-} !Word32LE

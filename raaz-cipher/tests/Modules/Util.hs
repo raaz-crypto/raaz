@@ -3,13 +3,13 @@
 
 module Modules.Util where
 
-import Data.ByteString  (ByteString)
-import Test.Framework   (Test, testGroup)
+import Data.ByteString  ( ByteString      )
+import Test.Framework   ( Test, testGroup )
 
-import Raaz.Primitives
-import Raaz.Primitives.Cipher
-import Raaz.Serialize
-import Raaz.Test.Gadget
+import Raaz.Core.Primitives
+import Raaz.Core.Primitives.Cipher
+import Raaz.Core.Serialize
+import Raaz.Core.Test.Gadget
 
 cportableVsReference :: ( HasName g1
                         , HasName (Inverse g1)

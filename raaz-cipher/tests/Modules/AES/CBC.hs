@@ -2,13 +2,13 @@ module Modules.AES.CBC
        ( tests
        ) where
 
-import Data.ByteString               (ByteString,pack)
-import Test.Framework                (Test)
+import Data.ByteString               ( ByteString, pack )
+import Test.Framework                ( Test             )
 
-import Raaz.Primitives
-import Raaz.Primitives.Cipher
+import Raaz.Core.Primitives
+import Raaz.Core.Primitives.Cipher
+
 import Raaz.Cipher.AES.Type
-
 import Raaz.Cipher.AES.CBC
 
 import Modules.AES.Defaults

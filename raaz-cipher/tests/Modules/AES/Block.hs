@@ -4,11 +4,12 @@ module Modules.AES.Block
        ) where
 
 import Control.Applicative
-import Test.Framework                       (Test)
-import Test.Framework.Providers.QuickCheck2 (testProperty)
-import Test.QuickCheck                      (Arbitrary(..))
+import Test.Framework                       ( Test          )
+import Test.Framework.Providers.QuickCheck2 ( testProperty  )
+import Test.QuickCheck                      ( Arbitrary(..) )
 
-import Raaz.Test                            ()
+import Raaz.Core.Test                       ()
+
 import Raaz.Cipher.AES.Internal
 
 

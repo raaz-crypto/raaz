@@ -21,12 +21,12 @@ import Data.Word
 import Foreign.Ptr
 import Foreign.Storable
 
-import Raaz.Memory
-import Raaz.Primitives
-import Raaz.Primitives.Cipher
-import Raaz.Serialize
-import Raaz.Types
-import Raaz.Util.Ptr
+import Raaz.Core.Memory
+import Raaz.Core.Primitives
+import Raaz.Core.Primitives.Cipher
+import Raaz.Core.Serialize
+import Raaz.Core.Types
+import Raaz.Core.Util.Ptr
 
 import Raaz.Cipher.Salsa20.Block.Internal
 import Raaz.Cipher.Salsa20.Block.Type
