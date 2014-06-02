@@ -10,7 +10,7 @@ A cryptographic hash function abstraction.
 {-# LANGUAGE EmptyDataDecls             #-}
 
 module Raaz.Core.Primitives.Hash
-       ( Hash(..), HashMemoryBuf
+       ( Hash, HashMemoryBuf
        , sourceHash', sourceHash
        , hash', hash
        , hashFile', hashFile
@@ -29,7 +29,7 @@ import           Raaz.Core.ByteSource
 import           Raaz.Core.Memory
 import           Raaz.Core.Primitives
 import           Raaz.Core.Types
-import           Raaz.Core.Util.Ptr        ( byteSize )
+import           Raaz.Core.Util.Ptr   (byteSize)
 
 
 -- | Type class capturing a cryptographic hash. The important

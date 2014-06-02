@@ -14,11 +14,11 @@ module Raaz.Core.Primitives.Asymmetric
        , SignEncrypt(..)
        ) where
 
-import Control.Applicative
-import System.IO.Unsafe    (unsafePerformIO)
+import Control.Applicative ()
+import System.IO.Unsafe    ()
 
 import Raaz.Core.Primitives
-import Raaz.Core.ByteSource
+import Raaz.Core.ByteSource ()
 import Raaz.Core.Serialize
 
 -- | This class captures primitives which support generation of
