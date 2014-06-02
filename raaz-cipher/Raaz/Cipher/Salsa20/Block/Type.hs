@@ -349,8 +349,12 @@ instance CryptoSerialize SplitWord64
 
 -- | Nonce of 8 Byte.
 newtype Nonce   = Nonce SplitWord64
-  deriving (Eq, Show, Typeable, EndianStore, Storable, CryptoSerialize)
+  deriving (Eq, Show, Typeable, EndianStore, Storable)
+
+instance CryptoSerialize Nonce
 
 -- | Counter of 8 Byte.
 newtype Counter = Counter SplitWord64
-  deriving (Eq, Show, Typeable, EndianStore, Storable, CryptoSerialize)
+  deriving (Eq, Show, Typeable, EndianStore, Storable)
+
+instance CryptoSerialize Counter
