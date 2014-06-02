@@ -12,7 +12,6 @@ module Raaz.Number
 
 import Raaz.Number.Internals
 import Raaz.Number.Modular
-import Raaz.Number.Internals
 import Raaz.Number.Util
 
 {-# ANN module "HLint: ignore Use import/export shortcut" #-}

@@ -25,13 +25,12 @@ import Data.Monoid
 import Foreign.Ptr           (castPtr)
 import Foreign.Storable      (Storable(..), sizeOf)
 
-import Raaz.Memory
-import Raaz.Primitives
-import Raaz.Parse.Unsafe
-import Raaz.Write.Unsafe
-import Raaz.Serialize
-import Raaz.Types
-
+import Raaz.Core.Memory
+import Raaz.Core.Primitives
+import Raaz.Core.Parse.Unsafe
+import Raaz.Core.Write.Unsafe
+import Raaz.Core.Serialize
+import Raaz.Core.Types
 
 import Raaz.Number.Internals
 import Raaz.Number.Util

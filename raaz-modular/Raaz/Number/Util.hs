@@ -10,12 +10,12 @@ module Raaz.Number.Util
        , safeAllBS
        ) where
 
-import           Data.List       (foldl')
+import           Data.List       ( foldl'     )
 import           Data.Word
-import           Data.ByteString (ByteString)
+import           Data.ByteString ( ByteString )
 import qualified Data.ByteString as BS
 
-import           Raaz.Types
+import           Raaz.Core.Types
 
 
 -- | Number of Bits required to represent the number
