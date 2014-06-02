@@ -8,9 +8,9 @@ module Raaz.Benchmark.Gadget
 
 import Criterion.Main
 
-import Raaz.Primitives
-import Raaz.Types
-import Raaz.Util.Ptr
+import Raaz.Core.Primitives
+import Raaz.Core.Types
+import Raaz.Core.Util.Ptr
 
 -- | Measures the performance of a gadget on the given buffer.
 benchGadget  :: (Gadget g, HasName g)
