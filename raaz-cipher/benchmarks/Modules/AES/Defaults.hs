@@ -78,9 +78,9 @@ benchmarksDefault p = [ benchCipher (toH $ prim128 p) (cipherCxt testKey128)
   where
     prim128 :: AES m k -> AESOp m k EncryptMode
     prim128 _ = undefined
-    prim192 :: AES m k -> AESOp m k EncryptMode
+    prim192 :: AES m k -> AESOp m KEY192 EncryptMode
     prim192 _ = undefined
-    prim256 :: AES m k -> AESOp m k EncryptMode
+    prim256 :: AES m k -> AESOp m KEY256 EncryptMode
     prim256 _ = undefined
     toH :: p -> HGadget p
     toH _ = undefined
