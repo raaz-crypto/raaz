@@ -8,10 +8,10 @@ import qualified Data.ByteString       as B
 import qualified Data.ByteString.Char8 as C8
 import           Data.Default
 import           Data.String
-import           Test.QuickCheck       (Arbitrary(..))
+import           Test.QuickCheck       ( Arbitrary(..) )
 
-import Raaz.Test.Gadget
-import Raaz.Primitives.HMAC
+import Raaz.Core.Test.Gadget
+import Raaz.Core.Primitives.HMAC
 
 import Modules.Generic
 import Raaz.Hash.Sha512.Internal

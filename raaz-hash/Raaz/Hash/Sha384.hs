@@ -14,15 +14,13 @@ module Raaz.Hash.Sha384
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as L
 
-import Raaz.ByteSource
+import Raaz.Core.ByteSource
+import Raaz.Core.Primitives.Hash ( sourceHash, hash, hashFile )
+import Raaz.Core.Types           ( toByteString               )
+import Raaz.Core.Util.ByteString ( toHex                      )
 
-import Raaz.Primitives.Hash( sourceHash, hash, hashFile)
-import Raaz.Hash.Sha384.Type(SHA384)
-import Raaz.Hash.Sha384.Instance()
-import Raaz.Types           ( toByteString               )
-import Raaz.Util.ByteString ( toHex                      )
-
-
+import Raaz.Hash.Sha384.Type     ( SHA384 )
+import Raaz.Hash.Sha384.Instance (        )
 
 -- | Compute the sha384 hash of the given byte source.
 sourceSha384 :: ByteSource src => src -> IO SHA384

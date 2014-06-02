@@ -10,18 +10,18 @@ This module defines the hash instances for sha384 hash.
 
 module Raaz.Hash.Sha384.Instance () where
 
-import Control.Applicative ((<$>))
+import Control.Applicative ( (<$>) )
 import Control.Monad       ( foldM )
 
-import Raaz.Memory
-import Raaz.Primitives
-import Raaz.Primitives.Hash
-import Raaz.Util.Ptr
+import Raaz.Core.Memory
+import Raaz.Core.Primitives
+import Raaz.Core.Primitives.Hash
+import Raaz.Core.Util.Ptr
 
 import Raaz.Hash.Sha384.Type
-import Raaz.Hash.Sha512.Type ( SHA512(..) )
+import Raaz.Hash.Sha512.Type      ( SHA512(..) )
 import Raaz.Hash.Sha512.Instance
-import Raaz.Hash.Sha384.CPortable ()
+import Raaz.Hash.Sha384.CPortable (            )
 
 
 ----------------------------- SHA384 -------------------------------------------

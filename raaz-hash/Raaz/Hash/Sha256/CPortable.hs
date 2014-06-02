@@ -18,9 +18,9 @@ import Control.Applicative ( (<$>) )
 
 import Foreign.Ptr
 
-import Raaz.Memory
-import Raaz.Primitives
-import Raaz.Types
+import Raaz.Core.Memory
+import Raaz.Core.Primitives
+import Raaz.Core.Types
 
 import Raaz.Hash.Sha256.Type
 

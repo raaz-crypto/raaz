@@ -10,13 +10,13 @@ Portable C implementation of SHA384 hash.
 
 module Raaz.Hash.Sha384.CPortable () where
 
-import Control.Applicative ((<$>))
+import Control.Applicative ( (<$>) )
 
-import Raaz.Memory
-import Raaz.Primitives
+import Raaz.Core.Memory
+import Raaz.Core.Primitives
 
 import Raaz.Hash.Sha384.Type
-import Raaz.Hash.Sha512.Type      ( SHA512(..))
+import Raaz.Hash.Sha512.Type      ( SHA512(..)     )
 import Raaz.Hash.Sha512.CPortable ( sha512Compress )
 
 instance Gadget (CGadget SHA384) where

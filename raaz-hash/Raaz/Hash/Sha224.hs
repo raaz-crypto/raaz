@@ -14,12 +14,13 @@ module Raaz.Hash.Sha224
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as L
 
-import Raaz.ByteSource
-import Raaz.Primitives.Hash( sourceHash, hash, hashFile)
-import Raaz.Hash.Sha224.Type(SHA224)
-import Raaz.Hash.Sha224.Instance()
-import Raaz.Types           ( toByteString               )
-import Raaz.Util.ByteString ( toHex                      )
+import Raaz.Core.ByteSource
+import Raaz.Core.Primitives.Hash ( sourceHash, hash, hashFile )
+import Raaz.Core.Types           ( toByteString               )
+import Raaz.Core.Util.ByteString ( toHex                      )
+
+import Raaz.Hash.Sha224.Type     ( SHA224 )
+import Raaz.Hash.Sha224.Instance (        )
 
 -- | Compute the sha224 hash of the given byte source.
 sourceSha224 :: ByteSource src => src -> IO SHA224

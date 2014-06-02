@@ -1,4 +1,4 @@
-{-|
+ {-|
 
 The Sha512 hash.
 
@@ -14,13 +14,13 @@ module Raaz.Hash.Sha512
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as L
 
-import Raaz.ByteSource
-import Raaz.Primitives.Hash( sourceHash, hash, hashFile)
-import Raaz.Hash.Sha512.Type(SHA512)
-import Raaz.Hash.Sha512.Instance()
-import Raaz.Types           ( toByteString               )
-import Raaz.Util.ByteString ( toHex                      )
+import Raaz.Core.ByteSource
+import Raaz.Core.Primitives.Hash ( sourceHash, hash, hashFile )
+import Raaz.Core.Types           ( toByteString               )
+import Raaz.Core.Util.ByteString ( toHex                      )
 
+import Raaz.Hash.Sha512.Type     ( SHA512 )
+import Raaz.Hash.Sha512.Instance (        )
 
 -- | Compute the sha512 hash of the given byte source.
 sourceSha512 :: ByteSource src => src -> IO SHA512
