@@ -19,9 +19,12 @@ benchGadget  :: (Gadget g, HasName g)
              -> CryptoPtr              -- ^ Buffer on which to benchmark
              -> BLOCKS (PrimitiveOf g) -- ^ Size of Buffer
              -> Benchmark
-benchGadget g' iv cptr nblks = bench name $ applyGadget g' iv cptr nblks
+benchGadget g' iv cptr nblks = bench (getName g') process
   where
-    name = getName g'
+    process = do
+      g <- createGadget g'
+      initialize g iv
+      apply g nblks cptr
 
 -- | Allocates the buffer and performs the benchmark
 benchGadgetWith :: (Gadget g, HasName g)
@@ -29,22 +32,17 @@ benchGadgetWith :: (Gadget g, HasName g)
                 -> Cxt (PrimitiveOf g)    -- ^ Gadget Cxt
                 -> BLOCKS (PrimitiveOf g) -- ^ Size of random buffer which will be allocated
                 -> Benchmark
-benchGadgetWith g' iv nblks = bench name $ allocaBuffer nblks go
+benchGadgetWith g' iv nblks = bench (getName g') process
   where
-    go cptr = applyGadget g' iv cptr nblks
-    name = getName g'
+    process = do
+      g <- createGadget g'
+      initialize g iv
+      allocaBuffer rblks (go g nblks)
+    go g blks cptr | blks > rblks =  apply g rblks cptr
+                                  >> go g (blks - rblks) cptr
+                   | otherwise    = apply g blks cptr
+    rblks = recommendedBlocks g'
 
-applyGadget :: Gadget g
-            => g
-            -> Cxt (PrimitiveOf g)
-            -> CryptoPtr
-            -> BLOCKS (PrimitiveOf g)
-            -> IO ()
-applyGadget g' iv cptr nblks = do
-  g <- createGadget g'
-  initialize g iv
-  apply g nblks cptr
-  return ()
-  where
-    createGadget :: Gadget g => g -> IO g
-    createGadget _ = newGadget
+-- Helper to satisfy typechecker
+createGadget :: Gadget g => g -> IO g
+createGadget _ = newGadget
