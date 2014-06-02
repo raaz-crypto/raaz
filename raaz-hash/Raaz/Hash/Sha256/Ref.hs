@@ -15,10 +15,10 @@ module Raaz.Hash.Sha256.Ref
 import Control.Applicative
 import Data.Bits
 
-import Raaz.Types
-import Raaz.Util.Ptr
+import Raaz.Core.Types
+import Raaz.Core.Util.Ptr
 
-import Raaz.Hash.Sha256.Type(SHA256(..))
+import Raaz.Hash.Sha256.Type ( SHA256(..) )
 
 -- | Compresses one block.
 sha256CompressSingle :: SHA256

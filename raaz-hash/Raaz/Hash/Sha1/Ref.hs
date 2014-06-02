@@ -16,10 +16,10 @@ module Raaz.Hash.Sha1.Ref
 import Control.Applicative
 import Data.Bits
 
-import Raaz.Types
-import Raaz.Util.Ptr
+import Raaz.Core.Types
+import Raaz.Core.Util.Ptr
 
-import Raaz.Hash.Sha1.Type(SHA1(..))
+import Raaz.Hash.Sha1.Type ( SHA1(..) )
 
 -- | Compresses one block.
 sha1CompressSingle :: SHA1

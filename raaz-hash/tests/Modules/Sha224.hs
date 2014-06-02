@@ -7,9 +7,9 @@ import           Control.Applicative
 import qualified Data.ByteString       as B
 import qualified Data.ByteString.Char8 as C8
 import           Data.Default
-import           Test.QuickCheck       (Arbitrary(..))
+import           Test.QuickCheck       ( Arbitrary(..) )
 
-import Raaz.Test.Gadget
+import Raaz.Core.Test.Gadget
 
 import Modules.Generic
 import Raaz.Hash.Sha224.Internal

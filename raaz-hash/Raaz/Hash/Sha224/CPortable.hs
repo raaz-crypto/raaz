@@ -12,11 +12,11 @@ module Raaz.Hash.Sha224.CPortable () where
 
 import Control.Applicative ( (<$>) )
 
-import Raaz.Memory
-import Raaz.Primitives
+import Raaz.Core.Memory
+import Raaz.Core.Primitives
 
 import Raaz.Hash.Sha224.Type
-import Raaz.Hash.Sha256.Type      ( SHA256(..) )
+import Raaz.Hash.Sha256.Type      ( SHA256(..)     )
 import Raaz.Hash.Sha256.CPortable ( sha256Compress )
 
 instance Gadget (CGadget SHA224) where
