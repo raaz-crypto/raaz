@@ -4,6 +4,7 @@
 module Raaz.Benchmark.Gadget
        ( benchGadget
        , benchGadgetWith
+       , createGadget
        ) where
 
 import Criterion.Main
@@ -19,10 +20,9 @@ benchGadget  :: (Gadget g, HasName g)
              -> CryptoPtr              -- ^ Buffer on which to benchmark
              -> BLOCKS (PrimitiveOf g) -- ^ Size of Buffer
              -> Benchmark
-benchGadget g' iv cptr nblks = bench (getName g') process
+benchGadget g iv cptr nblks = bench (getName g) process
   where
     process = do
-      g <- createGadget g'
       initialize g iv
       apply g nblks cptr
 
@@ -32,16 +32,15 @@ benchGadgetWith :: (Gadget g, HasName g)
                 -> Cxt (PrimitiveOf g)    -- ^ Gadget Cxt
                 -> BLOCKS (PrimitiveOf g) -- ^ Size of random buffer which will be allocated
                 -> Benchmark
-benchGadgetWith g' iv nblks = bench (getName g') process
+benchGadgetWith g iv nblks = bench (getName g) process
   where
     process = do
-      g <- createGadget g'
       initialize g iv
       allocaBuffer rblks (go g nblks)
     go g blks cptr | blks > rblks =  apply g rblks cptr
                                   >> go g (blks - rblks) cptr
                    | otherwise    = apply g blks cptr
-    rblks = recommendedBlocks g'
+    rblks = recommendedBlocks g
 
 -- Helper to satisfy typechecker
 createGadget :: Gadget g => g -> IO g
