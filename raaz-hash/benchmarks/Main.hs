@@ -18,6 +18,9 @@ myConfig = defaultConfig {
 main :: IO ()
 main = do putStrLn $ "Running benchmarks for " ++ pkgName
           putStrLn $ "Data Size : " ++ show nSize
-          defaultMainWith myConfig (return ()) benchmarks
+          b <- benchmarks
+          defaultMainWith myConfig (return ()) b
 
-benchmarks= [ bgroup "SHA" Sha.benchmarks ]
+benchmarks = do
+  sha <- Sha.benchmarks
+  return $  [ bgroup "SHA" sha ]
