@@ -24,6 +24,7 @@ library
                  , Raaz.RSA.Signature
                  , Raaz.Number.Internals
                  , Raaz.DH
+                 , Raaz.KeyExchange
   other-modules: Raaz.RSA.Types
                , Raaz.RSA.Signature.Instances
                , Raaz.RSA.Signature.Primitives

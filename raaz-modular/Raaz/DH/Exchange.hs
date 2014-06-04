@@ -4,7 +4,11 @@ Diffie - Hellman Key Exchange.
 
 -}
 
-module Raaz.DH.Exchange where
+module Raaz.DH.Exchange
+       ( generateParams
+       , calculateSecret
+       , module Raaz.DH.Types
+       ) where
 
 
 import Raaz.Primitives.Cipher
@@ -14,6 +18,8 @@ import Raaz.DH.Types
 import Raaz.Random
 import Raaz.Number
 
+
+import Raaz.KeyExchange
 
 -- | Generates the private number x (1 < x < q) and public number e = g^x mod p.
 generateParams :: ( StreamGadget g
