@@ -2,6 +2,7 @@
 module Modules.Salsa20 (benchmarks, benchmarksTiny) where
 
 import           Criterion.Main
+import           Control.Applicative
 import           Data.ByteString              (ByteString,pack)
 import qualified Data.ByteString              as BS
 import           Data.Typeable
@@ -14,7 +15,7 @@ import           Raaz.Serialize
 import           Raaz.Cipher.Salsa20.Internal
 import           Raaz.Cipher.Salsa20
 
-import           Modules.Defaults             (nBlocks)
+import           Modules.Defaults
 
 testKey128 :: ByteString
 testKey128 =  pack [1..32]
@@ -22,12 +23,10 @@ testKey128 =  pack [1..32]
 testKey256 :: ByteString
 testKey256 =  pack [1..48]
 
+benchmarksTiny = take 2 <$> benchmarks
 
-benchCipher g iv = benchGadgetWith g iv (nBlocks g)
-
-benchmarksTiny = take 2 benchmarks
-
-benchmarks = [ benchCipher s20_128  (cipherCxt $ fromByteString testKey128)
+benchmarks = sequence
+             [ benchCipher s20_128  (cipherCxt $ fromByteString testKey128)
              , benchCipher cs20_128 (cipherCxt $ fromByteString testKey128)
              , benchCipher s12_128  (cipherCxt $ fromByteString testKey128)
              , benchCipher cs12_128 (cipherCxt $ fromByteString testKey128)

@@ -3,6 +3,7 @@
 module Modules.AES.Defaults (benchmarksDefault, benchmarksTinyDefault) where
 
 import           Criterion.Main
+import           Control.Applicative
 import           Data.ByteString          (ByteString,pack)
 import qualified Data.ByteString          as BS
 import           Data.Typeable
@@ -15,7 +16,7 @@ import           Raaz.Serialize
 import           Raaz.Cipher.AES.Internal
 import           Raaz.Cipher.AES.ECB
 
-import           Modules.Defaults         (nBlocks)
+import           Modules.Defaults
 
 testKey128 :: CryptoSerialize a => a
 testKey128 =  fromByteString $
@@ -58,11 +59,10 @@ testKey256 =  fromByteString $
                      ,0x08,0x09,0x0A,0x0B
                      ,0x0C,0x0D,0x0E,0x0F]
 
-benchCipher g iv = benchGadgetWith g iv (nBlocks g)
+benchmarksTinyDefault p = take 2 <$> benchmarksDefault p
 
-benchmarksTinyDefault = take 2 . benchmarksDefault
-
-benchmarksDefault p = [ benchCipher (toH $ prim128 p) (cipherCxt testKey128)
+benchmarksDefault p = sequence
+                      [ benchCipher (toH $ prim128 p) (cipherCxt testKey128)
                       , benchCipher (toC $ prim128 p) (cipherCxt testKey128)
                       , benchCipher (toH $ prim192 p) (cipherCxt testKey192)
                       , benchCipher (toC $ prim192 p) (cipherCxt testKey192)

@@ -11,8 +11,8 @@ import Modules.AES.Defaults
 ctr :: AES CTR KEY128
 ctr = undefined
 
-benchmarks :: [Benchmark]
+benchmarks :: IO [Benchmark]
 benchmarks = benchmarksDefault ctr
 
-benchmarksTiny :: [Benchmark]
+benchmarksTiny :: IO [Benchmark]
 benchmarksTiny = benchmarksTinyDefault ctr

@@ -11,8 +11,8 @@ import Modules.AES.Defaults
 cbc :: AES CBC KEY128
 cbc = undefined
 
-benchmarks :: [Benchmark]
+benchmarks :: IO [Benchmark]
 benchmarks = benchmarksDefault cbc
 
-benchmarksTiny :: [Benchmark]
+benchmarksTiny :: IO [Benchmark]
 benchmarksTiny = benchmarksTinyDefault cbc

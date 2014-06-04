@@ -11,8 +11,8 @@ import Modules.AES.Defaults
 ecb :: AES ECB KEY128
 ecb = undefined
 
-benchmarks :: [Benchmark]
+benchmarks :: IO [Benchmark]
 benchmarks = benchmarksDefault ecb
 
-benchmarksTiny :: [Benchmark]
+benchmarksTiny :: IO [Benchmark]
 benchmarksTiny = benchmarksTinyDefault ecb

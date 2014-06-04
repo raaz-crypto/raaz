@@ -11,10 +11,16 @@ import qualified Modules.AES.CTR as CTR
 
 
 -- | Performs benchmark for CTR tiny only
-benchmarksTiny = [ bgroup "Raaz.Cipher.AES.ECB" ECB.benchmarksTiny ]
+benchmarksTiny = do
+  ecb <- ECB.benchmarks
+  return [bgroup "Raaz.Cipher.AES.ECB" ecb]
 
 -- | Performs all the benchmarks
-benchmarks = [ bgroup "Raaz.Cipher.AES.ECB" ECB.benchmarks
-             , bgroup "Raaz.Cipher.AES.CBC" CBC.benchmarks
-             , bgroup "Raaz.Cipher.AES.CTR" CTR.benchmarks
-             ]
+benchmarks = do
+  ecb <- ECB.benchmarks
+  cbc <- CBC.benchmarks
+  ctr <- CTR.benchmarks
+  return [ bgroup "Raaz.Cipher.AES.ECB" ecb
+         , bgroup "Raaz.Cipher.AES.CBC" cbc
+         , bgroup "Raaz.Cipher.AES.CTR" ctr
+         ]

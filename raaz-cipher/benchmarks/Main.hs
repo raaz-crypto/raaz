@@ -19,12 +19,15 @@ myConfig = defaultConfig {
 main :: IO ()
 main = do putStrLn $ "Running benchmarks for " ++ pkgName
           putStrLn $ "Data Size : " ++ show nSize
-          defaultMainWith myConfig (return ()) benchmarksTiny
+          b <- benchmarksTiny
+          defaultMainWith myConfig (return ()) b
 
-benchmarksTiny = [ bgroup "AES" AES.benchmarksTiny
-                 , bgroup "Salsa20" S20.benchmarksTiny
-                 ]
+benchmarksTiny = do
+  aes <- AES.benchmarksTiny
+  salsa <- S20.benchmarksTiny
+  return [bgroup "AES" aes, bgroup "Salsa20" salsa]
 
-benchmarks = [ bgroup "AES" AES.benchmarks
-             , bgroup "Salsa20" S20.benchmarks
-             ]
+benchmarks= do
+  aes <- AES.benchmarks
+  salsa <- S20.benchmarks
+  return [bgroup "AES" aes, bgroup "Salsa20" salsa]
