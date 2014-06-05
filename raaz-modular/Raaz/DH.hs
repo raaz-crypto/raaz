@@ -15,6 +15,8 @@ module Raaz.DH
        , oakley16
        , oakley17
        , oakley18
+       , DHOakley1(..)
+       , DHOakley14(..)
        -- * DH Types
        , SharedSecret
        , PublicNum
