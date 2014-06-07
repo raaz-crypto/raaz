@@ -338,28 +338,6 @@ instance ( Primitive p
                prim _ = undefined
   {-# INLINE cryptoCoerce #-}
 
--- | BEWARE: There can be rounding errors if the number of bytes is
--- not a multiple of block length.
-instance ( Primitive p
-         , Integral by
-         ) => CryptoCoerce (BYTES by) (BLOCKS p) where
-  cryptoCoerce bytes = result
-         where prim :: BLOCKS p -> p
-               prim _ = undefined
-               result = BLOCKS (fromIntegral m)
-               m      = fromIntegral bytes `quot` blockSize (prim result)
-  {-# INLINE cryptoCoerce #-}
-
--- | BEWARE: There can be rounding errors if the number of bytes is
--- not a multiple of block length.
-instance ( Primitive p
-         , Integral by
-         ) => CryptoCoerce (BITS by) (BLOCKS p) where
-  cryptoCoerce = cryptoCoerce . bytes
-    where bytes :: Integral by => BITS by -> BYTES by
-          bytes = cryptoCoerce
-  {-# INLINE cryptoCoerce #-}
-
 
 instance ( Primitive p
          , Num by

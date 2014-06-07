@@ -196,13 +196,6 @@ newtype PAGES a = PAGES a deriving ( Show, Enum, Real
                                    , Integral, Num, Eq, Ord
                                    )
 
-instance ( Integral by
-         , Num pg
-         )
-         => CryptoCoerce (BYTES by) (PAGES pg) where
-  cryptoCoerce by | r == 0    = fromIntegral q
-                  | otherwise = fromIntegral q + 1
-    where (q,r) = fromIntegral by `quotRem` pageSize
 
 instance ( Integral pg
          , Num by

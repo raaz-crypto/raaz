@@ -293,16 +293,6 @@ instance ( Integral by
   cryptoCoerce by = 8 * fromIntegral by
   {-# INLINE cryptoCoerce #-}
 
--- | BEWARE: If the number of bits is not an integral multiple of 8
--- then there are rounding errors.
-instance ( Integral bi
-         , Real bi
-         , Num by
-         )
-         => CryptoCoerce (BITS bi) (BYTES by) where
-  cryptoCoerce bi = fromIntegral $ quot bi 8
-  {-# INLINE cryptoCoerce #-}
-
 instance ( Integral by1
          , Num by2
          ) => CryptoCoerce (BYTES by1) (BYTES by2) where
