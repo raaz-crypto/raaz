@@ -3,7 +3,7 @@
 -- necessary pointer arithmetic to make the pointer point to the next
 -- location. No range checks are done to speed up the operations and
 -- hence these operations are highly unsafe. If you want proper range
--- checks please use "Raaz.Write" instead.
+-- checks please use "Raaz.Core.Write" instead.
 --
 -- An important use case for these unsafe functions is in the
 -- definition of `Storable` and `EndianStore` instances of complicated
@@ -11,7 +11,7 @@
 
 
 {-# LANGUAGE FlexibleContexts #-}
-module Raaz.Write.Unsafe
+module Raaz.Core.Write.Unsafe
        ( Write, write, writeStorable
        , writeBytes, writeByteString
        , runWrite
@@ -26,9 +26,9 @@ import Foreign.ForeignPtr.Safe ( withForeignPtr )
 import Foreign.Ptr             ( castPtr )
 import Foreign.Storable
 
-import Raaz.Types
-import Raaz.Util.Ptr
-import Raaz.Util.ByteString    as BU
+import Raaz.Core.Types
+import Raaz.Core.Util.Ptr
+import Raaz.Core.Util.ByteString    as BU
 
 -- | A write is an action which when executed using `runWrite` writes
 -- bytes to the input buffer. The action takes care of updating the

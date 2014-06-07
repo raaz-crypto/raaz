@@ -9,8 +9,8 @@ A cryptographic hash function abstraction.
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE EmptyDataDecls             #-}
 
-module Raaz.Primitives.Hash
-       ( Hash(..), HashMemoryBuf
+module Raaz.Core.Primitives.Hash
+       ( Hash, HashMemoryBuf
        , sourceHash', sourceHash
        , hash', hash
        , hashFile', hashFile
@@ -25,11 +25,11 @@ import           Prelude              hiding (length)
 import           System.IO            (withBinaryFile, IOMode(ReadMode), Handle)
 import           System.IO.Unsafe     (unsafePerformIO)
 
-import           Raaz.ByteSource
-import           Raaz.Memory
-import           Raaz.Primitives
-import           Raaz.Types
-import           Raaz.Util.Ptr        ( byteSize )
+import           Raaz.Core.ByteSource
+import           Raaz.Core.Memory
+import           Raaz.Core.Primitives
+import           Raaz.Core.Types
+import           Raaz.Core.Util.Ptr   (byteSize)
 
 
 -- | Type class capturing a cryptographic hash. The important

@@ -1,12 +1,13 @@
 import           Data.Version
 
-import           Paths_raaz_random      (version)
-import           Test.Framework         (defaultMain, testGroup)
+import           Paths_raaz_random      ( version                )
+import           Test.Framework         ( defaultMain, testGroup )
 import qualified Modules.Stream         as Stream
 import qualified Modules.Number         as Number
 
-import           Raaz.Primitives
-import           Raaz.Primitives.Cipher
+import           Raaz.Core.Primitives
+import           Raaz.Core.Primitives.Cipher
+
 import           Raaz.Cipher.AES.CTR
 import           Raaz.Cipher.AES.Internal
 

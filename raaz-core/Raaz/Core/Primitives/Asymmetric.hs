@@ -8,18 +8,18 @@ This module abstracts basic cryptographic primitive operations.
 {-# LANGUAGE KindSignatures   #-}
 {-# LANGUAGE TypeFamilies     #-}
 {-# LANGUAGE CPP              #-}
-module Raaz.Primitives.Asymmetric
+module Raaz.Core.Primitives.Asymmetric
        ( Sign(..)
        , Encrypt(..)
        , SignEncrypt(..)
        ) where
 
-import Control.Applicative
-import System.IO.Unsafe    (unsafePerformIO)
+import Control.Applicative ()
+import System.IO.Unsafe    ()
 
-import Raaz.Primitives
-import Raaz.ByteSource
-import Raaz.Serialize
+import Raaz.Core.Primitives
+import Raaz.Core.ByteSource ()
+import Raaz.Core.Serialize
 
 -- | This class captures primitives which support generation of
 -- authenticated signatures and its verification. This is assymetric

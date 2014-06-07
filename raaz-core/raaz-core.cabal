@@ -62,29 +62,32 @@ flag auto-configure
   default: True
 
 library
-  exposed-modules: Raaz.ByteSource
-                 , Raaz.Memory
-                 , Raaz.Parse
-                 , Raaz.Parse.Unsafe
-                 , Raaz.Primitives
-                 , Raaz.Primitives.Hash
-                 , Raaz.Primitives.Asymmetric
-                 , Raaz.Primitives.Symmetric
-                 , Raaz.Primitives.HMAC
-                 , Raaz.Primitives.Cipher
-                 , Raaz.Serialize
+  exposed-modules: Raaz.Core
+                 , Raaz.Core.ByteSource
+                 , Raaz.Core.Memory
+                 , Raaz.Core.Types
+                 , Raaz.Core.Parse
+                 , Raaz.Core.Parse.Unsafe
+                 , Raaz.Core.Primitives
+                 , Raaz.Core.Primitives.Hash
+                 , Raaz.Core.Primitives.Asymmetric
+                 , Raaz.Core.Primitives.Symmetric
+                 , Raaz.Core.Primitives.HMAC
+                 , Raaz.Core.Primitives.Cipher
+                 , Raaz.Core.Write
+                 , Raaz.Core.Write.Unsafe
+                 , Raaz.Core.Serialize
+                 , Raaz.Core.Test
+                 , Raaz.Core.Test.Cipher
+                 , Raaz.Core.Test.EndianStore
+                 , Raaz.Core.Test.Gadget
+                 , Raaz.Core.Util
+                 , Raaz.Core.Util.ByteString
+                 , Raaz.Core.Util.Gadget
+                 , Raaz.Core.Util.Ptr
                  , Raaz.System.Parameters
-                 , Raaz.Types
-                 , Raaz.Test
-                 , Raaz.Test.Cipher
-                 , Raaz.Test.EndianStore
-                 , Raaz.Test.Gadget
-                 , Raaz.Util.ByteString
-                 , Raaz.Util.Gadget
-                 , Raaz.Util.Ptr
-                 , Raaz.Util.SecureMemory
-                 , Raaz.Write
-                 , Raaz.Write.Unsafe
+
+  other-modules: Raaz.Core.Memory.Internal
   build-depends: base                           >= 4.5 && < 4.8
                , bytestring                     >= 0.9 && < 0.11
                , cpu                            >= 0.1 && < 0.2

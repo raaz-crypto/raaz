@@ -9,7 +9,7 @@
 {-# LANGUAGE CPP                        #-}
 {-# LANGUAGE UndecidableInstances       #-}
 
-module Raaz.Primitives.HMAC
+module Raaz.Core.Primitives.HMAC
        ( HMAC(..)
        , HMACKey
        , hmacShortenKey
@@ -29,19 +29,19 @@ import           Foreign.Ptr
 import           Prelude                   hiding (length, replicate)
 import           System.IO.Unsafe          (unsafePerformIO)
 
-import           Raaz.ByteSource
-import           Raaz.Memory
-import           Raaz.Primitives
-import           Raaz.Primitives.Symmetric
-import           Raaz.Primitives.Hash
-import           Raaz.Parse
-import           Raaz.Write
-import qualified Raaz.Parse.Unsafe         as U
-import qualified Raaz.Write.Unsafe         as U
-import           Raaz.Serialize
-import           Raaz.Types
-import           Raaz.Util.ByteString
-import           Raaz.Util.Ptr
+import           Raaz.Core.ByteSource
+import           Raaz.Core.Memory
+import           Raaz.Core.Primitives
+import           Raaz.Core.Primitives.Symmetric
+import           Raaz.Core.Primitives.Hash
+import           Raaz.Core.Parse
+import qualified Raaz.Core.Parse.Unsafe         as U
+import           Raaz.Core.Write
+import qualified Raaz.Core.Write.Unsafe         as U
+import           Raaz.Core.Serialize
+import           Raaz.Core.Types
+import           Raaz.Core.Util.ByteString
+import           Raaz.Core.Util.Ptr
 
 
 

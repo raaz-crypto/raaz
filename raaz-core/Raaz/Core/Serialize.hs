@@ -7,7 +7,7 @@ Serialization from and to CryptoBuffer.
 {-# LANGUAGE DefaultSignatures    #-}
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE UndecidableInstances #-}
-module Raaz.Serialize ( CryptoSerialize(..)
+module Raaz.Core.Serialize ( CryptoSerialize(..)
                       , fromByteString
                       ) where
 
@@ -18,9 +18,9 @@ import Foreign.ForeignPtr       (withForeignPtr)
 import Foreign.Ptr              (castPtr, plusPtr)
 import System.IO.Unsafe         (unsafePerformIO)
 
-import Raaz.Parse
-import Raaz.Write
-import Raaz.Types
+import Raaz.Core.Parse
+import Raaz.Core.Write
+import Raaz.Core.Types
 
 -- | Types which can be read from or written to a CryptoBuffer.
 class CryptoSerialize a where

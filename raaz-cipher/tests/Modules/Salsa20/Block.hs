@@ -4,19 +4,20 @@ module Modules.Salsa20.Block
        ) where
 
 import           Control.Applicative
-import           Data.ByteString                      (ByteString)
+import           Data.ByteString                      ( ByteString        )
 import qualified Data.ByteString                      as BS
-import           Test.Framework                       (Test,testGroup)
-import           Test.Framework.Providers.QuickCheck2 (testProperty)
-import           Test.QuickCheck                      (Arbitrary(..))
-import           Test.HUnit                           ((~?=), test, (~:) )
-import           Test.Framework.Providers.HUnit       (hUnitTestToTests)
+import           Test.Framework                       ( Test,testGroup    )
+import           Test.Framework.Providers.QuickCheck2 ( testProperty      )
+import           Test.QuickCheck                      ( Arbitrary(..)     )
+import           Test.HUnit                           ( (~?=), test, (~:) )
+import           Test.Framework.Providers.HUnit       ( hUnitTestToTests  )
 
 
-import           Raaz.Test.Cipher                     (shorten)
-import           Raaz.Types
+import           Raaz.Core.Test.Cipher                ( shorten           )
+import           Raaz.Core.Types
+import           Raaz.Core.Util.ByteString
+
 import           Raaz.Cipher.Salsa20.Internal
-import           Raaz.Util.ByteString
 
 instance Arbitrary STATE where
   arbitrary = STATE <$> arbitrary

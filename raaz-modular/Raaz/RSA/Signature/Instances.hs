@@ -17,10 +17,10 @@ import Control.Applicative
 import Data.Default
 import Foreign.Storable
 
-import Raaz.Memory
-import Raaz.Primitives
-import Raaz.Primitives.Hash
-import Raaz.Primitives.Asymmetric
+import Raaz.Core.Memory
+import Raaz.Core.Primitives
+import Raaz.Core.Primitives.Asymmetric
+import Raaz.Core.Primitives.Hash
 
 import Raaz.Number.Modular
 import Raaz.Public

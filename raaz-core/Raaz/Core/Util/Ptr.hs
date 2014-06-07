@@ -8,7 +8,7 @@ to use with type safe lengths.
 
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ForeignFunctionInterface   #-}
-module Raaz.Util.Ptr
+module Raaz.Core.Util.Ptr
        ( byteSize
        , allocaBuffer, mallocBuffer
        , movePtr
@@ -24,7 +24,7 @@ import Foreign.Ptr
 import Foreign.Marshal.Alloc
 import Foreign.Storable      (Storable, sizeOf)
 import System.IO             (hGetBuf, Handle)
-import Raaz.Types
+import Raaz.Core.Types
 
 -- | Similar to `sizeOf` but returns the length in type safe units.
 byteSize :: Storable a => a -> BYTES Int

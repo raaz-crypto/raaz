@@ -6,23 +6,23 @@ module Modules.EcryptTest (testAll) where
 
 import           Control.Applicative
 import           Data.Bits
-import           Data.ByteString                (ByteString,pack)
+import           Data.ByteString                ( ByteString,pack      )
 import qualified Data.ByteString                as BS
 import qualified Data.ByteString.Char8          as B8
 import           Data.Char
 import           Data.Typeable
 
 import qualified Test.Framework                 as TF
-import           Test.Framework                 (testGroup,buildTest)
-import           Test.Framework.Providers.HUnit (hUnitTestToTests)
+import           Test.Framework                 ( testGroup, buildTest )
+import           Test.Framework.Providers.HUnit ( hUnitTestToTests     )
 import           Test.HUnit
 
-import           Raaz.Test                      ()
-import           Raaz.Test.Cipher
-import           Raaz.Test.Gadget               (testGadget)
-import           Raaz.Primitives
-import           Raaz.Primitives.Cipher
-import           Raaz.Serialize
+import           Raaz.Core.Test                 ()
+import           Raaz.Core.Test.Cipher
+import           Raaz.Core.Test.Gadget          ( testGadget           )
+import           Raaz.Core.Primitives
+import           Raaz.Core.Primitives.Cipher
+import           Raaz.Core.Serialize
 
 import           Modules.EcryptTestParser
 

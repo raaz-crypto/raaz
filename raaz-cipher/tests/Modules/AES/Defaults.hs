@@ -3,22 +3,21 @@
 
 module Modules.AES.Defaults where
 
-import           Data.ByteString        (ByteString,pack)
-import qualified Data.ByteString        as BS
+import           Data.ByteString             ( ByteString, pack )
+import qualified Data.ByteString             as BS
 import           Data.Typeable
 
-import           Test.Framework         (Test,testGroup)
+import           Test.Framework              ( Test, testGroup  )
 
-import           Raaz.Test              ()
-import           Raaz.Test.Cipher
-import           Raaz.Test.Gadget       (testGadget)
-import           Raaz.Primitives
-import           Raaz.Primitives.Cipher
-
+import           Raaz.Core.Test              ()
+import           Raaz.Core.Test.Cipher
+import           Raaz.Core.Test.Gadget       ( testGadget       )
+import           Raaz.Core.Primitives
+import           Raaz.Core.Primitives.Cipher
 
 import           Raaz.Cipher.AES.Type
 
-import           Modules.AES.Block      ()
+import           Modules.AES.Block           ()
 import           Modules.Util
 
 testKey128 :: ByteString

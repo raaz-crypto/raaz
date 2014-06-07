@@ -5,11 +5,11 @@ module Modules.Number where
 import Control.Applicative
 import Data.Bits
 import Data.Word
-import Test.Framework                       (Test,testGroup)
-import Test.Framework.Providers.QuickCheck2 (testProperty)
+import Test.Framework                       ( Test, testGroup )
+import Test.Framework.Providers.QuickCheck2 ( testProperty    )
 import Test.QuickCheck
 
-import Raaz.Test.EndianStore
+import Raaz.Core.Test.EndianStore
 
 import Raaz.Number
 

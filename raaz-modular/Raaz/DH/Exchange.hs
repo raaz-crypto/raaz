@@ -11,8 +11,7 @@ module Raaz.DH.Exchange
        ) where
 
 
-import Raaz.Primitives.Cipher
-import Raaz.Random
+import Raaz.Core.Primitives.Cipher
 
 import Raaz.DH.Types
 import Raaz.Random

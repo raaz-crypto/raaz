@@ -5,9 +5,9 @@ This module implements the core Salsa20.
 -}
 module Raaz.Cipher.Salsa20.Block.Internal where
 
-import           Data.List                            (foldl')
-import           Data.Bits
-import           Raaz.Cipher.Salsa20.Block.Type
+import Data.List                      ( foldl' )
+import Data.Bits
+import Raaz.Cipher.Salsa20.Block.Type
 
 quarterRound :: STATE -> STATE
 quarterRound (STATE y0 y1 y2 y3) = STATE z0 z1 z2 z3

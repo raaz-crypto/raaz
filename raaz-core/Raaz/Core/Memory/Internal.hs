@@ -1,27 +1,28 @@
 {-|
 
-This module provides utility functions to work with secure memory. By
-secure memory, we mean memory that will /not/ be swapped out to the
-external disk. It is recommended to use secure memory to store
-sensitive information like passphrase, especially in an environment
-where there are hostile users on the same system. However, using
-secure memory alone is not really going to save the day.
+The internals of the memory subsystem. This module provides utility
+functions to work with secure memory. By secure memory, we mean memory
+that will /not/ be swapped out to the external disk. It is recommended
+to use secure memory to store sensitive information like pass-phrase,
+especially in an environment where there are hostile users on the same
+system. However, using secure memory alone is not really going to save
+the day.
 
 Operating systems have limit on the amount of memory that can be
-locked by a users process. So use it judciously.
+locked by a users process. So use it judiciously.
 
 -}
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE ForeignFunctionInterface   #-}
-{-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE TupleSections              #-}
 
-module Raaz.Util.SecureMemory
+module Raaz.Core.Memory.Internal
        (
          -- * Architecture of the allocator.
          -- $architecture
-         PAGES(..)
+         PAGES (..)
          -- PoolRef helper functions
        , PoolRef
        , allocSecureMem
@@ -30,16 +31,16 @@ module Raaz.Util.SecureMemory
        , withSecureMem
        ) where
 
-import Control.Arrow          (first)
-import Control.Exception      (finally)
-import Data.Traversable       (traverse)
-import Data.IORef
-import Foreign.Concurrent
-import Foreign.ForeignPtr     (finalizeForeignPtr)
+import           Control.Arrow          (first)
+import           Control.Exception      (finally)
+import           Data.IORef
+import           Data.Traversable       (traverse)
+import           Foreign.Concurrent
+import           Foreign.ForeignPtr     (finalizeForeignPtr)
 
-import Raaz.Types
-import Raaz.Util.Ptr
-import Raaz.System.Parameters (pageSize)
+import           Raaz.System.Parameters (pageSize)
+import           Raaz.Core.Types
+import           Raaz.Core.Util.Ptr
 
 foreign import ccall unsafe "cbits/raaz/memory.c memorylock"
   c_mlock :: CryptoPtr -> Int -> IO Int

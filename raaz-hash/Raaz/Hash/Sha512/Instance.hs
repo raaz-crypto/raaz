@@ -13,10 +13,10 @@ module Raaz.Hash.Sha512.Instance (sha512CompressSingle) where
 import Control.Applicative ( (<$>) )
 import Control.Monad       ( foldM )
 
-import Raaz.Memory
-import Raaz.Primitives
-import Raaz.Primitives.Hash
-import Raaz.Util.Ptr
+import Raaz.Core.Memory
+import Raaz.Core.Primitives
+import Raaz.Core.Primitives.Hash
+import Raaz.Core.Util.Ptr
 
 import Raaz.Hash.Sha512.Type
 import Raaz.Hash.Sha512.Ref

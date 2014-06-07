@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 
 -- | Module define byte sources.
-module Raaz.ByteSource
+module Raaz.Core.ByteSource
        ( ByteSource(..), fill
        , PureByteSource
        , FillResult(..)
@@ -14,12 +14,12 @@ import qualified Data.ByteString.Lazy as L
 import           Prelude hiding(length)
 import           System.IO            (Handle)
 
-import           Raaz.Types           (BYTES, CryptoPtr, Rounding(..))
-import           Raaz.Util.ByteString( unsafeCopyToCryptoPtr
+import           Raaz.Core.Types           (BYTES, CryptoPtr, Rounding(..))
+import           Raaz.Core.Util.ByteString( unsafeCopyToCryptoPtr
                                      , unsafeNCopyToCryptoPtr
                                      , length
                                      )
-import           Raaz.Util.Ptr        (movePtr, hFillBuf)
+import           Raaz.Core.Util.Ptr        (movePtr, hFillBuf)
 
 
 -- | This type captures the result of a fill operation.

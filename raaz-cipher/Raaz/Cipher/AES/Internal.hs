@@ -30,8 +30,8 @@ module Raaz.Cipher.AES.Internal
 import Raaz.Cipher.AES.Block.Type
 import Raaz.Cipher.AES.Block.Internal
 
-import Raaz.Primitives
-import Raaz.Primitives.Cipher
+import Raaz.Core.Primitives
+import Raaz.Core.Primitives.Cipher
 
 -- | AES Data type with associated modes.
 #if UseKinds

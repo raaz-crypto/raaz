@@ -9,11 +9,11 @@ module Raaz.Cipher.AES.ECB.Ref () where
 import Control.Applicative
 import Control.Monad
 
-import Raaz.Memory
-import Raaz.Primitives
-import Raaz.Primitives.Cipher
-import Raaz.Types
-import Raaz.Util.Ptr
+import Raaz.Core.Memory
+import Raaz.Core.Primitives
+import Raaz.Core.Primitives.Cipher
+import Raaz.Core.Types
+import Raaz.Core.Util.Ptr
 
 import Raaz.Cipher.AES.ECB.Type
 import Raaz.Cipher.AES.Block.Internal

@@ -8,7 +8,7 @@ This module abstracts basic cryptographic primitive operations.
 {-# LANGUAGE KindSignatures   #-}
 {-# LANGUAGE TypeFamilies     #-}
 {-# LANGUAGE CPP              #-}
-module Raaz.Primitives.Symmetric
+module Raaz.Core.Primitives.Symmetric
        ( Auth(..), authTag', verifyTag', authTag, verifyTag
        , Cipher(..)
        , AuthEncrypt(..)
@@ -17,9 +17,9 @@ module Raaz.Primitives.Symmetric
 import Control.Applicative
 import System.IO.Unsafe    (unsafePerformIO)
 
-import Raaz.Primitives
-import Raaz.ByteSource
-import Raaz.Serialize
+import Raaz.Core.Primitives
+import Raaz.Core.ByteSource
+import Raaz.Core.Serialize
 
 -- | This class captures symmetric primitives which support generation
 -- of authentication tags. The verification is done by generating the

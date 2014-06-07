@@ -5,10 +5,10 @@
 
 module Raaz.Cipher.AES.ECB.Type where
 
-import Raaz.Primitives
-import Raaz.Primitives.Cipher
-import Raaz.Serialize
-import Raaz.Types
+import Raaz.Core.Primitives
+import Raaz.Core.Primitives.Cipher
+import Raaz.Core.Serialize
+import Raaz.Core.Types
 
 import Raaz.Cipher.AES.Internal
 

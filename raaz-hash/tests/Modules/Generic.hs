@@ -20,20 +20,20 @@ import qualified Data.ByteString                      as B
 import           Data.Default
 import           Data.Typeable
 import           Data.Word
-import           Test.Framework                       (Test, testGroup)
-import           Test.Framework.Providers.QuickCheck2 (testProperty)
-import           Test.HUnit                           ((~?=), test, (~:) )
-import           Test.Framework.Providers.HUnit       (hUnitTestToTests)
-import           Test.QuickCheck                      (Arbitrary)
+import           Test.Framework                       ( Test, testGroup   )
+import           Test.Framework.Providers.QuickCheck2 ( testProperty      )
+import           Test.HUnit                           ( (~?=), test, (~:) )
+import           Test.Framework.Providers.HUnit       ( hUnitTestToTests  )
+import           Test.QuickCheck                      ( Arbitrary         )
 
-import           Raaz.Primitives
-import           Raaz.Primitives.Hash
-import           Raaz.Primitives.HMAC
-import           Raaz.Types
-import           Raaz.Test.EndianStore
-import           Raaz.Test.Cipher
-import           Raaz.Test.Gadget
-import           Raaz.Util.ByteString                 (toHex)
+import           Raaz.Core.Primitives
+import           Raaz.Core.Primitives.Hash
+import           Raaz.Core.Primitives.HMAC
+import           Raaz.Core.Types
+import           Raaz.Core.Test.EndianStore
+import           Raaz.Core.Test.Cipher
+import           Raaz.Core.Test.Gadget
+import           Raaz.Core.Util.ByteString            ( toHex             )
 
 
 -- | This runs all the test for a given hash. The second argument to

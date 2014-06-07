@@ -6,7 +6,7 @@ using them.
 
 -}
 
-module Raaz.Test.EndianStore
+module Raaz.Core.Test.EndianStore
        ( testStoreLoad
        , testPokePeek
        ) where
@@ -19,7 +19,7 @@ import Test.Framework.Providers.QuickCheck2 ( testProperty           )
 import Test.QuickCheck                      ( Property, Arbitrary    )
 import Test.QuickCheck.Monadic              ( run, assert, monadicIO )
 
-import Raaz.Types  ( cryptoAlignment, EndianStore(..) )
+import Raaz.Core.Types  ( cryptoAlignment, EndianStore(..) )
 
 
 -- | This is where the actual store/load is performed.

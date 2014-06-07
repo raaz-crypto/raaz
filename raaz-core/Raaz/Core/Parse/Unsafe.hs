@@ -6,7 +6,7 @@
 
 {-# LANGUAGE FlexibleContexts #-}
 
-module Raaz.Parse.Unsafe
+module Raaz.Core.Parse.Unsafe
        ( Parser, parse, parseStorable, parseByteString
        , runParser
        , runParser'
@@ -19,9 +19,9 @@ import Foreign.ForeignPtr.Safe     ( withForeignPtr )
 import Foreign.Ptr                 ( castPtr, Ptr   )
 import Foreign.Storable
 
-import Raaz.Types
-import Raaz.Util.Ptr
-import Raaz.Util.ByteString        ( createFrom )
+import Raaz.Core.Types
+import Raaz.Core.Util.Ptr
+import Raaz.Core.Util.ByteString        ( createFrom )
 
 -- | A simple parser.
 type Parser = StateT CryptoPtr IO

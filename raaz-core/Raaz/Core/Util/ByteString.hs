@@ -5,7 +5,7 @@ Some utility function for byte strings.
 -}
 
 {-# LANGUAGE FlexibleContexts #-}
-module Raaz.Util.ByteString
+module Raaz.Core.Util.ByteString
        ( unsafeCopyToCryptoPtr
        , unsafeNCopyToCryptoPtr
        , length, replicate
@@ -30,8 +30,8 @@ import           Foreign.Storable   (poke, peek, Storable)
 
 import           System.IO.Unsafe   (unsafePerformIO)
 
-import           Raaz.Types
-import           Raaz.Util.Ptr
+import           Raaz.Core.Types
+import           Raaz.Core.Util.Ptr
 
 -- | A typesafe length for Bytestring
 length :: ByteString -> BYTES Int

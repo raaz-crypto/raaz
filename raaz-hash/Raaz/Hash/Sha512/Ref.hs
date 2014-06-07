@@ -15,10 +15,10 @@ module Raaz.Hash.Sha512.Ref
 import Control.Applicative
 import Data.Bits
 
-import Raaz.Types
-import Raaz.Util.Ptr
+import Raaz.Core.Types
+import Raaz.Core.Util.Ptr
 
-import Raaz.Hash.Sha512.Type(SHA512(..))
+import Raaz.Hash.Sha512.Type ( SHA512(..) )
 
 -- | Compresses one block.
 sha512CompressSingle :: SHA512

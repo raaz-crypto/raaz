@@ -14,7 +14,7 @@ might be better of using the more high level interface.
 {-# LANGUAGE CPP                         #-}
 
 
-module Raaz.Primitives
+module Raaz.Core.Primitives
        ( -- * Primtives and gadgets.
          -- $primAndGadget$
 
@@ -49,17 +49,17 @@ module Raaz.Primitives
        ) where
 
 import qualified Data.ByteString          as B
-import           Data.ByteString.Internal (ByteString, unsafeCreate)
+import           Data.ByteString.Internal (unsafeCreate)
 import           Data.Typeable            (Typeable, typeOf)
 import           Data.Word                (Word64)
 import           Foreign.Ptr              (castPtr)
 import           System.IO                (withFile, IOMode(ReadMode))
 
-import           Raaz.Memory
-import           Raaz.Types
-import           Raaz.ByteSource
-import           Raaz.Util.ByteString
-import           Raaz.Util.Ptr
+import           Raaz.Core.ByteSource
+import           Raaz.Core.Memory
+import           Raaz.Core.Types
+import           Raaz.Core.Util.ByteString
+import           Raaz.Core.Util.Ptr
 
 -- $primAndGadget$
 --

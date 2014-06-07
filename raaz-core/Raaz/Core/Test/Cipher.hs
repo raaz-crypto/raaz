@@ -6,7 +6,7 @@ Generic tests for Hash implementations.
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TypeFamilies     #-}
 
-module Raaz.Test.Cipher
+module Raaz.Core.Test.Cipher
        ( testStandardCiphers
        , applyGadget
        , encryptDecrypt
@@ -22,13 +22,13 @@ import           Test.Framework                 (Test, testGroup)
 import           Test.HUnit                     ((~?=), test, (~:) )
 import           Test.Framework.Providers.HUnit (hUnitTestToTests)
 
-import           Raaz.ByteSource
-import           Raaz.Types
-import           Raaz.Primitives
-import           Raaz.Primitives.Cipher
-import           Raaz.Util.ByteString           (hex)
-import           Raaz.Serialize
-import           Raaz.Test.Gadget
+import           Raaz.Core.ByteSource
+import           Raaz.Core.Types
+import           Raaz.Core.Primitives
+import           Raaz.Core.Primitives.Cipher
+import           Raaz.Core.Util.ByteString           (hex)
+import           Raaz.Core.Serialize
+import           Raaz.Core.Test.Gadget
 
 
 -- | Stansdard tests for ciphers

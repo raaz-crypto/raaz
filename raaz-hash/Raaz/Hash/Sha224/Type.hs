@@ -17,22 +17,22 @@ module Raaz.Hash.Sha224.Type
        , Cxt(SHA224Cxt)
        ) where
 
-import Control.Applicative ((<$>), (<*>))
-import Data.Bits(xor, (.|.))
+import Control.Applicative ( (<$>), (<*>) )
+import Data.Bits           ( xor, (.|.)   )
 import Data.Default
 import Data.Monoid
-import Data.Typeable(Typeable)
-import Foreign.Ptr(castPtr)
-import Foreign.Storable(Storable(..))
+import Data.Typeable       ( Typeable     )
+import Foreign.Ptr         ( castPtr      )
+import Foreign.Storable    ( Storable(..) )
 
-import Raaz.Parse.Unsafe
-import Raaz.Primitives
-import Raaz.Types
-import Raaz.Write.Unsafe
+import Raaz.Core.Parse.Unsafe
+import Raaz.Core.Primitives
+import Raaz.Core.Types
+import Raaz.Core.Write.Unsafe
 
 import Raaz.Hash.Sha.Util
 import Raaz.Hash.Sha256.Type
-import Raaz.Hash.Sha256.Instance()
+import Raaz.Hash.Sha256.Instance ()
 
 ----------------------------- SHA224 -------------------------------------------
 

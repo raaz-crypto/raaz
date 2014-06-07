@@ -18,9 +18,9 @@ import Test.Framework.Providers.QuickCheck2(testProperty)
 import Test.QuickCheck
 import Test.QuickCheck.Monadic(run, assert, monadicIO)
 
-import Raaz.Test()
-import Raaz.Types
-import Raaz.Util.Ptr
+import Raaz.Core.Test()
+import Raaz.Core.Types
+import Raaz.Core.Util.Ptr
 
 foreign import ccall unsafe
   "raaz/tests/platform/load_test.h raazTestsLoad32LE"

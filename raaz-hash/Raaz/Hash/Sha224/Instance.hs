@@ -13,10 +13,10 @@ module Raaz.Hash.Sha224.Instance () where
 import Control.Applicative ( (<$>) )
 import Control.Monad       ( foldM )
 
-import Raaz.Memory
-import Raaz.Primitives
-import Raaz.Primitives.Hash
-import Raaz.Util.Ptr
+import Raaz.Core.Memory
+import Raaz.Core.Primitives
+import Raaz.Core.Primitives.Hash
+import Raaz.Core.Util.Ptr
 
 import Raaz.Hash.Sha256.Type
 import Raaz.Hash.Sha224.Type

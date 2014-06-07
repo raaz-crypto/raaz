@@ -7,7 +7,7 @@ implementation.
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GADTs            #-}
 
-module Raaz.Test.Gadget
+module Raaz.Core.Test.Gadget
        ( testGadget
        , testInverse
        ) where
@@ -22,9 +22,9 @@ import           Test.Framework.Providers.QuickCheck2 (testProperty)
 import           Test.QuickCheck
 import           Test.QuickCheck.Monadic              (run, assert, monadicIO)
 
-import           Raaz.Primitives
-import qualified Raaz.Util.ByteString                 as BU
-import           Raaz.Util.Ptr
+import           Raaz.Core.Primitives
+import qualified Raaz.Core.Util.ByteString                 as BU
+import           Raaz.Core.Util.Ptr
 
 -- | Type to capture only integers from 1 to 10
 data Sized = Sized Int deriving Show

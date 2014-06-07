@@ -23,14 +23,15 @@ module Raaz.Hash
        ) where
 
 
-import Raaz.Hash.Sha1   hiding ( toByteString, toHex)
-import Raaz.Hash.Sha224 hiding ( toByteString, toHex)
-import Raaz.Hash.Sha256 hiding ( toByteString, toHex)
-import Raaz.Hash.Sha384 hiding ( toByteString, toHex)
-import Raaz.Hash.Sha512 hiding ( toByteString, toHex)
-import Raaz.Primitives.Hash    ( sourceHash, hash, hashFile )
-import Raaz.Types              ( toByteString               )
-import Raaz.Util.ByteString    ( toHex                      )
+import Raaz.Hash.Sha1   hiding ( toByteString, toHex )
+import Raaz.Hash.Sha224 hiding ( toByteString, toHex )
+import Raaz.Hash.Sha256 hiding ( toByteString, toHex )
+import Raaz.Hash.Sha384 hiding ( toByteString, toHex )
+import Raaz.Hash.Sha512 hiding ( toByteString, toHex )
+
+import Raaz.Core.Primitives.Hash ( sourceHash, hash, hashFile )
+import Raaz.Core.Types           ( toByteString               )
+import Raaz.Core.Util.ByteString ( toHex                      )
 
 -- $computingHash$
 --
