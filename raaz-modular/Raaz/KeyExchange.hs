@@ -11,7 +11,7 @@ module Raaz.KeyExchange
 
 import Raaz.Number
 import Raaz.Random
-import Raaz.Primitives.Cipher
+import Raaz.Core.Primitives.Cipher
 
 import Foreign.Storable
 
