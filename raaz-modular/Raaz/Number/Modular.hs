@@ -8,6 +8,7 @@ This module implements Modular arithmetic on Integers.
 module Raaz.Number.Modular
     ( Modular(..)
     , powModuloSlow
+    , powModuloSlowSafe
     ) where
 
 import Data.Bits
@@ -49,7 +50,7 @@ instance Modular Integer where
   powModuloSafe b e m | odd m      = powModSecInteger b e m
                       | otherwise  = powModInteger b e m
 #else
-  powModuloSafe = powModuloSlow
+  powModuloSafe = powModuloSlowSafe
 #endif
 
 -- | Modular exponentiation @x^n mod m@ using binary exponentiation.
@@ -61,5 +62,18 @@ powModuloSlow x n m = go x nbits 1
   go !b !nb !result = go b' (nb-1) result'
    where
     !b'      = (b * b) `mod` m
-    !result' | testBit n (nbits - nb) = result * b
+    !result' | testBit n (nbits - nb) = (result * b) `mod` m
              | otherwise              = result
+
+-- | Modular exponentiation @g^k mod m@ in a timing-safe manner (the Montgomery Ladder).
+powModuloSlowSafe :: Integer -> Integer -> Integer -> Integer
+powModuloSlowSafe g k m = operate nbits 1 g
+  where
+     nbits = fromEnum $ numberOfBits k
+     operate 0 !r0 _ = r0
+     operate !bitnum !r0 !r1
+       | testBit k (bitnum-1) = let r1r1 = r1*r1 `mod` m
+                                in operate (bitnum-1) r0r1 r1r1
+       | otherwise = let r0r0 = r0*r0 `mod` m
+                     in operate (bitnum-1) r0r0 r0r1
+       where r0r1 = r0*r1 `mod` m

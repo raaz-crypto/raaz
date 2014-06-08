@@ -100,6 +100,24 @@ w4096 = undefined
 w8192 :: Word8192
 w8192 = undefined
 
+-- Testing the powModuloSlow and powModuloSlowSafe functions of Raaz.Number
+data Params = Params Integer Integer Integer deriving Show
+
+instance Arbitrary Params where
+  arbitrary = do
+    w1 <- arbitrary :: Gen Word8192
+    w2 <- arbitrary :: Gen Word4096
+    w3 <- choose (2, 100) :: Gen Int	
+    let w1i = toInteger w1
+        w2i = toInteger w2
+        w3i = toInteger w3
+    return $ Params w1i w2i w3i
+
+prop_exponentiation :: Params -> Bool
+prop_exponentiation (Params g k m) = outputunsafe == outputsafe
+  where outputunsafe = powModulo g k m
+        outputsafe = powModuloSafe g k m
+
 testAll w = [ testProperty "Compare" (prop_bound w)
             , testPokePeek w
             ]
@@ -113,4 +131,5 @@ tests = [ testGroup "Word128" (testAll w128)
         , testGroup "Word8192" (testAll w8192)
         , testGroup "Word4096" (testAll w4096)
         , testGroup "Word4096" (testAll w8192)
+        , testProperty "ModularExponentiation" prop_exponentiation
         ]
