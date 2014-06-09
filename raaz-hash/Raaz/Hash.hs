@@ -19,15 +19,15 @@ module Raaz.Hash
        , module Raaz.Hash.Sha256
        , module Raaz.Hash.Sha384
        , module Raaz.Hash.Sha512
-
+       , module Raaz.Hash.Blake256
        ) where
 
-
-import Raaz.Hash.Sha1   hiding ( toByteString, toHex )
-import Raaz.Hash.Sha224 hiding ( toByteString, toHex )
-import Raaz.Hash.Sha256 hiding ( toByteString, toHex )
-import Raaz.Hash.Sha384 hiding ( toByteString, toHex )
-import Raaz.Hash.Sha512 hiding ( toByteString, toHex )
+import Raaz.Hash.Blake256 hiding ( toByteString, toHex )
+import Raaz.Hash.Sha1     hiding ( toByteString, toHex )
+import Raaz.Hash.Sha224   hiding ( toByteString, toHex )
+import Raaz.Hash.Sha256   hiding ( toByteString, toHex )
+import Raaz.Hash.Sha384   hiding ( toByteString, toHex )
+import Raaz.Hash.Sha512   hiding ( toByteString, toHex )
 
 import Raaz.Core.Primitives.Hash ( sourceHash, hash, hashFile )
 import Raaz.Core.Types           ( toByteString               )
