@@ -26,17 +26,22 @@ source-repository head
 
 library
   exposed-modules: Raaz.Hash
+                 , Raaz.Hash.Blake256
                  , Raaz.Hash.Sha1
                  , Raaz.Hash.Sha224
                  , Raaz.Hash.Sha256
                  , Raaz.Hash.Sha384
                  , Raaz.Hash.Sha512
+                 , Raaz.Hash.Blake256.Internal
                  , Raaz.Hash.Sha1.Internal
                  , Raaz.Hash.Sha224.Internal
                  , Raaz.Hash.Sha256.Internal
                  , Raaz.Hash.Sha384.Internal
                  , Raaz.Hash.Sha512.Internal
-  other-modules: Raaz.Hash.Sha1.Instance
+  other-modules: Raaz.Hash.Blake256.Instance
+               , Raaz.Hash.Blake256.Ref
+               , Raaz.Hash.Blake256.Type
+               , Raaz.Hash.Sha1.Instance
                , Raaz.Hash.Sha1.Ref
                , Raaz.Hash.Sha1.CPortable
                , Raaz.Hash.Sha1.Type
@@ -87,7 +92,8 @@ test-Suite tests
   hs-source-dirs: tests
   main-is: Main.hs
 
-  other-modules: Modules.Generic
+  other-modules: Modules.Blake256
+               , Modules.Generic
                , Modules.Sha1
                , Modules.Sha224
                , Modules.Sha256
