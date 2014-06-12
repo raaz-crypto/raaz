@@ -7,17 +7,13 @@
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Raaz.Core.Write
-       ( Write, runWrite, tryWrite
+       ( Write, tryWriting
        , write, writeStorable
-       , WriteException(..)
        , writeBytes, writeByteString
-
        ) where
 
-import           Control.Exception
 import           Data.ByteString      (ByteString)
 import           Data.Monoid
-import           Data.Typeable
 import           Data.Word            (Word8)
 import           Foreign.Storable
 
@@ -37,32 +33,13 @@ import qualified Raaz.Core.Write.Unsafe    as WU
 newtype Write = Write (Sum (BYTES Int), WU.Write)
               deriving Monoid
 
--- | The type of the exception raised when there is an overflow of the
--- cryptobuffer.
-data WriteException = WriteOverflow
-                    deriving (Show, Typeable)
-
-instance Exception WriteException
-
--- | Perform a write action on a buffer pointed by the crypto pointer.
--- This expression @`runWrite` buf wr@ will raise `WriteOverflow`
--- /without/ writing any bytes if size of @buf@ is smaller than the
--- bytes that @wr@ has in it.
-runWrite :: CryptoBuffer   -- ^ The buffer to which the bytes are to
-                           -- be written.
-         -> Write          -- ^ The write action.
-         -> IO ()
-runWrite  (CryptoBuffer sz cptr) (Write (summ, wr))
-      | getSum summ > sz = throwIO WriteOverflow
-      | otherwise        = WU.runWrite cptr wr
-
--- | The function tries the write action on the buffer and returns
--- `True` if successfull.
-tryWrite :: CryptoBuffer  -- ^ The buffer to which the bytes are to
-                          -- be written.
-         -> Write         -- ^ The write action.
-         -> IO Bool
-tryWrite (CryptoBuffer sz cptr) (Write (summ, wr))
+-- | The function tries to write the given `Write` action on the
+-- buffer and returns `True` if successful.
+tryWriting :: Write         -- ^ The write action.
+           -> CryptoBuffer  -- ^ The buffer to which the bytes are to
+                            -- be written.
+           -> IO Bool
+tryWriting (Write (summ, wr)) (CryptoBuffer sz cptr)
   | getSum summ > sz = return False
   | otherwise        = WU.runWrite cptr wr >> return True
 
