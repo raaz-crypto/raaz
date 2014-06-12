@@ -255,13 +255,6 @@ instance EndianStore Word64BE where
 -- conversion boilerplate can be eradicated.
 --
 
--- | We need a type safe way to convert between one type to
--- another. In such a case, it is advisable to define an instance of
--- this class. One place where it is extensively used is in type safe
--- lengths.
-class CryptoCoerce s t where
-  cryptoCoerce :: s -> t
-
 -- | This class captures length conversions when exact conversions are
 -- not possible. We often require such conversions when allocating
 -- memory for example.
@@ -374,6 +367,14 @@ instance ( Integral bi1
 
   roundRem bi1 = (roundCeil bi1, 0)
   {-# INLINE roundRem #-}
+
+------------------  Coercion of types ------------------------------
+
+-- | Often it is possible to convert (encode) values of type @s@ as
+-- values of type @t@. In such a case, it is advisable to define an
+-- instance of this class.
+class CryptoCoerce s t where
+  cryptoCoerce :: s -> t
 
 
 ------------------ Alignment fu -------------------------------
