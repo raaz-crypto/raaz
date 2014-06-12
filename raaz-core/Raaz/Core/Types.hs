@@ -27,7 +27,8 @@ module Raaz.Core.Types
 
        , BYTES(..), BITS(..)
        , CryptoCoerce(..)
-       , Rounding(..)
+       , LengthUnit(..), inBits, atLeast, atMost
+       , bitsQuotRem, bytesQuotRem
        , cryptoAlignment, CryptoAlign, CryptoPtr
        , ForeignCryptoPtr
        , CryptoBuffer(..), withCryptoBuffer
@@ -243,34 +244,22 @@ instance EndianStore Word64BE where
 -- pad bytes in a crypto-hash), in other instances we need them in
 -- bytes (for example while allocating buffers). This module provides
 -- the `BYTES` and `BITS` type which capture lengths in units of bytes
--- and BITS respectively. Interconversion between these types is
--- handled by the `CryptoCoerce` class.  However, care should be taken
--- when converting from `BITS` to `BYTES`. We could have avoided this
--- but there are instances when this conversion is required. In such
--- case it is the users responsibility to ensure that there are no
--- rounding errors.
+-- and BITS respectively.
+--
+-- Often we do want to measure lengths in other units like for example
+-- multiples of block size. We say such units are type safe lengths if
+-- they can be converted to BYTES and BITS with out any loss of
+-- information. There is a possibility that these values can overflow
+-- but if we assume that the lengths are reasonable (i.e. used in
+-- contexts where we need to allocate a memory buffer or do some
+-- pointer arithmetic) we would avoid a lot of bugs and boiler plate.
+-- We capture these type safe lengths using the type class
+-- `LengthUnit`.
 --
 -- Most, if not all, functions in raaz that accept a length argument
 -- can be given any type safe length units. Thus a lot of length
 -- conversion boilerplate can be eradicated.
 --
-
--- | This class captures length conversions when exact conversions are
--- not possible. We often require such conversions when allocating
--- memory for example.
-class Rounding s t where
-
-  -- | Convert the length @s@ to length @t@ by rounding fractions
-  -- upwards.
-  roundCeil  :: s -> t
-
-  -- | Convert the length @s@ to length @t@ by rounding fractions
-  -- downwards.
-  roundFloor :: s -> t
-
-  -- | Get the quotient and reminder.
-  roundRem   :: s -> (t,s)
-
 
 -- | Type safe lengths/offsets in units of bytes. If the function
 -- excepts a length unit of a different type use `cryptoCoerce` to
@@ -290,83 +279,56 @@ newtype BITS  a  = BITS  a
                  , Real, Num, Storable, EndianStore
                  )
 
-instance ( Integral by
-         , Num bi
-         )
-         => CryptoCoerce (BYTES by) (BITS bi) where
-  cryptoCoerce by = 8 * fromIntegral by
-  {-# INLINE cryptoCoerce #-}
+-- | Type class capturing type safe length units. Minimal complete
+-- implementation @`inBytes`@.
+class (Num u, Enum u) => LengthUnit u where
+  -- | Express the length units in bytes.
+  inBytes :: u -> BYTES Int
 
-instance ( Integral by1
-         , Num by2
-         ) => CryptoCoerce (BYTES by1) (BYTES by2) where
-  cryptoCoerce = fromIntegral
-  {-# INLINE cryptoCoerce #-}
+instance  LengthUnit (BYTES Int) where
+  inBytes = id
+  {-# INLINE inBytes #-}
+-- | Express the length units in bits.
+inBits  :: LengthUnit u => u -> BITS Word64
+inBits u = BITS $ 8 * (fromIntegral  by)
+  where BYTES by = inBytes u
 
+-- | Express length unit @src@ in terms of length unit @dest@ rounding
+-- upwards.
+atLeast :: ( LengthUnit src
+           , LengthUnit dest
+           )
+        => src
+        -> dest
+atLeast src | r == 0    = u
+            | otherwise = u + 1
+    where (u , r) = bytesQuotRem $ inBytes src
 
-instance ( Integral bi1
-         , Num bi2
-         ) => CryptoCoerce (BITS bi1) (BITS bi2) where
-  cryptoCoerce  = fromIntegral
-  {-# INLINE cryptoCoerce #-}
+-- | Express length unit @src@ in terms of length unit @dest@ rounding
+-- downwards.
+atMost :: ( LengthUnit src
+          , LengthUnit dest
+          )
+       => src
+       -> dest
+atMost = fst . bytesQuotRem . inBytes
 
+bytesQuotRem :: LengthUnit u
+             => BYTES Int
+             -> (u , BYTES Int)
+bytesQuotRem bytes = (u , r)
+  where divisor = inBytes (1 `asTypeOf` u)
+        (q, r)  = bytes `quotRem` divisor
+        u       = toEnum $ fromEnum q
 
-instance ( Integral by
-         , Num bi
-         )
-         => Rounding (BYTES by) (BITS bi) where
-  roundCeil by = 8 * fromIntegral by
-  {-# INLINE roundCeil #-}
+bitsQuotRem :: LengthUnit u
+             => BITS Word64
+             -> (u , BITS Word64)
 
-  roundFloor by = roundCeil by
-  {-# INLINE roundFloor #-}
-
-  roundRem by = (roundCeil by, 0)
-  {-# INLINE roundRem #-}
-
-instance ( Integral bi
-         , Real bi
-         , Num by
-         )
-         => Rounding (BITS bi) (BYTES by) where
-  roundCeil bi
-    | bits == 0  = BYTES $ fromIntegral bytes
-    | otherwise  = BYTES $ fromIntegral $ bytes + 1
-    where (BITS bytes, BITS bits) = bi `quotRem` 8
-  {-# INLINE roundCeil #-}
-
-  roundFloor bi = BYTES $ fromIntegral bytes
-    where BITS bytes = bi `quot` 8
-  {-# INLINE roundFloor #-}
-
-  roundRem bi = (BYTES $ fromIntegral bytes, bits)
-    where (BITS bytes, bits) = bi `quotRem` 8
-  {-# INLINE roundRem #-}
-
-instance ( Integral by1
-         , Num by2
-         ) => Rounding (BYTES by1) (BYTES by2) where
-  roundCeil = fromIntegral
-  {-# INLINE roundCeil #-}
-
-  roundFloor = roundCeil
-  {-# INLINE roundFloor #-}
-
-  roundRem by1 = (roundCeil by1, 0)
-  {-# INLINE roundRem #-}
-
-
-instance ( Integral bi1
-         , Num bi2
-         ) => Rounding (BITS bi1) (BITS bi2) where
-  roundCeil = fromIntegral
-  {-# INLINE roundCeil #-}
-
-  roundFloor = roundCeil
-  {-# INLINE roundFloor #-}
-
-  roundRem bi1 = (roundCeil bi1, 0)
-  {-# INLINE roundRem #-}
+bitsQuotRem bits = (u , r)
+  where divisor = inBits (1 `asTypeOf` u)
+        (q, r)  = bits `quotRem` divisor
+        u       = toEnum $ fromEnum q
 
 ------------------  Coercion of types ------------------------------
 
