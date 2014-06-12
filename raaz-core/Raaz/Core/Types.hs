@@ -262,9 +262,20 @@ instance EndianStore Word64BE where
 class CryptoCoerce s t where
   cryptoCoerce :: s -> t
 
+-- | This class captures length conversions when exact conversions are
+-- not possible. We often require such conversions when allocating
+-- memory for example.
 class Rounding s t where
+
+  -- | Convert the length @s@ to length @t@ by rounding fractions
+  -- upwards.
   roundCeil  :: s -> t
+
+  -- | Convert the length @s@ to length @t@ by rounding fractions
+  -- downwards.
   roundFloor :: s -> t
+
+  -- | Get the quotient and reminder.
   roundRem   :: s -> (t,s)
 
 
