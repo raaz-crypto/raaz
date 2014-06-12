@@ -3,23 +3,25 @@
 -- safe as necessary range checks are done on the buffer before
 -- writing stuff to it.
 
-{-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE DeriveDataTypeable         #-}
+{-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE MultiParamTypeClasses      #-}
+
 module Raaz.Core.Write
        ( Write, tryWriting
        , write, writeStorable
        , writeBytes, writeByteString
        ) where
 
-import           Data.ByteString      (ByteString)
+import           Data.ByteString           (ByteString)
 import           Data.Monoid
-import           Data.Word            (Word8)
+import           Data.Word                 (Word8)
 import           Foreign.Storable
 
 import           Raaz.Core.Types
-import           Raaz.Core.Util.Ptr
 import           Raaz.Core.Util.ByteString as BU
+import           Raaz.Core.Util.Ptr
 
 import qualified Raaz.Core.Write.Unsafe    as WU
 
