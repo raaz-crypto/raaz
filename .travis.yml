@@ -23,4 +23,4 @@ branches:
   only:
     - master
     - x-travis
-    - x-raaz-core
+    - x-length
