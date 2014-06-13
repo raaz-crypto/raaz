@@ -82,7 +82,7 @@ type PoolRef = IORef Pool
 -- is needed, it is allocated from this pool. Reference to
 -- `ForeignPtr` is kept to prevent it from being garbage collected.
 data Pool = Pool ForeignCryptoPtr  -- Location
-                 (PAGES Int)       -- Total Size
+                 PAGES             -- Total Size
                  [Block]           -- Blocks inside pool
 
 -- | A block of allocated secure memory in a pool.
@@ -94,13 +94,15 @@ data Block = Block { blockPtr    :: CryptoPtr         -- Location
 -- | Allocates the memory from the secure pool and returns the
 -- allocated `CryptoPtr`. In case of unavailability of enough free
 -- space, returns Nothing.
-allocFromPool :: Rounding size (BYTES Int)
+allocFromPool :: LengthUnit size
               => size
               -> Pool
-              -> (Pool,Maybe CryptoPtr)
-allocFromPool size (Pool fp sz blks) = first (Pool fp sz) $ getFreeBlock blks
+              -> (Pool, Maybe CryptoPtr)
+allocFromPool size (Pool fp sz blks) = first (Pool fp sz)
+                                     $ getFreeBlock blks
   where
-    bsize = roundFloor size
+    bsize = inBytes size
+    -- TODO: Refactor getFreeBlock using span
     getFreeBlock [] = ([], Nothing)
     getFreeBlock (b@(Block p s f):rs)
       | bsize < s && f =
@@ -131,17 +133,17 @@ freeInPool ptr (Pool fp sz blks) =
 
 -- | Creates the initial pool of secure memory of the given size. It
 -- also adds the finalizer to wipe and unlock the memory.
-initPool :: Rounding size (BYTES Int)
+initPool :: LengthUnit size
          => size
          -> IO Pool
 initPool size  = do
-  let tby = roundFloor size :: BYTES Int
-      pg  = roundCeil tby  :: PAGES Int
-      by@(BYTES psize) = roundFloor pg
+  let pg  = atLeast  size   :: PAGES
+      by@(BYTES psize) = inBytes pg
   ptr <- c_createpool psize
   out <- c_mlock ptr psize
-  if out < 0 then fail "mlock_fail" else do
-    fptr <- newForeignPtr ptr (return ())
+  if out < 0 then fail "mlock_fail"
+    else do
+    fptr <- newForeignPtr ptr $ return ()
     addFinalizers fptr [ c_freepool ptr psize
                        , c_munlock ptr psize
                        , c_wipe ptr psize
@@ -152,7 +154,7 @@ initPool size  = do
     addFinalizers fptr = mapM_ (addForeignPtrFinalizer fptr)
 
 -- | Creates the initial `PoolRef` with the pool of given size.
-initPoolRef :: Rounding size (BYTES Int)
+initPoolRef :: LengthUnit size
                => size
                -> IO PoolRef
 initPoolRef size = newIORef =<< initPool size
@@ -161,7 +163,7 @@ initPoolRef size = newIORef =<< initPool size
 -- of secure memory. Also adds the finalizer to mark the block as free
 -- in the `PoolRef`. Returns `Nothing` if enough free memory is not
 -- available in the pool.
-allocSecureMem :: Rounding size (BYTES Int)
+allocSecureMem :: LengthUnit size
                => size
                -> PoolRef
                -> IO (Maybe ForeignCryptoPtr)
@@ -179,7 +181,7 @@ freeSecureMem :: CryptoPtr
 freeSecureMem cptr poolref = atomicModifyIORef poolref $ (,()) . freeInPool cptr
 
 -- | Runs the action after allocating a secure memory of given size.
-withSecureMem :: Rounding size (BYTES Int)
+withSecureMem :: LengthUnit size
               => size                        -- ^ Size
               -> (ForeignCryptoPtr -> IO b)  -- ^ Action
               -> PoolRef                     -- ^ Pool
@@ -193,43 +195,10 @@ withSecureMem sz action pool = allocSecureMem sz pool
 
 -- | Type safe unit for measuring lengths in pages. Size is actually
 -- system dependent.
-newtype PAGES a = PAGES a deriving ( Show, Enum, Real
+newtype PAGES = PAGES Int deriving ( Show, Enum, Real
                                    , Integral, Num, Eq, Ord
                                    )
 
-
-instance ( Integral pg
-         , Num by
-         )
-         => CryptoCoerce (PAGES pg) (BYTES by) where
-  cryptoCoerce pgs = fromIntegral pgs * fromIntegral pageSize
-
-instance ( Integral by
-         , Num pg
-         )
-         => Rounding (BYTES by) (PAGES pg) where
-  roundCeil by
-    | r == 0    = fromIntegral q
-    | otherwise = fromIntegral q + 1
-    where (q,r) = fromIntegral by `quotRem` pageSize
-  {-# INLINE roundCeil #-}
-
-  roundFloor by = fromIntegral $ fromIntegral by `quot` pageSize
-  {-# INLINE roundFloor #-}
-
-  roundRem by = (fromIntegral q, fromIntegral r)
-    where (q,r) = fromIntegral by `quotRem` pageSize
-  {-# INLINE roundRem #-}
-
-instance ( Integral pg
-         , Num by
-         )
-         => Rounding (PAGES pg) (BYTES by) where
-  roundCeil pg = fromIntegral pg * fromIntegral pageSize
-  {-# INLINE roundCeil #-}
-
-  roundFloor pg = fromIntegral pg * fromIntegral pageSize
-  {-# INLINE roundFloor #-}
-
-  roundRem pg = (fromIntegral pg * fromIntegral pageSize, 0)
-  {-# INLINE roundRem #-}
+instance LengthUnit PAGES where
+  inBytes (PAGES x) = BYTES $ pgSz *  x
+    where BYTES pgSz = pageSize
