@@ -288,6 +288,7 @@ class (Num u, Enum u) => LengthUnit u where
 instance  LengthUnit (BYTES Int) where
   inBytes = id
   {-# INLINE inBytes #-}
+
 -- | Express the length units in bits.
 inBits  :: LengthUnit u => u -> BITS Word64
 inBits u = BITS $ 8 * (fromIntegral  by)
@@ -338,6 +339,24 @@ bitsQuotRem bits = (u , r)
 class CryptoCoerce s t where
   cryptoCoerce :: s -> t
 
+
+instance CryptoCoerce Word32 Word32LE where
+  cryptoCoerce = LE32
+
+instance CryptoCoerce Word32 Word32BE where
+  cryptoCoerce = BE32
+
+instance CryptoCoerce Word64 Word64LE where
+  cryptoCoerce = LE64
+
+instance CryptoCoerce Word64 Word64BE where
+  cryptoCoerce = BE64
+
+instance CryptoCoerce s t => CryptoCoerce (BITS s) (BITS t) where
+  cryptoCoerce (BITS s) = BITS $ cryptoCoerce s
+
+instance CryptoCoerce s t => CryptoCoerce (BYTES s)(BYTES t) where
+  cryptoCoerce (BYTES s) = BYTES $ cryptoCoerce s
 
 ------------------ Alignment fu -------------------------------
 
