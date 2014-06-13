@@ -96,7 +96,6 @@ import Test.QuickCheck(Arbitrary)
 
 
 
---
 -- | This class is defined mainly to perform endian safe loading and
 -- storing. For any type that might have to be encoded as either byte
 -- strings or peeked/poked from a memory location it is advisable to
@@ -385,5 +384,8 @@ data CryptoBuffer = CryptoBuffer {-# UNPACK #-} !(BYTES Int)
                                  {-# UNPACK #-} !CryptoPtr
 
 -- | Working on the pointer associated with the `CryptoBuffer`.
-withCryptoBuffer :: CryptoBuffer -> (BYTES Int -> CryptoPtr -> IO b) -> IO b
+withCryptoBuffer :: CryptoBuffer -- ^ The buffer
+                 -> (BYTES Int -> CryptoPtr -> IO b)
+                                 -- ^ The action to perfrom
+                 -> IO b
 withCryptoBuffer (CryptoBuffer sz cptr) with = with sz cptr
