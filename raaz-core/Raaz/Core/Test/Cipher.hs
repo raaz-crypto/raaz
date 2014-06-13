@@ -14,6 +14,7 @@ module Raaz.Core.Test.Cipher
        , shorten
        ) where
 
+import           Control.Monad                  (void)
 import qualified Data.ByteString                as BS
 import           Data.ByteString.Internal       (ByteString,create)
 import           Foreign.Ptr
@@ -78,20 +79,24 @@ encryptDecrypt :: ( HasName g
                => g
                -> ByteString  -- ^ Context in ByteString
                -> Test
-encryptDecrypt g bscxt = testInverse g (inverse g) (cipherCxt $ fromByteString bscxt)
-                                                   (cipherCxt $ fromByteString bscxt)
+encryptDecrypt g bscxt = testInverse g (inverse g)
+                         (cipherCxt $ fromByteString bscxt)
+                         (cipherCxt $ fromByteString bscxt)
 
+
+-- TODO: Please document this.
 unsafeTransformUnsafeGadget' :: Gadget g
                              => g          -- ^ Gadget
                              -> ByteString -- ^ The byte source
                              -> IO ByteString
 {-# INLINEABLE unsafeTransformUnsafeGadget' #-}
-unsafeTransformUnsafeGadget' g src = do
-  let size = BS.length src
-  create size (with (BYTES size) . castPtr)
-  where with size cptr = do
-          _ <- fillBytes size src cptr
-          apply g (roundFloor size) cptr
+unsafeTransformUnsafeGadget' g src
+  = create size (action  . castPtr)
+  where size  = BS.length src
+        bytes = BYTES size
+        action cptr = do
+          void $ fillBytes bytes src cptr
+          apply g (atMost bytes) cptr
 
 -- | Encrypts/Decrypts a bytestring using the given gadget. It only
 -- encrypts in multiple of BlockSize, so user must ensure that.

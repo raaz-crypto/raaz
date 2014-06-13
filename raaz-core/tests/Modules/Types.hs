@@ -12,8 +12,9 @@ import Raaz.Core.Test()
 import Raaz.Core.Types
 import Raaz.Core.Test.EndianStore
 
--- | This test captures the property that bytestring encodings of Little
--- Endian word is same as reversing the bytestring encoding of Big endian word.
+-- | This test captures the property that bytestring encodings of
+-- Little Endian word is same as reversing the bytestring encoding of
+-- Big endian word.
 prop_LEBEreverse32 :: Word32 -> Bool
 prop_LEBEreverse32 w = toByteString wle == BS.reverse (toByteString wbe )
        where wle = fromIntegral w :: Word32LE
@@ -30,9 +31,6 @@ prop_LEBEreverse64 w = toByteString wle == BS.reverse (toByteString wbe )
 testLEBEreverse64 :: Test
 testLEBEreverse64 = testProperty "LE64 == reverse BE64" prop_LEBEreverse64
 
-prop_bitsVsBytes :: BYTES Word32 -> Bool
-prop_bitsVsBytes by = roundFloor (roundFloor by :: BITS Word64) == by
-
 tests :: [Test]
 tests = [ testStoreLoad (undefined :: Word32LE)
         , testStoreLoad (undefined :: Word32BE)
@@ -40,5 +38,4 @@ tests = [ testStoreLoad (undefined :: Word32LE)
         , testStoreLoad (undefined :: Word64BE)
         , testLEBEreverse32
         , testLEBEreverse64
-        , testProperty "Bits vs Bytes length coversion" prop_bitsVsBytes
         ]
