@@ -169,7 +169,7 @@ instance EndianStore Salt where
                    <> write s3
 
 instance Primitive BLAKE256 where
-  blockSize _ = roundFloor $ BITS (512 :: Int)
+  blockSize _ = BYTES 64
   {-# INLINE blockSize #-}
   data Cxt BLAKE256 = BLAKE256Cxt BLAKE256 Salt (BITS Word64)
 

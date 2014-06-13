@@ -109,7 +109,7 @@ instance EndianStore SHA224 where
                       <> write h6
 
 instance Primitive SHA224 where
-  blockSize _ = roundFloor $ BITS (512 :: Int)
+  blockSize _ = BYTES 64
   {-# INLINE blockSize #-}
   newtype Cxt SHA224 = SHA224Cxt SHA256 deriving (Eq, Storable)
 
