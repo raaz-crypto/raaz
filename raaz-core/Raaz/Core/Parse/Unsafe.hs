@@ -37,13 +37,21 @@ runParser' fcptr parser = withForeignPtr fcptr $ evalStateT parser
 getPtr   :: Parser (Ptr a)
 getPtr   = castPtr <$> get
 
+-- | Runs an action with the pointer pointing to the current position.
+performAction :: (Ptr b -> IO a) -> Parser a
+performAction action = getPtr >>= lift . action
+
+-- | Move the current pointer forward by a given amount.
+moveBy :: LengthUnit l => l -> Parser ()
+moveBy = modify . flip movePtr
+
 -- | Parses a value which is an instance of Storable. Beware that this
 -- parser expects that the value is stored in machine endian. Mostly
 -- it is useful in defining the `peek` function in a complicated
 -- `Storable` instance.
 parseStorable :: Storable a => Parser a
-parseStorable = do a <- getPtr >>= lift . peek
-                   modify $ flip movePtr $ byteSize a
+parseStorable = do a <- performAction peek
+                   moveBy $ byteSize a
                    return a
 
 -- | Parse a crypto value. Endian safety is take into account
@@ -51,14 +59,13 @@ parseStorable = do a <- getPtr >>= lift . peek
 -- external source. You can also use this to define the `load`
 -- function in a compicated `EndianStore` instance.
 parse :: EndianStore a => Parser a
-parse = do a <- getPtr >>= lift . load
-           modify $ flip movePtr $ byteSize a
+parse = do a <- performAction load
+           moveBy $ byteSize a
            return a
 
 -- | Parses a strict bytestring of a given length.
-parseByteString :: Rounding l (BYTES Int) => l -> Parser ByteString
-parseByteString l = do bs <- getPtr >>= lift . getBS
-                       modify $ flip movePtr l
+parseByteString :: LengthUnit l => l -> Parser ByteString
+parseByteString l = do bs <- performAction getBS
+                       moveBy l
                        return bs
-  where bytes = roundFloor l :: BYTES Int
-        getBS = createFrom $ fromIntegral bytes
+  where getBS = createFrom $ inBytes l
