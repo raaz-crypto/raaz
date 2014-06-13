@@ -60,6 +60,7 @@ import           Raaz.Core.Memory
 import           Raaz.Core.Types
 import           Raaz.Core.Util.ByteString
 import           Raaz.Core.Util.Ptr
+import           Raaz.System.Parameters  (l1Cache)
 
 -- $primAndGadget$
 --
@@ -167,7 +168,7 @@ class ( Primitive (PrimitiveOf g), Memory (MemoryOf g) )
   -- improve cache performance of your program. Default setting is the
   -- number of blocks that fit in @32KB@.
   recommendedBlocks   :: g -> BLOCKS (PrimitiveOf g)
-  recommendedBlocks _ = roundFloor (1024 * 32 :: BYTES Int)
+  recommendedBlocks _ = atMost l1Cache
 
   -- | This function actually applies the gadget on the buffer. If the
   -- underlying primitive is an instance of the class `SafePrimitive`,
@@ -206,10 +207,10 @@ class (Gadget g,HasPadding (PrimitiveOf g)) => PaddableGadget g where
                   -> CryptoPtr              -- ^ Location
                   -> IO ()
   unsafeApplyLast g blocks bytes cptr = do
-    let bits = roundFloor bytes :: BITS Word64
-        len  = roundFloor blocks + bits
+    let bits = inBits bytes :: BITS Word64
+        len  = inBits blocks + bits
     unsafePad (primitiveOf g) len (cptr `movePtr` bytes)
-    apply g (roundFloor (bytes + padLength (primitiveOf g) len)) cptr
+    apply g (atMost (bytes + padLength (primitiveOf g) len)) cptr
 
 -- | This function runs an action that expects a gadget as input.
 withGadget :: Gadget g
@@ -319,104 +320,9 @@ newtype BLOCKS p = BLOCKS Int
                  deriving (Show, Eq, Ord, Enum, Real, Num, Integral)
 
 
-instance ( Primitive p
-         , Num by
-         ) => CryptoCoerce (BLOCKS p) (BYTES by) where
-  cryptoCoerce b@(BLOCKS n) = fromIntegral $ blockSize (prim b) *
-                                           fromIntegral n
-         where prim :: BLOCKS p -> p
-               prim _ = undefined
-  {-# INLINE cryptoCoerce #-}
-
-
-instance ( Primitive p
-         , Num bits
-         ) => CryptoCoerce (BLOCKS p) (BITS bits) where
-  cryptoCoerce b@(BLOCKS n) = fromIntegral $ 8 * blockSize (prim b) *
-                                           fromIntegral n
-         where prim :: BLOCKS p -> p
-               prim _ = undefined
-  {-# INLINE cryptoCoerce #-}
-
-
-instance ( Primitive p
-         , Num by
-         ) => Rounding (BLOCKS p) (BYTES by) where
-  roundCeil b@(BLOCKS n) = fromIntegral $ blocksize * fromIntegral n
-    where blocksize = blockSize (getPrimitiveType b)
-  {-# INLINE roundCeil #-}
-
-  roundFloor b@(BLOCKS n) = fromIntegral $ blocksize * fromIntegral n
-    where blocksize = blockSize (getPrimitiveType b)
-  {-# INLINE roundFloor #-}
-
-  roundRem b@(BLOCKS n) = (fromIntegral $ blocksize * fromIntegral n, 0)
-    where blocksize = blockSize (getPrimitiveType b)
-  {-# INLINE roundRem #-}
-
-
-instance ( Primitive p
-         , Num bits
-         ) => Rounding (BLOCKS p) (BITS bits) where
-  roundCeil b@(BLOCKS n) = roundCeil $ blocksize
-    where blocksize = blockSize (getPrimitiveType b) * fromIntegral n
-  {-# INLINE roundCeil #-}
-
-  roundFloor b@(BLOCKS n) = roundCeil $ blocksize
-    where blocksize = blockSize (getPrimitiveType b) * fromIntegral n
-  {-# INLINE roundFloor #-}
-
-  roundRem b@(BLOCKS n) = (roundCeil $ blocksize, 0)
-    where blocksize = blockSize (getPrimitiveType b) * fromIntegral n
-  {-# INLINE roundRem #-}
-
-
-instance ( Primitive p
-         , Integral by
-         ) => Rounding (BYTES by) (BLOCKS p) where
-  roundCeil by
-    | bytes == 0  = result
-    | otherwise   = result + 1
-    where result          = BLOCKS blocks
-          (blocks, bytes) = fromIntegral by `quotRem` fromIntegral size
-          BYTES size      = blockSize (getPrimitiveType result)
-  {-# INLINE roundCeil #-}
-
-  roundFloor by = result
-    where result       = BLOCKS blocks
-          BYTES blocks = fromIntegral by `quot` blockSize (getPrimitiveType result)
-  {-# INLINE roundFloor #-}
-
-  roundRem by = (result, BYTES $ fromIntegral bytes)
-    where result          = BLOCKS blocks
-          (blocks, bytes) = fromIntegral by `quotRem` fromIntegral size
-          BYTES size      = blockSize (getPrimitiveType result)
-  {-# INLINE roundRem #-}
-
-
-instance ( Primitive p
-         , Integral bi
-         ) => Rounding (BITS bi) (BLOCKS p) where
-  roundCeil bi
-    | bits == 0 = result
-    | otherwise = result + 1
-    where result         = BLOCKS blocks
-          (blocks, bits) = fromIntegral bi `quotRem` size
-          BITS size      = roundCeil $ blockSize (getPrimitiveType result)
-  {-# INLINE roundCeil #-}
-
-  roundFloor bi = result
-    where result    = BLOCKS blocks
-          blocks    = fromIntegral bi `quot` size
-          BITS size = roundCeil $ blockSize (getPrimitiveType result)
-  {-# INLINE roundFloor #-}
-
-  roundRem by = (result, BITS $ fromIntegral bits)
-    where result         = BLOCKS blocks
-          (blocks, bits) = fromIntegral by `quotRem` size
-          BITS size      = roundCeil $ blockSize (getPrimitiveType result)
-  {-# INLINE roundRem #-}
-
+instance Primitive p => LengthUnit (BLOCKS p) where
+  inBytes p@(BLOCKS x) = scale * blockSize (getPrimitiveType p)
+    where scale = BYTES x
 
 getPrimitiveType :: BLOCKS p -> p
 getPrimitiveType _ = undefined
@@ -519,7 +425,7 @@ transformGadget g src = allocaBuffer bufSize $ go 0 src
            where continue rest = do apply g nBlocks cptr
                                     go (k + nBlocks) rest cptr
                  endIt r       = unsafeApplyLast g k len cptr
-                       where len    = roundFloor nBlocks - r
+                       where len    = inBytes nBlocks - r
 
 -- | A version of `transformContext` which takes a filename instead.
 transformGadgetFile :: PaddableGadget g

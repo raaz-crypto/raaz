@@ -115,15 +115,15 @@ instance HasPadding h => HasPadding (HMAC h) where
 
   padLength hmc bits = padLength h bits'
     where h     = getHash hmc
-          bits' = bits + roundFloor (blocksOf 1 hmc)
+          bits' = bits + inBits (blocksOf 1 hmc)
 
   padding hmc bits = padding h bits'
     where h     = getHash hmc
-          bits' = bits + roundFloor (blocksOf 1 hmc)
+          bits' = bits + inBits (blocksOf 1 hmc)
 
   unsafePad hmc bits = unsafePad h bits'
     where h     = getHash hmc
-          bits' = bits + roundFloor (blocksOf 1 hmc)
+          bits' = bits + inBits (blocksOf 1 hmc)
 
   maxAdditionalBlocks  = toEnum . fromEnum
                        . maxAdditionalBlocks
