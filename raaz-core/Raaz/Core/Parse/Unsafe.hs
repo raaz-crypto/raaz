@@ -68,4 +68,4 @@ parseByteString :: LengthUnit l => l -> Parser ByteString
 parseByteString l = do bs <- performAction getBS
                        moveBy l
                        return bs
-  where getBS = createFrom $ inBytes l
+  where getBS = createFrom l
