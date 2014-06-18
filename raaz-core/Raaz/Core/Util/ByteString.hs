@@ -117,6 +117,7 @@ fromByteStringStorable src = unsafePerformIO $ withByteString src (peek . castPt
 
 -- | The IO action @createFrom n cptr@ creates a bytestring by copying
 -- @n@ bytes from the pointer @cptr@.
-createFrom :: BYTES Int -> CryptoPtr -> IO ByteString
-createFrom n cptr = create (fromIntegral n) filler
-  where filler dest = memcpy (castPtr dest) cptr n
+createFrom :: LengthUnit l => l -> CryptoPtr -> IO ByteString
+createFrom l cptr = create bytes filler
+  where filler dest = memcpy (castPtr dest) cptr l
+        BYTES bytes = inBytes l
