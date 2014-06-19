@@ -278,8 +278,7 @@ newtype BITS  a  = BITS  a
                  , Real, Num, Storable, EndianStore
                  )
 
--- | Type class capturing type safe length units. Minimal complete
--- implementation @`inBytes`@.
+-- | Type class capturing type safe length units.
 class (Num u, Enum u) => LengthUnit u where
   -- | Express the length units in bytes.
   inBytes :: u -> BYTES Int
@@ -313,6 +312,10 @@ atMost :: ( LengthUnit src
        -> dest
 atMost = fst . bytesQuotRem . inBytes
 
+-- | A length unit @u@ is usually a multiple of bytes. The function
+-- `bytesQuotRem` is like `quotRem`: the value @byteQuotRem bytes@ is
+-- a tuple @(x,r)@, where @x@ is @bytes@ expressed in the unit @u@
+-- with @r@ being the reminder.
 bytesQuotRem :: LengthUnit u
              => BYTES Int
              -> (u , BYTES Int)
@@ -321,10 +324,10 @@ bytesQuotRem bytes = (u , r)
         (q, r)  = bytes `quotRem` divisor
         u       = toEnum $ fromEnum q
 
+-- | Function similar to `bytesQuotRem` but works with bits instead.
 bitsQuotRem :: LengthUnit u
              => BITS Word64
              -> (u , BITS Word64)
-
 bitsQuotRem bits = (u , r)
   where divisor = inBits (1 `asTypeOf` u)
         (q, r)  = bits `quotRem` divisor
