@@ -24,6 +24,8 @@ import qualified Raaz.Core.Parse.Unsafe          as PU
 -- available in the buffer.
 type Parser = StateT (BYTES Int) PU.Parser
 
+-- | Exception raised when a buffer of smaller length is given to the
+-- parser.
 data ParseException = ParseOverflow
                     deriving (Show, Typeable)
 
