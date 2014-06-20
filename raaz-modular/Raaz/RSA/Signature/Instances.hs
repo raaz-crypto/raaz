@@ -44,6 +44,12 @@ instance Hash h => Primitive (RSA k h PKCS SignMode) where
 instance Hash h => SafePrimitive (RSA k h PKCS SignMode)
 
 
+instance ( Hash h
+         , Storable k
+         ) => CryptoPrimitive (RSA k h PKCS SignMode) where
+  type Recommended (RSA k h PKCS SignMode) = RSAGadget k (Recommended h) PKCS SignMode
+  type Reference (RSA k h PKCS SignMode) = RSAGadget k (Reference h) PKCS SignMode
+
 -- | Return the signature as a Word. This is where the actual signing
 -- is done of the calculated hash.
 instance ( DEREncoding h
@@ -55,9 +61,9 @@ instance ( DEREncoding h
          , Hash h
          ) => Digestible (RSA k h PKCS SignMode) where
 
-  type Digest (RSA k h PKCS SignMode) = k
+  type Digest (RSA k h PKCS SignMode) = RSA k h PKCS SignMode
 
-  toDigest (PKCSAuth k hcxt) = rsaPKCSSign (toDigest hcxt) k
+  toDigest (PKCSAuth k hcxt) = RSA $ rsaPKCSSign (toDigest hcxt) k
 
 
 -- | Padding for signature primitive is same as that of the underlying
@@ -103,6 +109,7 @@ instance ( Hash (PrimitiveOf g)
   unsafeApplyLast (RSAGadget _ g) blks = unsafeApplyLast g blks'
     where blks' = toEnum $ fromEnum blks
 
+
 --------------------------------- PKCS Verify ----------------------------------
 
 
@@ -119,6 +126,12 @@ instance Hash h => Primitive (RSA k h PKCS VerifyMode) where
 -- | Signature verification is a safe primitive if the underlying hash is safe.
 instance Hash h => SafePrimitive (RSA k h PKCS VerifyMode)
 
+
+instance ( Hash h
+         , Storable k
+         ) => CryptoPrimitive (RSA k h PKCS VerifyMode) where
+  type Recommended (RSA k h PKCS VerifyMode) = RSAGadget k (Recommended h) PKCS VerifyMode
+  type Reference (RSA k h PKCS VerifyMode) = RSAGadget k (Reference h) PKCS VerifyMode
 
 -- | Verify the signature and return `True` if success otherwise
 -- `False`. This is where the actual signature verification is done of
@@ -189,4 +202,4 @@ instance ( Modular k
          , DEREncoding h
          ) => Sign (RSA k h PKCS) where
   signCxt priv = PKCSAuth priv def
-  verifyCxt pub sig = PKCSVerify pub sig def
+  verifyCxt pub (RSA sig) = PKCSVerify pub sig def
