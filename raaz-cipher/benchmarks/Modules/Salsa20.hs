@@ -7,10 +7,10 @@ import           Data.ByteString              (ByteString,pack)
 import qualified Data.ByteString              as BS
 import           Data.Typeable
 
-import           Raaz.Primitives
+import           Raaz.Core.Primitives
 import           Raaz.Benchmark.Gadget
-import           Raaz.Primitives.Cipher
-import           Raaz.Serialize
+import           Raaz.Core.Primitives.Cipher
+import           Raaz.Core.Serialize
 
 import           Raaz.Cipher.Salsa20.Internal
 import           Raaz.Cipher.Salsa20
