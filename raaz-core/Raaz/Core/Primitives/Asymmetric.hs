@@ -12,13 +12,14 @@ module Raaz.Core.Primitives.Asymmetric
        ( Sign(..)
        , Encrypt(..)
        , SignEncrypt(..)
+       , sign, sign', verify, verify'
        ) where
 
-import Control.Applicative ()
-import System.IO.Unsafe    ()
+import Control.Applicative
+import System.IO.Unsafe
 
 import Raaz.Core.Primitives
-import Raaz.Core.ByteSource ()
+import Raaz.Core.ByteSource
 import Raaz.Core.Serialize
 
 -- | This class captures primitives which support generation of
@@ -27,6 +28,7 @@ import Raaz.Core.Serialize
 class ( Digestible (prim SignMode)
       , Digestible (prim VerifyMode)
       , Digest (prim VerifyMode) ~ Bool
+      , Digest (prim SignMode) ~ prim SignMode
       , CryptoSerialize (Key (prim SignMode))
       , CryptoSerialize (Key (prim VerifyMode))
       ) => Sign prim where
@@ -38,6 +40,77 @@ class ( Digestible (prim SignMode)
   verifyCxt :: Key (prim VerifyMode)  -- ^ Verify key
             -> Digest (prim SignMode) -- ^ Signature
             -> Cxt (prim VerifyMode)  -- ^ Context
+
+
+-- | Generate Signature.
+sign' :: ( PureByteSource src
+         , Sign p
+         , prim ~ p SignMode
+         , PaddableGadget g
+         , prim ~ PrimitiveOf g
+         )
+      => g             -- ^ Type of Gadget
+      -> Key prim      -- ^ Key
+      -> src           -- ^ Message
+      -> prim
+sign' g key src = unsafePerformIO $ withGadget (signCxt key) $ go g
+  where go :: (Sign prim, PaddableGadget g1, prim SignMode ~ PrimitiveOf g1)
+           => g1 -> g1 -> IO (Digest (PrimitiveOf g1))
+        go _ gad =  do
+          transformGadget gad src
+          toDigest <$> finalize gad
+
+-- | Generate signature using recommended gadget.
+sign :: ( PureByteSource src
+        , Sign p
+        , prim ~ p SignMode
+        , PaddableGadget (Recommended prim)
+        , CryptoPrimitive prim
+        )
+        => Key prim      -- ^ Key
+        -> src           -- ^ Message
+        -> prim
+sign key src = sig
+  where
+    sig = sign' (recommended sig) key src
+    recommended :: prim -> Recommended prim
+    recommended _ = undefined
+
+-- | Verify Signature.
+verify' :: ( PureByteSource src
+           , Sign p
+           , prim ~ p VerifyMode
+           , PaddableGadget g
+           , prim ~ PrimitiveOf g
+           )
+           => g             -- ^ Type of Gadget
+           -> Key prim      -- ^ Key
+           -> src           -- ^ Message
+           -> p SignMode
+           -> Bool
+verify' g key src p  = unsafePerformIO $ withGadget (verifyCxt key p) $ go g
+  where go :: (Sign prim, PaddableGadget g1, prim VerifyMode ~ PrimitiveOf g1)
+           => g1 -> g1 -> IO (Digest (PrimitiveOf g1))
+        go _ gad =  do
+          transformGadget gad src
+          toDigest <$> finalize gad
+
+-- | Verify tag using recommended gadget.
+verify :: ( PureByteSource src
+          , Sign p
+          , prim ~ p VerifyMode
+          , PaddableGadget (Recommended prim)
+          , CryptoPrimitive prim
+          , prim ~ PrimitiveOf (Recommended prim)
+          )
+          => Key prim      -- ^ Key
+          -> src           -- ^ Message
+          -> p SignMode
+          -> Bool
+verify key src prim = verify' (recommended prim) key src prim
+  where
+    recommended :: p SignMode -> Recommended (p VerifyMode)
+    recommended _ = undefined
 
 -- | This class captures primitives which support encryption.
 class ( CryptoSerialize (Key (prim EncryptMode))
