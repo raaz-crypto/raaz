@@ -50,32 +50,39 @@ runWrite cptr (Write action) = void $ action cptr
 runWriteForeignPtr   :: ForeignCryptoPtr -> Write -> IO ()
 runWriteForeignPtr fptr (Write action) = void $ withForeignPtr fptr action
 
+-- | Perform the action on the crypto pointer and move the pointer by
+-- the given length.
+writeAndMove :: LengthUnit l
+             => (CryptoPtr -> IO a)
+             -> l
+             -> Write
+writeAndMove action l = Write $ \ cptr -> do
+  void   $ action cptr
+  return $ cptr `movePtr` l
+
+
 -- | Writes a value which is an instance of Storable. This writes the
 -- value in the machine endian. A common use case for this function is
 -- in defining the `poke` function for a complicated `Storable`
 -- instance.
 writeStorable :: Storable a => a -> Write
-writeStorable a = Write $ \ cptr -> do
-  poke (castPtr cptr) a
-  return $ cptr `movePtr` byteSize a
+writeStorable a = pokeIt `writeAndMove` byteSize a
+  where pokeIt cptr = poke (castPtr cptr) a
 
 -- | Writes an instance of `EndianStore`. Endian safety is take into
 -- account here. This is what you would need when you write network
 -- packets for example. You can also use this to define the `store`
 -- function in a complicated `EndianStore` instance.
 write :: EndianStore a => a -> Write
-write a = Write $ \ cptr -> do
-  store cptr a
-  return $ cptr `movePtr` byteSize a
+write a = flip store a `writeAndMove` byteSize a
 
--- | The combinator @writeBytes n b@ writes @b@ as the next @n@
--- consecutive bytes.
-writeBytes :: LengthUnit n => n -> Word8 -> Write
-writeBytes n b = Write $ \ cptr ->
-  memset cptr b n >> return (cptr `movePtr` n)
+-- | The combinator @writeBytes b n@ writes @b@ as the next @n@
+-- consecutive bytes. Here @n@ can be any type safe length unit.
+writeBytes :: LengthUnit n => Word8 -> n -> Write
+writeBytes w8 n = memsetIt `writeAndMove` n
+  where memsetIt cptr = memset cptr w8 n
 
 -- | Writes a strict `ByteString`.
 writeByteString :: ByteString -> Write
-writeByteString bs = Write $ \ cptr ->
-  BU.unsafeCopyToCryptoPtr bs cptr >> return (cptr `movePtr` n)
-  where n = BU.length bs
+writeByteString bs = BU.unsafeCopyToCryptoPtr bs `writeAndMove`
+                     BU.length bs

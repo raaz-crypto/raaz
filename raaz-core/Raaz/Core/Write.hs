@@ -45,6 +45,14 @@ tryWriting (Write (summ, wr)) (CryptoBuffer sz cptr)
   | getSum summ > sz = return False
   | otherwise        = WU.runWrite cptr wr >> return True
 
+-- | This function converts an unsafe write to a safe write by adding
+-- a length bound
+withBound  :: LengthUnit l
+            => WU.Write
+            -> l
+            -> Write
+withBound  wu l = Write (Sum $ inBytes l, wu)
+
 -- | The expression @`writeStorable` a@ gives a write action that
 -- stores a value @a@ in machine endian. The type of the value @a@ has
 -- to be an instance of `Storable`. This should be used when we want
@@ -52,7 +60,7 @@ tryWriting (Write (summ, wr)) (CryptoBuffer sz cptr)
 -- (otherwise this could lead to endian confusion). To take care of
 -- endianness use the `write` combinator.
 writeStorable :: Storable a => a -> Write
-writeStorable a = Write (Sum $ byteSize a, WU.writeStorable a)
+writeStorable a = WU.writeStorable a `withBound` byteSize a
 
 
 -- | The expression @`write` a@ gives a write action that stores a
@@ -61,14 +69,13 @@ writeStorable a = Write (Sum $ byteSize a, WU.writeStorable a)
 -- what the machine endianness is. The man use of this write is to
 -- serialize data for the consumption of the outside world.
 write :: EndianStore a => a -> Write
-write a = Write (Sum $ byteSize a, WU.write a)
+write a = WU.write a `withBound` byteSize a
 
 -- | The combinator @writeBytes n b@ writes @b@ as the next @n@
 -- consecutive bytes.
-writeBytes :: LengthUnit n => n -> Word8 -> Write
-writeBytes n b = Write (Sum $ inBytes n, WU.writeBytes n b)
+writeBytes :: LengthUnit n => Word8 -> n -> Write
+writeBytes w8 n = WU.writeBytes w8 n `withBound` n
 
 -- | Writes a strict bytestring.
 writeByteString :: ByteString -> Write
-writeByteString bs = Write (Sum n, WU.writeByteString bs)
-  where n = BU.length bs
+writeByteString bs = WU.writeByteString bs `withBound` BU.length bs
