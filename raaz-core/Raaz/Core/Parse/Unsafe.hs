@@ -4,8 +4,6 @@
 -- is proper, it is meant to be fast and not safe. So use it with
 -- care.
 
-{-# LANGUAGE FlexibleContexts #-}
-
 module Raaz.Core.Parse.Unsafe
        ( Parser, parse, parseStorable, parseByteString
        , runParser
@@ -40,32 +38,38 @@ getPtr   = castPtr <$> get
 -- | Runs an action with the pointer pointing to the current position.
 performAction :: (Ptr b -> IO a) -> Parser a
 performAction action = getPtr >>= lift . action
+{-# INLINE performAction #-}
 
 -- | Move the current pointer forward by a given amount.
 moveBy :: LengthUnit l => l -> Parser ()
 moveBy = modify . flip movePtr
+{-# INLINE moveBy #-}
+
+-- | Perform an action and move by a length that depends on the value
+-- returned by the action.
+performAndMove :: LengthUnit l
+               => (Ptr b -> IO a)  -- ^ action to perform
+               -> (a -> l)         -- ^ length to move
+               -> Parser a
+performAndMove action parseLen  = do
+  a <- performAction action
+  moveBy $ parseLen a
+  return a
 
 -- | Parses a value which is an instance of Storable. Beware that this
 -- parser expects that the value is stored in machine endian. Mostly
 -- it is useful in defining the `peek` function in a complicated
 -- `Storable` instance.
 parseStorable :: Storable a => Parser a
-parseStorable = do a <- performAction peek
-                   moveBy $ byteSize a
-                   return a
+parseStorable = performAndMove peek byteSize
 
 -- | Parse a crypto value. Endian safety is take into account
 -- here. This is what you would need when you parse packets from an
 -- external source. You can also use this to define the `load`
 -- function in a compicated `EndianStore` instance.
 parse :: EndianStore a => Parser a
-parse = do a <- performAction load
-           moveBy $ byteSize a
-           return a
+parse = performAndMove load byteSize
 
 -- | Parses a strict bytestring of a given length.
 parseByteString :: LengthUnit l => l -> Parser ByteString
-parseByteString l = do bs <- performAction getBS
-                       moveBy l
-                       return bs
-  where getBS = createFrom l
+parseByteString l = performAndMove (createFrom l) (const l)
