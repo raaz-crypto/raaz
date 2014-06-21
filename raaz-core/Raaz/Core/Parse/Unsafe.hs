@@ -66,7 +66,7 @@ parseStorable = performAndMove peek byteSize
 -- | Parse a crypto value. Endian safety is take into account
 -- here. This is what you would need when you parse packets from an
 -- external source. You can also use this to define the `load`
--- function in a compicated `EndianStore` instance.
+-- function in a complicated `EndianStore` instance.
 parse :: EndianStore a => Parser a
 parse = performAndMove load byteSize
 
