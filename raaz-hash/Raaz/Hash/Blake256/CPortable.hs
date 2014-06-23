@@ -7,7 +7,7 @@ Portable C implementation of blake256 hash.
 {-# LANGUAGE ForeignFunctionInterface #-}
 {-# LANGUAGE TypeFamilies             #-}
 {-# LANGUAGE FlexibleInstances        #-}
-{-# LANGUAGE DoAndIfThenElse          #-}
+--{-# LANGUAGE DoAndIfThenElse          #-}
 {-# OPTIONS_GHC -fno-warn-orphans     #-}
 {-# CFILES raaz/hash/blake256/portable.c  #-}
 
