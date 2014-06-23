@@ -28,8 +28,6 @@ instance Arbitrary BLAKE256 where
                         <*> arbitrary
                         
 tests = allHashTests (undefined ::BLAKE256) exampleStrings
-
-
 {-tests = [ testStoreLoad h
         , testPadLengthVsPadding h
         , testLengthDivisibility h

@@ -41,36 +41,24 @@ blake256Compress cellBlake cellSalt cellCounter nblocks buffer = withCell cellBl
       where 
         action2 saltptr = withCell cellCounter action3
           where action3 counterptr = c_blake256_compress ptr saltptr counterptr n buffer         
-        --initial <- cellLoad cellBlake
-        --salt = withCell cellSalt
-        --counter = withCell cellCounter
-        --sz = blockSize (undefined :: BLAKE256)
-      {-where
-      
-      moveAndHash salt (cxt, counter, ptr) _ = do
-        let nCounter = counter + roundFloor sz
-        newCxt <- blake256CompressSingle cxt salt nCounter ptr
-        return (newCxt, nCounter, ptr `movePtr` sz)-}
-
-    
-
+        
 
 instance Gadget (CGadget BLAKE256) where
   type PrimitiveOf (CGadget BLAKE256) = BLAKE256
   type MemoryOf (CGadget BLAKE256) = (CryptoCell BLAKE256, CryptoCell Salt, CryptoCell (BITS Word64))
   newGadgetWithMemory = return . CGadget
-  --initialize (CGadget cc) (BLAKE256Cxt blake256) = cellStore cc blake256
+ 
   initialize (CGadget (cellBlake, cellSalt, cellCounter)) (BLAKE256Cxt blake salt counter) = do
     cellStore cellSalt salt
     cellStore cellBlake blake
     cellStore cellCounter counter
-  {-finalize (CGadget cc) = BLAKE256Cxt <$> cellLoad cc-}
+  
   finalize (CGadget (cellBlake, cellSalt, cellCounter)) = do
     b <- cellLoad cellBlake
     s <- cellLoad cellSalt
     c <- cellLoad cellCounter
     return $ BLAKE256Cxt b s c
-  --apply (CGadget cc)    = blake256Compress cc
+  
   apply (CGadget cc@(cellBlake, cellSalt, cellCounter)) n cptr = blake256Compress cellBlake cellSalt cellCounter n cptr
 
 instance PaddableGadget (CGadget BLAKE256) where
@@ -84,14 +72,9 @@ instance PaddableGadget (CGadget BLAKE256) where
         tBlocks = roundFloor (bytes + padl)
     unsafePad p len (cptr `movePtr` bytes)
     if padBlocks==0
-      then do
-        h <- cellLoad cellCounter 
-        print h   
+      then do           
         apply g (tBlocks-1) cptr
         cellModify cellCounter (\a -> a - roundFloor padl)
-        {-l <- cellLoad cellCounter 
-        --l=l `add` 512
-        print (l+512)-}
         apply g 1 (cptr `movePtr` (tBlocks - 1))   
            
       else do
