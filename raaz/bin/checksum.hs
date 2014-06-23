@@ -19,34 +19,34 @@ import Raaz.Hash
 import Raaz.Core.Primitives.Hash        ( Hash        )
 
 
-data Shasum = Shasum { hashType :: String
-                     , check    :: Bool
-                     , files     :: [String]
-                     }
-                deriving (Show, Data, Typeable)
+data CheckSum = CheckSum { hashType :: String
+                         , check    :: Bool
+                         , files    :: [String]
+                         } deriving (Show, Data, Typeable)
 
-shasum :: Mode (CmdArgs Shasum)
-shasum = cmdArgsMode $ Shasum { hashType = "sha1" &=
-                                help "Sha hash" &=
-                                typ "sha1|sha224|sha256|sha384|sha512" &=
-                                name "h"
-                              , check = def &=
-                                help "read hash tags from file and check them"
-                              , files = def &=
-                                args &=
-                                opt ("-" :: String) &=
-                                typFile
-                              } &= summary ("checksum " ++ showVersion version)
+checkSum :: Mode (CmdArgs CheckSum)
+checkSum = cmdArgsMode $ CheckSum { hashType = "sha1" &=
+                                    help "Hash Function" &=
+                                    typ "sha1|sha224|sha256|sha384|sha512|blake256" &=
+                                    name "h"
+                                  , check = def &=
+                                    help "read hash tags from file and check them"
+                                  , files = def &=
+                                    args &=
+                                    opt ("-" :: String) &=
+                                    typFile
+                                  } &= summary ("checksum " ++ showVersion version)
 
 main :: IO ()
-main = do shaArgs <- cmdArgsRun shasum
-          case shaArgs of
-            Shasum "sha1"   c fp -> mapM_ (printHashText sha1File c) fp
-            Shasum "sha224" c fp -> mapM_ (printHashText sha224File c) fp
-            Shasum "sha256" c fp -> mapM_ (printHashText sha256File c) fp
-            Shasum "sha384" c fp -> mapM_ (printHashText sha384File c) fp
-            Shasum "sha512" c fp -> mapM_ (printHashText sha512File c) fp
-            _                  -> error "Unsupported sha hash"
+main = do hashArgs <- cmdArgsRun checkSum
+          case hashArgs of
+            CheckSum "sha1"     c fp -> mapM_ (printHashText sha1File c    ) fp
+            CheckSum "sha224"   c fp -> mapM_ (printHashText sha224File c  ) fp
+            CheckSum "sha256"   c fp -> mapM_ (printHashText sha256File c  ) fp
+            CheckSum "sha384"   c fp -> mapM_ (printHashText sha384File c  ) fp
+            CheckSum "sha512"   c fp -> mapM_ (printHashText sha512File c  ) fp
+            CheckSum "blake256" c fp -> mapM_ (printHashText blake256File c) fp
+            _                        -> error "Unsupported hash function"
 
 printHashText :: Hash h => (FilePath -> IO h) -> Bool -> String -> IO ()
 printHashText hf False fp = do h <- hf fp
