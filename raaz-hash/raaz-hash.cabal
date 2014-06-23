@@ -41,6 +41,7 @@ library
   other-modules: Raaz.Hash.Blake256.Instance
                , Raaz.Hash.Blake256.Ref
                , Raaz.Hash.Blake256.Type
+               , Raaz.Hash.Blake256.CPortable
                , Raaz.Hash.Sha1.Instance
                , Raaz.Hash.Sha1.Ref
                , Raaz.Hash.Sha1.CPortable
@@ -75,6 +76,7 @@ library
   else
       ghc-options: -Wall
   c-sources: cbits/raaz/hash/sha1/portable.c
+           , cbits/raaz/hash/blake256/portable.c
            , cbits/raaz/hash/sha256/portable.c
            , cbits/raaz/hash/sha512/portable.c
   include-dirs: cbits
