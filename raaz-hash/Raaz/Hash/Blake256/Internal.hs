@@ -4,4 +4,5 @@ module Raaz.Hash.Blake256.Internal
        ) where
 
 import Raaz.Hash.Blake256.Type
-import Raaz.Hash.Blake256.Instance()
+import Raaz.Hash.Blake256.Instance  ()
+import Raaz.Hash.Blake256.CPortable ()
