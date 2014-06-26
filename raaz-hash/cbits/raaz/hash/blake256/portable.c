@@ -171,22 +171,22 @@ void raazHashBlake256PortableCompress(Hash hash, Salt salt, uint64_t *counter, i
     Word m15;
     
     /* State variables */
-    Word v0;    
-    Word v1;
-    Word v2;
-    Word v3;
-    Word v4;
-    Word v5;
-    Word v6;
-    Word v7;
-    Word v8;
-    Word v9;
-    Word v10;
-    Word v11;
-    Word v12;
-    Word v13;
-    Word v14;
-    Word v15;
+    register Word v0,
+                  v1,
+                  v2,
+                  v3,
+                  v4,
+                  v5,
+                  v6,
+                  v7,
+                  v8,
+                  v9,
+                  v10,
+                  v11,
+                  v12,
+                  v13,
+                  v14,
+                  v15;
 
     while(nblocks > 0)
     {
