@@ -55,7 +55,7 @@ typedef Word Salt[SALT_SIZE];
 
     The Gi(i = 0 to 7) function macros defined below takes four input variables - 
     (M0, M1) where M0 = m[sigma[r][2i]], M1 = m[sigma[r][2i+1]]
-    (C0, C1) where C0 = c[sigma[r][2i+1]], C1 = c[sigma[r][2i]]
+    (C0, C1) where C0 = c[sigma[r][2i]], C1 = c[sigma[r][2i+1]]
     
     The state variables are defined inside each macro rather than passing as arguments.
 
