@@ -64,7 +64,9 @@ makePackage package =
      exitConfigure <- makeCommand package exitDepend 
                                   "cabal configure --enable-tests" "Configuring"
      exitBuild     <- makeCommand package exitConfigure "cabal build" "Building"
-     exitTests     <- runTestsOfPackage package exitBuild
+     exitTests     <- makeCommand package exitBuild
+                                  "cabal test --show-details='failures'"
+                                  "Testing"
      exitInstall   <- makeCommand package exitTests "cabal install" "Installing"
      setCurrentDirectory "../"
      return exitInstall
@@ -84,25 +86,6 @@ makeCommand package prevCode command msg =
                                                 ++ "** package."
                                     exitFailure
                 else return prevCode
-
--- | Run tests from executable
-runTestsOfPackage :: PackageName -> ExitCode -> IO ExitCode
-runTestsOfPackage package prevCode =
-          if prevCode == ExitSuccess
-            then do isFile <- doesFileExist "./dist/build/tests/tests"
-                    if isFile
-                      then do exitCode <- system "./dist/build/tests/tests"
-                              if exitCode == ExitSuccess
-                                 then do putStrLn $ "Testing **" 
-                                                     ++ getPackageName package
-                                                     ++ "** package done."
-                                         return ExitSuccess
-                                 else do error $ "Testing failed for **"
-                                                  ++ getPackageName package
-                                                  ++ "** package."
-                                         exitFailure
-                      else return prevCode
-            else return prevCode
 
 -- | Results of parsing cabal file of all packages
 getAllGPD :: Packages -> IO [GenericPackageDescription]
