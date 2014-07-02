@@ -17,7 +17,7 @@ env:
 before_install:
   - "make travis-before-install"
   - "make echo-variables"
-install: "make install"
+install: "runhaskell scripts/travis-build.hs"
 script: "echo tests already run."
 branches:
   only:
