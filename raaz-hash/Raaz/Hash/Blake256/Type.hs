@@ -179,7 +179,7 @@ instance EndianStore Salt where
 instance Primitive BLAKE256 where
   blockSize _ = roundFloor $ BITS (512 :: Int)
   {-# INLINE blockSize #-}
-  data Cxt BLAKE256 = BLAKE256Cxt BLAKE256 Salt (BITS Word64) deriving (Eq)
+  data Cxt BLAKE256 = BLAKE256Cxt BLAKE256 Salt (BITS Word64) deriving (Eq, Show)
   
 
 instance SafePrimitive BLAKE256

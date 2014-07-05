@@ -25,23 +25,22 @@ import Raaz.Hash.Blake256.Type
 
 foreign import ccall unsafe
   "raaz/hash/blake256/portable.h raazHashBlake256PortableCompress"
-  c_blake256_compress  :: CryptoPtr -> CryptoPtr -> CryptoPtr -> Int -> CryptoPtr -> IO ()
+  c_blake256_compress  :: CryptoPtr -> CryptoPtr -> BITS Word64 -> Int -> CryptoPtr -> IO ()
 
 blake256Compress :: CryptoCell BLAKE256 
-                 -> CryptoCell Salt 
-                 -> CryptoCell (BITS Word64) 
+                 -> CryptoCell Salt                   
+                 -> BITS Word64
                  -> BLOCKS BLAKE256 
                  -> CryptoPtr 
                  -> IO ()
 {-# INLINE blake256Compress #-}
-blake256Compress cellBlake cellSalt cellCounter nblocks buffer = withCell cellBlake action1
+blake256Compress cellBlake cellSalt counter nblocks buffer = withCell cellBlake action1
   where 
-    n = fromEnum nblocks
+    n = fromEnum nblocks    
     action1 ptr = withCell cellSalt action2
       where 
-        action2 saltptr = withCell cellCounter action3
-          where action3 counterptr = c_blake256_compress ptr saltptr counterptr n buffer         
-        
+        action2 saltptr = c_blake256_compress ptr saltptr counter n buffer
+
 
 instance Gadget (CGadget BLAKE256) where
   type PrimitiveOf (CGadget BLAKE256) = BLAKE256
@@ -59,7 +58,10 @@ instance Gadget (CGadget BLAKE256) where
     c <- cellLoad cellCounter
     return $ BLAKE256Cxt b s c
   
-  apply (CGadget cc@(cellBlake, cellSalt, cellCounter)) n cptr = blake256Compress cellBlake cellSalt cellCounter n cptr
+  apply (CGadget cc@(cellBlake, cellSalt, cellCounter)) n cptr = do
+    counter <- cellLoad cellCounter
+    cellModify cellCounter (\a -> a + roundFloor n)
+    blake256Compress cellBlake cellSalt counter n cptr
 
 instance PaddableGadget (CGadget BLAKE256) where
   unsafeApplyLast g@(CGadget (_, _, cellCounter)) blocks bytes cptr = do
@@ -72,9 +74,9 @@ instance PaddableGadget (CGadget BLAKE256) where
         tBlocks = roundFloor (bytes + padl)
     unsafePad p len (cptr `movePtr` bytes)
     if padBlocks==0
-      then do           
-        apply g (tBlocks-1) cptr
-        cellModify cellCounter (\a -> a - roundFloor padl)
+      then do       
+        apply g (tBlocks-1) cptr        
+        cellModify cellCounter (\a -> a - roundFloor padl)                
         apply g 1 (cptr `movePtr` (tBlocks - 1))   
            
       else do

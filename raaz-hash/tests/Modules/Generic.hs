@@ -49,6 +49,7 @@ allHashTests :: ( Arbitrary h
                 , Gadget (HGadget h)
                 , Gadget (CGadget h)
                 , Eq (Cxt h)
+                , Show (Cxt h)
                 , HasName h
                 , Typeable h
                 )
@@ -140,6 +141,7 @@ testCGadgetvsHGadget :: ( PrimitiveOf (CGadget p) ~ p
                         , Gadget (HGadget p)
                         , Gadget (CGadget p)
                         , Eq (Cxt p)
+                        , Show (Cxt p)
                         , HasName p
                         ) => p -> Test
 testCGadgetvsHGadget p = testGadget (g p) (ref p) def

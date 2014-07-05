@@ -40,7 +40,7 @@ typedef Word Salt[SALT_SIZE];
 #define c15 0xB5470917
 
 
-/*  G(a,b,c,d) function in Blake - 
+/*  Gi(a,b,c,d) function in Blake - 
 
     a = a + b + (m[sigma[r][2i]] 'xor' c[sigma[r][2i+1]])
     d = (d 'xor' a) >>> 16
@@ -174,7 +174,7 @@ typedef Word Salt[SALT_SIZE];
 }                                   
 
 
-void raazHashBlake256PortableCompress(Hash hash, Salt salt, uint64_t *counter, int nblocks, Block *mesg)
+void raazHashBlake256PortableCompress(Hash hash, Salt salt, uint64_t counter, int nblocks, Block *mesg)
 {
 
     Word t0,t1;  /* Counter variables */
@@ -219,10 +219,10 @@ void raazHashBlake256PortableCompress(Hash hash, Salt salt, uint64_t *counter, i
     while(nblocks > 0)
     {
         /* Incrementing counter by message bits */
-        *counter = *counter + 512;  
-
-        t0 = (Word)*counter;                    
-        t1 = (Word)(*counter >> 32);
+        counter = counter + 512;  
+    
+        t0 = (Word)counter;                    
+        t1 = (Word)(counter >> 32);
                 
         /* Initialization of the state consisting of 16 words */                
         v0 = hash[0];

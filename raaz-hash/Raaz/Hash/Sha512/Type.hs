@@ -104,7 +104,7 @@ instance EndianStore SHA512 where
 instance Primitive SHA512 where
   blockSize _ = roundFloor $ BITS (1024 :: Int)
   {-# INLINE blockSize #-}
-  newtype Cxt SHA512 = SHA512Cxt SHA512 deriving (Eq, Storable)
+  newtype Cxt SHA512 = SHA512Cxt SHA512 deriving (Eq, Show, Storable)
 
 instance SafePrimitive SHA512
 
