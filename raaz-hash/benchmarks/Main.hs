@@ -5,10 +5,11 @@ import           Criterion.Config  (Config(..), ljust, defaultConfig)
 import           Paths_raaz_hash   (version)
 
 import qualified Modules.Sha       as Sha
+import qualified Modules.Blake     as Blake
 
 import           Modules.Defaults
 
-pkgName = "raaz-cipher-" ++ showVersion version
+pkgName = "raaz-hash-" ++ showVersion version
 
 myConfig :: Config
 myConfig = defaultConfig {
@@ -23,4 +24,7 @@ main = do putStrLn $ "Running benchmarks for " ++ pkgName
 
 benchmarks = do
   sha <- Sha.benchmarks
-  return $  [ bgroup "SHA" sha ]
+  blake <- Blake.benchmarks
+  return $  [ bgroup "SHA" sha 
+            , bgroup "BLAKE" blake
+            ]
