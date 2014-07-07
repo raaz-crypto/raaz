@@ -29,6 +29,7 @@ module Raaz.Core.Types
        , CryptoCoerce(..)
        , LengthUnit(..), inBits, atLeast, atMost
        , bitsQuotRem, bytesQuotRem
+       , bitsQuot, bytesQuot
        , cryptoAlignment, CryptoAlign, CryptoPtr
        , ForeignCryptoPtr
        , CryptoBuffer(..), withCryptoBuffer
@@ -324,13 +325,32 @@ bytesQuotRem bytes = (u , r)
         (q, r)  = bytes `quotRem` divisor
         u       = toEnum $ fromEnum q
 
+-- | Function similar to `bytesQuotRem` but returns only the quotient.
+bytesQuot :: LengthUnit u
+          => BYTES Int
+          -> u
+bytesQuot bytes = u
+  where divisor = inBytes (1 `asTypeOf` u)
+        q       = bytes `quot` divisor
+        u       = toEnum $ fromEnum q
+
+
 -- | Function similar to `bytesQuotRem` but works with bits instead.
 bitsQuotRem :: LengthUnit u
-             => BITS Word64
-             -> (u , BITS Word64)
+            => BITS Word64
+            -> (u , BITS Word64)
 bitsQuotRem bits = (u , r)
   where divisor = inBits (1 `asTypeOf` u)
         (q, r)  = bits `quotRem` divisor
+        u       = toEnum $ fromEnum q
+
+-- | Function similar to `bitsQuotRem` but returns only the quotient.
+bitsQuot :: LengthUnit u
+         => BITS Word64
+         -> u
+bitsQuot bits = u
+  where divisor = inBits (1 `asTypeOf` u)
+        q       = bits `quot` divisor
         u       = toEnum $ fromEnum q
 
 ------------------  Coercion of types ------------------------------
