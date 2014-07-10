@@ -7,6 +7,8 @@ import qualified Modules.Sha256 as Sha256
 import qualified Modules.Sha384 as Sha384
 import qualified Modules.Sha512 as Sha512
 import qualified Modules.Blake256 as Blake256
+import qualified Modules.Blake2b as Blake2b
+import qualified Modules.Blake2s as Blake2s
 import Test.Framework (defaultMain, testGroup)
 
 
@@ -22,4 +24,6 @@ tests = [ testGroup "Raaz.Hash.Sha:Sha1" Sha1.tests
         , testGroup "Raaz.Hash.Sha:Sha384" Sha384.tests
         , testGroup "Raaz.Hash.Sha:Sha512" Sha512.tests
         , testGroup "Raaz.Hash.Blake:Blake256" Blake256.tests
+        , testGroup "Raaz.Hash.Blake:Blake2b" Blake2b.tests
+        , testGroup "Raaz.Hash.Blake:Blake2s" Blake2s.tests
         ]
