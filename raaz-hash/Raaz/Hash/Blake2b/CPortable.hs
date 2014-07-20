@@ -25,19 +25,18 @@ import Raaz.Hash.Blake2b.Type
 
 foreign import ccall unsafe
   "raaz/hash/blake2b/portable.h raazHashBlake2bPortableCompress"
-  c_blake2b_compress  :: CryptoPtr -> CryptoPtr -> Int -> CryptoPtr -> IO ()
+  c_blake2b_compress  :: CryptoPtr -> BITS Word64 -> Int -> CryptoPtr -> IO ()
 
 blake2bCompress  :: CryptoCell BLAKE2B                               
-                 -> CryptoCell (BITS Word64)
+                 -> BITS Word64
                  -> BLOCKS BLAKE2B
                  -> CryptoPtr 
                  -> IO ()
 {-# INLINE blake2bCompress #-}
-blake2bCompress cellBlake cellcounter nblocks buffer = withCell cellBlake action1
+blake2bCompress cellBlake counter nblocks buffer = withCell cellBlake action1
   where 
     n = fromEnum nblocks    
-    action1 ptr = withCell cellcounter action2
-      where action2 counterptr = c_blake2b_compress ptr counterptr n buffer
+    action1 ptr = c_blake2b_compress ptr counter n buffer      
       
 
 instance Gadget (CGadget BLAKE2B) where
@@ -56,9 +55,7 @@ instance Gadget (CGadget BLAKE2B) where
         a7 = h7 `xor` 0x0000000000000000
 
     cellStore cellSalt salt
-    cellStore cellBlake (BLAKE2B a0 a1 a2 a3 a4 a5 a6 a7)
-    --b <- cellLoad cellBlake
-    --print b
+    cellStore cellBlake (BLAKE2B a0 a1 a2 a3 a4 a5 a6 a7)   
     cellStore cellCounter counter
   
   finalize (CGadget (cellBlake, cellSalt, cellCounter)) = do
@@ -69,19 +66,18 @@ instance Gadget (CGadget BLAKE2B) where
   
   apply (CGadget cc@(cellBlake, cellSalt, cellCounter)) n cptr = do
     counter <- cellLoad cellCounter
-    --print n
-    blake2bCompress cellBlake cellCounter n cptr
+    cellModify cellCounter (\a -> a + fromIntegral (roundFloor n :: BYTES Word64))      
+    blake2bCompress cellBlake counter n cptr
 
 instance PaddableGadget (CGadget BLAKE2B) where
-  unsafeApplyLast g@(CGadget (_, _, counterr)) blocks bytes cptr = do
+  unsafeApplyLast g@(CGadget (_, _, counter)) blocks bytes cptr = do
     let bits  = roundFloor bytes :: BITS Word64
         len   = roundFloor blocks + bits
         p     = primitiveOf g
-        block = blockSize p
         padl  = padLength p len                        
         tBlocks = roundFloor (bytes + padl)
     unsafePad p len (cptr `movePtr` bytes)
     apply g (tBlocks-1) cptr
-    cellModify counterr (\a -> a - fromIntegral padl)
+    cellModify counter (\a -> a - fromIntegral padl)
     apply g 1 (cptr `movePtr` (tBlocks-1))
         

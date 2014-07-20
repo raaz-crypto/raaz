@@ -175,8 +175,8 @@ instance SafePrimitive BLAKE2B
 
 instance HasPadding BLAKE2B where
   maxAdditionalBlocks _ = 1
-  padLength = blake2bPadLength
-  padding   = blake2bPadding
+  padLength = blake2PadLength
+  padding   = blake2Padding
 
 instance Default (Cxt BLAKE2B) where
   def = let

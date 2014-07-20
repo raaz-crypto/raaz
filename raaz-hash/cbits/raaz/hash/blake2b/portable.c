@@ -12,14 +12,13 @@ This is a part of raaz cryptographic library.
 
 #define HASH_SIZE 8     /* Size of input hash */
 #define BLOCK_SIZE 16   /* Size of a block    */
-//#define COUNTER_SIZE 4  /* Size of counter    */
 
 #define ROTATER(x,n) ((x >> n) | (x << (64-n)))
 
 typedef uint64_t Word;      /* Basic unit for Blake2b hash */
 typedef Word Hash[HASH_SIZE];
 typedef Word Block[BLOCK_SIZE];
-//typedef Word Counter[COUNTER_SIZE];
+
 
 /* Definning 8 constants for Blake2b hash */
 #define IV0 0x6a09e667f3bcc908
@@ -44,7 +43,7 @@ typedef Word Block[BLOCK_SIZE];
   b =  ROTATER((b ^ c), 63);            \
 }
 
-void raazHashBlake2bPortableCompress(Hash hash, uint64_t *counter, int nblocks, Block *mesg)
+void raazHashBlake2bPortableCompress(Hash hash, uint64_t counter, int nblocks, Block *mesg)
 {
 
     /* Counter variables */
@@ -93,9 +92,9 @@ void raazHashBlake2bPortableCompress(Hash hash, uint64_t *counter, int nblocks, 
     while(nblocks > 0)
     {
         
-        *counter = *counter + 128;
+        counter = counter + 128;
         
-        t0 = (Word)*counter;   
+        t0 = (Word)counter;   
                           
          t1 = f1 = 0x0000000000000000;        
 
@@ -117,7 +116,6 @@ void raazHashBlake2bPortableCompress(Hash hash, uint64_t *counter, int nblocks, 
         v14 = f0 ^ IV6; 
         v15 = f1 ^ IV7;
 
-        //printf("%llx %llx %llx %llx %llx %llx %llx %llx %llx %llx %llx %llx %llx %llx %llx %llx\n", v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15 );
         /* Loading the message into 16 words */     
         m0 = raazLoad64LE((Word *)mesg,0);
         m1 = raazLoad64LE((Word *)mesg,1);
@@ -135,9 +133,7 @@ void raazHashBlake2bPortableCompress(Hash hash, uint64_t *counter, int nblocks, 
         m13 = raazLoad64LE((Word *)mesg,13); 
         m14 = raazLoad64LE((Word *)mesg,14); 
         m15 = raazLoad64LE((Word *)mesg,15);
-        //printf("%llx\n", *mesg[0]);
-        //printf("%.16llx\n", m0);
-
+        
         /* End of reading the message block */
 
         /* Round 1 */
@@ -324,9 +320,7 @@ void raazHashBlake2bPortableCompress(Hash hash, uint64_t *counter, int nblocks, 
         hash[4] = raazLoad64LE((Word *)hash, 4);
         hash[5] = raazLoad64LE((Word *)hash, 5);
         hash[6] = raazLoad64LE((Word *)hash, 6);
-        hash[7] = raazLoad64LE((Word *)hash, 7);
-
-        
+        hash[7] = raazLoad64LE((Word *)hash, 7);        
         
         ++mesg; /* Incrementing to the next block */
         --nblocks;

@@ -29,7 +29,7 @@ benchHash g = do
 
 benchmarksAll h = sequence
                   [ --benchHash (toH h)
-                  benchHash (toC h)
+                     benchHash (toC h)
                   ]
   where
     --toH :: p -> HGadget p

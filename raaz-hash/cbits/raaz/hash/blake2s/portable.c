@@ -19,7 +19,6 @@ This is a part of raaz cryptographic library.
 typedef uint32_t Word;      /* Basic unit for Blake2s hash */
 typedef Word Hash[HASH_SIZE];
 typedef Word Block[BLOCK_SIZE];
-//typedef Word Counter[COUNTER_SIZE];
 
 /* Definning 8 constants for Blake2s hash */
 #define IV0 0x6a09e667
@@ -44,7 +43,7 @@ typedef Word Block[BLOCK_SIZE];
   b =  ROTATER((b ^ c), 7);             \
 }
 
-void raazHashBlake2sPortableCompress(Hash hash, uint64_t *counter, int nblocks, Block *mesg)
+void raazHashBlake2sPortableCompress(Hash hash, uint64_t counter, int nblocks, Block *mesg)
 {
 
     Word t0, t1, f0, f1;
@@ -92,10 +91,9 @@ void raazHashBlake2sPortableCompress(Hash hash, uint64_t *counter, int nblocks, 
     while(nblocks > 0)
     {
         /* Incrementing counter by message bits */
-        //counter = counter + 512;        
-
-        *counter = *counter + 64;
-        t0 = (Word)*counter;       
+        
+        counter = counter + 64;
+        t0 = (Word)counter;       
         t1 = f1 = 0x00000000;
 
         /* Initialization of the state consisting of 16 words */                
@@ -296,8 +294,6 @@ void raazHashBlake2sPortableCompress(Hash hash, uint64_t *counter, int nblocks, 
         hash[6] = raazLoad32LE((Word *)hash, 6);
         hash[7] = raazLoad32LE((Word *)hash, 7);
 
-        //printf("%x %x %x %x %x %x %x %x\n", hash[0], hash[1], hash[2], hash[3], hash[4], hash[5], hash[6], hash[7]);
-        //t0 = t0 + 64;
         ++mesg; /* Incrementing to the next block */
         --nblocks;
         }

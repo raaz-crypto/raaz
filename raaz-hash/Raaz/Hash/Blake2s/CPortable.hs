@@ -26,20 +26,19 @@ import Raaz.Hash.Blake2s.Type
 
 foreign import ccall unsafe
   "raaz/hash/blake2s/portable.h raazHashBlake2sPortableCompress"
-  c_blake2s_compress  :: CryptoPtr -> CryptoPtr -> Int -> CryptoPtr -> IO ()
+  c_blake2s_compress  :: CryptoPtr -> BITS Word64 -> Int -> CryptoPtr -> IO ()
 
 blake2sCompress  :: CryptoCell BLAKE2S                               
-                 -> CryptoCell (BITS Word64)
+                 -> BITS Word64
                  -> BLOCKS BLAKE2S
                  -> CryptoPtr 
                  -> IO ()
 {-# INLINE blake2sCompress #-}
-blake2sCompress cellBlake cellCounter nblocks buffer = withCell cellBlake action1
+blake2sCompress cellBlake counter nblocks buffer = withCell cellBlake action1
   where 
     n = fromEnum nblocks    
-    action1 ptr = withCell cellCounter action2
-      where
-        action2 counterptr = c_blake2s_compress ptr counterptr n buffer
+    action1 ptr = c_blake2s_compress ptr counter n buffer
+  
 
 instance Gadget (CGadget BLAKE2S) where
   type PrimitiveOf (CGadget BLAKE2S) = BLAKE2S
@@ -57,9 +56,7 @@ instance Gadget (CGadget BLAKE2S) where
         a7 = h7 `xor` 0x00000000
 
     cellStore cellSalt salt
-    cellStore cellBlake (BLAKE2S a0 a1 a2 a3 a4 a5 a6 a7)
-    --b <- cellLoad cellBlake
-    --print b
+    cellStore cellBlake (BLAKE2S a0 a1 a2 a3 a4 a5 a6 a7)    
     cellStore cellCounter counter
   
   finalize (CGadget (cellBlake, cellSalt, cellCounter)) = do
@@ -70,7 +67,8 @@ instance Gadget (CGadget BLAKE2S) where
   
   apply (CGadget cc@(cellBlake, cellSalt, cellCounter)) n cptr = do
     counter <- cellLoad cellCounter
-    blake2sCompress cellBlake cellCounter n cptr
+    cellModify cellCounter (\a -> a + fromIntegral(roundFloor n :: BYTES Word64))
+    blake2sCompress cellBlake counter n cptr
 
 instance PaddableGadget (CGadget BLAKE2S) where
   unsafeApplyLast g@(CGadget (_, _, cellCounter)) blocks bytes cptr = do

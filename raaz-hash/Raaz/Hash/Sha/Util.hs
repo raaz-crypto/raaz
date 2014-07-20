@@ -1,8 +1,7 @@
 module Raaz.Hash.Sha.Util
        ( shaPadLength, shaPadding
        , blakePadLength, blakePadding
-       , blake2bPadLength, blake2bPadding
-       , blake2sPadLength, blake2sPadding
+       , blake2PadLength, blake2Padding       
        ) where
 
 import Data.ByteString      hiding  ( length            )
@@ -86,35 +85,35 @@ blakePadding lenSize prim lBits =  prefix
           zbs       = replicate numzero 0
 
 
-blake2bPadLength :: Primitive prim
+blake2PadLength :: Primitive prim
                  => prim
                  -> BITS Word64
                  -> BYTES Int
-{-# INLINE blake2bPadLength #-}
-blake2bPadLength h l
+{-# INLINE blake2PadLength #-}
+blake2PadLength h l
   | lb == 0 = 0           
   | otherwise = r      
   where lb :: BYTES Int
         lb =  roundFloor l `rem` blockSize h
         r  = blockSize h - lb
 
-blake2bPadding :: Primitive prim
+blake2Padding :: Primitive prim
                => prim
                -> BITS Word64
                -> ByteString
-{-# INLINE blake2bPadding #-}
-blake2bPadding prim lbits
+{-# INLINE blake2Padding #-}
+blake2Padding prim lbits
  | pLen == 0 = replicate 0 0
  | otherwise = replicate numzero 0
- where  pLen    = blake2bPadLength prim lbits :: BYTES Int
+ where  pLen    = blake2PadLength prim lbits :: BYTES Int
         numzero = fromIntegral pLen
 
 
-blake2sPadLength :: Primitive prim
+{-blake2sPadLength :: Primitive prim
                  => prim
                  -> BITS Word64
                  -> BYTES Int
-{-# INLINE blake2sPadLength #-}
+# INLINE blake2sPadLength #
 blake2sPadLength h l
   | lb == 0 = 0           
   | otherwise = r      
@@ -126,9 +125,9 @@ blake2sPadding :: Primitive prim
                => prim
                -> BITS Word64
                -> ByteString
-{-# INLINE blake2sPadding #-}
+ INLINE blake2sPadding #
 blake2sPadding prim lbits
  | pLen == 0 = replicate 0 0
  | otherwise = replicate numzero 0
  where  pLen    = blake2bPadLength prim lbits :: BYTES Int
-        numzero = fromIntegral pLen
+        numzero = fromIntegral pLen-}
