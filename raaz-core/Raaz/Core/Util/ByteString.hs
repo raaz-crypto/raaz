@@ -38,9 +38,9 @@ length :: ByteString -> BYTES Int
 length = BYTES . B.length
 
 -- | A type safe version of replicate
-replicate :: Rounding l (BYTES Int) => l -> Word8 -> ByteString
+replicate :: LengthUnit l => l -> Word8 -> ByteString
 replicate l = B.replicate sz
-  where BYTES sz = roundFloor l
+  where BYTES sz = inBytes l
 
 -- | Copy the bytestring to the crypto buffer. This operation leads to
 -- undefined behaviour if the crypto pointer points to an area smaller
@@ -59,7 +59,7 @@ unsafeCopyToCryptoPtr bs cptr =  withForeignPtr fptr $
 -- units) to transfer. This operation leads to undefined behaviour if
 -- either the bytestring is shorter than @n@ or the crypto pointer
 -- points to an area smaller than @n@.
-unsafeNCopyToCryptoPtr :: Rounding n (BYTES Int)
+unsafeNCopyToCryptoPtr :: LengthUnit n
                        => n              -- ^ length of data to be copied
                        -> ByteString     -- ^ The source byte string
                        -> CryptoPtr      -- ^ The buffer
@@ -117,6 +117,7 @@ fromByteStringStorable src = unsafePerformIO $ withByteString src (peek . castPt
 
 -- | The IO action @createFrom n cptr@ creates a bytestring by copying
 -- @n@ bytes from the pointer @cptr@.
-createFrom :: BYTES Int -> CryptoPtr -> IO ByteString
-createFrom n cptr = create (fromIntegral n) filler
-  where filler dest = memcpy (castPtr dest) cptr n
+createFrom :: LengthUnit l => l -> CryptoPtr -> IO ByteString
+createFrom l cptr = create bytes filler
+  where filler dest = memcpy (castPtr dest) cptr l
+        BYTES bytes = inBytes l

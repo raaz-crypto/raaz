@@ -187,7 +187,7 @@ instance Bufferable b => Memory (MemoryBuf b) where
   freeMemory (MemoryBuf _ fptr) = finalizeForeignPtr fptr
   copyMemory (MemoryBuf sz sf) (MemoryBuf _ df) = withForeignPtr sf do1
     where do1 sptr = withForeignPtr df (do2 sptr)
-          do2 sptr dptr = memcpy dptr sptr (BYTES sz)
+          do2 sptr dptr = memcpy dptr sptr sz
   withSecureMemory f bk = with undefined f
     where
       with :: Bufferable a => a -> (MemoryBuf a -> IO b) -> IO b

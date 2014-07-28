@@ -96,7 +96,7 @@ foreign import ccall unsafe
 -- | Primitive instance for Salsa20 where Context includes the Key,
 -- Nonce (8 Byte) and Counter (8 Byte).
 instance Primitive (Salsa20 r k) where
-  blockSize _ = roundFloor $ BITS (8 :: Int)
+  blockSize _ = fst (bitsQuotRem $ BITS (8 :: Word64))
   {-# INLINE blockSize #-}
   newtype Cxt (Salsa20 r k) = Salsa20Cxt (k, Nonce, Counter)
                             deriving (Eq,Show)
@@ -250,11 +250,11 @@ applyGad g@(HGadget mc) with n cptr = do
       realsz = blocksz `div` sz
 {-# INLINE applyGad #-}
 
-applyCGad :: (Rounding s (BYTES Int),MemoryOf (CGadget t) ~ CryptoCell a)
+applyCGad :: (LengthUnit s,MemoryOf (CGadget t) ~ CryptoCell a)
              => (CryptoPtr -> x -> BYTES Int -> IO b) -> CGadget t -> s -> x -> IO b
 applyCGad with (CGadget mc) n cptr = withCell mc go
   where
-    go mptr = with mptr cptr (roundFloor n :: BYTES Int)
+    go mptr = with mptr cptr (atMost n)
 {-# INLINE applyCGad #-}
 
 instance CryptoPrimitive (Salsa20 R20 KEY128) where

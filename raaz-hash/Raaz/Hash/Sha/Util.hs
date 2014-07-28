@@ -29,7 +29,7 @@ shaPadLength lenSize h l
   | r >= lenSize + 1 = r
   | otherwise        = r + blockSize h
   where lb :: BYTES Int
-        lb = roundFloor l `rem` blockSize h
+        lb = fst (bitsQuotRem l) `rem` blockSize h
         r  = blockSize h - lb
 
 -- | This computes the padding for the sha family of hashes.
@@ -45,31 +45,32 @@ shaPadding lenSize prim lBits =  singleton firstPadByte
                               <> lPad
      where pLen        = shaPadLength lenSize prim lBits
            lPad        = toByteString l
-           l           = roundFloor lBits :: BITS Word64BE
+           l           = cryptoCoerce lBits :: BITS Word64BE
            BYTES zeros = pLen - length lPad - 1
 
 -- | Padding length for a 64-bit length appended hash like Blake256
 blakePadLength :: Primitive prim
-                 => BYTES Int      -- ^ The bytes need to encode the
-                                   -- message length
-                 -> prim           -- ^ The primitive
-                 -> BITS Word64    -- ^ The length of the message
-                 -> BYTES Int
-{-# INLINE blakePadLength #-}
-blakePadLength lenSize h l
-  | r >= lenSize + 1 = r
-  | otherwise        = r + blockSize h
-  where lb :: BYTES Int
-        lb    = roundFloor l `rem` blockSize h
-        r     = blockSize h - lb
-
--- | Padding string for a 64-bit length appended hash like Blake256
-blakePadding :: Primitive prim
                => BYTES Int      -- ^ The bytes need to encode the
                                  -- message length
                -> prim           -- ^ The primitive
                -> BITS Word64    -- ^ The length of the message
-               -> ByteString
+               -> BYTES Int
+{-# INLINE blakePadLength #-}
+
+blakePadLength lenSize h l
+  | r >= lenSize + 1 = r
+  | otherwise        = r + blockSize h
+  where lb :: BYTES Int
+        lb  = fst (bitsQuotRem l) `rem` blockSize h
+        r   = blockSize h - lb
+
+-- | Padding string for a 64-bit length appended hash like Blake256
+blakePadding :: Primitive prim
+             => BYTES Int      -- ^ The bytes need to encode the
+                                 -- message length
+             -> prim           -- ^ The primitive
+             -> BITS Word64    -- ^ The length of the message
+             -> ByteString
 {-# INLINE blakePadding #-}
 blakePadding lenSize prim lBits =  prefix
                                 <> lPad
@@ -79,6 +80,6 @@ blakePadding lenSize prim lBits =  prefix
                              <> singleton 0x01
           pLen      = blakePadLength lenSize prim lBits :: BYTES Int
           lPad      = toByteString l
-          l         = roundFloor lBits :: BITS Word64BE
+          l         = cryptoCoerce lBits :: BITS Word64BE
           numzero   = fromIntegral $ pLen - length lPad - 2
           zbs       = replicate numzero 0

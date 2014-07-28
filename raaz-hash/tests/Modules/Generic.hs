@@ -86,7 +86,7 @@ prop_padLengthVsPadding h w = padLength h w ==
 
 prop_LengthDivisibility :: Hash h => h -> BITS Word64 -> Bool
 prop_LengthDivisibility h w = len `rem` blockSize h == 0
-    where len = padLength h w + roundFloor w
+    where len = padLength h w + bitsQuot w
 
 -- | For an instance of @`Hash`@, this test checks whether the padding
 -- length computed using the function @`padLength`@ is equal to the

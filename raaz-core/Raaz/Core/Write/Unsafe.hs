@@ -55,28 +55,47 @@ runWriteForeignPtr fptr (Write action) = void $ withForeignPtr fptr action
 -- in defining the `poke` function for a complicated `Storable`
 -- instance.
 writeStorable :: Storable a => a -> Write
-writeStorable a = Write $ \ cptr -> do
-  poke (castPtr cptr) a
-  return $ cptr `movePtr` byteSize a
+writeStorable = writeElem pokeIt byteSize
+  where pokeIt cptr = poke (castPtr cptr)
 
 -- | Writes an instance of `EndianStore`. Endian safety is take into
 -- account here. This is what you would need when you write network
 -- packets for example. You can also use this to define the `store`
 -- function in a complicated `EndianStore` instance.
 write :: EndianStore a => a -> Write
-write a = Write $ \ cptr -> do
-  store cptr a
-  return $ cptr `movePtr` byteSize a
+write = writeElem store byteSize
 
--- | The combinator @writeBytes n b@ writes @b@ as the next @n@
--- consecutive bytes.
-writeBytes :: Rounding n (BYTES Int) => n -> Word8 -> Write
-writeBytes n b = Write $ \ cptr ->
-  memset cptr b bytes >> return (cptr `movePtr` n)
-  where bytes = roundFloor n :: BYTES Int
+-- | The combinator @writeBytes b n@ writes @b@ as the next @n@
+-- consecutive bytes. Here @n@ can be any type safe length unit.
+writeBytes :: LengthUnit n => Word8 -> n -> Write
+writeBytes w8 n = memsetIt `performAndMove` n
+  where memsetIt cptr = memset cptr w8 n
 
 -- | Writes a strict `ByteString`.
 writeByteString :: ByteString -> Write
-writeByteString bs = Write $ \ cptr ->
-  BU.unsafeCopyToCryptoPtr bs cptr >> return (cptr `movePtr` n)
-  where n = BU.length bs
+writeByteString = writeElem (flip BU.unsafeCopyToCryptoPtr) BU.length
+
+-------------------- Risky functions --------------------------------
+
+-- | Takes an element writer, a length calculator and an element at
+-- writes it.
+writeElem :: LengthUnit l
+          => (CryptoPtr -> a -> IO ())
+          -> (a -> l)
+          -> a
+          -> Write
+{-# INLINE writeElem #-}
+writeElem wa wLen a = flip wa a `performAndMove` wLen a
+
+
+
+-- | Perform the action on the crypto pointer and move the pointer by
+-- the given length.
+performAndMove :: LengthUnit l
+               => (CryptoPtr -> IO ())
+               -> l
+               -> Write
+{-# INLINE performAndMove #-}
+performAndMove action l = Write $ \ cptr -> do
+  void   $ action cptr
+  return $ cptr `movePtr` l
