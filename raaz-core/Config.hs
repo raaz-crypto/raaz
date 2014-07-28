@@ -30,11 +30,11 @@ import Config.Page(pageSize)
 
 -- | Size of the L1 cache.
 l1CacheSize :: Int
-l1CacheSize = 0
+l1CacheSize = 32768
 
 -- | Size of the L2 cache.
 l2CacheSize :: Int
-l2CacheSize = 0
+l2CacheSize = 32768
 
 -- | Size of a virtual memory page.
 defaultPageSize :: Int
