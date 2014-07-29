@@ -96,7 +96,7 @@ foreign import ccall unsafe
 -- | Primitive instance for Salsa20 where Context includes the Key,
 -- Nonce (8 Byte) and Counter (8 Byte).
 instance Primitive (Salsa20 r k) where
-  blockSize _ = fst (bitsQuotRem $ BITS (8 :: Word64))
+  blockSize _ = BYTES 1
   {-# INLINE blockSize #-}
   newtype Cxt (Salsa20 r k) = Salsa20Cxt (k, Nonce, Counter)
                             deriving (Eq,Show)
