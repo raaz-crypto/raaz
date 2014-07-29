@@ -150,7 +150,7 @@ ${PACKAGE_CLEAN}:
 travis-before-install:
 	sudo add-apt-repository -y ppa:hvr/ghc
 	sudo apt-get update
-	sudo apt-get install ${CABAL_PKG} ${GHC_PKG} happy
+	sudo apt-get install ${CABAL_PKG} ${GHC_PKG} happy haddock
 	${CABAL} update
 
 #
