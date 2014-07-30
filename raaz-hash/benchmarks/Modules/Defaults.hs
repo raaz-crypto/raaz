@@ -18,13 +18,13 @@ import Raaz.Core.Primitives.Hash
 
 -- | Number of Blocks to run benchmarks on.
 nBlocks :: (Gadget g) => g -> BLOCKS (PrimitiveOf g)
-nBlocks g = roundFloor nSize
+nBlocks g = atMost nSize
 
 nSize :: BYTES Int
 nSize = 1024 * 1024
 
 benchHash g = do
-  g' <- createGadget g
+  g'     <- createGadget g
   return $ benchGadgetWith g' def (nBlocks g')
 
 benchmarksAll h = sequence
