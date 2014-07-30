@@ -55,6 +55,14 @@ instance Eq BLAKE256 where
       .|. xor g7 h7
       == 0
 
+instance Eq Salt where
+  (==) (Salt g0 g1 g2 g3) (Salt h0 h1 h2 h3)
+      =  xor g0 h0
+      .|. xor g1 h1
+      .|. xor g2 h2
+      .|. xor g3 h3
+      == 0
+      
 instance HasName BLAKE256
 
 instance Digestible BLAKE256 where
@@ -171,7 +179,8 @@ instance EndianStore Salt where
 instance Primitive BLAKE256 where
   blockSize _ = BYTES 64
   {-# INLINE blockSize #-}
-  data Cxt BLAKE256 = BLAKE256Cxt BLAKE256 Salt (BITS Word64)
+  data Cxt BLAKE256 = BLAKE256Cxt BLAKE256 Salt (BITS Word64) deriving (Eq, Show)
+  
 
 instance SafePrimitive BLAKE256
 

@@ -91,7 +91,7 @@ instance EndianStore SHA1 where
 instance Primitive SHA1 where
   blockSize _ = BYTES 64
   {-# INLINE blockSize #-}
-  newtype Cxt SHA1 = SHA1Cxt SHA1 deriving (Eq, Storable)
+  newtype Cxt SHA1 = SHA1Cxt SHA1 deriving (Eq, Show, Storable)
 
 instance SafePrimitive SHA1
 

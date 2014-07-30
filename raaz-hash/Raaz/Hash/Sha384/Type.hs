@@ -105,7 +105,7 @@ instance EndianStore SHA384 where
 instance Primitive SHA384 where
   blockSize _ = BYTES 128
   {-# INLINE blockSize #-}
-  newtype Cxt SHA384 = SHA384Cxt SHA512 deriving (Eq, Storable)
+  newtype Cxt SHA384 = SHA384Cxt SHA512 deriving (Eq, Show, Storable)
 
 instance SafePrimitive SHA384
 

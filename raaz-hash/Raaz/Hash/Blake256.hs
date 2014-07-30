@@ -25,11 +25,11 @@ import Raaz.Hash.Blake256.Instance()
 sourceBlake256 :: ByteSource src => src -> IO BLAKE256
 sourceBlake256 = sourceHash
 
--- | Compute the sha1 hash of a file.
+-- | Compute the blake256 hash of a file.
 blake256File   :: FilePath -> IO BLAKE256
 blake256File   = hashFile
 
--- | Compute the sha1 hash of a pure byte source.
+-- | Compute the blake256 hash of a pure byte source.
 blake256       :: PureByteSource src => src -> BLAKE256
 blake256       = hash
 {-# SPECIALIZE blake256 :: B.ByteString -> BLAKE256 #-}

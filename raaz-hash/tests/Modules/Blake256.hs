@@ -26,8 +26,10 @@ instance Arbitrary BLAKE256 where
                         <*> arbitrary
                         <*> arbitrary
                         <*> arbitrary
+                        
+tests = allHashTests (undefined ::BLAKE256) exampleStrings
 
-tests = [ testStoreLoad h
+{-tests = [ testStoreLoad h
         , testPadLengthVsPadding h
         , testLengthDivisibility h
         , testGroup unitTestName unitTests
@@ -35,7 +37,8 @@ tests = [ testStoreLoad h
         where h             = (undefined ::BLAKE256)
               unitTestName  = unwords [show $ typeOf h, "Unit tests"]
               unitTests     = testStandardHashValues h pairs
-              pairs         = exampleStrings
+              pairs         = exampleStrings-}
+
 
 exampleStrings :: [(B.ByteString,B.ByteString)]
 exampleStrings = map convertToByteString
