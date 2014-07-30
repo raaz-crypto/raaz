@@ -27,12 +27,16 @@ source-repository head
 library
   exposed-modules: Raaz.Hash
                  , Raaz.Hash.Blake256
+                 , Raaz.Hash.Blake2b
+                 , Raaz.Hash.Blake2s
                  , Raaz.Hash.Sha1
                  , Raaz.Hash.Sha224
                  , Raaz.Hash.Sha256
                  , Raaz.Hash.Sha384
                  , Raaz.Hash.Sha512
                  , Raaz.Hash.Blake256.Internal
+                 , Raaz.Hash.Blake2b.Internal
+                 , Raaz.Hash.Blake2s.Internal
                  , Raaz.Hash.Sha1.Internal
                  , Raaz.Hash.Sha224.Internal
                  , Raaz.Hash.Sha256.Internal
@@ -42,6 +46,12 @@ library
                , Raaz.Hash.Blake256.Ref
                , Raaz.Hash.Blake256.Type
                , Raaz.Hash.Blake256.CPortable
+               , Raaz.Hash.Blake2b.Instance
+               , Raaz.Hash.Blake2b.Type
+               , Raaz.Hash.Blake2b.CPortable               
+               , Raaz.Hash.Blake2s.Instance
+               , Raaz.Hash.Blake2s.Type
+               , Raaz.Hash.Blake2s.CPortable               
                , Raaz.Hash.Sha1.Instance
                , Raaz.Hash.Sha1.Ref
                , Raaz.Hash.Sha1.CPortable
@@ -76,6 +86,8 @@ library
   else
       ghc-options: -Wall
   c-sources: cbits/raaz/hash/sha1/portable.c
+           , cbits/raaz/hash/blake2b/portable.c
+           , cbits/raaz/hash/blake2s/portable.c
            , cbits/raaz/hash/blake256/portable.c
            , cbits/raaz/hash/sha256/portable.c
            , cbits/raaz/hash/sha512/portable.c
@@ -95,6 +107,8 @@ test-Suite tests
   main-is: Main.hs
 
   other-modules: Modules.Blake256
+               , Modules.Blake2b
+               , Modules.Blake2s
                , Modules.Generic
                , Modules.Sha1
                , Modules.Sha224

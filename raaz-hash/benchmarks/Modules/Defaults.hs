@@ -28,11 +28,11 @@ benchHash g = do
   return $ benchGadgetWith g' def (nBlocks g')
 
 benchmarksAll h = sequence
-                  [ benchHash (toH h)
-                  , benchHash (toC h)
+                  [ --benchHash (toH h)
+                     benchHash (toC h)
                   ]
   where
-    toH :: p -> HGadget p
-    toH _ = undefined
+    --toH :: p -> HGadget p
+    --toH _ = undefined
     toC :: p -> CGadget p
     toC _ = undefined

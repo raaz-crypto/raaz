@@ -20,9 +20,13 @@ module Raaz.Hash
        , module Raaz.Hash.Sha384
        , module Raaz.Hash.Sha512
        , module Raaz.Hash.Blake256
+       , module Raaz.Hash.Blake2b
+       , module Raaz.Hash.Blake2s
        ) where
 
 import Raaz.Hash.Blake256 hiding ( toByteString, toHex )
+import Raaz.Hash.Blake2b  hiding ( toByteString, toHex )
+import Raaz.Hash.Blake2s  hiding ( toByteString, toHex )
 import Raaz.Hash.Sha1     hiding ( toByteString, toHex )
 import Raaz.Hash.Sha224   hiding ( toByteString, toHex )
 import Raaz.Hash.Sha256   hiding ( toByteString, toHex )
