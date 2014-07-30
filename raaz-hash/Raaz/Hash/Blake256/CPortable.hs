@@ -13,9 +13,7 @@ Portable C implementation of blake256 hash.
 
 module Raaz.Hash.Blake256.CPortable () where
 
-import Control.Applicative ( (<$>) )
 import Data.Word
-import Foreign.Ptr
 import Raaz.Core.Memory
 import Raaz.Core.Primitives
 import Raaz.Core.Types
@@ -58,7 +56,7 @@ instance Gadget (CGadget BLAKE256) where
     c <- cellLoad cellCounter
     return $ BLAKE256Cxt b s c
 
-  apply (CGadget cc@(cellBlake, cellSalt, cellCounter)) n cptr = do
+  apply (CGadget (cellBlake, cellSalt, cellCounter)) n cptr = do
     counter <- cellLoad cellCounter
     cellModify cellCounter $ (+) (inBits n)
     blake256Compress cellBlake cellSalt counter n cptr

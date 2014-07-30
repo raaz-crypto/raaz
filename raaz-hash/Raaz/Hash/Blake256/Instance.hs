@@ -22,7 +22,7 @@ import Raaz.Core.Util.Ptr
 
 import Raaz.Hash.Blake256.Type
 import Raaz.Hash.Blake256.Ref
-import Raaz.Hash.Blake256.CPortable
+import Raaz.Hash.Blake256.CPortable()
 
 ----------------------------- BLAKE256 -------------------------------------------
 
