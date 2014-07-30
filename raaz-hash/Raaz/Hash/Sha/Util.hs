@@ -29,7 +29,7 @@ shaPadLength lenSize h l
   | r >= lenSize + 1 = r
   | otherwise        = r + blockSize h
   where lb :: BYTES Int
-        lb = fst (bitsQuotRem l) `rem` blockSize h
+        lb = bitsQuot l `rem` blockSize h
         r  = blockSize h - lb
 
 -- | This computes the padding for the sha family of hashes.
@@ -37,7 +37,7 @@ shaPadding :: Primitive prim
            => BYTES Int      -- ^ The bytes need to encode the
                              -- message length
            -> prim           -- ^ The primitive
-           -> BITS Word64  -- ^ The length of the message
+           -> BITS Word64    -- ^ The length of the message
            -> ByteString
 {-# INLINEABLE shaPadding #-}
 shaPadding lenSize prim lBits =  singleton firstPadByte
@@ -61,7 +61,7 @@ blakePadLength lenSize h l
   | r >= lenSize + 1 = r
   | otherwise        = r + blockSize h
   where lb :: BYTES Int
-        lb  = fst (bitsQuotRem l) `rem` blockSize h
+        lb  = bitsQuot l `rem` blockSize h
         r   = blockSize h - lb
 
 -- | Padding string for a 64-bit length appended hash like Blake256
