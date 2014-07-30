@@ -73,12 +73,12 @@ endif
 ifdef CABAL_VERSION
 
 CABAL_PKG=cabal-install-${CABAL_VERSION}
-CABAL=cabal-${CABAL_VERSION}
+CABAL=cabal-${CABAL_VERSION} ${CABAL_OPT}
 
 else
 
 CABAL_PKG=cabal-install
-CABAL=cabal
+CABAL=cabal ${CABAL_OPTS}
 
 endif
 
