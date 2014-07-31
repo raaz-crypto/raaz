@@ -69,13 +69,6 @@ GHC_PKG=ghc
 
 endif
 
-ifeq ($(strip ${PARALLEL_BUILDS}),yes)
-PARALLEL_OPTS=-j
-else
-PARALLEL_OPTS=
-endif
-
-
 ifdef CABAL_VERSION
 
 CABAL_PKG=cabal-install-${CABAL_VERSION}
@@ -87,6 +80,14 @@ CABAL_PKG=cabal-install
 CABAL=cabal
 
 endif
+
+ifeq ($(strip ${PARALLEL_BUILDS}),yes)
+PARALLEL_OPTS=-j
+else
+PARALLEL_OPTS=
+endif
+
+
 
 # Setting the cabal install DEPENDENCIES
 DEPENDENCIES=$(foreach cons, ${PACKAGE_CONSTRAINTS} \
@@ -104,12 +105,12 @@ scripts:
 
 echo-variables:
 	@echo Makefile variables.
-	@echo -e '\t'CABAL_VERSION=${CABAL_VERSION}
-	@echo -e '\t'CABAL_CONFIG=${CABAL_CONFIG}
+	@echo -e '\t'ghc-pkg,cabal-pkg: ${GHC_PKG} ${CABAL_PKG}
+	@echo -e '\t'CABAL=${CABAL}
+	@echo -e '\t'PARALLEL_OPTS=${PARALLEL_OPTS}
 	@echo -e '\t'GHC_VERSION=${GHC_VERSION}
 	@echo -e '\t'HASKELL_PLATFORM=${HASKELL_PLATFORM}
-
-	@echo -e '\t'ghc,cabal: ${GHC_PKG} ${CABAL_PKG}
+	@echo -e '\t'PARALLEL_BUILDS=${PARALLEL_BUILDS}
 	@echo -e '\t'DEPENDENCIES: ${DEPENDENCIES}
 	@echo -e '\t'RAAZ_TAR_GZ: ${RAAZ_TAR_GZ}
 

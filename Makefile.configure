@@ -24,12 +24,12 @@ PACKAGE_CONSTAINTS=
 # build). Better set in the Travis build matrix/or platform specific
 # config files.
 
-GHC_VERSION=
+GHC_VERSION?=
 
 # Version of cabal to use. Again better set in travis build matrix or
 # platform specific config files.
 
-CABAL_VERSION=
+CABAL_VERSION?=
 
 # Additional constraints on packages so that it builds properly.
 
