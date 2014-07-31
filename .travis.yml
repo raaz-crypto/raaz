@@ -5,13 +5,13 @@ env:
   # problems sometimes and connection fails. We would want at-least
   # this build to go throught.
   #
-  - GHC_VERSION= CABAL_VERSION=
+  # - GHC_VERSION= CABAL_VERSION=
   #
   # - GHC_VERSION=7.4.2 CABAL_VERSION=1.18
   # - GHC_VERSION=7.6.3 CABAL_VERSION=1.18
   # Add specific platforms. Make sure to add the corresponding cabal
   # config files in the platform subdirectory.
-  # - HASKELL_PLATFORM=2012.2.0.0 CABAL_VERSION=1.18
+  - HASKELL_PLATFORM=2012.4.0.0 CABAL_VERSION=1.20 PARALLEL_BUILDS="yes"
   - HASKELL_PLATFORM=2013.2.0.0 CABAL_VERSION=1.20 PARALLEL_BUILDS="yes"
   - GHC_VERSION=7.8.1 CABAL_VERSION=1.20 PARALLEL_BUILDS="yes"
 before_install:
