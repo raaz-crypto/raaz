@@ -1,19 +1,34 @@
 notifications:
   irc: "irc.freenode.net#haskell-raaz"
 env:
-  # Default travis build. The hvr's ghc ppa seems to have some
-  # problems sometimes and connection fails. We would want at-least
-  # this build to go throught.
+  # Variables.
+  # 1. GHC_VERSION: The version of ghc to build against. If not set
+  #    the default version of haskell on travis build system in used.
   #
-  - GHC_VERSION= CABAL_VERSION=
+  # 2. CABAL_VERSION: The version of cabal install command to use. If
+  #    not set the default version available is used.
   #
-  # - GHC_VERSION=7.4.2 CABAL_VERSION=1.18
-  # - GHC_VERSION=7.6.3 CABAL_VERSION=1.18
-  # Add specific platforms. Make sure to add the corresponding cabal
-  # config files in the platform subdirectory.
-  # - HASKELL_PLATFORM=2012.2.0.0 CABAL_VERSION=1.18
-  - HASKELL_PLATFORM=2013.2.0.0 CABAL_VERSION=1.20 PARALLEL_BUILDS="yes"
-  - GHC_VERSION=7.8.1 CABAL_VERSION=1.20 PARALLEL_BUILDS="yes"
+  # 3. PARALLEL_BUILDS: Whether the version of cabal install supports
+  #    parallel builds. Set it to "yes" if the version of cabal
+  #    install supports parallel builds.
+  #
+  # 4. PACKAGE_CONSTRAINTS: The constraints to put on packages.
+  #
+  # 5. HASKELL_PLATFORM: You can build against a give platform. The
+  #    corresponding makefile:
+  #    ./platform/${HASKELL_PLATFORM}/Makefile.configure should
+  #    exist. The platform makefile should usually set the GHC_VERSION
+  #    and PACKAGE_CONSTRAINTS
+  #
+  # 6. ADDITIONAL_CONSTRAINTS: Set additional constraints on certain
+  #    problematic packages.
+  global:
+    - ADDITIONAL_CONSTRAINTS=
+  matrix:
+    - GHC_VERSION=7.8.3 CABAL_VERSION=1.20 PARALLEL_BUILDS="yes"
+    - HASKELL_PLATFORM=2013.2.0.0 CABAL_VERSION=1.20 PARALLEL_BUILDS="yes"
+    - HASKELL_PLATFORM=2012.4.0.0 CABAL_VERSION=1.20 PARALLEL_BUILDS="yes"
+    - HASKELL_PLATFORM=2012.2.0.0 CABAL_VERSION=1.20 PARALLEL_BUILDS="yes"
 before_install:
   - "make travis-before-install"
   - "make echo-variables"
