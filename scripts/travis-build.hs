@@ -6,6 +6,7 @@ import           Control.Applicative
 import           Data.List
 import qualified Data.Map                              as Map  
 import           Data.Maybe
+import qualified Data.Set                              as Set
 import           Distribution.Package
 import           Distribution.PackageDescription
 import           Distribution.PackageDescription.Parse
@@ -33,12 +34,13 @@ newtype Packages = Packages { getPackages :: [PackageName] } deriving Show
 -- which is then installed.
 main :: IO ()
 main = do allgpds <- getAllGPD allPackages
-          exitCode <- buildPackages . resolveDependency 
-                                    . getPackageDepency allPackages $ allgpds
-          case exitCode of ExitSuccess -> do putStrLn "All is well."
-                                             exitSuccess
-                           otherwise   -> do putStrLn "Build failed."
-                                             exitFailure
+          putStrLn . show $ getNonRaazDependencies allPackages allgpds
+          --exitCode <- buildPackages . resolveDependency 
+          --                          . getPackageDepency allPackages $ allgpds
+          --case exitCode of ExitSuccess -> do putStrLn "All is well."
+          --                                   exitSuccess
+          --                 otherwise   -> do putStrLn "Build failed."
+          --                                   exitFailure
 
 -- | To build all packages linearly
 buildPackages :: [PackageName] -> IO ExitCode
@@ -123,6 +125,15 @@ getPackageDepency packages gpds = foldl foldFn Map.empty zipped
                   where filterFn x = x `elem` (getPackages packages)
                                      && x /= package
         foldFn map (package, dependency) = Map.insert package dependency map
+
+getNonRaazDependencies :: Packages
+                       -> [GenericPackageDescription]
+                       -> [PackageName]
+getNonRaazDependencies packages gpds = Set.toList . Set.fromList 
+                                                  . concat $ map mapFn gpds
+  where mapFn gpd = filter filterFn $ getDepencyList gpd
+          where filterFn x = not $ x `elem` (getPackages packages)
+
 
 -- | Get package names of the dependencies
 getDepencyList :: GenericPackageDescription -> [PackageName]
