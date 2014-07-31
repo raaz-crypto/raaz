@@ -69,16 +69,22 @@ GHC_PKG=ghc
 
 endif
 
+ifeq ($(strip ${PARALLEL_BUILDS}),yes)
+PARALLEL_OPTS=-j
+else
+PARALLEL_OPTS=
+endif
+
 
 ifdef CABAL_VERSION
 
 CABAL_PKG=cabal-install-${CABAL_VERSION}
-CABAL=cabal-${CABAL_VERSION} ${CABAL_OPT}
+CABAL=cabal-${CABAL_VERSION}
 
 else
 
 CABAL_PKG=cabal-install
-CABAL=cabal ${CABAL_OPTS}
+CABAL=cabal
 
 endif
 
@@ -108,7 +114,7 @@ echo-variables:
 	@echo -e '\t'RAAZ_TAR_GZ: ${RAAZ_TAR_GZ}
 
 install: src-tarball
-	${CABAL_INSTALL} --only-dependencies \
+	${CABAL_INSTALL} ${PARALLEL_OPTS} --only-dependencies \
 		${RAAZ_TAR_GZ}
 	${CABAL_INSTALL} --enable-tests --enable-benchmarks \
 		 --enable-documentation \
