@@ -131,7 +131,7 @@ tests:
 
 src-tarball:
 	cd raaz-core; \
-	   ${CABAL_INSTALL} --only-dependencies; \
+	   ${CABAL_INSTALL} ${PARALLEL_OPTS} --only-dependencies; \
 	   ${CABAL} configure;\
 	   cd ..
 	$(foreach pkg, ${PACKAGES},\
