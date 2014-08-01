@@ -38,7 +38,8 @@ library
                  , Raaz.Hash.Sha256.Internal
                  , Raaz.Hash.Sha384.Internal
                  , Raaz.Hash.Sha512.Internal
-  other-modules: Raaz.Hash.Blake256.Instance
+  other-modules: Raaz.Hash.Blake.Util
+               , Raaz.Hash.Blake256.Instance
                , Raaz.Hash.Blake256.Ref
                , Raaz.Hash.Blake256.Type
                , Raaz.Hash.Blake256.CPortable

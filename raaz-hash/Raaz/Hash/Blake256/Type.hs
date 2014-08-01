@@ -22,7 +22,7 @@ import Raaz.Core.Primitives
 import Raaz.Core.Types
 import Raaz.Core.Write.Unsafe
 
-import Raaz.Hash.Sha.Util
+import Raaz.Hash.Blake.Util
 
 ------------------------------------BLAKE256----------------------------------
 
