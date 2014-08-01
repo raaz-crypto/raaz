@@ -2,14 +2,14 @@ module Raaz.Hash.Sha.Util
        ( shaPadLength, shaPadding
        ) where
 
-import Data.ByteString      hiding  ( length            )
-import Data.Monoid                  ( (<>)              )
+import Data.ByteString              ( ByteString, singleton )
+import Data.Monoid                  ( (<>)      )
 import Data.Word
-import Prelude              hiding  ( length, replicate )
+import Prelude              hiding  ( replicate )
 
 import Raaz.Core.Primitives
 import Raaz.Core.Types
-import Raaz.Core.Util.ByteString ( length )
+import Raaz.Core.Util.ByteString ( replicate )
 
 -- The padding used by sha family of hashes is as follows
 --
@@ -38,8 +38,7 @@ shaPadLength :: Primitive prim
 shaPadLength lenSize h l
   | r >= lenSize + 1 = r
   | otherwise        = r + blockSize h
-  where lb :: BYTES Int
-        lb = bitsQuot l `rem` blockSize h
+  where lb = bitsQuot l `rem` blockSize h
         r  = blockSize h - lb
 
 -- | This computes the padding for the sha family of hashes.
@@ -53,7 +52,7 @@ shaPadding :: Primitive prim
 shaPadding lenSize prim lBits =  singleton firstPadByte
                               <> replicate zeros 0
                               <> lPad
-     where pLen        = shaPadLength lenSize prim lBits
-           lPad        = toByteString l
-           l           = cryptoCoerce lBits :: BITS Word64BE
-           BYTES zeros = pLen - length lPad - 1
+     where pLen  = shaPadLength lenSize prim lBits
+           lPad  = toByteString l
+           l     = cryptoCoerce lBits :: BITS Word64BE
+           zeros = pLen - 1 - 8
