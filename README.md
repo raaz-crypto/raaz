@@ -20,11 +20,11 @@ For details please refer to [our wiki][wiki].
 
 [![Build Staus][travis-status]][travis-raaz]
 
-[wiki]: <https://github.com/piyush-kurur/raaz/wiki> "Raaz Wiki"
-[repo]: <https://github.com/piyush-kurur/raaz> "Raaz on github"
+[wiki]: <https://github.com/raaz-crypto/raaz/wiki> "Raaz Wiki"
+[repo]: <https://github.com/raaz-crypto/raaz> "Raaz on github"
 
 [emailgroups]: <https://groups.google.com/forum/#!forum/hraaz> "Raaz on Google groups"
 
-[travis-status]: <https://secure.travis-ci.org/piyush-kurur/raaz.png> "Build status"
+[travis-status]: <https://secure.travis-ci.org/raaz-crypto/raaz.png> "Build status"
 
-[travis-raaz]: <https://travis-ci.org/piyush-kurur/raaz>
+[travis-raaz]: <https://travis-ci.org/raaz-crypto/raaz>
