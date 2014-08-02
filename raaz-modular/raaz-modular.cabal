@@ -1,7 +1,7 @@
 name:          raaz-modular
 version:       0.0.0.1
 synopsis:      Implementation of the Modular arithmetic based algorithms for raaz library
-homepage:      http://github.com/piyush-kurur/raaz
+homepage:      http://github.com/raaz-crypto/raaz
 license:       BSD3
 license-file:  LICENSE
 author:        Satvik Chauhan
@@ -10,11 +10,11 @@ category:      Codec, Raaz
 build-type:    Simple
 cabal-version: >=1.9.2
 
-bug-reports: https://github.com/piyush-kurur/raaz/issues
+bug-reports: https://github.com/raaz-crypto/raaz/issues
 
 source-repository head
   type: git
-  location: https://github.com/piyush-kurur/raaz
+  location: https://github.com/raaz-crypto/raaz
   subdir: raaz-modular
 
 library

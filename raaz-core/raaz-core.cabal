@@ -9,7 +9,7 @@ description: This package defines core types and classes that is used
   Besides the basic types and classes, it defines cryptographic
   primitives like hashes, ciphers, macs etc..
 
-homepage: http://github.com/piyush-kurur/raaz
+homepage: http://github.com/raaz-crypto/raaz
 
 license:      BSD3
 license-file: LICENSE
@@ -20,7 +20,7 @@ category:      Codec, Raaz
 build-type:    Custom
 cabal-version: >=1.9.2
 
-bug-reports: https://github.com/piyush-kurur/raaz/issues
+bug-reports: https://github.com/raaz-crypto/raaz/issues
 
 -- These files are used by the setup script.
 extra-source-files: Config.hs
@@ -54,7 +54,7 @@ extra-source-files: Config.hs
 
 source-repository head
   type: git
-  location: https://github.com/piyush-kurur/raaz
+  location: https://github.com/raaz-crypto/raaz
   subdir: raaz-core
 
 flag auto-configure

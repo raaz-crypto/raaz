@@ -1,7 +1,7 @@
 name:          raaz-cipher
 version:       0.0.0.1
 synopsis:      Implementation of the AES cipher for raaz library
-homepage:      http://github.com/piyush-kurur/raaz
+homepage:      http://github.com/raaz-crypto/raaz
 license:       BSD3
 license-file:  LICENSE
 author:        Satvik Chauhan
@@ -10,7 +10,7 @@ category:      Codec, Raaz
 build-type:    Simple
 cabal-version: >=1.9.2
 
-bug-reports: https://github.com/piyush-kurur/raaz/issues
+bug-reports: https://github.com/raaz-crypto/raaz/issues
 
 extra-source-files: ecryptTestData/salsa20_20.vectors
                   , ecryptTestData/salsa20_12.vectors
@@ -18,7 +18,7 @@ extra-source-files: ecryptTestData/salsa20_20.vectors
 
 source-repository head
   type: git
-  location: https://github.com/piyush-kurur/raaz
+  location: https://github.com/raaz-crypto/raaz
   subdir: raaz-cipher
 
 library
