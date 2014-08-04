@@ -25,6 +25,7 @@ import Control.Applicative  ( (<$>), (<*>)         )
 import Data.Bits            ( xor, (.|.), Bits(..) )
 import Data.Monoid          ( (<>)                 )
 import Data.Typeable        ( Typeable             )
+import Data.Word
 import Foreign.Ptr          ( castPtr              )
 import Foreign.Storable     ( sizeOf,Storable(..)  )
 import Numeric              ( showHex              )
@@ -35,10 +36,10 @@ import Raaz.Core.Parse.Unsafe
 import Raaz.Core.Write.Unsafe
 
 -- | AES State
-data STATE = STATE {-# UNPACK #-} !Word32BE
-                   {-# UNPACK #-} !Word32BE
-                   {-# UNPACK #-} !Word32BE
-                   {-# UNPACK #-} !Word32BE
+data STATE = STATE {-# UNPACK #-} !(BE Word32)
+                   {-# UNPACK #-} !(BE Word32)
+                   {-# UNPACK #-} !(BE Word32)
+                   {-# UNPACK #-} !(BE Word32)
          deriving Typeable
 
 instance Show STATE where
@@ -70,7 +71,7 @@ incrState = transpose . incr . invTranspose
         r0 = ifincr r1 w0
 
 -- | Maps a function over `STATE`.
-fmapState :: (Word32BE -> Word32BE) -> STATE -> STATE
+fmapState :: ((BE Word32) -> (BE Word32)) -> STATE -> STATE
 fmapState f (STATE s0 s1 s2 s3) = STATE (f s0) (f s1) (f s2) (f s3)
 
 -- | Expanded Key for 128 Bit Key
@@ -147,7 +148,7 @@ writeState (STATE s0 s1 s2 s3) = write s0
 
 
 instance Storable STATE where
-  sizeOf    _ = 4 * sizeOf (undefined :: Word32BE)
+  sizeOf    _ = 4 * sizeOf (undefined :: (BE Word32))
   alignment _ = alignment  (undefined :: CryptoAlign)
   peek cptr = runParser (castPtr cptr) parseState
   poke cptr state = runWrite (castPtr cptr) $ writeState state
@@ -340,8 +341,8 @@ instance Storable Expanded256 where
           pos14   = pos13 + offset
           offset = sizeOf (undefined:: STATE)
 
--- | Constructs a Word32BE from Least significan 8 bits of given 4 words
-constructWord32BE :: Word32BE -> Word32BE -> Word32BE -> Word32BE -> Word32BE
+-- | Constructs a (BE Word32) from Least significan 8 bits of given 4 words
+constructWord32BE :: (BE Word32) -> (BE Word32) -> (BE Word32) -> (BE Word32) -> (BE Word32)
 constructWord32BE w0 w1 w2 w3 = r3 `xor` r2 `xor` r1 `xor` r0
   where
     mask w = w .&. 0x000000FF
@@ -398,10 +399,10 @@ invTranspose (STATE w0 w1 w2 w3) =
     s33 = w3
 
 -- | 128 Bit Key
-data KEY128 = KEY128 {-# UNPACK #-} !Word32BE
-                     {-# UNPACK #-} !Word32BE
-                     {-# UNPACK #-} !Word32BE
-                     {-# UNPACK #-} !Word32BE
+data KEY128 = KEY128 {-# UNPACK #-} !(BE Word32)
+                     {-# UNPACK #-} !(BE Word32)
+                     {-# UNPACK #-} !(BE Word32)
+                     {-# UNPACK #-} !(BE Word32)
          deriving Typeable
 
 -- | Hexadecimal Show instance
@@ -416,12 +417,12 @@ instance Show KEY128 where
                             $ showWord32 w3 ""
 
 -- | 192 Bit Key
-data KEY192 = KEY192 {-# UNPACK #-} !Word32BE
-                     {-# UNPACK #-} !Word32BE
-                     {-# UNPACK #-} !Word32BE
-                     {-# UNPACK #-} !Word32BE
-                     {-# UNPACK #-} !Word32BE
-                     {-# UNPACK #-} !Word32BE
+data KEY192 = KEY192 {-# UNPACK #-} !(BE Word32)
+                     {-# UNPACK #-} !(BE Word32)
+                     {-# UNPACK #-} !(BE Word32)
+                     {-# UNPACK #-} !(BE Word32)
+                     {-# UNPACK #-} !(BE Word32)
+                     {-# UNPACK #-} !(BE Word32)
          deriving Typeable
 
 -- | Hexadecimal Show instance
@@ -440,14 +441,14 @@ instance Show KEY192 where
                                   $ showWord32 w5 ""
 
 -- | 256 Bit Key
-data KEY256 = KEY256 {-# UNPACK #-} !Word32BE
-                     {-# UNPACK #-} !Word32BE
-                     {-# UNPACK #-} !Word32BE
-                     {-# UNPACK #-} !Word32BE
-                     {-# UNPACK #-} !Word32BE
-                     {-# UNPACK #-} !Word32BE
-                     {-# UNPACK #-} !Word32BE
-                     {-# UNPACK #-} !Word32BE
+data KEY256 = KEY256 {-# UNPACK #-} !(BE Word32)
+                     {-# UNPACK #-} !(BE Word32)
+                     {-# UNPACK #-} !(BE Word32)
+                     {-# UNPACK #-} !(BE Word32)
+                     {-# UNPACK #-} !(BE Word32)
+                     {-# UNPACK #-} !(BE Word32)
+                     {-# UNPACK #-} !(BE Word32)
+                     {-# UNPACK #-} !(BE Word32)
          deriving Typeable
 
 -- | Hexadecimal Show instance
@@ -515,7 +516,7 @@ writeKey128 (KEY128 s0 s1 s2 s3) = write s0
                                 <> write s3
 
 instance Storable KEY128 where
-  sizeOf    _ = 4 * sizeOf (undefined :: Word32BE)
+  sizeOf    _ = 4 * sizeOf (undefined :: (BE Word32))
   alignment _ = alignment  (undefined :: CryptoAlign)
   peek cptr = runParser (castPtr cptr) parseKey128
   poke cptr key128 = runWrite (castPtr cptr) $ writeKey128 key128
@@ -543,7 +544,7 @@ writeKey192 (KEY192 s0 s1 s2 s3 s4 s5) = write s0
                                       <> write s5
 
 instance Storable KEY192 where
-  sizeOf    _ = 6 * sizeOf (undefined :: Word32BE)
+  sizeOf    _ = 6 * sizeOf (undefined :: (BE Word32))
   alignment _ = alignment  (undefined :: CryptoAlign)
   peek cptr = runParser (castPtr cptr) parseKey192
   poke cptr key192 = runWrite (castPtr cptr) $ writeKey192 key192
@@ -575,7 +576,7 @@ writeKey256 (KEY256 s0 s1 s2 s3 s4 s5 s6 s7) = write s0
                                             <> write s7
 
 instance Storable KEY256 where
-  sizeOf    _ = 8 * sizeOf (undefined :: Word32BE)
+  sizeOf    _ = 8 * sizeOf (undefined :: (BE Word32))
   alignment _ = alignment  (undefined :: CryptoAlign)
   peek cptr = runParser (castPtr cptr) parseKey256
   poke cptr key256 = runWrite (castPtr cptr) $ writeKey256 key256
@@ -586,7 +587,7 @@ instance EndianStore KEY256 where
 
 instance CryptoSerialize KEY256
 
-showWord32 :: Word32BE -> ShowS
+showWord32 :: (BE Word32) -> ShowS
 showWord32 w = showString $ "0x" ++ replicate (8 - length hex) '0' ++ hex
   where
     hex = showHex w ""
