@@ -54,6 +54,9 @@ before_install:
   - echo PARALLEL_BUILDS=${PARALLEL_BUILDS}
   - ghc -o travis scripts/travis-build.hs
 install: ./travis install
+before_script:
+  - ./travis config
+  - ./travis build
 script: "echo tests already run."
 branches:
   only:
