@@ -119,7 +119,8 @@ echo-variables:
 	@echo -e '\t'RAAZ_TAR_GZ: ${RAAZ_TAR_GZ}
 
 install: src-tarball
-	${CABAL_INSTALL} ${PARALLEL_OPTS} --only-dependencies \
+	${CABAL_INSTALL} ${PARALLEL_OPTS} --enable-tests \
+		--only-dependencies \
 		${RAAZ_TAR_GZ}
 	${CABAL_INSTALL} --enable-tests --enable-benchmarks \
 		 --enable-documentation \
@@ -136,7 +137,8 @@ tests:
 
 src-tarball:
 	cd raaz-core; \
-	   ${CABAL_INSTALL} ${PARALLEL_OPTS} --only-dependencies; \
+	   ${CABAL_INSTALL} ${PARALLEL_OPTS} --enable-tests \
+		--only-dependencies; \
 	   ${CABAL} configure;\
 	   cd ..
 	$(foreach pkg, ${PACKAGES},\
