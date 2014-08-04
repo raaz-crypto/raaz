@@ -198,7 +198,7 @@ sigma _ _  = error "Wrong input to sigma function"
 
 
 -- | The sixteen constants of BLAKE-256
-lookUpC :: Int -> Word32BE
+lookUpC :: Int -> (BE Word32)
 lookUpC 0  = 0x243F6A88
 lookUpC 1  = 0x85A308D3
 lookUpC 2  = 0x13198A2E
@@ -218,7 +218,7 @@ lookUpC 15 = 0xB5470917
 lookUpC _  = error "Wrong input to lookUpC function"
 
 -- | State is 4 word pair on which roundG function is applied
-type State  = (Word32BE, Word32BE, Word32BE, Word32BE)
+type State  = ((BE Word32), (BE Word32), (BE Word32), (BE Word32))
 
 -- | Matrix is 16 word pair on which the Diagonal and Column steps are applied
 type Matrix = (State, State, State, State)
@@ -226,24 +226,24 @@ type Matrix = (State, State, State, State)
 -- Compress function
 compress :: BLAKE256
          -> Salt
-         -> Word32BE
-         -> Word32BE
-         -> Word32BE
-         -> Word32BE
-         -> Word32BE
-         -> Word32BE
-         -> Word32BE
-         -> Word32BE
-         -> Word32BE
-         -> Word32BE
-         -> Word32BE
-         -> Word32BE
-         -> Word32BE
-         -> Word32BE
-         -> Word32BE
-         -> Word32BE
-         -> Word32BE
-         -> Word32BE
+         -> (BE Word32)
+         -> (BE Word32)
+         -> (BE Word32)
+         -> (BE Word32)
+         -> (BE Word32)
+         -> (BE Word32)
+         -> (BE Word32)
+         -> (BE Word32)
+         -> (BE Word32)
+         -> (BE Word32)
+         -> (BE Word32)
+         -> (BE Word32)
+         -> (BE Word32)
+         -> (BE Word32)
+         -> (BE Word32)
+         -> (BE Word32)
+         -> (BE Word32)
+         -> (BE Word32)
          -> BLAKE256
 compress b@(BLAKE256 h0 h1 h2 h3 h4 h5 h6 h7)
          s@(Salt s0 s1 s2 s3)
@@ -274,10 +274,10 @@ compress b@(BLAKE256 h0 h1 h2 h3 h4 h5 h6 h7)
 
 -- | Single Round Function of Blake256
 roundG :: State
-       -> Word32BE
-       -> Word32BE
-       -> Word32BE
-       -> Word32BE
+       -> (BE Word32)
+       -> (BE Word32)
+       -> (BE Word32)
+       -> (BE Word32)
        -> State
 roundG (a, b, c, d) m0' m1' c0' c1' = (a', b', c', d')
   where
@@ -290,22 +290,22 @@ roundG (a, b, c, d) m0' m1' c0' c1' = (a', b', c', d')
     c' = c0 + d'
     b' = (b0 `xor` c') `rotateR` 7
 
-roundHash :: Word32BE
-          -> Word32BE
-          -> Word32BE
-          -> Word32BE
-          -> Word32BE
-          -> Word32BE
-          -> Word32BE
-          -> Word32BE
-          -> Word32BE
-          -> Word32BE
-          -> Word32BE
-          -> Word32BE
-          -> Word32BE
-          -> Word32BE
-          -> Word32BE
-          -> Word32BE
+roundHash :: (BE Word32)
+          -> (BE Word32)
+          -> (BE Word32)
+          -> (BE Word32)
+          -> (BE Word32)
+          -> (BE Word32)
+          -> (BE Word32)
+          -> (BE Word32)
+          -> (BE Word32)
+          -> (BE Word32)
+          -> (BE Word32)
+          -> (BE Word32)
+          -> (BE Word32)
+          -> (BE Word32)
+          -> (BE Word32)
+          -> (BE Word32)
           -> Matrix    -- Given Matrix
           -> Int       -- Round number
           -> Matrix
@@ -394,8 +394,8 @@ roundHash m0  m1  m2  m3
 -- | Returns initial 16 word state
 initialState :: BLAKE256
              -> Salt
-             -> Word32BE
-             -> Word32BE
+             -> (BE Word32)
+             -> (BE Word32)
              -> Matrix
 
 initialState (BLAKE256 h0 h1 h2 h3 h4 h5 h6 h7)

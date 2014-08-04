@@ -12,6 +12,7 @@ import Control.Applicative ( (<$>), (<*>) )
 import Data.Bits           ( xor, (.|.)   )
 import Data.Default
 import Data.Monoid
+import Data.Word
 import Data.Typeable       ( Typeable     )
 import Foreign.Ptr         ( castPtr      )
 import Foreign.Storable    ( Storable(..) )
@@ -26,14 +27,14 @@ import Raaz.Hash.Sha.Util
 ----------------------------- SHA256 -------------------------------------------
 
 -- | The Sha256 hash value. Used in implementation of Sha224 as well.
-data SHA256 = SHA256 {-# UNPACK #-} !Word32BE
-                     {-# UNPACK #-} !Word32BE
-                     {-# UNPACK #-} !Word32BE
-                     {-# UNPACK #-} !Word32BE
-                     {-# UNPACK #-} !Word32BE
-                     {-# UNPACK #-} !Word32BE
-                     {-# UNPACK #-} !Word32BE
-                     {-# UNPACK #-} !Word32BE deriving (Show, Typeable)
+data SHA256 = SHA256 {-# UNPACK #-} !(BE Word32)
+                     {-# UNPACK #-} !(BE Word32)
+                     {-# UNPACK #-} !(BE Word32)
+                     {-# UNPACK #-} !(BE Word32)
+                     {-# UNPACK #-} !(BE Word32)
+                     {-# UNPACK #-} !(BE Word32)
+                     {-# UNPACK #-} !(BE Word32)
+                     {-# UNPACK #-} !(BE Word32) deriving (Show, Typeable)
 
 -- | Timing independent equality testing for sha256
 instance Eq SHA256 where
@@ -55,8 +56,8 @@ instance Digestible SHA256 where
   toDigest (SHA256Cxt h) = h
 
 instance Storable SHA256 where
-  sizeOf    _ = 8 * sizeOf (undefined :: Word32BE)
-  alignment _ = alignment  (undefined :: Word32BE)
+  sizeOf    _ = 8 * sizeOf (undefined :: (BE Word32))
+  alignment _ = alignment  (undefined :: (BE Word32))
 
   peek ptr = runParser cptr parseSHA256
     where parseSHA256 = SHA256 <$> parseStorable

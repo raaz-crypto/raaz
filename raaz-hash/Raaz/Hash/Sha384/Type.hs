@@ -21,6 +21,7 @@ import Control.Applicative ( (<$>), (<*>) )
 import Data.Bits           ( xor, (.|.)   )
 import Data.Default
 import Data.Monoid
+import Data.Word
 import Data.Typeable       ( Typeable     )
 import Foreign.Ptr         ( castPtr      )
 import Foreign.Storable    ( Storable(..) )
@@ -37,12 +38,12 @@ import Raaz.Hash.Sha512.Type ( SHA512(..) )
 ----------------------------- SHA384 -------------------------------------------
 
 -- | The Sha384 hash value.
-data SHA384 = SHA384 {-# UNPACK #-} !Word64BE
-                     {-# UNPACK #-} !Word64BE
-                     {-# UNPACK #-} !Word64BE
-                     {-# UNPACK #-} !Word64BE
-                     {-# UNPACK #-} !Word64BE
-                     {-# UNPACK #-} !Word64BE deriving (Show, Typeable)
+data SHA384 = SHA384 {-# UNPACK #-} !(BE Word64)
+                     {-# UNPACK #-} !(BE Word64)
+                     {-# UNPACK #-} !(BE Word64)
+                     {-# UNPACK #-} !(BE Word64)
+                     {-# UNPACK #-} !(BE Word64)
+                     {-# UNPACK #-} !(BE Word64) deriving (Show, Typeable)
 
 -- | Timing independent equality testing for sha384
 instance Eq SHA384 where
@@ -64,8 +65,8 @@ instance Digestible SHA384 where
             = SHA384 h0 h1 h2 h3 h4 h5
 
 instance Storable SHA384 where
-  sizeOf    _ = 6 * sizeOf (undefined :: Word64BE)
-  alignment _ = alignment  (undefined :: Word64BE)
+  sizeOf    _ = 6 * sizeOf (undefined :: (BE Word64))
+  alignment _ = alignment  (undefined :: (BE Word64))
 
   peek ptr = runParser cptr parseSHA384
     where parseSHA384 = SHA384 <$> parseStorable

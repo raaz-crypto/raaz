@@ -15,6 +15,7 @@ module Raaz.Hash.Sha1.Ref
 
 import Control.Applicative
 import Data.Bits
+import Data.Word
 
 import Raaz.Core.Types
 import Raaz.Core.Util.Ptr
@@ -44,10 +45,10 @@ sha1CompressSingle sha1 cptr = sha1round sha1
          <*> loadFromIndex cptr 15
 
 -- | The sigle round of SHA1
-sha1round :: SHA1 -> Word32BE -> Word32BE -> Word32BE -> Word32BE
-             -> Word32BE -> Word32BE -> Word32BE -> Word32BE
-             -> Word32BE -> Word32BE -> Word32BE -> Word32BE
-             -> Word32BE -> Word32BE-> Word32BE -> Word32BE
+sha1round :: SHA1 -> (BE Word32) -> (BE Word32) -> (BE Word32) -> (BE Word32)
+             -> (BE Word32) -> (BE Word32) -> (BE Word32) -> (BE Word32)
+             -> (BE Word32) -> (BE Word32) -> (BE Word32) -> (BE Word32)
+             -> (BE Word32) -> (BE Word32)-> (BE Word32) -> (BE Word32)
              -> SHA1
 sha1round h0 w0 w1 w2 w3 w4 w5 w6 w7 w8
           w9 w10 w11 w12 w13 w14 w15 = addHash h0 h80
@@ -200,7 +201,7 @@ sha1round h0 w0 w1 w2 w3 w4 w5 w6 w7 w8
               addHash (SHA1 a b c d e) (SHA1 a' b' c' d' e') =
                   SHA1 (a+a') (b+b') (c+c') (d+d') (e+e')
 
-trans :: Int -> SHA1 -> Word32BE -> SHA1
+trans :: Int -> SHA1 -> (BE Word32) -> SHA1
 trans r (SHA1 a b c d e) w'  = SHA1 a' b' c' d' e'
   where f t x y z
           | t <= 19   = (x .&. y) `xor` (complement x .&. z)
@@ -208,10 +209,10 @@ trans r (SHA1 a b c d e) w'  = SHA1 a' b' c' d' e'
           | t <= 59   = (x .&. (y .|. z)) .|. (y .&. z)
           | t <= 79   =  x `xor` y `xor` z
           | otherwise = error "sha1:ref: Wrong index used for trans"
-        constant t  | t <= 19    = 0x5a827999 :: Word32BE
-                    | t <= 39    = 0x6ed9eba1 :: Word32BE
-                    | t <= 59    = 0x8f1bbcdc :: Word32BE
-                    | t <= 79    = 0xca62c1d6 :: Word32BE
+        constant t  | t <= 19    = 0x5a827999 :: (BE Word32)
+                    | t <= 39    = 0x6ed9eba1 :: (BE Word32)
+                    | t <= 59    = 0x8f1bbcdc :: (BE Word32)
+                    | t <= 79    = 0xca62c1d6 :: (BE Word32)
                     | otherwise = error "sha1:ref: Wrong index used for trans"
         a' = rotateL a 5 + f r b c d + e + constant r + w'
         b' = a

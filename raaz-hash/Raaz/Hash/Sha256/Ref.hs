@@ -14,6 +14,7 @@ module Raaz.Hash.Sha256.Ref
 
 import Control.Applicative
 import Data.Bits
+import Data.Word
 
 import Raaz.Core.Types
 import Raaz.Core.Util.Ptr
@@ -44,15 +45,15 @@ sha256CompressSingle sha256 cptr =
          <*> loadFromIndex cptr 15
 
 -- | The sigle round of SHA256
-sha256round :: SHA256 -> Word32BE -> Word32BE -> Word32BE -> Word32BE
-             -> Word32BE -> Word32BE -> Word32BE -> Word32BE
-             -> Word32BE -> Word32BE -> Word32BE -> Word32BE
-             -> Word32BE -> Word32BE-> Word32BE -> Word32BE
+sha256round :: SHA256 -> (BE Word32) -> (BE Word32) -> (BE Word32) -> (BE Word32)
+             -> (BE Word32) -> (BE Word32) -> (BE Word32) -> (BE Word32)
+             -> (BE Word32) -> (BE Word32) -> (BE Word32) -> (BE Word32)
+             -> (BE Word32) -> (BE Word32)-> (BE Word32) -> (BE Word32)
              -> SHA256
 sha256round h0 w0 w1 w2 w3 w4 w5 w6 w7 w8
           w9 w10 w11 w12 w13 w14 w15 = addHash h0 h64
             where
-              sigS0,sigS1 :: Word32BE -> Word32BE
+              sigS0,sigS1 :: (BE Word32) -> (BE Word32)
               sigS0 x = rotateR x 7  `xor` rotateR x 18 `xor` shiftR x 3
               sigS1 x = rotateR x 17 `xor` rotateR x 19 `xor` shiftR x 10
               w16 = sigS1 w14 + w9 + sigS0 w1 + w0
@@ -171,12 +172,12 @@ sha256round h0 w0 w1 w2 w3 w4 w5 w6 w7 w8
               addHash (SHA256 a b c d e f g h) (SHA256 a' b' c' d' e' f' g' h') =
                 SHA256 (a+a') (b+b') (c+c') (d+d') (e+e') (f+f') (g+g') (h+h')
 
-trans :: Int -> SHA256 -> Word32BE -> SHA256
+trans :: Int -> SHA256 -> (BE Word32) -> SHA256
 trans r (SHA256 a b c d e f g h) w' = SHA256 a' b' c' d' e' f' g' h'
   where
-    sigB0,sigB1 :: Word32BE -> Word32BE
+    sigB0,sigB1 :: (BE Word32) -> (BE Word32)
     sigB0 x = rotateR x 2  `xor` rotateR x 13 `xor` rotateR x 22
-    sigB1 x = rotateR x 6  `xor` rotateR x 11 `xor` rotateR x 25                
+    sigB1 x = rotateR x 6  `xor` rotateR x 11 `xor` rotateR x 25
     t1 = h + sigB1 e + ((e .&. f) `xor` (complement e .&. g)) + sha256constant r + w'
     t2 = sigB0 a + ((a .&. (b .|. c)) .|. (b .&. c))
     a' = t1 + t2
@@ -188,7 +189,7 @@ trans r (SHA256 a b c d e f g h) w' = SHA256 a' b' c' d' e' f' g' h'
     g' = f
     h' = g
 
-sha256constant :: Int -> Word32BE
+sha256constant :: Int -> (BE Word32)
 sha256constant i  |  i == 0     =   0x428a2f98
                   |  i == 1     =   0x71374491
                   |  i == 2     =   0xb5c0fbcf

@@ -27,20 +27,20 @@ import Raaz.Hash.Blake.Util
 ------------------------------------BLAKE256----------------------------------
 
 -- | The Blake256 hash value.
-data BLAKE256 = BLAKE256 {-# UNPACK #-} !Word32BE
-                         {-# UNPACK #-} !Word32BE
-                         {-# UNPACK #-} !Word32BE
-                         {-# UNPACK #-} !Word32BE
-                         {-# UNPACK #-} !Word32BE
-                         {-# UNPACK #-} !Word32BE
-                         {-# UNPACK #-} !Word32BE
-                         {-# UNPACK #-} !Word32BE deriving (Show, Typeable)
+data BLAKE256 = BLAKE256 {-# UNPACK #-} !(BE Word32)
+                         {-# UNPACK #-} !(BE Word32)
+                         {-# UNPACK #-} !(BE Word32)
+                         {-# UNPACK #-} !(BE Word32)
+                         {-# UNPACK #-} !(BE Word32)
+                         {-# UNPACK #-} !(BE Word32)
+                         {-# UNPACK #-} !(BE Word32)
+                         {-# UNPACK #-} !(BE Word32) deriving (Show, Typeable)
 
 -- | The Blake256 salt value.
-data Salt = Salt {-# UNPACK #-} !Word32BE
-                 {-# UNPACK #-} !Word32BE
-                 {-# UNPACK #-} !Word32BE
-                 {-# UNPACK #-} !Word32BE deriving (Show, Typeable)
+data Salt = Salt {-# UNPACK #-} !(BE Word32)
+                 {-# UNPACK #-} !(BE Word32)
+                 {-# UNPACK #-} !(BE Word32)
+                 {-# UNPACK #-} !(BE Word32) deriving (Show, Typeable)
 
 -- | Timing independent equality testing for Blake256
 instance Eq BLAKE256 where
@@ -62,7 +62,7 @@ instance Eq Salt where
       .|. xor g2 h2
       .|. xor g3 h3
       == 0
-      
+
 instance HasName BLAKE256
 
 instance Digestible BLAKE256 where
@@ -70,8 +70,8 @@ instance Digestible BLAKE256 where
   toDigest (BLAKE256Cxt b _ _) = b
 
 instance Storable BLAKE256 where
-  sizeOf    _ = 8 * sizeOf (undefined :: Word32BE)
-  alignment _ = alignment  (undefined :: Word32BE)
+  sizeOf    _ = 8 * sizeOf (undefined :: (BE Word32))
+  alignment _ = alignment  (undefined :: (BE Word32))
 
   peek ptr = runParser cptr parseBLAKE256
     where parseBLAKE256 = BLAKE256 <$> parseStorable
@@ -96,8 +96,8 @@ instance Storable BLAKE256 where
           cptr = castPtr ptr
 
 instance Storable (Cxt BLAKE256) where
-  sizeOf    _ = 14 * sizeOf (undefined :: Word32BE)
-  alignment _ = alignment  (undefined :: Word32BE)
+  sizeOf    _ = 14 * sizeOf (undefined :: (BE Word32))
+  alignment _ = alignment  (undefined :: (BE Word32))
 
   peek ptr = runParser cptr parseBLAKE256Cxt
     where parseBLAKE256Cxt = BLAKE256Cxt <$> parseStorable
@@ -146,8 +146,8 @@ instance EndianStore BLAKE256 where
                         <> write h7
 
 instance Storable Salt where
-  sizeOf    _ = 4 * sizeOf (undefined :: Word32BE)
-  alignment _ = alignment  (undefined :: Word32BE)
+  sizeOf    _ = 4 * sizeOf (undefined :: (BE Word32))
+  alignment _ = alignment  (undefined :: (BE Word32))
 
   peek ptr = runParser cptr parseSalt
     where parseSalt = Salt <$> parseStorable
@@ -180,7 +180,7 @@ instance Primitive BLAKE256 where
   blockSize _ = BYTES 64
   {-# INLINE blockSize #-}
   data Cxt BLAKE256 = BLAKE256Cxt BLAKE256 Salt (BITS Word64) deriving (Eq, Show)
-  
+
 
 instance SafePrimitive BLAKE256
 

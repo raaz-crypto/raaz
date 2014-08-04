@@ -21,6 +21,7 @@ import Control.Applicative ( (<$>), (<*>) )
 import Data.Bits           ( xor, (.|.)   )
 import Data.Default
 import Data.Monoid
+import Data.Word
 import Data.Typeable       ( Typeable     )
 import Foreign.Ptr         ( castPtr      )
 import Foreign.Storable    ( Storable(..) )
@@ -33,11 +34,11 @@ import Raaz.Core.Write.Unsafe
 import Raaz.Hash.Sha.Util
 
 -- | The SHA1 hash value.
-data SHA1 = SHA1 {-# UNPACK #-} !Word32BE
-                 {-# UNPACK #-} !Word32BE
-                 {-# UNPACK #-} !Word32BE
-                 {-# UNPACK #-} !Word32BE
-                 {-# UNPACK #-} !Word32BE deriving (Show, Typeable)
+data SHA1 = SHA1 {-# UNPACK #-} !(BE Word32)
+                 {-# UNPACK #-} !(BE Word32)
+                 {-# UNPACK #-} !(BE Word32)
+                 {-# UNPACK #-} !(BE Word32)
+                 {-# UNPACK #-} !(BE Word32) deriving (Show, Typeable)
 
 -- | Timing independent equality testing.
 instance Eq SHA1 where
@@ -55,8 +56,8 @@ instance Digestible SHA1 where
   toDigest (SHA1Cxt h) = h
 
 instance Storable SHA1 where
-  sizeOf    _ = 5 * sizeOf (undefined :: Word32BE)
-  alignment _ = alignment  (undefined :: Word32BE)
+  sizeOf    _ = 5 * sizeOf (undefined :: (BE Word32))
+  alignment _ = alignment  (undefined :: (BE Word32))
   peek ptr = runParser cptr parseSHA1
     where parseSHA1 = SHA1 <$> parseStorable
                            <*> parseStorable

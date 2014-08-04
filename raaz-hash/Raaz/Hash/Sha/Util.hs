@@ -54,5 +54,5 @@ shaPadding lenSize prim lBits =  singleton firstPadByte
                               <> lPad
      where pLen  = shaPadLength lenSize prim lBits
            lPad  = toByteString l
-           l     = cryptoCoerce lBits :: BITS Word64BE
+           l     = cryptoCoerce lBits :: BITS (BE Word64)
            zeros = pLen - 1 - 8
