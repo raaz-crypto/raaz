@@ -58,6 +58,12 @@ before_script:
   - ./travis config
   - ./travis build
 script: ./travis test
+after_script:
+  - ./travis tarball
+after_success:
+  - echo "All is well."
+after_failure:
+  - echo "Build failed."
 branches:
   only:
     - master
