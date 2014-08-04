@@ -35,10 +35,10 @@ genMax rscr maxI | maxI < 0  = error "Illegal arguments"
 {-# SPECIALIZE genMax :: StreamGadget g => RandomSource g -> Int      -> IO Int      #-}
 {-# SPECIALIZE genMax :: StreamGadget g => RandomSource g -> Integer  -> IO Integer  #-}
 {-# SPECIALIZE genMax :: StreamGadget g => RandomSource g -> Word8    -> IO Word8    #-}
-{-# SPECIALIZE genMax :: StreamGadget g => RandomSource g -> Word32BE -> IO Word32BE #-}
-{-# SPECIALIZE genMax :: StreamGadget g => RandomSource g -> Word32LE -> IO Word32LE #-}
-{-# SPECIALIZE genMax :: StreamGadget g => RandomSource g -> Word64BE -> IO Word64BE #-}
-{-# SPECIALIZE genMax :: StreamGadget g => RandomSource g -> Word64LE -> IO Word64LE #-}
+{-# SPECIALIZE genMax :: StreamGadget g => RandomSource g -> (BE Word32) -> IO (BE Word32) #-}
+{-# SPECIALIZE genMax :: StreamGadget g => RandomSource g -> (LE Word32) -> IO (LE Word32) #-}
+{-# SPECIALIZE genMax :: StreamGadget g => RandomSource g -> (BE Word64) -> IO (BE Word64) #-}
+{-# SPECIALIZE genMax :: StreamGadget g => RandomSource g -> (LE Word64) -> IO (LE Word64) #-}
 
 
 -- | Generates a positive number i such that l <= i <= h
@@ -49,7 +49,7 @@ genBetween rsrc l h = do
 {-# SPECIALIZE genBetween :: StreamGadget g => RandomSource g -> Int      -> Int      -> IO Int      #-}
 {-# SPECIALIZE genBetween :: StreamGadget g => RandomSource g -> Integer  -> Integer  -> IO Integer  #-}
 {-# SPECIALIZE genBetween :: StreamGadget g => RandomSource g -> Word8    -> Word8    -> IO Word8    #-}
-{-# SPECIALIZE genBetween :: StreamGadget g => RandomSource g -> Word32BE -> Word32BE -> IO Word32BE #-}
-{-# SPECIALIZE genBetween :: StreamGadget g => RandomSource g -> Word32LE -> Word32LE -> IO Word32LE #-}
-{-# SPECIALIZE genBetween :: StreamGadget g => RandomSource g -> Word64BE -> Word64BE -> IO Word64BE #-}
-{-# SPECIALIZE genBetween :: StreamGadget g => RandomSource g -> Word64LE -> Word64LE -> IO Word64LE #-}
+{-# SPECIALIZE genBetween :: StreamGadget g => RandomSource g -> (BE Word32) -> (BE Word32) -> IO (BE Word32) #-}
+{-# SPECIALIZE genBetween :: StreamGadget g => RandomSource g -> (LE Word32) -> (LE Word32) -> IO (LE Word32) #-}
+{-# SPECIALIZE genBetween :: StreamGadget g => RandomSource g -> (BE Word64) -> (BE Word64) -> IO (BE Word64) #-}
+{-# SPECIALIZE genBetween :: StreamGadget g => RandomSource g -> (LE Word64) -> (LE Word64) -> IO (LE Word64) #-}
