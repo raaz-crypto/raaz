@@ -31,8 +31,27 @@ env:
     - HASKELL_PLATFORM=2012.4.0.0 GHC_VERSION=7.4.2 CABAL_VERSION=1.20
     - HASKELL_PLATFORM=2012.2.0.0 GHC_VERSION=7.4.1 CABAL_VERSION=1.20
 before_install:
-  - "make travis-before-install"
-  - "make echo-variables"
+  - echo `uname -a`
+  - travis_retry sudo add-apt-repository -y ppa:hvr/ghc
+  - travis_retry sudo apt-get update
+  - if [ "$GHC_VERSION" == "" ]; then
+      travis_retry sudo apt-get install ghc happy haddock;
+    else
+      travis_retry sudo apt-get install ghc-$GHC_VERSION happy haddock;
+      export PATH=/opt/ghc/$GHC_VERSION/bin:$PATH;
+    fi
+  - if [ "$CABAL_VERSION" == "" ]; then
+      travis_retry sudo apt-get install cabal-install;
+      cabal update;
+    else
+      travis_retry sudo apt-get install cabal-install-$CABAL_VERSION;
+      export PATH=/opt/cabal/$CABAL_VERSION/bin:$PATH;
+      cabal-$CABAL_VERSION update;
+    fi
+  - ghc --version
+  - cabal --version
+  - echo HASKELL_PLATFORM=${HASKELL_PLATFORM}
+  - echo PARALLEL_BUILDS=${PARALLEL_BUILDS}
 install: "make install"
 script: "echo tests already run."
 branches:
