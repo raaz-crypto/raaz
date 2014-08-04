@@ -71,7 +71,7 @@ parseWordBE = with undefined
     with w = go 0 (sizeOf w)
     go :: Num w => w -> Int -> Parser w
     go !result 0 = return result
-    go !result n = (parse :: Parser Word64BE) >>= recurse
+    go !result n = (parse :: Parser (BE Word64)) >>= recurse
       where
         recurse m = go (result * 18446744073709551616 + fromIntegral m) (n - 8) -- result * 2^64 + m
 
@@ -80,7 +80,7 @@ writeWordBE :: (Num w, Storable w, Integral w) => w -> Write
 writeWordBE w = writeW (sizeOf w) w
   where
     writeW 0  _  = mempty
-    writeW !n !i = writeW (n-8) q <> writeStorable (fromIntegral r :: Word64BE)
+    writeW !n !i = writeW (n-8) q <> writeStorable (fromIntegral r :: (BE Word64))
       where (q,r)  = i `quotRem` 18446744073709551616
 
 -- | 128 Bit Word
