@@ -57,7 +57,7 @@ install: ./travis install
 before_script:
   - ./travis config
   - ./travis build
-script: "echo tests already run."
+script: ./travis test
 branches:
   only:
     - master
