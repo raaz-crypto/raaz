@@ -53,7 +53,7 @@ before_install:
   - echo HASKELL_PLATFORM=${HASKELL_PLATFORM}
   - echo PARALLEL_BUILDS=${PARALLEL_BUILDS}
   - ghc -o travis scripts/travis-build.hs
-install: "make install"
+install: ./travis install
 script: "echo tests already run."
 branches:
   only:
