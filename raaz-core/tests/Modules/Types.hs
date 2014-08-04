@@ -17,25 +17,25 @@ import Raaz.Core.Test.EndianStore
 -- Big endian word.
 prop_LEBEreverse32 :: Word32 -> Bool
 prop_LEBEreverse32 w = toByteString wle == BS.reverse (toByteString wbe )
-       where wle = fromIntegral w :: Word32LE
-             wbe = fromIntegral w :: Word32BE
+       where wle = fromIntegral w :: (LE Word32)
+             wbe = fromIntegral w :: (BE Word32)
 
 testLEBEreverse32 :: Test
 testLEBEreverse32 = testProperty "LE32 == reverse BE32" prop_LEBEreverse32
 
 prop_LEBEreverse64 :: Word64 -> Bool
 prop_LEBEreverse64 w = toByteString wle == BS.reverse (toByteString wbe )
-       where wle = fromIntegral w :: Word64LE
-             wbe = fromIntegral w :: Word64BE
+       where wle = fromIntegral w :: (LE Word64)
+             wbe = fromIntegral w :: (BE Word64)
 
 testLEBEreverse64 :: Test
 testLEBEreverse64 = testProperty "LE64 == reverse BE64" prop_LEBEreverse64
 
 tests :: [Test]
-tests = [ testStoreLoad (undefined :: Word32LE)
-        , testStoreLoad (undefined :: Word32BE)
-        , testStoreLoad (undefined :: Word64LE)
-        , testStoreLoad (undefined :: Word64BE)
+tests = [ testStoreLoad (undefined :: (LE Word32))
+        , testStoreLoad (undefined :: (BE Word32))
+        , testStoreLoad (undefined :: (LE Word64))
+        , testStoreLoad (undefined :: (BE Word64))
         , testLEBEreverse32
         , testLEBEreverse64
         ]

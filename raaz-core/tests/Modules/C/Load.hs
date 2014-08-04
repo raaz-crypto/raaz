@@ -77,11 +77,11 @@ prop_HStoreCLoad loader _ b = monadicIO $ do y <- run $ hStoreCLoad loader b
 tests :: Test
 tests = testGroup "C Load:"
         [ testProperty "C load 32-bit LE"
-            $ prop_HStoreCLoad c_get32le (undefined :: Word32LE)
+            $ prop_HStoreCLoad c_get32le (undefined :: (LE Word32))
         , testProperty "C load 32-bit BE"
-            $ prop_HStoreCLoad c_get32be (undefined :: Word32BE)
+            $ prop_HStoreCLoad c_get32be (undefined :: (BE Word32))
         , testProperty "C load 64-bit LE"
-            $ prop_HStoreCLoad c_get64le (undefined :: Word64LE)
+            $ prop_HStoreCLoad c_get64le (undefined :: (LE Word64))
         , testProperty "C load 64-bit BE"
-            $ prop_HStoreCLoad c_get64be (undefined :: Word64BE)
+            $ prop_HStoreCLoad c_get64be (undefined :: (BE Word64))
         ]

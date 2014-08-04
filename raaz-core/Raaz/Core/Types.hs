@@ -21,8 +21,7 @@ module Raaz.Core.Types
 
          -- ** Type safe lengths
          -- $length$
-         Word32LE, Word32BE
-       , Word64LE, Word64BE
+         LE, BE
        , EndianStore(..), toByteString
 
        , BYTES(..), BITS(..)
@@ -74,23 +73,23 @@ import Test.QuickCheck(Arbitrary)
 --
 --   1. Numeric constants are represented in their Haskell notation
 --      (which is big endian). For example 0xF0 represents the number
---      240 whether it is `Word32LE` or `Word32BE` or just `Word32`.
+--      240 whether it is `(LE Word32)` or `(BE Word32)` or just `Word32`.
 --
 --   2. The normal arithmetic work on them.
 --
 --   3. They have the same printed form except for the constructor
 --      sticking around.
 --
--- Therefore, as far as Haskell programmers are concerned, `Word32LE`
--- and `Word32BE` should be treated as `Word32` for all algorithmic
--- aspects. Similarly, `Word64LE` and `Word64BE` should be treated as
+-- Therefore, as far as Haskell programmers are concerned, `(LE Word32)`
+-- and `(BE Word32)` should be treated as `Word32` for all algorithmic
+-- aspects. Similarly, `(LE Word64)` and `(BE Word64)` should be treated as
 -- `Word64`.
 --
 -- When defining other endian sensitive data types like hashes, we
 -- expect users to use these endian safe types. For example SHA1 can
 -- be defined as
 --
--- > data SHA1 = SHA1 Word32BE Word32BE Word32BE Word32BE Word32BE
+-- > data SHA1 = SHA1 (BE Word32) (BE Word32) (BE Word32) (BE Word32) (BE Word32)
 --
 -- Then the EndianStore instance boils down to storing the words in
 -- correct order.
@@ -128,35 +127,19 @@ by ghc.
 
 -}
 
+-- | Little-endian wrapper for words
+newtype LE w = LE w
+    deriving ( Arbitrary, Bounded, Enum, Read, Show
+             , Integral, Num, Real, Eq, Ord, Bits
+             , Storable, Typeable
+             )
 
-
--- | Little endian `Word32`.
-newtype Word32LE = LE32 Word32
-   deriving ( Arbitrary, Bounded, Enum, Read, Show
-            , Integral, Num, Real, Eq, Ord, Bits
-            , Storable, Typeable
-            )
-
--- | Big endian  `Word32`
-newtype Word32BE = BE32 Word32
-   deriving ( Arbitrary, Bounded, Enum, Read, Show
-            , Integral, Num, Real, Eq, Ord, Bits
-            , Storable, Typeable
-            )
-
--- | Little endian `Word64`
-newtype Word64LE = LE64 Word64
-   deriving ( Arbitrary, Bounded, Enum, Read, Show
-            , Integral, Num, Real, Eq, Ord, Bits
-            , Storable, Typeable
-            )
-
--- | Big endian `Word64`
-newtype Word64BE = BE64 Word64
-   deriving ( Arbitrary, Bounded, Enum, Read, Show
-            , Integral, Num, Real, Eq, Ord, Bits
-            , Storable, Typeable
-            )
+-- | Big-endian wrapper for words
+newtype BE w = BE w
+    deriving ( Arbitrary, Bounded, Enum, Read, Show
+             , Integral, Num, Real, Eq, Ord, Bits
+             , Storable, Typeable
+             )
 
 {-|
 
@@ -171,67 +154,67 @@ but their export can cause confusion.
 
 
 -- | Convert a Word32 to its little endian form.
-toWord32LE   :: Word32 -> Word32LE
+toWord32LE :: Word32 -> (LE Word32)
 {-# INLINE toWord32LE #-}
-toWord32LE = LE32 . toLE32
+toWord32LE = LE . toLE32
 
--- | Convert a Word32LE to Word32
-fromWord32LE :: Word32LE -> Word32
+-- | Convert a little endian Word32 to Word32
+fromWord32LE :: (LE Word32) -> Word32
 {-# INLINE fromWord32LE #-}
-fromWord32LE (LE32 w) = fromLE32 w
+fromWord32LE (LE w) = fromLE32 w
 
 -- | Convert a Word32 to its bigendian form.
-toWord32BE :: Word32 -> Word32BE
+toWord32BE :: Word32 -> (BE Word32)
 {-# INLINE toWord32BE #-}
-toWord32BE = BE32 . toBE32
+toWord32BE = BE . toBE32
 
--- | Convert a Word32BE to Word32
-fromWord32BE :: Word32BE -> Word32
+-- | Convert a big endian Word32 to Word32
+fromWord32BE :: (BE Word32) -> Word32
 {-# INLINE fromWord32BE #-}
-fromWord32BE (BE32 w) = fromBE32 w
+fromWord32BE (BE w) = fromBE32 w
 
 
 -- | Convert a Word64 to its little endian form.
-toWord64LE :: Word64 -> Word64LE
+toWord64LE :: Word64 -> (LE Word64)
 {-# INLINE toWord64LE #-}
-toWord64LE = LE64 . toLE64
+toWord64LE = LE . toLE64
 
--- | Convert a Word64LE to Word64
-fromWord64LE :: Word64LE -> Word64
+-- | Convert a little endian Word64 to Word64
+fromWord64LE :: (LE Word64) -> Word64
 {-# INLINE fromWord64LE #-}
-fromWord64LE (LE64 w) = fromLE64 w
+fromWord64LE (LE w) = fromLE64 w
 
 -- | Convert a Word64 to its bigendian form.
-toWord64BE :: Word64 -> Word64BE
+toWord64BE :: Word64 -> (BE Word64)
 {-# INLINE toWord64BE #-}
-toWord64BE = BE64 . toBE64
+toWord64BE = BE . toBE64
 
--- | Convert a Word64BE to Word64
-fromWord64BE :: Word64BE -> Word64
+-- | Convert a big endian Word64 to Word64
+fromWord64BE :: (BE Word64) -> Word64
 {-# INLINE fromWord64BE #-}
-fromWord64BE (BE64 w) = fromBE64 w
+fromWord64BE (BE w) = fromBE64 w
 
-instance EndianStore Word32LE where
+instance EndianStore (LE Word32) where
   {-# INLINE load  #-}
   {-# INLINE store #-}
   load      = fmap toWord32LE . peek . castPtr
   store ptr = poke (castPtr ptr) . fromWord32LE
 
 
-instance EndianStore Word32BE where
+instance EndianStore (BE Word32) where
   {-# INLINE load  #-}
   {-# INLINE store #-}
   load      = fmap toWord32BE . peek . castPtr
   store ptr = poke (castPtr ptr) . fromWord32BE
 
 
-instance EndianStore Word64LE where
+instance EndianStore (LE Word64) where
   {-# INLINE load  #-}
   {-# INLINE store #-}
   load      = fmap toWord64LE . peek . castPtr
   store ptr = poke (castPtr ptr) . fromWord64LE
 
-instance EndianStore Word64BE where
+instance EndianStore (BE Word64) where
   {-# INLINE load  #-}
   {-# INLINE store #-}
   load      = fmap toWord64BE . peek . castPtr
@@ -361,18 +344,11 @@ bitsQuot bits = u
 class CryptoCoerce s t where
   cryptoCoerce :: s -> t
 
+instance CryptoCoerce w (LE w) where
+  cryptoCoerce = LE
 
-instance CryptoCoerce Word32 Word32LE where
-  cryptoCoerce = LE32
-
-instance CryptoCoerce Word32 Word32BE where
-  cryptoCoerce = BE32
-
-instance CryptoCoerce Word64 Word64LE where
-  cryptoCoerce = LE64
-
-instance CryptoCoerce Word64 Word64BE where
-  cryptoCoerce = BE64
+instance CryptoCoerce w (BE w) where
+  cryptoCoerce = BE
 
 instance CryptoCoerce s t => CryptoCoerce (BITS s) (BITS t) where
   cryptoCoerce (BITS s) = BITS $ cryptoCoerce s
