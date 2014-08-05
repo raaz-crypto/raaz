@@ -13,6 +13,7 @@ module Raaz.Cipher.Salsa20.Block.Type
 import Control.Applicative
 import Data.Bits
 import Data.Monoid
+import Data.Word
 import Data.Typeable
 import Foreign.Storable
 import Foreign.Ptr         ( castPtr )
@@ -24,11 +25,11 @@ import Raaz.Core.Types
 import Raaz.Core.Write.Unsafe
 
 
--- | State which consists of 4 `Word32LE`.
-data STATE = STATE {-# UNPACK #-} !Word32LE
-                   {-# UNPACK #-} !Word32LE
-                   {-# UNPACK #-} !Word32LE
-                   {-# UNPACK #-} !Word32LE
+-- | State which consists of 4 `(LE Word32)`.
+data STATE = STATE {-# UNPACK #-} !(LE Word32)
+                   {-# UNPACK #-} !(LE Word32)
+                   {-# UNPACK #-} !(LE Word32)
+                   {-# UNPACK #-} !(LE Word32)
          deriving Typeable
 
 instance Show STATE where
@@ -88,7 +89,7 @@ writeState (STATE s0 s1 s2 s3) = write s0
 
 
 instance Storable STATE where
-  sizeOf    _ = 4 * sizeOf (undefined :: Word32LE)
+  sizeOf    _ = 4 * sizeOf (undefined :: (LE Word32))
   alignment _ = alignment  (undefined :: CryptoAlign)
   peek cptr = runParser (castPtr cptr) parseState
   poke cptr state = runWrite (castPtr cptr) $ writeState state
@@ -177,10 +178,10 @@ xorMatrix (Matrix w0 w1 w2 w3) (Matrix x0 x1 x2 x3) = Matrix (w0 `xorState` x0)
 {-# INLINE xorMatrix #-}
 
 -- | 128 Bit Key
-data KEY128 = KEY128 {-# UNPACK #-} !Word32LE
-                     {-# UNPACK #-} !Word32LE
-                     {-# UNPACK #-} !Word32LE
-                     {-# UNPACK #-} !Word32LE
+data KEY128 = KEY128 {-# UNPACK #-} !(LE Word32)
+                     {-# UNPACK #-} !(LE Word32)
+                     {-# UNPACK #-} !(LE Word32)
+                     {-# UNPACK #-} !(LE Word32)
          deriving Typeable
 
 -- | Hexadecimal Show instance
@@ -196,14 +197,14 @@ instance Show KEY128 where
 
 
 -- | 256 Bit Key
-data KEY256 = KEY256 {-# UNPACK #-} !Word32LE
-                     {-# UNPACK #-} !Word32LE
-                     {-# UNPACK #-} !Word32LE
-                     {-# UNPACK #-} !Word32LE
-                     {-# UNPACK #-} !Word32LE
-                     {-# UNPACK #-} !Word32LE
-                     {-# UNPACK #-} !Word32LE
-                     {-# UNPACK #-} !Word32LE
+data KEY256 = KEY256 {-# UNPACK #-} !(LE Word32)
+                     {-# UNPACK #-} !(LE Word32)
+                     {-# UNPACK #-} !(LE Word32)
+                     {-# UNPACK #-} !(LE Word32)
+                     {-# UNPACK #-} !(LE Word32)
+                     {-# UNPACK #-} !(LE Word32)
+                     {-# UNPACK #-} !(LE Word32)
+                     {-# UNPACK #-} !(LE Word32)
          deriving Typeable
 
 -- | Hexadecimal Show instance
@@ -260,7 +261,7 @@ writeKey128 (KEY128 s0 s1 s2 s3) = write s0
                                 <> write s3
 
 instance Storable KEY128 where
-  sizeOf    _ = 4 * sizeOf (undefined :: Word32LE)
+  sizeOf    _ = 4 * sizeOf (undefined :: (LE Word32))
   alignment _ = alignment  (undefined :: CryptoAlign)
   peek cptr = runParser (castPtr cptr) parseKey128
   poke cptr key128 = runWrite (castPtr cptr) $ writeKey128 key128
@@ -292,7 +293,7 @@ writeKey256 (KEY256 s0 s1 s2 s3 s4 s5 s6 s7) = write s0
                                             <> write s7
 
 instance Storable KEY256 where
-  sizeOf    _ = 8 * sizeOf (undefined :: Word32LE)
+  sizeOf    _ = 8 * sizeOf (undefined :: (LE Word32))
   alignment _ = alignment  (undefined :: CryptoAlign)
   peek cptr = runParser (castPtr cptr) parseKey256
   poke cptr key256 = runWrite (castPtr cptr) $ writeKey256 key256
@@ -304,14 +305,14 @@ instance EndianStore KEY256 where
 instance CryptoSerialize KEY256
 
 -- | Performs summation for `Matrix`.
-showWord32 :: Word32LE -> ShowS
+showWord32 :: (LE Word32) -> ShowS
 showWord32 w = showString $ "0x" ++ replicate (8 - length hex) '0' ++ hex
   where
     hex = showHex w ""
 
 
-data SplitWord64 = SplitWord64 {-# UNPACK #-} !Word32LE
-                               {-# UNPACK #-} !Word32LE
+data SplitWord64 = SplitWord64 {-# UNPACK #-} !(LE Word32)
+                               {-# UNPACK #-} !(LE Word32)
                    deriving Typeable
 
 -- | Hexadecimal Show instance
@@ -336,7 +337,7 @@ writeSplitWord64 (SplitWord64 s0 s1) = write s0
                                     <> write s1
 
 instance Storable SplitWord64 where
-  sizeOf    _ = 2 * sizeOf (undefined :: Word32LE)
+  sizeOf    _ = 2 * sizeOf (undefined :: (LE Word32))
   alignment _ = alignment  (undefined :: CryptoAlign)
   peek cptr = runParser (castPtr cptr) parseSplitWord64
   poke cptr splitWord64 = runWrite (castPtr cptr) $ writeSplitWord64 splitWord64

@@ -13,6 +13,7 @@ module Raaz.Core.Serialize ( CryptoSerialize(..)
 
 import Control.Applicative
 import Data.Monoid
+import Data.Word
 import Data.ByteString.Internal
 import Foreign.ForeignPtr       (withForeignPtr)
 import Foreign.Ptr              (castPtr, plusPtr)
@@ -32,10 +33,10 @@ class CryptoSerialize a where
   default cryptoWrite :: EndianStore a => a -> Write
   cryptoWrite = write
 
-instance CryptoSerialize Word32BE
-instance CryptoSerialize Word32LE
-instance CryptoSerialize Word64BE
-instance CryptoSerialize Word64LE
+instance CryptoSerialize (BE Word32)
+instance CryptoSerialize (LE Word32)
+instance CryptoSerialize (BE Word64)
+instance CryptoSerialize (LE Word64)
 
 instance (CryptoSerialize a, CryptoSerialize b) => CryptoSerialize (a,b) where
   cryptoParse = (,) <$> cryptoParse

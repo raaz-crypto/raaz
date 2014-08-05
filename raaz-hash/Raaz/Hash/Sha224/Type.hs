@@ -21,6 +21,7 @@ import Control.Applicative ( (<$>), (<*>) )
 import Data.Bits           ( xor, (.|.)   )
 import Data.Default
 import Data.Monoid
+import Data.Word
 import Data.Typeable       ( Typeable     )
 import Foreign.Ptr         ( castPtr      )
 import Foreign.Storable    ( Storable(..) )
@@ -37,13 +38,13 @@ import Raaz.Hash.Sha256.Instance ()
 ----------------------------- SHA224 -------------------------------------------
 
 -- | Sha224 hash value which consist of 7 32bit words.
-data SHA224 = SHA224 {-# UNPACK #-} !Word32BE
-                     {-# UNPACK #-} !Word32BE
-                     {-# UNPACK #-} !Word32BE
-                     {-# UNPACK #-} !Word32BE
-                     {-# UNPACK #-} !Word32BE
-                     {-# UNPACK #-} !Word32BE
-                     {-# UNPACK #-} !Word32BE deriving (Show, Typeable)
+data SHA224 = SHA224 {-# UNPACK #-} !(BE Word32)
+                     {-# UNPACK #-} !(BE Word32)
+                     {-# UNPACK #-} !(BE Word32)
+                     {-# UNPACK #-} !(BE Word32)
+                     {-# UNPACK #-} !(BE Word32)
+                     {-# UNPACK #-} !(BE Word32)
+                     {-# UNPACK #-} !(BE Word32) deriving (Show, Typeable)
 
 -- | Timing independent equality testing for sha224
 instance Eq SHA224 where
@@ -66,8 +67,8 @@ instance Digestible SHA224 where
 		= SHA224 h0 h1 h2 h3 h4 h5 h6
 
 instance Storable SHA224 where
-  sizeOf    _ = 7 * sizeOf (undefined :: Word32BE)
-  alignment _ = alignment  (undefined :: Word32BE)
+  sizeOf    _ = 7 * sizeOf (undefined :: (BE Word32))
+  alignment _ = alignment  (undefined :: (BE Word32))
 
   peek ptr = runParser cptr parseSHA224
     where parseSHA224 = SHA224 <$> parseStorable

@@ -672,15 +672,15 @@ invAddRoundKey :: STATE -> STATE -> STATE
 invAddRoundKey = addRoundKey
 {-# INLINE invAddRoundKey #-}
 
-invSubWord :: Word32BE -> Word32BE
+invSubWord :: (BE Word32) -> (BE Word32)
 invSubWord = subWordWith invSbox
 {-# INLINE invSubWord #-}
 
-subWord :: Word32BE -> Word32BE
+subWord :: (BE Word32) -> (BE Word32)
 subWord = subWordWith sbox
 {-# INLINE subWord #-}
 
-subWordWith :: (Word8 -> Word8) -> Word32BE -> Word32BE
+subWordWith :: (Word8 -> Word8) -> (BE Word32) -> (BE Word32)
 subWordWith with w = w0' `xor` w1' `xor` w2' `xor` w3'
   where
     w0 = fromIntegral (w `shiftR` 24)
@@ -693,7 +693,7 @@ subWordWith with w = w0' `xor` w1' `xor` w2' `xor` w3'
     w0' = (fromIntegral $ with w0) `shiftL` 24
 {-# INLINE subWordWith #-}
 
-rcon :: Int -> Word32BE
+rcon :: Int -> (BE Word32)
 rcon 0 = 0x8d000000
 rcon 1 = 0x01000000
 rcon 2 = 0x02000000
@@ -714,11 +714,11 @@ xorState :: STATE -> STATE -> STATE
 xorState = addRoundKey
 {-# INLINE xorState #-}
 
-expand :: Word32BE -> Word32BE -> Word32BE
+expand :: (BE Word32) -> (BE Word32) -> (BE Word32)
 expand w sb = w `xor` ((fromIntegral $ sbox (fromIntegral sb)) `shiftL` 24)
 {-# INLINE expand #-}
 
-rotateXor :: Word32BE -> Word32BE
+rotateXor :: (BE Word32) -> (BE Word32)
 rotateXor w = w `xor` (w `shiftR` 8) `xor` (w `shiftR` 16) `xor` (w `shiftR` 24)
 {-# INLINE rotateXor #-}
 
@@ -1018,23 +1018,23 @@ hCompress192 (Expanded192 s0 s1 _ _ _ _ _ _ _ _ _ _ _) =
 	KEY192 r0 r1 r2 r3 r4 r5
 	where (STATE r0 r1 r2 r3) = invTranspose s0
 	      (STATE r4 r5 _ _) = invTranspose s1
-	      
+
 hCompress256 :: Expanded256 -> KEY256
 hCompress256 (Expanded256 s0 s1 _ _ _ _ _ _ _ _ _ _ _ _ _) =
     KEY256 r0 r1 r2 r3 r4 r5 r6 r7
 	where (STATE r0 r1 r2 r3) = invTranspose s0
 	      (STATE r4 r5 r6 r7) = invTranspose s1
 
-inverseWord :: Word32BE -> Word32BE
+inverseWord :: (BE Word32) -> (BE Word32)
 inverseWord w = w0 `xor` w1 `xor` w2 `xor` w3
-    where 
+    where
       w0 = (w `shiftR` 24) .&. (0x000000ff)
       w1 = (w `shiftR`  8) .&. (0x0000ff00)
       w2 = (w `shiftL`  8) .&. (0x00ff0000)
-      w3 = (w `shiftL` 24) .&. (0xff000000)  
-      
+      w3 = (w `shiftL` 24) .&. (0xff000000)
+
 cCompress128 :: Expanded128 -> KEY128
-cCompress128 (Expanded128 s0 _ _ _ _ _ _ _ _ _ _) = 
+cCompress128 (Expanded128 s0 _ _ _ _ _ _ _ _ _ _) =
     KEY128 r0 r1 r2 r3
 	  where (STATE r0 r1 r2 r3) = invTranspose $ fmapState inverseWord s0
 
@@ -1043,7 +1043,7 @@ cCompress192 (Expanded192 s0 s1 _ _ _ _ _ _ _ _ _ _ _) =
 	KEY192 r0 r1 r2 r3 r4 r5
 	where (STATE r0 r1 r2 r3) = invTranspose $ fmapState inverseWord s0
 	      (STATE r4 r5 _ _) = invTranspose $ fmapState inverseWord s1
-	      
+
 cCompress256 :: Expanded256 -> KEY256
 cCompress256 (Expanded256 s0 s1 _ _ _ _ _ _ _ _ _ _ _ _ _) =
     KEY256 r0 r1 r2 r3 r4 r5 r6 r7

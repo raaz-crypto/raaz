@@ -12,6 +12,7 @@ import Control.Applicative ( (<$>), (<*>) )
 import Data.Bits           ( xor, (.|.)   )
 import Data.Default
 import Data.Monoid
+import Data.Word
 import Data.Typeable       ( Typeable     )
 import Foreign.Ptr         ( castPtr      )
 import Foreign.Storable    ( Storable(..) )
@@ -26,14 +27,14 @@ import Raaz.Hash.Sha.Util
 ----------------------------- SHA512 -------------------------------------------
 
 -- | The Sha512 hash value. Used in implementation of Sha384 as well.
-data SHA512 = SHA512 {-# UNPACK #-} !Word64BE
-                     {-# UNPACK #-} !Word64BE
-                     {-# UNPACK #-} !Word64BE
-                     {-# UNPACK #-} !Word64BE
-                     {-# UNPACK #-} !Word64BE
-                     {-# UNPACK #-} !Word64BE
-                     {-# UNPACK #-} !Word64BE
-                     {-# UNPACK #-} !Word64BE deriving (Show, Typeable)
+data SHA512 = SHA512 {-# UNPACK #-} !(BE Word64)
+                     {-# UNPACK #-} !(BE Word64)
+                     {-# UNPACK #-} !(BE Word64)
+                     {-# UNPACK #-} !(BE Word64)
+                     {-# UNPACK #-} !(BE Word64)
+                     {-# UNPACK #-} !(BE Word64)
+                     {-# UNPACK #-} !(BE Word64)
+                     {-# UNPACK #-} !(BE Word64) deriving (Show, Typeable)
 
 -- | Timing independent equality testing for sha512
 instance Eq SHA512 where
@@ -55,8 +56,8 @@ instance Digestible SHA512 where
   toDigest (SHA512Cxt h) = h
 
 instance Storable SHA512 where
-  sizeOf    _ = 8 * sizeOf (undefined :: Word64BE)
-  alignment _ = alignment  (undefined :: Word64BE)
+  sizeOf    _ = 8 * sizeOf (undefined :: (BE Word64))
+  alignment _ = alignment  (undefined :: (BE Word64))
 
   peek ptr = runParser cptr parseSHA512
     where parseSHA512 = SHA512 <$> parseStorable

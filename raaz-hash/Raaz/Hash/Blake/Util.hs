@@ -48,6 +48,6 @@ blakePadding lSize prim lBits
   where pLen    = blakePadLength lSize prim lBits
         zeros   = pLen - lSize - 2
         -- The length pad
-        l       = cryptoCoerce lBits :: BITS Word64BE
+        l       = cryptoCoerce lBits :: BITS (BE Word64)
         lPad    = msb <> toByteString l
         msb     = replicate (lSize - 8) 0
