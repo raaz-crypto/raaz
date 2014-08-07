@@ -93,6 +93,28 @@ getAllGPD = sequence . map mapFn
   where mapFn package = parseCabal $ "./" ++ getPackageName package ++ "/"
                                           ++ getPackageName package ++ ".cabal"
 
+---------------------- Helper functions ------------------------------
+
+-- | Get Travis Environment.
+getTravisEnv :: IO TravisEnv
+getTravisEnv = 
+  do hp <- lookupEnv "HASKELL_PLATFORM"
+     pb <- lookupEnv "PARALLEL_BUILDS"
+     ct <- maybe (return []) getConstraint hp
+     return TravisEnv { haskellPlatform    = hp
+                      , parallelBuilds     = paraBuilds pb
+                      , installConstraints = ct
+                      , verboseConstraints = getVerbose ct (paraBuilds pb)
+                      }
+  where paraBuilds       = maybe False (\opt -> if opt == "yes" then True
+                                                                else False)
+        getConstraint pf = (parseCabal $ "./platform/cabal/" ++ pf ++ ".cabal")
+                       >>= (return . getDependencies)
+        getVerbose ct pb = map mapFn ct ++ (if pb then ["-j"] else [])
+          where mapFn (Dependency pn vr) = "--constraint="
+                                           ++ (show $ disp pn)
+                                           ++ (show $ disp vr)
+
 -- | Get the flags if parallel build environment variable is set.
 getParallelBuildOpts :: IO String
 getParallelBuildOpts =
