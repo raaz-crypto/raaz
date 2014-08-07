@@ -1,7 +1,6 @@
 -- | This scripts parses cabal file of packages and installs all the packages
 -- in linear fashion by resolving dependencies programmatically.
 
-
 import           Control.Applicative
 import           Data.List
 import qualified Data.Map                              as Map
@@ -19,18 +18,24 @@ import           System.Directory
 import           System.Process
 
 -- | All the packages to be installed.
-allPackages :: Packages
-allPackages = Packages [ PackageName "raaz"
-                       , PackageName "raaz-benchmarks"
-                       , PackageName "raaz-cipher"
-                       , PackageName "raaz-core"
-                       , PackageName "raaz-hash"
-                       , PackageName "raaz-modular"
-                       , PackageName "raaz-random"
-                       , PackageName "raaz-ssh"
-                       ]
+allPackages :: [PackageName]
+allPackages = [ PackageName "raaz"
+              , PackageName "raaz-benchmarks"
+              , PackageName "raaz-cipher"
+              , PackageName "raaz-core"
+              , PackageName "raaz-hash"
+              , PackageName "raaz-modular"
+              , PackageName "raaz-random"
+              , PackageName "raaz-ssh"
+              ]
 
-newtype Packages = Packages { getPackages :: [PackageName] } deriving Show
+-- | Travis Environment given by HASKELL_PLATFORM and PARALLEL_BUILDS
+-- environment variables set alongwith their corresponding constraints.
+data TravisEnv = TravisEnv { haskellPlatform    :: Maybe String
+                           , parallelBuilds     :: Bool
+                           , installConstraints :: [Dependency]
+                           , verboseConstraints :: [String]
+                           } deriving (Eq, Show)
 
 -- | The main routine which gets all the parsed results from cabal files of
 -- packages and then resolve dependencies to get a linear list of packages
