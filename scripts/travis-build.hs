@@ -41,119 +41,57 @@ data TravisEnv = TravisEnv { haskellPlatform    :: Maybe String
 -- packages and then resolve dependencies to get a linear list of packages
 -- which is then installed.
 main :: IO ()
-main = do allgpds <- getAllGPD allPackages
-          args <- getArgs
+main = do allgpds   <- getAllGPD allPackages
+          travisEnv <- getTravisEnv
+          args      <- getArgs
           case args of
-            [cmd]     -> do exitCode <- buildPackages cmd
-                                        . resolveDependency
-                                        . getPackageDepency
-                                            allPackages $ allgpds
-                            case exitCode of
-                              ExitSuccess -> exitSuccess
-                              otherwise   -> exitFailure
+            [cmd]     -> sequence_ $ map (makePackage travisEnv cmd)
+                                           (resolve allgpds)
             otherwise -> error "Invalid argument provided."
-
--- | To build all packages linearly.
-buildPackages :: String -> [PackageName] -> IO ExitCode
-buildPackages cmd []     = return ExitSuccess
-buildPackages cmd (x:xs) = do exitCode <- makePackage cmd x
-                              case exitCode of
-                                ExitSuccess -> buildPackages cmd xs
-                                otherwise   -> exitFailure
+  where resolve = resolveDependency . getPackageDepency allPackages
 
 -- | Build a single package with a command line argument.
-makePackage :: String -> PackageName -> IO ExitCode
-makePackage cmd package =
+makePackage :: TravisEnv -> String -> PackageName -> IO ()
+makePackage travisEnv cmd package =
   do setCurrentDirectory $ "./" ++ getPackageName package
      exitCode <- case cmd of
-       "install" -> do putStrLn $ "Installing of **"
-                                  ++ getPackageName package
-                                  ++ "** package started."
-                       setCurrentDirectory "../"
-                       constraints <- getPlatformConstraints
-                       buildOpts   <- getParallelBuildOpts
-                       setCurrentDirectory $ "./" ++ getPackageName package
-                       let installArgs = filter (not . null) $
-                                           [ "install"
-                                           , buildOpts
-                                           , "--only-dependencies"
-                                           , "--enable-documentation"]
-                                           ++ constraints
-                       exitDepend  <- makeCommand
-                                        package
-                                        ExitSuccess
-                                        "cabal"
-                                        installArgs
-                                        "Installing Dependencies of"
-                       exitInstall <- makeCommand
-                                        package
-                                        exitDepend
-                                        "cabal"
-                                        ["install"]
-                                        "Installing"
-                       return exitInstall
-       "config"  -> do putStrLn $ "Configuring of **"
-                                  ++ getPackageName package
-                                  ++ "** package started."
-                       exitConfigure <- makeCommand
-                                          package
-                                          ExitSuccess
-                                          "cabal"
-                                          [ "configure"
-                                          , "--enable-tests"]
-                                          "Configuring"
-                       return exitConfigure
-       "build"   -> do putStrLn $ "Building of **"
-                                  ++ getPackageName package
-                                  ++ "** package started."
-                       exitBuild <- makeCommand
-                                      package
-                                      ExitSuccess
-                                      "cabal"
-                                      ["build"]
-                                      "Building"
-                       return exitBuild
-       "test"    -> do putStrLn $ "Testing of **"
-                                  ++ getPackageName package
-                                  ++ "** package started."
-                       exitTests <- makeCommand
-                                      package
-                                      ExitSuccess
-                                      "cabal"
-                                      [ "test"
-                                      , "--show-details=failures"]
-                                      "Testing"
-                       return exitTests
-       "tarball" -> makeCommand
-                      package
-                      ExitSuccess
-                      "cabal"
-                      ["sdist"]
-                      "Creating Source tarball of"
+       "install" -> sequence_
+                    [ cabalCmd
+                        ([ "install"
+                         , "--only-dependencies"
+                         ] ++ verboseConstraints travisEnv)
+                        "Installing Dependencies of"
+                    , cabalCmd
+                        [ "install"
+                        , "--enable-documentation"
+                        ]
+                        "Installing"
+                    ]
+       "config"  -> cabalCmd ["configure", "--enable-tests"] "Configuring"
+       "build"   -> cabalCmd ["build"] "Building"
+       "test"    -> cabalCmd [ "test", "--show-details=failures"] "Testing"
+       "tarball" -> cabalCmd ["sdist"] "Creating Source tarball of"
        otherwise -> error "Invalid argument provided."
      setCurrentDirectory "../"
      return exitCode
+  where cabalCmd = makeCommand package "cabal"
 
--- | Run commands for different steps of building.
-makeCommand :: PackageName
-            -> ExitCode
-            -> String
-            -> [String]
-            -> String
-            -> IO ExitCode
-makeCommand package prevCode command args msg =
-              if prevCode == ExitSuccess
-                then do exitCode <- rawSystem command args
-                        if exitCode == ExitSuccess
-                            then do putStrLn $ msg ++ " **"
-                                                   ++ getPackageName package
-                                                   ++ "** package done."
-                                    return ExitSuccess
-                            else do error $ msg ++ " failed for **"
-                                                ++ getPackageName package
-                                                ++ "** package."
-                                    exitFailure
-                else return prevCode
+-- | To execute commands with arguments on packages.
+makeCommand :: PackageName -> String -> [String] -> String -> IO ()
+makeCommand package command args msg =
+  do putStrLn startMsg
+     exitCode <- rawSystem command args
+     case exitCode of ExitSuccess -> putStrLn doneMsg
+                      otherwise   -> error failMsg
+  where startMsg = msg ++ " **" ++ getPackageName package ++ "** started."
+        doneMsg  = msg ++ " **" ++ getPackageName package ++ " ** done."
+        failMsg  = msg ++ " failed for **" ++ getPackageName package ++ "** ."
+
+-- | Results of parsing cabal file of all packages.
+getAllGPD :: [PackageName] -> IO [GenericPackageDescription]
+getAllGPD = sequence . map mapFn
+  where mapFn package = parseCabal $ "./" ++ getPackageName package ++ "/"
+                                          ++ getPackageName package ++ ".cabal"
 
 -- | Get the flags if parallel build environment variable is set.
 getParallelBuildOpts :: IO String
