@@ -194,31 +194,39 @@ fromWord64BE :: (BE Word64) -> Word64
 {-# INLINE fromWord64BE #-}
 fromWord64BE (BE w) = fromBE64 w
 
+loadConv :: Storable a => (a -> b) -> CryptoPtr -> IO b
+{-# INLINE loadConv #-}
+loadConv f = fmap f . peek . castPtr
+
+storeConv :: Storable a => (b -> a) -> CryptoPtr -> b -> IO ()
+{-# INLINE storeConv #-}
+storeConv f ptr = poke (castPtr ptr) . f
+
 instance EndianStore (LE Word32) where
   {-# INLINE load  #-}
   {-# INLINE store #-}
-  load      = fmap toWord32LE . peek . castPtr
-  store ptr = poke (castPtr ptr) . fromWord32LE
+  load  = loadConv  toWord32LE
+  store = storeConv fromWord32LE
 
 
 instance EndianStore (BE Word32) where
   {-# INLINE load  #-}
   {-# INLINE store #-}
-  load      = fmap toWord32BE . peek . castPtr
-  store ptr = poke (castPtr ptr) . fromWord32BE
+  load  = loadConv  toWord32BE
+  store = storeConv fromWord32BE
 
 
 instance EndianStore (LE Word64) where
   {-# INLINE load  #-}
   {-# INLINE store #-}
-  load      = fmap toWord64LE . peek . castPtr
-  store ptr = poke (castPtr ptr) . fromWord64LE
+  load  = loadConv toWord64LE
+  store = storeConv fromWord64LE
 
 instance EndianStore (BE Word64) where
   {-# INLINE load  #-}
   {-# INLINE store #-}
-  load      = fmap toWord64BE . peek . castPtr
-  store ptr = poke (castPtr ptr) . fromWord64BE
+  load  = loadConv toWord64BE
+  store = storeConv fromWord64BE
 
 -- $length$
 --
