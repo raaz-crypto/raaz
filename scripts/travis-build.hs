@@ -115,51 +115,23 @@ getTravisEnv =
                                            ++ (show $ disp pn)
                                            ++ (show $ disp vr)
 
--- | Get the flags if parallel build environment variable is set.
-getParallelBuildOpts :: IO String
-getParallelBuildOpts =
-  do env <- getEnvironment
-     case (lookup "PARALLEL_BUILDS" env) of
-       Just "yes" -> return "-j"
-       Nothing    -> return ""
-
--- | Get the constraints if platform environment variable is set.
-getPlatformConstraints :: IO [String]
-getPlatformConstraints =
-  do env <- getEnvironment
-     case (lookup "HASKELL_PLATFORM" env) of
-       Just platform -> do desc <- readPackageDescription silent $
-                                     "./platform/cabal/" ++ platform ++ ".cabal"
-                           return . map mapFn
-                                  . getDependencies $ desc
-       Nothing       -> return []
-  where mapFn (Dependency pn vr) = "--constraint="
-                                     ++ (show $ disp pn)
-                                     ++ (show $ disp vr)
+-- | To parse a cabal file
+parseCabal :: FilePath -> IO GenericPackageDescription
+parseCabal path = readPackageDescription silent path
 
 -- | Get all the non-raaz dependencies from all packages.
-getNonRaazDependencies :: Packages
+getNonRaazDependencies :: [PackageName]
                        -> [GenericPackageDescription]
                        -> [PackageName]
-getNonRaazDependencies packages gpds = Set.toList . Set.fromList
-                                                  . concat $ map mapFn gpds
+getNonRaazDependencies packages gpds = Set.toList
+                                     . Set.fromList
+                                     . concat $ map mapFn gpds
   where mapFn gpd = filter filterFn $ getDepencyList gpd
-          where filterFn x = not $ x `elem` (getPackages packages)
-
--- | Results of parsing cabal file of all packages.
-getAllGPD :: Packages -> IO [GenericPackageDescription]
-getAllGPD = foldl foldFn (return []) . reverse . getPackages
-  where foldFn iogpds package = do gpds <- iogpds
-                                   desc <- readPackageDescription silent $
-                                             "./" ++ getPackageName package
-                                                   ++ "/"
-                                                   ++ getPackageName package
-                                                   ++ ".cabal"
-                                   return $ desc:gpds
+          where filterFn x = not $ x `elem` packages
 
 -- | Get package name.
 getPackageName :: PackageName -> String
-getPackageName (PackageName str) = str
+getPackageName = show . disp
 
 -- | Take the map and provide a linear list of dependency-free packages.
 resolveDependency :: Map.Map PackageName [PackageName] -> [PackageName]
@@ -167,26 +139,25 @@ resolveDependency map
   | Map.null map  =  []
   | otherwise     =  resolvedPackages ++ resolveDependency finalUnresolvedMap
   where (resolvedMap, unresolvedMap) = Map.partition null map
-        resolvedPackages = Map.keys resolvedMap
+        resolvedPackages   = Map.keys resolvedMap
         finalUnresolvedMap = Map.map (\\ resolvedPackages) unresolvedMap
 
 -- | Genrate a map of package and its dependencies, excluding those which
 -- does not belong to raaz packages.
-getPackageDepency :: Packages
+getPackageDepency :: [PackageName]
                   -> [GenericPackageDescription]
                   -> Map.Map PackageName [PackageName]
 getPackageDepency packages gpds = foldl foldFn Map.empty zipped
-  where zipped = zipWith fzip gpds $ getPackages packages
+  where zipped = zipWith fzip gpds packages
           where fzip gpd package = ( package
                                    , filter filterFn $ getDepencyList gpd)
-                  where filterFn x = x `elem` (getPackages packages)
-                                     && x /= package
+                  where filterFn x = x `elem` packages && x /= package
         foldFn map (package, dependency) = Map.insert package dependency map
 
--- | Get package names of the dependencies
+-- | Get package names of the dependencies.
 getDepencyList :: GenericPackageDescription -> [PackageName]
-getDepencyList = map getPackageName . getDependencies
-  where getPackageName (Dependency name _) = name
+getDepencyList = map mapFn . getDependencies
+  where mapFn (Dependency name _) = name
 
 -- | Get the dependencies in a particular cabal file.
 getDependencies :: GenericPackageDescription -> [Dependency]
