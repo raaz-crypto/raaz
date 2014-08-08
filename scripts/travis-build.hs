@@ -98,9 +98,10 @@ getAllGPD = sequence . map mapFn
 -- | Get Travis Environment.
 getTravisEnv :: IO TravisEnv
 getTravisEnv = 
-  do hp <- lookupEnv "HASKELL_PLATFORM"
-     pb <- lookupEnv "PARALLEL_BUILDS"
-     ct <- maybe (return []) getConstraint hp
+  do env <- getEnvironment
+     hp  <- return . lookup "HASKELL_PLATFORM" $ env
+     pb  <- return . lookup "PARALLEL_BUILDS" $ env
+     ct  <- maybe (return []) getConstraint hp
      return TravisEnv { haskellPlatform    = hp
                       , parallelBuilds     = paraBuilds pb
                       , installConstraints = ct
