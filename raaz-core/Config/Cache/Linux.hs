@@ -1,7 +1,8 @@
 
 {-| L1,L2 Cache information on Linux platform. -}
 module Config.Cache.Linux
-       ( cache
+       ( getL1CacheSize
+       , getL2CacheSize
        ) where
 
 import Control.Exception(catch)
@@ -10,29 +11,23 @@ import Prelude hiding (catch)
 
 import Config.Monad
 
--- | Gets the L1 and L2 cache for a linux machine.
-cache :: ConfigM (Int, Int)
+getL1CacheSize :: ConfigM (Maybe Int)
+getL1CacheSize = getCache "/sys/devices/system/cpu/cpu0/cache/index1/size"
 
-cache = do
-  messageLn "reading L1 and L2 cache sizes from sysfs"
-  l1 <- getCache "/sys/devices/system/cpu/cpu0/cache/index1/size"
-  l2 <- getCache "/sys/devices/system/cpu/cpu0/cache/index2/size"
-  messageLn $ unwords [ "\tL1 = ", show l1
-                      , "L2 = ", show l2
-                      ]
-  return (l1,l2)
+getL2CacheSize :: ConfigM (Maybe Int)
+getL2CacheSize = getCache "/sys/devices/system/cpu/cpu0/cache/index2/size"
 
-getCache :: FilePath -> ConfigM Int
+getCache :: FilePath -> ConfigM (Maybe Int)
 getCache fp = doIO $ fmap readCache (readFile fp) `catch` handler
-    where handler :: IOError -> IO Int
+    where handler :: IOError -> IO (Maybe Int)
           handler e = do print  e
-                         return 0
+                         return Nothing
 
-readCache :: String -> Int
+readCache :: String -> Maybe Int
 readCache str
-  | unit == "K" = number * 1024
-  | unit == "M" = number * 1024 * 1024
-  | otherwise   = error "cache info: bad format for cache string"
+  | unit == "K" = Just $ number * 1024
+  | unit == "M" = Just $ number * 1024 * 1024
+  | otherwise   = Nothing
   where (n, r) = span isDigit str
         unit   = strip r
         number = read  n

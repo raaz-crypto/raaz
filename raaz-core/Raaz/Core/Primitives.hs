@@ -168,7 +168,7 @@ class ( Primitive (PrimitiveOf g), Memory (MemoryOf g) )
   -- improve cache performance of your program. Default setting is the
   -- number of blocks that fit in @32KB@.
   recommendedBlocks   :: g -> BLOCKS (PrimitiveOf g)
-  recommendedBlocks _ = atMost l1Cache
+  recommendedBlocks _ = max 1 $ atMost l1Cache
 
   -- | This function actually applies the gadget on the buffer. If the
   -- underlying primitive is an instance of the class `SafePrimitive`,
