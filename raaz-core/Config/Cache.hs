@@ -6,13 +6,19 @@ This program guesses the L1 and L2 cache of the machine.
 -}
 
 module Config.Cache
-       ( cache
+       ( getL1CacheSize
+       , getL2CacheSize
        ) where
 import System.Info
 
 import           Config.Monad
 import qualified Config.Cache.Linux as Linux
 
-cache :: ConfigM (Int,Int)
-cache | os == "linux" = Linux.cache
-      | otherwise     = return (0,0)
+getL1CacheSize :: ConfigM (Maybe Int)
+getL1CacheSize = onOs dontKnow [ ("linux", Linux.getL1CacheSize) ]
+
+getL2CacheSize :: ConfigM (Maybe Int)
+getL2CacheSize = onOs dontKnow [ ("linux", Linux.getL2CacheSize) ]
+
+dontKnow :: ConfigM (Maybe a)
+dontKnow = return Nothing

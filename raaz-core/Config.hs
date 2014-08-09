@@ -13,11 +13,12 @@ module Config
        ) where
 
 import Control.Monad
+import Data.Maybe (fromMaybe)
 import System.FilePath
 
 import Config.Monad
 import Config.FFI
-import Config.Cache(cache)
+import Config.Cache
 import Config.Page(pageSize)
 
 
@@ -90,10 +91,27 @@ section com action = do comment com
                         newline
 
 -- | Configuring the L1 and L2 cache values.
-configureCache auto = do
-  (l1,l2) <- if auto then cache else return (l1CacheSize,l2CacheSize)
-  define "RAAZ_L1_CACHE" $ show l1
-  define "RAAZ_L2_CACHE" $ show l2
+configureCache auto
+  | auto = do
+    maybel1 <- getL1CacheSize
+    maybel2 <- getL2CacheSize
+    let l1 = fromMaybe l1CacheSize maybel1
+        l2 = fromMaybe l2CacheSize maybel2
+      in do cacheMesg "L1" maybel1 l1
+            cacheMesg "L2" maybel2 l2
+            define "RAAZ_L1_CACHE" $ show l1
+            define "RAAZ_L2_CACHE" $ show l2
+  | otherwise = do
+    messageLn $ "\tSetting default cache sizes: L1 = "
+      ++ show l1CacheSize ++ " L2 = " ++ show l2CacheSize
+    define "RAAZ_L1_CACHE" $ show l1CacheSize
+    define "RAAZ_L2_CACHE" $ show l2CacheSize
+
+  where cacheMesg cType guess actual = messageLn $ unwords [
+          "\tGuessed", cType, "=", show guess,
+          "setting it to", show actual
+          ]
+
 
 
 -- | Configuring Page Size.
