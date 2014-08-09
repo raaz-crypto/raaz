@@ -13,9 +13,12 @@ module Config.Monad
        , wrapHeaderFile
        , comment, newline
        , text
+       , onOs
        ) where
 
 import Control.Monad.Writer
+import Data.Maybe
+import System.Info
 
 -- | The configuration action. All the configuration actions happen in
 -- this monad. The raaz packages configuration consists of some simple
@@ -97,3 +100,6 @@ comment str= text ["/* " ++ str ++ " */"]
 -- | Generate a new line
 newline :: ConfigM ()
 newline = text [""]
+
+onOs :: x -> [(String, x)] -> x
+onOs defAction specific  = fromMaybe defAction $ lookup os specific
