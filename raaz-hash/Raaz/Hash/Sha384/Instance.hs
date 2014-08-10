@@ -18,6 +18,7 @@ import Raaz.Core.Primitives
 import Raaz.Core.Primitives.Hash
 import Raaz.Core.Util.Ptr
 
+import Raaz.Hash.Sha.Util
 import Raaz.Hash.Sha384.Type
 import Raaz.Hash.Sha512.Type      ( SHA512(..) )
 import Raaz.Hash.Sha512.Instance
@@ -30,16 +31,27 @@ instance CryptoPrimitive SHA384 where
   type Recommended SHA384 = CGadget SHA384
   type Reference SHA384   = HGadget SHA384
 
-instance Hash SHA384
+instance Hash SHA384 where
+  defaultCxt _ = SHA512 0xcbbb9d5dc1059ed8
+                        0x629a292a367cd507
+                        0x9159015a3070dd17
+                        0x152fecd8f70e5939
+                        0x67332667ffc00b31
+                        0x8eb44a8768581511
+                        0xdb0c2e0d64f98fa7
+                        0x47b5481dbefa4fa4
+
+  hashDigest = sha512Tosha384
+    where sha512Tosha384 (SHA512 h0 h1 h2 h3 h4 h5 _ _)
+            = SHA384 h0 h1 h2 h3 h4 h5
 
 instance Gadget (HGadget SHA384) where
-  type PrimitiveOf (HGadget SHA384) = SHA384
-  type MemoryOf (HGadget SHA384) = CryptoCell SHA512
-  newGadgetWithMemory = return . HGadget
-  initialize (HGadget cc) (SHA384Cxt sha1) = cellPoke cc sha1
-  finalize (HGadget cc) = SHA384Cxt <$> cellPeek cc
-  apply (HGadget cc) n cptr = do
-    initial <- cellPeek cc
+  type PrimitiveOf (HGadget SHA384)  = SHA384
+  type MemoryOf (HGadget SHA384)     = CryptoCell SHA512
+  getMemory (HGadget m)              = m
+  newGadgetWithMemory                = return . HGadget
+  apply (HGadget cc) n cptr          = do
+    initial <- cellLoad cc
     final <- fst <$> foldM moveAndHash (initial,cptr) [1..n]
     cellPoke cc final
     where

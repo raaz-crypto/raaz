@@ -12,14 +12,13 @@ Portable C implementation of SHA512 hash.
 
 module Raaz.Hash.Sha512.CPortable (sha512Compress) where
 
-import Control.Applicative ( (<$>) )
-
 import Foreign.Ptr
 
 import Raaz.Core.Memory
 import Raaz.Core.Primitives
 import Raaz.Core.Types
 
+import Raaz.Hash.Sha.Util
 import Raaz.Hash.Sha512.Type
 
 foreign import ccall unsafe
@@ -34,10 +33,9 @@ sha512Compress cc nblocks buffer = withCell cc action
 
 instance Gadget (CGadget SHA512) where
   type PrimitiveOf (CGadget SHA512) = SHA512
-  type MemoryOf (CGadget SHA512) = CryptoCell SHA512
-  newGadgetWithMemory = return . CGadget
-  initialize (CGadget cc) (SHA512Cxt sha1) = cellPoke cc sha1
-  finalize (CGadget cc) = SHA512Cxt <$> cellPeek cc
-  apply (CGadget cc)    = sha512Compress cc
+  type MemoryOf (CGadget SHA512)    = CryptoCell SHA512
+  newGadgetWithMemory               = return . CGadget
+  getMemory (CGadget m)             = m
+  apply (CGadget cc)                = sha512Compress cc
 
 instance PaddableGadget (CGadget SHA512)

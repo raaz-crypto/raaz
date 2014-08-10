@@ -14,10 +14,9 @@ module Raaz.Hash.Sha256.CPortable
        ( sha256Compress
        ) where
 
-import Control.Applicative ( (<$>) )
-
 import Foreign.Ptr
 
+import Raaz.Hash.Sha.Util
 import Raaz.Core.Memory
 import Raaz.Core.Primitives
 import Raaz.Core.Types
@@ -36,10 +35,9 @@ sha256Compress cc nblocks buffer = withCell cc action
 
 instance Gadget (CGadget SHA256) where
   type PrimitiveOf (CGadget SHA256) = SHA256
-  type MemoryOf (CGadget SHA256) = CryptoCell SHA256
-  newGadgetWithMemory = return . CGadget
-  initialize (CGadget cc) (SHA256Cxt sha1) = cellPoke cc sha1
-  finalize (CGadget cc) = SHA256Cxt <$> cellPeek cc
-  apply (CGadget cc)  = sha256Compress cc
+  type MemoryOf (CGadget SHA256)    = CryptoCell SHA256
+  newGadgetWithMemory               = return . CGadget
+  getMemory (CGadget m)             = m
+  apply (CGadget cc)                = sha256Compress cc
 
 instance PaddableGadget (CGadget SHA256)

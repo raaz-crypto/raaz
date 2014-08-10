@@ -5,12 +5,10 @@
 
 module Raaz.Hash.Sha512.Type
        ( SHA512(..)
-       , Cxt(SHA512Cxt)
        ) where
 
 import Control.Applicative ( (<$>), (<*>) )
 import Data.Bits           ( xor, (.|.)   )
-import Data.Default
 import Data.Monoid
 import Data.Word
 import Data.Typeable       ( Typeable     )
@@ -50,10 +48,6 @@ instance Eq SHA512 where
       == 0
 
 instance HasName SHA512
-
-instance Digestible SHA512 where
-  type Digest SHA512 = SHA512
-  toDigest (SHA512Cxt h) = h
 
 instance Storable SHA512 where
   sizeOf    _ = 8 * sizeOf (undefined :: (BE Word64))
@@ -105,7 +99,7 @@ instance EndianStore SHA512 where
 instance Primitive SHA512 where
   blockSize _ = BYTES 128
   {-# INLINE blockSize #-}
-  newtype Cxt SHA512 = SHA512Cxt SHA512 deriving (Eq, Show, Storable)
+  type Cxt SHA512 = SHA512
 
 instance SafePrimitive SHA512
 
@@ -113,13 +107,3 @@ instance HasPadding SHA512 where
   maxAdditionalBlocks _ = 1
   padLength = shaPadLength 16
   padding   = shaPadding   16
-
-instance Default (Cxt SHA512) where
-  def = SHA512Cxt $ SHA512 0x6a09e667f3bcc908
-                          0xbb67ae8584caa73b
-                          0x3c6ef372fe94f82b
-                          0xa54ff53a5f1d36f1
-                          0x510e527fade682d1
-                          0x9b05688c2b3e6c1f
-                          0x1f83d9abfb41bd6b
-                          0x5be0cd19137e2179

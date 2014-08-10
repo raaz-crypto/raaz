@@ -14,12 +14,10 @@ instance etc.
 -}
 module Raaz.Hash.Sha1.Type
        ( SHA1(..)
-       , Cxt(SHA1Cxt)
        ) where
 
 import Control.Applicative ( (<$>), (<*>) )
 import Data.Bits           ( xor, (.|.)   )
-import Data.Default
 import Data.Monoid
 import Data.Word
 import Data.Typeable       ( Typeable     )
@@ -50,10 +48,6 @@ instance Eq SHA1 where
                                                    == 0
 
 instance HasName SHA1
-
-instance Digestible SHA1 where
-  type Digest SHA1 = SHA1
-  toDigest (SHA1Cxt h) = h
 
 instance Storable SHA1 where
   sizeOf    _ = 5 * sizeOf (undefined :: (BE Word32))
@@ -92,18 +86,11 @@ instance EndianStore SHA1 where
 instance Primitive SHA1 where
   blockSize _ = BYTES 64
   {-# INLINE blockSize #-}
-  newtype Cxt SHA1 = SHA1Cxt SHA1 deriving (Eq, Show, Storable)
+  type Cxt SHA1 = SHA1
 
 instance SafePrimitive SHA1
 
 instance HasPadding SHA1 where
   maxAdditionalBlocks _ = 1
-  padLength             = shaPadLength 8
-  padding               = shaPadding   8
-
-instance Default (Cxt SHA1) where
-  def = SHA1Cxt $ SHA1 0x67452301
-                       0xefcdab89
-                       0x98badcfe
-                       0x10325476
-                       0xc3d2e1f0
+  padLength = shaPadLength 8
+  padding   = shaPadding   8

@@ -12,12 +12,11 @@ Portable C implementation of SHA1 hash.
 
 module Raaz.Hash.Sha1.CPortable () where
 
-import Control.Applicative ( (<$>) )
-
 import Raaz.Core.Memory
 import Raaz.Core.Primitives
 import Raaz.Core.Types
 
+import Raaz.Hash.Sha.Util
 import Raaz.Hash.Sha1.Type
 
 foreign import ccall unsafe
@@ -32,10 +31,9 @@ sha1Compress cc nblocks buffer = withCell cc action
 
 instance Gadget (CGadget SHA1) where
   type PrimitiveOf (CGadget SHA1) = SHA1
-  type MemoryOf (CGadget SHA1) = CryptoCell SHA1
-  newGadgetWithMemory = return . CGadget
-  initialize (CGadget cc) (SHA1Cxt sha1) = cellPoke cc sha1
-  finalize (CGadget cc) = SHA1Cxt <$> cellPeek cc
-  apply (CGadget cc)    = sha1Compress cc
+  type MemoryOf (CGadget SHA1)    = CryptoCell SHA1
+  newGadgetWithMemory             = return . CGadget
+  getMemory (CGadget m)           = m
+  apply (CGadget cc)              = sha1Compress cc
 
 instance PaddableGadget (CGadget SHA1)
