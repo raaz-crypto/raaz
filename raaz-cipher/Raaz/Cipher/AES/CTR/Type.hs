@@ -7,7 +7,6 @@ module Raaz.Cipher.AES.CTR.Type where
 
 import Raaz.Core.Primitives
 import Raaz.Core.Primitives.Cipher
-import Raaz.Core.Serialize
 import Raaz.Core.Types
 
 import Raaz.Cipher.AES.Block.Internal
@@ -15,11 +14,11 @@ import Raaz.Cipher.AES.Internal
 
 
 instance Primitive (AES CTR k) where
-  blockSize _ = BYTES 1
+  blockSize _          = BYTES 1
   {-# INLINE blockSize #-}
-  newtype Cxt (AES CTR k) = AESCxt (k, STATE) deriving Eq
+  type Cxt (AES CTR k) = (k, STATE)
 
-instance CryptoSerialize k => Cipher (AES CTR k) where
-  cipherCxt = AESCxt
+instance Cipher (AES CTR k) where
+  cipherCxt _ = id
 
 type instance Key (AES CTR k) = (k,STATE)

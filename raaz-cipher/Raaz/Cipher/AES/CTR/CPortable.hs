@@ -27,44 +27,26 @@ foreign import ccall unsafe
 
 instance Gadget (CGadget (AESOp CTR KEY128 EncryptMode)) where
   type PrimitiveOf (CGadget (AESOp CTR KEY128 EncryptMode)) = AES CTR KEY128
-  type MemoryOf (CGadget (AESOp CTR KEY128 EncryptMode)) = (CryptoCell Expanded128, CryptoCell STATE)
-  newGadgetWithMemory = return . CGadget
-  initialize (CGadget (ek,s)) (AESCxt (k,iv)) = do
-    withCell s (flip store iv)
-    cExpand128 k ek
-  finalize (CGadget (ek,s)) = do
-    key <- cCompress128 <$> cellPeek ek
-    state <- withCell s load
-    return $ AESCxt (key, state)
-  apply = loadAndApply 0
+  type MemoryOf (CGadget (AESOp CTR KEY128 EncryptMode))    = (AESKEYMem Expanded128, AESIVMem)
+  newGadgetWithMemory                                       = return . CGadget
+  getMemory (CGadget m)                                     = m
+  apply                                                     = loadAndApply 0
 
 instance Gadget (CGadget (AESOp CTR KEY192 EncryptMode)) where
   type PrimitiveOf (CGadget (AESOp CTR KEY192 EncryptMode)) = AES CTR KEY192
-  type MemoryOf (CGadget (AESOp CTR KEY192 EncryptMode)) = (CryptoCell Expanded192, CryptoCell STATE)
-  newGadgetWithMemory = return . CGadget
-  initialize (CGadget (ek,s)) (AESCxt (k,iv)) = do
-    withCell s (flip store iv)
-    cExpand192 k ek
-  finalize (CGadget (ek,s)) = do
-    key <- cCompress192 <$> cellPeek ek
-    state <- withCell s load
-    return $ AESCxt (key, state)
-  apply = loadAndApply 1
+  type MemoryOf (CGadget (AESOp CTR KEY192 EncryptMode))    = (AESKEYMem Expanded192, AESIVMem)
+  newGadgetWithMemory                                       = return . CGadget
+  getMemory (CGadget m)                                     = m
+  apply                                                     = loadAndApply 1
 
 instance Gadget (CGadget (AESOp CTR KEY256 EncryptMode)) where
   type PrimitiveOf (CGadget (AESOp CTR KEY256 EncryptMode)) = AES CTR KEY256
-  type MemoryOf (CGadget (AESOp CTR KEY256 EncryptMode)) = (CryptoCell Expanded256, CryptoCell STATE)
-  newGadgetWithMemory = return . CGadget
-  initialize (CGadget (ek,s)) (AESCxt (k,iv)) = do
-    withCell s (flip store iv)
-    cExpand256 k ek
-  finalize (CGadget (ek,s)) = do
-    key <- cCompress256 <$> cellPeek ek
-    state <- withCell s load
-    return $ AESCxt (key, state)
-  apply = loadAndApply 2
+  type MemoryOf (CGadget (AESOp CTR KEY256 EncryptMode))    = (AESKEYMem Expanded256, AESIVMem)
+  newGadgetWithMemory                                       = return . CGadget
+  getMemory (CGadget m)                                     = m
+  apply                                                     = loadAndApply 2
 
-loadAndApply i (CGadget (ek,civ)) n cptr = withCell ek (withCell civ . doStuff)
+loadAndApply i (CGadget (AESKEYMem ek,AESIVMem civ)) n cptr = withCell ek (withCell civ . doStuff)
     where
       doStuff ekptr ivptr = c_ctr_encrypt ekptr cptr ivptr (fromIntegral n) i
 {-# INLINE loadAndApply #-}

@@ -21,68 +21,49 @@ import Raaz.Cipher.AES.Internal
 
 instance Gadget (HGadget (AESOp ECB KEY128 EncryptMode)) where
   type PrimitiveOf (HGadget (AESOp ECB KEY128 EncryptMode)) = AES ECB KEY128
-  type MemoryOf (HGadget (AESOp ECB KEY128 EncryptMode)) = CryptoCell Expanded128
-  newGadgetWithMemory = return . HGadget
-  initialize (HGadget ek) (AESCxt k) = hExpand128 k ek
-  finalize (HGadget ek) = do
-    key <- hCompress128 <$> cellPeek ek
-    return $ AESCxt key
-  apply g = loadAndApply moveAndApply g encrypt128
+  type MemoryOf (HGadget (AESOp ECB KEY128 EncryptMode))    = AESKEYMem Expanded128
+  newGadgetWithMemory                                       = return . HGadget
+  getMemory (HGadget m)                                     = m
+  apply g                                                   = loadAndApply moveAndApply g encrypt128
 
 instance Gadget (HGadget (AESOp ECB KEY128 DecryptMode)) where
   type PrimitiveOf (HGadget (AESOp ECB KEY128 DecryptMode)) = AES ECB KEY128
-  type MemoryOf (HGadget (AESOp ECB KEY128 DecryptMode)) = CryptoCell Expanded128
-  newGadgetWithMemory = return . HGadget
-  initialize (HGadget ek) (AESCxt k) = hExpand128 k ek
-  finalize (HGadget ek) = do
-    key <- hCompress128 <$> cellPeek ek
-    return $ AESCxt key
-  apply g = loadAndApply moveAndApply g decrypt128
+  type MemoryOf (HGadget (AESOp ECB KEY128 DecryptMode))    = AESKEYMem Expanded128
+  newGadgetWithMemory                                       = return . HGadget
+  getMemory (HGadget m)                                     = m
+  apply g                                                   = loadAndApply moveAndApply g decrypt128
 
 instance Gadget (HGadget (AESOp ECB KEY192 EncryptMode)) where
   type PrimitiveOf (HGadget (AESOp ECB KEY192 EncryptMode)) = AES ECB KEY192
-  type MemoryOf (HGadget (AESOp ECB KEY192 EncryptMode)) = CryptoCell Expanded192
-  newGadgetWithMemory = return . HGadget
-  initialize (HGadget ek) (AESCxt k) = hExpand192 k ek
-  finalize (HGadget ek) = do
-    key <- hCompress192 <$> cellPeek ek
-    return $ AESCxt key
-  apply g = loadAndApply moveAndApply g encrypt192
+  type MemoryOf (HGadget (AESOp ECB KEY192 EncryptMode))    = AESKEYMem Expanded192
+  newGadgetWithMemory                                       = return . HGadget
+  getMemory (HGadget m)                                     = m
+  apply g                                                   = loadAndApply moveAndApply g encrypt192
 
 instance Gadget (HGadget (AESOp ECB KEY192 DecryptMode)) where
   type PrimitiveOf (HGadget (AESOp ECB KEY192 DecryptMode)) = AES ECB KEY192
-  type MemoryOf (HGadget (AESOp ECB KEY192 DecryptMode)) = CryptoCell Expanded192
-  newGadgetWithMemory = return . HGadget
-  initialize (HGadget ek) (AESCxt k) = hExpand192 k ek
-  finalize (HGadget ek) = do
-    key <- hCompress192 <$> cellPeek ek
-    return $ AESCxt key
-  apply g = loadAndApply moveAndApply g decrypt192
+  type MemoryOf (HGadget (AESOp ECB KEY192 DecryptMode))    = AESKEYMem Expanded192
+  newGadgetWithMemory                                       = return . HGadget
+  getMemory (HGadget m)                                     = m
+  apply g                                                   = loadAndApply moveAndApply g decrypt192
 
 instance Gadget (HGadget (AESOp ECB KEY256 EncryptMode)) where
   type PrimitiveOf (HGadget (AESOp ECB KEY256 EncryptMode)) = AES ECB KEY256
-  type MemoryOf (HGadget (AESOp ECB KEY256 EncryptMode)) = CryptoCell Expanded256
-  newGadgetWithMemory = return . HGadget
-  initialize (HGadget ek) (AESCxt k) = hExpand256 k ek
-  finalize (HGadget ek) = do
-    key <- hCompress256 <$> cellPeek ek
-    return $ AESCxt key
-  apply g = loadAndApply moveAndApply g encrypt256
+  type MemoryOf (HGadget (AESOp ECB KEY256 EncryptMode))    = AESKEYMem Expanded256
+  newGadgetWithMemory                                       = return . HGadget
+  getMemory (HGadget m)                                     = m
+  apply g                                                   = loadAndApply moveAndApply g encrypt256
 
 instance Gadget (HGadget (AESOp ECB KEY256 DecryptMode)) where
   type PrimitiveOf (HGadget (AESOp ECB KEY256 DecryptMode)) = AES ECB KEY256
-  type MemoryOf (HGadget (AESOp ECB KEY256 DecryptMode)) = CryptoCell Expanded256
-  newGadgetWithMemory = return . HGadget
-  initialize (HGadget ek) (AESCxt k) = hExpand256 k ek
-  finalize (HGadget ek) = do
-    key <- hCompress256 <$> cellPeek ek
-    return $ AESCxt key
-  apply g = loadAndApply moveAndApply g decrypt256
+  type MemoryOf (HGadget (AESOp ECB KEY256 DecryptMode))    = AESKEYMem Expanded256
+  newGadgetWithMemory                                       = return . HGadget
+  getMemory (HGadget m)                                     = m
+  apply g                                                   = loadAndApply moveAndApply g decrypt256
 
-
-loadAndApply moveAndApply g@(HGadget ex) with n cptr = do
-    expanded <- cellPeek ex
-    void $ foldM (const . moveAndApply expanded sz with) cptr [1..n]
+loadAndApply process g@(HGadget (AESKEYMem ex)) with n cptr = do
+    expanded <- cellLoad ex
+    void $ foldM (const . process expanded sz with) cptr [1..n]
     where
       sz = blockSize (getPrim g)
 
