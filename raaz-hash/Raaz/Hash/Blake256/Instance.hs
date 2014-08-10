@@ -11,7 +11,6 @@ This module defines the hash instances for blake256 hash.
 module Raaz.Hash.Blake256.Instance () where
 
 import Control.Monad       ( foldM )
-import Data.Default()
 import Data.Word
 
 import Raaz.Core.Memory
@@ -30,31 +29,36 @@ instance CryptoPrimitive BLAKE256 where
   type Recommended BLAKE256 = CGadget BLAKE256
   type Reference BLAKE256 = HGadget BLAKE256
 
-instance Hash BLAKE256
+instance Hash BLAKE256 where
+  defaultCxt _ = (blake, salt)
+    where salt  = Salt 0 0 0 0
+          blake = BLAKE256 0x6a09e667
+                           0xbb67ae85
+                           0x3c6ef372
+                           0xa54ff53a
+                           0x510e527f
+                           0x9b05688c
+                           0x1f83d9ab
+                           0x5be0cd19
+
+  hashDigest = fst
 
 instance Gadget (HGadget BLAKE256) where
   type PrimitiveOf (HGadget BLAKE256) = BLAKE256
-  type MemoryOf (HGadget BLAKE256) = (CryptoCell BLAKE256, CryptoCell Salt, CryptoCell (BITS Word64))
-  newGadgetWithMemory = return . HGadget
 
-  initialize (HGadget (cellBlake, cellSalt, cellCounter)) (BLAKE256Cxt blake salt counter) = do
-    cellPoke cellSalt salt
-    cellPoke cellBlake blake
-    cellPoke cellCounter counter
+  type MemoryOf (HGadget BLAKE256)    = BLAKEMem BLAKE256
 
-  finalize (HGadget (cellBlake, cellSalt, cellCounter)) = do
-    b <- cellPeek cellBlake
-    s <- cellPeek cellSalt
-    c <- cellPeek cellCounter
-    return $ BLAKE256Cxt b s c
+  newGadgetWithMemory                 = return . HGadget
 
-  apply (HGadget (cellBlake, cellSalt, cellCounter)) n cptr = do
-    initial                <- cellPeek cellBlake
-    salt                   <- cellPeek cellSalt
-    counter                <- cellPeek cellCounter
-    (final, nCounter , _ ) <- foldM (moveAndHash salt) (initial, counter, cptr) [1..n]
-    cellPoke cellBlake final
-    cellPoke cellCounter nCounter
+  getMemory (HGadget m)               = m
+
+  apply (HGadget (BLAKEMem (cellBlake, cellSalt, cellCounter))) n cptr = do
+    initial <- cellLoad cellBlake
+    salt <- cellLoad cellSalt
+    counter <- cellLoad cellCounter
+    (final, nCounter , _ )  <- foldM (moveAndHash salt) (initial, counter, cptr) [1..n]
+    cellStore cellBlake final
+    cellStore cellCounter nCounter
     where
       sz = blockSize (undefined :: BLAKE256)
       moveAndHash salt (cxt, counter, ptr) _ = do
@@ -62,8 +66,9 @@ instance Gadget (HGadget BLAKE256) where
         newCxt       <- blake256CompressSingle cxt salt nCounter ptr
         return (newCxt, nCounter, ptr `movePtr` sz)
 
+
 instance PaddableGadget (HGadget BLAKE256) where
-  unsafeApplyLast g@(HGadget (_, _, cellCounter)) blocks bytes cptr = do
+  unsafeApplyLast g@(HGadget (BLAKEMem (_, _, cellCounter))) blocks bytes cptr = do
     let bits      = inBits bytes :: BITS Word64
         len       = inBits blocks + bits
         p         = primitiveOf g

@@ -1,22 +1,23 @@
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE FlexibleInstances          #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 module Raaz.Hash.Blake256.Type
        ( BLAKE256(..)
        , Salt(..)
-       , Cxt(BLAKE256Cxt)
+       , BLAKEMem(..)
        ) where
 
 import Control.Applicative ((<$>), (<*>))
 import Data.Bits(xor, (.|.))
-import Data.Default
 import Data.Word
 import Data.Monoid
 import Data.Typeable(Typeable)
 import Foreign.Ptr(castPtr)
 import Foreign.Storable(Storable(..))
 
+import Raaz.Core.Memory
 import Raaz.Core.Parse.Unsafe
 import Raaz.Core.Primitives
 import Raaz.Core.Types
@@ -65,10 +66,6 @@ instance Eq Salt where
 
 instance HasName BLAKE256
 
-instance Digestible BLAKE256 where
-  type Digest BLAKE256 = BLAKE256
-  toDigest (BLAKE256Cxt b _ _) = b
-
 instance Storable BLAKE256 where
   sizeOf    _ = 8 * sizeOf (undefined :: (BE Word32))
   alignment _ = alignment  (undefined :: (BE Word32))
@@ -93,35 +90,6 @@ instance Storable BLAKE256 where
                         <> writeStorable h5
                         <> writeStorable h6
                         <> writeStorable h7
-          cptr = castPtr ptr
-
-instance Storable (Cxt BLAKE256) where
-  sizeOf    _ = 14 * sizeOf (undefined :: (BE Word32))
-  alignment _ = alignment  (undefined :: (BE Word32))
-
-  peek ptr = runParser cptr parseBLAKE256Cxt
-    where parseBLAKE256Cxt = BLAKE256Cxt <$> parseStorable
-                                         <*> parseStorable
-                                         <*> parseStorable
-          cptr = castPtr ptr
-
-  poke ptr (BLAKE256Cxt (BLAKE256 h0 h1 h2 h3 h4 h5 h6 h7)
-                        (Salt s0 s1 s2 s3)
-                        t
-           ) = runWrite cptr writeBLAKE256Cxt
-    where writeBLAKE256Cxt =  writeStorable h0
-                           <> writeStorable h1
-                           <> writeStorable h2
-                           <> writeStorable h3
-                           <> writeStorable h4
-                           <> writeStorable h5
-                           <> writeStorable h6
-                           <> writeStorable h7
-                           <> writeStorable s0
-                           <> writeStorable s1
-                           <> writeStorable s2
-                           <> writeStorable s3
-                           <> writeStorable t
           cptr = castPtr ptr
 
 instance EndianStore BLAKE256 where
@@ -179,8 +147,7 @@ instance EndianStore Salt where
 instance Primitive BLAKE256 where
   blockSize _ = BYTES 64
   {-# INLINE blockSize #-}
-  data Cxt BLAKE256 = BLAKE256Cxt BLAKE256 Salt (BITS Word64) deriving (Eq, Show)
-
+  type Cxt BLAKE256 = (BLAKE256, Salt)
 
 instance SafePrimitive BLAKE256
 
@@ -189,19 +156,29 @@ instance HasPadding BLAKE256 where
   padLength = blakePadLength 8
   padding   = blakePadding   8
 
-instance Default (Cxt BLAKE256) where
-  def = let
-          blake = BLAKE256 0x6a09e667
-                           0xbb67ae85
-                           0x3c6ef372
-                           0xa54ff53a
-                           0x510e527f
-                           0x9b05688c
-                           0x1f83d9ab
-                           0x5be0cd19
-          salt = Salt 0 0 0 0
-        in
-            BLAKE256Cxt blake salt 0
+-- | Memory for BLAKE. It stores three things
+--
+-- 1. Blake hash value for data processed so far
+-- 2. Salt used
+-- 3. Counter of bits hashed so far
+--
+newtype BLAKEMem blake = BLAKEMem (CryptoCell blake, CryptoCell Salt, CryptoCell (BITS Word64))
+                       deriving Memory
 
-instance Default Salt where
-  def = Salt 0 0 0 0
+instance Storable blake => InitializableMemory (BLAKEMem blake) where
+
+  type IV (BLAKEMem blake) = (blake, Salt)
+
+  initializeMemory (BLAKEMem (cblake, csalt, ccounter)) (blake,salt) = do
+    cellStore cblake blake
+    cellStore csalt salt
+    cellStore ccounter 0
+
+instance Storable blake => FinalizableMemory (BLAKEMem blake) where
+
+  type FV (BLAKEMem blake) = (blake, Salt)
+
+  finalizeMemory (BLAKEMem (cblake, csalt, _)) = do
+    blake <- cellLoad cblake
+    salt <- cellLoad csalt
+    return (blake, salt)
