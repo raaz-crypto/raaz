@@ -21,7 +21,6 @@ import           Control.Applicative
 import           Data.Bits                 (xor)
 import           Data.ByteString.Char8     (ByteString)
 import qualified Data.ByteString           as B
-import           Data.Default              (def)
 import           Data.Monoid               ((<>))
 import           Data.String
 import           Data.Word                 (Word8)
@@ -211,6 +210,7 @@ instance ( Gadget g
     g' <- newGadgetAs (gadgetType hm) omem
     hmacCreateCxt 0x5c key g' hbuf
     where
+      def = defaultCxt $ primitiveOf $ gadgetType hm
       gadgetType :: Gadget g => HMACMem g -> g
       gadgetType _ = undefined
       newGadgetAs :: Gadget g => g -> MemoryOf g -> IO g

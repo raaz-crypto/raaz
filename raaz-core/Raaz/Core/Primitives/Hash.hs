@@ -17,7 +17,6 @@ module Raaz.Core.Primitives.Hash
        ) where
 
 import           Control.Applicative  ((<$>))
-import           Data.Default
 import qualified Data.ByteString      as B
 import qualified Data.ByteString.Lazy as L
 import           Foreign.Storable     ( Storable )
@@ -52,12 +51,14 @@ class ( SafePrimitive h
       , FV (MemoryOf (Recommended h)) ~ Cxt h
       , FV (MemoryOf (Reference h)) ~ Cxt h
       , HasPadding h
-      , Default (Cxt h)
       , CryptoPrimitive h
       , Eq h
       , EndianStore h
-      , Storable (Cxt h)
       ) => Hash h where
+  -- | Get the intial IV for the hash.
+  defaultCxt :: h -> Cxt h
+
+  -- | Calculate the digest from the Context.
   hashDigest :: Cxt h -> h
 
 
@@ -87,8 +88,7 @@ sourceHash' :: ( ByteSource src
             => g    -- ^ Gadget
             -> src  -- ^ Message
             -> IO h
-
-sourceHash' g src = hashDigest <$> (withGadget def $ go g)
+sourceHash' g src = hashDigest <$> (withGadget (defaultCxt $ primitiveOf g) $ go g)
   where go :: ( Gadget g1
               , Hash (PrimitiveOf g1)
               , PaddableGadget g1
@@ -98,7 +98,6 @@ sourceHash' g src = hashDigest <$> (withGadget def $ go g)
         go _ gad =  do
           transformGadget gad src
           finalize gad
-
 {-# INLINEABLE sourceHash' #-}
 
 -- | Compute the hash of a byte source.
