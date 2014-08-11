@@ -5,8 +5,6 @@
 module Modules.Salsa20.Stream (tests) where
 
 import           Data.ByteString                ( ByteString, pack )
-import qualified Data.ByteString                as BS
-import qualified Data.ByteString.Char8          as B8
 import           Data.Char
 import           Data.Typeable
 
@@ -20,6 +18,7 @@ import           Raaz.Core.Test.Gadget          ( testGadget       )
 import           Raaz.Core.Types
 import           Raaz.Core.Primitives
 import           Raaz.Core.Primitives.Cipher
+import           Raaz.Core.Util.ByteString      ( fromByteString   )
 import qualified Raaz.Core.Util.ByteString      as BU
 
 import           Raaz.Cipher.Salsa20.Internal
@@ -29,8 +28,8 @@ import           Modules.EcryptTestParser
 import           Modules.EcryptTest
 import           Modules.Util
 
-randcxt128 = BS.pack [1..32]
-randcxt256 = BS.pack [1..48]
+randcxt128 = (fromByteString $ pack [1..16], fromByteString $ pack [16..32])
+randcxt256 = (fromByteString $ pack [1..32], fromByteString $ pack [32..48])
 
 tests =
       [ testAll s20_128 "./ecryptTestData/salsa20_20.vectors" (keySize 16)
