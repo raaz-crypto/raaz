@@ -6,6 +6,7 @@
 module Modules.Util.ByteString where
 
 import qualified Data.ByteString as B
+import qualified Data.Maybe      as M
 import Data.ByteString.Internal
 import Foreign.Ptr (castPtr)
 import Test.QuickCheck
@@ -46,7 +47,17 @@ prop_unSafeNCopy (BoundedByteString bs n) = monadicIO $ do
     return n
   assert $ B.take n bs == w
 
+-- | Tests for checking hex and fromHex functions.
+prop_toHexfromHex :: BoundedByteString -> Bool
+prop_toHexfromHex (BoundedByteString bs _) = M.maybe False (== bs) (fromHex $ hex bs)
+
+-- | Tests for checking hex and unsafeFromHex functions.
+prop_toHexUnsafeFromHex :: BoundedByteString -> Bool
+prop_toHexUnsafeFromHex (BoundedByteString bs _) = bs == (unsafeFromHex $ hex bs)
+
 tests :: [Test]
 tests = [ testProperty "UnsafeCopyToCryptoPtr" prop_unSafeCopy
         , testProperty "UnsafeNCopyToCryptoPtr" prop_unSafeNCopy
+        , testProperty "ToHexFromHex" prop_toHexfromHex
+        , testProperty "ToHexUnsafeFromHex" prop_toHexUnsafeFromHex
         ]
