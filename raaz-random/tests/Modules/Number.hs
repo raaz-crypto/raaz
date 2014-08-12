@@ -16,7 +16,7 @@ import           Raaz.Core.Primitives.Cipher
 import           Raaz.Core.Types
 import qualified Raaz.Core.Util.ByteString            as BU
 
-import           Modules.Stream                       ( createGadget, testiv   )
+import           Modules.Stream                       ( createGadget          )
 import           Raaz.Random
 
 import Data.Word
@@ -67,7 +67,7 @@ testWith :: ( StreamGadget g
             , PrimitiveOf g ~ prim
             , Cipher prim
             )
-         => g -> [Test]
-testWith g = [ testProperty "genMax domain check" $ prop_max g testiv
-             , testProperty "genBetween domain check" $ prop_between g testiv
-             ]
+         => g -> Key prim -> [Test]
+testWith g k = [ testProperty "genMax domain check" $ prop_max g k
+               , testProperty "genBetween domain check" $ prop_between g k
+               ]
