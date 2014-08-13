@@ -45,7 +45,7 @@ instance Gadget (CGadget (AESOp CBC KEY128 EncryptMode)) where
     withCell s (flip store iv)
     cExpand128 k ek
   finalize (CGadget (ek,s)) = do
-    key <- cCompress128 <$> cellLoad ek
+    key <- cCompress128 <$> cellPeek ek
     state <- withCell s load
     return $ AESCxt (key, state)
   apply = loadAndApply c_cbc_encrypt 0
@@ -58,7 +58,7 @@ instance Gadget (CGadget (AESOp CBC KEY128 DecryptMode)) where
     withCell s (flip store iv)
     cExpand128 k ek
   finalize (CGadget (ek,s)) = do
-    key <- cCompress128 <$> cellLoad ek
+    key <- cCompress128 <$> cellPeek ek
     state <- withCell s load
     return $ AESCxt (key, state)
   apply = loadAndApply c_cbc_decrypt 0
@@ -71,7 +71,7 @@ instance Gadget (CGadget (AESOp CBC KEY192 EncryptMode)) where
     withCell s (flip store iv)
     cExpand192 k ek
   finalize (CGadget (ek,s)) = do
-    key <- cCompress192 <$> cellLoad ek
+    key <- cCompress192 <$> cellPeek ek
     state <- withCell s load
     return $ AESCxt (key,state)
   apply = loadAndApply c_cbc_encrypt 1
@@ -84,7 +84,7 @@ instance Gadget (CGadget (AESOp CBC KEY192 DecryptMode)) where
     withCell s (flip store iv)
     cExpand192 k ek
   finalize (CGadget (ek,s)) = do
-    key <- cCompress192 <$> cellLoad ek
+    key <- cCompress192 <$> cellPeek ek
     state <- withCell s load
     return $ AESCxt (key,state)
   apply = loadAndApply c_cbc_decrypt 1
@@ -97,7 +97,7 @@ instance Gadget (CGadget (AESOp CBC KEY256 EncryptMode)) where
     withCell s (flip store iv)
     cExpand256 k ek
   finalize (CGadget (ek,s)) = do
-    key <- cCompress256 <$> cellLoad ek
+    key <- cCompress256 <$> cellPeek ek
     state <- withCell s load
     return $ AESCxt (key,state)
   apply = loadAndApply c_cbc_encrypt 2
@@ -110,7 +110,7 @@ instance Gadget (CGadget (AESOp CBC KEY256 DecryptMode)) where
     withCell s (flip store iv)
     cExpand256 k ek
   finalize (CGadget (ek,s)) = do
-    key <- cCompress256 <$> cellLoad ek
+    key <- cCompress256 <$> cellPeek ek
     state <- withCell s load
     return $ AESCxt (key,state)
   apply = loadAndApply c_cbc_decrypt 2

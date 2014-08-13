@@ -39,7 +39,7 @@ instance Gadget (CGadget (AESOp ECB KEY128 EncryptMode)) where
   newGadgetWithMemory = return . CGadget
   initialize (CGadget ek) (AESCxt k) = cExpand128 k ek
   finalize (CGadget ek) = do
-    key <- cCompress128 <$> cellLoad ek
+    key <- cCompress128 <$> cellPeek ek
     return $ AESCxt key
   apply = loadAndApply c_ecb_encrypt 0
 
@@ -49,7 +49,7 @@ instance Gadget (CGadget (AESOp ECB KEY128 DecryptMode)) where
   newGadgetWithMemory = return . CGadget
   initialize (CGadget ek) (AESCxt k) = cExpand128 k ek
   finalize (CGadget ek) = do
-    key <- cCompress128 <$> cellLoad ek
+    key <- cCompress128 <$> cellPeek ek
     return $ AESCxt key
   apply = loadAndApply c_ecb_decrypt 0
 
@@ -59,7 +59,7 @@ instance Gadget (CGadget (AESOp ECB KEY192 EncryptMode)) where
   newGadgetWithMemory = return . CGadget
   initialize (CGadget ek) (AESCxt k) = cExpand192 k ek
   finalize (CGadget ek) = do
-    key <- cCompress192 <$> cellLoad ek
+    key <- cCompress192 <$> cellPeek ek
     return $ AESCxt key
   apply = loadAndApply c_ecb_encrypt 1
 
@@ -69,7 +69,7 @@ instance Gadget (CGadget (AESOp ECB KEY192 DecryptMode)) where
   newGadgetWithMemory = return . CGadget
   initialize (CGadget ek) (AESCxt k) = cExpand192 k ek
   finalize (CGadget ek) = do
-    key <- cCompress192 <$> cellLoad ek
+    key <- cCompress192 <$> cellPeek ek
     return $ AESCxt key
   apply = loadAndApply c_ecb_decrypt 1
 
@@ -79,7 +79,7 @@ instance Gadget (CGadget (AESOp ECB KEY256 EncryptMode)) where
   newGadgetWithMemory = return . CGadget
   initialize (CGadget ek) (AESCxt k) = cExpand256 k ek
   finalize (CGadget ek) = do
-    key <- cCompress256 <$> cellLoad ek
+    key <- cCompress256 <$> cellPeek ek
     return $ AESCxt key
   apply = loadAndApply c_ecb_encrypt 2
 
@@ -89,7 +89,7 @@ instance Gadget (CGadget (AESOp ECB KEY256 DecryptMode)) where
   newGadgetWithMemory = return . CGadget
   initialize (CGadget ek) (AESCxt k) = cExpand256 k ek
   finalize (CGadget ek) = do
-    key <- cCompress256 <$> cellLoad ek
+    key <- cCompress256 <$> cellPeek ek
     return $ AESCxt key
   apply = loadAndApply c_ecb_decrypt 2
 

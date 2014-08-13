@@ -25,7 +25,7 @@ instance Gadget (HGadget (AESOp ECB KEY128 EncryptMode)) where
   newGadgetWithMemory = return . HGadget
   initialize (HGadget ek) (AESCxt k) = hExpand128 k ek
   finalize (HGadget ek) = do
-    key <- hCompress128 <$> cellLoad ek
+    key <- hCompress128 <$> cellPeek ek
     return $ AESCxt key
   apply g = loadAndApply moveAndApply g encrypt128
 
@@ -35,7 +35,7 @@ instance Gadget (HGadget (AESOp ECB KEY128 DecryptMode)) where
   newGadgetWithMemory = return . HGadget
   initialize (HGadget ek) (AESCxt k) = hExpand128 k ek
   finalize (HGadget ek) = do
-    key <- hCompress128 <$> cellLoad ek
+    key <- hCompress128 <$> cellPeek ek
     return $ AESCxt key
   apply g = loadAndApply moveAndApply g decrypt128
 
@@ -45,7 +45,7 @@ instance Gadget (HGadget (AESOp ECB KEY192 EncryptMode)) where
   newGadgetWithMemory = return . HGadget
   initialize (HGadget ek) (AESCxt k) = hExpand192 k ek
   finalize (HGadget ek) = do
-    key <- hCompress192 <$> cellLoad ek
+    key <- hCompress192 <$> cellPeek ek
     return $ AESCxt key
   apply g = loadAndApply moveAndApply g encrypt192
 
@@ -55,7 +55,7 @@ instance Gadget (HGadget (AESOp ECB KEY192 DecryptMode)) where
   newGadgetWithMemory = return . HGadget
   initialize (HGadget ek) (AESCxt k) = hExpand192 k ek
   finalize (HGadget ek) = do
-    key <- hCompress192 <$> cellLoad ek
+    key <- hCompress192 <$> cellPeek ek
     return $ AESCxt key
   apply g = loadAndApply moveAndApply g decrypt192
 
@@ -65,7 +65,7 @@ instance Gadget (HGadget (AESOp ECB KEY256 EncryptMode)) where
   newGadgetWithMemory = return . HGadget
   initialize (HGadget ek) (AESCxt k) = hExpand256 k ek
   finalize (HGadget ek) = do
-    key <- hCompress256 <$> cellLoad ek
+    key <- hCompress256 <$> cellPeek ek
     return $ AESCxt key
   apply g = loadAndApply moveAndApply g encrypt256
 
@@ -75,13 +75,13 @@ instance Gadget (HGadget (AESOp ECB KEY256 DecryptMode)) where
   newGadgetWithMemory = return . HGadget
   initialize (HGadget ek) (AESCxt k) = hExpand256 k ek
   finalize (HGadget ek) = do
-    key <- hCompress256 <$> cellLoad ek
+    key <- hCompress256 <$> cellPeek ek
     return $ AESCxt key
   apply g = loadAndApply moveAndApply g decrypt256
 
 
 loadAndApply moveAndApply g@(HGadget ex) with n cptr = do
-    expanded <- cellLoad ex
+    expanded <- cellPeek ex
     void $ foldM (const . moveAndApply expanded sz with) cptr [1..n]
     where
       sz = blockSize (getPrim g)

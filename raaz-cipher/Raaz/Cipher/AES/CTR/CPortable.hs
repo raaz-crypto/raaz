@@ -33,7 +33,7 @@ instance Gadget (CGadget (AESOp CTR KEY128 EncryptMode)) where
     withCell s (flip store iv)
     cExpand128 k ek
   finalize (CGadget (ek,s)) = do
-    key <- cCompress128 <$> cellLoad ek
+    key <- cCompress128 <$> cellPeek ek
     state <- withCell s load
     return $ AESCxt (key, state)
   apply = loadAndApply 0
@@ -46,7 +46,7 @@ instance Gadget (CGadget (AESOp CTR KEY192 EncryptMode)) where
     withCell s (flip store iv)
     cExpand192 k ek
   finalize (CGadget (ek,s)) = do
-    key <- cCompress192 <$> cellLoad ek
+    key <- cCompress192 <$> cellPeek ek
     state <- withCell s load
     return $ AESCxt (key, state)
   apply = loadAndApply 1
@@ -59,7 +59,7 @@ instance Gadget (CGadget (AESOp CTR KEY256 EncryptMode)) where
     withCell s (flip store iv)
     cExpand256 k ek
   finalize (CGadget (ek,s)) = do
-    key <- cCompress256 <$> cellLoad ek
+    key <- cCompress256 <$> cellPeek ek
     state <- withCell s load
     return $ AESCxt (key, state)
   apply = loadAndApply 2

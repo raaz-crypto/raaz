@@ -94,7 +94,7 @@ instance ( Gadget g
   initialize (RSAGadget ck g) (PKCSAuth priv hcxt) =  cellStore ck priv
                                                    >> initialize g hcxt
 
-  finalize (RSAGadget ck g) = PKCSAuth <$> cellLoad ck <*> finalize g
+  finalize (RSAGadget ck g) = PKCSAuth <$> cellPeek ck <*> finalize g
 
   apply (RSAGadget _ g) blks = apply g blks'
     where blks' = toEnum $ fromEnum blks
@@ -177,7 +177,7 @@ instance ( Gadget g
                                                                 >> cellStore csig sig
                                                                 >> initialize g hcxt
 
-  finalize (RSAGadget (ck, csig) g) = PKCSVerify <$> cellLoad ck <*> cellLoad csig<*> finalize g
+  finalize (RSAGadget (ck, csig) g) = PKCSVerify <$> cellPeek ck <*> cellPeek csig<*> finalize g
 
   apply (RSAGadget _ g) blks = apply g blks'
     where blks' = toEnum $ fromEnum blks

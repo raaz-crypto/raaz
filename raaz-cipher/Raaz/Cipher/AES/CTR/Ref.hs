@@ -31,8 +31,8 @@ instance Gadget (HGadget (AESOp CTR KEY128 EncryptMode)) where
     hExpand128 k ek
     cellStore s iv
   finalize (HGadget (ek,s)) = do
-    key <- hCompress128 <$> cellLoad ek
-    state <- cellLoad s
+    key <- hCompress128 <$> cellPeek ek
+    state <- cellPeek s
     return $ AESCxt (key,state)
   apply g = applyGad g encrypt128
 
@@ -44,8 +44,8 @@ instance Gadget (HGadget (AESOp CTR KEY192 EncryptMode)) where
     hExpand192 k ek
     cellStore s iv
   finalize (HGadget (ek,s)) = do
-    key <- hCompress192 <$> cellLoad ek
-    state <- cellLoad s
+    key <- hCompress192 <$> cellPeek ek
+    state <- cellPeek s
     return $ AESCxt (key,state)
   apply g = applyGad g encrypt192
 
@@ -57,14 +57,14 @@ instance Gadget (HGadget (AESOp CTR KEY256 EncryptMode)) where
     hExpand256 k ek
     cellStore s iv
   finalize (HGadget (ek,s)) = do
-    key <- hCompress256 <$> cellLoad ek
-    state <- cellLoad s
+    key <- hCompress256 <$> cellPeek ek
+    state <- cellPeek s
     return $ AESCxt (key,state)
   apply g = applyGad g encrypt256
 
 applyGad g@(HGadget (ex,s)) with n cptr = do
-    expanded <- cellLoad ex
-    initial <- cellLoad s
+    expanded <- cellPeek ex
+    initial <- cellPeek s
     (newiv,restptr) <- foldM (moveAndHash expanded) (initial,cptr) [1..nblks]
     final <- restOfblock expanded newiv restptr
     cellStore s final

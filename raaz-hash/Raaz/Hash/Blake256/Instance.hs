@@ -43,15 +43,15 @@ instance Gadget (HGadget BLAKE256) where
     cellStore cellCounter counter
 
   finalize (HGadget (cellBlake, cellSalt, cellCounter)) = do
-    b <- cellLoad cellBlake
-    s <- cellLoad cellSalt
-    c <- cellLoad cellCounter
+    b <- cellPeek cellBlake
+    s <- cellPeek cellSalt
+    c <- cellPeek cellCounter
     return $ BLAKE256Cxt b s c
 
   apply (HGadget (cellBlake, cellSalt, cellCounter)) n cptr = do
-    initial                <- cellLoad cellBlake
-    salt                   <- cellLoad cellSalt
-    counter                <- cellLoad cellCounter
+    initial                <- cellPeek cellBlake
+    salt                   <- cellPeek cellSalt
+    counter                <- cellPeek cellCounter
     (final, nCounter , _ ) <- foldM (moveAndHash salt) (initial, counter, cptr) [1..n]
     cellStore cellBlake final
     cellStore cellCounter nCounter

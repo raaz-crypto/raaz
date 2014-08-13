@@ -100,7 +100,7 @@ instance StreamGadget g => Gadget (RandomSource g) where
 
 instance StreamGadget g => ByteSource (RandomSource g) where
   fillBytes nb rs@(RandomSource g buff celloffset cellcounter) cptr = do
-    offset <- cellLoad celloffset
+    offset <- cellPeek celloffset
     foffset <- go nb offset cptr
     cellStore celloffset foffset
     cellModify cellcounter (+ nb)

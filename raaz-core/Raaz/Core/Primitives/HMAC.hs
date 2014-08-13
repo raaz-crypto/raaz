@@ -221,7 +221,7 @@ instance ( Hash (PrimitiveOf g)
 
   finalize hg = do
     innerHash <- fmap toDigest $ finalize g  -- hash (inner pad ++ message)
-    oc        <- cellLoad cell               -- outer context
+    oc        <- cellPeek cell               -- outer context
     -- hash ( outerpad ++ inner hash)
     do initialize g oc  -- Now the first block consisting of outer pad
                         -- is hashed.

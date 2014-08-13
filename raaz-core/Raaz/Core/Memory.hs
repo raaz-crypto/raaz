@@ -10,7 +10,7 @@ module Raaz.Core.Memory
        ( Memory(..)
          -- CryptoCell
        , CryptoCell
-       , cellLoad
+       , cellPeek
        , cellStore
        , cellModify
        , withCell
@@ -119,8 +119,8 @@ instance (Memory a, Memory b, Memory c, Memory d) => Memory (a,b,c,d) where
 newtype CryptoCell a = CryptoCell ForeignCryptoPtr
 
 -- | Read the value from the CryptoCell.
-cellLoad :: Storable a => CryptoCell a -> IO a
-cellLoad (CryptoCell p) = withForeignPtr p (peek . castPtr)
+cellPeek :: Storable a => CryptoCell a -> IO a
+cellPeek (CryptoCell p) = withForeignPtr p (peek . castPtr)
 
 -- | Write the value to the CryptoCell.
 cellStore :: Storable a => CryptoCell a -> a -> IO ()
@@ -128,7 +128,7 @@ cellStore (CryptoCell p) v = withForeignPtr p (flip poke v . castPtr)
 
 -- | Apply the given function to the value in the cell.
 cellModify :: Storable a => CryptoCell a -> (a -> a) -> IO ()
-cellModify cp f = cellLoad cp >>= cellStore cp . f
+cellModify cp f = cellPeek cp >>= cellStore cp . f
 
 -- | Perform some pointer action on CryptoCell. Useful while working
 -- with ffi functions.

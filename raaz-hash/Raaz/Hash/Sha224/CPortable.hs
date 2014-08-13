@@ -24,7 +24,7 @@ instance Gadget (CGadget SHA224) where
   type MemoryOf (CGadget SHA224) = CryptoCell SHA256
   newGadgetWithMemory = return . CGadget
   initialize (CGadget cc) (SHA224Cxt sha) = cellStore cc sha
-  finalize (CGadget cc) = SHA224Cxt <$> cellLoad cc
+  finalize (CGadget cc) = SHA224Cxt <$> cellPeek cc
   apply (CGadget cc) n  = sha256Compress cc n'
     where n' = blocksOf (fromIntegral n) (undefined :: SHA256)
 

@@ -35,7 +35,7 @@ instance Gadget (CGadget SHA1) where
   type MemoryOf (CGadget SHA1) = CryptoCell SHA1
   newGadgetWithMemory = return . CGadget
   initialize (CGadget cc) (SHA1Cxt sha1) = cellStore cc sha1
-  finalize (CGadget cc) = SHA1Cxt <$> cellLoad cc
+  finalize (CGadget cc) = SHA1Cxt <$> cellPeek cc
   apply (CGadget cc)    = sha1Compress cc
 
 instance PaddableGadget (CGadget SHA1)

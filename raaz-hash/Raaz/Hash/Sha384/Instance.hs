@@ -37,9 +37,9 @@ instance Gadget (HGadget SHA384) where
   type MemoryOf (HGadget SHA384) = CryptoCell SHA512
   newGadgetWithMemory = return . HGadget
   initialize (HGadget cc) (SHA384Cxt sha1) = cellStore cc sha1
-  finalize (HGadget cc) = SHA384Cxt <$> cellLoad cc
+  finalize (HGadget cc) = SHA384Cxt <$> cellPeek cc
   apply (HGadget cc) n cptr = do
-    initial <- cellLoad cc
+    initial <- cellPeek cc
     final <- fst <$> foldM moveAndHash (initial,cptr) [1..n]
     cellStore cc final
     where
