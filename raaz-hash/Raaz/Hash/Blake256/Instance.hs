@@ -38,9 +38,9 @@ instance Gadget (HGadget BLAKE256) where
   newGadgetWithMemory = return . HGadget
 
   initialize (HGadget (cellBlake, cellSalt, cellCounter)) (BLAKE256Cxt blake salt counter) = do
-    cellStore cellSalt salt
-    cellStore cellBlake blake
-    cellStore cellCounter counter
+    cellPoke cellSalt salt
+    cellPoke cellBlake blake
+    cellPoke cellCounter counter
 
   finalize (HGadget (cellBlake, cellSalt, cellCounter)) = do
     b <- cellPeek cellBlake
@@ -53,8 +53,8 @@ instance Gadget (HGadget BLAKE256) where
     salt                   <- cellPeek cellSalt
     counter                <- cellPeek cellCounter
     (final, nCounter , _ ) <- foldM (moveAndHash salt) (initial, counter, cptr) [1..n]
-    cellStore cellBlake final
-    cellStore cellCounter nCounter
+    cellPoke cellBlake final
+    cellPoke cellCounter nCounter
     where
       sz = blockSize (undefined :: BLAKE256)
       moveAndHash salt (cxt, counter, ptr) _ = do
@@ -80,7 +80,7 @@ instance PaddableGadget (HGadget BLAKE256) where
                              apply g (tBlocks-2) cptr
                              cellModify cellCounter (\a -> a - inBits (padl - block))
                              apply g 1 (cptr `movePtr` (tBlocks-2))
-                             cellStore cellCounter 0
+                             cellPoke cellCounter 0
                              apply g 1 (cptr `movePtr` (tBlocks-1))
 
     unsafePad p len (cptr `movePtr` bytes)

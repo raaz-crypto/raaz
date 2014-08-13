@@ -23,7 +23,7 @@ instance Gadget (CGadget SHA384) where
   type PrimitiveOf (CGadget SHA384) = SHA384
   type MemoryOf (CGadget SHA384) = CryptoCell SHA512
   newGadgetWithMemory = return . CGadget
-  initialize (CGadget cc) (SHA384Cxt sha) = cellStore cc sha
+  initialize (CGadget cc) (SHA384Cxt sha) = cellPoke cc sha
   finalize (CGadget cc) = SHA384Cxt <$> cellPeek cc
   apply (CGadget cc) n  = sha512Compress cc n'
     where n' = blocksOf (fromIntegral n) (undefined :: SHA512)

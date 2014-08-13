@@ -46,9 +46,9 @@ instance Gadget (CGadget BLAKE256) where
   newGadgetWithMemory = return . CGadget
 
   initialize (CGadget (cellBlake, cellSalt, cellCounter)) (BLAKE256Cxt blake salt counter) = do
-    cellStore cellSalt salt
-    cellStore cellBlake blake
-    cellStore cellCounter counter
+    cellPoke cellSalt salt
+    cellPoke cellBlake blake
+    cellPoke cellCounter counter
 
   finalize (CGadget (cellBlake, cellSalt, cellCounter)) = do
     b <- cellPeek cellBlake
@@ -81,5 +81,5 @@ instance PaddableGadget (CGadget BLAKE256) where
         apply g (tBlocks-2) cptr
         cellModify cellCounter (\a -> a - inBits (padl - block))
         apply g 1 (cptr `movePtr` (tBlocks-2))
-        cellStore cellCounter 0
+        cellPoke cellCounter 0
         apply g 1 (cptr `movePtr` (tBlocks-1))

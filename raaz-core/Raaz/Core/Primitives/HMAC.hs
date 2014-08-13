@@ -217,7 +217,7 @@ instance ( Hash (PrimitiveOf g)
     initialize (hashGadget hg) $ innerCxt cxt
     -- Store the outer context in the cxtCell to use
     -- in the outer stage.
-    cellStore (outerCxtCell hg) $ outerCxt cxt
+    cellPoke (outerCxtCell hg) $ outerCxt cxt
 
   finalize hg = do
     innerHash <- fmap toDigest $ finalize g  -- hash (inner pad ++ message)

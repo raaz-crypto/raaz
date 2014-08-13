@@ -35,12 +35,12 @@ instance Gadget (HGadget SHA256) where
   type PrimitiveOf (HGadget SHA256) = SHA256
   type MemoryOf (HGadget SHA256) = CryptoCell SHA256
   newGadgetWithMemory = return . HGadget
-  initialize (HGadget cc) (SHA256Cxt sha1) = cellStore cc sha1
+  initialize (HGadget cc) (SHA256Cxt sha1) = cellPoke cc sha1
   finalize (HGadget cc) = SHA256Cxt <$> cellPeek cc
   apply (HGadget cc) n cptr = do
     initial <- cellPeek cc
     final <- fst <$> foldM moveAndHash (initial,cptr) [1..n]
-    cellStore cc final
+    cellPoke cc final
     where
       sz = blockSize (undefined :: SHA256)
       moveAndHash (cxt,ptr) _ = do newCxt <- sha256CompressSingle cxt ptr

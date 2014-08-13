@@ -91,7 +91,7 @@ instance ( Gadget g
 
   newGadgetWithMemory (ck, gmem) = RSAGadget ck <$> newGadgetWithMemory gmem
 
-  initialize (RSAGadget ck g) (PKCSAuth priv hcxt) =  cellStore ck priv
+  initialize (RSAGadget ck g) (PKCSAuth priv hcxt) =  cellPoke ck priv
                                                    >> initialize g hcxt
 
   finalize (RSAGadget ck g) = PKCSAuth <$> cellPeek ck <*> finalize g
@@ -173,8 +173,8 @@ instance ( Gadget g
 
   newGadgetWithMemory (cell, gmem) = RSAGadget cell <$> newGadgetWithMemory gmem
 
-  initialize (RSAGadget (ck, csig) g) (PKCSVerify pub sig hcxt) =  cellStore ck pub
-                                                                >> cellStore csig sig
+  initialize (RSAGadget (ck, csig) g) (PKCSVerify pub sig hcxt) =  cellPoke ck pub
+                                                                >> cellPoke csig sig
                                                                 >> initialize g hcxt
 
   finalize (RSAGadget (ck, csig) g) = PKCSVerify <$> cellPeek ck <*> cellPeek csig<*> finalize g

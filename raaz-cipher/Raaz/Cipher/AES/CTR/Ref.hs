@@ -29,7 +29,7 @@ instance Gadget (HGadget (AESOp CTR KEY128 EncryptMode)) where
   newGadgetWithMemory = return . HGadget
   initialize (HGadget (ek,s)) (AESCxt (k,iv)) = do
     hExpand128 k ek
-    cellStore s iv
+    cellPoke s iv
   finalize (HGadget (ek,s)) = do
     key <- hCompress128 <$> cellPeek ek
     state <- cellPeek s
@@ -42,7 +42,7 @@ instance Gadget (HGadget (AESOp CTR KEY192 EncryptMode)) where
   newGadgetWithMemory = return . HGadget
   initialize (HGadget (ek,s)) (AESCxt (k,iv)) = do
     hExpand192 k ek
-    cellStore s iv
+    cellPoke s iv
   finalize (HGadget (ek,s)) = do
     key <- hCompress192 <$> cellPeek ek
     state <- cellPeek s
@@ -55,7 +55,7 @@ instance Gadget (HGadget (AESOp CTR KEY256 EncryptMode)) where
   newGadgetWithMemory = return . HGadget
   initialize (HGadget (ek,s)) (AESCxt (k,iv)) = do
     hExpand256 k ek
-    cellStore s iv
+    cellPoke s iv
   finalize (HGadget (ek,s)) = do
     key <- hCompress256 <$> cellPeek ek
     state <- cellPeek s
@@ -67,7 +67,7 @@ applyGad g@(HGadget (ex,s)) with n cptr = do
     initial <- cellPeek s
     (newiv,restptr) <- foldM (moveAndHash expanded) (initial,cptr) [1..nblks]
     final <- restOfblock expanded newiv restptr
-    cellStore s final
+    cellPoke s final
     where
       nblks = fromIntegral n `div` fromIntegral realsz :: Int
       nextra = fromIntegral n `rem` fromIntegral realsz :: Int

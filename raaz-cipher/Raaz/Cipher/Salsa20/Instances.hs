@@ -109,7 +109,7 @@ instance Gadget (HGadget (Salsa20 R20 KEY128)) where
   type PrimitiveOf (HGadget (Salsa20 R20 KEY128)) = Salsa20 R20 KEY128
   type MemoryOf (HGadget (Salsa20 R20 KEY128)) = CryptoCell Matrix
   newGadgetWithMemory = return . HGadget
-  initialize (HGadget mc) (Salsa20Cxt (k,n,s)) = cellStore mc $ expand128 k n s
+  initialize (HGadget mc) (Salsa20Cxt (k,n,s)) = cellPoke mc $ expand128 k n s
   finalize (HGadget mc) = Salsa20Cxt . compress128 <$> cellPeek mc
   apply g = applyGad g (salsa20 20)
 
@@ -118,7 +118,7 @@ instance Gadget (HGadget (Salsa20 R20 KEY256)) where
   type PrimitiveOf (HGadget (Salsa20 R20 KEY256)) = Salsa20 R20 KEY256
   type MemoryOf (HGadget (Salsa20 R20 KEY256)) = CryptoCell Matrix
   newGadgetWithMemory = return . HGadget
-  initialize (HGadget mc) (Salsa20Cxt (k,n,s)) = cellStore mc $ expand256 k n s
+  initialize (HGadget mc) (Salsa20Cxt (k,n,s)) = cellPoke mc $ expand256 k n s
   finalize (HGadget mc) = Salsa20Cxt . compress256 <$> cellPeek mc
   apply g = applyGad g (salsa20 20)
 
@@ -147,7 +147,7 @@ instance Gadget (HGadget (Salsa20 R12 KEY128)) where
   type PrimitiveOf (HGadget (Salsa20 R12 KEY128)) = Salsa20 R12 KEY128
   type MemoryOf (HGadget (Salsa20 R12 KEY128)) = CryptoCell Matrix
   newGadgetWithMemory = return . HGadget
-  initialize (HGadget mc) (Salsa20Cxt (k,n,s)) = cellStore mc $ expand128 k n s
+  initialize (HGadget mc) (Salsa20Cxt (k,n,s)) = cellPoke mc $ expand128 k n s
   finalize (HGadget mc) = Salsa20Cxt . compress128 <$> cellPeek mc
   apply g = applyGad g (salsa20 12)
 
@@ -156,7 +156,7 @@ instance Gadget (HGadget (Salsa20 R12 KEY256)) where
   type PrimitiveOf (HGadget (Salsa20 R12 KEY256)) = Salsa20 R12 KEY256
   type MemoryOf (HGadget (Salsa20 R12 KEY256)) = CryptoCell Matrix
   newGadgetWithMemory = return . HGadget
-  initialize (HGadget mc) (Salsa20Cxt (k,n,s)) = cellStore mc $ expand256 k n s
+  initialize (HGadget mc) (Salsa20Cxt (k,n,s)) = cellPoke mc $ expand256 k n s
   finalize (HGadget mc) = Salsa20Cxt . compress256 <$> cellPeek mc
   apply g = applyGad g (salsa20 12)
 
@@ -185,7 +185,7 @@ instance Gadget (HGadget (Salsa20 R8 KEY128)) where
   type PrimitiveOf (HGadget (Salsa20 R8 KEY128)) = Salsa20 R8 KEY128
   type MemoryOf (HGadget (Salsa20 R8 KEY128)) = CryptoCell Matrix
   newGadgetWithMemory = return . HGadget
-  initialize (HGadget mc) (Salsa20Cxt (k,n,s)) = cellStore mc $ expand128 k n s
+  initialize (HGadget mc) (Salsa20Cxt (k,n,s)) = cellPoke mc $ expand128 k n s
   finalize (HGadget mc) = Salsa20Cxt . compress128 <$> cellPeek mc
   apply g = applyGad g (salsa20 8)
 
@@ -194,7 +194,7 @@ instance Gadget (HGadget (Salsa20 R8 KEY256)) where
   type PrimitiveOf (HGadget (Salsa20 R8 KEY256)) = Salsa20 R8 KEY256
   type MemoryOf (HGadget (Salsa20 R8 KEY256)) = CryptoCell Matrix
   newGadgetWithMemory = return . HGadget
-  initialize (HGadget mc) (Salsa20Cxt (k,n,s)) = cellStore mc $ expand256 k n s
+  initialize (HGadget mc) (Salsa20Cxt (k,n,s)) = cellPoke mc $ expand256 k n s
   finalize (HGadget mc) = Salsa20Cxt . compress256 <$> cellPeek mc
   apply g = applyGad g (salsa20 8)
 
@@ -222,7 +222,7 @@ applyGad :: (Integral i, Gadget (HGadget t), MemoryOf (HGadget t) ~ CryptoCell M
 applyGad g@(HGadget mc) with n cptr = do
     state <- cellPeek mc
     (newstate,restptr) <- foldM moveAndHash (state,cptr) [1..nblks]
-    cellStore mc =<< restOfblock newstate restptr
+    cellPoke mc =<< restOfblock newstate restptr
     where
       nblks = fromIntegral n `div` fromIntegral realsz :: Int
       nextra = fromIntegral n `rem` fromIntegral realsz :: Int
