@@ -2,7 +2,7 @@ module Modules.AES.CTR (benchmarks, benchmarksTiny) where
 
 import Criterion.Main
 
-import Raaz.Primitives.Cipher
+import Raaz.Core.Primitives.Cipher
 
 import Raaz.Cipher.AES
 

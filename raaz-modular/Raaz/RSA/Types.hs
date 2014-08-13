@@ -1,7 +1,8 @@
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE KindSignatures      #-}
-{-# LANGUAGE TypeFamilies        #-}
-{-# LANGUAGE CPP                 #-}
+{-# LANGUAGE ScopedTypeVariables        #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE KindSignatures             #-}
+{-# LANGUAGE TypeFamilies               #-}
+{-# LANGUAGE CPP                        #-}
 module Raaz.RSA.Types
        ( PublicKey (..)
        , PrivateKey (..)
@@ -130,9 +131,11 @@ instance (Num w, Storable w, Integral w) => CryptoSerialize (PrivateKey w)
 -- hash used, @n@ is RSAMode (eg. `PKCS`) and @mode@ is mode of
 -- operation (eg `SignMode`, `EncryptMode`)
 #if UseKinds
-data RSA k h (n :: RSAMode) (mode :: Mode) = RSA deriving (Show, Eq)
+newtype RSA k h (n :: RSAMode) (mode :: Mode) = RSA k
+  deriving (Show, Eq, Num, Integral, Storable, Bits, Real, Ord, Enum)
 #else
-data RSA k h n mode = RSA deriving (Show, Eq)
+newtype RSA k h n mode = RSA k
+  deriving (Show, Eq, Num, Integral, Storable, Bits, Real, Ord, Enum)
 {-# DEPRECATED RSA
    "Kind restriction on n and mode will be added from GHC 7.6 onwards" #-}
 #endif

@@ -2,7 +2,7 @@ module Modules.AES.CBC (benchmarks, benchmarksTiny) where
 
 import Criterion.Main
 import Raaz.Benchmark.Gadget
-import Raaz.Primitives.Cipher
+import Raaz.Core.Primitives.Cipher
 
 import Raaz.Cipher.AES
 
