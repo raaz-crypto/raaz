@@ -46,7 +46,7 @@ main = do allgpds   <- getAllGPD allPackages
           args      <- getArgs
           case args of
             [cmd]     -> sequence_ $ map (makePackage travisEnv cmd)
-                                           (resolve allgpds)
+                                         (resolve allgpds)
             otherwise -> error "Invalid argument provided."
   where resolve = resolveDependency . getPackageDepency allPackages
 
@@ -69,7 +69,7 @@ makePackage travisEnv cmd package =
                     ]
        "config"  -> cabalCmd ["configure", "--enable-tests"] "Configuring"
        "build"   -> cabalCmd ["build"] "Building"
-       "test"    -> cabalCmd [ "test", "--show-details=failures"] "Testing"
+       "test"    -> cabalCmd ["test", "--show-details=failures"] "Testing"
        "tarball" -> cabalCmd ["sdist"] "Creating Source tarball of"
        otherwise -> error "Invalid argument provided."
      setCurrentDirectory "../"
@@ -97,7 +97,7 @@ getAllGPD = sequence . map mapFn
 
 -- | Get Travis Environment.
 getTravisEnv :: IO TravisEnv
-getTravisEnv = 
+getTravisEnv =
   do env <- getEnvironment
      hp  <- return . lookup "HASKELL_PLATFORM" $ env
      pb  <- return . lookup "PARALLEL_BUILDS" $ env
