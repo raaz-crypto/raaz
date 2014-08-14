@@ -65,8 +65,8 @@ fromGadget g = do
   buffer <- newMemory
   offset <- newMemory
   counter <- newMemory
-  cellStore offset (memoryBufSize buffer)
-  cellStore counter 0
+  cellPoke offset (memoryBufSize buffer)
+  cellPoke counter 0
   return (RandomSource g buffer offset counter)
 
 instance Primitive p => Primitive (RandomPrim p) where
@@ -86,23 +86,23 @@ instance StreamGadget g => Gadget (RandomSource g) where
   -- | Uses the buffer of recommended block size.
   newGadgetWithMemory (gmem,buffer,celloffset,cellcounter) = do
     g <- newGadgetWithMemory gmem
-    cellStore celloffset (memoryBufSize buffer)
-    cellStore cellcounter 0
+    cellPoke celloffset (memoryBufSize buffer)
+    cellPoke cellcounter 0
     return $ RandomSource g buffer celloffset cellcounter
   initialize (RandomSource g buffer celloffset cellcounter) (RSCxt iv) = do
     initialize g iv
     zeroOutMemoryBuf buffer
-    cellStore celloffset (memoryBufSize buffer)
-    cellStore cellcounter 0
+    cellPoke celloffset (memoryBufSize buffer)
+    cellPoke cellcounter 0
   -- | Finalize is of no use for a random number generator.
   finalize (RandomSource g _ _ _) = RSCxt <$> finalize g
   apply rs blks cptr = void $ fillBytes (inBytes blks) rs cptr
 
 instance StreamGadget g => ByteSource (RandomSource g) where
   fillBytes nb rs@(RandomSource g buff celloffset cellcounter) cptr = do
-    offset <- cellLoad celloffset
+    offset <- cellPeek celloffset
     foffset <- go nb offset cptr
-    cellStore celloffset foffset
+    cellPoke celloffset foffset
     cellModify cellcounter (+ nb)
     return $ Remaining rs
       where

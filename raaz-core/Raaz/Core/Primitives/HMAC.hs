@@ -217,11 +217,11 @@ instance ( Hash (PrimitiveOf g)
     initialize (hashGadget hg) $ innerCxt cxt
     -- Store the outer context in the cxtCell to use
     -- in the outer stage.
-    cellStore (outerCxtCell hg) $ outerCxt cxt
+    cellPoke (outerCxtCell hg) $ outerCxt cxt
 
   finalize hg = do
     innerHash <- fmap toDigest $ finalize g  -- hash (inner pad ++ message)
-    oc        <- cellLoad cell               -- outer context
+    oc        <- cellPeek cell               -- outer context
     -- hash ( outerpad ++ inner hash)
     do initialize g oc  -- Now the first block consisting of outer pad
                         -- is hashed.

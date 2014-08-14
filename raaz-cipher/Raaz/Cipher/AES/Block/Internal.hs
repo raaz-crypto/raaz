@@ -482,13 +482,13 @@ decrypt256 inp (Expanded256 k00 k01 k02 k03 k04 k05 k06 k07 k08 k09 k10
       s14 = invAddRoundKey (invSubBytes $ invShiftRows s13) k00
 
 hExpand128 :: KEY128 -> CryptoCell Expanded128 -> IO ()
-hExpand128 k excell = cellStore excell (expand128 k)
+hExpand128 k excell = cellPoke excell (expand128 k)
 
 hExpand192 :: KEY192 -> CryptoCell Expanded192 -> IO ()
-hExpand192 k excell = cellStore excell (expand192 k)
+hExpand192 k excell = cellPoke excell (expand192 k)
 
 hExpand256 :: KEY256 -> CryptoCell Expanded256 -> IO ()
-hExpand256 k excell = cellStore excell (expand256 k)
+hExpand256 k excell = cellPoke excell (expand256 k)
 
 foreign import ccall unsafe
   "raaz/cipher/cportable/aes.c raazCipherAESExpand"
