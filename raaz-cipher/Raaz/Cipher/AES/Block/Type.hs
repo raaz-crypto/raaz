@@ -14,26 +14,23 @@ module Raaz.Cipher.AES.Block.Type
        , KEY256(..)
        , Expanded256(..)
        , AEScxt(..)
-       , incrState
-       , fmapState
-       , constructWord32BE
-       , transpose
-       , invTranspose
-       )where
+       ) where
 
-import Control.Applicative  ( (<$>), (<*>)         )
-import Data.Bits            ( xor, (.|.), Bits(..) )
-import Data.Monoid          ( (<>)                 )
-import Data.Typeable        ( Typeable             )
+import Control.Applicative       ( (<$>), (<*>)         )
+import Data.Bits                 ( xor, (.|.), Bits(..) )
+import Data.ByteString.Char8     ( pack                 )
+import Data.Monoid               ( (<>)                 )
+import Data.String
+import Data.Typeable             ( Typeable             )
 import Data.Word
-import Foreign.Ptr          ( castPtr              )
-import Foreign.Storable     ( sizeOf,Storable(..)  )
-import Numeric              ( showHex              )
+import Foreign.Ptr               ( castPtr              )
+import Foreign.Storable          ( sizeOf,Storable(..)  )
+import Numeric                   ( showHex              )
 
-import Raaz.Core.Serialize
 import Raaz.Core.Types
 import Raaz.Core.Parse.Unsafe
 import Raaz.Core.Write.Unsafe
+import Raaz.Core.Util.ByteString ( fromByteString       )
 
 -- | AES State
 data STATE = STATE {-# UNPACK #-} !(BE Word32)
@@ -41,6 +38,9 @@ data STATE = STATE {-# UNPACK #-} !(BE Word32)
                    {-# UNPACK #-} !(BE Word32)
                    {-# UNPACK #-} !(BE Word32)
          deriving Typeable
+
+instance IsString STATE where
+  fromString = fromByteString . pack
 
 instance Show STATE where
   show (STATE w0 w1 w2 w3) = showString "STATE "
@@ -55,24 +55,6 @@ instance Show STATE where
 -- | AES Cxt (Used in CBC and CTR mode)
 newtype AEScxt = AEScxt STATE
          deriving (Show,Typeable,Eq,Storable)
-
--- | Incrments the STATE considering it to be a byte string. It is
--- sligthly different because of transposing of data during load and
--- store. Used in AES CTR mode.
-incrState :: STATE -> STATE
-incrState = transpose . incr . invTranspose
-  where
-    incr (STATE w0 w1 w2 w3) = STATE r0 r1 r2 r3
-      where
-        ifincr prev this = if prev == 0 then this + 1 else this
-        r3 = w3 + 1
-        r2 = ifincr r3 w2
-        r1 = ifincr r2 w1
-        r0 = ifincr r1 w0
-
--- | Maps a function over `STATE`.
-fmapState :: ((BE Word32) -> (BE Word32)) -> STATE -> STATE
-fmapState f (STATE s0 s1 s2 s3) = STATE (f s0) (f s1) (f s2) (f s3)
 
 -- | Expanded Key for 128 Bit Key
 data Expanded128 =
@@ -146,18 +128,28 @@ writeState (STATE s0 s1 s2 s3) = write s0
                               <> write s2
                               <> write s3
 
+parseStateStorable :: Parser STATE
+parseStateStorable = STATE <$> parseStorable
+                           <*> parseStorable
+                           <*> parseStorable
+                           <*> parseStorable
+
+writeStateStorable :: STATE -> Write
+writeStateStorable (STATE s0 s1 s2 s3) =  writeStorable s0
+                                       <> writeStorable s1
+                                       <> writeStorable s2
+                                       <> writeStorable s3
+
 
 instance Storable STATE where
   sizeOf    _ = 4 * sizeOf (undefined :: (BE Word32))
   alignment _ = alignment  (undefined :: CryptoAlign)
-  peek cptr = runParser (castPtr cptr) parseState
-  poke cptr state = runWrite (castPtr cptr) $ writeState state
+  peek cptr = runParser (castPtr cptr) parseStateStorable
+  poke cptr state = runWrite (castPtr cptr) $ writeStateStorable state
 
 instance EndianStore STATE where
-  load cptr = runParser cptr (transpose <$> parseState)
-  store cptr state = runWrite cptr $ writeState $ invTranspose state
-
-instance CryptoSerialize STATE
+  load cptr = runParser cptr parseState
+  store cptr state = runWrite cptr $ writeState state
 
 instance Storable Expanded128 where
   sizeOf    _ = 11 * sizeOf (undefined :: STATE)
@@ -341,69 +333,15 @@ instance Storable Expanded256 where
           pos14   = pos13 + offset
           offset = sizeOf (undefined:: STATE)
 
--- | Constructs a (BE Word32) from Least significan 8 bits of given 4 words
-constructWord32BE :: (BE Word32) -> (BE Word32) -> (BE Word32) -> (BE Word32) -> (BE Word32)
-constructWord32BE w0 w1 w2 w3 = r3 `xor` r2 `xor` r1 `xor` r0
-  where
-    mask w = w .&. 0x000000FF
-    r3 = mask w3
-    r2 = mask w2 `shiftL` 8
-    r1 = mask w1 `shiftL` 16
-    r0 = mask w0 `shiftL` 24
-
--- | Transpose of the STATE
-transpose :: STATE -> STATE
-transpose (STATE w0 w1 w2 w3) =
-           STATE (constructWord32BE s00 s01 s02 s03)
-                 (constructWord32BE s10 s11 s12 s13)
-                 (constructWord32BE s20 s21 s22 s23)
-                 (constructWord32BE w0 w1 w2 w3)
-  where
-    s20 = w0 `shiftR` 8
-    s21 = w1 `shiftR` 8
-    s22 = w2 `shiftR` 8
-    s23 = w3 `shiftR` 8
-    s10 = w0 `shiftR` 16
-    s11 = w1 `shiftR` 16
-    s12 = w2 `shiftR` 16
-    s13 = w3 `shiftR` 16
-    s00 = w0 `shiftR` 24
-    s01 = w1 `shiftR` 24
-    s02 = w2 `shiftR` 24
-    s03 = w3 `shiftR` 24
-{-# INLINE transpose #-}
-
--- | Reverse of Transpose of STATE
-invTranspose :: STATE -> STATE
-invTranspose (STATE w0 w1 w2 w3) =
-           STATE (constructWord32BE s00 s01 s02 s03)
-                 (constructWord32BE s10 s11 s12 s13)
-                 (constructWord32BE s20 s21 s22 s23)
-                 (constructWord32BE s30 s31 s32 s33)
-  where
-    s00 = w0 `shiftR` 24
-    s10 = w0 `shiftR` 16
-    s20 = w0 `shiftR` 8
-    s30 = w0
-    s01 = w1 `shiftR` 24
-    s11 = w1 `shiftR` 16
-    s21 = w1 `shiftR` 8
-    s31 = w1
-    s02 = w2 `shiftR` 24
-    s12 = w2 `shiftR` 16
-    s22 = w2 `shiftR` 8
-    s32 = w2
-    s03 = w3 `shiftR` 24
-    s13 = w3 `shiftR` 16
-    s23 = w3 `shiftR` 8
-    s33 = w3
-
 -- | 128 Bit Key
 data KEY128 = KEY128 {-# UNPACK #-} !(BE Word32)
                      {-# UNPACK #-} !(BE Word32)
                      {-# UNPACK #-} !(BE Word32)
                      {-# UNPACK #-} !(BE Word32)
          deriving Typeable
+
+instance IsString KEY128 where
+  fromString = fromByteString . pack
 
 -- | Hexadecimal Show instance
 instance Show KEY128 where
@@ -424,6 +362,9 @@ data KEY192 = KEY192 {-# UNPACK #-} !(BE Word32)
                      {-# UNPACK #-} !(BE Word32)
                      {-# UNPACK #-} !(BE Word32)
          deriving Typeable
+
+instance IsString KEY192 where
+  fromString = fromByteString . pack
 
 -- | Hexadecimal Show instance
 instance Show KEY192 where
@@ -450,6 +391,9 @@ data KEY256 = KEY256 {-# UNPACK #-} !(BE Word32)
                      {-# UNPACK #-} !(BE Word32)
                      {-# UNPACK #-} !(BE Word32)
          deriving Typeable
+
+instance IsString KEY256 where
+  fromString = fromByteString . pack
 
 -- | Hexadecimal Show instance
 instance Show KEY256 where
@@ -515,17 +459,28 @@ writeKey128 (KEY128 s0 s1 s2 s3) = write s0
                                 <> write s2
                                 <> write s3
 
+parseStorableKey128 :: Parser KEY128
+parseStorableKey128 = KEY128 <$> parseStorable
+                             <*> parseStorable
+                             <*> parseStorable
+                             <*> parseStorable
+
+writeStorableKey128 :: KEY128 -> Write
+writeStorableKey128 (KEY128 s0 s1 s2 s3) = writeStorable s0
+                                         <> writeStorable s1
+                                         <> writeStorable s2
+                                         <> writeStorable s3
+
+
 instance Storable KEY128 where
   sizeOf    _ = 4 * sizeOf (undefined :: (BE Word32))
   alignment _ = alignment  (undefined :: CryptoAlign)
-  peek cptr = runParser (castPtr cptr) parseKey128
-  poke cptr key128 = runWrite (castPtr cptr) $ writeKey128 key128
+  peek cptr = runParser (castPtr cptr) parseStorableKey128
+  poke cptr key128 = runWrite (castPtr cptr) $ writeStorableKey128 key128
 
 instance EndianStore KEY128 where
   load cptr = runParser cptr parseKey128
   store cptr key128 = runWrite cptr $ writeKey128 key128
-
-instance CryptoSerialize KEY128
 
 parseKey192 :: Parser KEY192
 parseKey192 = KEY192 <$> parse
@@ -543,17 +498,31 @@ writeKey192 (KEY192 s0 s1 s2 s3 s4 s5) = write s0
                                       <> write s4
                                       <> write s5
 
+parseStorableKey192 :: Parser KEY192
+parseStorableKey192 = KEY192 <$> parseStorable
+                             <*> parseStorable
+                             <*> parseStorable
+                             <*> parseStorable
+                             <*> parseStorable
+                             <*> parseStorable
+
+writeStorableKey192 :: KEY192 -> Write
+writeStorableKey192 (KEY192 s0 s1 s2 s3 s4 s5) = writeStorable s0
+                                               <> writeStorable s1
+                                               <> writeStorable s2
+                                               <> writeStorable s3
+                                               <> writeStorable s4
+                                               <> writeStorable s5
+
 instance Storable KEY192 where
   sizeOf    _ = 6 * sizeOf (undefined :: (BE Word32))
   alignment _ = alignment  (undefined :: CryptoAlign)
-  peek cptr = runParser (castPtr cptr) parseKey192
-  poke cptr key192 = runWrite (castPtr cptr) $ writeKey192 key192
+  peek cptr = runParser (castPtr cptr) parseStorableKey192
+  poke cptr key192 = runWrite (castPtr cptr) $ writeStorableKey192 key192
 
 instance EndianStore KEY192 where
   load cptr = runParser cptr parseKey192
   store cptr key192 = runWrite cptr $ writeKey192 key192
-
-instance CryptoSerialize KEY192
 
 parseKey256 :: Parser KEY256
 parseKey256 = KEY256 <$> parse
@@ -575,17 +544,35 @@ writeKey256 (KEY256 s0 s1 s2 s3 s4 s5 s6 s7) = write s0
                                             <> write s6
                                             <> write s7
 
+parseStorableKey256 :: Parser KEY256
+parseStorableKey256 = KEY256 <$> parseStorable
+                             <*> parseStorable
+                             <*> parseStorable
+                             <*> parseStorable
+                             <*> parseStorable
+                             <*> parseStorable
+                             <*> parseStorable
+                             <*> parseStorable
+
+writeStorableKey256 :: KEY256 -> Write
+writeStorableKey256 (KEY256 s0 s1 s2 s3 s4 s5 s6 s7) = writeStorable s0
+                                                     <> writeStorable s1
+                                                     <> writeStorable s2
+                                                     <> writeStorable s3
+                                                     <> writeStorable s4
+                                                     <> writeStorable s5
+                                                     <> writeStorable s6
+                                                     <> writeStorable s7
+
 instance Storable KEY256 where
   sizeOf    _ = 8 * sizeOf (undefined :: (BE Word32))
   alignment _ = alignment  (undefined :: CryptoAlign)
-  peek cptr = runParser (castPtr cptr) parseKey256
-  poke cptr key256 = runWrite (castPtr cptr) $ writeKey256 key256
+  peek cptr = runParser (castPtr cptr) parseStorableKey256
+  poke cptr key256 = runWrite (castPtr cptr) $ writeStorableKey256 key256
 
 instance EndianStore KEY256 where
   load cptr = runParser cptr parseKey256
   store cptr key256 = runWrite cptr $ writeKey256 key256
-
-instance CryptoSerialize KEY256
 
 showWord32 :: (BE Word32) -> ShowS
 showWord32 w = showString $ "0x" ++ replicate (8 - length hex) '0' ++ hex

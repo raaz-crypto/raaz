@@ -4,34 +4,22 @@ This module implements the reference implementation for AES. It is
 verbatim translation of the standard and doesn't perform any optimizations
 
 -}
-{-# LANGUAGE ForeignFunctionInterface  #-}
-{-# LANGUAGE FlexibleContexts          #-}
-{-# LANGUAGE FlexibleInstances         #-}
-{-# LANGUAGE TypeFamilies              #-}
-{-# LANGUAGE DeriveDataTypeable        #-}
-{-# LANGUAGE OverloadedStrings         #-}
-{-# OPTIONS_GHC -fno-warn-orphans      #-}
-{-# CFILES raaz/cipher/cportable/aes.c #-}
+{-# LANGUAGE ForeignFunctionInterface   #-}
+{-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE FlexibleInstances          #-}
+{-# LANGUAGE TypeFamilies               #-}
+{-# LANGUAGE DeriveDataTypeable         #-}
+{-# LANGUAGE OverloadedStrings          #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# OPTIONS_GHC -fno-warn-orphans       #-}
+{-# CFILES raaz/cipher/cportable/aes.c  #-}
 
 module Raaz.Cipher.AES.Block.Internal
-       ( expand128
-       , cCompress128
-       , hCompress128
-       , encrypt128
-       , decrypt128
-       , expand192
-       , cCompress192
-       , hCompress192
-       , encrypt192
-       , decrypt192
-       , expand256
-       , cCompress256
-       , hCompress256
-       , encrypt256
-       , decrypt256
-       , xorState
-       , hExpand128, hExpand192, hExpand256
-       , cExpand128, cExpand192, cExpand256
+       ( encrypt128, decrypt128
+       , encrypt192, decrypt192
+       , encrypt256, decrypt256
+       , xorState, incrState
+       , AESIVMem(..), AESKEYMem(..)
        , module Raaz.Cipher.AES.Block.Type
        ) where
 
@@ -205,66 +193,16 @@ subWordWith with w = w0' `xor` w1' `xor` w2' `xor` w3'
     w0' = (fromIntegral $ with w0) `shiftL` 24
 {-# INLINE subWordWith #-}
 
-rcon :: Int -> (BE Word32)
-rcon 0 = 0x8d000000
-rcon 1 = 0x01000000
-rcon 2 = 0x02000000
-rcon 3 = 0x04000000
-rcon 4 = 0x08000000
-rcon 5 = 0x10000000
-rcon 6 = 0x20000000
-rcon 7 = 0x40000000
-rcon 8 = 0x80000000
-rcon 9 = 0x1b000000
-rcon 10 = 0x36000000
-rcon 11 = 0x6c000000
-rcon 12 = 0xd8000000
-rcon 13 = 0xab000000
-rcon _    = error "Illegal lookup in rcon"
-
 xorState :: STATE -> STATE -> STATE
 xorState = addRoundKey
 {-# INLINE xorState #-}
 
-expand :: (BE Word32) -> (BE Word32) -> (BE Word32)
-expand w sb = w `xor` ((fromIntegral $ sbox (fromIntegral sb)) `shiftL` 24)
-{-# INLINE expand #-}
-
-rotateXor :: (BE Word32) -> (BE Word32)
-rotateXor w = w `xor` (w `shiftR` 8) `xor` (w `shiftR` 16) `xor` (w `shiftR` 24)
-{-# INLINE rotateXor #-}
-
-expand128 :: KEY128 -> Expanded128
-expand128 (KEY128 w0 w1 w2 w3) =
-    Expanded128 s00 s01 s02 s03
-                s04 s05 s06 s07
-                s08 s09 s10
-    where
-      next :: Int -> STATE -> STATE
-      next i  (STATE s0 s1 s2 s3) = fmapState rotateXor $ STATE r0 r1 r2 r3
-        where
-          r0 = expand s0 s1 `xor` rcon i
-          r1 = expand s1 s2
-          r2 = expand s2 s3
-          r3 = expand s3 s0
-      s00 = transpose $ STATE w0 w1 w2 w3
-      s01 = next 1 s00
-      s02 = next 2 s01
-      s03 = next 3 s02
-      s04 = next 4 s03
-      s05 = next 5 s04
-      s06 = next 6 s05
-      s07 = next 7 s06
-      s08 = next 8 s07
-      s09 = next 9 s08
-      s10 = next 10 s09
-
 encrypt128 :: STATE -> Expanded128 -> STATE
 encrypt128 inp (Expanded128 k00 k01 k02 k03 k04 k05 k06 k07 k08 k09 k10)
-  = s10
+  = invTranspose s10
     where
       aesRound k = flip addRoundKey k . mixColumns . shiftRows . subBytes
-      s00 = addRoundKey inp k00
+      s00 = addRoundKey (transpose inp) k00
       s01 = aesRound k01 s00
       s02 = aesRound k02 s01
       s03 = aesRound k03 s02
@@ -278,10 +216,10 @@ encrypt128 inp (Expanded128 k00 k01 k02 k03 k04 k05 k06 k07 k08 k09 k10)
 
 decrypt128 :: STATE -> Expanded128 -> STATE
 decrypt128 inp (Expanded128 k00 k01 k02 k03 k04 k05 k06 k07 k08 k09 k10)
-  = s10
+  = invTranspose s10
     where
       aesRound k =  invMixColumns . flip invAddRoundKey k . invSubBytes . invShiftRows
-      s00 = addRoundKey inp k10
+      s00 = addRoundKey (transpose inp) k10
       s01 = aesRound k09 s00
       s02 = aesRound k08 s01
       s03 = aesRound k07 s02
@@ -293,81 +231,12 @@ decrypt128 inp (Expanded128 k00 k01 k02 k03 k04 k05 k06 k07 k08 k09 k10)
       s09 = aesRound k01 s08
       s10 = invAddRoundKey (invSubBytes $ invShiftRows s09) k00
 
-expand192 :: KEY192 -> Expanded192
-expand192 (KEY192 w0 w1 w2 w3 w4 w5) =
-    Expanded192 s00 s01 s02 s03 s04 s05 s06
-                s07 s08 s09 s10 s11 s12
-    where
-      next1 :: Int -> STATE -> STATE -> STATE
-      next1 i (STATE s0 s1 s2 s3) (STATE s4 s5 s6 s7) =
-        fmapState rotateXor $ STATE r0 r1 r2 r3
-        where
-          r0 = expand s0 s5 `xor` rcon i
-          r1 = expand s1 s6
-          r2 = expand s2 s7
-          r3 = expand s3 s4
-      next2 :: STATE -> STATE -> STATE
-      next2 (STATE s0 s1 s2 s3) (STATE s4 s5 s6 s7) =
-        fmapState shiftXor $ STATE r0 r1 r2 r3
-        where
-          shiftXor w = w `xor` (w `shiftR` 8)
-          r0 = s0 `xor` ((s4 `shiftL` 8) .&. 0x0000ff00)
-          r1 = s1 `xor` ((s5 `shiftL` 8) .&. 0x0000ff00)
-          r2 = s2 `xor` ((s6 `shiftL` 8) .&. 0x0000ff00)
-          r3 = s3 `xor` ((s7 `shiftL` 8) .&. 0x0000ff00)
-      getExpanded1 :: STATE -> STATE -> STATE
-      getExpanded1 (STATE s0 s1 s2 s3) (STATE s4 s5 s6 s7) =
-        STATE r0 r1 r2 r3
-        where
-          r0 = (s0 `shiftL` 16) .|. (s4 `shiftR` 16)
-          r1 = (s1 `shiftL` 16) .|. (s5 `shiftR` 16)
-          r2 = (s2 `shiftL` 16) .|. (s6 `shiftR` 16)
-          r3 = (s3 `shiftL` 16) .|. (s7 `shiftR` 16)
-      getExpanded2 :: STATE -> STATE -> STATE
-      getExpanded2 (STATE s0 s1 s2 s3) (STATE s4 s5 s6 s7) =
-        STATE r0 r1 r2 r3
-        where
-          r0 = (s0 `shiftL` 16) .|. s4
-          r1 = (s1 `shiftL` 16) .|. s5
-          r2 = (s2 `shiftL` 16) .|. s6
-          r3 = (s3 `shiftL` 16) .|. s7
-      t00 = transpose $ STATE w0 w1 w2 w3
-      t01 = transpose $ STATE 0  0  w4 w5
-      s00 = t00
-      t02 = next1 1 t00 t01
-      t03 = next2   t01 t02
-      s01 = getExpanded1 t01 t02
-      s02 = getExpanded2 t02 t03
-      t04 = next1 2 t02 t03
-      t05 = next2   t03 t04
-      s03 = t04
-      t06 = next1 3 t04 t05
-      t07 = next2   t05 t06
-      s04 = getExpanded1 t05 t06
-      s05 = getExpanded2 t06 t07
-      t08 = next1 4 t06 t07
-      t09 = next2   t07 t08
-      s06 = t08
-      t10 = next1 5 t08 t09
-      t11 = next2   t09 t10
-      s07 = getExpanded1 t09 t10
-      s08 = getExpanded2 t10 t11
-      t12 = next1 6 t10 t11
-      t13 = next2   t11 t12
-      s09 = t12
-      t14 = next1 7 t12 t13
-      t15 = next2   t13 t14
-      s10 = getExpanded1 t13 t14
-      s11 = getExpanded2 t14 t15
-      s12 = next1 8 t14 t15
-
-
 encrypt192 :: STATE -> Expanded192 -> STATE
 encrypt192 inp (Expanded192 k00 k01 k02 k03 k04 k05 k06 k07 k08 k09 k10
-                            k11 k12) = s12
+                            k11 k12) = invTranspose s12
     where
       aesRound k = flip addRoundKey k . mixColumns . shiftRows . subBytes
-      s00 = addRoundKey inp k00
+      s00 = addRoundKey (transpose inp) k00
       s01 = aesRound k01 s00
       s02 = aesRound k02 s01
       s03 = aesRound k03 s02
@@ -383,10 +252,10 @@ encrypt192 inp (Expanded192 k00 k01 k02 k03 k04 k05 k06 k07 k08 k09 k10
 
 decrypt192 :: STATE -> Expanded192 -> STATE
 decrypt192 inp (Expanded192 k00 k01 k02 k03 k04 k05 k06 k07 k08 k09 k10
-                           k11 k12) = s12
+                           k11 k12) = invTranspose s12
     where
       aesRound k =  invMixColumns . flip invAddRoundKey k . invSubBytes . invShiftRows
-      s00 = addRoundKey inp k12
+      s00 = addRoundKey (transpose inp) k12
       s01 = aesRound k11 s00
       s02 = aesRound k10 s01
       s03 = aesRound k09 s02
@@ -400,51 +269,12 @@ decrypt192 inp (Expanded192 k00 k01 k02 k03 k04 k05 k06 k07 k08 k09 k10
       s11 = aesRound k01 s10
       s12 = invAddRoundKey (invSubBytes $ invShiftRows s11) k00
 
-expand256 :: KEY256 -> Expanded256
-expand256 (KEY256 w0 w1 w2 w3 w4 w5 w6 w7) =
-    Expanded256 s00 s01 s02 s03
-                s04 s05 s06 s07
-                s08 s09 s10 s11
-                s12 s13 s14
-    where
-      next1 :: Int -> STATE -> STATE -> STATE
-      next1 i (STATE s0 s1 s2 s3) (STATE s4 s5 s6 s7) =
-        fmapState rotateXor $ STATE r0 r1 r2 r3
-        where
-          r0 = expand s0 s5 `xor` rcon i
-          r1 = expand s1 s6
-          r2 = expand s2 s7
-          r3 = expand s3 s4
-      next2 :: STATE -> STATE -> STATE
-      next2 (STATE s0 s1 s2 s3) (STATE s4 s5 s6 s7) =
-        fmapState rotateXor $ STATE r0 r1 r2 r3
-        where
-          r0 = expand s0 s4
-          r1 = expand s1 s5
-          r2 = expand s2 s6
-          r3 = expand s3 s7
-      s00 = transpose $ STATE w0 w1 w2 w3
-      s01 = transpose $ STATE w4 w5 w6 w7
-      s02 = next1 1 s00 s01
-      s03 = next2   s01 s02
-      s04 = next1 2 s02 s03
-      s05 = next2   s03 s04
-      s06 = next1 3 s04 s05
-      s07 = next2   s05 s06
-      s08 = next1 4 s06 s07
-      s09 = next2   s07 s08
-      s10 = next1 5 s08 s09
-      s11 = next2   s09 s10
-      s12 = next1 6 s10 s11
-      s13 = next2   s11 s12
-      s14 = next1 7 s12 s13
-
 encrypt256 :: STATE -> Expanded256 -> STATE
 encrypt256 inp (Expanded256 k00 k01 k02 k03 k04 k05 k06 k07 k08 k09 k10
-                           k11 k12 k13 k14) = s14
+                           k11 k12 k13 k14) = invTranspose s14
     where
       aesRound k = flip addRoundKey k . mixColumns . shiftRows . subBytes
-      s00 = addRoundKey inp k00
+      s00 = addRoundKey (transpose inp) k00
       s01 = aesRound k01 s00
       s02 = aesRound k02 s01
       s03 = aesRound k03 s02
@@ -462,10 +292,10 @@ encrypt256 inp (Expanded256 k00 k01 k02 k03 k04 k05 k06 k07 k08 k09 k10
 
 decrypt256 :: STATE -> Expanded256 -> STATE
 decrypt256 inp (Expanded256 k00 k01 k02 k03 k04 k05 k06 k07 k08 k09 k10
-                           k11 k12 k13 k14) = s14
+                           k11 k12 k13 k14) = invTranspose s14
     where
       aesRound k =  invMixColumns . flip invAddRoundKey k . invSubBytes . invShiftRows
-      s00 = addRoundKey inp k14
+      s00 = addRoundKey (transpose inp) k14
       s01 = aesRound k13 s00
       s02 = aesRound k12 s01
       s03 = aesRound k11 s02
@@ -481,15 +311,6 @@ decrypt256 inp (Expanded256 k00 k01 k02 k03 k04 k05 k06 k07 k08 k09 k10
       s13 = aesRound k01 s12
       s14 = invAddRoundKey (invSubBytes $ invShiftRows s13) k00
 
-hExpand128 :: KEY128 -> CryptoCell Expanded128 -> IO ()
-hExpand128 k excell = cellPoke excell (expand128 k)
-
-hExpand192 :: KEY192 -> CryptoCell Expanded192 -> IO ()
-hExpand192 k excell = cellPoke excell (expand192 k)
-
-hExpand256 :: KEY256 -> CryptoCell Expanded256 -> IO ()
-hExpand256 k excell = cellPoke excell (expand256 k)
-
 foreign import ccall unsafe
   "raaz/cipher/cportable/aes.c raazCipherAESExpand"
   c_expand  :: CryptoPtr  -- ^ expanded key
@@ -497,6 +318,11 @@ foreign import ccall unsafe
             -> Int        -- ^ Key type
             -> IO ()
 
+-- | SECURITY LOOPHOLE TO FIX. Memory allocated through `allocaBuffer`
+-- is not a secureMemory and would not be scrubbed. The alternative to
+-- fix this is to change the context to a Memory containing Key
+-- instead of pure Key (similar for IV) and that memory should be
+-- passed while interfacing with C code.
 cExpansionWith :: (EndianStore k, Storable ek)
                => CryptoCell ek
                -> k
@@ -521,43 +347,104 @@ cExpand192 k excell = cExpansionWith excell k c_expand 1
 cExpand256 :: KEY256 -> CryptoCell Expanded256 -> IO ()
 cExpand256 k excell = cExpansionWith excell k c_expand 2
 
-hCompress128 :: Expanded128 -> KEY128
-hCompress128 (Expanded128 s0 _ _ _ _ _ _ _ _ _ _) = KEY128 r0 r1 r2 r3
-	where (STATE r0 r1 r2 r3) = invTranspose s0
+-- | Incrments the STATE considering it to be a byte string. It is
+-- sligthly different because of transposing of data during load and
+-- store. Used in AES CTR mode.
+incrState :: STATE -> STATE
+incrState = incr
+  where
+    incr (STATE w0 w1 w2 w3) = STATE r0 r1 r2 r3
+      where
+        ifincr prev this = if prev == 0 then this + 1 else this
+        r3 = w3 + 1
+        r2 = ifincr r3 w2
+        r1 = ifincr r2 w1
+        r0 = ifincr r1 w0
 
-hCompress192 :: Expanded192 -> KEY192
-hCompress192 (Expanded192 s0 s1 _ _ _ _ _ _ _ _ _ _ _) =
-	KEY192 r0 r1 r2 r3 r4 r5
-	where (STATE r0 r1 r2 r3) = invTranspose s0
-	      (STATE r4 r5 _ _) = invTranspose s1
+-- | Maps a function over `STATE`.
+fmapState :: ((BE Word32) -> (BE Word32)) -> STATE -> STATE
+fmapState f (STATE s0 s1 s2 s3) = STATE (f s0) (f s1) (f s2) (f s3)
 
-hCompress256 :: Expanded256 -> KEY256
-hCompress256 (Expanded256 s0 s1 _ _ _ _ _ _ _ _ _ _ _ _ _) =
-    KEY256 r0 r1 r2 r3 r4 r5 r6 r7
-	where (STATE r0 r1 r2 r3) = invTranspose s0
-	      (STATE r4 r5 r6 r7) = invTranspose s1
+-- | Constructs a (BE Word32) from Least significan 8 bits of given 4 words
+constructWord32BE :: (BE Word32) -> (BE Word32) -> (BE Word32) -> (BE Word32) -> (BE Word32)
+constructWord32BE w0 w1 w2 w3 = r3 `xor` r2 `xor` r1 `xor` r0
+  where
+    mask w = w .&. 0x000000FF
+    r3 = mask w3
+    r2 = mask w2 `shiftL` 8
+    r1 = mask w1 `shiftL` 16
+    r0 = mask w0 `shiftL` 24
 
-inverseWord :: (BE Word32) -> (BE Word32)
-inverseWord w = w0 `xor` w1 `xor` w2 `xor` w3
-    where
-      w0 = (w `shiftR` 24) .&. (0x000000ff)
-      w1 = (w `shiftR`  8) .&. (0x0000ff00)
-      w2 = (w `shiftL`  8) .&. (0x00ff0000)
-      w3 = (w `shiftL` 24) .&. (0xff000000)
+-- | Transpose of the STATE
+transpose :: STATE -> STATE
+transpose (STATE w0 w1 w2 w3) =
+           STATE (constructWord32BE s00 s01 s02 s03)
+                 (constructWord32BE s10 s11 s12 s13)
+                 (constructWord32BE s20 s21 s22 s23)
+                 (constructWord32BE w0 w1 w2 w3)
+  where
+    s20 = w0 `shiftR` 8
+    s21 = w1 `shiftR` 8
+    s22 = w2 `shiftR` 8
+    s23 = w3 `shiftR` 8
+    s10 = w0 `shiftR` 16
+    s11 = w1 `shiftR` 16
+    s12 = w2 `shiftR` 16
+    s13 = w3 `shiftR` 16
+    s00 = w0 `shiftR` 24
+    s01 = w1 `shiftR` 24
+    s02 = w2 `shiftR` 24
+    s03 = w3 `shiftR` 24
+{-# INLINE transpose #-}
 
-cCompress128 :: Expanded128 -> KEY128
-cCompress128 (Expanded128 s0 _ _ _ _ _ _ _ _ _ _) =
-    KEY128 r0 r1 r2 r3
-	  where (STATE r0 r1 r2 r3) = invTranspose $ fmapState inverseWord s0
+-- | Reverse of Transpose of STATE
+invTranspose :: STATE -> STATE
+invTranspose (STATE w0 w1 w2 w3) =
+           STATE (constructWord32BE s00 s01 s02 s03)
+                 (constructWord32BE s10 s11 s12 s13)
+                 (constructWord32BE s20 s21 s22 s23)
+                 (constructWord32BE s30 s31 s32 s33)
+  where
+    s00 = w0 `shiftR` 24
+    s10 = w0 `shiftR` 16
+    s20 = w0 `shiftR` 8
+    s30 = w0
+    s01 = w1 `shiftR` 24
+    s11 = w1 `shiftR` 16
+    s21 = w1 `shiftR` 8
+    s31 = w1
+    s02 = w2 `shiftR` 24
+    s12 = w2 `shiftR` 16
+    s22 = w2 `shiftR` 8
+    s32 = w2
+    s03 = w3 `shiftR` 24
+    s13 = w3 `shiftR` 16
+    s23 = w3 `shiftR` 8
+    s33 = w3
 
-cCompress192 :: Expanded192 -> KEY192
-cCompress192 (Expanded192 s0 s1 _ _ _ _ _ _ _ _ _ _ _) =
-	KEY192 r0 r1 r2 r3 r4 r5
-	where (STATE r0 r1 r2 r3) = invTranspose $ fmapState inverseWord s0
-	      (STATE r4 r5 _ _) = invTranspose $ fmapState inverseWord s1
+-- | Memory to store expanded key. Note that it uses the C expand
+-- function for key expansion.
+newtype AESKEYMem key = AESKEYMem (CryptoCell key) deriving Memory
 
-cCompress256 :: Expanded256 -> KEY256
-cCompress256 (Expanded256 s0 s1 _ _ _ _ _ _ _ _ _ _ _ _ _) =
-    KEY256 r0 r1 r2 r3 r4 r5 r6 r7
-	where (STATE r0 r1 r2 r3) = invTranspose $ fmapState inverseWord s0
-	      (STATE r4 r5 r6 r7) = invTranspose $ fmapState inverseWord s1
+instance InitializableMemory (AESKEYMem Expanded128) where
+  type IV (AESKEYMem Expanded128) = KEY128
+
+  initializeMemory (AESKEYMem cell) k = cExpand128 k cell
+
+instance InitializableMemory (AESKEYMem Expanded192) where
+  type IV (AESKEYMem Expanded192) = KEY192
+
+  initializeMemory (AESKEYMem cell) k = cExpand192 k cell
+
+instance InitializableMemory (AESKEYMem Expanded256) where
+  type IV (AESKEYMem Expanded256) = KEY256
+
+  initializeMemory (AESKEYMem cell) k = cExpand256 k cell
+
+-- | Memory to store IV (which is just STATE)
+newtype AESIVMem = AESIVMem (CryptoCell STATE) deriving Memory
+
+instance InitializableMemory AESIVMem where
+  type IV AESIVMem = STATE
+
+  initializeMemory (AESIVMem cell) s = withCell cell (flip store s)

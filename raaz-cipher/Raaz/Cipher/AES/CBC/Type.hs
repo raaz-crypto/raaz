@@ -7,7 +7,6 @@ module Raaz.Cipher.AES.CBC.Type where
 
 import Raaz.Core.Primitives
 import Raaz.Core.Primitives.Cipher
-import Raaz.Core.Serialize
 import Raaz.Core.Types
 
 import Raaz.Cipher.AES.Block.Internal
@@ -15,11 +14,11 @@ import Raaz.Cipher.AES.Internal
 
 
 instance Primitive (AES CBC k) where
-  blockSize _ = BYTES 16
+  blockSize _          = BYTES 16
   {-# INLINE blockSize #-}
-  newtype Cxt (AES CBC k) = AESCxt (k, STATE) deriving Eq
+  type Cxt (AES CBC k) = (k, STATE)
 
-instance CryptoSerialize k => Cipher (AES CBC k) where
-  cipherCxt = AESCxt
+instance Cipher (AES CBC k) where
+  cipherCxt _ = id
 
-type instance Key (AES CBC k) = (k,STATE)
+type instance Key (AES CBC k) = (k, STATE)

@@ -14,12 +14,10 @@ binary instance etc.
 
 module Raaz.Hash.Sha224.Type
        ( SHA224(..)
-       , Cxt(SHA224Cxt)
        ) where
 
 import Control.Applicative ( (<$>), (<*>) )
 import Data.Bits           ( xor, (.|.)   )
-import Data.Default
 import Data.Monoid
 import Data.Word
 import Data.Typeable       ( Typeable     )
@@ -59,12 +57,6 @@ instance Eq SHA224 where
       == 0
 
 instance HasName SHA224
-
-instance Digestible SHA224 where
-  type Digest SHA224 = SHA224
-  toDigest (SHA224Cxt h) = sha256Tosha224 h
-    where sha256Tosha224 (SHA256 h0 h1 h2 h3 h4 h5 h6 _)
-		= SHA224 h0 h1 h2 h3 h4 h5 h6
 
 instance Storable SHA224 where
   sizeOf    _ = 7 * sizeOf (undefined :: (BE Word32))
@@ -112,7 +104,7 @@ instance EndianStore SHA224 where
 instance Primitive SHA224 where
   blockSize _ = BYTES 64
   {-# INLINE blockSize #-}
-  newtype Cxt SHA224 = SHA224Cxt SHA256 deriving (Eq, Show, Storable)
+  type Cxt SHA224 = SHA256
 
 instance SafePrimitive SHA224
 
@@ -120,13 +112,3 @@ instance HasPadding SHA224 where
   maxAdditionalBlocks _ = 1
   padLength = shaPadLength 8
   padding   = shaPadding   8
-
-instance Default (Cxt SHA224) where
-  def = SHA224Cxt $ SHA256 0xc1059ed8
-                          0x367cd507
-                          0x3070dd17
-                          0xf70e5939
-                          0xffc00b31
-                          0x68581511
-                          0x64f98fa7
-                          0xbefa4fa4

@@ -5,12 +5,10 @@
 
 module Raaz.Hash.Sha256.Type
        ( SHA256(..)
-       , Cxt(SHA256Cxt)
        ) where
 
 import Control.Applicative ( (<$>), (<*>) )
 import Data.Bits           ( xor, (.|.)   )
-import Data.Default
 import Data.Monoid
 import Data.Word
 import Data.Typeable       ( Typeable     )
@@ -50,10 +48,6 @@ instance Eq SHA256 where
       == 0
 
 instance HasName SHA256
-
-instance Digestible SHA256 where
-  type Digest SHA256 = SHA256
-  toDigest (SHA256Cxt h) = h
 
 instance Storable SHA256 where
   sizeOf    _ = 8 * sizeOf (undefined :: (BE Word32))
@@ -105,7 +99,7 @@ instance EndianStore SHA256 where
 instance Primitive SHA256 where
   blockSize _ = BYTES 64
   {-# INLINE blockSize #-}
-  newtype Cxt SHA256 = SHA256Cxt SHA256 deriving (Eq, Show, Storable)
+  type Cxt SHA256 = SHA256
 
 instance SafePrimitive SHA256
 
@@ -113,13 +107,3 @@ instance HasPadding SHA256 where
   maxAdditionalBlocks _ = 1
   padLength = shaPadLength 8
   padding   = shaPadding   8
-
-instance Default (Cxt SHA256) where
-  def = SHA256Cxt $ SHA256 0x6a09e667
-                          0xbb67ae85
-                          0x3c6ef372
-                          0xa54ff53a
-                          0x510e527f
-                          0x9b05688c
-                          0x1f83d9ab
-                          0x5be0cd19

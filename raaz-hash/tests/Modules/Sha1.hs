@@ -6,7 +6,6 @@ module Modules.Sha1
 import           Control.Applicative
 import qualified Data.ByteString          as B
 import qualified Data.ByteString.Char8    as C8
-import           Data.Default
 import           Data.String
 import           Test.QuickCheck          ( Arbitrary(..) )
 

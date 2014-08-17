@@ -1,25 +1,24 @@
 {- |
 
-An abstraction for buffered and unbuffered streams which can be
-generated from `StreamGadget`s.
+An abstraction for buffered random streams which can be generated from
+`StreamGadget`s.
 
 -}
 
-{-# LANGUAGE CPP                   #-}
-{-# LANGUAGE BangPatterns          #-}
-{-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# OPTIONS_GHC -fno-warn-orphans  #-}
+{-# LANGUAGE CPP                        #-}
+{-# LANGUAGE BangPatterns               #-}
+{-# LANGUAGE TypeFamilies               #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE StandaloneDeriving         #-}
+{-# LANGUAGE FlexibleInstances          #-}
+{-# OPTIONS_GHC -fno-warn-orphans       #-}
 
 module Raaz.Random.Stream
        ( RandomSource(..)
        , RandomPrim(..)
-       , fromGadget
        , genBytes
        , genBytesNonZero
-       , Cxt(RSCxt)
        ) where
-import           Control.Applicative
 import           Control.Monad                 ( void               )
 
 import           Data.ByteString.Internal      ( ByteString, create )
@@ -48,87 +47,102 @@ data RandomSource g = RandomSource g
 -- | Primitive for Random Source
 newtype RandomPrim p = RandomPrim p
 
+-- | Memory for random number generator. Note that this could be done
+-- just by having gadget's type, however it requires
+-- undecidableInstances when we try defining InitializableMemory as it
+-- requires nested type family application (as type IV (RandomMem g) =
+-- IV (MemoryOf g))
+newtype RandomMem m g = RandomMem ( m
+                                  , MemoryBuf (GadgetBuff g)
+                                  , CryptoCell (BYTES Int)
+                                  , CryptoCell (BYTES Int)
+                                  )
+
+deriving instance (Gadget g, Memory m) => Memory (RandomMem m g)
+
+instance (Gadget g, InitializableMemory m) => InitializableMemory (RandomMem m g) where
+  type IV (RandomMem m g) = IV m
+
+  initializeMemory (RandomMem (gmem, buffer, celloffset, cellcounter)) iv = do
+    initializeMemory gmem iv
+    initializeMemory celloffset (memoryBufSize buffer)
+    initializeMemory cellcounter 0
+    zeroOutMemoryBuf buffer
+
+-- | Memory for random
 zeroOutMemoryBuf :: MemoryBuf g -> IO ()
-zeroOutMemoryBuf buff = withMemoryBuf buff (\cptr -> memset cptr 0 (memoryBufSize buff))
+zeroOutMemoryBuf buff = withMemoryBuf buff $ zeroMemory $ memoryBufSize buff
+{-# INLINE zeroOutMemoryBuf #-}
 
 -- | Buffer for storing random data.
 newtype GadgetBuff g = GadgetBuff g
 
-instance (Gadget g) => Bufferable (GadgetBuff g) where
+instance Gadget g => Bufferable (GadgetBuff g) where
   maxSizeOf (GadgetBuff g) = atMost $ recommendedBlocks g
-
--- | Create a `RandomSource` from a `StreamGadget`.
-fromGadget :: StreamGadget g
-           => g                        -- ^ Gadget
-           -> IO (RandomSource g)
-fromGadget g = do
-  buffer <- newMemory
-  offset <- newMemory
-  counter <- newMemory
-  cellPoke offset (memoryBufSize buffer)
-  cellPoke counter 0
-  return (RandomSource g buffer offset counter)
 
 instance Primitive p => Primitive (RandomPrim p) where
   blockSize = blockSize . getPrim
     where
       getPrim :: RandomPrim p -> p
       getPrim _ = undefined
-  newtype Cxt (RandomPrim p) = RSCxt (Cxt p)
+
+  type Cxt (RandomPrim p) = Cxt p
 
 instance StreamGadget g => Gadget (RandomSource g) where
   type PrimitiveOf (RandomSource g) = RandomPrim (PrimitiveOf g)
-  type MemoryOf (RandomSource g) = ( MemoryOf g
-                                   , MemoryBuf (GadgetBuff g)
-                                   , CryptoCell (BYTES Int)
-                                   , CryptoCell (BYTES Int)
-                                   )
+
+  type MemoryOf (RandomSource g) = RandomMem (MemoryOf g) g
+
   -- | Uses the buffer of recommended block size.
-  newGadgetWithMemory (gmem,buffer,celloffset,cellcounter) = do
+  newGadgetWithMemory (RandomMem (gmem, buffer, celloffset, cellcounter)) = do
     g <- newGadgetWithMemory gmem
-    cellPoke celloffset (memoryBufSize buffer)
-    cellPoke cellcounter 0
     return $ RandomSource g buffer celloffset cellcounter
-  initialize (RandomSource g buffer celloffset cellcounter) (RSCxt iv) = do
-    initialize g iv
-    zeroOutMemoryBuf buffer
-    cellPoke celloffset (memoryBufSize buffer)
-    cellPoke cellcounter 0
-  -- | Finalize is of no use for a random number generator.
-  finalize (RandomSource g _ _ _) = RSCxt <$> finalize g
+
+  getMemory (RandomSource g b off cnt) = RandomMem (getMemory g, b, off, cnt)
+
   apply rs blks cptr = void $ fillBytes (inBytes blks) rs cptr
+
+instance StreamGadget g => StreamGadget (RandomSource g)
 
 instance StreamGadget g => ByteSource (RandomSource g) where
   fillBytes nb rs@(RandomSource g buff celloffset cellcounter) cptr = do
+    -- current offset in internal buffer
     offset <- cellPeek celloffset
+    -- Fill location with random data and
+    -- given offset in the internal buffer
     foffset <- go nb offset cptr
+    -- update offset
     cellPoke celloffset foffset
+    -- update counter
     cellModify cellcounter (+ nb)
     return $ Remaining rs
       where
-        go !sz !offst !outptr
-          | netsz >= sz = withMemoryBuf buff (\bfr -> memcpy outptr (movePtr bfr offst) sz >> return (offst + sz))
+        go !sz !offset !outptr
+          -- Internal buffer already has required amount of random data so use it
+          | netsz >= sz = withMemoryBuf buff $ \bfr -> do
+              memcpy outptr (movePtr bfr offset) sz
+              return $ offset + sz
+         -- Internal buffer has less random data so use it and
+         -- refill the buffer to use again
           | otherwise = do
+              -- use random bytes of internal buffer and refill it
               withMemoryBuf buff doWithBuffer
               go (sz - netsz) 0 (movePtr outptr netsz)
                 where
                   bsz = memoryBufSize buff
-                  netsz = bsz - offst
-                  doWithBuffer bfr = memcpy outptr (movePtr bfr offst) netsz
+                  netsz = bsz - offset
+                  doWithBuffer bfr = memcpy outptr (movePtr bfr offset) netsz
                                   >> fillFromGadget g bsz bfr
 
-fillFromGadget :: Gadget g => g -> BYTES Int -> CryptoPtr -> IO ()
+-- | Applies the gadget on the given buffer. Note that this is valid
+-- as the underlying gadget is `StreamGadget` and the `blockSize` is 1
+-- BYTE. So this can be applied on any size of memory location.
+fillFromGadget :: StreamGadget g => g -> BYTES Int -> CryptoPtr -> IO ()
 fillFromGadget g bsz bfr = do
   -- Zero out the memory
-  memset bfr 0 bsz
+  zeroMemory bsz bfr
   -- Refill buffer
-  apply g (atMost nblks) bfr
-    where
-      getPrim :: (Gadget g) => g -> PrimitiveOf g
-      getPrim _ = undefined
-      gadblksz :: BYTES Int
-      gadblksz = blockSize (getPrim g)
-      nblks  = bsz `quot` gadblksz
+  apply g (atMost bsz) bfr
 
 -- | Generates given number of random bytes.
 genBytes :: StreamGadget g => RandomSource g -> BYTES Int -> IO ByteString
@@ -141,15 +155,15 @@ genBytesNonZero src n = go 0 []
     go !m !xs | m >= n = return $ BS.take (fromIntegral n) $ toStrict $ BL.fromChunks xs
               | otherwise = do
                 b <- genBytes src (n-m)
-                let nonzero = BS.filter (/=0x00) b
-                go (BU.length nonzero + m) (nonzero:xs)
+                let nonzero = BS.filter (/=0x00) b      -- Remove null bytes
+                go (BU.length nonzero + m) (nonzero:xs) -- Recurse to generate remaining bytes
 
 -- | Converts `BL.ByteString` to `BS.ByteString`.
 toStrict :: BL.ByteString -> BS.ByteString
 #if MIN_VERSION_bytestring(0,10,0)
 toStrict = BL.toStrict
 #else
-toStrict BL.Empty           = BS.empty
+toStrict BL.Empty              = BS.empty
 toStrict (BL.Chunk c BL.Empty) = c
 toStrict cs0 = BS.unsafeCreate totalLen $ \ptr -> go cs0 ptr
   where
@@ -161,3 +175,7 @@ toStrict cs0 = BS.unsafeCreate totalLen $ \ptr -> go cs0 ptr
         BS.memcpy destptr (p `plusPtr` off) (fromIntegral len)
         go cs (destptr `plusPtr` len)
 #endif
+
+-- | Zero out given number of bytes in the memory location.
+zeroMemory :: BYTES Int -> CryptoPtr -> IO ()
+zeroMemory n cptr = memset cptr 0 n

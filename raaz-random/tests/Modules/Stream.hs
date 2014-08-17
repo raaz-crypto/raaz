@@ -2,7 +2,9 @@
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE NoMonomorphismRestriction  #-}
-module Modules.Stream (createGadget,testWith, testiv) where
+module Modules.Stream ( createGadget
+                      , testWith
+                      ) where
 
 import           Control.Applicative                  ( (<$>)                  )
 import           Data.ByteString                      ( ByteString             )
@@ -16,7 +18,6 @@ import           Test.QuickCheck.Monadic              ( run, assert, monadicIO )
 import           Raaz.Core.Memory
 import           Raaz.Core.Primitives
 import           Raaz.Core.Primitives.Cipher
-import           Raaz.Core.Serialize
 import           Raaz.Core.Types
 import qualified Raaz.Core.Util.ByteString            as BU
 
@@ -28,8 +29,6 @@ newtype Sized = Sized (BYTES Int) deriving Show
 instance Arbitrary Sized where
   arbitrary = Sized . BYTES <$> choose (0,100000)
 
-testiv = fromByteString $ BS.replicate 10000 1 -- Assuming no key is less than this
-
 createGadget :: ( StreamGadget g
                 , prim ~ PrimitiveOf g
                 , Cipher prim
@@ -37,7 +36,7 @@ createGadget :: ( StreamGadget g
              => g
              -> Key prim
              -> IO (RandomSource g)
-createGadget _ = newInitializedGadget . RSCxt . cipherCxt
+createGadget g = newInitializedGadget . cipherCxt (primitiveOf g)
 
 prop_length :: ( StreamGadget g
                , prim ~ PrimitiveOf g
@@ -56,6 +55,7 @@ prop_length g' k (Sized sz) = monadicIO $ do
       genBytes g sz
 
 testWith :: ( StreamGadget g
-            , Cipher (PrimitiveOf g)
-            ) => g -> [Test]
-testWith g = [ testProperty "genBytes length check" $ prop_length g testiv ]
+            , Cipher prim
+            , prim ~ PrimitiveOf g
+            ) => g -> Key prim -> [Test]
+testWith g k = [ testProperty "genBytes length check" $ prop_length g k ]

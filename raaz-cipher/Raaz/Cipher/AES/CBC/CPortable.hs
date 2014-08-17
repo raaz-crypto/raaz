@@ -8,13 +8,12 @@
 
 module Raaz.Cipher.AES.CBC.CPortable () where
 
-import Control.Applicative
 import Raaz.Core.Memory
 import Raaz.Core.Primitives
 import Raaz.Core.Primitives.Cipher
 import Raaz.Core.Types
 
-import Raaz.Cipher.AES.CBC.Type
+import Raaz.Cipher.AES.CBC.Type       ()
 import Raaz.Cipher.AES.Block.Type
 import Raaz.Cipher.AES.Block.Internal
 import Raaz.Cipher.AES.Internal
@@ -39,83 +38,47 @@ foreign import ccall unsafe
 
 instance Gadget (CGadget (AESOp CBC KEY128 EncryptMode)) where
   type PrimitiveOf (CGadget (AESOp CBC KEY128 EncryptMode)) = AES CBC KEY128
-  type MemoryOf (CGadget (AESOp CBC KEY128 EncryptMode)) = (CryptoCell Expanded128, CryptoCell STATE)
-  newGadgetWithMemory = return . CGadget
-  initialize (CGadget (ek,s)) (AESCxt (k,iv)) = do
-    withCell s (flip store iv)
-    cExpand128 k ek
-  finalize (CGadget (ek,s)) = do
-    key <- cCompress128 <$> cellPeek ek
-    state <- withCell s load
-    return $ AESCxt (key, state)
-  apply = loadAndApply c_cbc_encrypt 0
+  type MemoryOf (CGadget (AESOp CBC KEY128 EncryptMode))    = (AESKEYMem Expanded128, AESIVMem)
+  newGadgetWithMemory                                       = return . CGadget
+  getMemory (CGadget m)                                     = m
+  apply                                                     = loadAndApply c_cbc_encrypt 0
 
 instance Gadget (CGadget (AESOp CBC KEY128 DecryptMode)) where
   type PrimitiveOf (CGadget (AESOp CBC KEY128 DecryptMode)) = AES CBC KEY128
-  type MemoryOf (CGadget (AESOp CBC KEY128 DecryptMode)) = (CryptoCell Expanded128, CryptoCell STATE)
-  newGadgetWithMemory = return . CGadget
-  initialize (CGadget (ek,s)) (AESCxt (k,iv)) = do
-    withCell s (flip store iv)
-    cExpand128 k ek
-  finalize (CGadget (ek,s)) = do
-    key <- cCompress128 <$> cellPeek ek
-    state <- withCell s load
-    return $ AESCxt (key, state)
-  apply = loadAndApply c_cbc_decrypt 0
+  type MemoryOf (CGadget (AESOp CBC KEY128 DecryptMode))    = (AESKEYMem Expanded128, AESIVMem)
+  newGadgetWithMemory                                       = return . CGadget
+  getMemory (CGadget m)                                     = m
+  apply                                                     = loadAndApply c_cbc_decrypt 0
 
 instance Gadget (CGadget (AESOp CBC KEY192 EncryptMode)) where
   type PrimitiveOf (CGadget (AESOp CBC KEY192 EncryptMode)) = AES CBC KEY192
-  type MemoryOf (CGadget (AESOp CBC KEY192 EncryptMode)) = (CryptoCell Expanded192, CryptoCell STATE)
-  newGadgetWithMemory = return . CGadget
-  initialize (CGadget (ek,s)) (AESCxt (k,iv)) = do
-    withCell s (flip store iv)
-    cExpand192 k ek
-  finalize (CGadget (ek,s)) = do
-    key <- cCompress192 <$> cellPeek ek
-    state <- withCell s load
-    return $ AESCxt (key,state)
-  apply = loadAndApply c_cbc_encrypt 1
+  type MemoryOf (CGadget (AESOp CBC KEY192 EncryptMode))    = (AESKEYMem Expanded192, AESIVMem)
+  newGadgetWithMemory                                       = return . CGadget
+  getMemory (CGadget m)                                     = m
+  apply                                                     = loadAndApply c_cbc_encrypt 1
 
 instance Gadget (CGadget (AESOp CBC KEY192 DecryptMode)) where
   type PrimitiveOf (CGadget (AESOp CBC KEY192 DecryptMode)) = AES CBC KEY192
-  type MemoryOf (CGadget (AESOp CBC KEY192 DecryptMode)) = (CryptoCell Expanded192, CryptoCell STATE)
-  newGadgetWithMemory = return . CGadget
-  initialize (CGadget (ek,s)) (AESCxt (k,iv)) = do
-    withCell s (flip store iv)
-    cExpand192 k ek
-  finalize (CGadget (ek,s)) = do
-    key <- cCompress192 <$> cellPeek ek
-    state <- withCell s load
-    return $ AESCxt (key,state)
-  apply = loadAndApply c_cbc_decrypt 1
+  type MemoryOf (CGadget (AESOp CBC KEY192 DecryptMode))    = (AESKEYMem Expanded192, AESIVMem)
+  newGadgetWithMemory                                       = return . CGadget
+  getMemory (CGadget m)                                     = m
+  apply                                                     = loadAndApply c_cbc_decrypt 1
 
 instance Gadget (CGadget (AESOp CBC KEY256 EncryptMode)) where
   type PrimitiveOf (CGadget (AESOp CBC KEY256 EncryptMode)) = AES CBC KEY256
-  type MemoryOf (CGadget (AESOp CBC KEY256 EncryptMode)) = (CryptoCell Expanded256, CryptoCell STATE)
-  newGadgetWithMemory = return . CGadget
-  initialize (CGadget (ek,s)) (AESCxt (k,iv)) = do
-    withCell s (flip store iv)
-    cExpand256 k ek
-  finalize (CGadget (ek,s)) = do
-    key <- cCompress256 <$> cellPeek ek
-    state <- withCell s load
-    return $ AESCxt (key,state)
-  apply = loadAndApply c_cbc_encrypt 2
+  type MemoryOf (CGadget (AESOp CBC KEY256 EncryptMode))    = (AESKEYMem Expanded256, AESIVMem)
+  newGadgetWithMemory                                       = return . CGadget
+  getMemory (CGadget m)                                     = m
+  apply                                                     = loadAndApply c_cbc_encrypt 2
 
 instance Gadget (CGadget (AESOp CBC KEY256 DecryptMode)) where
   type PrimitiveOf (CGadget (AESOp CBC KEY256 DecryptMode)) = AES CBC KEY256
-  type MemoryOf (CGadget (AESOp CBC KEY256 DecryptMode)) = (CryptoCell Expanded256, CryptoCell STATE)
-  newGadgetWithMemory = return . CGadget
-  initialize (CGadget (ek,s)) (AESCxt (k,iv)) = do
-    withCell s (flip store iv)
-    cExpand256 k ek
-  finalize (CGadget (ek,s)) = do
-    key <- cCompress256 <$> cellPeek ek
-    state <- withCell s load
-    return $ AESCxt (key,state)
-  apply = loadAndApply c_cbc_decrypt 2
+  type MemoryOf (CGadget (AESOp CBC KEY256 DecryptMode))    = (AESKEYMem Expanded256, AESIVMem)
+  newGadgetWithMemory                                       = return . CGadget
+  getMemory (CGadget m)                                     = m
+  apply                                                     = loadAndApply c_cbc_decrypt 2
 
-loadAndApply encrypt i (CGadget (ek,civ)) n cptr = withCell ek (withCell civ . doStuff)
+loadAndApply encrypt i (CGadget (AESKEYMem ek,AESIVMem civ)) n cptr = withCell ek (withCell civ . doStuff)
     where
       doStuff ekptr ivptr = encrypt ekptr cptr ivptr (fromIntegral n) i
 {-# INLINE loadAndApply #-}

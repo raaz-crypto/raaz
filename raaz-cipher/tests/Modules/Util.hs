@@ -3,8 +3,7 @@
 
 module Modules.Util where
 
-import Data.ByteString  ( ByteString      )
-import Test.Framework   ( Test, testGroup )
+import Test.Framework              ( Test, testGroup )
 
 import Raaz.Core.Primitives
 import Raaz.Core.Primitives.Cipher
@@ -24,9 +23,9 @@ cportableVsReference :: ( HasName g1
                         , p ~ PrimitiveOf (Inverse g1)
                         , Eq (Cxt p)
                         )
-                     => g1 -> g2 -> ByteString -> Test
+                     => g1 -> g2 -> Key p -> Test
 cportableVsReference g1 g2 iv = testGroup ""
   [ testGadget g1 g2 cxt
   , testGadget (inverse g1) (inverse g2) cxt ]
   where
-    cxt = cipherCxt $ fromByteString iv
+    cxt = cipherCxt (primitiveOf g1) iv

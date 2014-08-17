@@ -42,27 +42,16 @@ blake256Compress cellBlake cellSalt counter nblocks buffer = withCell cellBlake 
 
 instance Gadget (CGadget BLAKE256) where
   type PrimitiveOf (CGadget BLAKE256) = BLAKE256
-  type MemoryOf (CGadget BLAKE256) = (CryptoCell BLAKE256, CryptoCell Salt, CryptoCell (BITS Word64))
-  newGadgetWithMemory = return . CGadget
-
-  initialize (CGadget (cellBlake, cellSalt, cellCounter)) (BLAKE256Cxt blake salt counter) = do
-    cellPoke cellSalt salt
-    cellPoke cellBlake blake
-    cellPoke cellCounter counter
-
-  finalize (CGadget (cellBlake, cellSalt, cellCounter)) = do
-    b <- cellPeek cellBlake
-    s <- cellPeek cellSalt
-    c <- cellPeek cellCounter
-    return $ BLAKE256Cxt b s c
-
-  apply (CGadget (cellBlake, cellSalt, cellCounter)) n cptr = do
+  type MemoryOf (CGadget BLAKE256)    = BLAKEMem BLAKE256
+  newGadgetWithMemory                 = return . CGadget
+  getMemory (CGadget m)               = m
+  apply (CGadget (BLAKEMem (cellBlake, cellSalt, cellCounter))) n cptr = do
     counter <- cellPeek cellCounter
     cellModify cellCounter $ (+) (inBits n)
     blake256Compress cellBlake cellSalt counter n cptr
 
 instance PaddableGadget (CGadget BLAKE256) where
-  unsafeApplyLast g@(CGadget (_, _, cellCounter)) blocks bytes cptr = do
+  unsafeApplyLast g@(CGadget (BLAKEMem (_, _, cellCounter))) blocks bytes cptr = do
     let bits      = inBits bytes
         len       = inBits blocks + bits
         p         = primitiveOf g

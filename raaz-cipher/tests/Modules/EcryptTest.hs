@@ -22,7 +22,8 @@ import           Raaz.Core.Test.Cipher
 import           Raaz.Core.Test.Gadget          ( testGadget           )
 import           Raaz.Core.Primitives
 import           Raaz.Core.Primitives.Cipher
-import           Raaz.Core.Serialize
+import           Raaz.Core.Types
+import           Raaz.Core.Util.ByteString
 
 import           Modules.EcryptTestParser
 
@@ -30,12 +31,15 @@ testVector :: ( Gadget g
               , Cipher p
               , HasName g
               , p ~ PrimitiveOf g
+              , Key p ~ (k, n)
+              , EndianStore k
+              , EndianStore n
               ) => g -> EcryptTest -> Test
 testVector g (EcryptTest n k iv s digest) = n ~: (testXor : map testExpected s)
     where
-        encodedString = applyGadget g (cipherCxt $ fromByteString kAndIV)
+        encodedString = applyGadget g (cipherCxt (primitiveOf g) kAndIV)
                                       (BS.replicate bslen 0)
-        kAndIV = k `BS.append` iv
+        kAndIV = (fromByteString k, fromByteString iv)
         bslen = (to $ last s) + 1
         interval = BS.length digest
         testXor = "xor-digest" ~: TestCase (digest @=? xorDigest encodedString (BS.replicate interval 0))
@@ -51,6 +55,9 @@ testAll :: ( Gadget g
            , Cipher p
            , HasName g
            , p ~ PrimitiveOf g
+           , Key p ~ (k, n)
+           , EndianStore k
+           , EndianStore n
            )
         => g
         -> FilePath             -- Path of Testfile

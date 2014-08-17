@@ -8,7 +8,6 @@ module Modules.Defaults
        ) where
 
 import Criterion.Main
-import Data.Default
 
 import Raaz.Core.Primitives
 import Raaz.Core.Types
@@ -25,7 +24,7 @@ nSize = 1024 * 1024
 
 benchHash g = do
   g'     <- createGadget g
-  return $ benchGadgetWith g' def (nBlocks g')
+  return $ benchGadgetWith g' (defaultCxt $ primitiveOf g) (nBlocks g')
 
 benchmarksAll h = sequence
                   [ benchHash (toH h)

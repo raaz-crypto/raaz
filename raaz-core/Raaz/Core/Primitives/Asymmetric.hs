@@ -10,14 +10,13 @@ This module abstracts basic cryptographic primitive operations.
 {-# LANGUAGE CPP              #-}
 module Raaz.Core.Primitives.Asymmetric
        ( Sign(..)
-       , Encrypt(..)
-       , SignEncrypt(..)
        , sign, sign', verify, verify'
        ) where
 
 import Control.Applicative
 import System.IO.Unsafe
 
+import Raaz.Core.Memory
 import Raaz.Core.Primitives
 import Raaz.Core.ByteSource
 import Raaz.Core.Serialize
@@ -25,26 +24,23 @@ import Raaz.Core.Serialize
 -- | This class captures primitives which support generation of
 -- authenticated signatures and its verification. This is assymetric
 -- version of `Auth`.
-class ( Digestible (prim SignMode)
-      , Digestible (prim VerifyMode)
-      , Digest (prim VerifyMode) ~ Bool
-      , Digest (prim SignMode) ~ prim SignMode
-      , CryptoSerialize (Key (prim SignMode))
-      , CryptoSerialize (Key (prim VerifyMode))
-      ) => Sign prim where
+class Sign prim where
   -- | Get `SignMode` context from the Key.
-  signCxt :: Key (prim SignMode) -- ^ Auth Key
+  signCxt :: prim SignMode       -- ^ To satisfy types
+          -> Key (prim SignMode) -- ^ Auth Key
           -> Cxt (prim SignMode) -- ^ Context
 
   -- | Get `VerifyMode` context from Key and signature.
   verifyCxt :: Key (prim VerifyMode)  -- ^ Verify key
-            -> Digest (prim SignMode) -- ^ Signature
+            -> prim SignMode          -- ^ Signature
             -> Cxt (prim VerifyMode)  -- ^ Context
 
 
 -- | Generate Signature.
 sign' :: ( PureByteSource src
          , Sign p
+         , FinalizableMemory (MemoryOf g)
+         , FV (MemoryOf g) ~ prim
          , prim ~ p SignMode
          , PaddableGadget g
          , prim ~ PrimitiveOf g
@@ -53,18 +49,27 @@ sign' :: ( PureByteSource src
       -> Key prim      -- ^ Key
       -> src           -- ^ Message
       -> prim
-sign' g key src = unsafePerformIO $ withGadget (signCxt key) $ go g
-  where go :: (Sign prim, PaddableGadget g1, prim SignMode ~ PrimitiveOf g1)
-           => g1 -> g1 -> IO (Digest (PrimitiveOf g1))
+sign' g key src = unsafePerformIO $ withGadget (signCxt p key) $ go g
+  where go :: ( Sign prim
+              , PaddableGadget g1
+              , FinalizableMemory (MemoryOf g1)
+              , prim SignMode ~ PrimitiveOf g1
+              )
+           => g1 -> g1 -> IO (FV (MemoryOf g1))
         go _ gad =  do
           transformGadget gad src
-          toDigest <$> finalize gad
+          finalize gad
+
+        p = primitiveOf g
 
 -- | Generate signature using recommended gadget.
 sign :: ( PureByteSource src
         , Sign p
+        , g ~ Recommended prim
+        , FinalizableMemory (MemoryOf g)
+        , FV (MemoryOf g) ~ prim
         , prim ~ p SignMode
-        , PaddableGadget (Recommended prim)
+        , PaddableGadget g
         , CryptoPrimitive prim
         )
         => Key prim      -- ^ Key
@@ -79,6 +84,8 @@ sign key src = sig
 -- | Verify Signature.
 verify' :: ( PureByteSource src
            , Sign p
+           , FinalizableMemory (MemoryOf g)
+           , FV (MemoryOf g) ~ Bool
            , prim ~ p VerifyMode
            , PaddableGadget g
            , prim ~ PrimitiveOf g
@@ -89,19 +96,26 @@ verify' :: ( PureByteSource src
            -> p SignMode
            -> Bool
 verify' g key src p  = unsafePerformIO $ withGadget (verifyCxt key p) $ go g
-  where go :: (Sign prim, PaddableGadget g1, prim VerifyMode ~ PrimitiveOf g1)
-           => g1 -> g1 -> IO (Digest (PrimitiveOf g1))
+  where go :: ( Sign prim
+              , PaddableGadget g1
+              , FinalizableMemory (MemoryOf g1)
+              , prim VerifyMode ~ PrimitiveOf g1
+              )
+           => g1 -> g1 -> IO (FV (MemoryOf g1))
         go _ gad =  do
           transformGadget gad src
-          toDigest <$> finalize gad
+          finalize gad
 
 -- | Verify tag using recommended gadget.
 verify :: ( PureByteSource src
           , Sign p
+          , g ~ Recommended prim
+          , FinalizableMemory (MemoryOf g)
+          , FV (MemoryOf g) ~ Bool
           , prim ~ p VerifyMode
-          , PaddableGadget (Recommended prim)
+          , PaddableGadget g
           , CryptoPrimitive prim
-          , prim ~ PrimitiveOf (Recommended prim)
+          , prim ~ PrimitiveOf g
           )
           => Key prim      -- ^ Key
           -> src           -- ^ Message
@@ -111,33 +125,3 @@ verify key src prim = verify' (recommended prim) key src prim
   where
     recommended :: p SignMode -> Recommended (p VerifyMode)
     recommended _ = undefined
-
--- | This class captures primitives which support encryption.
-class ( CryptoSerialize (Key (prim EncryptMode))
-      , CryptoSerialize (Key (prim DecryptMode))
-      ) => Encrypt prim where
-  -- | Get `EncryptMode` context from encryption key.
-  encryptCxt :: Key (prim EncryptMode) -- ^ Encrypt key
-             -> Cxt (prim EncryptMode) -- ^ Context
-
-  -- | Get `DecryptMode` context from decryption key.
-  decryptCxt :: Key (prim DecryptMode) -- ^ Decrypt key
-             -> Cxt (prim DecryptMode) -- ^ Context
-
--- | This class captures primitives which support authenticated
--- encryption. A default `AuthEncrypt` instance can be provided
--- combining an `Auth` primitive and an `Encrypt` primitive.
-class ( Digestible (prim AuthEncryptMode)
-      , Digestible (prim VerifyDecryptMode)
-      , Digest (prim AuthEncryptMode) ~ prim VerifyDecryptMode
-      , Digest (prim VerifyDecryptMode) ~ Bool
-      , CryptoSerialize (Key (prim AuthEncryptMode))
-      , CryptoSerialize (Key (prim VerifyDecryptMode))
-      ) => SignEncrypt prim where
-  -- | Get `AuthEncryptMode` context from key.
-  signEncryptCxt :: Key (prim AuthEncryptMode) -- ^ Auth Encrypt key
-                 -> Cxt (prim AuthEncryptMode) -- ^ Context
-
-  -- | Get `VerifyDecryptMode` context from key.
-  verifyDecryptCxt :: Key (prim VerifyDecryptMode) -- ^ Auth Decrypt key
-                   -> Cxt (prim VerifyDecryptMode) -- ^ Context

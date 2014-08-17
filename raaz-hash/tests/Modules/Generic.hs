@@ -17,7 +17,6 @@ module Modules.Generic
        ) where
 
 import qualified Data.ByteString                      as B
-import           Data.Default
 import           Data.Typeable
 import           Data.Word
 import           Test.Framework                       ( Test, testGroup   )
@@ -45,7 +44,6 @@ allHashTests :: ( Arbitrary h
                 , Hash h
                 , PrimitiveOf (CGadget h) ~ h
                 , PrimitiveOf (HGadget h) ~ h
-                , Default (Cxt h)
                 , Gadget (HGadget h)
                 , Gadget (CGadget h)
                 , Eq (Cxt h)
@@ -137,14 +135,13 @@ testStandardHMACValues h = hUnitTestToTests . test . map checkHMAC
 
 testCGadgetvsHGadget :: ( PrimitiveOf (CGadget p) ~ p
                         , PrimitiveOf (HGadget p) ~ p
-                        , Default (Cxt p)
                         , Gadget (HGadget p)
                         , Gadget (CGadget p)
                         , Eq (Cxt p)
-                        , Show (Cxt p)
+                        , Hash p
                         , HasName p
                         ) => p -> Test
-testCGadgetvsHGadget p = testGadget (g p) (ref p) def
+testCGadgetvsHGadget p = testGadget (g p) (ref p) (defaultCxt p)
   where
     g :: p -> CGadget p
     g _ = undefined

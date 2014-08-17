@@ -16,9 +16,6 @@ module Raaz.Cipher.AES.Internal
        , KEY256(..)
 
        -- * These are exported for tests and should not be used directly.
-       , expand128
-       , expand192
-       , expand256
        , encrypt128
        , encrypt192
        , encrypt256

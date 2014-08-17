@@ -18,6 +18,7 @@ import Raaz.Core.Primitives
 import Raaz.Core.Primitives.Hash
 import Raaz.Core.Util.Ptr
 
+import Raaz.Hash.Sha.Util
 import Raaz.Hash.Sha1.Type
 import Raaz.Hash.Sha1.Ref
 import Raaz.Hash.Sha1.CPortable ()
@@ -28,15 +29,21 @@ instance CryptoPrimitive SHA1 where
   type Recommended SHA1 = CGadget SHA1
   type Reference SHA1 = HGadget SHA1
 
-instance Hash SHA1
+instance Hash SHA1 where
+  defaultCxt _ = SHA1 0x67452301
+                      0xefcdab89
+                      0x98badcfe
+                      0x10325476
+                      0xc3d2e1f0
+
+  hashDigest = id
 
 instance Gadget (HGadget SHA1) where
-  type PrimitiveOf (HGadget SHA1) = SHA1
-  type MemoryOf (HGadget SHA1) = CryptoCell SHA1
-  newGadgetWithMemory = return . HGadget
-  initialize (HGadget cc) (SHA1Cxt sha1) = cellPoke cc sha1
-  finalize (HGadget cc) = SHA1Cxt <$> cellPeek cc
-  apply (HGadget cc) n cptr = do
+  type PrimitiveOf (HGadget SHA1)    = SHA1
+  type MemoryOf (HGadget SHA1)       = CryptoCell SHA1
+  newGadgetWithMemory                = return . HGadget
+  getMemory (HGadget m)              = m
+  apply (HGadget cc) n cptr          = do
     initial <- cellPeek cc
     final <- fst <$> foldM moveAndHash (initial,cptr) [1..n]
     cellPoke cc final

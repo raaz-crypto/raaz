@@ -14,18 +14,17 @@ binary instance etc.
 
 module Raaz.Hash.Sha384.Type
        ( SHA384(..)
-       , Cxt(SHA384Cxt)
        ) where
 
 import Control.Applicative ( (<$>), (<*>) )
 import Data.Bits           ( xor, (.|.)   )
-import Data.Default
 import Data.Monoid
 import Data.Word
 import Data.Typeable       ( Typeable     )
 import Foreign.Ptr         ( castPtr      )
 import Foreign.Storable    ( Storable(..) )
 
+import Raaz.Core.Memory
 import Raaz.Core.Parse.Unsafe
 import Raaz.Core.Primitives
 import Raaz.Core.Types
@@ -57,12 +56,6 @@ instance Eq SHA384 where
       == 0
 
 instance HasName SHA384
-
-instance Digestible SHA384 where
-  type Digest SHA384 = SHA384
-  toDigest (SHA384Cxt h) = sha512Tosha384 h
-    where sha512Tosha384 (SHA512 h0 h1 h2 h3 h4 h5 _ _)
-            = SHA384 h0 h1 h2 h3 h4 h5
 
 instance Storable SHA384 where
   sizeOf    _ = 6 * sizeOf (undefined :: (BE Word64))
@@ -106,7 +99,7 @@ instance EndianStore SHA384 where
 instance Primitive SHA384 where
   blockSize _ = BYTES 128
   {-# INLINE blockSize #-}
-  newtype Cxt SHA384 = SHA384Cxt SHA512 deriving (Eq, Show, Storable)
+  type Cxt SHA384 = SHA512
 
 instance SafePrimitive SHA384
 
@@ -114,13 +107,3 @@ instance HasPadding SHA384 where
   maxAdditionalBlocks _ = 1
   padLength = shaPadLength 16
   padding   = shaPadding   16
-
-instance Default (Cxt SHA384) where
-  def = SHA384Cxt $ SHA512 0xcbbb9d5dc1059ed8
-                          0x629a292a367cd507
-                          0x9159015a3070dd17
-                          0x152fecd8f70e5939
-                          0x67332667ffc00b31
-                          0x8eb44a8768581511
-                          0xdb0c2e0d64f98fa7
-                          0x47b5481dbefa4fa4
