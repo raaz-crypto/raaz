@@ -45,7 +45,7 @@ instance Gadget (HGadget (AESOp CTR KEY256 EncryptMode)) where
   apply g                                                   = applyGad g encrypt256
 
 applyGad g@(HGadget (AESKEYMem ex,AESIVMem s)) with n cptr = do
-    expanded <- cellLoad ex
+    expanded <- cellPeek ex
     initial <- withCell s load
     (newiv,restptr) <- foldM (moveAndHash expanded) (initial,cptr) [1..nblks]
     final <- restOfblock expanded newiv restptr

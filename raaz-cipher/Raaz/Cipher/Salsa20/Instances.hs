@@ -168,7 +168,7 @@ instance Gadget (CGadget (Salsa20 R8 KEY256)) where
 applyGad :: (Integral i, Gadget (HGadget t), MemoryOf (HGadget t) ~ SalsaMem k)
             => HGadget t -> (Matrix -> Matrix) -> i -> CryptoPtr -> IO ()
 applyGad g@(HGadget (SalsaMem mc)) with n cptr = do
-    state <- cellLoad mc
+    state <- cellPeek mc
     (newstate,restptr) <- foldM moveAndHash (state,cptr) [1..nblks]
     cellPoke mc =<< restOfblock newstate restptr
     where

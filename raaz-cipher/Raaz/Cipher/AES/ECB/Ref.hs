@@ -62,7 +62,7 @@ instance Gadget (HGadget (AESOp ECB KEY256 DecryptMode)) where
   apply g                                                   = loadAndApply moveAndApply g decrypt256
 
 loadAndApply process g@(HGadget (AESKEYMem ex)) with n cptr = do
-    expanded <- cellLoad ex
+    expanded <- cellPeek ex
     void $ foldM (const . process expanded sz with) cptr [1..n]
     where
       sz = blockSize (getPrim g)

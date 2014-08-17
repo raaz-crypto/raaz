@@ -238,11 +238,11 @@ instance Storable a => Memory (CryptoCell a) where
 
 instance Storable a => InitializableMemory (CryptoCell a) where
   type IV (CryptoCell a) = a
-  initializeMemory = cellStore
+  initializeMemory = cellPoke
 
 instance Storable a => FinalizableMemory (CryptoCell a) where
   type FV (CryptoCell a) = a
-  finalizeMemory = cellLoad
+  finalizeMemory = cellPeek
 
 -- | Types which can be stored in a buffer.
 class Bufferable b where

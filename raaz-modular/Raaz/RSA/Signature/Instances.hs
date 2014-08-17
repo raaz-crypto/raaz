@@ -61,7 +61,7 @@ instance (Storable k, InitializableMemory m) => InitializableMemory (RSASignMem 
   type IV (RSASignMem k h m) = (PrivateKey k, IV m)
 
   initializeMemory (RSASignMem (kcell, hmem)) (k, hiv) = do
-    cellStore kcell k
+    cellPoke kcell k
     initializeMemory hmem hiv
 
 
@@ -164,8 +164,8 @@ instance (Storable k, InitializableMemory m) => InitializableMemory (RSAVerifyMe
   type IV (RSAVerifyMem k h m) = (PublicKey k, k, IV m)
 
   initializeMemory (RSAVerifyMem (kcell, sigcell, hmem)) (k, sig, hiv) = do
-    cellStore kcell k
-    cellStore sigcell sig
+    cellPoke kcell k
+    cellPoke sigcell sig
     initializeMemory hmem hiv
 
 -- | Verify the signature and return `True` if success otherwise

@@ -53,12 +53,12 @@ instance Gadget (HGadget BLAKE256) where
   getMemory (HGadget m)               = m
 
   apply (HGadget (BLAKEMem (cellBlake, cellSalt, cellCounter))) n cptr = do
-    initial <- cellLoad cellBlake
-    salt <- cellLoad cellSalt
-    counter <- cellLoad cellCounter
+    initial <- cellPeek cellBlake
+    salt <- cellPeek cellSalt
+    counter <- cellPeek cellCounter
     (final, nCounter , _ )  <- foldM (moveAndHash salt) (initial, counter, cptr) [1..n]
-    cellStore cellBlake final
-    cellStore cellCounter nCounter
+    cellPoke cellBlake final
+    cellPoke cellCounter nCounter
     where
       sz = blockSize (undefined :: BLAKE256)
       moveAndHash salt (cxt, counter, ptr) _ = do

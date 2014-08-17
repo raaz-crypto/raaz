@@ -170,15 +170,15 @@ instance Storable blake => InitializableMemory (BLAKEMem blake) where
   type IV (BLAKEMem blake) = (blake, Salt)
 
   initializeMemory (BLAKEMem (cblake, csalt, ccounter)) (blake,salt) = do
-    cellStore cblake blake
-    cellStore csalt salt
-    cellStore ccounter 0
+    cellPoke cblake blake
+    cellPoke csalt salt
+    cellPoke ccounter 0
 
 instance Storable blake => FinalizableMemory (BLAKEMem blake) where
 
   type FV (BLAKEMem blake) = (blake, Salt)
 
   finalizeMemory (BLAKEMem (cblake, csalt, _)) = do
-    blake <- cellLoad cblake
-    salt <- cellLoad csalt
+    blake <- cellPeek cblake
+    salt <- cellPeek csalt
     return (blake, salt)

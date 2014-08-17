@@ -51,7 +51,7 @@ instance Gadget (HGadget SHA224) where
   newGadgetWithMemory                = return . HGadget
   getMemory (HGadget m)              = m
   apply (HGadget cc) n cptr          = do
-    initial <- cellLoad cc
+    initial <- cellPeek cc
     final <- fst <$> foldM moveAndHash (initial,cptr) [1..n]
     cellPoke cc final
     where

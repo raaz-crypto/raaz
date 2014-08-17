@@ -107,12 +107,12 @@ instance StreamGadget g => StreamGadget (RandomSource g)
 instance StreamGadget g => ByteSource (RandomSource g) where
   fillBytes nb rs@(RandomSource g buff celloffset cellcounter) cptr = do
     -- current offset in internal buffer
-    offset <- cellLoad celloffset
+    offset <- cellPeek celloffset
     -- Fill location with random data and
     -- given offset in the internal buffer
     foffset <- go nb offset cptr
     -- update offset
-    cellStore celloffset foffset
+    cellPoke celloffset foffset
     -- update counter
     cellModify cellcounter (+ nb)
     return $ Remaining rs

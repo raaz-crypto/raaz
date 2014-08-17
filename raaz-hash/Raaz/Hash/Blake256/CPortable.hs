@@ -46,7 +46,7 @@ instance Gadget (CGadget BLAKE256) where
   newGadgetWithMemory                 = return . CGadget
   getMemory (CGadget m)               = m
   apply (CGadget (BLAKEMem (cellBlake, cellSalt, cellCounter))) n cptr = do
-    counter <- cellLoad cellCounter
+    counter <- cellPeek cellCounter
     cellModify cellCounter $ (+) (inBits n)
     blake256Compress cellBlake cellSalt counter n cptr
 
