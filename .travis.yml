@@ -23,17 +23,66 @@ env:
   # 6. ADDITIONAL_CONSTRAINTS: Set additional constraints on certain
   #    problematic packages.
   global:
+    # To be included in all the jobs of the build.
     - ADDITIONAL_CONSTRAINTS=
+    - PARALLEL_BUILDS="yes"
   matrix:
-    - GHC_VERSION=7.8.3 CABAL_VERSION=1.20 PARALLEL_BUILDS="yes"
-    - HASKELL_PLATFORM=2013.2.0.0 CABAL_VERSION=1.20 PARALLEL_BUILDS="yes"
-    - HASKELL_PLATFORM=2012.4.0.0 CABAL_VERSION=1.20 PARALLEL_BUILDS="yes"
-    - HASKELL_PLATFORM=2012.2.0.0 CABAL_VERSION=1.20 PARALLEL_BUILDS="yes"
+    - GHC_VERSION=7.8.3 CABAL_VERSION=1.20
+    - HASKELL_PLATFORM=2013.2.0.0 GHC_VERSION=7.6.3 CABAL_VERSION=1.20
+    - HASKELL_PLATFORM=2012.4.0.0 GHC_VERSION=7.4.2 CABAL_VERSION=1.20
+    - HASKELL_PLATFORM=2012.2.0.0 GHC_VERSION=7.4.1 CABAL_VERSION=1.20
+matrix:
+  # To notify immediately about it when a job of a build fails.
+  fast_finish: true
 before_install:
-  - "make travis-before-install"
-  - "make echo-variables"
-install: "make install"
-script: "echo tests already run."
+  # To print certain system information.
+  - echo `uname -a`
+  - travis_retry sudo add-apt-repository -y ppa:hvr/ghc
+  - travis_retry sudo apt-get update
+  # Install default version of GHC if GHC_VERSION
+  # environment variable is not set.
+  - if [ "$GHC_VERSION" == "" ]; then
+      travis_retry sudo apt-get install ghc happy haddock;
+    else
+      travis_retry sudo apt-get install ghc-$GHC_VERSION happy haddock;
+      export PATH=/opt/ghc/$GHC_VERSION/bin:$PATH;
+    fi
+  # Install default version of CABAL if CABAL_VERSION
+  # environment variable is not set.
+  - if [ "$CABAL_VERSION" == "" ]; then
+      travis_retry sudo apt-get install cabal-install;
+      cabal update;
+    else
+      travis_retry sudo apt-get install cabal-install-$CABAL_VERSION;
+      export PATH=/opt/cabal/$CABAL_VERSION/bin:$PATH;
+      cabal-$CABAL_VERSION update;
+    fi
+  # Output the version of GHC installed in the system.
+  - ghc --version
+  # Output the version of CABAL installed in the system.
+  - cabal --version
+  # Output other variables.
+  - echo HASKELL_PLATFORM=${HASKELL_PLATFORM}
+  - echo PARALLEL_BUILDS=${PARALLEL_BUILDS}
+  # Compile the script which will be used to install, build and test
+  # raaz packages.
+  - ghc -o travis scripts/travis-build.hs
+# Install raaz packages.
+install: ./travis install
+before_script:
+  # Configuring raaz packages.
+  - ./travis config
+  # Building raaz packages.
+  - ./travis build
+# Running test suites of raaz packages.
+script: ./travis test
+after_script:
+  # Make source tarball of all raaz packages.
+  - ./travis tarball
+after_success:
+  - echo "All is well."
+after_failure:
+  - echo "Build failed."
 branches:
   only:
     - master
