@@ -62,8 +62,8 @@ main = do allgpds   <- getAllGPD allPackages
           travisEnv <- getTravisEnv
           args      <- getArgs
           case args of
-            [cmd]     -> sequence_ $ map (makePackage travisEnv cmd)
-                                         (resolve allgpds)
+            [cmd]     -> mapM_ (makePackage travisEnv cmd)
+                               (resolve allgpds)
             otherwise -> error "Invalid argument provided."
   where resolve = resolveDependency . getPackageDepency allPackages
 
@@ -119,32 +119,29 @@ getTravisEnv =
      pb  <- return . lookup "PARALLEL_BUILDS" $ env
      ct  <- maybe (return []) getConstraint hp
      return TravisEnv { haskellPlatform    = hp
-                      , parallelBuilds     = paraBuilds pb
+                      , parallelBuilds     = paraBuild pb
                       , installConstraints = ct
-                      , verboseConstraints = getVerbose ct (paraBuilds pb)
+                      , verboseConstraints = getVerbose ct $ paraBuild pb
                       }
-  where paraBuilds       = maybe False (\opt -> if opt == "yes" then True
-                                                                else False)
-        getConstraint pf = (parseCabal $ "./platform/cabal/" ++ pf ++ ".cabal")
-                       >>= (return . getDependencies)
-        getVerbose ct pb = map mapFn ct ++ (if pb then ["-j"] else [])
-          where mapFn (Dependency pn vr) = "--constraint="
-                                           ++ (show $ disp pn)
-                                           ++ (show $ disp vr)
+  where paraBuild     = maybe False (=="yes")
+        getConstraint pf = fmap getDependencies
+                         $ parseCabal $ platformCabal pf
+        getVerbose ct pb = map constraint ct ++ ["-j" | pb]
+        constraint (Dependency pn vr) = "--constraint="
+                                      ++ show (disp pn)
+                                      ++ show (disp vr)
 
 -- | To parse a cabal file
 parseCabal :: FilePath -> IO GenericPackageDescription
-parseCabal path = readPackageDescription silent path
+parseCabal = readPackageDescription silent
 
 -- | Get all the non-raaz dependencies from all packages.
 getNonRaazDependencies :: [PackageName]
                        -> [GenericPackageDescription]
                        -> [PackageName]
-getNonRaazDependencies packages gpds = Set.toList
-                                     . Set.fromList
-                                     . concat $ map mapFn gpds
-  where mapFn gpd = filter filterFn $ getDepencyList gpd
-          where filterFn x = not $ x `elem` packages
+getNonRaazDependencies packages = concatMap mapFn
+  where mapFn     = filter filterFn . getDepencyList
+        filterFn  = flip notElem packages
 
 -- | Get package name.
 getPackageName :: PackageName -> String
