@@ -15,8 +15,11 @@ import           Distribution.Verbosity
 import           Distribution.Version
 import           System.Environment
 import           System.Exit
+import           System.FilePath
 import           System.Directory
 import           System.Process
+
+-------------------- Configuration ------------------------
 
 -- | All the packages to be installed.
 allPackages :: [PackageName]
@@ -29,6 +32,18 @@ allPackages = [ PackageName "raaz"
               , PackageName "raaz-random"
               , PackageName "raaz-ssh"
               ]
+
+
+-- | Relative path to the platform cabal file
+platformCabal :: String -> FilePath
+platformCabal p = "platform" </> "cabal" </> p <.> "cabal"
+
+-- | Relative path to the package cabal file
+packageCabal  :: String -> FilePath
+packageCabal pkg = pkg </> pkg <.> "cabal"
+
+
+---------------------------------------------------------------------
 
 -- | Travis Environment given by HASKELL_PLATFORM and PARALLEL_BUILDS
 -- environment variables set alongwith their corresponding
@@ -91,9 +106,8 @@ makeCommand package command args msg =
 
 -- | Results of parsing cabal file of all packages.
 getAllGPD :: [PackageName] -> IO [GenericPackageDescription]
-getAllGPD = sequence . map mapFn
-  where mapFn package = parseCabal $ "./" ++ getPackageName package ++ "/"
-                                          ++ getPackageName package ++ ".cabal"
+getAllGPD = mapM mapFn
+  where mapFn pkg = parseCabal $ packageCabal $ getPackageName pkg
 
 ---------------------- Helper functions ------------------------------
 
