@@ -115,16 +115,17 @@ getAllGPD = mapM mapFn
 getTravisEnv :: IO TravisEnv
 getTravisEnv =
   do env <- getEnvironment
-     hp  <- return . lookup "HASKELL_PLATFORM" $ env
-     pb  <- return . lookup "PARALLEL_BUILDS" $ env
-     ct  <- maybe (return []) getConstraint hp
-     return TravisEnv { haskellPlatform    = hp
-                      , parallelBuilds     = paraBuild pb
-                      , installConstraints = ct
-                      , verboseConstraints = getVerbose ct $ paraBuild pb
-                      }
-  where paraBuild     = maybe False (=="yes")
-        getConstraint pf = fmap getDependencies
+     let hp    = lookup "HASKELL_PLATFORM" $ env
+         pb    = lookup "PARALLEL_BUILDS"  $ env
+         inPar = maybe False (=="yes") pb
+       in do
+       ct <- maybe (return []) getConstraint hp
+       return TravisEnv { haskellPlatform    = hp
+                        , parallelBuilds     = inPar
+                        , installConstraints = ct
+                        , verboseConstraints = getVerbose ct inPar
+                        }
+  where getConstraint pf = fmap getDependencies
                          $ parseCabal $ platformCabal pf
         getVerbose ct pb = map constraint ct ++ ["-j" | pb]
         constraint (Dependency pn vr) = "--constraint="
