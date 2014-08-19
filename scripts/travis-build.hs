@@ -1,5 +1,6 @@
--- | This scripts parses cabal file of packages and installs all the packages
--- in linear fashion by resolving dependencies programmatically.
+-- | This scripts parses cabal files of different raaz packages and
+-- installs all the packages in linear fashion by resolving
+-- dependencies programmatically.
 
 import           Control.Applicative
 import           Data.List
@@ -30,16 +31,17 @@ allPackages = [ PackageName "raaz"
               ]
 
 -- | Travis Environment given by HASKELL_PLATFORM and PARALLEL_BUILDS
--- environment variables set alongwith their corresponding constraints.
+-- environment variables set alongwith their corresponding
+-- constraints.
 data TravisEnv = TravisEnv { haskellPlatform    :: Maybe String
                            , parallelBuilds     :: Bool
                            , installConstraints :: [Dependency]
                            , verboseConstraints :: [String]
                            } deriving (Eq, Show)
 
--- | The main routine which gets all the parsed results from cabal files of
--- packages and then resolve dependencies to get a linear list of packages
--- which is then installed.
+-- | The main routine which gets all the parsed results from cabal
+-- files of packages and then resolve dependencies to get a linear
+-- list of packages which is then installed.
 main :: IO ()
 main = do allgpds   <- getAllGPD allPackages
           travisEnv <- getTravisEnv
