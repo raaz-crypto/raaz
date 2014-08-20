@@ -71,14 +71,14 @@ before_install:
 install: ./travis install
 before_script:
   # Configuring raaz packages.
-  - ./travis config
+  - ./travis configure --enable-tests
   # Building raaz packages.
   - ./travis build
 # Running test suites of raaz packages.
-script: ./travis test
+script: ./travis test --show-details=failures
 after_script:
   # Make source tarball of all raaz packages.
-  - ./travis tarball
+  - ./travis sdist
 after_success:
   - echo "All is well."
 after_failure:

@@ -1,164 +1,197 @@
--- | This scripts parses cabal file of packages and installs all the packages
--- in linear fashion by resolving dependencies programmatically.
+-- | This scripts parses cabal files of different raaz packages and
+-- installs all the packages in linear fashion by resolving
+-- dependencies.
+--
+-- It looks at the following environment variables
+--
+-- PARALLEL_BUILDS: If set to yes it uses cabal install -j to
+--    build all its dependencies.
+--
+-- HASKELL_PLATFORM: If set it looks in the directory
+--    "platform/cabal/$(HASKELL_PLATFORM).cabal". The dependencies
+--    listed there are used as constraints. This is to facilitate
+--    building against specific platforms.
 
 import           Control.Applicative
+import           Control.Exception
 import           Data.List
-import qualified Data.Map                              as Map
 import           Data.Maybe
-import qualified Data.Set                              as Set
 import           Distribution.Package
 import           Distribution.PackageDescription
 import           Distribution.PackageDescription.Parse
 import           Distribution.Text
 import           Distribution.Verbosity
-import           Distribution.Version
 import           System.Environment
 import           System.Exit
+import           System.FilePath
 import           System.Directory
 import           System.Process
 
+-------------------- Configuration ------------------------
+
 -- | All the packages to be installed.
-allPackages :: [PackageName]
-allPackages = [ PackageName "raaz"
-              , PackageName "raaz-benchmarks"
-              , PackageName "raaz-cipher"
-              , PackageName "raaz-core"
-              , PackageName "raaz-hash"
-              , PackageName "raaz-modular"
-              , PackageName "raaz-random"
-              , PackageName "raaz-ssh"
+allPackages :: [String]
+allPackages = [ "raaz"
+              , "raaz-benchmarks"
+              , "raaz-cipher"
+              , "raaz-core"
+              , "raaz-hash"
+              , "raaz-modular"
+              , "raaz-random"
+              , "raaz-ssh"
               ]
 
+
+-- | Relative path to the platform cabal file
+platformCabal :: String -> FilePath
+platformCabal p = "platform" </> "cabal" </> p <.> "cabal"
+
+-- | Relative path to the package cabal file
+packageCabal  :: String -> FilePath
+packageCabal pkg = pkg </> pkg <.> "cabal"
+
+------------------------ Main code --------------------------------
+
+-- | The main routine which gets all the parsed results from cabal
+-- files of packages and then resolve dependencies to get a linear
+-- list of packages which is then installed.
+main :: IO ()
+main = do tEnv      <- getTravisEnv
+          packages  <- raazInstallOrder
+          travisMain tEnv packages >>= exitWith
+
+travisMain :: TravisEnv -> [String] -> IO ExitCode
+travisMain tEnv packages = getArgs >>= \ args ->
+  case args of
+    []          -> error "Empty argument list"
+    ["clean"]   -> fastFail $ clean `map` reverse packages
+    (cmd:cargs) -> fastFail $ runCabal tEnv cmd cargs `map` packages
+
+-- | Execute the actions and fail at the first instance of a failure.
+fastFail :: [IO ExitCode] -> IO ExitCode
+fastFail []     = return ExitSuccess
+fastFail (x:xs) = x >>= \ status ->
+  case status of
+    ExitFailure _ -> return status
+    _             -> fastFail xs
+
+-- | Build a single package with a command line argument.
+runCabal :: TravisEnv -- ^ Travis environment
+         -> String    -- ^ Cabal command
+         -> [String]  -- ^ cabal arguments
+         -> String    -- ^ package
+         -> IO ExitCode
+runCabal tEnv cmd args pkg = inDirectory pkg doCmd
+                               <!> unwords [cmd, pkg]
+  where doCmd = case cmd of
+          "install" -> install tEnv
+          _         -> cabal cmd args
+
+
+clean :: String -> IO ExitCode
+clean pkg = inDirectory pkg $ doClean <!> unwords ["Cleaning", pkg]
+  where doClean =  cabal "clean" []
+                >> rawSystem "./Setup.lhs" ["clean"]
+                >> rawSystem "ghc-pkg"     ["unregister", "--force", pkg]
+
+------------------- Travis environment processing -------------------
+
 -- | Travis Environment given by HASKELL_PLATFORM and PARALLEL_BUILDS
--- environment variables set alongwith their corresponding constraints.
+-- environment variables set alongwith their corresponding
+-- constraints.
 data TravisEnv = TravisEnv { haskellPlatform    :: Maybe String
                            , parallelBuilds     :: Bool
                            , installConstraints :: [Dependency]
-                           , verboseConstraints :: [String]
                            } deriving (Eq, Show)
 
--- | The main routine which gets all the parsed results from cabal files of
--- packages and then resolve dependencies to get a linear list of packages
--- which is then installed.
-main :: IO ()
-main = do allgpds   <- getAllGPD allPackages
-          travisEnv <- getTravisEnv
-          args      <- getArgs
-          case args of
-            [cmd]     -> sequence_ $ map (makePackage travisEnv cmd)
-                                         (resolve allgpds)
-            otherwise -> error "Invalid argument provided."
-  where resolve = resolveDependency . getPackageDepency allPackages
-
--- | Build a single package with a command line argument.
-makePackage :: TravisEnv -> String -> PackageName -> IO ()
-makePackage travisEnv cmd package =
-  do setCurrentDirectory $ "./" ++ getPackageName package
-     exitCode <- case cmd of
-       "install" -> sequence_
-                    [ cabalCmd
-                        ([ "install"
-                         , "--only-dependencies"
-                         ] ++ verboseConstraints travisEnv)
-                        "Installing Dependencies of"
-                    , cabalCmd
-                        [ "install"
-                        , "--enable-documentation"
-                        ]
-                        "Installing"
-                    ]
-       "config"  -> cabalCmd ["configure", "--enable-tests"] "Configuring"
-       "build"   -> cabalCmd ["build"] "Building"
-       "test"    -> cabalCmd ["test", "--show-details=failures"] "Testing"
-       "tarball" -> cabalCmd ["sdist"] "Creating Source tarball of"
-       otherwise -> error "Invalid argument provided."
-     setCurrentDirectory "../"
-     return exitCode
-  where cabalCmd = makeCommand package "cabal"
-
--- | To execute commands with arguments on packages.
-makeCommand :: PackageName -> String -> [String] -> String -> IO ()
-makeCommand package command args msg =
-  do putStrLn startMsg
-     exitCode <- rawSystem command args
-     case exitCode of ExitSuccess -> putStrLn doneMsg
-                      otherwise   -> error failMsg
-  where startMsg = msg ++ " **" ++ getPackageName package ++ "** started."
-        doneMsg  = msg ++ " **" ++ getPackageName package ++ " ** done."
-        failMsg  = msg ++ " failed for **" ++ getPackageName package ++ "** ."
-
--- | Results of parsing cabal file of all packages.
-getAllGPD :: [PackageName] -> IO [GenericPackageDescription]
-getAllGPD = sequence . map mapFn
-  where mapFn package = parseCabal $ "./" ++ getPackageName package ++ "/"
-                                          ++ getPackageName package ++ ".cabal"
-
----------------------- Helper functions ------------------------------
 
 -- | Get Travis Environment.
 getTravisEnv :: IO TravisEnv
 getTravisEnv =
-  do env <- getEnvironment
-     hp  <- return . lookup "HASKELL_PLATFORM" $ env
-     pb  <- return . lookup "PARALLEL_BUILDS" $ env
-     ct  <- maybe (return []) getConstraint hp
-     return TravisEnv { haskellPlatform    = hp
-                      , parallelBuilds     = paraBuilds pb
-                      , installConstraints = ct
-                      , verboseConstraints = getVerbose ct (paraBuilds pb)
-                      }
-  where paraBuilds       = maybe False (\opt -> if opt == "yes" then True
-                                                                else False)
-        getConstraint pf = (parseCabal $ "./platform/cabal/" ++ pf ++ ".cabal")
-                       >>= (return . getDependencies)
-        getVerbose ct pb = map mapFn ct ++ (if pb then ["-j"] else [])
-          where mapFn (Dependency pn vr) = "--constraint="
-                                           ++ (show $ disp pn)
-                                           ++ (show $ disp vr)
+  do context <- getEnvironment
+     let hp    = lookup "HASKELL_PLATFORM" context
+         pb    = lookup "PARALLEL_BUILDS"  context
+       in do
+       ct <- maybe (return []) getConstraint hp
+       return TravisEnv { haskellPlatform    = hp
+                        , parallelBuilds     = yesOrNo pb
+                        , installConstraints = ct
+                        }
+  where getConstraint = fmap getDependencies . descr
+        descr         = parseCabal . platformCabal
+        yesOrNo       = maybe False (=="yes")
 
--- | To parse a cabal file
-parseCabal :: FilePath -> IO GenericPackageDescription
-parseCabal path = readPackageDescription silent path
 
--- | Get all the non-raaz dependencies from all packages.
-getNonRaazDependencies :: [PackageName]
-                       -> [GenericPackageDescription]
-                       -> [PackageName]
-getNonRaazDependencies packages gpds = Set.toList
-                                     . Set.fromList
-                                     . concat $ map mapFn gpds
-  where mapFn gpd = filter filterFn $ getDepencyList gpd
-          where filterFn x = not $ x `elem` packages
 
--- | Get package name.
-getPackageName :: PackageName -> String
-getPackageName = show . disp
+-------------------- Cabal command --------------------------
 
--- | Take the map and provide a linear list of dependency-free packages.
-resolveDependency :: Map.Map PackageName [PackageName] -> [PackageName]
-resolveDependency map
-  | Map.null map  =  []
-  | otherwise     =  resolvedPackages ++ resolveDependency finalUnresolvedMap
-  where (resolvedMap, unresolvedMap) = Map.partition null map
-        resolvedPackages   = Map.keys resolvedMap
-        finalUnresolvedMap = Map.map (\\ resolvedPackages) unresolvedMap
+cabal :: String   -- ^ cabal command
+      -> [String] -- ^ arguments.
+      -> IO ExitCode
+cabal cmd args = rawSystem "cabal" $ cmd : args
 
--- | Genrate a map of package and its dependencies, excluding those which
--- does not belong to raaz packages.
-getPackageDepency :: [PackageName]
-                  -> [GenericPackageDescription]
-                  -> Map.Map PackageName [PackageName]
-getPackageDepency packages gpds = foldl foldFn Map.empty zipped
-  where zipped = zipWith fzip gpds packages
-          where fzip gpd package = ( package
-                                   , filter filterFn $ getDepencyList gpd)
-                  where filterFn x = x `elem` packages && x /= package
-        foldFn map (package, dependency) = Map.insert package dependency map
+install :: TravisEnv -> IO ExitCode
+install tenv =  cabal "install" depsOpts <!> "Installing dependencies"
+             >> cabal "install" ["--enable-documentation"]
+    where depsOpts     =  ["--only-dependencies"]
+                       ++ ["-j" | parallelBuilds tenv ]
+                       ++ map cons (installConstraints tenv)
+
+          cons (Dependency pn vr) = "--constraint="
+                                  ++ show (disp pn)
+                                  ++ show (disp vr)
+
+----------------------- Helpers for running commands ----------------
+
+(<!>) :: IO ExitCode -> String -> IO ExitCode
+(<!>) action msg = do putStrLn startMsg
+                      exitCode <- action
+                      case exitCode of
+                        ExitSuccess -> putStrLn doneMsg
+                        _           -> putStrLn failedMsg
+                      return exitCode
+                   where startMsg  = unwords [msg, "started"]
+                         doneMsg   = unwords [msg, "done"   ]
+                         failedMsg = unwords [msg, "failed" ]
+
+inDirectory :: FilePath -> IO a -> IO a
+inDirectory dir action = bracket getCurrentDirectory
+                                 setCurrentDirectory
+                                 actionInside
+  where actionInside _ = setCurrentDirectory dir >> action
+
+---------------------- Package dependency handling ------------------
+
+-- | The installation order for raaz packages
+raazInstallOrder :: IO [String]
+raazInstallOrder = do
+  deps   <- mapM raazDependency allPackages
+  return $ resolve $ zip allPackages deps
+
+-- | Compute the dependency of a single raaz package.
+raazDependency :: String -> IO [String]
+raazDependency pkg  = filterOut <$> dependency
+  where filterOut   = delete pkg . intersect allPackages
+        dependency  = getDependencyList <$> descr
+        descr       = parseCabal $ packageCabal pkg
+
+-- | Take the dependency map and provide a linear list of packages in
+-- topological order.
+resolve :: Eq a => [(a, [a])] -> [a]
+resolve = resolve' []
+  where resolve' scheduled []   = scheduled
+        resolve' scheduled deps = resolve' (scheduled ++ doNow)
+                                $ filter unmet deps
+          where doNow   = map fst $ filter met deps
+                unmet d = fst d `notElem` doNow
+                met   d = null $ snd d \\ scheduled
+
+--------------------- Some cabal functions ---------------------
 
 -- | Get package names of the dependencies.
-getDepencyList :: GenericPackageDescription -> [PackageName]
-getDepencyList = map mapFn . getDependencies
-  where mapFn (Dependency name _) = name
+getDependencyList :: GenericPackageDescription -> [String]
+getDependencyList = map mapFn . getDependencies
+  where mapFn (Dependency name _) = show $ disp name
 
 -- | Get the dependencies in a particular cabal file.
 getDependencies :: GenericPackageDescription -> [Dependency]
@@ -176,3 +209,7 @@ getDependencies gdescr =       libDeps
         --
         condTreeToDependency (CondNode _ deps _) = deps
         sectionDeps = foldl union [] . map  (condTreeToDependency . snd)
+
+-- | To parse a cabal file
+parseCabal :: FilePath -> IO GenericPackageDescription
+parseCabal = readPackageDescription silent
