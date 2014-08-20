@@ -1,6 +1,16 @@
 -- | This scripts parses cabal files of different raaz packages and
 -- installs all the packages in linear fashion by resolving
--- dependencies programmatically.
+-- dependencies.
+--
+-- It looks at the following environment variables
+--
+-- PARALLEL_BUILDS: If set to yes it uses cabal install -j to
+--    build all its dependencies.
+--
+-- HASKELL_PLATFORM: If set it looks in the directory
+--    "platform/cabal/$(HASKELL_PLATFORM).cabal". The dependencies
+--    listed there are used as constraints. This is to facilitate
+--    building against specific platforms.
 
 import           Control.Applicative
 import           Control.Exception
