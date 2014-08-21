@@ -64,8 +64,12 @@ travisMain :: TravisEnv -> [String] -> IO ExitCode
 travisMain tEnv packages = getArgs >>= \ args ->
   case args of
     []          -> error "Empty argument list"
-    ["clean"]   -> fastFail $ clean `map` reverse packages
+    ["clean"]   -> execAll  $ clean `map` reverse packages
     (cmd:cargs) -> fastFail $ runCabal tEnv cmd cargs `map` packages
+
+-- | Executes all commands and returns the maximal failure status.
+execAll :: [IO ExitCode] -> IO ExitCode
+execAll = fmap (foldl max ExitSuccess) . sequence
 
 -- | Execute the actions and fail at the first instance of a failure.
 fastFail :: [IO ExitCode] -> IO ExitCode
@@ -90,9 +94,10 @@ runCabal tEnv cmd args pkg = inDirectory pkg doCmd
 
 clean :: String -> IO ExitCode
 clean pkg = inDirectory pkg $ doClean <!> unwords ["Cleaning", pkg]
-  where doClean =  cabal "clean" []
+  where doClean = rawSystem "ghc-pkg"     ["unregister", "--force", pkg]
+                >> cabal "clean" []
                 >> rawSystem "./Setup.lhs" ["clean"]
-                >> rawSystem "ghc-pkg"     ["unregister", "--force", pkg]
+
 
 ------------------- Travis environment processing -------------------
 
