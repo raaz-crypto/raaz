@@ -14,5 +14,5 @@ main = do putStrLn $ "Running tests for " ++ pkgName
           defaultMain tests
 
 tests = [ testGroup "AES" AES.tests
-        -- , testGroup "Salsa20" Salsa20.tests
+        , testGroup "Salsa20" Salsa20.tests
         ]
