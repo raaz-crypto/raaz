@@ -8,14 +8,14 @@ module Raaz.Core.Parse.Applicative
        , parseByteString
        ) where
 
-import Control.Applicative
-import Data.ByteString    ( ByteString )
-import Foreign.Ptr        ( castPtr )
-import Foreign.Storable   ( Storable, peek )
+import           Control.Applicative
+import           Data.ByteString           (ByteString)
+import           Foreign.Ptr               (castPtr)
+import           Foreign.Storable          (Storable, peek)
 
-import Raaz.Core.Types
-import Raaz.Core.Util.Ptr ( movePtr, byteSize )
-import Raaz.Core.Util.ByteString( createFrom )
+import           Raaz.Core.Types
+import           Raaz.Core.Util.ByteString (createFrom)
+import           Raaz.Core.Util.Ptr        (byteSize, movePtr)
 -- | The parser.
 data Parser a =
   Parser { parseWidth  :: !(BYTES Int) -- ^ How many characters the
