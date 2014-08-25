@@ -4,12 +4,15 @@
 module Raaz.Core.Parse.Applicative
        ( Parser, parseWidth
        , runParser, runParser', unsafeRunParser
+       , parse, parseStorable
        ) where
 
 import Control.Applicative
+import Foreign.Ptr        ( castPtr )
+import Foreign.Storable   ( Storable, peek )
 
 import Raaz.Core.Types
-import Raaz.Core.Util.Ptr ( movePtr )
+import Raaz.Core.Util.Ptr ( movePtr, byteSize )
 -- | The parser.
 data Parser a =
   Parser { parseWidth  :: !(BYTES Int) -- ^ How many characters the
@@ -62,3 +65,28 @@ instance Applicative Parser where
                           <*> parseAction pX endF
                           -- X starts from where F ends
               where endF = startF `movePtr` wF
+
+
+-- | The primary purpose of this function is to satisfy type checkers.
+undefParse :: Parser a -> a
+undefParse _ = undefined
+
+-- | Parses a value which is an instance of Storable. Beware that this
+-- parser expects that the value is stored in machine endian. Mostly
+-- it is useful in defining the `peek` function in a complicated
+-- `Storable` instance.
+parseStorable :: Storable a => Parser a
+parseStorable = pa
+  where pa = Parser { parseWidth  = byteSize $ undefParse pa
+                    , parseAction = peek . castPtr
+                    }
+
+-- | Parse a crypto value. Endian safety is take into account
+-- here. This is what you would need when you parse packets from an
+-- external source. You can also use this to define the `load`
+-- function in a complicated `EndianStore` instance.
+parse :: EndianStore a => Parser a
+parse = pa
+  where pa = Parser { parseWidth  = byteSize $ undefParse pa
+                    , parseAction = load
+                    }
