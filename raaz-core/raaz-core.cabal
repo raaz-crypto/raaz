@@ -67,6 +67,7 @@ library
                  , Raaz.Core.Memory
                  , Raaz.Core.Types
                  , Raaz.Core.Parse
+                 , Raaz.Core.Parse.Applicative
                  , Raaz.Core.Parse.Unsafe
                  , Raaz.Core.Primitives
                  , Raaz.Core.Primitives.Hash
