@@ -5,14 +5,17 @@ module Raaz.Core.Parse.Applicative
        ( Parser, parseWidth
        , runParser, runParser', unsafeRunParser
        , parse, parseStorable
+       , parseByteString
        ) where
 
 import Control.Applicative
+import Data.ByteString    ( ByteString )
 import Foreign.Ptr        ( castPtr )
 import Foreign.Storable   ( Storable, peek )
 
 import Raaz.Core.Types
 import Raaz.Core.Util.Ptr ( movePtr, byteSize )
+import Raaz.Core.Util.ByteString( createFrom )
 -- | The parser.
 data Parser a =
   Parser { parseWidth  :: !(BYTES Int) -- ^ How many characters the
@@ -90,3 +93,7 @@ parse = pa
   where pa = Parser { parseWidth  = byteSize $ undefParse pa
                     , parseAction = load
                     }
+
+-- | Parses a strict bytestring of a given length.
+parseByteString :: LengthUnit l => l -> Parser ByteString
+parseByteString l = Parser (inBytes l) $ createFrom l
