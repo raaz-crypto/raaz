@@ -101,6 +101,30 @@ hex bs = unsafeCreate (2 * n) filler
             where ptr0 = ptr
                   ptr1 = ptr `plusPtr` 1
 
+isDigit :: Word8 -> Bool
+isDigit x = (x - c2w '0') >= 0 && (x - c2w '0') < 10
+{-# INLINE isDigit #-}
+
+isLowercaseHexChar :: Word8 -> Bool
+isLowercaseHexChar x = (x - c2w 'a') >= 0 && (x - c2w 'a') < 6
+{-# INLINE isLowercaseHexChar #-}
+
+isUppercaseHexChar :: Word8 -> Bool
+isUppercaseHexChar x = (x - c2w 'A') >= 0 && (x - c2w 'A') < 6
+{-# INLINE isUppercaseHexChar #-}
+
+isHexWord :: Word8 -> Bool
+isHexWord x = (isDigit x) || (isLowercaseHexChar x) || (isUppercaseHexChar x)
+{-# INLINE isHexWord #-}
+
+fromHexWord :: Word8 -> Word8
+fromHexWord x
+  | isDigit x             = (x - c2w '0')
+  | isLowercaseHexChar x  = 10 + (x - c2w 'a')
+  | isUppercaseHexChar x  = 10 + (x - c2w 'A')
+  | otherwise             = -1
+{-# INLINE fromHexWord #-}
+
 -- | Converts hexadecimal bytestring to binary assuming that the input
 --   bytestring is hexadecimal only.
 unsafeFromHex :: ByteString -> ByteString
@@ -119,11 +143,8 @@ unsafeFromHex bs = unsafeCreate (n `div` 2) filler
           where bsNewPtr = bsPtr `plusPtr` 2
                 ptrNew   = ptr   `plusPtr` 1
 
-        decDigit x | (x - c2w '0') < 10 = (x - c2w '0')
-                   | otherwise          = 10 + (x - c2w 'a')
-
-        put ptr x y = do poke ptr $ dec
-          where dec = ((decDigit x) `shiftL` 4) .|. (decDigit y)
+        put ptr x y = do poke ptr $ binaryWord
+          where binaryWord = ((fromHexWord x) `shiftL` 4) .|. (fromHexWord y)
 
 -- | Converts hexadecimal bytestring to binary. If the input bytestring
 --   is not hexadecimal, returns Nothing.
@@ -135,13 +156,10 @@ fromHex bs
     where n = B.length bs
 
           isHexByteString b i
-            | i < n     = (isHex $ B.head b) &&
+            | i < n     = (isHexWord $ B.head b) &&
                           (isHexByteString (B.tail b) (i+1))
             | otherwise = True
 
-          isHex x | ((x - c2w '0') >= 0) && ((x - c2w '0') < 10) = True
-                  | ((x - c2w 'a') >= 0) && ((x - c2w 'a') <  6) = True
-                  | otherwise                                    = False
 
 -- | Works directly on the pointer associated with the
 -- `ByteString`. This function should only read and not modify the
