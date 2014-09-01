@@ -102,24 +102,24 @@ hex bs = unsafeCreate (2 * n) filler
                   ptr1 = ptr `plusPtr` 1
 
 isDigit :: Word8 -> Bool
-isDigit x = (x - c2w '0') >= 0 && (x - c2w '0') < 10
+isDigit x = x >= c2w '0' && x <= c2w '9'
 {-# INLINE isDigit #-}
 
 isLowercaseHexChar :: Word8 -> Bool
-isLowercaseHexChar x = (x - c2w 'a') >= 0 && (x - c2w 'a') < 6
+isLowercaseHexChar x = x >= c2w 'a' && x <= c2w 'f'
 {-# INLINE isLowercaseHexChar #-}
 
 isUppercaseHexChar :: Word8 -> Bool
-isUppercaseHexChar x = (x - c2w 'A') >= 0 && (x - c2w 'A') < 6
+isUppercaseHexChar x = x >= c2w 'A' && x <= c2w 'A'
 {-# INLINE isUppercaseHexChar #-}
 
 isHexWord :: Word8 -> Bool
-isHexWord x = (isDigit x) || (isLowercaseHexChar x) || (isUppercaseHexChar x)
+isHexWord x = isDigit x || isLowercaseHexChar x || isUppercaseHexChar x
 {-# INLINE isHexWord #-}
 
 fromHexWord :: Word8 -> Word8
 fromHexWord x
-  | isDigit x             = (x - c2w '0')
+  | isDigit x             = x - c2w '0'
   | isLowercaseHexChar x  = 10 + (x - c2w 'a')
   | isUppercaseHexChar x  = 10 + (x - c2w 'A')
   | otherwise             = -1
@@ -143,8 +143,9 @@ unsafeFromHex bs = unsafeCreate (n `div` 2) filler
           where bsNewPtr = bsPtr `plusPtr` 2
                 ptrNew   = ptr   `plusPtr` 1
 
-        put ptr x y = do poke ptr $ binaryWord
-          where binaryWord = ((fromHexWord x) `shiftL` 4) .|. (fromHexWord y)
+        put ptr x y = poke ptr binaryWord
+          where binaryWord = (fromHexWord x `shiftL` 4) .|.
+                             fromHexWord y
 
 -- | Converts hexadecimal bytestring to binary. If the input bytestring
 --   is not hexadecimal, returns Nothing.
@@ -156,8 +157,8 @@ fromHex bs
     where n = B.length bs
 
           isHexByteString b i
-            | i < n     = (isHexWord $ B.head b) &&
-                          (isHexByteString (B.tail b) (i+1))
+            | i < n     =  isHexWord (B.head b)
+                        && isHexByteString (B.tail b) (i+1)
             | otherwise = True
 
 
