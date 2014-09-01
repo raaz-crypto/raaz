@@ -128,17 +128,19 @@ fromHexWord x
 -- | Converts hexadecimal bytestring to binary assuming that the input
 --   bytestring is hexadecimal only.
 unsafeFromHex :: ByteString -> ByteString
-unsafeFromHex bs = unsafeCreate (n `div` 2) filler
+unsafeFromHex bs = unsafeCreate nOutput filler
   where (fptr, offset, n)      = toForeignPtr bs
+
+        nOutput    = n `quot` 2
 
         filler ptr = withForeignPtr fptr $
              \ bsPtr -> putBS (bsPtr `plusPtr` offset) 0 ptr
 
         putBS bsPtr i ptr
-              | i < (n `div` 2) = do x <- peek  bsPtr
-                                     y <- peek (bsPtr `plusPtr` 1)
-                                     put ptr x y
-                                     putBS bsNewPtr (i+1) ptrNew
+              | i < nOutput = do x <- peek  bsPtr
+                                 y <- peek (bsPtr `plusPtr` 1)
+                                 put ptr x y
+                                 putBS bsNewPtr (i+1) ptrNew
               | otherwise = return ()
           where bsNewPtr = bsPtr `plusPtr` 2
                 ptrNew   = ptr   `plusPtr` 1
@@ -147,20 +149,15 @@ unsafeFromHex bs = unsafeCreate (n `div` 2) filler
           where binaryWord = (fromHexWord x `shiftL` 4) .|.
                              fromHexWord y
 
--- | Converts hexadecimal bytestring to binary. If the input bytestring
---   is not hexadecimal, returns Nothing.
+-- | Converts hexadecimal encoded bytestring to binary. If the input
+-- bytestring is not hexadecimal, returns Nothing.
 fromHex :: ByteString -> Maybe ByteString
 fromHex bs
-    | n == 0 || (n `mod` 2) /= 0 = Nothing
-    | isHexByteString bs 0       = Just (unsafeFromHex bs)
-    | otherwise                  = Nothing
-    where n = B.length bs
-
-          isHexByteString b i
-            | i < n     =  isHexWord (B.head b)
-                        && isHexByteString (B.tail b) (i+1)
-            | otherwise = True
-
+    | n `rem` 2 /= 0     = Nothing
+    | isHexByteString bs = Just (unsafeFromHex bs)
+    | otherwise          = Nothing
+    where isHexByteString = B.foldr foldfn True
+          foldfn w sofar  = isHexWord w && sofar
 
 -- | Works directly on the pointer associated with the
 -- `ByteString`. This function should only read and not modify the
