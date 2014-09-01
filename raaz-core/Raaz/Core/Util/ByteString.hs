@@ -101,47 +101,63 @@ hex bs = unsafeCreate (2 * n) filler
             where ptr0 = ptr
                   ptr1 = ptr `plusPtr` 1
 
+isDigit :: Word8 -> Bool
+isDigit x = x >= c2w '0' && x <= c2w '9'
+{-# INLINE isDigit #-}
+
+isLowercaseHexChar :: Word8 -> Bool
+isLowercaseHexChar x = x >= c2w 'a' && x <= c2w 'f'
+{-# INLINE isLowercaseHexChar #-}
+
+isUppercaseHexChar :: Word8 -> Bool
+isUppercaseHexChar x = x >= c2w 'A' && x <= c2w 'A'
+{-# INLINE isUppercaseHexChar #-}
+
+isHexWord :: Word8 -> Bool
+isHexWord x = isDigit x || isLowercaseHexChar x || isUppercaseHexChar x
+{-# INLINE isHexWord #-}
+
+fromHexWord :: Word8 -> Word8
+fromHexWord x
+  | isDigit x             = x - c2w '0'
+  | isLowercaseHexChar x  = 10 + (x - c2w 'a')
+  | isUppercaseHexChar x  = 10 + (x - c2w 'A')
+  | otherwise             = -1
+{-# INLINE fromHexWord #-}
+
 -- | Converts hexadecimal bytestring to binary assuming that the input
 --   bytestring is hexadecimal only.
 unsafeFromHex :: ByteString -> ByteString
-unsafeFromHex bs = unsafeCreate (n `div` 2) filler
+unsafeFromHex bs = unsafeCreate nOutput filler
   where (fptr, offset, n)      = toForeignPtr bs
+
+        nOutput    = n `quot` 2
 
         filler ptr = withForeignPtr fptr $
              \ bsPtr -> putBS (bsPtr `plusPtr` offset) 0 ptr
 
         putBS bsPtr i ptr
-              | i < (n `div` 2) = do x <- peek  bsPtr
-                                     y <- peek (bsPtr `plusPtr` 1)
-                                     put ptr x y
-                                     putBS bsNewPtr (i+1) ptrNew
+              | i < nOutput = do x <- peek  bsPtr
+                                 y <- peek (bsPtr `plusPtr` 1)
+                                 put ptr x y
+                                 putBS bsNewPtr (i+1) ptrNew
               | otherwise = return ()
           where bsNewPtr = bsPtr `plusPtr` 2
                 ptrNew   = ptr   `plusPtr` 1
 
-        decDigit x | (x - c2w '0') < 10 = (x - c2w '0')
-                   | otherwise          = 10 + (x - c2w 'a')
+        put ptr x y = poke ptr binaryWord
+          where binaryWord = (fromHexWord x `shiftL` 4) .|.
+                             fromHexWord y
 
-        put ptr x y = do poke ptr $ dec
-          where dec = ((decDigit x) `shiftL` 4) .|. (decDigit y)
-
--- | Converts hexadecimal bytestring to binary. If the input bytestring
---   is not hexadecimal, returns Nothing.
+-- | Converts hexadecimal encoded bytestring to binary. If the input
+-- bytestring is not hexadecimal, returns Nothing.
 fromHex :: ByteString -> Maybe ByteString
 fromHex bs
-    | n == 0 || (n `mod` 2) /= 0 = Nothing
-    | isHexByteString bs 0       = Just (unsafeFromHex bs)
-    | otherwise                  = Nothing
-    where n = B.length bs
-
-          isHexByteString b i
-            | i < n     = (isHex $ B.head b) &&
-                          (isHexByteString (B.tail b) (i+1))
-            | otherwise = True
-
-          isHex x | ((x - c2w '0') >= 0) && ((x - c2w '0') < 10) = True
-                  | ((x - c2w 'a') >= 0) && ((x - c2w 'a') <  6) = True
-                  | otherwise                                    = False
+    | n `rem` 2 /= 0     = Nothing
+    | isHexByteString bs = Just (unsafeFromHex bs)
+    | otherwise          = Nothing
+    where isHexByteString = B.foldr foldfn True
+          foldfn w sofar  = isHexWord w && sofar
 
 -- | Works directly on the pointer associated with the
 -- `ByteString`. This function should only read and not modify the
