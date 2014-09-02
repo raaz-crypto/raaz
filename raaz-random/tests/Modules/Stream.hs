@@ -47,7 +47,7 @@ prop_length :: ( StreamGadget g
             -> Sized                     -- ^ Number of bytes to generate
             -> Property
 prop_length g' k (Sized sz) = monadicIO $ do
-  bs <- run $ generateBytes
+  bs <- run generateBytes
   assert (BU.length bs == sz)
   where
     generateBytes = do

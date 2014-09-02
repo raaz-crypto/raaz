@@ -38,7 +38,7 @@ prop_max :: ( StreamGadget g
          -> Positive Int
          -> Property
 prop_max g' k maxi = monadicIO $ do
-  i <- run $ generateInt
+  i <- run generateInt
   assert (i >= 0)
   assert (i <= maxi)
   where
@@ -55,7 +55,7 @@ prop_between :: ( StreamGadget g
              -> MinMax
              -> Property
 prop_between g' k (MinMax mini maxi) = maxi > mini ==> monadicIO $ do
-  i <- run $ generateInt
+  i <- run generateInt
   assert (i >= mini)
   assert (i <= maxi)
   where
