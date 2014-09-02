@@ -40,7 +40,8 @@ matrix:
 before_install:
   - if [ "$HLINT" == "yes" ]; then
        sudo apt-get install hlint;
-       exit 0;
+       hlint .;
+       exit $?;
     fi
   - echo `uname -a`
   - travis_retry sudo add-apt-repository -y ppa:hvr/ghc
@@ -76,30 +77,21 @@ before_install:
 
 install:
   # Installing
-  - if [ "$HLINT" != "yes" ]; then
-      ./travis install;
-    fi
+  - ./travis install
 before_script:
   # Configuring raaz packages.
-  - if [ "$HLINT" != "yes" ]; then
-     ./travis configure --enable-tests;
-    fi
+  - ./travis configure --enable-tests
   # Building raaz packages.
-  - if [ "$HLINT" != "yes" ]; then
-     ./travis build;
-    fi
+  - ./travis build;
 # Running test suites of raaz packages.
 script:
-  - if [ "$HLINT" == "yes" ]; then
-       hlint .;
-    else;
-       ./travis test --show-details=failures;
-    fi
+  - ./travis test --show-details=failures;
+
 after_script:
+  - ./travis sdist;
   # Make source tarball of all raaz packages.
-  - if [ "$HLINT" != "yes" ]; then
-       ./travis sdist;
-    fi
+
+
 after_success:
   - echo "All is well."
 after_failure:
