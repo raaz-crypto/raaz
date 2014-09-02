@@ -5,16 +5,16 @@ transport layer of ssh.
 
 -}
 
-{-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE OverloadedStrings #-}
 module Raaz.Network.SSH.Transport
        ( idString
        , idString'
        ) where
 
 import qualified Data.ByteString.Char8 as C8
-import           Data.Version(showVersion)
+import           Data.Version          (showVersion)
 
-import           Paths_raaz_ssh(version)
+import           Paths_raaz_ssh        (version)
 
 
 -- | The prefix of the identification string.
