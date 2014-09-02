@@ -27,15 +27,22 @@ env:
     - ADDITIONAL_CONSTRAINTS=
     - PARALLEL_BUILDS="yes"
   matrix:
-    - GHC_VERSION=7.8.3 CABAL_VERSION=1.20
-    - HASKELL_PLATFORM=2013.2.0.0 GHC_VERSION=7.6.3 CABAL_VERSION=1.20
-    - HASKELL_PLATFORM=2012.4.0.0 GHC_VERSION=7.4.2 CABAL_VERSION=1.20
-    - HASKELL_PLATFORM=2012.2.0.0 GHC_VERSION=7.4.1 CABAL_VERSION=1.20
+    include:
+      - GHC_VERSION=7.8.3 CABAL_VERSION=1.20
+      - HASKELL_PLATFORM=2013.2.0.0 GHC_VERSION=7.6.3 CABAL_VERSION=1.20
+      - HASKELL_PLATFORM=2012.4.0.0 GHC_VERSION=7.4.2 CABAL_VERSION=1.20
+      - HASKELL_PLATFORM=2012.2.0.0 GHC_VERSION=7.4.1 CABAL_VERSION=1.20
+    allow_failures:
+      - HLINT=yes
+
 matrix:
   # To notify immediately about it when a job of a build fails.
   fast_finish: true
 before_install:
-  # To print certain system information.
+  - if [ "$HLINT" == "yes" ]; then
+       sudo apt-get install hlint;
+       exit 0;
+    fi
   - echo `uname -a`
   - travis_retry sudo add-apt-repository -y ppa:hvr/ghc
   - travis_retry sudo apt-get update
@@ -67,18 +74,33 @@ before_install:
   # Compile the script which will be used to install, build and test
   # raaz packages.
   - ghc -o travis scripts/travis-build.hs
-# Install raaz packages.
-install: ./travis install
+
+install:
+  # Installing
+  - if [ "$HLINT" != "yes" ]; then
+      ./travis install;
+    fi
 before_script:
   # Configuring raaz packages.
-  - ./travis configure --enable-tests
+  - if [ "$HLINT" != "yes" ]; then
+     ./travis configure --enable-tests;
+    fi
   # Building raaz packages.
-  - ./travis build
+  - if [ "$HLINT" != "yes" ]; then
+     ./travis build;
+    fi
 # Running test suites of raaz packages.
-script: ./travis test --show-details=failures
+script:
+  - if [ "$HLINT" == "yes" ]; then
+       hlint .;
+    else;
+       ./travis test --show-details=failures;
+    fi
 after_script:
   # Make source tarball of all raaz packages.
-  - ./travis sdist
+  - if [ "$HLINT" != "yes" ]; then
+       ./travis sdist;
+    fi
 after_success:
   - echo "All is well."
 after_failure:
