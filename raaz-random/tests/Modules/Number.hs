@@ -1,14 +1,14 @@
-{-# LANGUAGE FlexibleContexts   #-}
-{-# LANGUAGE TypeFamilies       #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE TypeFamilies     #-}
 module Modules.Number (testWith) where
 
-import           Control.Applicative                  ( (<$>)                  )
-import           Data.ByteString                      ( ByteString             )
+import           Control.Applicative                  ((<$>))
+import           Data.ByteString                      (ByteString)
 import qualified Data.ByteString                      as BS
-import           Test.Framework                       ( Test                   )
-import           Test.Framework.Providers.QuickCheck2 ( testProperty           )
+import           Test.Framework                       (Test)
+import           Test.Framework.Providers.QuickCheck2 (testProperty)
 import           Test.QuickCheck
-import           Test.QuickCheck.Monadic              ( run, assert, monadicIO )
+import           Test.QuickCheck.Monadic              (assert, monadicIO, run)
 
 import           Raaz.Core.Memory
 import           Raaz.Core.Primitives
@@ -16,10 +16,10 @@ import           Raaz.Core.Primitives.Cipher
 import           Raaz.Core.Types
 import qualified Raaz.Core.Util.ByteString            as BU
 
-import           Modules.Stream                       ( createGadget          )
+import           Modules.Stream                       (createGadget)
 import           Raaz.Random
 
-import Data.Word
+import           Data.Word
 -- | MinMax mi ma where ma >= mi >= 0
 data MinMax = MinMax Int Int deriving Show
 

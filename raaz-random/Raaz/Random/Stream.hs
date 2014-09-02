@@ -5,12 +5,12 @@ An abstraction for buffered random streams which can be generated from
 
 -}
 
-{-# LANGUAGE CPP                        #-}
 {-# LANGUAGE BangPatterns               #-}
-{-# LANGUAGE TypeFamilies               #-}
+{-# LANGUAGE CPP                        #-}
+{-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE StandaloneDeriving         #-}
-{-# LANGUAGE FlexibleInstances          #-}
+{-# LANGUAGE TypeFamilies               #-}
 {-# OPTIONS_GHC -fno-warn-orphans       #-}
 
 module Raaz.Random.Stream
@@ -19,23 +19,23 @@ module Raaz.Random.Stream
        , genBytes
        , genBytesNonZero
        ) where
-import           Control.Monad                 ( void               )
+import           Control.Monad                 (void)
 
-import           Data.ByteString.Internal      ( ByteString, create )
 import qualified Data.ByteString               as BS
+import           Data.ByteString.Internal      (ByteString, create)
 import qualified Data.ByteString.Internal      as BS
 import qualified Data.ByteString.Lazy          as BL
 import qualified Data.ByteString.Lazy.Internal as BL
-import           Foreign.ForeignPtr            ( withForeignPtr     )
-import           Foreign.Ptr                   ( castPtr, plusPtr   )
+import           Foreign.ForeignPtr            (withForeignPtr)
+import           Foreign.Ptr                   (castPtr, plusPtr)
 
 import           Raaz.Core.ByteSource
 import           Raaz.Core.Memory
 import           Raaz.Core.Primitives
 import           Raaz.Core.Primitives.Cipher
 import           Raaz.Core.Types
-import           Raaz.Core.Util.Ptr
 import qualified Raaz.Core.Util.ByteString     as BU
+import           Raaz.Core.Util.Ptr
 
 -- | A buffered random source which uses a stream gadget as the
 -- underlying source for generating random bytes.

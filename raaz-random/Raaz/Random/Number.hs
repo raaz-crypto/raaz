@@ -9,13 +9,13 @@ module Raaz.Random.Number
        , genBetween
        ) where
 
-import qualified Data.ByteString   as BS
-import Data.Word
+import qualified Data.ByteString             as BS
+import           Data.Word
 
-import Raaz.Core.Primitives.Cipher
-import Raaz.Core.Types
+import           Raaz.Core.Primitives.Cipher
+import           Raaz.Core.Types
 
-import Raaz.Random.Stream
+import           Raaz.Random.Stream
 
 -- | Generates a positive number i such that 0 <= i <= m. The argument
 -- should always be positive.

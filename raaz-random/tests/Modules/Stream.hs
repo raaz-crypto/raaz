@@ -1,19 +1,19 @@
-{-# LANGUAGE FlexibleContexts           #-}
-{-# LANGUAGE FlexibleInstances          #-}
-{-# LANGUAGE TypeFamilies               #-}
-{-# LANGUAGE NoMonomorphismRestriction  #-}
+{-# LANGUAGE FlexibleContexts          #-}
+{-# LANGUAGE FlexibleInstances         #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
+{-# LANGUAGE TypeFamilies              #-}
 module Modules.Stream ( createGadget
                       , testWith
                       ) where
 
-import           Control.Applicative                  ( (<$>)                  )
-import           Data.ByteString                      ( ByteString             )
+import           Control.Applicative                  ((<$>))
+import           Data.ByteString                      (ByteString)
 import qualified Data.ByteString                      as BS
-import           Foreign.Storable                     ( sizeOf                 )
-import           Test.Framework                       ( Test                   )
-import           Test.Framework.Providers.QuickCheck2 ( testProperty           )
+import           Foreign.Storable                     (sizeOf)
+import           Test.Framework                       (Test)
+import           Test.Framework.Providers.QuickCheck2 (testProperty)
 import           Test.QuickCheck
-import           Test.QuickCheck.Monadic              ( run, assert, monadicIO )
+import           Test.QuickCheck.Monadic              (assert, monadicIO, run)
 
 import           Raaz.Core.Memory
 import           Raaz.Core.Primitives

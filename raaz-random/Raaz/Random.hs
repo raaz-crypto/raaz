@@ -4,5 +4,5 @@ module Raaz.Random
        )
        where
 
-import Raaz.Random.Stream
-import Raaz.Random.Number
+import           Raaz.Random.Number
+import           Raaz.Random.Stream
