@@ -1,19 +1,19 @@
-{-# LANGUAGE FlexibleContexts           #-}
-{-# LANGUAGE FlexibleInstances          #-}
-{-# LANGUAGE TypeFamilies               #-}
-{-# LANGUAGE NoMonomorphismRestriction  #-}
+{-# LANGUAGE FlexibleContexts          #-}
+{-# LANGUAGE FlexibleInstances         #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
+{-# LANGUAGE TypeFamilies              #-}
 module Modules.Stream ( createGadget
                       , testWith
                       ) where
 
-import           Control.Applicative                  ( (<$>)                  )
-import           Data.ByteString                      ( ByteString             )
+import           Control.Applicative                  ((<$>))
+import           Data.ByteString                      (ByteString)
 import qualified Data.ByteString                      as BS
-import           Foreign.Storable                     ( sizeOf                 )
-import           Test.Framework                       ( Test                   )
-import           Test.Framework.Providers.QuickCheck2 ( testProperty           )
+import           Foreign.Storable                     (sizeOf)
+import           Test.Framework                       (Test)
+import           Test.Framework.Providers.QuickCheck2 (testProperty)
 import           Test.QuickCheck
-import           Test.QuickCheck.Monadic              ( run, assert, monadicIO )
+import           Test.QuickCheck.Monadic              (assert, monadicIO, run)
 
 import           Raaz.Core.Memory
 import           Raaz.Core.Primitives
@@ -47,7 +47,7 @@ prop_length :: ( StreamGadget g
             -> Sized                     -- ^ Number of bytes to generate
             -> Property
 prop_length g' k (Sized sz) = monadicIO $ do
-  bs <- run $ generateBytes
+  bs <- run generateBytes
   assert (BU.length bs == sz)
   where
     generateBytes = do
