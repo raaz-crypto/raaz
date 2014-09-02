@@ -24,15 +24,15 @@ genMax _ 0 = return 0
 genMax rscr maxI | maxI < 0  = error "Illegal arguments"
                  | otherwise = do
   bytes <- genBytes rscr nBytes
-  return $ toInt bytes `mod` (maxI + 1)
+  return $ toInt bytes `rem` (maxI + 1)
   where
     toInt = BS.foldl with 0
     with o w = o * 256 + fromIntegral w
     nBytes = go maxI 0
-      where
-        go 0 !m = m
-        go !n !m = go (n `div` 256) (m+1)
-{-# SPECIALIZE genMax :: StreamGadget g => RandomSource g -> Int      -> IO Int      #-}
+    go 0  !m = m
+    go !n !m = go (n `quot` 256) (m+1)
+
+{-# SPECIALIZE genMax :: StreamGadget g => RandomSource g -> Int -> IO Int #-}
 {-# SPECIALIZE genMax :: StreamGadget g => RandomSource g -> Integer  -> IO Integer  #-}
 {-# SPECIALIZE genMax :: StreamGadget g => RandomSource g -> Word8    -> IO Word8    #-}
 {-# SPECIALIZE genMax :: StreamGadget g => RandomSource g -> BE Word32 -> IO (BE Word32) #-}
