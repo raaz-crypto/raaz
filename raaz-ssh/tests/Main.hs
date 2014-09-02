@@ -1,5 +1,5 @@
-import Data.Version
-import Paths_raaz_ssh(version)
+import           Data.Version
+import           Paths_raaz_ssh (version)
 
 pkgName = "raaz-ssh-" ++ showVersion version
 
