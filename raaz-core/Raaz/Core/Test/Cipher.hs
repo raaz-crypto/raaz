@@ -28,7 +28,6 @@ import           Raaz.Core.Types
 import           Raaz.Core.Primitives
 import           Raaz.Core.Primitives.Cipher
 import           Raaz.Core.Util.ByteString           (hex)
-import           Raaz.Core.Serialize
 import           Raaz.Core.Test.Gadget
 
 
@@ -62,8 +61,10 @@ unitTests  :: ( HasName g
 unitTests ge triples = testGroup "Unit tests" $ hUnitTestToTests $ test $ map checkCipher triples
   where label a = shorten (show $ hex a)
         checkCipher (key,a,b) =
-          label a ~: test  ["Encryption" ~: (applyGadget ge ecxt a) ~?= b
-                           ,"Decryption" ~: (applyGadget (inverse ge) dcxt b) ~?= a]
+          label a ~: test
+             [ "Encryption" ~: applyGadget ge ecxt a ~?= b
+             , "Decryption" ~: applyGadget (inverse ge) dcxt b ~?= a
+             ]
           where
             ecxt = cipherCxt (primitiveOf ge) key
             dcxt = cipherCxt (primitiveOf $ inverse ge) key
@@ -78,8 +79,9 @@ encryptDecrypt :: ( HasName g
                => g
                -> Key (PrimitiveOf g)
                -> Test
-encryptDecrypt g key = testInverse g (inverse g) (cipherCxt (primitiveOf g) key)
-                                                 (cipherCxt (primitiveOf g) key)
+encryptDecrypt g key = testInverse g (inverse g)
+                                     (cipherCxt (primitiveOf g) key)
+                                     (cipherCxt (primitiveOf g) key)
 
 
 -- TODO: Please document this.
