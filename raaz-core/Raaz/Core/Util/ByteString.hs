@@ -153,9 +153,9 @@ unsafeFromHex bs = unsafeCreate nOutput filler
 -- bytestring is not hexadecimal, returns Nothing.
 fromHex :: ByteString -> Maybe ByteString
 fromHex bs
-    | B.length bs `rem` 2 /= 0 = Nothing
-    | isHexByteString bs       = Just (unsafeFromHex bs)
-    | otherwise                = Nothing
+    | odd (B.length bs)   = Nothing
+    | isHexByteString bs  = Just (unsafeFromHex bs)
+    | otherwise           = Nothing
     where isHexByteString = B.foldr foldfn True
           foldfn w sofar  = isHexWord w && sofar
 
