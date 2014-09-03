@@ -49,11 +49,13 @@ prop_unSafeNCopy (BoundedByteString bs n) = monadicIO $ do
 
 -- | Tests for checking hex and fromHex functions.
 prop_toHexfromHex :: BoundedByteString -> Bool
-prop_toHexfromHex (BoundedByteString bs _) = M.maybe False (== bs) (fromHex $ hex bs)
+prop_toHexfromHex (BoundedByteString bs _)
+  = M.maybe False (== bs) (fromHex $ hex bs)
 
 -- | Tests for checking hex and unsafeFromHex functions.
 prop_toHexUnsafeFromHex :: BoundedByteString -> Bool
-prop_toHexUnsafeFromHex (BoundedByteString bs _) = bs == (unsafeFromHex $ hex bs)
+prop_toHexUnsafeFromHex (BoundedByteString bs _)
+  = bs == unsafeFromHex (hex bs)
 
 tests :: [Test]
 tests = [ testProperty "UnsafeCopyToCryptoPtr" prop_unSafeCopy

@@ -53,7 +53,7 @@ parseStorable = parseWith undefined
   where parseWith :: Storable a => a -> Parser a
         parseWith a = do
           checkAndUpdate $ byteSize a
-          lift $ PU.parseStorable
+          lift PU.parseStorable
 
 -- | Safe version of `PU.parse`. Parse a crypto value. Endian safety is
 -- take into account here. This is what you would need when you parse
@@ -64,7 +64,7 @@ parse = parseWith undefined
     parseWith :: EndianStore a => a -> Parser a
     parseWith a = do
       checkAndUpdate $ byteSize a
-      lift $ PU.parse
+      lift PU.parse
 
 -- | Parses a strict bytestring of a given length.
 parseByteString :: LengthUnit l => l -> Parser ByteString
