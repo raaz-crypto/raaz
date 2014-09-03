@@ -200,5 +200,5 @@ newtype PAGES = PAGES Int deriving ( Show, Enum, Real
                                    )
 
 instance LengthUnit PAGES where
-  inBytes (PAGES x) = BYTES $ pgSz *  x
+  inBytes (PAGES x) = BYTES $ pgSz * x
     where BYTES pgSz = pageSize
