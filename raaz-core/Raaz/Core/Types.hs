@@ -9,7 +9,6 @@ cryptographic protocols.
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE DeriveDataTypeable         #-}
-{-# LANGUAGE TemplateHaskell            #-}
 
 module Raaz.Core.Types
        (
@@ -154,43 +153,43 @@ but their export can cause confusion.
 
 
 -- | Convert a Word32 to its little endian form.
-toWord32LE :: Word32 -> (LE Word32)
+toWord32LE :: Word32 -> LE Word32
 {-# INLINE toWord32LE #-}
 toWord32LE = LE . toLE32
 
 -- | Convert a little endian Word32 to Word32
-fromWord32LE :: (LE Word32) -> Word32
+fromWord32LE :: LE Word32 -> Word32
 {-# INLINE fromWord32LE #-}
 fromWord32LE (LE w) = fromLE32 w
 
 -- | Convert a Word32 to its bigendian form.
-toWord32BE :: Word32 -> (BE Word32)
+toWord32BE :: Word32 -> BE Word32
 {-# INLINE toWord32BE #-}
 toWord32BE = BE . toBE32
 
 -- | Convert a big endian Word32 to Word32
-fromWord32BE :: (BE Word32) -> Word32
+fromWord32BE :: BE Word32 -> Word32
 {-# INLINE fromWord32BE #-}
 fromWord32BE (BE w) = fromBE32 w
 
 
 -- | Convert a Word64 to its little endian form.
-toWord64LE :: Word64 -> (LE Word64)
+toWord64LE :: Word64 -> LE Word64
 {-# INLINE toWord64LE #-}
 toWord64LE = LE . toLE64
 
 -- | Convert a little endian Word64 to Word64
-fromWord64LE :: (LE Word64) -> Word64
+fromWord64LE :: LE Word64 -> Word64
 {-# INLINE fromWord64LE #-}
 fromWord64LE (LE w) = fromLE64 w
 
 -- | Convert a Word64 to its bigendian form.
-toWord64BE :: Word64 -> (BE Word64)
+toWord64BE :: Word64 -> BE Word64
 {-# INLINE toWord64BE #-}
 toWord64BE = BE . toBE64
 
 -- | Convert a big endian Word64 to Word64
-fromWord64BE :: (BE Word64) -> Word64
+fromWord64BE :: BE Word64 -> Word64
 {-# INLINE fromWord64BE #-}
 fromWord64BE (BE w) = fromBE64 w
 
@@ -281,7 +280,7 @@ instance  LengthUnit (BYTES Int) where
 
 -- | Express the length units in bits.
 inBits  :: LengthUnit u => u -> BITS Word64
-inBits u = BITS $ 8 * (fromIntegral  by)
+inBits u = BITS $ 8 * fromIntegral by
   where BYTES by = inBytes u
 
 -- | Express length unit @src@ in terms of length unit @dest@ rounding
