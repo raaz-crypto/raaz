@@ -27,3 +27,5 @@ import Raaz.Core.Primitives.Symmetric
 import Raaz.Core.Primitives.Asymmetric
 import Raaz.Core.Serialize
 import Raaz.Core.Types
+
+{-# ANN module "HLint: ignore Use import/export shortcut" #-}
