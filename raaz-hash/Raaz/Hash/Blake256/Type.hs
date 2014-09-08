@@ -147,7 +147,7 @@ instance EndianStore Salt where
 instance Primitive BLAKE256 where
   blockSize _ = BYTES 64
   {-# INLINE blockSize #-}
-  type Cxt BLAKE256 = (BLAKE256, Salt)
+  type Key BLAKE256 = (BLAKE256, Salt)
 
 instance SafePrimitive BLAKE256
 

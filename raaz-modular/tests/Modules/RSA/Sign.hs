@@ -155,7 +155,7 @@ testPKCSSign :: PrivateKey Word1024 -> (ByteString, RSA Word1024 SHA1 PKCS SignM
 testPKCSSign privk (m,sig) = sig @=? sign privk m
 
 testPKCSVerify :: PublicKey Word1024 -> (ByteString, RSA Word1024 SHA1 PKCS SignMode) -> Assertion
-testPKCSVerify pubk (m,sig) = assert $ verify pubk m sig
+testPKCSVerify pubk (m,sig) = assert $ verify pubk sig m
 
 signPKCS :: Test
 signPKCS = testGroup "Signing PKCS" $ map with testPKCSVectors

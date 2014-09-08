@@ -113,8 +113,8 @@ prop_inverse :: ( Gadget g
                 )
              => g  -- ^ Gadget
              -> g' -- ^ Inverse Gadget
-             -> Cxt (PrimitiveOf g)
-             -> Cxt (PrimitiveOf g')
+             -> Key (PrimitiveOf g)
+             -> Key (PrimitiveOf g')
              -> TestData (PrimitiveOf g)
              -> Property
 prop_inverse g1' g2' cxtg cxtig (TestData bs) = monadicIO $ do
@@ -170,8 +170,8 @@ testInverse :: ( Gadget g
                )
             => g
             -> g'
-            -> Cxt (PrimitiveOf g)
-            -> Cxt (PrimitiveOf g')
+            -> Key (PrimitiveOf g)
+            -> Key (PrimitiveOf g')
             -> Test
 testInverse g g' cxt icxt = testProperty msg $ prop_inverse g g' cxt icxt
   where msg = getName g' ++ " . " ++ getName g ++ " == id"

@@ -76,7 +76,7 @@ instance Primitive h => Primitive (HMAC h) where
   -- hash.
   blockSize         = blockSize . getHash
 
-  type Cxt (HMAC h) = HMACKey h
+  type Key (HMAC h) = HMACKey h
 
 instance HasPadding h => HasPadding (HMAC h) where
   --
@@ -145,7 +145,7 @@ data HMACGadget g =
 instance ( PaddableGadget g
          , Hash (PrimitiveOf g)
          , FinalizableMemory (MemoryOf g)
-         , FV (MemoryOf g) ~ Cxt (PrimitiveOf g)
+         , FV (MemoryOf g) ~ Key (PrimitiveOf g)
          )
          => PaddableGadget (HMACGadget g) where
   unsafeApplyLast (HMACGadget g omem buf) blks bytes cptr = do
@@ -220,7 +220,7 @@ instance ( Gadget g
 instance ( Gadget g
          , Hash (PrimitiveOf g)
          , FinalizableMemory (MemoryOf g)
-         , FV (MemoryOf g) ~ Cxt (PrimitiveOf g)
+         , FV (MemoryOf g) ~ Key (PrimitiveOf g)
          ) => FinalizableMemory (HMACMem g) where
 
   type FV (HMACMem g) = HMAC (PrimitiveOf g)
@@ -234,7 +234,7 @@ instance ( Gadget g
 instance ( Hash (PrimitiveOf g)
          , InitializableMemory (MemoryOf g)
          , FinalizableMemory (MemoryOf g)
-         , FV (MemoryOf g) ~ Cxt (PrimitiveOf g)
+         , FV (MemoryOf g) ~ Key (PrimitiveOf g)
          , PaddableGadget g
          ) => Gadget (HMACGadget g) where
 
@@ -270,14 +270,7 @@ instance ( Hash h
 
 --------------------------------- HMAC Auth instance ------------------------
 
--- Both Auth and Verify Mode keys are same for HMAC.
-type instance Key (HMAC h) = HMACKey h
-
-instance Hash h => Auth (HMAC h) where
-  -- | The Auth context can be built out of the starting string. The
-  -- inner and outer pads are strings of one block size. We store the
-  -- context obtaining from hashing these strings.
-  authCxt _ = id
+instance Hash h => Auth (HMAC h)
 
 -- | Compute the HMAC of pure byte source.
 hmac :: (Hash h, PureByteSource src)
@@ -296,7 +289,7 @@ hmac' :: ( Hash h
          , PaddableGadget g
          , PrimitiveOf g ~ h
          , FinalizableMemory (MemoryOf g)
-         , Cxt h ~ FV (MemoryOf g)
+         , Key h ~ FV (MemoryOf g)
          )
       => HMACGadget g  -- ^ HMAC Gadget type
       -> HMACKey h

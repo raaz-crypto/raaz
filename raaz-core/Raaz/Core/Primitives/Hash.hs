@@ -48,18 +48,18 @@ class ( SafePrimitive h
       , PaddableGadget (Reference h)
       , FinalizableMemory (MemoryOf (Recommended h))
       , FinalizableMemory (MemoryOf (Reference h))
-      , FV (MemoryOf (Recommended h)) ~ Cxt h
-      , FV (MemoryOf (Reference h)) ~ Cxt h
+      , FV (MemoryOf (Recommended h)) ~ Key h
+      , FV (MemoryOf (Reference h)) ~ Key h
       , HasPadding h
       , CryptoPrimitive h
       , Eq h
       , EndianStore h
       ) => Hash h where
   -- | Get the intial IV for the hash.
-  defaultCxt :: h -> Cxt h
+  defaultCxt :: h -> Key h
 
   -- | Calculate the digest from the Context.
-  hashDigest :: Cxt h -> h
+  hashDigest :: Key h -> h
 
 
 -- | Often we want to hash some data which is itself the hash of some
@@ -83,7 +83,7 @@ sourceHash' :: ( ByteSource src
                , PaddableGadget g
                , h ~ PrimitiveOf g
                , FinalizableMemory (MemoryOf g)
-               , FV (MemoryOf g) ~ Cxt h
+               , FV (MemoryOf g) ~ Key h
                )
             => g    -- ^ Gadget
             -> src  -- ^ Message
@@ -117,7 +117,7 @@ hash' :: ( PureByteSource src
          , Hash h
          , PaddableGadget g
          , FinalizableMemory (MemoryOf g)
-         , FV (MemoryOf g) ~ Cxt h
+         , FV (MemoryOf g) ~ Key h
          , h ~ PrimitiveOf g
          )
       => g    -- ^ Gadget
@@ -140,7 +140,7 @@ hash = unsafePerformIO . sourceHash
 hashFile' :: ( Hash h
              , PaddableGadget g
              , FinalizableMemory (MemoryOf g)
-             , FV (MemoryOf g) ~ Cxt h
+             , FV (MemoryOf g) ~ Key h
              , h ~ PrimitiveOf g
              )
           => g           -- ^ Implementation
@@ -156,153 +156,3 @@ hashFile :: Hash h
          -> IO h
 hashFile fp = withBinaryFile fp ReadMode sourceHash
 {-# INLINEABLE hashFile #-}
-
-{-
--- | The HMAC associated to a hash value. The `Eq` instance for HMAC
--- is essentially the `Eq` instance for the underlying hash and hence
--- is safe against timing attack (provided the underlying hashs --
--- comparison is safe under timing attack).
-newtype HMAC h = HMAC h deriving (Eq, Storable, EndianStore)
-
--- | A function that is often used to keep type checker happy.
-getHash :: HMAC h -> h
-getHash _ = undefined
-
-instance Primitive h => Primitive (HMAC h) where
-  blockSize = blockSize . getHash
-  -- | Stores inner and outer pad
-  newtype Cxt (HMAC h) = HMACSecret B.ByteString
-
-newtype HMACBuffer p = HMACBuffer ForeignCryptoPtr deriving Eq
-
-data Gadget g => HMACGadget g =
-  HMACGadget g (HMACBuffer (PrimitiveOf g))
-
-
-
-instance (Primitive p, EndianStore p) => Memory (HMACBuffer p) where
-  newMemory = allocMem undefined
-    where
-      allocMem :: (Primitive p, EndianStore p) => p -> IO (HMACBuffer p)
-      allocMem p = let BYTES len = cryptoCoerce $ size p
-                   in fmap HMACBuffer $ mallocForeignPtrBytes len
-      size :: (Primitive p, EndianStore p) => p -> BLOCKS p
-      size p = blocksOf 1 p + cryptoCoerce (BYTES $ sizeOf p)
-
-  freeMemory (HMACBuffer fptr) = finalizeForeignPtr fptr
-  withSecureMemory f bk = allocSec undefined bk >>= f
-   where
-     -- Assuming Blocks are always word aligned
-     size :: (Primitive p, EndianStore p) => p -> BLOCKS p
-     size p = blocksOf 1 p + cryptoCoerce (BYTES $ sizeOf p)
-     allocSec :: (Primitive p, EndianStore p)
-              => p
-              -> BookKeeper
-              -> IO (HMACBuffer p)
-     allocSec p = fmap HMACBuffer . allocSecureMem'
-                    (cryptoCoerce (size p) :: BYTES Int)
-
-instance HashGadget g => Gadget (HMACGadget g) where
-
-  type PrimitiveOf (HMACGadget g) = HMAC (PrimitiveOf g)
-
-  type MemoryOf (HMACGadget g) = (MemoryOf g, HMACBuffer (PrimitiveOf g))
-
-  newGadget (gmem,hbuff) = do
-    g <- newGadget gmem
-    return $ HMACGadget g hbuff
-
-  initialize (HMACGadget g hbuff) (HMACSecret bs)  = do
-    initialize g def
-    initHMAC (HMACGadget g hbuff) bs
-
-  finalize (HMACGadget g (HMACBuffer fcptr)) = do
-    fv <- finalize g
-    withForeignPtr fcptr (flip store fv . flip movePtr (oneBlock g))
-    withForeignPtr fcptr (unsafePad (getPrim g) mlen)
-    initialize g def
-    withForeignPtr fcptr (apply g (2 * oneBlock g))
-    HMAC <$> finalize g
-    where
-      mlen = cryptoCoerce $ BYTES $ sizeOf (getPrim g) + len
-      getPrim :: Gadget g => g -> PrimitiveOf g
-      getPrim _ = undefined
-      oneBlock :: Gadget g => g -> BLOCKS (PrimitiveOf g)
-      oneBlock g' = blocksOf 1 (getPrim g')
-      BYTES len   = cryptoCoerce $ oneBlock g
-
-  recommendedBlocks = toEnum . fromEnum . recommendedBlocks . getHash'
-    where getHash' :: Gadget g => HMACGadget g -> g
-          getHash' (HMACGadget g _) = g
-
-  apply (HMACGadget g _) blks = apply g blks'
-    where blks' = toEnum $ fromEnum blks
-
-instance (HashGadget g) => SafeGadget (HMACGadget g)
-
--- instance (CryptoPrimitive p, PrimitiveOf (HMACGadget (Recommended p)) ~ HMAC p)
---          => CryptoPrimitive (HMAC p) where
---   type Recommended (HMAC p) = HMACGadget (Recommended p)
---   type Reference   (HMAC p) = HMACGadget (Reference p)
-
--- The instance is a straight forward definition from the
--- corresponding hash. Recall that hmac is computed as follows
---
--- > hmac k m = hashByteString $ k2 ++ innerhash
--- >          where inner = toByteString $ hashByteString (k1 ++ m)
--- >
---
--- where k1 and k2 are the inner and outer pad respectively each of 1
--- block length. The HasPadding instance of HMAC has to account for an
--- additional block of data arising out of the concatination of k1 in
--- front of the message.
-
-instance HasPadding h => HasPadding (HMAC h) where
-
-  padLength hmac bits = padLength h bits'
-    where h     = getHash hmac
-          bits' = bits + cryptoCoerce (blocksOf 1 hmac)
-
-  padding hmac bits = padding h bits'
-    where h     = getHash hmac
-          bits' = bits + cryptoCoerce (blocksOf 1 hmac)
-
-  unsafePad hmac bits = unsafePad h bits'
-    where h     = getHash hmac
-          bits' = bits + cryptoCoerce (blocksOf 1 hmac)
-
-  maxAdditionalBlocks  = toEnum . fromEnum . maxAdditionalBlocks . getHash
-
-initHMAC :: HashGadget g
-         => HMACGadget g
-         -> B.ByteString
-         -> IO ()
-initHMAC hmacg@(HMACGadget g _) bs = go hmacg
-  where
-    go :: HashGadget g => HMACGadget g -> IO ()
-    go (HMACGadget g' _)
-      | length bs <= blkSize = initHMAC' hmacg bs
-      | otherwise            = initHMAC' hmacg $ toByteString
-                                               $ hash' g' bs
-    getPrim :: Gadget g => g -> PrimitiveOf g
-    getPrim _ = undefined
-    blkSize = cryptoCoerce $ blocksOf 1 (getPrim g)
-
-initHMAC' :: HashGadget g
-          => HMACGadget g
-          -> B.ByteString
-          -> IO ()
-initHMAC' (HMACGadget g (HMACBuffer fptr)) bs = do
-  _ <- withForeignPtr fptr $ fillBytes (BYTES len) ipad
-  withForeignPtr fptr $ apply g (oneBlock g)
-  _ <- withForeignPtr fptr $ fillBytes (BYTES len) opad
-  return ()
-  where
-    oneBlock :: Gadget g => g -> BLOCKS (PrimitiveOf g)
-    oneBlock _ = blocksOf 1 undefined
-    bsPad = B.append bs $ B.replicate (len - bslen) 0
-    opad  = B.map (xor 0x5c) bsPad
-    ipad  = B.map (xor 0x36) bsPad
-    BYTES len   = cryptoCoerce $ oneBlock g
-    BYTES bslen = length bs
--}

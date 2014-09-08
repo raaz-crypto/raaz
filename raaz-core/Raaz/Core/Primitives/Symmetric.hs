@@ -9,28 +9,21 @@ This module abstracts basic cryptographic primitive operations.
 {-# LANGUAGE TypeFamilies     #-}
 {-# LANGUAGE CPP              #-}
 module Raaz.Core.Primitives.Symmetric
-       ( Auth(..), authTag', verifyTag', authTag, verifyTag
-       , Cipher(..)
-       , AuthEncrypt(..)
+       ( Auth, authTag', verifyTag', authTag, verifyTag
+       , Cipher
+       , AuthEncrypt
        ) where
 
-import Control.Applicative
 import System.IO.Unsafe    (unsafePerformIO)
 
 import Raaz.Core.Memory
 import Raaz.Core.Primitives
 import Raaz.Core.ByteSource
-import Raaz.Core.Serialize
 
 -- | This class captures symmetric primitives which support generation
 -- of authentication tags. The verification is done by generating the
 -- authentication tag using the underlying gadget and then comparing
-class Auth prim where
-  -- | Get context from the Key.
-  authCxt :: prim
-          -> Key prim   -- ^ Auth Key
-          -> Cxt prim      -- ^ Initial Context
-
+class Auth prim
 
 -- | Generate authentication tag.
 authTag' :: ( PureByteSource src
@@ -44,15 +37,13 @@ authTag' :: ( PureByteSource src
          -> Key prim      -- ^ Key
          -> src           -- ^ Message
          -> prim
-authTag' g key src = unsafePerformIO $ withGadget (authCxt p key) $ go g
+authTag' g key src = unsafePerformIO $ withGadget key $ go g
   where go :: ( Auth (PrimitiveOf g1)
               , PaddableGadget g1
               , FinalizableMemory (MemoryOf g1)
               )
            => g1 -> g1 -> IO (FV (MemoryOf g1))
         go _ gad = transformGadget gad src >> finalize gad
-
-        p = primitiveOf g
 
 -- | Verify generated tag
 verifyTag' :: ( PureByteSource src
@@ -104,15 +95,11 @@ verifyTag key src prim = verifyTag' (recommended prim) key src prim
 
 -- | This class captures symmetric primitives which support
 -- encryption (also called ciphers).
-class Cipher prim where
-  -- | Get context from encryption key.
-  cipherCxt :: prim -> Key prim -> Cxt prim
+class Cipher prim
 
 -- | This class captures symmetric primitives which support
 -- authenticated encryption.
-class AuthEncrypt prim where
-  -- | Get context from key.
-  authEncryptCxt :: prim -> Key prim -> Cxt prim
+class AuthEncrypt prim
 
 -- | Helpers for the type checker.
 recommended :: prim -> Recommended prim

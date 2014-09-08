@@ -16,9 +16,6 @@ import Raaz.Cipher.AES.Internal
 instance Primitive (AES CBC k) where
   blockSize _          = BYTES 16
   {-# INLINE blockSize #-}
-  type Cxt (AES CBC k) = (k, STATE)
+  type Key (AES CBC k) = (k, STATE)
 
-instance Cipher (AES CBC k) where
-  cipherCxt _ = id
-
-type instance Key (AES CBC k) = (k, STATE)
+instance Cipher (AES CBC k)

@@ -62,12 +62,9 @@ unitTests ge triples = testGroup "Unit tests" $ hUnitTestToTests $ test $ map ch
   where label a = shorten (show $ hex a)
         checkCipher (key,a,b) =
           label a ~: test
-             [ "Encryption" ~: applyGadget ge ecxt a ~?= b
-             , "Decryption" ~: applyGadget (inverse ge) dcxt b ~?= a
+             [ "Encryption" ~: applyGadget ge key a ~?= b
+             , "Decryption" ~: applyGadget (inverse ge) key b ~?= a
              ]
-          where
-            ecxt = cipherCxt (primitiveOf ge) key
-            dcxt = cipherCxt (primitiveOf $ inverse ge) key
 
 -- | Checks if decrypt . encrypt == id
 encryptDecrypt :: ( HasName g
@@ -79,9 +76,7 @@ encryptDecrypt :: ( HasName g
                => g
                -> Key (PrimitiveOf g)
                -> Test
-encryptDecrypt g key = testInverse g (inverse g)
-                                     (cipherCxt (primitiveOf g) key)
-                                     (cipherCxt (primitiveOf g) key)
+encryptDecrypt g key = testInverse g (inverse g) key key
 
 
 -- TODO: Please document this.
@@ -102,7 +97,7 @@ unsafeTransformUnsafeGadget' g src
 -- encrypts in multiple of BlockSize, so user must ensure that.
 createAndApply' :: Gadget g
                 => g
-                -> Cxt (PrimitiveOf g)      -- ^ Key and IV
+                -> Key (PrimitiveOf g)      -- ^ Key and IV
                 -> ByteString               -- ^ Plain data
                 -> IO ByteString            -- ^ Encrypted data
 createAndApply' g key src = do
@@ -118,7 +113,7 @@ createAndApply' g key src = do
 -- given bytestring.
 applyGadget :: Gadget g
             => g
-            -> Cxt (PrimitiveOf g)
+            -> Key (PrimitiveOf g)
             -> ByteString -- ^ Data
             -> ByteString -- ^ Output
 applyGadget g k = unsafePerformIO . createAndApply' g k

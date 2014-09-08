@@ -16,9 +16,6 @@ import Raaz.Cipher.AES.Internal
 instance Primitive (AES CTR k) where
   blockSize _          = BYTES 1
   {-# INLINE blockSize #-}
-  type Cxt (AES CTR k) = (k, STATE)
+  type Key (AES CTR k) = (k, STATE)
 
-instance Cipher (AES CTR k) where
-  cipherCxt _ = id
-
-type instance Key (AES CTR k) = (k,STATE)
+instance Cipher (AES CTR k)

@@ -21,11 +21,9 @@ cportableVsReference :: ( HasName g1
                         , Cipher p
                         , p ~ PrimitiveOf g1
                         , p ~ PrimitiveOf (Inverse g1)
-                        , Eq (Cxt p)
+                        , Eq (Key p)
                         )
                      => g1 -> g2 -> Key p -> Test
 cportableVsReference g1 g2 iv = testGroup ""
-  [ testGadget g1 g2 cxt
-  , testGadget (inverse g1) (inverse g2) cxt ]
-  where
-    cxt = cipherCxt (primitiveOf g1) iv
+  [ testGadget g1 g2 iv
+  , testGadget (inverse g1) (inverse g2) iv ]

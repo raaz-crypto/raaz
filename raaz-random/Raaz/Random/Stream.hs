@@ -86,7 +86,7 @@ instance Primitive p => Primitive (RandomPrim p) where
       getPrim :: RandomPrim p -> p
       getPrim _ = undefined
 
-  type Cxt (RandomPrim p) = Cxt p
+  type Key (RandomPrim p) = Key p
 
 instance StreamGadget g => Gadget (RandomSource g) where
   type PrimitiveOf (RandomSource g) = RandomPrim (PrimitiveOf g)

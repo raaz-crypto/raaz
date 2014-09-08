@@ -31,15 +31,12 @@ import Raaz.RSA.Signature.Primitives
 -------------------------------- PKCS Auth -------------------------------------
 
 
--- | Private Key is used for signature generation.
-type instance Key (RSA k h PKCS SignMode) = PrivateKey k
-
 -- | Primitive instance for Signature generation primitive.
 instance Hash h => Primitive (RSA k h PKCS SignMode) where
 
   blockSize _ = blockSize (undefined :: h)
 
-  type Cxt (RSA k h PKCS SignMode) = (PrivateKey k, Cxt h)
+  type Key (RSA k h PKCS SignMode) = PrivateKey k
 
 -- | Signature generation is a safe primitive if the underlying hash is safe.
 instance Hash h => SafePrimitive (RSA k h PKCS SignMode)
@@ -57,18 +54,25 @@ newtype RSASignMem k h m = RSASignMem (CryptoCell (PrivateKey k), m)
 
 deriving instance (Storable k, Memory m) => Memory (RSASignMem k h m)
 
-instance (Storable k, InitializableMemory m) => InitializableMemory (RSASignMem k h m) where
-  type IV (RSASignMem k h m) = (PrivateKey k, IV m)
+instance ( Storable k
+         , InitializableMemory m
+         , Hash h
+         , IV m ~ Key h
+         ) => InitializableMemory (RSASignMem k h m) where
+  type IV (RSASignMem k h m) = PrivateKey k
 
-  initializeMemory (RSASignMem (kcell, hmem)) (k, hiv) = do
+  initializeMemory rmem@(RSASignMem (kcell, hmem)) k = do
     cellPoke kcell k
-    initializeMemory hmem hiv
+    initializeMemory hmem (defaultCxt (rHash rmem))
+      where
+        rHash :: RSASignMem k h m -> h
+        rHash _ = undefined
 
 
 -- | Return the signature as a Word. This is where the actual signing
 -- is done of the calculated hash.
 instance ( FinalizableMemory m
-         , FV m ~ Cxt h
+         , FV m ~ Key h
          , Hash h
          , Storable k
          , Modular k
@@ -84,7 +88,7 @@ instance ( FinalizableMemory m
     hcxt <- getDigest (getH m) <$> finalizeMemory hmem
     return $ RSA $ rsaPKCSSign hcxt k
     where
-      getDigest :: h -> Cxt h -> h
+      getDigest :: h -> Key h -> h
       getDigest _ = hashDigest
       getH :: RSASignMem k h m -> h
       getH = undefined
@@ -133,16 +137,12 @@ instance ( Hash (PrimitiveOf g)
 
 --------------------------------- PKCS Verify ----------------------------------
 
-
--- | Public Key is use for signature verification
-type instance Key (RSA k h PKCS VerifyMode) = PublicKey k
-
 -- | Primitive instance for Signature verification primitive.
 instance Hash h => Primitive (RSA k h PKCS VerifyMode) where
 
   blockSize _ = blockSize (undefined :: h)
 
-  type Cxt (RSA k h PKCS VerifyMode) = (PublicKey k, k, Cxt h)
+  type Key (RSA k h PKCS VerifyMode) = (PublicKey k, RSA k h PKCS SignMode)
 
 -- | Signature verification is a safe primitive if the underlying hash is safe.
 instance Hash h => SafePrimitive (RSA k h PKCS VerifyMode)
@@ -160,19 +160,26 @@ newtype RSAVerifyMem k h m = RSAVerifyMem (CryptoCell (PublicKey k), CryptoCell 
 
 deriving instance (Storable k, Memory m) => Memory (RSAVerifyMem k h m)
 
-instance (Storable k, InitializableMemory m) => InitializableMemory (RSAVerifyMem k h m) where
-  type IV (RSAVerifyMem k h m) = (PublicKey k, k, IV m)
+instance ( Storable k
+         , InitializableMemory m
+         , Hash h
+         , IV m ~ Key h
+         ) => InitializableMemory (RSAVerifyMem k h m) where
+  type IV (RSAVerifyMem k h m) = (PublicKey k, RSA k h PKCS SignMode)
 
-  initializeMemory (RSAVerifyMem (kcell, sigcell, hmem)) (k, sig, hiv) = do
+  initializeMemory rmem@(RSAVerifyMem (kcell, sigcell, hmem)) (k, RSA sig) = do
     cellPoke kcell k
     cellPoke sigcell sig
-    initializeMemory hmem hiv
+    initializeMemory hmem (defaultCxt (rHash rmem))
+      where
+        rHash :: RSAVerifyMem k h m -> h
+        rHash _ = undefined
 
 -- | Verify the signature and return `True` if success otherwise
 -- `False`. This is where the actual signature verification is done of
 -- the calculated hash.
 instance ( FinalizableMemory m
-         , FV m ~ Cxt h
+         , FV m ~ Key h
          , Hash h
          , Storable k
          , Modular k
@@ -189,7 +196,7 @@ instance ( FinalizableMemory m
     hcxt <- getDigest (getH m) <$> finalizeMemory hmem
     return $ rsaPKCSVerify hcxt k sig
     where
-      getDigest :: h -> Cxt h -> h
+      getDigest :: h -> Key h -> h
       getDigest _ = hashDigest
       getH :: RSAVerifyMem k h m -> h
       getH = undefined
@@ -241,9 +248,7 @@ instance ( Modular k
          , Num k
          , Integral k
          , DEREncoding h
-         ) => Sign (RSA k h PKCS) where
-  signCxt prim priv = (priv, defaultCxt $ getHash prim)
-  verifyCxt pub prim@(RSA sig) = (pub, sig, defaultCxt $ getHash prim)
+         ) => Sign (RSA k h PKCS)
 
 -- | Satisfy some types.
 getHash :: RSA k h PKCS SignMode -> h

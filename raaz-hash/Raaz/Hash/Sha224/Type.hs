@@ -104,7 +104,7 @@ instance EndianStore SHA224 where
 instance Primitive SHA224 where
   blockSize _ = BYTES 64
   {-# INLINE blockSize #-}
-  type Cxt SHA224 = SHA256
+  type Key SHA224 = SHA256
 
 instance SafePrimitive SHA224
 
