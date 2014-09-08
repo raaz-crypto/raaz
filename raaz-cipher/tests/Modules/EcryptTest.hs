@@ -37,7 +37,7 @@ testVector :: ( Gadget g
               ) => g -> EcryptTest -> Test
 testVector g (EcryptTest n k iv s digest) = n ~: (testXor : map testExpected s)
     where
-        encodedString = applyGadget g (cipherCxt (primitiveOf g) kAndIV)
+        encodedString = applyGadget g kAndIV
                                       (BS.replicate bslen 0)
         kAndIV = (fromByteString k, fromByteString iv)
         bslen = (to $ last s) + 1

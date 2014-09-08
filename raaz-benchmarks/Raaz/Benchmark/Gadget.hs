@@ -16,7 +16,7 @@ import Raaz.Core.Util.Ptr
 -- | Measures the performance of a gadget on the given buffer.
 benchGadget  :: (Gadget g, HasName g)
              => g                      -- ^ Gadget
-             -> Cxt (PrimitiveOf g)    -- ^ Gadget Cxt
+             -> Key (PrimitiveOf g)    -- ^ Gadget Key
              -> CryptoPtr              -- ^ Buffer on which to benchmark
              -> BLOCKS (PrimitiveOf g) -- ^ Size of Buffer
              -> Benchmark
@@ -29,7 +29,7 @@ benchGadget g iv cptr nblks = bench (getName g) process
 -- | Allocates the buffer and performs the benchmark
 benchGadgetWith :: (Gadget g, HasName g)
                 => g                      -- ^ Gadget
-                -> Cxt (PrimitiveOf g)    -- ^ Gadget Cxt
+                -> Key (PrimitiveOf g)    -- ^ Gadget Key
                 -> BLOCKS (PrimitiveOf g) -- ^ Size of random buffer which will be allocated
                 -> Benchmark
 benchGadgetWith g iv nblks = bench (getName g) process

@@ -57,7 +57,7 @@ foreign import ccall unsafe
 instance Primitive (Salsa20 r k) where
   blockSize _            = BYTES 1
   {-# INLINE blockSize #-}
-  type Cxt (Salsa20 r k) = (k, Nonce)
+  type Key (Salsa20 r k) = (k, Nonce)
 
 ----------------------------- Salsa 20/8------------ ---------------------------
 
@@ -283,7 +283,4 @@ instance CryptoInverse (HGadget (Salsa20 R8 KEY128)) where
 instance CryptoInverse (HGadget (Salsa20 R8 KEY256)) where
   type Inverse (HGadget (Salsa20 R8 KEY256)) = HGadget (Salsa20 R8 KEY256)
 
-instance Cipher (Salsa20 r k) where
-  cipherCxt _ = id
-
-type instance Key (Salsa20 r k) = (k,Nonce)
+instance Cipher (Salsa20 r k)

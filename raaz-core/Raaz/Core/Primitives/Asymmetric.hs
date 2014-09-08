@@ -81,10 +81,11 @@ verify' :: ( PureByteSource src
            , Key prim ~ (k, p SignMode)
            )
            => g             -- ^ Type of Gadget
-           -> Key prim      -- ^ Key
+           -> k             -- ^ Key
+           -> p SignMode
            -> src           -- ^ Message
            -> Bool
-verify' g key src = unsafePerformIO $ withGadget key $ go g
+verify' g key sig src = unsafePerformIO $ withGadget (key,sig) $ go g
   where go :: ( Sign prim
               , PaddableGadget g1
               , FinalizableMemory (MemoryOf g1)
@@ -107,10 +108,11 @@ verify :: ( PureByteSource src
           , prim ~ PrimitiveOf g
           , Key prim ~ (k, p SignMode)
           )
-          => Key prim
+          => k
+          -> p SignMode
           -> src           -- ^ Message
           -> Bool
-verify (k,sig) src = verify' (recommended sig) (k,sig) src
+verify k sig src = verify' (recommended sig) k sig src
   where
     recommended :: p SignMode -> Recommended (p VerifyMode)
     recommended _ = undefined

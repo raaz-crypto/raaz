@@ -36,7 +36,7 @@ createGadget :: ( StreamGadget g
              => g
              -> Key prim
              -> IO (RandomSource g)
-createGadget g = newInitializedGadget . cipherCxt (primitiveOf g)
+createGadget g = newInitializedGadget
 
 prop_length :: ( StreamGadget g
                , prim ~ PrimitiveOf g
