@@ -44,8 +44,6 @@ module Raaz.Core.Primitives
        , AuthEncryptMode(..)
        , VerifyDecryptMode(..)
 #endif
-       , Key
-
        ) where
 
 import qualified Data.ByteString          as B
@@ -88,7 +86,7 @@ import           Raaz.System.Parameters  (l1Cache)
 -- | Abstraction that captures a crypto primitives. Every primitive
 -- that that we provide is a type which is an instance of this
 -- class. A primitive consists of the following (1) A block size and
--- (2) an intialisation value (captured by the data family `Cxt`). For
+-- (2) an intialisation value (captured by the data family `Key`). For
 -- a stream primitive (like a stream cipher) the block size is 1.
 --
 class Primitive p where
@@ -96,8 +94,8 @@ class Primitive p where
   -- | The block size.
   blockSize :: p -> BYTES Int
 
-  -- \ Context
-  type Cxt p :: *
+  -- \ Key used to initializa the gadget
+  type Key p :: *
 
 -- | A safe primitive is a primitive whose computation does not need
 -- modification of the input. Examples of safe primitives are
@@ -106,19 +104,6 @@ class Primitive p where
 -- function of a gadget for a safe primitive should not modify the
 -- input buffer.
 class Primitive p => SafePrimitive p where
-
--- | Privitives which can be digested to a final value (captured by
--- associated type family `Digest`).
--- class Primitive p => Digestible p where
-
---   -- | Final Value
---   type Digest p :: *
-
---   -- | Converts the `Cxt` to `Digest`. Note that this operation might
---   -- be irreversible. For example in Blake hash, the information about
---   -- the number of blocks hashed so far is lost after you digest the
---   -- context.
---   toDigest :: Cxt p -> Digest p
 
 -----------------   A cryptographic gadget. ----------------------------
 
@@ -139,7 +124,7 @@ class Primitive p => SafePrimitive p where
 class ( Primitive (PrimitiveOf g)
       , Memory (MemoryOf g)
       , InitializableMemory (MemoryOf g)
-      , Cxt (PrimitiveOf g) ~ IV (MemoryOf g)
+      , Key (PrimitiveOf g) ~ IV (MemoryOf g)
       ) => Gadget g where
 
   -- | The primitive for which this is a gadget
@@ -406,9 +391,6 @@ data VerifyDecryptMode = VerifyDecryptMode deriving (Show, Eq)
    AuthEncryptMode, VerifyDecryptMode
    "Will be changed to Data Constructor of type Mode from ghc7.6 onwards" #-}
 #endif
-
--- | Key required for a crypto primitive in particular mode.
-type family Key prim
 
 -------------------- Some helper functions -----------------------------
 
