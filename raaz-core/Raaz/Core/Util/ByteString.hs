@@ -110,7 +110,7 @@ isLowercaseHexChar x = x >= c2w 'a' && x <= c2w 'f'
 {-# INLINE isLowercaseHexChar #-}
 
 isUppercaseHexChar :: Word8 -> Bool
-isUppercaseHexChar x = x >= c2w 'A' && x <= c2w 'A'
+isUppercaseHexChar x = x >= c2w 'A' && x <= c2w 'F'
 {-# INLINE isUppercaseHexChar #-}
 
 isHexWord :: Word8 -> Bool
