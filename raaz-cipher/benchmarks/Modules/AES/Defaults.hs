@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
+{-# LANGUAGE OverloadedStrings #-}
 module Modules.AES.Defaults ( benchmarksDefault
                             , benchmarksTinyDefault
                             , testKey128, testKey192, testKey256
@@ -22,43 +23,21 @@ import           Raaz.Cipher.AES.ECB
 import           Modules.Defaults
 
 testKey128 :: (KEY128, STATE)
-testKey128 =  ( fromByteString $ pack [0x2b,0x7e,0x15,0x16
-                                      ,0x28,0xae,0xd2,0xa6
-                                      ,0xab,0xf7,0x15,0x88
-                                      ,0x09,0xcf,0x4f,0x3c]
-              , fromByteString $ pack [0x00,0x01,0x02,0x03
-                                      ,0x04,0x05,0x06,0x07
-                                      ,0x08,0x09,0x0A,0x0B
-                                      ,0x0C,0x0D,0x0E,0x0F]
+testKey128 =  ( fromByteString $ unsafeFromHex "2b7e151628aed2a6abf7158809cf4f3c"
+              , fromByteString $ unsafeFromHex "000102030405060708090a0b0c0d0e0f"
               )
 
 testKey192 :: (KEY192, STATE)
-testKey192 =  ( fromByteString $ pack [0x8e,0x73,0xb0,0xf7
-                                      ,0xda,0x0e,0x64,0x52
-                                      ,0xc8,0x10,0xf3,0x2b
-                                      ,0x80,0x90,0x79,0xe5
-                                      ,0x62,0xf8,0xea,0xd2
-                                      ,0x52,0x2c,0x6b,0x7b]
-              , fromByteString $ pack [0x00,0x01,0x02,0x03
-                                      ,0x04,0x05,0x06,0x07
-                                      ,0x08,0x09,0x0A,0x0B
-                                      ,0x0C,0x0D,0x0E,0x0F]
+testKey192 =  ( fromByteString $ unsafeFromHex "8e73b0f7da0e6452c810f32b809079e562f8ead2522c6b7b"
+              , fromByteString $ unsafeFromHex "000102030405060708090a0b0c0d0e0f"
+
               )
 
 
 testKey256 :: (KEY256, STATE)
-testKey256 =  ( fromByteString $ pack [0x60,0x3d,0xeb,0x10
-                                      ,0x15,0xca,0x71,0xbe
-                                      ,0x2b,0x73,0xae,0xf0
-                                      ,0x85,0x7d,0x77,0x81
-                                      ,0x1f,0x35,0x2c,0x07
-                                      ,0x3b,0x61,0x08,0xd7
-                                      ,0x2d,0x98,0x10,0xa3
-                                      ,0x09,0x14,0xdf,0xf4]
-              , fromByteString $ pack [0x00,0x01,0x02,0x03
-                                      ,0x04,0x05,0x06,0x07
-                                      ,0x08,0x09,0x0A,0x0B
-                                      ,0x0C,0x0D,0x0E,0x0F]
+testKey256 =  ( fromByteString $ unsafeFromHex "603deb1015ca71be2b73aef0857d77811f352c073b6108d72d9810a30914dff4"
+              , fromByteString $ unsafeFromHex "000102030405060708090a0b0c0d0e0f"
+
               )
 
 benchmarksTinyDefault p s128 s192 s256 = take 2 <$> benchmarksDefault p s128 s192 s256
