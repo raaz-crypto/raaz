@@ -6,8 +6,6 @@ implementation. So you /should not/ be using this code in production.
 
 -}
 
-{-# LANGUAGE TemplateHaskell #-}
-
 module Raaz.Hash.Sha512.Ref
        ( sha512CompressSingle
        ) where
@@ -303,4 +301,3 @@ sha512constant i  |  i == 0     =   0x428a2f98d728ae22
                   |  i == 78    =   0x5fcb6fab3ad6faec
                   |  i == 79    =   0x6c44198c4a475817
                   |  otherwise = error "sha512:ref: Wrong index used for sha512constant"
-{-# INLINE sha512constant #-}

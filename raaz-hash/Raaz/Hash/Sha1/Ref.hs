@@ -7,8 +7,6 @@ in production unless you know what you are doing.
 
 -}
 
-{-# LANGUAGE TemplateHaskell #-}
-
 module Raaz.Hash.Sha1.Ref
        ( sha1CompressSingle
        ) where
