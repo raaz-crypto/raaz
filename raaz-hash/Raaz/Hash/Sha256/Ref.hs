@@ -6,8 +6,6 @@ implementation. So you /should not/ be using this code in production.
 
 -}
 
-{-# LANGUAGE TemplateHaskell #-}
-
 module Raaz.Hash.Sha256.Ref
        ( sha256CompressSingle
        ) where
@@ -255,4 +253,3 @@ sha256constant i  |  i == 0     =   0x428a2f98
                   |  i == 62    =   0xbef9a3f7
                   |  i == 63    =   0xc67178f2
                   |  otherwise = error "sha256:ref: Wrong index used for sha256constant"
-{-# INLINE sha256constant #-}
