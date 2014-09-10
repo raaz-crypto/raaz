@@ -30,7 +30,6 @@ import Raaz.Core.Memory
 import Raaz.Core.Primitives
 import Raaz.Core.Parse.Unsafe
 import Raaz.Core.Write.Unsafe
-import Raaz.Core.Serialize
 import Raaz.Core.Types
 
 import Raaz.Number.Internals
@@ -103,8 +102,6 @@ instance (Num w, Storable w, Integral w) => EndianStore (PublicKey w) where
   store cptr k = runWrite cptr  $  writeWordBE (pubN k)
                                 <> writeWordBE (pubE k)
 
-instance (Num w, Storable w, Integral w) => CryptoSerialize (PublicKey w)
-
 -- | Stores individual words in Big Endian.
 instance (Num w, Storable w, Integral w) => EndianStore (PrivateKey w) where
   load ptr     = runParser ptr $ PrivateKey <$> parseWordBE
@@ -124,8 +121,6 @@ instance (Num w, Storable w, Integral w) => EndianStore (PrivateKey w) where
                                <> writeWordBE (privdP k)
                                <> writeWordBE (privdQ k)
                                <> writeWordBE (privQInv k)
-
-instance (Num w, Storable w, Integral w) => CryptoSerialize (PrivateKey w)
 
 -- | RSA type. @k@ is key size (eg `Word1024`), @h@ is the underlying
 -- hash used, @n@ is RSAMode (eg. `PKCS`) and @mode@ is mode of

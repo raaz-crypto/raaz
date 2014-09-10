@@ -12,7 +12,7 @@ import Raaz.Core.Util.Ptr
 
 -- | Number of Blocks to run benchmarks on.
 nBlocks :: (Gadget g) => g -> BLOCKS (PrimitiveOf g)
-nBlocks g = roundCeil nSize
+nBlocks g = atLeast nSize
 
 nSize :: BYTES Int
 nSize = 1024 * 1024 * 2

@@ -12,7 +12,7 @@ cbc :: AES CBC KEY128
 cbc = undefined
 
 benchmarks :: IO [Benchmark]
-benchmarks = benchmarksDefault cbc
+benchmarks = benchmarksDefault cbc testKey128 testKey192 testKey256
 
 benchmarksTiny :: IO [Benchmark]
-benchmarksTiny = benchmarksTinyDefault cbc
+benchmarksTiny = benchmarksTinyDefault cbc testKey128 testKey192 testKey256

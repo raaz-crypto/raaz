@@ -7,7 +7,6 @@ import Test.Framework              ( Test, testGroup )
 
 import Raaz.Core.Primitives
 import Raaz.Core.Primitives.Cipher
-import Raaz.Core.Serialize
 import Raaz.Core.Test.Gadget
 
 cportableVsReference :: ( HasName g1

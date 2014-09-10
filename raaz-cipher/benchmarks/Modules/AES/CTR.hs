@@ -12,7 +12,7 @@ ctr :: AES CTR KEY128
 ctr = undefined
 
 benchmarks :: IO [Benchmark]
-benchmarks = benchmarksDefault ctr
+benchmarks = benchmarksDefault ctr testKey128 testKey192 testKey256
 
 benchmarksTiny :: IO [Benchmark]
-benchmarksTiny = benchmarksTinyDefault ctr
+benchmarksTiny = benchmarksTinyDefault ctr testKey128 testKey192 testKey256

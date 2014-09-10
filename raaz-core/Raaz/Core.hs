@@ -13,7 +13,6 @@ module Raaz.Core
        , module Raaz.Core.Primitives.Cipher
        , module Raaz.Core.Primitives.Symmetric
        , module Raaz.Core.Primitives.Asymmetric
-       , module Raaz.Core.Serialize
        , module Raaz.Core.Types
        ) where
 
@@ -25,7 +24,6 @@ import Raaz.Core.Primitives.Hash
 import Raaz.Core.Primitives.Cipher
 import Raaz.Core.Primitives.Symmetric
 import Raaz.Core.Primitives.Asymmetric
-import Raaz.Core.Serialize
 import Raaz.Core.Types
 
 {-# ANN module "HLint: ignore Use import/export shortcut" #-}

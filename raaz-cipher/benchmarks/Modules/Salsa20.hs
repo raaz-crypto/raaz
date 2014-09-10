@@ -10,34 +10,34 @@ import           Data.Typeable
 import           Raaz.Core.Primitives
 import           Raaz.Benchmark.Gadget
 import           Raaz.Core.Primitives.Cipher
-import           Raaz.Core.Serialize
+import           Raaz.Core.Util.ByteString
 
 import           Raaz.Cipher.Salsa20.Internal
 import           Raaz.Cipher.Salsa20
 
 import           Modules.Defaults
 
-testKey128 :: ByteString
-testKey128 =  pack [1..32]
+testKey128 :: (KEY128, Nonce)
+testKey128 =  (fromByteString  $ pack [1..16], fromByteString $ pack [17..32])
 
-testKey256 :: ByteString
-testKey256 =  pack [1..48]
+testKey256 :: (KEY256, Nonce)
+testKey256 =  (fromByteString  $ pack [1..32], fromByteString $ pack [33..48])
 
 benchmarksTiny = take 2 <$> benchmarks
 
 benchmarks = sequence
-             [ benchCipher s20_128  (cipherCxt $ fromByteString testKey128)
-             , benchCipher cs20_128 (cipherCxt $ fromByteString testKey128)
-             , benchCipher s12_128  (cipherCxt $ fromByteString testKey128)
-             , benchCipher cs12_128 (cipherCxt $ fromByteString testKey128)
-             , benchCipher s8_128  (cipherCxt $ fromByteString testKey128)
-             , benchCipher cs8_128 (cipherCxt $ fromByteString testKey128)
-             , benchCipher s20_256  (cipherCxt $ fromByteString testKey256)
-             , benchCipher cs20_256 (cipherCxt $ fromByteString testKey256)
-             , benchCipher s12_256  (cipherCxt $ fromByteString testKey256)
-             , benchCipher cs12_256 (cipherCxt $ fromByteString testKey256)
-             , benchCipher s8_256  (cipherCxt $ fromByteString testKey256)
-             , benchCipher cs8_256 (cipherCxt $ fromByteString testKey256)
+             [ benchCipher s20_128  testKey128
+             , benchCipher cs20_128 testKey128
+             , benchCipher s12_128  testKey128
+             , benchCipher cs12_128 testKey128
+             , benchCipher s8_128  testKey128
+             , benchCipher cs8_128 testKey128
+             , benchCipher s20_256  testKey256
+             , benchCipher cs20_256 testKey256
+             , benchCipher s12_256  testKey256
+             , benchCipher cs12_256 testKey256
+             , benchCipher s8_256  testKey256
+             , benchCipher cs8_256 testKey256
              ]
   where
     s20_128 :: HGadget (Salsa20 R20 KEY128)
