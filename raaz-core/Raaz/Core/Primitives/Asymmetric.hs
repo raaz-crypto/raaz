@@ -5,7 +5,6 @@ This module abstracts basic cryptographic primitive operations.
 -}
 {-# LANGUAGE DataKinds                 #-}
 {-# LANGUAGE FlexibleContexts          #-}
-{-# LANGUAGE KindSignatures            #-}
 {-# LANGUAGE TypeFamilies              #-}
 {-# LANGUAGE CPP                       #-}
 {-# LANGUAGE RankNTypes #-}
@@ -112,7 +111,7 @@ verify :: ( PureByteSource src
           -> p SignMode
           -> src           -- ^ Message
           -> Bool
-verify k sig src = verify' (recommended sig) k sig src
+verify k sig = verify' (recommended sig) k sig
   where
     recommended :: p SignMode -> Recommended (p VerifyMode)
     recommended _ = undefined

@@ -5,7 +5,6 @@ A cryptographic cipher abstraction.
 -}
 
 {-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE KindSignatures        #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE CPP                   #-}
 

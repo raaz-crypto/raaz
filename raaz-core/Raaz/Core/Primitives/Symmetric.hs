@@ -5,7 +5,6 @@ This module abstracts basic cryptographic primitive operations.
 -}
 {-# LANGUAGE DataKinds        #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE KindSignatures   #-}
 {-# LANGUAGE TypeFamilies     #-}
 {-# LANGUAGE CPP              #-}
 module Raaz.Core.Primitives.Symmetric

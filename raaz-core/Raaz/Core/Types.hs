@@ -265,11 +265,11 @@ instance EqWord Word64 where
 -- It assumes that Word size is atleast 32 Bits
 #if WORD_SIZE_IN_BITS < 64
   eqWord w1 w2 = (w11 `xor` w21) .|. (w12 `xor` w22)
-  where
-    w11 = fromIntegral $ w1 `shiftR` 32
-    w12 = fromIntegral $ w1
-    w21 = fromIntegral $ w2 `shiftR` 32
-    w22 = fromIntegral $ w2
+    where
+      w11 = fromIntegral $ w1 `shiftR` 32
+      w12 = fromIntegral $ w1
+      w21 = fromIntegral $ w2 `shiftR` 32
+      w22 = fromIntegral $ w2
 #else
   eqWord w1 w2 = fromIntegral $ xor w1 w2
 #endif

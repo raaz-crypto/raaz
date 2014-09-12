@@ -9,3 +9,5 @@ module Raaz.Core.Test
 import Raaz.Core.Test.Cipher
 import Raaz.Core.Test.EndianStore
 import Raaz.Core.Test.Gadget
+
+{-# ANN module "HLint: ignore Use import/export shortcut" #-}

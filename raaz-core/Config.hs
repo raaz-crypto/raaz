@@ -71,8 +71,9 @@ configure auto = do
 -- | Here is where the actual configuration happens.
 actualConfig :: Bool -> ConfigM ()
 actualConfig auto = do
-  if auto then comment "System parameters guessed by Config.hs"
-    else comment "System parameters set by manual configuration"
+  comment
+    (if auto then "System parameters guessed by Config.hs"
+             else "System parameters set by manual configuration")
 
   section "Cache parameters"     $ configureCache auto
   section "Page Size parameters" $ configurePageSize auto

@@ -44,7 +44,7 @@ instance Primitive p => Arbitrary (TestData p) where
     where
       generate :: Primitive p => p -> Int -> Gen (TestData p)
       generate p s = TestData . B.pack
-                     <$> vectorOf (s * (fromIntegral $ blockSize p)) arbitrary
+                     <$> vectorOf (s * fromIntegral (blockSize p)) arbitrary
 
 -- | Quickcheck property of testing a gadget against a reference
 -- one. It only checks the underlying buffer and not the final value

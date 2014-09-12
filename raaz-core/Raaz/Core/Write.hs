@@ -3,7 +3,6 @@
 -- safe as necessary range checks are done on the buffer before
 -- writing stuff to it.
 
-{-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}

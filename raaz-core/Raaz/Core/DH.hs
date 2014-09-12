@@ -1,6 +1,5 @@
 -- | This module provides an abstract interface for Diffie Hellman Key Exchange.
 
-{-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE TypeFamilies               #-}
 
 module Raaz.Core.DH

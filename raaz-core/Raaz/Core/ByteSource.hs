@@ -80,8 +80,9 @@ instance ByteSource Handle where
   {-# INLINE fillBytes #-}
   fillBytes sz hand cptr = do
             count <- hFillBuf hand cptr sz
-            if count < sz then return $ Exhausted $ sz - count
-               else return $ Remaining hand
+            return
+              (if count < sz then Exhausted $ sz - count
+                             else Remaining hand)
 
 instance ByteSource B.ByteString where
   {-# INLINE fillBytes #-}

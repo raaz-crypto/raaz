@@ -5,7 +5,6 @@ A cryptographic hash function abstraction.
 -}
 
 {-# LANGUAGE TypeFamilies               #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE EmptyDataDecls             #-}
 
@@ -88,7 +87,7 @@ sourceHash' :: ( ByteSource src
             => g    -- ^ Gadget
             -> src  -- ^ Message
             -> IO h
-sourceHash' g src = hashDigest <$> (withGadget (defaultCxt $ primitiveOf g) $ go g)
+sourceHash' g src = hashDigest <$> withGadget (defaultCxt $ primitiveOf g) (go g)
   where go :: ( Gadget g1
               , Hash (PrimitiveOf g1)
               , PaddableGadget g1
