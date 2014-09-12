@@ -6,7 +6,7 @@ implementation. So you /should not/ be using this code in production.
 
 -}
 
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE BangPatterns, OverloadedStrings #-}
 
 module Raaz.Hash.Blake256.Ref
        ( blake256CompressSingle
@@ -14,8 +14,11 @@ module Raaz.Hash.Blake256.Ref
 
 import Control.Applicative
 import Data.Bits
+import Data.ByteString         (ByteString)
+import Data.ByteString.Char8   ()
+import Data.ByteString.Unsafe  (unsafeIndex)
 import Data.Word
-import Numeric()
+import Numeric                 ()
 
 import Raaz.Core.Types
 import Raaz.Core.Util.Ptr
@@ -23,182 +26,23 @@ import Raaz.Core.Util.Ptr
 import Raaz.Hash.Blake256.Type
 
 -- | This gives the 10 permutation of {0,...,15} used by Blake functions.
+table :: ByteString
+table = "\x0\x1\x2\x3\x4\x5\x6\x7\x8\x9\xa\xb\xc\xd\xe\xf\
+        \\xe\xa\x4\x8\x9\xf\xd\x6\x1\xc\x0\x2\xb\x7\x5\x3\
+        \\xb\x8\xc\x0\x5\x2\xf\xd\xa\xe\x3\x6\x7\x1\x9\x4\
+        \\x7\x9\x3\x1\xd\xc\xb\xe\x2\x6\x5\xa\x4\x0\xf\x8\
+        \\x9\x0\x5\x7\x2\x4\xa\xf\xe\x1\xb\xc\x6\x8\x3\xd\
+        \\x2\xc\x6\xa\x0\xb\x8\x3\x4\xd\x7\x5\xf\xe\x1\x9\
+        \\xc\x5\x1\xf\xe\xd\x4\xa\x0\x7\x6\x3\x9\x2\x8\xb\
+        \\xd\xb\x7\xe\xc\x1\x3\x9\x5\x0\xf\x4\x8\x6\x2\xa\
+        \\x6\xf\xe\x9\xb\x3\x0\x8\xc\x2\xd\x7\x1\x4\xa\x5\
+        \\xa\x2\x8\x4\x7\x6\x1\x5\xf\xb\x9\xe\x3\xc\xd\x0"
+
 sigma :: Int -> Int -> Int
-sigma 0 0  = 0
-sigma 0 1  = 1
-sigma 0 2  = 2
-sigma 0 3  = 3
-sigma 0 4  = 4
-sigma 0 5  = 5
-sigma 0 6  = 6
-sigma 0 7  = 7
-sigma 0 8  = 8
-sigma 0 9  = 9
-sigma 0 10 = 10
-sigma 0 11 = 11
-sigma 0 12 = 12
-sigma 0 13 = 13
-sigma 0 14 = 14
-sigma 0 15 = 15
-
-sigma 1 0  = 14
-sigma 1 1  = 10
-sigma 1 2  = 4
-sigma 1 3  = 8
-sigma 1 4  = 9
-sigma 1 5  = 15
-sigma 1 6  = 13
-sigma 1 7  = 6
-sigma 1 8  = 1
-sigma 1 9  = 12
-sigma 1 10 = 0
-sigma 1 11 = 2
-sigma 1 12 = 11
-sigma 1 13 = 7
-sigma 1 14 = 5
-sigma 1 15 = 3
-
-sigma 2 0  = 11
-sigma 2 1  = 8
-sigma 2 2  = 12
-sigma 2 3  = 0
-sigma 2 4  = 5
-sigma 2 5  = 2
-sigma 2 6  = 15
-sigma 2 7  = 13
-sigma 2 8  = 10
-sigma 2 9  = 14
-sigma 2 10 = 3
-sigma 2 11 = 6
-sigma 2 12 = 7
-sigma 2 13 = 1
-sigma 2 14 = 9
-sigma 2 15 = 4
-
-sigma 3 0  = 7
-sigma 3 1  = 9
-sigma 3 2  = 3
-sigma 3 3  = 1
-sigma 3 4  = 13
-sigma 3 5  = 12
-sigma 3 6  = 11
-sigma 3 7  = 14
-sigma 3 8  = 2
-sigma 3 9  = 6
-sigma 3 10 = 5
-sigma 3 11 = 10
-sigma 3 12 = 4
-sigma 3 13 = 0
-sigma 3 14 = 15
-sigma 3 15 = 8
-
-sigma 4 0  = 9
-sigma 4 1  = 0
-sigma 4 2  = 5
-sigma 4 3  = 7
-sigma 4 4  = 2
-sigma 4 5  = 4
-sigma 4 6  = 10
-sigma 4 7  = 15
-sigma 4 8  = 14
-sigma 4 9  = 1
-sigma 4 10 = 11
-sigma 4 11 = 12
-sigma 4 12 = 6
-sigma 4 13 = 8
-sigma 4 14 = 3
-sigma 4 15 = 13
-
-sigma 5 0  = 2
-sigma 5 1  = 12
-sigma 5 2  = 6
-sigma 5 3  = 10
-sigma 5 4  = 0
-sigma 5 5  = 11
-sigma 5 6  = 8
-sigma 5 7  = 3
-sigma 5 8  = 4
-sigma 5 9  = 13
-sigma 5 10 = 7
-sigma 5 11 = 5
-sigma 5 12 = 15
-sigma 5 13 = 14
-sigma 5 14 = 1
-sigma 5 15 = 9
-
-sigma 6 0  = 12
-sigma 6 1  = 5
-sigma 6 2  = 1
-sigma 6 3  = 15
-sigma 6 4  = 14
-sigma 6 5  = 13
-sigma 6 6  = 4
-sigma 6 7  = 10
-sigma 6 8  = 0
-sigma 6 9  = 7
-sigma 6 10 = 6
-sigma 6 11 = 3
-sigma 6 12 = 9
-sigma 6 13 = 2
-sigma 6 14 = 8
-sigma 6 15 = 11
-
-sigma 7 0  = 13
-sigma 7 1  = 11
-sigma 7 2  = 7
-sigma 7 3  = 14
-sigma 7 4  = 12
-sigma 7 5  = 1
-sigma 7 6  = 3
-sigma 7 7  = 9
-sigma 7 8  = 5
-sigma 7 9  = 0
-sigma 7 10 = 15
-sigma 7 11 = 4
-sigma 7 12 = 8
-sigma 7 13 = 6
-sigma 7 14 = 2
-sigma 7 15 = 10
-
-sigma 8 0  = 6
-sigma 8 1  = 15
-sigma 8 2  = 14
-sigma 8 3  = 9
-sigma 8 4  = 11
-sigma 8 5  = 3
-sigma 8 6  = 0
-sigma 8 7  = 8
-sigma 8 8  = 12
-sigma 8 9  = 2
-sigma 8 10 = 13
-sigma 8 11 = 7
-sigma 8 12 = 1
-sigma 8 13 = 4
-sigma 8 14 = 10
-sigma 8 15 = 5
-
-sigma 9 0  = 10
-sigma 9 1  = 2
-sigma 9 2  = 8
-sigma 9 3  = 4
-sigma 9 4  = 7
-sigma 9 5  = 6
-sigma 9 6  = 1
-sigma 9 7  = 5
-sigma 9 8  = 15
-sigma 9 9  = 11
-sigma 9 10 = 9
-sigma 9 11 = 14
-sigma 9 12 = 3
-sigma 9 13 = 12
-sigma 9 14 = 13
-sigma 9 15 = 0
-
-sigma _ _  = error "Wrong input to sigma function"
-
+sigma i j = fromEnum $ unsafeIndex table (i*16 + j)
 
 -- | The sixteen constants of BLAKE-256
-lookUpC :: Int -> (BE Word32)
+lookUpC :: Int -> BE Word32
 lookUpC 0  = 0x243F6A88
 lookUpC 1  = 0x85A308D3
 lookUpC 2  = 0x13198A2E
@@ -218,7 +62,7 @@ lookUpC 15 = 0xB5470917
 lookUpC _  = error "Wrong input to lookUpC function"
 
 -- | State is 4 word pair on which roundG function is applied
-type State  = ((BE Word32), (BE Word32), (BE Word32), (BE Word32))
+type State  = (BE Word32, BE Word32, BE Word32, BE Word32)
 
 -- | Matrix is 16 word pair on which the Diagonal and Column steps are applied
 type Matrix = (State, State, State, State)
@@ -226,34 +70,33 @@ type Matrix = (State, State, State, State)
 -- Compress function
 compress :: BLAKE256
          -> Salt
-         -> (BE Word32)
-         -> (BE Word32)
-         -> (BE Word32)
-         -> (BE Word32)
-         -> (BE Word32)
-         -> (BE Word32)
-         -> (BE Word32)
-         -> (BE Word32)
-         -> (BE Word32)
-         -> (BE Word32)
-         -> (BE Word32)
-         -> (BE Word32)
-         -> (BE Word32)
-         -> (BE Word32)
-         -> (BE Word32)
-         -> (BE Word32)
-         -> (BE Word32)
-         -> (BE Word32)
+         -> BE Word32
+         -> BE Word32
+         -> BE Word32
+         -> BE Word32
+         -> BE Word32
+         -> BE Word32
+         -> BE Word32
+         -> BE Word32
+         -> BE Word32
+         -> BE Word32
+         -> BE Word32
+         -> BE Word32
+         -> BE Word32
+         -> BE Word32
+         -> BE Word32
+         -> BE Word32
+         -> BE Word32
+         -> BE Word32
          -> BLAKE256
 compress b@(BLAKE256 h0 h1 h2 h3 h4 h5 h6 h7)
          s@(Salt s0 s1 s2 s3)
-         t0 t1
-         m0  m1  m2  m3
-         m4  m5  m6  m7
-         m8  m9  m10 m11
-         m12 m13 m14 m15 = BLAKE256 h0' h1' h2' h3' h4' h5' h6' h7'
+         !t0  !t1
+         !m0  !m1  !m2  !m3
+         !m4  !m5  !m6  !m7
+         !m8  !m9  !m10 !m11
+         !m12 !m13 !m14 !m15 = BLAKE256 h0' h1' h2' h3' h4' h5' h6' h7'
            where
-             rounds = 14  -- 14 rounds for BLAKE256
              initial = initialState b s t0 t1
              (  (v0,  v1,  v2,  v3)
               , (v4,  v5,  v6,  v7)
@@ -262,50 +105,50 @@ compress b@(BLAKE256 h0 h1 h2 h3 h4 h5 h6 h7)
               ) = foldl (roundHash m0  m1  m2  m3
                                    m4  m5  m6  m7
                                    m8  m9  m10 m11
-                                   m12 m13 m14 m15) initial [0..rounds-1]
-             h0' = h0 `xor` s0 `xor` v0 `xor` v8
-             h1' = h1 `xor` s1 `xor` v1 `xor` v9
-             h2' = h2 `xor` s2 `xor` v2 `xor` v10
-             h3' = h3 `xor` s3 `xor` v3 `xor` v11
-             h4' = h4 `xor` s0 `xor` v4 `xor` v12
-             h5' = h5 `xor` s1 `xor` v5 `xor` v13
-             h6' = h6 `xor` s2 `xor` v6 `xor` v14
-             h7' = h7 `xor` s3 `xor` v7 `xor` v15
+                                   m12 m13 m14 m15) initial [0..13]
+             !h0' = h0 `xor` s0 `xor` v0 `xor` v8
+             !h1' = h1 `xor` s1 `xor` v1 `xor` v9
+             !h2' = h2 `xor` s2 `xor` v2 `xor` v10
+             !h3' = h3 `xor` s3 `xor` v3 `xor` v11
+             !h4' = h4 `xor` s0 `xor` v4 `xor` v12
+             !h5' = h5 `xor` s1 `xor` v5 `xor` v13
+             !h6' = h6 `xor` s2 `xor` v6 `xor` v14
+             !h7' = h7 `xor` s3 `xor` v7 `xor` v15
 
 -- | Single Round Function of Blake256
 roundG :: State
-       -> (BE Word32)
-       -> (BE Word32)
-       -> (BE Word32)
-       -> (BE Word32)
+       -> BE Word32
+       -> BE Word32
+       -> BE Word32
+       -> BE Word32
        -> State
-roundG (a, b, c, d) m0' m1' c0' c1' = (a', b', c', d')
+roundG (a, b, c, d) !m0' !m1' !c0' !c1' = (a', b', c', d')
   where
-    a0 = a + b + (m0' `xor` c1')
-    d0 = (d `xor` a0) `rotateR` 16
-    c0 = c + d0
-    b0 = (b `xor` c0) `rotateR` 12
-    a' = a0 + b0 + (m1' `xor` c0')
-    d' = (d0 `xor` a') `rotateR` 8
-    c' = c0 + d'
-    b' = (b0 `xor` c') `rotateR` 7
+    !a0 = a + b + (m0' `xor` c1')
+    !d0 = (d `xor` a0) `rotateR` 16
+    !c0 = c + d0
+    !b0 = (b `xor` c0) `rotateR` 12
+    !a' = a0 + b0 + (m1' `xor` c0')
+    !d' = (d0 `xor` a') `rotateR` 8
+    !c' = c0 + d'
+    !b' = (b0 `xor` c') `rotateR` 7
 
-roundHash :: (BE Word32)
-          -> (BE Word32)
-          -> (BE Word32)
-          -> (BE Word32)
-          -> (BE Word32)
-          -> (BE Word32)
-          -> (BE Word32)
-          -> (BE Word32)
-          -> (BE Word32)
-          -> (BE Word32)
-          -> (BE Word32)
-          -> (BE Word32)
-          -> (BE Word32)
-          -> (BE Word32)
-          -> (BE Word32)
-          -> (BE Word32)
+roundHash :: BE Word32
+          -> BE Word32
+          -> BE Word32
+          -> BE Word32
+          -> BE Word32
+          -> BE Word32
+          -> BE Word32
+          -> BE Word32
+          -> BE Word32
+          -> BE Word32
+          -> BE Word32
+          -> BE Word32
+          -> BE Word32
+          -> BE Word32
+          -> BE Word32
+          -> BE Word32
           -> Matrix    -- Given Matrix
           -> Int       -- Round number
           -> Matrix
@@ -345,9 +188,9 @@ roundHash m0  m1  m2  m3
                                  (lookUpC $ sigma r2 i2)
                                  (lookUpC $ sigma r2 i3)
                             where
-                              r2 = rnd `mod` 10
-                              i2 = i * 2
-                              i3 = i2 + 1
+                              !r2 = rnd `mod` 10
+                              !i2 = i * 2
+                              !i3 = i2 + 1
 
     -- Apply G to columns
     applyColumns [ s0, s1, s2, s3
@@ -394,8 +237,8 @@ roundHash m0  m1  m2  m3
 -- | Returns initial 16 word state
 initialState :: BLAKE256
              -> Salt
-             -> (BE Word32)
-             -> (BE Word32)
+             -> BE Word32
+             -> BE Word32
              -> Matrix
 
 initialState (BLAKE256 h0 h1 h2 h3 h4 h5 h6 h7)
