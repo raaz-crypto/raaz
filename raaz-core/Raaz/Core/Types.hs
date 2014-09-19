@@ -9,11 +9,6 @@ cryptographic protocols.
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE DeriveDataTypeable         #-}
-{-# LANGUAGE MagicHash                  #-}
-{-# LANGUAGE BangPatterns               #-}
-{-# LANGUAGE CPP                        #-}
-
-#include "MachDeps.h"
 
 module Raaz.Core.Types
        (
@@ -46,11 +41,6 @@ import Data.Typeable            (Typeable)
 import Foreign.Ptr
 import Foreign.Storable
 import Foreign.ForeignPtr.Safe  (ForeignPtr)
-
-#if WORD_SIZE_IN_BITS < 64
-import GHC.IntWord64
-#endif
-import GHC.Word
 
 import System.Endian
 import Test.QuickCheck          (Arbitrary)
@@ -250,26 +240,16 @@ instance EqWord Word where
   eqWord = xor
 
 instance EqWord Word8 where
-  eqWord w1 w2 = W# w#
-    where !(W8# w#) = xor w1 w2
+  eqWord w1 w2 = fromIntegral $ xor w1 w2
 
 instance EqWord Word16 where
-  eqWord w1 w2 = W# w#
-    where !(W16# w#) = xor w1 w2
+  eqWord w1 w2 = fromIntegral $ xor w1 w2
 
 instance EqWord Word32 where
-  eqWord w1 w2 = W# w#
-    where !(W32# w#) = xor w1 w2
+  eqWord w1 w2 = fromIntegral $ xor w1 w2
 
 instance EqWord Word64 where
-  eqWord w1 w2 = W# w#
-   where
-#if WORD_SIZE_IN_BITS < 64
-    !(W64# w'#) = xor w1 w2
-    !w#         = word64ToWord# w'#
-#else
-    !(W64# w#)  = xor w1 w2
-#endif
+  eqWord w1 w2 = fromIntegral $ xor w1 w2
 
 instance ( EqWord a
          , EqWord b
