@@ -9,6 +9,11 @@ cryptographic protocols.
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE DeriveDataTypeable         #-}
+{-# LANGUAGE MagicHash                  #-}
+{-# LANGUAGE BangPatterns               #-}
+{-# LANGUAGE CPP                        #-}
+
+#include "MachDeps.h"
 
 module Raaz.Core.Types
        (
@@ -22,7 +27,7 @@ module Raaz.Core.Types
          -- $length$
          LE, BE
        , EndianStore(..), toByteString
-
+       , EqWord(..), (===)
        , BYTES(..), BITS(..)
        , CryptoCoerce(..)
        , LengthUnit(..), inBits, atLeast, atMost
@@ -35,14 +40,21 @@ module Raaz.Core.Types
 
 import Data.Bits
 import Data.Word
-import Data.ByteString (ByteString)
+import Data.ByteString          (ByteString)
 import Data.ByteString.Internal (unsafeCreate)
-import Data.Typeable(Typeable)
+import Data.Typeable            (Typeable)
 import Foreign.Ptr
 import Foreign.Storable
-import Foreign.ForeignPtr.Safe (ForeignPtr)
+import Foreign.ForeignPtr.Safe  (ForeignPtr)
+
+#if WORD_SIZE_IN_BITS < 64
+import GHC.IntWord64
+#endif
+import GHC.Word
+
 import System.Endian
-import Test.QuickCheck(Arbitrary)
+import Test.QuickCheck          (Arbitrary)
+
 
 -- $typesafety$
 --
@@ -129,15 +141,15 @@ by ghc.
 -- | Little-endian wrapper for words
 newtype LE w = LE w
     deriving ( Arbitrary, Bounded, Enum, Read, Show
-             , Integral, Num, Real, Eq, Ord, Bits
-             , Storable, Typeable
+             , Integral, Num, Real, Eq, EqWord, Ord
+             , Bits, Storable, Typeable
              )
 
 -- | Big-endian wrapper for words
 newtype BE w = BE w
     deriving ( Arbitrary, Bounded, Enum, Read, Show
-             , Integral, Num, Real, Eq, Ord, Bits
-             , Storable, Typeable
+             , Integral, Num, Real, Eq, EqWord, Ord
+             , Bits, Storable, Typeable
              )
 
 {-|
@@ -227,6 +239,93 @@ instance EndianStore (BE Word64) where
   load  = loadConv toWord64BE
   store = storeConv fromWord64BE
 
+
+-- | EqWord class provides timing resistant equality checking for
+-- Crypto types. If the values are equal it returns 0 otherwise it
+-- returns a non zero word.
+class EqWord a where
+  eqWord :: a -> a -> Word
+
+instance EqWord Word where
+  eqWord = xor
+
+instance EqWord Word8 where
+  eqWord w1 w2 = W# w#
+    where !(W8# w#) = xor w1 w2
+
+instance EqWord Word16 where
+  eqWord w1 w2 = W# w#
+    where !(W16# w#) = xor w1 w2
+
+instance EqWord Word32 where
+  eqWord w1 w2 = W# w#
+    where !(W32# w#) = xor w1 w2
+
+instance EqWord Word64 where
+  eqWord w1 w2 = W# w#
+   where
+#if WORD_SIZE_IN_BITS < 64
+    !(W64# w'#) = xor w1 w2
+    !w#         = word64ToWord# w'#
+#else
+    !(W64# w#)  = xor w1 w2
+#endif
+
+instance ( EqWord a
+         , EqWord b
+         ) => EqWord (a,b) where
+  eqWord (a,b) (a',b') = eqWord a a' `xor`
+                         eqWord b b'
+
+instance ( EqWord a
+         , EqWord b
+         , EqWord c
+         ) => EqWord (a,b,c) where
+  eqWord (a,b,c) (a',b',c') = eqWord a a' `xor`
+                              eqWord b b' `xor`
+                              eqWord c c'
+
+instance ( EqWord a
+         , EqWord b
+         , EqWord c
+         , EqWord d
+         ) => EqWord (a,b,c,d) where
+  eqWord (a,b,c,d) (a',b',c',d') = eqWord a a' `xor`
+                                   eqWord b b' `xor`
+                                   eqWord c c' `xor`
+                                   eqWord d d'
+
+instance ( EqWord a
+         , EqWord b
+         , EqWord c
+         , EqWord d
+         , EqWord e
+         ) => EqWord (a,b,c,d,e) where
+  eqWord (a,b,c,d,e) (a',b',c',d',e') = eqWord a a' `xor`
+                                        eqWord b b' `xor`
+                                        eqWord c c' `xor`
+                                        eqWord d d' `xor`
+                                        eqWord e e'
+
+instance ( EqWord a
+         , EqWord b
+         , EqWord c
+         , EqWord d
+         , EqWord e
+         , EqWord f
+         ) => EqWord (a,b,c,d,e,f) where
+  eqWord (a,b,c,d,e,f) (a',b',c',d',e',f') = eqWord a a' `xor`
+                                             eqWord b b' `xor`
+                                             eqWord c c' `xor`
+                                             eqWord d d' `xor`
+                                             eqWord e e' `xor`
+                                             eqWord f f'
+
+
+-- | Works like `==` but uses timing safe `EqWord` instance.
+(===) :: EqWord a => a -> a -> Bool
+(===) a b = eqWord a b == 0
+
 -- $length$
 --
 -- The other source of errors is when we have length conversions. Some
@@ -256,7 +355,7 @@ instance EndianStore (BE Word64) where
 -- convert to a more convenient length units.  The `CrytoCoerce`
 -- instance is guranteed to do the appropriate scaling.
 newtype BYTES a  = BYTES a
-        deriving ( Arbitrary, Show, Eq, Ord, Enum, Integral
+        deriving ( Arbitrary, Show, Eq, EqWord, Ord, Enum, Integral
                  , Real, Num, Storable, EndianStore
                  )
 
@@ -265,7 +364,7 @@ newtype BYTES a  = BYTES a
 -- convert to a more convenient length units.  The `CrytoCoerce`
 -- instance is guranteed to do the appropriate scaling.
 newtype BITS  a  = BITS  a
-        deriving ( Arbitrary, Show, Eq, Ord, Enum, Integral
+        deriving ( Arbitrary, Show, Eq, EqWord, Ord, Enum, Integral
                  , Real, Num, Storable, EndianStore
                  )
 
