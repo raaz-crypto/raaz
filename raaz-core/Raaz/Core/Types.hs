@@ -238,6 +238,11 @@ class EqWord a where
   -- ensure that the computation of @eqWord@ is timing resistant.
   eqWord :: a -> a -> Word
 
+-- | A timing resistant variant of `==` for instances of `EqWord`.
+(===) :: EqWord a => a -> a -> Bool
+(===) a b = eqWord a b == 0
+
+
 instance EqWord Word where
   eqWord = xor
 
@@ -302,11 +307,6 @@ instance ( EqWord a
                                              eqWord d d' `xor`
                                              eqWord e e' `xor`
                                              eqWord f f'
-
-
--- | Works like `==` but uses timing safe `EqWord` instance.
-(===) :: EqWord a => a -> a -> Bool
-(===) a b = eqWord a b == 0
 
 -- $length$
 --
