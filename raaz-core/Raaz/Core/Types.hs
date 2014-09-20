@@ -230,10 +230,12 @@ instance EndianStore (BE Word64) where
   store = storeConv fromWord64BE
 
 
--- | EqWord class provides timing resistant equality checking for
--- Crypto types. If the values are equal it returns 0 otherwise it
--- returns a non zero word.
+-- | A class that facilitates the definition of timing resistant
+-- equality checking.
 class EqWord a where
+  -- | The value @`eqWord` a1 a2@ is guranteed to be 0 if @a1@ and
+  -- @a2@ are equal and non-zero otherwise. Besides instances should
+  -- ensure that the computation of @eqWord@ is timing resistant.
   eqWord :: a -> a -> Word
 
 instance EqWord Word where
