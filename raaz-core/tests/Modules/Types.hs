@@ -3,14 +3,16 @@
 
 module Modules.Types where
 
-import qualified Data.ByteString as BS
-import Data.Word
-import Test.Framework
-import Test.Framework.Providers.QuickCheck2 (testProperty)
+import qualified Data.ByteString                      as BS
+import           Data.Word
+import           Test.QuickCheck                      (Arbitrary)
+import           Data.Typeable
+import           Test.Framework
+import           Test.Framework.Providers.QuickCheck2 (testProperty)
 
-import Raaz.Core.Test()
-import Raaz.Core.Types
-import Raaz.Core.Test.EndianStore
+import           Raaz.Core.Test                       ()
+import           Raaz.Core.Types
+import           Raaz.Core.Test.EndianStore
 
 -- | This test captures the property that bytestring encodings of
 -- Little Endian word is same as reversing the bytestring encoding of
@@ -31,11 +33,27 @@ prop_LEBEreverse64 w = toByteString wle == BS.reverse (toByteString wbe )
 testLEBEreverse64 :: Test
 testLEBEreverse64 = testProperty "LE64 == reverse BE64" prop_LEBEreverse64
 
+prop_EqWord :: (Arbitrary a, Eq a, EqWord a, Show a) => a -> a -> a -> Bool
+prop_EqWord _ a b = (a == b) == (a === b)
+
+testEqWord :: (Arbitrary a, Eq a, EqWord a, Show a, Typeable a) => a -> Test
+testEqWord a = testProperty (aType ++ ": == vs ===") $ prop_EqWord a
+  where aType = show $ typeOf a
+
 tests :: [Test]
 tests = [ testStoreLoad (undefined :: (LE Word32))
         , testStoreLoad (undefined :: (BE Word32))
         , testStoreLoad (undefined :: (LE Word64))
         , testStoreLoad (undefined :: (BE Word64))
+        , testEqWord (undefined :: Word8)
+        , testEqWord (undefined :: Word16)
+        , testEqWord (undefined :: Word32)
+        , testEqWord (undefined :: Word64)
+        , testEqWord (undefined :: Word)
+        , testEqWord (undefined :: LE Word32)
+        , testEqWord (undefined :: BE Word32)
+        , testEqWord (undefined :: LE Word64)
+        , testEqWord (undefined :: BE Word64)
         , testLEBEreverse32
         , testLEBEreverse64
         ]
