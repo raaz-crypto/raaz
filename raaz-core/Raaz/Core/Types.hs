@@ -9,6 +9,9 @@ cryptographic protocols.
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE DeriveDataTypeable         #-}
+{-# LANGUAGE CPP                        #-}
+
+#include "MachDeps.h"
 
 module Raaz.Core.Types
        (
@@ -255,21 +258,31 @@ instance EqWord Word16 where
 instance EqWord Word32 where
   eqWord w1 w2 = fromIntegral $ xor w1 w2
 
-instance EqWord Word64 where
-  eqWord w1 w2 = fromIntegral $ xor w1 w2
 
+instance EqWord Word64 where
+-- It assumes that Word size is atleast 32 Bits
+#if WORD_SIZE_IN_BITS < 64
+  eqWord w1 w2 = (w11 `xor` w21) .|. (w12 `xor` w22)
+  where
+    w11 = fromIntegral $ w1 `shiftR` 32
+    w12 = fromIntegral $ w1
+    w21 = fromIntegral $ w2 `shiftR` 32
+    w22 = fromIntegral $ w2
+#else
+  eqWord w1 w2 = fromIntegral $ xor w1 w2
+#endif
 instance ( EqWord a
          , EqWord b
          ) => EqWord (a,b) where
-  eqWord (a,b) (a',b') = eqWord a a' `xor`
+  eqWord (a,b) (a',b') = eqWord a a' .|.
                          eqWord b b'
 
 instance ( EqWord a
          , EqWord b
          , EqWord c
          ) => EqWord (a,b,c) where
-  eqWord (a,b,c) (a',b',c') = eqWord a a' `xor`
-                              eqWord b b' `xor`
+  eqWord (a,b,c) (a',b',c') = eqWord a a' .|.
+                              eqWord b b' .|.
                               eqWord c c'
 
 instance ( EqWord a
@@ -277,9 +290,9 @@ instance ( EqWord a
          , EqWord c
          , EqWord d
          ) => EqWord (a,b,c,d) where
-  eqWord (a,b,c,d) (a',b',c',d') = eqWord a a' `xor`
-                                   eqWord b b' `xor`
-                                   eqWord c c' `xor`
+  eqWord (a,b,c,d) (a',b',c',d') = eqWord a a' .|.
+                                   eqWord b b' .|.
+                                   eqWord c c' .|.
                                    eqWord d d'
 
 instance ( EqWord a
@@ -288,10 +301,10 @@ instance ( EqWord a
          , EqWord d
          , EqWord e
          ) => EqWord (a,b,c,d,e) where
-  eqWord (a,b,c,d,e) (a',b',c',d',e') = eqWord a a' `xor`
-                                        eqWord b b' `xor`
-                                        eqWord c c' `xor`
-                                        eqWord d d' `xor`
+  eqWord (a,b,c,d,e) (a',b',c',d',e') = eqWord a a' .|.
+                                        eqWord b b' .|.
+                                        eqWord c c' .|.
+                                        eqWord d d' .|.
                                         eqWord e e'
 
 instance ( EqWord a
@@ -301,11 +314,11 @@ instance ( EqWord a
          , EqWord e
          , EqWord f
          ) => EqWord (a,b,c,d,e,f) where
-  eqWord (a,b,c,d,e,f) (a',b',c',d',e',f') = eqWord a a' `xor`
-                                             eqWord b b' `xor`
-                                             eqWord c c' `xor`
-                                             eqWord d d' `xor`
-                                             eqWord e e' `xor`
+  eqWord (a,b,c,d,e,f) (a',b',c',d',e',f') = eqWord a a' .|.
+                                             eqWord b b' .|.
+                                             eqWord c c' .|.
+                                             eqWord d d' .|.
+                                             eqWord e e' .|.
                                              eqWord f f'
 
 -- $length$
