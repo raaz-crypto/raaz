@@ -117,3 +117,4 @@ instance ByteSource src => ByteSource [src] where
 instance PureByteSource B.ByteString where
 instance PureByteSource L.ByteString where
 instance PureByteSource src => PureByteSource [src]
+instance PureByteSource src => PureByteSource (Maybe src)
