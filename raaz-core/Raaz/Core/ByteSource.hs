@@ -70,7 +70,8 @@ fill = fillBytes . inBytes
 -- the same bytes.  This additional constraint on the source helps to
 -- /purify/ certain crypto computations like computing the hash or mac
 -- of the source. Usualy sources like `B.ByteString` etc are pure byte
--- sources. A file handle is a byte source that /not/ a pure source.
+-- sources. A file handle is a byte source that is /not/ a pure
+-- source.
 class ByteSource src => PureByteSource src where
 
 ----------------------- Instances of byte source -----------------------
