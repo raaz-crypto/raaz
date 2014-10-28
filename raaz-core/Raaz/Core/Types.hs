@@ -79,17 +79,17 @@ import Test.QuickCheck          (Arbitrary)
 --
 --   1. Numeric constants are represented in their Haskell notation
 --      (which is big endian). For example 0xF0 represents the number
---      240 whether it is `(LE Word32)` or `(BE Word32)` or just `Word32`.
+--      240 whether it is @`LE` Word32@ or @`BE` Word32@ or just `Word32`.
 --
 --   2. The normal arithmetic work on them.
 --
 --   3. They have the same printed form except for the constructor
 --      sticking around.
 --
--- Therefore, as far as Haskell programmers are concerned, `(LE Word32)`
--- and `(BE Word32)` should be treated as `Word32` for all algorithmic
--- aspects. Similarly, `(LE Word64)` and `(BE Word64)` should be treated as
--- `Word64`.
+-- Therefore, as far as Haskell programmers are concerned, @`LE`
+-- Word32@ and @`BE` Word32@ should be treated as `Word32` for all
+-- algorithmic aspects. Similarly, @`LE` Word64@ and @`BE` Word64@
+-- should be treated as `Word64`.
 --
 -- When defining other endian sensitive data types like hashes, we
 -- expect users to use these endian safe types. For example SHA1 can
@@ -97,7 +97,7 @@ import Test.QuickCheck          (Arbitrary)
 --
 -- > data SHA1 = SHA1 (BE Word32) (BE Word32) (BE Word32) (BE Word32) (BE Word32)
 --
--- Then the EndianStore instance boils down to storing the words in
+-- Then the `EndianStore` instance boils down to storing the words in
 -- correct order.
 
 
