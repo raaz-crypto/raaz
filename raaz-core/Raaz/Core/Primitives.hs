@@ -24,7 +24,6 @@ module Raaz.Core.Primitives
          Primitive(..), Gadget(..)
        , newGadget, newInitializedGadget, initialize, finalize
        , primitiveOf, withGadget
-       , HasName(..)
        , PaddableGadget(..)
        , CGadget(..), HGadget(..)
        , SafePrimitive
