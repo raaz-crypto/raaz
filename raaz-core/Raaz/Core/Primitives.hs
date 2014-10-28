@@ -75,7 +75,7 @@ import           Raaz.System.Parameters  (l1Cache)
 -- given primitive. Of these two are of at most importance. There is
 -- the /reference gadget/ where the emphasis is on correctness rather
 -- than speed or security. They are used to verify the correctness of
--- the other gadgets for the same primitive. For use of production,
+-- the other gadgets for the same primitive. For use in production,
 -- there is the /recommended gadget/. By default all library functions
 -- are tuned to use the recommended gadget.
 --
@@ -94,7 +94,7 @@ class Primitive p where
   -- | The block size.
   blockSize :: p -> BYTES Int
 
-  -- \ Key used to initializa the gadget
+  -- | Key used to initializa the gadget
   type Key p :: *
 
 -- | A safe primitive is a primitive whose computation does not need
@@ -159,22 +159,24 @@ class ( Primitive (PrimitiveOf g)
   apply :: g -> BLOCKS (PrimitiveOf g) -> CryptoPtr -> IO ()
 
 
--- | The function @newInitializedGadget cxt@ creates a new instance of
--- the gadget with its memory allocated and initialised to @cxt@.
+-- | The function @newInitializedGadget iv@ creates a new instance of
+-- the gadget with its memory allocated and initialised to @iv@.
 newInitializedGadget :: Gadget g => IV (MemoryOf g) -> IO g
-newInitializedGadget cxt = do
+newInitializedGadget iv = do
   g <- newGadget
-  initialize g cxt
+  initialize g iv
   return g
 
--- | The function @newGadget cxt@ creates a new instance of the gadget
+-- | The function @newGadget@ creates a new instance of the gadget
 -- with its memory allocated.
 newGadget :: Gadget g => IO g
 newGadget = newMemory >>= newGadgetWithMemory
 
+-- | Initialize the gadgets memory.
 initialize :: Gadget g => g -> IV (MemoryOf g) -> IO ()
 initialize = initializeMemory . getMemory
 
+-- | Finalise the gadgets memory.
 finalize :: ( Gadget g
             , FinalizableMemory (MemoryOf g)
             ) => g -> IO (FV (MemoryOf g))
@@ -221,7 +223,6 @@ withGadget iv action = newInitializedGadget iv >>= action
 -- The minimal complete definition include `padLength`,
 -- `maxAdditionalBlocks` and one of `padding` or `unsafePad`.
 --
-
 class Primitive p => HasPadding p where
 
   -- | This combinator returns the length of the padding that is to be
@@ -334,7 +335,7 @@ newtype HGadget p = HGadget (MemoryOf (HGadget p))
 
 -- | This is the portable C gadget implementation. It is usually
 -- recommended over `HGadget` because of being faster than
--- it. Howerer, No architecture specific optimizations are done in
+-- it. However, no architecture specific optimizations are done in
 -- this implementation.
 newtype CGadget p = CGadget (MemoryOf (CGadget p))
 
