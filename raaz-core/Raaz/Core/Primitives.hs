@@ -48,12 +48,12 @@ module Raaz.Core.Primitives
 
 import qualified Data.ByteString          as B
 import           Data.ByteString.Internal (unsafeCreate)
-import           Data.Typeable            (Typeable, typeOf)
 import           Data.Word                (Word64)
 import           Foreign.Ptr              (castPtr)
 import           System.IO                (withFile, IOMode(ReadMode))
 
 import           Raaz.Core.ByteSource
+import           Raaz.Core.HasName
 import           Raaz.Core.Memory
 import           Raaz.Core.Types
 import           Raaz.Core.Util.ByteString
@@ -257,16 +257,6 @@ class (Gadget g, HasPadding (PrimitiveOf g)) => PaddableGadget g where
         len  = inBits blocks + bits
     unsafePad (primitiveOf g) len (cptr `movePtr` bytes)
     apply g (atMost (bytes + padLength (primitiveOf g) len)) cptr
-
----------------------- HasName --------------------------------------------
-
--- | Types which have names. This is mainly used in test cases and
--- benchmarks to get the name of the primitive. A default instance is
--- provided for types with `Typeable` instances.
-class HasName a where
-  getName :: a -> String
-  default getName :: Typeable a => a -> String
-  getName = show . typeOf
 
 ---------------------- A crypto primitive ------------------------------
 
