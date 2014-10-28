@@ -9,6 +9,7 @@ cryptographic protocols.
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE DeriveDataTypeable         #-}
+{-# LANGUAGE DefaultSignatures          #-}
 {-# LANGUAGE CPP                        #-}
 
 #include "MachDeps.h"
@@ -34,13 +35,14 @@ module Raaz.Core.Types
        , cryptoAlignment, CryptoAlign, CryptoPtr
        , ForeignCryptoPtr
        , CryptoBuffer(..), withCryptoBuffer
+       , HasName(..)
        ) where
 
 import Data.Bits
 import Data.Word
 import Data.ByteString          (ByteString)
 import Data.ByteString.Internal (unsafeCreate)
-import Data.Typeable            (Typeable)
+import Data.Typeable            (Typeable, typeOf)
 import Foreign.Ptr
 import Foreign.Storable
 import Foreign.ForeignPtr.Safe  (ForeignPtr)
@@ -489,3 +491,24 @@ withCryptoBuffer :: CryptoBuffer -- ^ The buffer
                                  -- ^ The action to perfrom
                  -> IO b
 withCryptoBuffer (CryptoBuffer sz cptr) with = with sz cptr
+
+--------------------  Types that have a name ----------------------
+
+-- | Types which have names. This is mainly used in test cases and
+-- benchmarks to get the name of the primitive. A default instance is
+-- provided for types with `Typeable` instances.
+class HasName a where
+  getName :: a -> String
+  default getName :: Typeable a => a -> String
+  getName = show . typeOf
+
+instance HasName Word32
+instance HasName Word64
+
+instance HasName w => HasName (LE w) where
+  getName (LE w) = "LE " ++ getName w
+
+instance HasName w => HasName (BE w) where
+  getName (BE w) = "BE " ++ getName w
+
+-------------------------------------------------------------------

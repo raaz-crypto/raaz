@@ -52,7 +52,6 @@ import           Foreign.Ptr              (castPtr)
 import           System.IO                (withFile, IOMode(ReadMode))
 
 import           Raaz.Core.ByteSource
-import           Raaz.Core.HasName
 import           Raaz.Core.Memory
 import           Raaz.Core.Types
 import           Raaz.Core.Util.ByteString

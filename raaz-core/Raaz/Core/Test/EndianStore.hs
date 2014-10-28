@@ -11,7 +11,6 @@ module Raaz.Core.Test.EndianStore
        , testPokePeek
        ) where
 
-import Data.Typeable
 import Foreign.Marshal.Alloc
 import Foreign.Storable
 import Test.Framework                       ( Test                   )
@@ -19,7 +18,7 @@ import Test.Framework.Providers.QuickCheck2 ( testProperty           )
 import Test.QuickCheck                      ( Property, Arbitrary    )
 import Test.QuickCheck.Monadic              ( run, assert, monadicIO )
 
-import Raaz.Core.Types  ( cryptoAlignment, EndianStore(..) )
+import Raaz.Core.Types
 
 
 -- | This is where the actual store/load is performed.
@@ -58,13 +57,12 @@ testStoreLoad :: ( EndianStore a
                  , Eq a
                  , Show a
                  , Arbitrary a
-                 , Typeable a
+                 , HasName a
                  )
               => a    -- ^ dummy argument (not used)
               -> Test
-testStoreLoad a = testProperty (aType ++ ": Store/Load ")
-                               $ prop_StoreLoad a
-     where aType = show $ typeOf a
+testStoreLoad a = testProperty testName $ prop_StoreLoad a
+     where testName = getName a ++ ": Store/Load "
 
 -- | This is where the actual poke/peek is performed.
 pokePeek :: (Storable a, Eq a) => a -> IO Bool
@@ -102,10 +100,9 @@ testPokePeek :: ( Storable a
                 , Eq a
                 , Show a
                 , Arbitrary a
-                , Typeable a
+                , HasName a
                 )
              => a    -- ^ dummy argument (not used)
              -> Test
-testPokePeek a = testProperty (aType ++ ": Poke/Peek ")
-                               $ prop_PokePeek a
-     where aType = show $ typeOf a
+testPokePeek a = testProperty testName $ prop_PokePeek a
+     where testName = getName a ++ ": Poke/Peek "

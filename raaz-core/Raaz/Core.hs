@@ -7,7 +7,6 @@ Core functions, data types and classes of the raaz package.
 module Raaz.Core
        ( module Raaz.Core.ByteSource
        , module Raaz.Core.Memory
-       , module Raaz.Core.HasName
        , module Raaz.Core.Primitives
        , module Raaz.Core.Primitives.HMAC
        , module Raaz.Core.Primitives.Hash
@@ -19,7 +18,6 @@ module Raaz.Core
 
 import Raaz.Core.ByteSource
 import Raaz.Core.Memory
-import Raaz.Core.HasName
 import Raaz.Core.Primitives
 import Raaz.Core.Primitives.HMAC
 import Raaz.Core.Primitives.Hash
