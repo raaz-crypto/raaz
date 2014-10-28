@@ -187,24 +187,6 @@ finalize = finalizeMemory . getMemory
 primitiveOf :: Gadget g => g -> PrimitiveOf g
 primitiveOf _ = undefined
 
--- | This class captures `Gadget`s which have some padding strategy
--- defined.
-class (Gadget g,HasPadding (PrimitiveOf g)) => PaddableGadget g where
-  -- | It pads the data with the required padding and processes it. It
-  -- expects that enough space is already available for padding. A
-  -- default implementation is provided which pads the data and then
-  -- calls `apply` of the underlying gadget.
-  unsafeApplyLast :: g                      -- ^ Gadget
-                  -> BLOCKS (PrimitiveOf g) -- ^ Number of Blocks processed so far
-                  -> BYTES Int              -- ^ Bytes to process
-                  -> CryptoPtr              -- ^ Location
-                  -> IO ()
-  unsafeApplyLast g blocks bytes cptr = do
-    let bits = inBits bytes :: BITS Word64
-        len  = inBits blocks + bits
-    unsafePad (primitiveOf g) len (cptr `movePtr` bytes)
-    apply g (atMost (bytes + padLength (primitiveOf g) len)) cptr
-
 -- | This function runs an action that expects a gadget as input.
 withGadget :: Gadget g
            => IV (MemoryOf g) -- ^ IV to initialize the gadget with.
@@ -256,6 +238,25 @@ class Primitive p => HasPadding p where
   -- one can hold the padding. This function is useful if you want to
   -- know the size to be allocated for your message buffers.
   maxAdditionalBlocks :: p -> BLOCKS p
+
+
+-- | This class captures `Gadget`s which have some padding strategy
+-- defined.
+class (Gadget g, HasPadding (PrimitiveOf g)) => PaddableGadget g where
+  -- | It pads the data with the required padding and processes it. It
+  -- expects that enough space is already available for padding. A
+  -- default implementation is provided which pads the data and then
+  -- calls `apply` of the underlying gadget.
+  unsafeApplyLast :: g                      -- ^ Gadget
+                  -> BLOCKS (PrimitiveOf g) -- ^ Number of Blocks processed so far
+                  -> BYTES Int              -- ^ Bytes to process
+                  -> CryptoPtr              -- ^ Location
+                  -> IO ()
+  unsafeApplyLast g blocks bytes cptr = do
+    let bits = inBits bytes :: BITS Word64
+        len  = inBits blocks + bits
+    unsafePad (primitiveOf g) len (cptr `movePtr` bytes)
+    apply g (atMost (bytes + padLength (primitiveOf g) len)) cptr
 
 ---------------------- HasName --------------------------------------------
 
