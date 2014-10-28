@@ -14,6 +14,7 @@ module Raaz.Core
        , module Raaz.Core.Primitives.Cipher
        , module Raaz.Core.Primitives.Symmetric
        , module Raaz.Core.Types
+       , module Raaz.Core.Util
        ) where
 
 import Raaz.Core.ByteSource
@@ -25,5 +26,6 @@ import Raaz.Core.Primitives.Hash
 import Raaz.Core.Primitives.Cipher
 import Raaz.Core.Primitives.Symmetric
 import Raaz.Core.Types
+import Raaz.Core.Util
 
 {-# ANN module "HLint: ignore Use import/export shortcut" #-}
