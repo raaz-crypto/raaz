@@ -65,26 +65,26 @@ library
   exposed-modules: Raaz.Core
                  , Raaz.Core.ByteSource
                  , Raaz.Core.Memory
-                 , Raaz.Core.Types
                  , Raaz.Core.Parse
                  , Raaz.Core.Parse.Applicative
                  , Raaz.Core.Parse.Unsafe
                  , Raaz.Core.Primitives
-                 , Raaz.Core.Primitives.Hash
                  , Raaz.Core.Primitives.Asymmetric
-                 , Raaz.Core.Primitives.Symmetric
-                 , Raaz.Core.Primitives.HMAC
                  , Raaz.Core.Primitives.Cipher
-                 , Raaz.Core.Write
-                 , Raaz.Core.Write.Unsafe
+                 , Raaz.Core.Primitives.Hash
+                 , Raaz.Core.Primitives.HMAC
+                 , Raaz.Core.Primitives.Symmetric
                  , Raaz.Core.Test
                  , Raaz.Core.Test.Cipher
                  , Raaz.Core.Test.EndianStore
                  , Raaz.Core.Test.Gadget
+                 , Raaz.Core.Types
                  , Raaz.Core.Util
                  , Raaz.Core.Util.ByteString
                  , Raaz.Core.Util.Gadget
                  , Raaz.Core.Util.Ptr
+                 , Raaz.Core.Write
+                 , Raaz.Core.Write.Unsafe
                  , Raaz.System.Parameters
 
   other-modules: Raaz.Core.Memory.Internal
