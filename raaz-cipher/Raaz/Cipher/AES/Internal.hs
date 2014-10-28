@@ -27,6 +27,7 @@ module Raaz.Cipher.AES.Internal
 import Raaz.Cipher.AES.Block.Type
 import Raaz.Cipher.AES.Block.Internal
 
+import Raaz.Core.Types
 import Raaz.Core.Primitives
 import Raaz.Core.Primitives.Cipher
 

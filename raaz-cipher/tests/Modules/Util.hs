@@ -5,6 +5,7 @@ module Modules.Util where
 
 import Test.Framework              ( Test, testGroup )
 
+import Raaz.Core
 import Raaz.Core.Primitives
 import Raaz.Core.Primitives.Cipher
 import Raaz.Core.Test.Gadget
