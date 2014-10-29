@@ -87,6 +87,8 @@ writeWordBE w = writeW (sizeOf w) w
 newtype Word128 = Word128 Integer
                   deriving (Integral, Show, Ord, Real, Modular, Typeable)
 
+instance HasName Word128
+
 -- | Reduced Int to lower order 128 Bits
 narrowWord128 :: Integer -> Integer
 narrowWord128 w = w `mod` twoPow129
@@ -148,6 +150,8 @@ instance Storable Word128 where
 -- | 256 Bit Word
 newtype Word256 = Word256 Integer
                   deriving (Integral, Show, Ord, Real, Modular, Typeable)
+
+instance HasName Word256
 
 -- | Reduced Int to lower order 256 Bits
 narrowWord256 :: Integer -> Integer
@@ -211,6 +215,8 @@ instance Storable Word256 where
 newtype Word512 = Word512 Integer
                   deriving (Integral, Show, Ord, Real, Modular, Typeable)
 
+instance HasName Word512
+
 -- | Reduced Int to lower order 512 Bits
 narrowWord512 :: Integer -> Integer
 narrowWord512 w = w `mod` twoPow513
@@ -272,6 +278,8 @@ instance Storable Word512 where
 -- | 1024 Bit Word
 newtype Word1024 = Word1024 Integer
                   deriving (Integral, Show, Ord, Real, Modular, Typeable)
+
+instance HasName Word1024
 
 -- | Reduced Int to lower order 1024 Bits
 narrowWord1024 :: Integer -> Integer
@@ -335,6 +343,8 @@ instance Storable Word1024 where
 newtype Word2048 = Word2048 Integer
                   deriving (Integral, Show, Ord, Real, Modular, Typeable)
 
+instance HasName Word2048
+
 -- | Reduced Int to lower order 2048 Bits
 narrowWord2048 :: Integer -> Integer
 narrowWord2048 w = w `mod` twoPow2049
@@ -397,6 +407,8 @@ instance Storable Word2048 where
 newtype Word4096 = Word4096 Integer
                   deriving (Integral, Show, Ord, Real, Modular, Typeable)
 
+instance HasName Word4096
+
 -- | Reduced Int to lower order 4096 Bits
 narrowWord4096 :: Integer -> Integer
 narrowWord4096 w = w `mod` twoPow4097
@@ -458,6 +470,8 @@ instance Storable Word4096 where
 -- | 8192 Bit Word
 newtype Word8192 = Word8192 Integer
                   deriving (Integral, Show, Ord, Real, Modular, Typeable)
+
+instance HasName Word8192
 
 -- | Reduced Int to lower order 8192 Bits
 narrowWord8192 :: Integer -> Integer
