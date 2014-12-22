@@ -25,6 +25,6 @@ main = do putStrLn $ "Running benchmarks for " ++ pkgName
 benchmarks = do
   sha <- Sha.benchmarks
   blake <- Blake.benchmarks
-  return $  [ bgroup "SHA" sha 
-            , bgroup "BLAKE" blake
-            ]
+  return [ bgroup "SHA" sha 
+         , bgroup "BLAKE" blake
+         ]
