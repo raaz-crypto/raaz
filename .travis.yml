@@ -41,7 +41,7 @@ matrix:
 before_install:
   - if [ "$HLINT" == "yes" ]; then
        sudo apt-get install hlint;
-       hlint .;
+       hlint "--ignore=Parse error" .;
        exit $?;
     fi
   - echo `uname -a`
@@ -69,6 +69,8 @@ before_install:
   - ghc --version
   # Output the version of CABAL installed in the system.
   - cabal --version
+  # Output all the registered packages.
+  - ghc-pkg list
   # Output other variables.
   - echo HASKELL_PLATFORM=${HASKELL_PLATFORM}
   - echo PARALLEL_BUILDS=${PARALLEL_BUILDS}
@@ -83,13 +85,13 @@ before_script:
   # Configuring raaz packages.
   - ./travis configure --enable-tests
   # Building raaz packages.
-  - ./travis build;
+  - ./travis build
 # Running test suites of raaz packages.
 script:
-  - ./travis test --show-details=failures;
+  - ./travis test --show-details=failures
 
 after_script:
-  - ./travis sdist;
+  - ./travis sdist
   # Make source tarball of all raaz packages.
 
 
