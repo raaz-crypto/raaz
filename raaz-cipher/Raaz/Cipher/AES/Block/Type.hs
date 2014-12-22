@@ -578,5 +578,3 @@ showWord32 :: BE Word32 -> ShowS
 showWord32 w = showString $ "0x" ++ replicate (8 - length hex) '0' ++ hex
   where
     hex = showHex w ""
-
-{-# ANN module "HLint: ignore Reduce duplication" #-}

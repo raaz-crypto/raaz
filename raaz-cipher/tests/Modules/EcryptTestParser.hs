@@ -103,5 +103,3 @@ parseAndSkip = do
   parseEncryptTest
 
 parseAll = many1 (try parseAndSkip)
-
-{-# ANN module "HLint: ignore Reduce duplication" #-}

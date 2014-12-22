@@ -36,7 +36,6 @@ import Raaz.Core.Util.Ptr         (allocaBuffer)
 import Raaz.Cipher.AES.Block.Type
 import Raaz.Cipher.Util.GF
 
-
 sbox :: Word8 -> Word8
 sbox = unsafeIndex sboxArr . fromIntegral
 {-# INLINE sbox #-}
@@ -442,8 +441,5 @@ newtype AESIVMem = AESIVMem (CryptoCell STATE) deriving Memory
 
 instance InitializableMemory AESIVMem where
   type IV AESIVMem = STATE
-
+  
   initializeMemory (AESIVMem cell) s = withCell cell (flip store s)
-
-{-# ANN module "HLint: ignore Reduce duplication" #-}
-{-# ANN module "HLint: ignore Use section" #-}
