@@ -78,3 +78,5 @@ applyGad g@(HGadget (AESKEYMem ex,AESIVMem s)) with n cptr = do
       sz = blockSize (getPrim g)
       blocksz = BYTES 16
       realsz = blocksz `div` sz
+
+{-# ANN module "HLint: ignore Use section" #-}

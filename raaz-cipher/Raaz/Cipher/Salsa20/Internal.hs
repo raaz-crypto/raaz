@@ -5,7 +5,6 @@ be used directly by the user.
 
 -}
 
-{-# LANGUAGE KindSignatures                #-}
 {-# LANGUAGE FlexibleInstances             #-}
 {-# LANGUAGE TypeFamilies                  #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving    #-}

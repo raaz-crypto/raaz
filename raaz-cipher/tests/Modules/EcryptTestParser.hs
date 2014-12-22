@@ -31,7 +31,7 @@ data PartialStream = PartialStream { from :: Int
                                    } deriving Show
 
 fromHex :: ByteString -> ByteString
-fromHex bs = B8.unfoldr with bs
+fromHex = B8.unfoldr with
   where
     with ""  = Nothing
     with acc = Just (w,rest)
@@ -103,3 +103,5 @@ parseAndSkip = do
   parseEncryptTest
 
 parseAll = many1 (try parseAndSkip)
+
+{-# ANN module "HLint: ignore Reduce duplication" #-}
