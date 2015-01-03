@@ -441,5 +441,5 @@ newtype AESIVMem = AESIVMem (CryptoCell STATE) deriving Memory
 
 instance InitializableMemory AESIVMem where
   type IV AESIVMem = STATE
-  
+
   initializeMemory (AESIVMem cell) s = withCell cell (flip store s)
