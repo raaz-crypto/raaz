@@ -7,7 +7,7 @@ It also includes the standard oakley groups defined in
 <http://www.ietf.org/rfc/rfc3526.txt rfc3526>.
 
 -}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+
 module Raaz.DH.Types
        (
          Group(..)

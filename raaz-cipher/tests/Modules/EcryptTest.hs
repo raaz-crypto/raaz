@@ -40,7 +40,7 @@ testVector g (EcryptTest n k iv s digest) = n ~: (testXor : map testExpected s)
         encodedString = applyGadget g kAndIV
                                       (BS.replicate bslen 0)
         kAndIV = (fromByteString k, fromByteString iv)
-        bslen = (to $ last s) + 1
+        bslen = to (last s) + 1
         interval = BS.length digest
         testXor = "xor-digest" ~: TestCase (digest @=? xorDigest encodedString (BS.replicate interval 0))
         xorDigest ""  !out = out
@@ -49,7 +49,7 @@ testVector g (EcryptTest n k iv s digest) = n ~: (testXor : map testExpected s)
         testExpected (PartialStream f t expected) = concat [show f, " -> ", show t]
                                                       ~: TestCase (expected @=? actual)
             where
-              actual = (BS.take (t - f + 1) $ BS.drop f $ encodedString)
+              actual = BS.take (t - f + 1) $ BS.drop f encodedString
 
 testAll :: ( Gadget g
            , Cipher p

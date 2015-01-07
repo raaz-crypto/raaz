@@ -245,15 +245,15 @@ initialState (BLAKE256 h0 h1 h2 h3 h4 h5 h6 h7)
              (Salt s0 s1 s2 s3)
              t0 t1 =  ( (h0, h1, h2, h3)
                       , (h4, h5, h6, h7)
-                      , ( s0 `xor` (lookUpC 0)
-                        , s1 `xor` (lookUpC 1)
-                        , s2 `xor` (lookUpC 2)
-                        , s3 `xor` (lookUpC 3)
+                      , ( s0 `xor` lookUpC 0
+                        , s1 `xor` lookUpC 1
+                        , s2 `xor` lookUpC 2
+                        , s3 `xor` lookUpC 3
                         )
-                      , ( t0 `xor` (lookUpC 4)
-                        , t0 `xor` (lookUpC 5)
-                        , t1 `xor` (lookUpC 6)
-                        , t1 `xor` (lookUpC 7)
+                      , ( t0 `xor` lookUpC 4
+                        , t0 `xor` lookUpC 5
+                        , t1 `xor` lookUpC 6
+                        , t1 `xor` lookUpC 7
                         )
                       )
 

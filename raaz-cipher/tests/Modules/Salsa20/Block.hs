@@ -162,31 +162,31 @@ salsa20Key256Vec = [ ( fromByteString $ BS.pack ([1..16] ++ [201..216])
 
 testQuarterRound :: [(STATE,STATE)] -> Test
 testQuarterRound = testGroup "QuarterRound unit tests" . hUnitTestToTests . test . map check
-  where check (a,b) = (shorten $ show a) ~: (quarterRound a) ~?= b
+  where check (a,b) = shorten (show a) ~: quarterRound a ~?= b
 
 testRowRound :: [(Matrix,Matrix)] -> Test
 testRowRound = testGroup "RowRound unit tests" . hUnitTestToTests . test . map check
-  where check (a,b) = (shorten $ show a) ~: (rowRound a) ~?= b
+  where check (a,b) = shorten (show a) ~: rowRound a ~?= b
 
 testColRound :: [(Matrix,Matrix)] -> Test
 testColRound = testGroup "ColRound unit tests" . hUnitTestToTests . test . map check
-  where check (a,b) = (shorten $ show a) ~: (colRound a) ~?= b
+  where check (a,b) = shorten (show a) ~: colRound a ~?= b
 
 testDoubleRound :: [(Matrix,Matrix)] -> Test
 testDoubleRound = testGroup "DoubleRound unit tests" . hUnitTestToTests . test . map check
-  where check (a,b) = (shorten $ show a) ~: (doubleRound a) ~?= b
+  where check (a,b) = shorten (show a) ~: doubleRound a ~?= b
 
 testSalsa20 :: [(ByteString,ByteString)] -> Test
 testSalsa20 = testGroup "Salsa20 unit tests" . hUnitTestToTests . test . map check
-  where check (a,b) = (shorten $ show a) ~: (toByteString $ salsa20 20 $ fromByteString a) ~?= b
+  where check (a,b) = shorten (show a) ~: toByteString (salsa20 20 $ fromByteString a) ~?= b
 
 testSalsa20Key128 :: [(KEY128,Nonce,Counter,Matrix)] -> Test
 testSalsa20Key128 = testGroup "Salsa20 unit tests" . hUnitTestToTests . test . map check
-  where check (k,n,c,e) = (shorten $ show k) ~: (salsa20 20 (expand128 k n c)) ~?= e
+  where check (k,n,c,e) = shorten (show k) ~: salsa20 20 (expand128 k n c) ~?= e
 
 testSalsa20Key256 :: [(KEY256,Nonce,Counter,Matrix)] -> Test
 testSalsa20Key256 = testGroup "Salsa20 unit tests" . hUnitTestToTests . test . map check
-  where check (k,n,c,e) = (shorten $ show k) ~: (salsa20 20 (expand256 k n c)) ~?= e
+  where check (k,n,c,e) = shorten (show k) ~: salsa20 20 (expand256 k n c) ~?= e
 
 tests :: [Test]
 tests = [ testQuarterRound quarterRoundVec

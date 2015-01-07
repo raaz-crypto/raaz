@@ -296,7 +296,7 @@ instance EndianStore KEY256 where
   store cptr key256 = runWrite cptr $ writeKey256 key256
 
 -- | Performs summation for `Matrix`.
-showWord32 :: (LE Word32) -> ShowS
+showWord32 :: LE Word32 -> ShowS
 showWord32 w = showString $ "0x" ++ replicate (8 - length hex) '0' ++ hex
   where
     hex = showHex w ""

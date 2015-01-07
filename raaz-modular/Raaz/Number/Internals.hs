@@ -560,3 +560,5 @@ os2wp = BS.foldl with 0
 {-# SPECIALIZE os2wp :: ByteString -> Word2048 #-}
 {-# SPECIALIZE os2wp :: ByteString -> Word4096 #-}
 {-# SPECIALIZE os2wp :: ByteString -> Word8192 #-}
+
+{-# ANN module "HLint: ignore Reduce duplication" #-}

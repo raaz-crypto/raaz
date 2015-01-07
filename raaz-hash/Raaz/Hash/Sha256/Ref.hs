@@ -255,3 +255,5 @@ sha256constant i  |  i == 0     =   0x428a2f98
                   |  i == 62    =   0xbef9a3f7
                   |  i == 63    =   0xc67178f2
                   |  otherwise = error "sha256:ref: Wrong index used for sha256constant"
+
+{-# ANN module "HLint: ignore Redundant bang pattern" #-}

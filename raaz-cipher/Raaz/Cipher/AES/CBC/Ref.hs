@@ -94,3 +94,5 @@ moveAndDecrypt expanded sz with (cxt,ptr) = do
   let newCxt = with blk expanded
   store ptr (newCxt `xorState` cxt)
   return (blk, ptr `movePtr` sz)
+
+{-# ANN module "HLint: ignore Use section" #-}

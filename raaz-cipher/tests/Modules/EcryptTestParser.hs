@@ -31,7 +31,7 @@ data PartialStream = PartialStream { from :: Int
                                    } deriving Show
 
 fromHex :: ByteString -> ByteString
-fromHex bs = B8.unfoldr with bs
+fromHex = B8.unfoldr with
   where
     with ""  = Nothing
     with acc = Just (w,rest)
@@ -60,20 +60,19 @@ hexline = do
 parseKey = do
   spaces
   string "key"
-  spaces
-  char '='
-  fromHex <$> BS.concat <$> many1 (try hexline)
+  parseHelper
 
 parseIV = do
   spaces
   string "IV"
-  spaces
-  char '='
-  fromHex <$> BS.concat <$> many1 (try hexline)
+  parseHelper
 
 parseXor = do
   spaces
   string "xor-digest"
+  parseHelper
+
+parseHelper = do
   spaces
   char '='
   fromHex <$> BS.concat <$> many1 (try hexline)

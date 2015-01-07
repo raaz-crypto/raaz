@@ -8,7 +8,6 @@ verbatim translation of the standard and doesn't perform any optimizations
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE TypeFamilies               #-}
-{-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# OPTIONS_GHC -fno-warn-orphans       #-}
@@ -36,7 +35,6 @@ import Raaz.Core.Util.Ptr         (allocaBuffer)
 
 import Raaz.Cipher.AES.Block.Type
 import Raaz.Cipher.Util.GF
-
 
 sbox :: Word8 -> Word8
 sbox = unsafeIndex sboxArr . fromIntegral
@@ -152,7 +150,7 @@ invMixColumns state@(STATE s0 s1 s2 s3) = STATE u0 u1 u2 u3
     t1 =  r1 `xor` t1'
     t2 =  r2 `xor` t0'
     t3 =  r3 `xor` t1'
-    u0' = (mult02 t0') `xor` (mult02 t1')
+    u0' = mult02 t0' `xor` mult02 t1'
     u0 = t0 `xor` u0'
     u1 = t1 `xor` u0'
     u2 = t2 `xor` u0'
@@ -169,15 +167,15 @@ invAddRoundKey :: STATE -> STATE -> STATE
 invAddRoundKey = addRoundKey
 {-# INLINE invAddRoundKey #-}
 
-invSubWord :: (BE Word32) -> (BE Word32)
+invSubWord :: BE Word32 -> BE Word32
 invSubWord = subWordWith invSbox
 {-# INLINE invSubWord #-}
 
-subWord :: (BE Word32) -> (BE Word32)
+subWord :: BE Word32 -> BE Word32
 subWord = subWordWith sbox
 {-# INLINE subWord #-}
 
-subWordWith :: (Word8 -> Word8) -> (BE Word32) -> (BE Word32)
+subWordWith :: (Word8 -> Word8) -> BE Word32 -> BE Word32
 subWordWith with w = w0' `xor` w1' `xor` w2' `xor` w3'
   where
     w0 = fromIntegral (w `shiftR` 24)
@@ -185,9 +183,9 @@ subWordWith with w = w0' `xor` w1' `xor` w2' `xor` w3'
     w2 = fromIntegral (w `shiftR` 8)
     w3 = fromIntegral w
     w3' = fromIntegral $ with w3
-    w2' = (fromIntegral $ with w2) `shiftL` 8
-    w1' = (fromIntegral $ with w1) `shiftL` 16
-    w0' = (fromIntegral $ with w0) `shiftL` 24
+    w2' = fromIntegral (with w2) `shiftL` 8
+    w1' = fromIntegral (with w1) `shiftL` 16
+    w0' = fromIntegral (with w0) `shiftL` 24
 {-# INLINE subWordWith #-}
 
 xorState :: STATE -> STATE -> STATE
@@ -359,11 +357,11 @@ incrState = incr
         r0 = ifincr r1 w0
 
 -- | Maps a function over `STATE`.
-fmapState :: ((BE Word32) -> (BE Word32)) -> STATE -> STATE
+fmapState :: (BE Word32 -> BE Word32) -> STATE -> STATE
 fmapState f (STATE s0 s1 s2 s3) = STATE (f s0) (f s1) (f s2) (f s3)
 
 -- | Constructs a (BE Word32) from Least significan 8 bits of given 4 words
-constructWord32BE :: (BE Word32) -> (BE Word32) -> (BE Word32) -> (BE Word32) -> (BE Word32)
+constructWord32BE :: BE Word32 -> BE Word32 -> BE Word32 -> BE Word32 -> BE Word32
 constructWord32BE w0 w1 w2 w3 = r3 `xor` r2 `xor` r1 `xor` r0
   where
     mask w = w .&. 0x000000FF

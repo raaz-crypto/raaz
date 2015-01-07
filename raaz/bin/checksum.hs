@@ -69,6 +69,6 @@ readHashFile fp = map readHashLine . lines <$> readFile fp
 checkAndPrint :: Hash h => (FilePath -> IO h) -> (String,String) -> IO ()
 checkAndPrint hf (ht,fp) = do hs <- hf fp
                               putStr fp
-                              if toHex hs == BC.pack ht
-                                then putStrLn ": OK"
-                                else putStrLn ": FAILED"
+                              putStrLn (if toHex hs == BC.pack ht
+                                          then ": OK"
+                                          else ": FAILED")

@@ -29,9 +29,9 @@ rotateStateL s                   n = rotateStateL s (n-4)
 rowRound :: Matrix -> Matrix
 rowRound (Matrix s0 s1 s2 s3) =
   Matrix (quarterRound s0)
-         ((quarterRound (s1 `rotateStateL` 1)) `rotateStateL` 3)
-         ((quarterRound (s2 `rotateStateL` 2)) `rotateStateL` 2)
-         ((quarterRound (s3 `rotateStateL` 3)) `rotateStateL` 1)
+         (quarterRound (s1 `rotateStateL` 1) `rotateStateL` 3)
+         (quarterRound (s2 `rotateStateL` 2) `rotateStateL` 2)
+         (quarterRound (s3 `rotateStateL` 3) `rotateStateL` 1)
 {-# INLINE rowRound #-}
 
 colRound :: Matrix -> Matrix
