@@ -19,25 +19,28 @@ module Raaz.Core.Classes
          -- * Type safety.
          -- $typesafety$
 
-         -- ** Endian safe types
+         -- ** Endian safe loading and storing.
          -- $endianSafe$
+
+         EndianStore(..), toByteString
+
 
          -- ** Type safe lengths
          -- $length$
-       , EndianStore(..), toByteString
-
        , BYTES(..), BITS(..)
-       , CryptoCoerce(..)
        , LengthUnit(..), inBits, atLeast, atMost
        , bitsQuotRem, bytesQuotRem
        , bitsQuot, bytesQuot
+         -- ** Timing safe comparisons
+         -- $timingsafe$
        , EqWord(..), (===)
-
        -- * Cryptographic pointers and buffers.
        , cryptoAlignment, CryptoAlign, CryptoPtr
        , ForeignCryptoPtr
        , CryptoBuffer(..), withCryptoBuffer
+       -- ** Misc type classes.
        , HasName(..)
+       , CryptoCoerce(..)
        ) where
 
 import Data.Bits
@@ -49,7 +52,6 @@ import Foreign.Ptr
 import Foreign.Storable
 import Foreign.ForeignPtr.Safe  (ForeignPtr)
 
-import System.Endian
 import Test.QuickCheck          (Arbitrary)
 
 -- $typesafety$
@@ -73,6 +75,7 @@ import Test.QuickCheck          (Arbitrary)
 -- write the data out. For types that are meant to be serialised, the
 -- EndianStore instance in defined in such a way that the `load` and
 -- `store` takes care of endian coversion automatically.
+
 class Storable w => EndianStore w where
 
   -- | Store the given value at the locating pointed by the pointer
@@ -89,6 +92,26 @@ toByteString w = unsafeCreate (sizeOf w) putit
       where putit ptr = store (castPtr ptr) w
 
 
+-- $timingsafe$
+--
+-- Often we need to check whether two quantities are the same. If we
+-- do it naively, it can lead to timing based attack on the crypto
+-- system.  We provide a way to make it easier to define timing
+-- independent comparisons for types.
+--
+-- The first idea is to define a class `EqWord` which is similar to
+-- the `Eq` class. The member function `eqWord` returns a Word value
+-- instead of a Bool with the understanding that $eqWord x y$ is
+-- non-zero if and only if the arguments @x@ and @y@ are different.
+-- It is required that this function is timing independent. It is easy
+-- to see that we can define `EqWord` instances for tuples in a natural
+-- way using the bit-wise or operator `.|.`.
+--
+-- Finally, function `===` is defined which uses the `eqWord`
+-- function to test equality and hence is timing safe.
+--
+-- For cryptographically sensitive data, we define the Eq instance
+-- indirectly using the EqWord instance and `===`
 
 -- | A class that facilitates the definition of timing resistant
 -- equality checking.
@@ -128,6 +151,9 @@ instance EqWord Word64 where
 #else
   eqWord w1 w2 = fromIntegral $ xor w1 w2
 #endif
+
+-- Some boring instances for tuples.
+
 instance ( EqWord a
          , EqWord b
          ) => EqWord (a,b) where
@@ -178,6 +204,7 @@ instance ( EqWord a
                                              eqWord e e' .|.
                                              eqWord f f'
 
+
 -- $length$
 --
 -- The other source of errors is when we have length conversions. Some
@@ -185,17 +212,21 @@ instance ( EqWord a
 -- pad bytes in a crypto-hash), in other instances we need them in
 -- bytes (for example while allocating buffers). This module provides
 -- the `BYTES` and `BITS` type which capture lengths in units of bytes
--- and BITS respectively.
+-- and BITS respectively. These types are used to avoid unit
+-- confusion.
 --
--- Often we do want to measure lengths in other units like for example
--- multiples of block size. We say such units are type safe lengths if
--- they can be converted to BYTES and BITS with out any loss of
--- information. There is a possibility that these values can overflow
--- but if we assume that the lengths are reasonable (i.e. used in
--- contexts where we need to allocate a memory buffer or do some
--- pointer arithmetic) we would avoid a lot of bugs and boiler plate.
--- We capture these type safe lengths using the type class
--- `LengthUnit`.
+-- In many contexts, the most natural unit of length need not be bits
+-- or bytes.  For example when we want to allocate buffer to be used
+-- in the computation of a cryptographic hash, it makes sense to
+-- allocate it in units of the block size of the hash. In such case we
+-- would like to avoid errors that comes up in trying to convert from
+-- those units to bytes. This is what we capture using the notion of a
+-- type safe length.  A type safe length unit is some thing that can
+-- be converted to bits and bytes with out any rounding.  We capture
+-- these type safe lengths using the type class `LengthUnit`. (There
+-- is a possibility that the values can overflow but in the context
+-- where they are used, namely buffer allocation, we assume that the
+-- lengths are reasonable).
 --
 -- Most, if not all, functions in raaz that accept a length argument
 -- can be given any type safe length units. Thus a lot of length
@@ -301,12 +332,6 @@ bitsQuot bits = u
 -- instance of this class.
 class CryptoCoerce s t where
   cryptoCoerce :: s -> t
-
-instance CryptoCoerce w (LE w) where
-  cryptoCoerce = LE
-
-instance CryptoCoerce w (BE w) where
-  cryptoCoerce = BE
 
 instance CryptoCoerce s t => CryptoCoerce (BITS s) (BITS t) where
   cryptoCoerce (BITS s) = BITS $ cryptoCoerce s
