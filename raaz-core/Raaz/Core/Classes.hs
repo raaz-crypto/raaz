@@ -1,7 +1,11 @@
 {-|
 
-This module provide some basic types and type classes used in the
-cryptographic protocols.
+This module provide the core classes and the associated types on which
+the raaz library is crucially dependent on. These classes play a
+crucial role in improving the type safety of the library and in some
+cases avoids a lot of boilerplate code. Developers might need to have a
+rough idea of these However, it would of very
+little interest for users of the library.
 
 -}
 
@@ -18,13 +22,9 @@ module Raaz.Core.Classes
        (
          -- * Type safety.
          -- $typesafety$
-
          -- ** Endian safe loading and storing.
          -- $endianSafe$
-
          EndianStore(..), toByteString
-
-
          -- ** Type safe lengths
          -- $length$
        , BYTES(..), BITS(..)
@@ -34,13 +34,12 @@ module Raaz.Core.Classes
          -- ** Timing safe comparisons
          -- $timingsafe$
        , EqWord(..), (===)
-       -- * Cryptographic pointers and buffers.
-       , cryptoAlignment, CryptoAlign, CryptoPtr
-       , ForeignCryptoPtr
-       , CryptoBuffer(..), withCryptoBuffer
-       -- ** Misc type classes.
+       -- * Misc type and type classes.
        , HasName(..)
        , CryptoCoerce(..)
+         -- ** Pointers and alignment.
+       , cryptoAlignment, CryptoAlign, CryptoPtr
+       , ForeignCryptoPtr
        ) where
 
 import Data.Bits
@@ -137,7 +136,6 @@ instance EqWord Word16 where
 
 instance EqWord Word32 where
   eqWord w1 w2 = fromIntegral $ xor w1 w2
-
 
 instance EqWord Word64 where
 -- It assumes that Word size is atleast 32 Bits
@@ -339,6 +337,19 @@ instance CryptoCoerce s t => CryptoCoerce (BITS s) (BITS t) where
 instance CryptoCoerce s t => CryptoCoerce (BYTES s)(BYTES t) where
   cryptoCoerce (BYTES s) = BYTES $ cryptoCoerce s
 
+--------------------  Types that have a name ----------------------
+
+-- | Types which have names. This is mainly used in test cases and
+-- benchmarks to get the name of the primitive. A default instance is
+-- provided for types with `Typeable` instances.
+class HasName a where
+  getName :: a -> String
+  default getName :: Typeable a => a -> String
+  getName = show . typeOf
+
+instance HasName Word32
+instance HasName Word64
+
 ------------------ Alignment fu -------------------------------
 
 -- Developers notes: I assumes that word alignment is alignment
@@ -360,28 +371,4 @@ cryptoAlignment :: Int
 cryptoAlignment = alignment (undefined :: CryptoAlign)
 {-# INLINE cryptoAlignment #-}
 
--- | Pointers with associated size. Reading and writing under the
--- given size is considered safe.
-data CryptoBuffer = CryptoBuffer {-# UNPACK #-} !(BYTES Int)
-                                 {-# UNPACK #-} !CryptoPtr
-
--- | Working on the pointer associated with the `CryptoBuffer`.
-withCryptoBuffer :: CryptoBuffer -- ^ The buffer
-                 -> (BYTES Int -> CryptoPtr -> IO b)
-                                 -- ^ The action to perfrom
-                 -> IO b
-withCryptoBuffer (CryptoBuffer sz cptr) with = with sz cptr
-
---------------------  Types that have a name ----------------------
-
--- | Types which have names. This is mainly used in test cases and
--- benchmarks to get the name of the primitive. A default instance is
--- provided for types with `Typeable` instances.
-class HasName a where
-  getName :: a -> String
-  default getName :: Typeable a => a -> String
-  getName = show . typeOf
-
-instance HasName Word32
-instance HasName Word64
 -------------------------------------------------------------------
