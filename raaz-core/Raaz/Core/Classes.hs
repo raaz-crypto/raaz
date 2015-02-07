@@ -14,7 +14,7 @@ cryptographic protocols.
 
 #include "MachDeps.h"
 
-module Raaz.Core.Types
+module Raaz.Core.Classes
        (
          -- * Type safety.
          -- $typesafety$
@@ -24,14 +24,16 @@ module Raaz.Core.Types
 
          -- ** Type safe lengths
          -- $length$
-         LE, BE
        , EndianStore(..), toByteString
-       , EqWord(..), (===)
+
        , BYTES(..), BITS(..)
        , CryptoCoerce(..)
        , LengthUnit(..), inBits, atLeast, atMost
        , bitsQuotRem, bytesQuotRem
        , bitsQuot, bytesQuot
+       , EqWord(..), (===)
+
+       -- * Cryptographic pointers and buffers.
        , cryptoAlignment, CryptoAlign, CryptoPtr
        , ForeignCryptoPtr
        , CryptoBuffer(..), withCryptoBuffer
@@ -50,7 +52,6 @@ import Foreign.ForeignPtr.Safe  (ForeignPtr)
 import System.Endian
 import Test.QuickCheck          (Arbitrary)
 
-
 -- $typesafety$
 --
 -- One of the aims of raaz is to avoid many bugs by making use of the
@@ -61,6 +62,7 @@ import Test.QuickCheck          (Arbitrary)
 --
 -- 2. Length conversion errors.
 --
+-- 3. Ways to write timing safe equality checks.
 
 
 -- $endianSafe$
@@ -68,45 +70,9 @@ import Test.QuickCheck          (Arbitrary)
 -- One of the most common source of implementation problems in crypto
 -- algorithms is the correct dealing of endianness. Endianness matters
 -- only when we first load the data from the buffer or when we finally
--- write the data out. The class `EndianStore` via its member functions
--- `load` and `store` takes care of endian coversion automatically.
---
--- This module also provide explicitly endianness encoded versions of
--- Word32 and Word64 which are instances of `EndianStore`. These types
--- inherit their parent type's `Num` instance (besides `Ord`, `Eq`
--- etc). The advantage is the following uniformity in their usage in
--- Haskell code:
---
---   1. Numeric constants are represented in their Haskell notation
---      (which is big endian). For example 0xF0 represents the number
---      240 whether it is @`LE` Word32@ or @`BE` Word32@ or just `Word32`.
---
---   2. The normal arithmetic work on them.
---
---   3. They have the same printed form except for the constructor
---      sticking around.
---
--- Therefore, as far as Haskell programmers are concerned, @`LE`
--- Word32@ and @`BE` Word32@ should be treated as `Word32` for all
--- algorithmic aspects. Similarly, @`LE` Word64@ and @`BE` Word64@
--- should be treated as `Word64`.
---
--- When defining other endian sensitive data types like hashes, we
--- expect users to use these endian safe types. For example SHA1 can
--- be defined as
---
--- > data SHA1 = SHA1 (BE Word32) (BE Word32) (BE Word32) (BE Word32) (BE Word32)
---
--- Then the `EndianStore` instance boils down to storing the words in
--- correct order.
-
-
-
--- | This class is defined mainly to perform endian safe loading and
--- storing. For any type that might have to be encoded as either byte
--- strings or peeked/poked from a memory location it is advisable to
--- define an instance of this class. Using store and load will then
--- prevent endian confusion.
+-- write the data out. For types that are meant to be serialised, the
+-- EndianStore instance in defined in such a way that the `load` and
+-- `store` takes care of endian coversion automatically.
 class Storable w => EndianStore w where
 
   -- | Store the given value at the locating pointed by the pointer
@@ -122,117 +88,6 @@ toByteString :: EndianStore w => w -> ByteString
 toByteString w = unsafeCreate (sizeOf w) putit
       where putit ptr = store (castPtr ptr) w
 
-{-
-
-Developers notes:
------------------
-
-Make sure that the endian encoded version does not have any
-performance penalty. We may have to stare at the core code generated
-by ghc.
-
--}
-
--- | Little-endian wrapper for words
-newtype LE w = LE w
-    deriving ( Arbitrary, Bounded, Enum, Read, Show
-             , Integral, Num, Real, Eq, EqWord, Ord
-             , Bits, Storable, Typeable
-             )
-
--- | Big-endian wrapper for words
-newtype BE w = BE w
-    deriving ( Arbitrary, Bounded, Enum, Read, Show
-             , Integral, Num, Real, Eq, EqWord, Ord
-             , Bits, Storable, Typeable
-             )
-
-{-|
-
-Developers notes:
-
-The next set of conversion functions are intensionally not exported
-and are defined only to aid readability of the Storable instance
-declaration. At first glance it might appear that they could be useful
-but their export can cause confusion.
-
--}
-
-
--- | Convert a Word32 to its little endian form.
-toWord32LE :: Word32 -> LE Word32
-{-# INLINE toWord32LE #-}
-toWord32LE = LE . toLE32
-
--- | Convert a little endian Word32 to Word32
-fromWord32LE :: LE Word32 -> Word32
-{-# INLINE fromWord32LE #-}
-fromWord32LE (LE w) = fromLE32 w
-
--- | Convert a Word32 to its bigendian form.
-toWord32BE :: Word32 -> BE Word32
-{-# INLINE toWord32BE #-}
-toWord32BE = BE . toBE32
-
--- | Convert a big endian Word32 to Word32
-fromWord32BE :: BE Word32 -> Word32
-{-# INLINE fromWord32BE #-}
-fromWord32BE (BE w) = fromBE32 w
-
-
--- | Convert a Word64 to its little endian form.
-toWord64LE :: Word64 -> LE Word64
-{-# INLINE toWord64LE #-}
-toWord64LE = LE . toLE64
-
--- | Convert a little endian Word64 to Word64
-fromWord64LE :: LE Word64 -> Word64
-{-# INLINE fromWord64LE #-}
-fromWord64LE (LE w) = fromLE64 w
-
--- | Convert a Word64 to its bigendian form.
-toWord64BE :: Word64 -> BE Word64
-{-# INLINE toWord64BE #-}
-toWord64BE = BE . toBE64
-
--- | Convert a big endian Word64 to Word64
-fromWord64BE :: BE Word64 -> Word64
-{-# INLINE fromWord64BE #-}
-fromWord64BE (BE w) = fromBE64 w
-
-loadConv :: Storable a => (a -> b) -> CryptoPtr -> IO b
-{-# INLINE loadConv #-}
-loadConv f = fmap f . peek . castPtr
-
-storeConv :: Storable a => (b -> a) -> CryptoPtr -> b -> IO ()
-{-# INLINE storeConv #-}
-storeConv f ptr = poke (castPtr ptr) . f
-
-instance EndianStore (LE Word32) where
-  {-# INLINE load  #-}
-  {-# INLINE store #-}
-  load  = loadConv  toWord32LE
-  store = storeConv fromWord32LE
-
-
-instance EndianStore (BE Word32) where
-  {-# INLINE load  #-}
-  {-# INLINE store #-}
-  load  = loadConv  toWord32BE
-  store = storeConv fromWord32BE
-
-
-instance EndianStore (LE Word64) where
-  {-# INLINE load  #-}
-  {-# INLINE store #-}
-  load  = loadConv toWord64LE
-  store = storeConv fromWord64LE
-
-instance EndianStore (BE Word64) where
-  {-# INLINE load  #-}
-  {-# INLINE store #-}
-  load  = loadConv toWord64BE
-  store = storeConv fromWord64BE
 
 
 -- | A class that facilitates the definition of timing resistant
@@ -504,11 +359,4 @@ class HasName a where
 
 instance HasName Word32
 instance HasName Word64
-
-instance HasName w => HasName (LE w) where
-  getName (LE w) = "LE " ++ getName w
-
-instance HasName w => HasName (BE w) where
-  getName (BE w) = "BE " ++ getName w
-
 -------------------------------------------------------------------
