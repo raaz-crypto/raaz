@@ -95,3 +95,52 @@ instance CryptoCoerce w (LE w) where
 
 instance CryptoCoerce w (BE w) where
   cryptoCoerce = BE
+
+------------------- Endian store for LE 32 ------------------------
+
+foreign import ccall unsafe "cbits/raaz/core/endian.c raazLoadLE32"
+  c_loadLE32 :: CryptoPtr -> IO Word32
+
+foreign import ccall unsafe "cbits/raaz/core/endian.c raazStoreLE32"
+  c_storeLE32 :: CryptoPtr -> Word32 -> IO ()
+
+instance EndianStore (LE Word32) where
+  load             = fmap LE .  c_loadLE32
+  store ptr (LE w) = c_storeLE32 ptr w
+
+------------------- Endian store for BE 32 ------------------------
+
+foreign import ccall unsafe "cbits/raaz/core/endian.c raazLoadBE32"
+  c_loadBE32 :: CryptoPtr -> IO Word32
+
+foreign import ccall unsafe "cbits/raaz/core/endian.c raazStoreBE32"
+  c_storeBE32 :: CryptoPtr -> Word32 -> IO ()
+
+instance EndianStore (BE Word32) where
+  load             = fmap BE .  c_loadBE32
+  store ptr (BE w) = c_storeBE32 ptr w
+
+
+------------------- Endian store for LE 64 ------------------------
+
+foreign import ccall unsafe "cbits/raaz/core/endian.c raazLoadLE64"
+  c_loadLE64 :: CryptoPtr -> IO Word64
+
+foreign import ccall unsafe "cbits/raaz/core/endian.c raazStoreLE64"
+  c_storeLE64 :: CryptoPtr -> Word64 -> IO ()
+
+instance EndianStore (LE Word64) where
+  load             = fmap LE .  c_loadLE64
+  store ptr (LE w) = c_storeLE64 ptr w
+
+------------------- Endian store for BE 64 ------------------------
+
+foreign import ccall unsafe "cbits/raaz/core/endian.c raazLoadBE64"
+  c_loadBE64 :: CryptoPtr -> IO Word64
+
+foreign import ccall unsafe "cbits/raaz/core/endian.c raazStoreBE64"
+  c_storeBE64 :: CryptoPtr -> Word64 -> IO ()
+
+instance EndianStore (BE Word64) where
+  load             = fmap BE .  c_loadBE64
+  store ptr (BE w) = c_storeBE64 ptr w
