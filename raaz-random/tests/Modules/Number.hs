@@ -40,11 +40,11 @@ prop_max :: ( StreamGadget g
 prop_max g' k maxi = monadicIO $ do
   i <- run generateInt
   assert (i >= 0)
-  assert (i <= maxi)
+  assert (i <= getPositive(maxi))
   where
     generateInt = do
       g <- createGadget g' k
-      genMax g maxi
+      genMax g $ getPositive maxi
 
 prop_between :: ( StreamGadget g
                 , PrimitiveOf g ~ prim
