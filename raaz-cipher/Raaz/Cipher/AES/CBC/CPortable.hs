@@ -19,7 +19,7 @@ import Raaz.Cipher.AES.Block.Internal
 import Raaz.Cipher.AES.Internal
 
 foreign import ccall unsafe
-  "raaz/cipher/cportable/aes.c raazCipherAESCBCEncrypt"
+  "raaz/cipher/cportable/aes.h raazCipherAESCBCEncrypt"
   c_cbc_encrypt  :: CryptoPtr  -- ^ expanded key
                  -> CryptoPtr  -- ^ Input
                  -> CryptoPtr  -- ^ IV
@@ -28,7 +28,7 @@ foreign import ccall unsafe
                  -> IO ()
 
 foreign import ccall unsafe
-  "raaz/cipher/cportable/aes.c raazCipherAESCBCDecrypt"
+  "raaz/cipher/cportable/aes.h raazCipherAESCBCDecrypt"
   c_cbc_decrypt  :: CryptoPtr  -- ^ expanded key
                  -> CryptoPtr  -- ^ Input
                  -> CryptoPtr  -- ^ IV

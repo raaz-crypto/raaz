@@ -18,7 +18,7 @@ import Raaz.Cipher.AES.ECB.Type
 import Raaz.Cipher.AES.Internal
 
 foreign import ccall unsafe
-  "raaz/cipher/cportable/aes.c raazCipherAESECBEncrypt"
+  "raaz/cipher/cportable/aes.h raazCipherAESECBEncrypt"
   c_ecb_encrypt  :: CryptoPtr  -- ^ expanded key
                  -> CryptoPtr  -- ^ Input
                  -> Int        -- ^ Number of Blocks
@@ -26,7 +26,7 @@ foreign import ccall unsafe
                  -> IO ()
 
 foreign import ccall unsafe
-  "raaz/cipher/cportable/aes.c raazCipherAESECBDecrypt"
+  "raaz/cipher/cportable/aes.h raazCipherAESECBDecrypt"
   c_ecb_decrypt  :: CryptoPtr  -- ^ expanded key
                  -> CryptoPtr  -- ^ Input
                  -> Int        -- ^ Number of Blocks

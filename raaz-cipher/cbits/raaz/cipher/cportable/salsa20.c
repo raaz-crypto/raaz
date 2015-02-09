@@ -13,16 +13,7 @@ BSD3 license. See the accompanying file LICENSE for exact terms and
 condition.
 
 */
-
-#include <raaz/primitives/load.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <inttypes.h>
-
-typedef uint8_t  Word8;
-typedef uint32_t Word32;
-typedef uint64_t Word64;
+#include <raaz/cipher/cportable/salsa20.h>
 
 /* Rotate Left */
 #define R(a,b) (((a) << (b)) | ((a) >> (32 - (b))))

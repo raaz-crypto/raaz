@@ -17,7 +17,7 @@ import           Raaz.Cipher.AES.CTR.Type
 import           Raaz.Cipher.AES.Internal
 
 foreign import ccall unsafe
-  "raaz/cipher/cportable/aes.c raazCipherAESCTREncrypt"
+  "raaz/cipher/cportable/aes.h raazCipherAESCTREncrypt"
   c_ctr_encrypt  :: CryptoPtr  -- ^ expanded key
                  -> CryptoPtr  -- ^ Input
                  -> CryptoPtr  -- ^ IV

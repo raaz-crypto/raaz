@@ -65,7 +65,8 @@ library
   c-sources: cbits/raaz/cipher/cportable/aes.c
            , cbits/raaz/cipher/cportable/salsa20.c
   include-dirs: cbits
-
+  include: raaz/cipher/cportable/aes.h
+         , raaz/cipher/cportable/salsa20.h
 
   if os(linux)
      cc-options: -Wall -Werror -O3 -DRAAZ_HAVE_GCC

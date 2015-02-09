@@ -14,18 +14,11 @@ condition.
 
 */
 
-#include <stdint.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <inttypes.h>
-
-typedef uint8_t  Word8;
-typedef uint32_t Word32;
-typedef uint64_t Word64;
+#include <raaz/cipher/cportable/aes.h>
 
 #define RotateL(x,n)  (((x) << (n))  | ((x) >> (32 - (n))))
 
-typedef enum {KEY128=0, KEY192=1, KEY256=2} KEY;
+
 
 static const Word32 rcon[] =
 {
