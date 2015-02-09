@@ -1,22 +1,4 @@
-#include <stdio.h>
-#include <string.h>
-#include <raaz/primitives/config.h>
-
-#ifdef RAAZ_HAVE_mlock
-#include <sys/mman.h>
-#endif
-
-#ifdef RAAZ_HAVE_memalign
-#include <stdlib.h>
-#include <unistd.h>
-#endif
-
-char * getLine (char*, size_t);
-void wipememory (volatile void*, size_t);
-void * createpool(size_t);
-void freepool(void*, size_t);
-int memorylock(void*, size_t);
-void memoryunlock(void*, size_t);
+#include <raaz/core/memory.h>
 
 
 /* Make this unbuffered and handle case when line is more that len */

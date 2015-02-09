@@ -106,7 +106,7 @@ library
      cpp-options: -DUseKinds
      extensions: DataKinds
 
-  c-sources: cbits/raaz/memory.c
+  c-sources: cbits/raaz/core/memory.c
            , cbits/raaz/core/endian.c
   include-dirs: includes
               , cbits

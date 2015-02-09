@@ -42,19 +42,19 @@ import           Raaz.System.Parameters (pageSize)
 import           Raaz.Core.Types
 import           Raaz.Core.Util.Ptr
 
-foreign import ccall unsafe "cbits/raaz/memory.c memorylock"
+foreign import ccall unsafe "raaz/core/memory.h memorylock"
   c_mlock :: CryptoPtr -> Int -> IO Int
 
-foreign import ccall unsafe "cbits/raaz/memory.c memoryunlock"
+foreign import ccall unsafe "raaz/core/memory.h memoryunlock"
   c_munlock :: CryptoPtr -> Int -> IO ()
 
-foreign import ccall unsafe "cbits/raaz/memory.c createpool"
+foreign import ccall unsafe "raaz/core/memory.h createpool"
   c_createpool :: Int -> IO CryptoPtr
 
-foreign import ccall unsafe "cbits/raaz/memory.c freepool"
+foreign import ccall unsafe "raaz/core/memory.h freepool"
   c_freepool :: CryptoPtr -> Int -> IO ()
 
-foreign import ccall unsafe "cbits/raaz/memory.c wipememory"
+foreign import ccall unsafe "raaz/core/memory.h wipememory"
   c_wipe :: CryptoPtr -> Int -> IO ()
 
 -- $architecture
