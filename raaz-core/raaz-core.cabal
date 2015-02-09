@@ -109,6 +109,7 @@ library
   c-sources: cbits/raaz/memory.c
            , cbits/raaz/core/endian.c
   include-dirs: includes
+              , cbits
   includes: raaz/primitives.h
           , raaz/primitives/config.h
           , raaz/primitives/load.h

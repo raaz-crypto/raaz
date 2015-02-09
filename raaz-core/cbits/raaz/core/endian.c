@@ -1,12 +1,4 @@
-#include <stdint.h>
-#include <raaz/primitives/config.h>
-
-#if defined(RAAZ_HAVE_htole32)   | defined(RAAZ_HAVE_htobe32)	\
-    | defined(RAAZ_HAVE_htole64) | defined(RAAZ_HAVE_htobe64)	\
-    | defined(RAAZ_HAVE_be32toh) | defined(RAAZ_HAVE_le32toh)	\
-    | defined(RAAZ_HAVE_be64toh) | defined(RAAZ_HAVE_le64toh)
-#include <endian.h>
-#endif
+# include <raaz/core/endian.h>
 
 /*
  * 32-bit Little endian  load and store

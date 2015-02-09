@@ -98,10 +98,10 @@ instance CryptoCoerce w (BE w) where
 
 ------------------- Endian store for LE 32 ------------------------
 
-foreign import ccall unsafe "cbits/raaz/core/endian.c raazLoadLE32"
+foreign import ccall unsafe "raaz/core/endian.h raazLoadLE32"
   c_loadLE32 :: CryptoPtr -> IO Word32
 
-foreign import ccall unsafe "cbits/raaz/core/endian.c raazStoreLE32"
+foreign import ccall unsafe "raaz/core/endian.h raazStoreLE32"
   c_storeLE32 :: CryptoPtr -> Word32 -> IO ()
 
 instance EndianStore (LE Word32) where
@@ -110,10 +110,10 @@ instance EndianStore (LE Word32) where
 
 ------------------- Endian store for BE 32 ------------------------
 
-foreign import ccall unsafe "cbits/raaz/core/endian.c raazLoadBE32"
+foreign import ccall unsafe "raaz/core/endian.h raazLoadBE32"
   c_loadBE32 :: CryptoPtr -> IO Word32
 
-foreign import ccall unsafe "cbits/raaz/core/endian.c raazStoreBE32"
+foreign import ccall unsafe "raaz/core/endian.h raazStoreBE32"
   c_storeBE32 :: CryptoPtr -> Word32 -> IO ()
 
 instance EndianStore (BE Word32) where
@@ -123,10 +123,10 @@ instance EndianStore (BE Word32) where
 
 ------------------- Endian store for LE 64 ------------------------
 
-foreign import ccall unsafe "cbits/raaz/core/endian.c raazLoadLE64"
+foreign import ccall unsafe "raaz/core/endian.h raazLoadLE64"
   c_loadLE64 :: CryptoPtr -> IO Word64
 
-foreign import ccall unsafe "cbits/raaz/core/endian.c raazStoreLE64"
+foreign import ccall unsafe "raaz/core/endian.h raazStoreLE64"
   c_storeLE64 :: CryptoPtr -> Word64 -> IO ()
 
 instance EndianStore (LE Word64) where
@@ -135,10 +135,10 @@ instance EndianStore (LE Word64) where
 
 ------------------- Endian store for BE 64 ------------------------
 
-foreign import ccall unsafe "cbits/raaz/core/endian.c raazLoadBE64"
+foreign import ccall unsafe "raaz/core/endian.h raazLoadBE64"
   c_loadBE64 :: CryptoPtr -> IO Word64
 
-foreign import ccall unsafe "cbits/raaz/core/endian.c raazStoreBE64"
+foreign import ccall unsafe "raaz/core/endian.h raazStoreBE64"
   c_storeBE64 :: CryptoPtr -> Word64 -> IO ()
 
 instance EndianStore (BE Word64) where
