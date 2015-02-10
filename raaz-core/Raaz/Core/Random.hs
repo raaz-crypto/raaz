@@ -51,6 +51,3 @@ openEntropy :: IO RandomDev
 openEntropy = do
   handle <- openBinaryFile "/dev/random" ReadMode
   return $ RandomDev handle
-
-class Random a where
-  gen :: RandomDev -> IO a
