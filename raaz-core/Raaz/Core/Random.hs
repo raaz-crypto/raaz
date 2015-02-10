@@ -2,17 +2,12 @@
 {-# LANGUAGE KindSignatures   #-}
 {-# LANGUAGE FlexibleContexts #-}
 module Raaz.Core.Random
-  ( Random(..)
-  , RandomDev(..)
-  , PRG(..), fromPRG
-  , openPseudoRandom
-  , openEntropy
+  ( PRG(..), fromPRG
   ) where
 
 import Control.Monad   (void)
 import Foreign.Ptr     (castPtr)
 import Foreign.Storable(Storable, peek)
-import System.IO (openBinaryFile, Handle, IOMode(..))
 
 import Raaz.Core.ByteSource(ByteSource, fillBytes)
 import Raaz.Core.Util.Ptr  (byteSize, allocaBuffer)
@@ -39,15 +34,3 @@ fromPRG =  go undefined
           allocaBuffer sz $ \ ptr -> do
             void $ fillBytes sz prg ptr
             peek $ castPtr ptr
-
-newtype RandomDev = RandomDev Handle
-
-openPseudoRandom :: IO RandomDev
-openPseudoRandom = do
-  handle <- openBinaryFile "/dev/urandom" ReadMode
-  return $ RandomDev handle
-
-openEntropy :: IO RandomDev
-openEntropy = do
-  handle <- openBinaryFile "/dev/random" ReadMode
-  return $ RandomDev handle

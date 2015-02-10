@@ -92,6 +92,12 @@ library
                  , Raaz.Core.Write.Unsafe
                  , Raaz.System.Parameters
 
+  if os(linux) || os(freebsd) || os(openbsd)
+     hs-source-dirs: .
+                   , src/urandom/
+     exposed-modules: Raaz.System.Random
+  else
+     hs-source-dirs: .
   other-modules: Raaz.Core.Memory.Internal
   build-depends: base                           >= 4.5 && < 4.8
                , bytestring                     >= 0.9 && < 0.11
@@ -104,8 +110,7 @@ library
   ghc-options: -Wall
 
   if impl(ghc >= 7.6)
-     cpp-options: -DUseKinds
-     extensions: DataKinds
+     cpp-options:-DUseKinds
 
   c-sources: cbits/raaz/core/memory.c
            , cbits/raaz/core/endian.c
