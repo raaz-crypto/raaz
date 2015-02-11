@@ -8,7 +8,7 @@
 
 PACKAGES= raaz raaz-random raaz-cipher \
           raaz-hash raaz-ssh raaz-benchmarks \
-          raaz-core raaz-modular
+          raaz-core raaz-modular raaz-curves
 
 ROOTDIR=$(abspath .)
 

@@ -11,6 +11,7 @@ module Raaz.Number.Internals
        , Word2048
        , Word4096
        , Word8192
+       , narrowToWord256
        , os2wp, w2osp
        -- * Parse and Write
        --
@@ -157,6 +158,11 @@ instance HasName Word256
 narrowWord256 :: Integer -> Integer
 narrowWord256 w = w `mod` twoPow257
 {-# INLINE narrowWord256 #-}
+
+-- | Reduced Int to Word256
+narrowToWord256 :: Integer -> Word256
+narrowToWord256 w = Word256 $ w `mod` twoPow257
+{-# INLINE narrowToWord256 #-}
 
 twoPow257 :: Integer
 twoPow257 = 1 `shiftL` 257
@@ -530,7 +536,6 @@ instance Storable Word8192 where
   alignment _  = alignment (undefined :: Word64)
   peek ptr     = runParser (castPtr ptr) parseWord
   poke ptr     = runWrite (castPtr ptr) . writeWord
-
 
 -- | Converts a Word to ByteString
 w2osp :: (Storable w, Integral w)
