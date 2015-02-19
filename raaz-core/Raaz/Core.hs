@@ -13,6 +13,7 @@ module Raaz.Core
        , module Raaz.Core.Primitives.Hash
        , module Raaz.Core.Primitives.Cipher
        , module Raaz.Core.Primitives.Symmetric
+       , module Raaz.Core.Random
        , module Raaz.Core.Types
        , module Raaz.Core.Util
        ) where
@@ -25,6 +26,7 @@ import Raaz.Core.Primitives.HMAC
 import Raaz.Core.Primitives.Hash
 import Raaz.Core.Primitives.Cipher
 import Raaz.Core.Primitives.Symmetric
+import Raaz.Core.Random
 import Raaz.Core.Types
 import Raaz.Core.Util
 
