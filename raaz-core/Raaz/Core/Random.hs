@@ -17,7 +17,7 @@ import Raaz.Core.Util.Ptr  (byteSize, allocaBuffer)
 -- seeded.
 class ByteSource prg => PRG prg where
 
-  -- Associated type that captures the seed for the PRG.
+  -- | Associated type that captures the seed for the PRG.
   type Seed prg :: *
 
   -- | Creates a new pseudo-random generators
