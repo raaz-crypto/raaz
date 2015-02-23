@@ -72,18 +72,6 @@ newtype BE w = BE w
              , Bits, Storable, Typeable
              )
 
-{-|
-
-Developers notes:
-
-The next set of conversion functions are intensionally not exported
-and are defined only to aid readability of the Storable instance
-declaration. At first glance it might appear that they could be useful
-but their export can cause confusion.
-
--}
-
-
 instance HasName w => HasName (LE w) where
   getName (LE w) = "LE " ++ getName w
 
