@@ -22,9 +22,12 @@ module Raaz.Core.Classes
        (
          -- * Type safety.
          -- $typesafety$
+
+
          -- ** Endian safe loading and storing.
          -- $endianSafe$
          EndianStore(..), toByteString
+
          -- ** Type safe lengths
          -- $length$
        , BYTES(..), BITS(..)
@@ -66,15 +69,16 @@ import Test.QuickCheck          (Arbitrary)
 -- 3. Ways to write timing safe equality checks.
 
 
+
 -- $endianSafe$
 --
--- One of the most common source of implementation problems in crypto
--- algorithms is the correct dealing of endianness. Endianness matters
--- only when we first load the data from the buffer or when we finally
--- write the data out. For types that are meant to be serialised, the
--- EndianStore instance in defined in such a way that the `load` and
--- `store` takes care of endian coversion automatically.
-
+-- One of the most common source of implementation problems in
+-- crypto algorithms is the correct dealing of endianness. Endianness
+-- matters only when we first load the data from the buffer or when we
+-- finally write the data out. For types that are meant to be
+-- serialised, the EndianStore instance in defined in such a way that
+-- the `load` and `store` takes care of endian conversion
+-- automatically.
 class Storable w => EndianStore w where
 
   -- | Store the given value at the locating pointed by the pointer
