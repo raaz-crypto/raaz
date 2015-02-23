@@ -1,6 +1,7 @@
 {-|
 
-This module exposes the /dev/urandom device as a PRG for the raaz libraries.
+This module exposes the @/dev/urandom@ device as a PRG for the raaz
+libraries.
 
 -}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
