@@ -5,29 +5,30 @@
 {-# LANGUAGE DeriveDataTypeable         #-}
 
 
--- | This module also provide explicitly endianness encoded versions
--- of Word32 and Word64 which are instances of `EndianStore`. These
--- types inherit their parent type's `Num` instance (besides `Ord`,
--- `Eq` etc). The advantage is the following uniformity in their usage
--- in Haskell code:
+-- | This module provide versions of the word type, i.e. types exposed
+-- from "Data.Word", with their endianness explicitly specified: the
+-- type @LE w@ (@BE w@) is @w@ with little-endian (respectively
+-- big-endian) encoding.  These types inherit their parent type's
+-- `Num` instance (besides `Ord`, `Eq` etc). The advantage is the
+-- following uniformity in their usage in Haskell code:
 --
---   1. Numeric constants are represented in their Haskell notation
---      (which is big endian). For example 0xF0 represents the number
---      240 whether it is @`LE` Word32@ or @`BE` Word32@ or just `Word32`.
+-- 1. For any word type @w@, numeric constants are represented in
+--    their Haskell notation (which is big endian). For example, 0xF0
+--    represents the number 240 whether the LE or the BE variant.
 --
---   2. The normal arithmetic work on them.
+-- 2. The normal arithmetic work on them.
 --
---   3. They have the same printed form except for the constructor
---      sticking around.
+-- 3. They have the same printed form except for the constructor
+--    sticking around.
 --
--- Therefore, as far as Haskell programmers are concerned, @`LE`
--- Word32@ and @`BE` Word32@ should be treated as `Word32` for all
--- algorithmic aspects. Similarly, @`LE` Word64@ and @`BE` Word64@
--- should be treated as `Word64`.
+-- Therefore, as far as Haskell programmers are concerned, the endian
+-- explicit version of the word type @w@ behave pretty much the same
+-- way as @w@. However, we provide of `EndianStore` instances to the
+-- endian explicit versions of `Word32` and `Word64` therefore making
+-- them suitable for serialisation without endian confusion.
 --
--- When defining other endian sensitive data types like hashes, we
--- expect users to use these endian safe types. For example SHA1 can
--- be defined as
+-- Complicated endian sensitive data types like hashes are built out
+-- of these basic types. For example SHA1 is defined as
 --
 -- > data SHA1 = SHA1 (BE Word32) (BE Word32) (BE Word32) (BE Word32) (BE Word32)
 --
@@ -78,6 +79,8 @@ instance HasName w => HasName (LE w) where
 instance HasName w => HasName (BE w) where
   getName (BE w) = "BE " ++ getName w
 
+--  We should be able to coerce from a word type to its endian
+--  explicit form but not otherwise.
 instance CryptoCoerce w (LE w) where
   cryptoCoerce = LE
 
