@@ -20,8 +20,9 @@ import           Raaz.Core.Types
 import           Raaz.Core.Util.Ptr         (byteSize)
 import qualified Raaz.Core.Parse.Unsafe          as PU
 
--- | A safe parser. Also stores the message bytes required in the
--- available in the buffer.
+-- | The safe parser type. It is essentially a unsafe parser which
+-- carries along the total bytes that will be read when the parse
+-- action is executed.
 type Parser = StateT (BYTES Int) PU.Parser
 
 -- | Exception raised when a buffer of smaller length is given to the
