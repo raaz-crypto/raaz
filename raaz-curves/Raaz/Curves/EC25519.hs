@@ -15,6 +15,9 @@ module Raaz.Curves.EC25519
        , publicToken
        , sharedSecret
        , getRandomForSecret
+       , params25519Reco
+       , sharedSecret25519Reco
        ) where
 
 import Raaz.Curves.EC25519.Internal
+import Raaz.Curves.EC25519.CPortable

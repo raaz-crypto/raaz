@@ -28,6 +28,7 @@ library
   exposed-modules: Raaz.Curves
                  , Raaz.Curves.EC25519
   other-modules: Raaz.Curves.EC25519.Internal
+               , Raaz.Curves.EC25519.CPortable
   build-depends: base                           >= 4.5 && < 4.8
                , bytestring                     >= 0.9 && < 0.11
                , data-default                   >= 0.4 && < 0.6
@@ -44,6 +45,9 @@ library
       ghc-options: -Wall -fregs-graph
   else
       ghc-options: -Wall
+  c-sources: cbits/raaz/curves/cportable/curve25519-donna.c
+           , cbits/raaz/curves/cportable/curve25519-donna-c64.c
+  include-dirs: cbits
 
   if os(linux)
      cc-options: -Wall -Werror -DRAAZ_HAVE_GCC
