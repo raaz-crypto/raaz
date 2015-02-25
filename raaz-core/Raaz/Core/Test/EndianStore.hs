@@ -19,11 +19,12 @@ import Test.QuickCheck                      ( Property, Arbitrary    )
 import Test.QuickCheck.Monadic              ( run, assert, monadicIO )
 
 import Raaz.Core.Types
+import Raaz.Core.Util.Ptr
 
 
 -- | This is where the actual store/load is performed.
 storeLoad :: (EndianStore a, Eq a) => a -> IO Bool
-storeLoad a = allocaBytesAligned (sizeOf a) cryptoAlignment runStoreLoad
+storeLoad a = allocaBuffer (byteSize a) runStoreLoad
   where runStoreLoad ptr = do store ptr a
                               y <- load ptr
                               return $ y == a
