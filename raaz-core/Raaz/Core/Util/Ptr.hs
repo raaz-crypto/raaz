@@ -18,6 +18,7 @@ module Raaz.Core.Util.Ptr
        , memset, memmove, memcpy
        ) where
 
+import Control.Exception     (bracket_)
 import Control.Monad         (void)
 import Data.Word             (Word8)
 import Foreign.Ptr
@@ -36,14 +37,54 @@ byteSize = BYTES . sizeOf
 -- explicit freeing of the memory is required as the memory is
 -- allocated locally and freed once the action finishes. It is better
 -- to use this function than @`allocaBytes`@ as it does type safe
--- scaling.
+-- scaling. This function also ensure that the allocated buffer is
+-- word aligned.
 allocaBuffer :: LengthUnit l
              => l                    -- ^ buffer length
              -> (CryptoPtr -> IO b)  -- ^ the action to run
              -> IO b
 {-# INLINE allocaBuffer #-}
-allocaBuffer l = allocaBytes bytes
+allocaBuffer l = allocaBytesAligned bytes align
   where BYTES bytes = inBytes l
+        BYTES align = inBytes (1 :: ALIGN)
+
+-- | This function allocates a chunk of "secure" memory of a given
+-- size and runs the action. The memory (1) exists for the duration of
+-- the action (2) will not be swapped during that time and (3) will be
+-- wiped clean and deallocated when the action terminates either
+-- directly or indirectly via errors. While this is mostly secure,
+-- there can be strange situations in multi-threaded application where
+-- the memory is not wiped out. For example if you run a
+-- crypto-sensitive action inside a child thread and the main thread
+-- gets exists, then the child thread is killed (due to the demonic
+-- nature of haskell threads) immediately and might not give it chance
+-- to wipe the memory clean. This is a problem inherent to how the
+-- `bracket` combinator works inside a child thread.
+--
+-- TODO: File this insecurity in the wiki.
+--
+allocaSecure :: LengthUnit l
+              => l
+              -> (CryptoPtr -> IO a)
+              -> IO a
+allocaSecure l action = allocaBuffer actualSz actualAction
+  where actualSz = atLeast l :: ALIGN
+        BYTES sz = inBytes actualSz
+        actualAction cptr = let
+          lockIt    = void $ c_mlock cptr sz
+          releaseIt = c_wipe cptr sz >>  c_munlock cptr sz
+          in bracket_ lockIt releaseIt $ action cptr
+
+
+foreign import ccall unsafe "raaz/core/memory.h memorylock"
+  c_mlock :: CryptoPtr -> Int -> IO Int
+
+foreign import ccall unsafe "raaz/core/memory.h memoryunlock"
+  c_munlock :: CryptoPtr -> Int -> IO ()
+
+foreign import ccall unsafe "raaz/core/memory.h wipememory"
+  c_wipe :: CryptoPtr -> Int -> IO ()
+
 
 -- | Creates a memory of given size. It is better to use over
 -- @`mallocBytes`@ as it uses typesafe length.
