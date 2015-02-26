@@ -9,9 +9,11 @@ to use with type safe lengths.
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ForeignFunctionInterface   #-}
 module Raaz.Core.Util.Ptr
-       ( byteSize
-       , allocaBuffer, mallocBuffer
-       , movePtr
+       ( -- * Size, offsets and arithmetic.
+         byteSize , movePtr
+         -- * Allocation of memory
+       , allocaBuffer, allocaSecure, mallocBuffer
+         -- * Operation on pointer contents
        , storeAt, storeAtIndex
        , loadFrom, loadFromIndex
        , hFillBuf
@@ -27,10 +29,25 @@ import Foreign.Storable      (Storable, sizeOf)
 import System.IO             (hGetBuf, Handle)
 import Raaz.Core.Types
 
+-------------------- Sizes, offsets and pointer arithmetic -------
+
 -- | Similar to `sizeOf` but returns the length in type safe units.
 byteSize :: Storable a => a -> BYTES Int
 {-# INLINE byteSize #-}
 byteSize = BYTES . sizeOf
+
+-- | Moves a pointer by a specified offset. The offset can be of any
+-- type that supports coercion to @`BYTES` Int@. It is safer to use
+-- this function than @`plusPtr`@, as it does type safe scaling.
+movePtr :: LengthUnit offset
+        => CryptoPtr
+        -> offset
+        -> CryptoPtr
+{-# INLINE movePtr #-}
+movePtr cptr offset = plusPtr cptr bytes
+  where BYTES bytes = inBytes offset
+
+------------------------ Allocation --------------------------------
 
 -- | The expression @allocaBuffer l action@ allocates a local buffer
 -- of length @l@ and passes it on to the IO action @action@. No
@@ -95,17 +112,8 @@ mallocBuffer :: LengthUnit l
 mallocBuffer l = mallocBytes bytes
   where BYTES bytes = inBytes l
 
--- | Moves a pointer by a specified offset. The offset can be of any
--- type that supports coercion to @`BYTES` Int@. It is safer to use
--- this function than @`plusPtr`@, as it does type safe scaling.
-movePtr :: LengthUnit offset
-        => CryptoPtr
-        -> offset
-        -> CryptoPtr
-{-# INLINE movePtr #-}
-movePtr cptr offset = plusPtr cptr bytes
-  where BYTES bytes = inBytes offset
 
+-------------------- Low level pointer operations ------------------
 
 -- | Store the given value as the @n@-th element of the array
 -- pointed by the crypto pointer.
@@ -166,6 +174,8 @@ hFillBuf handle cptr bufSize = fmap BYTES $ hGetBuf handle cptr bytes
 -- | Some common PTR functions abstracted over type safe length.
 foreign import ccall unsafe "string.h memcpy" c_memcpy
     :: CryptoPtr -> CryptoPtr -> BYTES Int -> IO CryptoPtr
+
+------------------- Copy move and set contents ----------------------------
 
 -- | Copy between pointers.
 memcpy :: LengthUnit l
