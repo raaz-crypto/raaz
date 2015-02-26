@@ -2,11 +2,11 @@
 -- gymnastics. This module provide a framework to perform some of them
 -- cleanly and safely. One can use
 
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+
 {-# LANGUAGE FlexibleInstances          #-}
 module Raaz.Core.Gymnastics
        ( Manoeuvre(..)
-       , manoeuvre
+       , manoeuvre, manoeuvre'
        -- * Applicative parsing manoeuvre
 
        -- * Monoidal Writing Manoeuvre
@@ -55,3 +55,8 @@ manoeuvre :: LengthUnit l => Manoeuvre l IO a -> CryptoBuffer -> IO (Maybe a)
 manoeuvre mA cbuf = withCryptoBuffer cbuf $ \ sz cptr ->
   if sz < inBytes (sizeAffected mA) then pure Nothing
   else Just <$> unsafeManoeuvre mA cptr
+
+manoeuvre' :: LengthUnit l => Manoeuvre l IO a -> CryptoBuffer -> IO a
+manoeuvre' mA cbuf  = withCryptoBuffer cbuf $ \ sz cptr ->
+  if sz < inBytes (sizeAffected mA) then fail "manoeuvre': not enough space in the buffer"
+  else unsafeManoeuvre mA cptr
