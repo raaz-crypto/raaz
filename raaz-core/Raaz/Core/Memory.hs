@@ -4,15 +4,18 @@ Abstraction of a memory object.
 
 -}
 
-{-# LANGUAGE DefaultSignatures #-}
-{-# LANGUAGE TypeFamilies      #-}
+{-# LANGUAGE DefaultSignatures          #-}
+{-# LANGUAGE TypeFamilies               #-}
+{-# LANGUAGE ForeignFunctionInterface   #-}
+{-# LANGUAGE GADTs                      #-}
 
 module Raaz.Core.Memory
        ( Memory(..)
        , InitializableMemory(..)
        , FinalizableMemory(..)
-         -- CryptoCell
-       , CryptoCell
+       , withMemory, withSecureMemory , copyMemory
+         -- * Memory cells
+       , MemoryCell
        , cellPeek
        , cellPoke
        , cellModify
@@ -20,60 +23,75 @@ module Raaz.Core.Memory
          -- Buffer
        , Bufferable(..)
        , MemoryBuf
-       , memoryBufSize
        , withMemoryBuf
        ) where
 
+import           Control.Applicative ( WrappedArrow(..) )
+import           Data.Monoid (Sum (..))
+import           Foreign.Storable(Storable(..))
+import           Foreign.Ptr (castPtr)
 
-import           Control.Applicative
-import           Control.Exception         (bracket)
-import           Foreign.ForeignPtr.Safe   (finalizeForeignPtr,
-                                            mallocForeignPtrBytes,
-                                            withForeignPtr)
-import           Foreign.Ptr
-import           Foreign.Storable
-
-
-import           Raaz.Core.Memory.Internal
+-- import           Raaz.Core.Memory.Internal
+import           Raaz.Core.MonoidalAction
 import           Raaz.Core.Types
 import           Raaz.Core.Util.Ptr
 
+------------------------ A memory allocator -----------------------
+
+type ALIGNMonoid = Sum ALIGN
+
+type AllocField = Field CryptoPtr
+
+-- | A memory allocator. The allocator allocates memory from a fixed
+-- chunk of memory pointed by a cryptoPtr.
+type Alloc = TwistRF AllocField ALIGNMonoid
+
+-- | Make an allocator for a given memory type.
+makeAlloc :: LengthUnit l => l -> (CryptoPtr -> mem) -> Alloc mem
+makeAlloc l memCreate = TwistRF (WrapArrow memCreate, Sum $ atLeast l)
 
 -- | Any cryptographic primitives use memory to store stuff. This
--- class abstracts all types that hold some memory. Besides the usual
--- operations of allocation and freeing, cryptographic application
--- often requires securing the memory from being swapped out (think of
--- memory used to store private keys or passwords). This abstraction
--- supports memory securing. If your platform supports memory locking,
--- then securing a memory will prevent the memory from being swapped
--- to the disk. Once secured the memory location is overwritten by
--- nonsense before being freed.
---
+-- class abstracts all types that hold some memory. Cryptographic
+-- application often requires securing the memory from being swapped
+-- out (think of memory used to store private keys or passwords). This
+-- abstraction supports memory securing. If your platform supports
+-- memory locking, then securing a memory will prevent the memory from
+-- being swapped to the disk. Once secured the memory location is
+-- overwritten by nonsense before being freed.
 class Memory m where
 
-  -- | Allocate the memory.
-  newMemory    :: IO m
+  -- | Returns an allocator for this memory.
+  memoryAlloc    :: Alloc m
 
-  -- | Free the memory.
-  freeMemory   :: m -> IO ()
+  -- | Returns the pointer to the underlying buffer.
+  underlyingPtr :: m -> CryptoPtr
 
-  -- | Copy Memory from Source to Destination
-  copyMemory :: m -- ^ Source
-             -> m -- ^ Destination
-             -> IO ()
+  {-
+  -- | This value @unsafeAllocate cptr@ creates a new instance of the
+  -- memory @m@ with the underlying buffer being the memory pointed by
+  -- @cptr@. The function in unsafe as it does not (and cannot) verify
+  -- whether the passed pointer points to a valid memory location,
+  -- i.e. has at least @allocSize m@ space, or whether it satisfies
+  -- the allignment constraint.
+  --
+  -- It is highly unlikely that a user would need to use this function
+  -- directly. Rather it is used to implement `withMemory` and
+  -- `withSecureMemory`, the two combinators that any law abiding
+  -- Haskell programmer should use when dealing with murky things like
+  -- memory.
+  unsafeAllocateMemory :: CryptoPtr -> m
+  -}
 
-  -- | Perform an action which makes use of this memory. The memory
-  -- allocated will automatically be freed when the action finishes
-  -- either gracefully or with some exception. Besides being safer,
-  -- this method might be more efficient as the memory might be
-  -- allocated from the stack directly and will have very little GC
-  -- overhead.
-  withMemory   :: (m -> IO a) -> IO a
-  withMemory = bracket newMemory freeMemory
-
-  -- | Similar to `withMemory` but allocates a secure memory for the
-  -- action.
-  withSecureMemory :: (m -> IO a) -> PoolRef -> IO a
+-- | Copy data from a given memory location to the other. The first
+-- argument is destionation and the second argument is source to match
+-- with the convention followed in memcpy.
+copyMemory :: Memory m => m -- ^ Destination
+                       -> m -- ^ Source
+                       -> IO ()
+copyMemory dest src = memcpy (underlyingPtr dest) (underlyingPtr src) sz
+  where sz = getSum $ twistMonoidValue $ getAlloc src
+        getAlloc :: Memory m => m -> Alloc m
+        getAlloc _ = memoryAlloc
 
 -- | The memory which can be initialized from an initial value.
 class Memory m => InitializableMemory m where
@@ -93,12 +111,43 @@ class Memory m => FinalizableMemory m where
   -- | Get the final value from the memory.
   finalizeMemory :: m -> IO (FV m)
 
+-------------------------- The With combinators. ----------------
+
+-- | Perform an action which makes use of this memory. The memory
+-- allocated will automatically be freed when the action finishes
+-- either gracefully or with some exception. Besides being safer,
+-- this method might be more efficient as the memory might be
+-- allocated from the stack directly and will have very little GC
+-- overhead.
+withMemory   :: Memory m => (m -> IO a) -> IO a
+withMemory   = withM memoryAlloc
+  where withM :: Memory m => Alloc m -> (m -> IO a) -> IO a
+        withM alctr action = allocaBuffer sz $ action . getM
+          where sz     = getSum $ twistMonoidValue alctr
+                getM   = computeField $ twistFunctorValue alctr
+
+
+-- | Similar to `withMemory` but allocates a secure memory for the
+-- action. Secure memories are never swapped on to disk and will be
+-- wiped clean of sensitive data after use. However, be careful when
+-- using this function in a child thread. Due to the daemonic nature
+-- of Haskell threads, if the main thread exists before the child
+-- thread is done with its job, sensitive data can leak. This is
+-- essentially a limitation of the bracket which is used internally.
+withSecureMemory :: Memory m => (m -> IO a) -> IO a
+withSecureMemory = withSM memoryAlloc
+  where withSM :: Memory m => Alloc m -> (m -> IO a) -> IO a
+        withSM alctr action = allocaSecure sz $ action . getM
+          where sz     = getSum $ twistMonoidValue alctr
+                getM   = computeField $ twistFunctorValue alctr
+
+---------------------------------------------------------------------
+{--
+
+-- | memory that does not hold anything.
 instance Memory () where
-  newMemory = return ()
-  freeMemory _ = return ()
-  copyMemory _ _ = return ()
-  withMemory f = f ()
-  withSecureMemory f _ = f ()
+  memoryAlloc    = pure ()
+  underlyingPtr  = nullPtr
 
 instance InitializableMemory () where
   type IV () = ()
@@ -108,12 +157,12 @@ instance FinalizableMemory () where
   type FV () = ()
   finalizeMemory _ = return ()
 
+
 instance (Memory a, Memory b) => Memory (a,b) where
-  newMemory = (,) <$> newMemory <*> newMemory
-  freeMemory (a,b) = freeMemory a >> freeMemory b
+
+  memoryAlloc                = (,) <$> memoryAlloc <*> memoryAlloc
   copyMemory (sa,sb) (da,db) = copyMemory sa da >> copyMemory sb db
-  withSecureMemory f bk = withSecureMemory sec bk
-    where sec b = withSecureMemory (\a -> f (a,b)) bk
+
 
 instance ( InitializableMemory a
          , InitializableMemory b
@@ -128,6 +177,7 @@ instance ( FinalizableMemory a
   type FV (a,b) = (FV a, FV b)
   finalizeMemory (a,b) =  (,) <$> finalizeMemory a
                               <*> finalizeMemory b
+
 
 instance (Memory a, Memory b, Memory c) => Memory (a,b,c) where
   newMemory = (,,) <$> newMemory <*> newMemory <*> newMemory
@@ -197,92 +247,76 @@ instance ( FinalizableMemory a
                                     <*> finalizeMemory c
                                     <*> finalizeMemory d
 
+--}
+
 -- | A memory location to store a value of type having `Storable`
 -- instance.
-newtype CryptoCell a = CryptoCell ForeignCryptoPtr
+newtype MemoryCell a = MemoryCell CryptoPtr
 
--- | Read the value from the CryptoCell.
-cellPeek :: Storable a => CryptoCell a -> IO a
-cellPeek (CryptoCell p) = withForeignPtr p (peek . castPtr)
+-- | Read the value from the MemoryCell.
+cellPeek :: Storable a => MemoryCell a -> IO a
+cellPeek (MemoryCell cptr) = peek $ castPtr cptr
 
--- | Write the value to the CryptoCell.
-cellPoke :: Storable a => CryptoCell a -> a -> IO ()
-cellPoke (CryptoCell p) v = withForeignPtr p (flip poke v . castPtr)
+-- | Write the value to the MemoryCell.
+cellPoke :: Storable a => MemoryCell a -> a -> IO ()
+cellPoke (MemoryCell cptr) v = flip poke v $ castPtr cptr
 
 -- | Apply the given function to the value in the cell.
-cellModify :: Storable a => CryptoCell a -> (a -> a) -> IO ()
+cellModify :: Storable a => MemoryCell a -> (a -> a) -> IO ()
 cellModify cp f = cellPeek cp >>= cellPoke cp . f
 
--- | Perform some pointer action on CryptoCell. Useful while working
+-- | Perform some pointer action on MemoryCell. Useful while working
 -- with ffi functions.
-withCell :: CryptoCell a -> (CryptoPtr -> IO b) -> IO b
-withCell (CryptoCell fp) = withForeignPtr fp
+withCell :: MemoryCell a -> (CryptoPtr -> IO b) -> IO b
+withCell (MemoryCell cptr) fp = fp cptr
 
-instance Storable a => Memory (CryptoCell a) where
-  newMemory = mal undefined
-    where mal :: Storable a => a -> IO (CryptoCell a)
-          mal = fmap CryptoCell . mallocForeignPtrBytes . sizeOf
-  freeMemory (CryptoCell fptr) = finalizeForeignPtr fptr
-  copyMemory scell dcell = withCell scell do1
-    where do1 sptr = withCell dcell (do2 sptr)
-          do2 sptr dptr = memcpy dptr sptr (BYTES $ sizeOf (getA scell))
-          getA :: CryptoCell a -> a
-          getA _ = undefined
-  withSecureMemory f bk = with undefined f
-    where
-      with :: Storable a => a -> (CryptoCell a -> IO b) -> IO b
-      with a action = withSecureMem bytes (action . CryptoCell) bk
-        where
-          bytes :: BYTES Int
-          bytes = fromIntegral $ sizeOf a
+instance Storable a => Memory (MemoryCell a) where
 
-instance Storable a => InitializableMemory (CryptoCell a) where
-  type IV (CryptoCell a) = a
+  memoryAlloc = allocator undefined
+    where allocator :: Storable b => b -> Alloc (MemoryCell b)
+          allocator b = makeAlloc (byteSize b) MemoryCell
+
+  underlyingPtr (MemoryCell cptr) = cptr
+
+instance Storable a => InitializableMemory (MemoryCell a) where
+  type IV (MemoryCell a) = a
   initializeMemory = cellPoke
 
-instance Storable a => FinalizableMemory (CryptoCell a) where
-  type FV (CryptoCell a) = a
+instance Storable a => FinalizableMemory (MemoryCell a) where
+  type FV (MemoryCell a) = a
   finalizeMemory = cellPeek
+
 
 -- | Types which can be stored in a buffer.
 class Bufferable b where
 
   maxSizeOf         ::               b -> BYTES Int
   default maxSizeOf :: Storable b => b -> BYTES Int
-
   maxSizeOf = fromIntegral . sizeOf
 
 -- | A memory buffer whose size depends on the `Bufferable` instance
 -- of @b@.
-data MemoryBuf b = MemoryBuf {-# UNPACK #-} !(BYTES Int)
-                             {-# UNPACK #-} !ForeignCryptoPtr
+data MemoryBuf b = MemoryBuf {-# UNPACK #-} !CryptoPtr
 
+{-
 -- | Size of the buffer.
 memoryBufSize :: MemoryBuf b -> BYTES Int
 memoryBufSize (MemoryBuf sz _) = sz
 {-# INLINE memoryBufSize #-}
+-}
 
 -- | Perform some pointer action on `MemoryBuf`.
-withMemoryBuf :: MemoryBuf a -> (CryptoPtr -> IO b) -> IO b
-withMemoryBuf (MemoryBuf _ fp) = withForeignPtr fp
+withMemoryBuf :: Bufferable b => MemoryBuf b -> (BYTES Int -> CryptoPtr -> IO a) -> IO a
+withMemoryBuf mbuf@(MemoryBuf cptr) action =  action (maxSizeOf $ getBufferable mbuf) cptr
+  where getBufferable :: Bufferable b => MemoryBuf b -> b
+        getBufferable _ = undefined
 {-# INLINE withMemoryBuf #-}
 
 -- | Memory instance of `MemoryBuf`
 instance Bufferable b => Memory (MemoryBuf b) where
-  newMemory = mal undefined
-    where mal :: Bufferable b => b -> IO (MemoryBuf b)
-          mal b = fmap (MemoryBuf size)
-                  $ mallocForeignPtrBytes (fromIntegral size)
-            where
-              size = maxSizeOf b
-  freeMemory (MemoryBuf _ fptr) = finalizeForeignPtr fptr
-  copyMemory (MemoryBuf sz sf) (MemoryBuf _ df) = withForeignPtr sf do1
-    where do1 sptr = withForeignPtr df (do2 sptr)
-          do2 sptr dptr = memcpy dptr sptr sz
-  withSecureMemory f bk = with undefined f
-    where
-      with :: Bufferable a => a -> (MemoryBuf a -> IO b) -> IO b
-      with a action = withSecureMem bytes (action . MemoryBuf bytes) bk
-        where
-          bytes :: BYTES Int
-          bytes = maxSizeOf a
+
+  memoryAlloc = allocator undefined
+    where allocator :: Bufferable b => b -> Alloc (MemoryBuf b)
+          allocator b = makeAlloc (maxSizeOf b) MemoryBuf
+
+  underlyingPtr (MemoryBuf cptr) = cptr
