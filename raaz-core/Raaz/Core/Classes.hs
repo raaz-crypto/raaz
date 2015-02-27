@@ -46,10 +46,10 @@ module Raaz.Core.Classes
        ) where
 
 import Data.Bits
-import Data.Word
 import Data.ByteString          (ByteString)
 import Data.ByteString.Internal (unsafeCreate)
 import Data.Typeable            (Typeable, typeOf)
+import Data.Word
 import Foreign.Ptr
 import Foreign.Storable
 import Foreign.ForeignPtr.Safe  (ForeignPtr)
