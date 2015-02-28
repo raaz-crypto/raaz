@@ -68,6 +68,7 @@ library
                  , Raaz.Core.DH
                  , Raaz.Core.Gymnastics
                  , Raaz.Core.Memory
+                 , Raaz.Core.MonoidalAction
                  , Raaz.Core.Parse
                  , Raaz.Core.Parse.Applicative
                  , Raaz.Core.Parse.Unsafe
