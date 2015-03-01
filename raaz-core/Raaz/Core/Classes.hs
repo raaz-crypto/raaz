@@ -41,7 +41,8 @@ module Raaz.Core.Classes
        , HasName(..)
        , CryptoCoerce(..)
          -- ** Pointers and alignment.
-       , cryptoAlignment, CryptoAlign, CryptoPtr
+       , CryptoAlign, CryptoPtr
+       , ALIGN
        , ForeignCryptoPtr
        ) where
 
@@ -402,5 +403,13 @@ type ForeignCryptoPtr = ForeignPtr CryptoAlign
 cryptoAlignment :: Int
 cryptoAlignment = alignment (undefined :: CryptoAlign)
 {-# INLINE cryptoAlignment #-}
+
+newtype ALIGN = ALIGN Int
+              deriving ( Arbitrary, Show, Eq, Ord, Enum, Integral
+                       , Real, Num
+                       )
+
+instance LengthUnit ALIGN where
+  inBytes (ALIGN x) = BYTES $ x * cryptoAlignment
 
 -------------------------------------------------------------------
