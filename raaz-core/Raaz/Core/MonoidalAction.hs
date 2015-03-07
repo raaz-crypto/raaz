@@ -65,7 +65,7 @@ class Monoid g => RAction point g where
 -- | A monoid action on a monoidal space is called Monoidal if it
 -- satisfies the additional law:
 --
--- @(p1 <> p2) <^> g = p1 <^> g <> p2 <^> g@.
+-- @(p1 . p2) ^ g = (p1 ^ g) . (p2 ^ g)@.
 --
 -- It means that for every element @g@ is monoid morphism of the
 -- space.
@@ -73,14 +73,14 @@ class (RAction point g, Monoid point) => Monoidal point g
 
 infixl 7 <^>
 
--- | A monoid @g@ acting on the left of a space. Think of a
--- left action as a multiplication with the monoid wrIt should satisfy
--- the law:
+-- | A monoid @g@ acting on the left of a space. Think of a left
+-- action as a multiplication with the monoid. It should satisfy the
+-- law:
 --
 -- [/identity law:/]
 --            @1 . p = p@
 -- [/successive displacements:/]
---           @ (a <> b) <.> p  = a <.> b <.> p@
+--           @ (a . b)  p  = a . (b . p)@
 class Monoid g => LAction g point where
   (<.>) :: g -> point -> point
 
@@ -94,12 +94,13 @@ infixr 6 <.>
 infixr 5 <++>
 
 -- | A left-monoid action on a monoidal-space, i.e. the points of the
--- space itself is a monoid is called LMonoidal if it satisfies the
+-- space itself is a monoid is called Distributive if it satisfies the
 -- law:
 --
 -- @ a . (p + q)  = a . p + a  q@.
 --
--- It means that for every element @g@ is morphism.
+-- Recall our convention here is to use @+@ for the monoid operation
+-- of the space.  It means that for every element @g@ is morphism.
 class (LAction g point, Monoid point) => Distributive g point
 
 -- | The most interesting monoidal action for us.
@@ -132,7 +133,8 @@ instance Monad m => Applicative (FieldM m point) where
                            val  <- x -< p
                            returnA   -< func val
 
--- | A monoidal field is a monoid in itself  f  <> g = \ point -> f point <> g point
+-- | A monoidal field is a monoid in itself @f <> g = \ point -> f
+-- point <> g point@
 instance (Arrow arrow, Monoid value) => Monoid (FieldA arrow point value) where
   mempty        =  arr $ const mempty
   mappend f1 f2 =  proc p -> do n1 <- f1 -< p
