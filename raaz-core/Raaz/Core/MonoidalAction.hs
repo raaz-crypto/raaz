@@ -10,7 +10,7 @@ module Raaz.Core.MonoidalAction
          RAction(..), LAction(..)
        , Monoidal, Distributive, (<++>)
          -- * Fields
-       , FieldA, FieldM, Field
+       , FieldA, FieldM, Field, computeField, runFieldM
        ) where
 
 import Control.Arrow
@@ -115,14 +115,22 @@ instance LengthUnit u => LAction (Sum u) CryptoPtr where
 -- | A field on the space is a function from the points in the space
 -- to some value. Here we define it for a general arrow.
 newtype FieldA arrow point value =
-  FieldA (arrow point value) deriving (Category, Arrow)
+  FieldA { unFieldA :: (arrow point value) } deriving (Category, Arrow)
 
 -- | A field where the underlying arrow is the (->). This is normally
 -- what we call a field.
 type Field = FieldA (->)
 
+-- | Compute the value of a field at a given point
+computeField :: Field point b -> point -> b
+computeField = unFieldA
+
 -- | A monadic arrow field.
 type FieldM m = FieldA (Kleisli m)
+
+-- | Runs a monadic field at a given point.
+runFieldM :: FieldM m a b -> a -> m b
+runFieldM = runKleisli . unFieldA
 
 instance Monad m => Functor (FieldM m point) where
   fmap f fM = fM >>^ f
