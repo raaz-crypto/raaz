@@ -10,7 +10,7 @@ module Raaz.Core.MonoidalAction
          RAction(..), LAction(..)
        , Monoidal, Distributive, (<++>)
          -- * Fields
-       , FieldA, FieldM, Field, computeField, runFieldM
+       , FieldA, FieldM, Field, computeField, runFieldM, liftToFieldM
        ) where
 
 import Control.Arrow
@@ -127,6 +127,10 @@ computeField = unFieldA
 
 -- | A monadic arrow field.
 type FieldM m = FieldA (Kleisli m)
+
+-- | Lift a monadic action to FieldM.
+liftToFieldM :: Monad m => (a -> m b) -> FieldM m a b
+liftToFieldM action = FieldA (Kleisli action)
 
 -- | Runs a monadic field at a given point.
 runFieldM :: FieldM m a b -> a -> m b
