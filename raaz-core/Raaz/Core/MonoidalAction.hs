@@ -11,6 +11,7 @@ module Raaz.Core.MonoidalAction
        , Monoidal, Distributive, (<++>)
          -- * Fields
        , FieldA, FieldM, Field, computeField, runFieldM, liftToFieldM
+       , SemiR(..), SemiL(..)
        ) where
 
 import Control.Arrow
