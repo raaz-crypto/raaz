@@ -167,10 +167,10 @@ instance (Arrow arrow, Monoid value, RAction point g) => Monoidal (FieldA arrow 
 ---------------------- The semi-direct products ------------------------
 
 -- | The semidirect product Space ⋊ Monoid.
-newtype SemiR point g = SemiR (point, g)
+newtype SemiR point g = SemiR { unSemiR :: (point, g) }
 
 -- | The semidirect product Monoid ⋉ Space.
-newtype SemiL g point = SemiL (g, point)
+newtype SemiL g point = SemiL { unSemiL :: (g, point) }
 
 instance Distributive g point => Monoid (SemiR point g) where
   mempty = SemiR (mempty, mempty)
