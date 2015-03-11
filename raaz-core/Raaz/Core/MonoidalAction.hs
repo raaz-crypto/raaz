@@ -12,6 +12,7 @@ module Raaz.Core.MonoidalAction
          -- * Fields
        , FieldA, FieldM, Field, computeField, runFieldM, liftToFieldM
        , SemiR(..), SemiL(..)
+       , TwistRA(..)
        ) where
 
 import Control.Arrow
@@ -160,12 +161,25 @@ instance (Arrow arrow, Monoid value) => Monoid (FieldA arrow point value) where
 
 -- | Exponentiation carry over to monoidal fields. @f^a (x) = f
 -- (x^a)@.
-instance (Arrow arrow, Monoid value, RAction point g) => RAction (FieldA arrow point value) g where
-  f <^> a  = f <<^ (<^>a) -- first exponentiate the argument and apply the function.
+instance (Arrow arrow, RAction point g) => RAction (FieldA arrow point value) g where
+  f <^> a  = f <<^ (<^>a) -- first exponentiate the argument and apply
+                          -- the function.
+
+-- | So does left action @(a . f) (x) = f(a . x)@.
+instance (Arrow arrow, LAction g point) => LAction g (FieldA arrow point value) where
+  a <.> f = f <<^ (a<.>) -- first displace the argument and apply the
+                         -- function.
 
 -- | Exponentiation on monoidal fields are monoidal. Proof: @ (fg)^a (x) = (fg)(x^a) =
 -- f (x^a) . g(x^a) = (f^a . g^a) (x)@
 instance (Arrow arrow, Monoid value, RAction point g) => Monoidal (FieldA arrow point value) g
+
+-- | On monoidal fields the left action is distributive. Proof: @(a
+-- . (f <++> g)) = f (a . x) <++> g (a . x) = (f^a . g^a) (x)@
+instance (Arrow arrow, Monoid value, LAction g point) => Distributive g (FieldA arrow point value)
+
+
+
 
 ---------------------- The semi-direct products ------------------------
 
@@ -182,3 +196,15 @@ instance Distributive g point => Monoid (SemiR point g) where
 instance Monoidal  point g => Monoid (SemiL g point) where
   mempty = SemiL (mempty, mempty)
   mappend (SemiL (a, x)) (SemiL (b, y)) = SemiL (a <> b, x <^> b  <> y)
+
+-- The twisted applicative functor.
+
+data TwistRA a point g x = TwistRA { twistFieldA        :: FieldA a point x
+                                   , twistDisplacement  :: g
+                                   }
+instance Arrow arrow => Functor (TwistRA arrow point g)  where
+  fmap f (TwistRA fld g) = TwistRA (fmap f fld) g
+
+instance (Monoid g, Arrow arrow, LAction g point) => Applicative (TwistRA arrow point g) where
+  pure x  = TwistRA (pure x) mempty
+  TwistRA f u <*> TwistRA val v = TwistRA (f <*> (u <.> val)) (u <> v)
