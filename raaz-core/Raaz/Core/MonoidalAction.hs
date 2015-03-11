@@ -137,10 +137,13 @@ liftToFieldM action = FieldA (Kleisli action)
 runFieldM :: FieldM m a b -> a -> m b
 runFieldM = runKleisli . unFieldA
 
-instance Monad m => Functor (FieldM m point) where
+instance Arrow a => Functor (FieldA a point) where
   fmap f fM = fM >>^ f
 
-instance Monad m => Applicative (FieldM m point) where
+-- A proof that this is indeed applicative is available in Functional
+-- pearl "Applicative programming with effects" Conor McBride and Ross
+-- Patterson.
+instance Arrow a => Applicative (FieldA a point) where
   pure v = arr (const v)
   (<*>) f x = proc p -> do func <- f -< p
                            val  <- x -< p
