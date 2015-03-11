@@ -12,7 +12,7 @@ module Raaz.Core.MonoidalAction
          -- * Fields
        , FieldA, FieldM, Field, computeField, runFieldM, liftToFieldM
        , SemiR(..), SemiL(..)
-       , TwistRA(..)
+       , TwistRA(..), TwistR, TwistRM
        ) where
 
 import Control.Arrow
@@ -197,14 +197,24 @@ instance Monoidal  point g => Monoid (SemiL g point) where
   mempty = SemiL (mempty, mempty)
   mappend (SemiL (a, x)) (SemiL (b, y)) = SemiL (a <> b, x <^> b  <> y)
 
--- The twisted applicative functor.
+-- | The twisted field. This is essentially a field on the space of
+-- points tagged with an extra displacement by the monoid. The
+-- applicative instance also keeps track of the extra displacement and
+-- acts accordingly. This is the applicative generalisation of the
+-- semidirect product `SemiR`.
+data TwistRA a point g value = TwistRA { twistFieldA        :: FieldA a point value
+                                       , twistDisplacement  :: g
+                                       }
 
-data TwistRA a point g x = TwistRA { twistFieldA        :: FieldA a point x
-                                   , twistDisplacement  :: g
-                                   }
 instance Arrow arrow => Functor (TwistRA arrow point g)  where
   fmap f (TwistRA fld g) = TwistRA (fmap f fld) g
 
 instance (Monoid g, Arrow arrow, LAction g point) => Applicative (TwistRA arrow point g) where
   pure x  = TwistRA (pure x) mempty
   TwistRA f u <*> TwistRA val v = TwistRA (f <*> (u <.> val)) (u <> v)
+
+-- | Twisted field when the underlying arrow is @(->)@.
+type TwistR point g = TwistRA (->) point g
+
+-- | Monadic twisted field.
+type TwistRM m point g = TwistRA (Kleisli m) point g
