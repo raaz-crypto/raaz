@@ -8,38 +8,46 @@ module Raaz.Core.Parse.Applicative
        , parseByteString
        ) where
 
-import           Control.Applicative       (Applicative)
 import           Data.ByteString           (ByteString)
+import           Data.Maybe                (fromJust)
+import           Data.Monoid               (Sum(..))
 import           Foreign.Ptr               (castPtr)
 import           Foreign.Storable          (Storable, peek)
 
-import           Raaz.Core.Gymnastics
+
+import           Raaz.Core.MonoidalAction
 import           Raaz.Core.Types
 import           Raaz.Core.Util.ByteString (createFrom)
 import           Raaz.Core.Util.Ptr        (byteSize)
 
+
+type BytesMonoid = Sum (BYTES Int)
+
 -- | An applicative parser type for reading data from a pointer.
-newtype Parser a = Parser { unParser :: Manoeuvre (BYTES Int) IO a }
-                 deriving (Functor, Applicative)
+type Parser a = TwistRM IO CryptoPtr BytesMonoid a
 
 makeParser :: LengthUnit l => l -> (CryptoPtr -> IO a) -> Parser a
-makeParser l action = Parser $ Manoeuvre (inBytes l) action
+makeParser l action = TwistRA { twistFieldA       = liftToFieldM action
+                              , twistDisplacement = Sum (inBytes l)
+                              }
 
 -- | Return the bytes that this parser will read.
 parseWidth :: Parser a -> BYTES Int
-parseWidth = sizeAffected . unParser
+parseWidth =  getSum . twistDisplacement
 
 -- | Run the given parser.
 runParser :: Parser a -> CryptoBuffer -> IO (Maybe a)
-runParser = manoeuvre . unParser
+runParser pr cbuf = withCryptoBuffer cbuf $ \ sz cptr ->
+  if sz < parseWidth pr then return Nothing
+  else fmap Just $ unsafeRunParser pr cptr
 
 -- | Run the parser given the
 runParser' :: Parser a -> CryptoBuffer -> IO a
-runParser' = manoeuvre' . unParser
+runParser' pr = fmap fromJust . runParser pr
 
 -- | Run the parser without checking the length constraints.
 unsafeRunParser :: Parser a -> CryptoPtr -> IO a
-unsafeRunParser = unsafeManoeuvre . unParser
+unsafeRunParser = runFieldM . twistFieldA
 
 -- | The primary purpose of this function is to satisfy type checkers.
 undefParse :: Parser a -> a
