@@ -13,17 +13,23 @@ module Raaz.Core.Write
        , writeBytes, writeByteString
        ) where
 
-import           Control.Applicative
 import           Data.ByteString           (ByteString)
 import           Data.Monoid
 import           Data.Word                 (Word8)
 import           Foreign.Ptr               (castPtr)
 import           Foreign.Storable
 
-import           Raaz.Core.Gymnastics
+import           Raaz.Core.MonoidalAction
 import           Raaz.Core.Types
 import           Raaz.Core.Util.ByteString as BU
 import           Raaz.Core.Util.Ptr
+
+
+-- | A write action is nothing but an IO action that returns () on
+-- input a pointer.
+type WriteAction = FieldM IO CryptoPtr ()
+
+type BytesMonoid = Sum (BYTES Int)
 
 -- | A write is an action which when executed using `runWrite` writes
 -- bytes to the input buffer. It is similar to the `WU.Write` type
@@ -32,17 +38,19 @@ import           Raaz.Core.Util.Ptr
 -- action is run. The `runWrite` action will raise an error if the
 -- buffer it is provided with is of size smaller. `Write`s are monoid
 -- and hence can be concatnated using the `<>` operator.
-newtype Write = Write { unWrite :: Manoeuvre (BYTES Int) IO () }
-              deriving Monoid
+type Write = SemiR WriteAction BytesMonoid
 
 -- | Create a write action.
 makeWrite :: BYTES Int -> (CryptoPtr -> IO ()) -> Write
-makeWrite sz = Write . Manoeuvre sz
+makeWrite sz action = SemiR (liftToFieldM action, Sum sz)
 
 -- | Returns the bytes that will be written when the write action is performed.
 bytesToWrite :: Write -> BYTES Int
-bytesToWrite = sizeAffected . unWrite
+bytesToWrite = getSum . snd . unSemiR
 
+-- | Perform the write action without any checks.
+unsafeWrite :: Write -> CryptoPtr -> IO ()
+unsafeWrite = runFieldM . fst . unSemiR
 
 -- | The function tries to write the given `Write` action on the
 -- buffer and returns `True` if successful.
@@ -50,8 +58,9 @@ tryWriting :: Write         -- ^ The write action.
            -> CryptoBuffer  -- ^ The buffer to which the bytes are to
                             -- be written.
            -> IO Bool
-tryWriting wr cbuf = toBool <$> manoeuvre (unWrite wr) cbuf
-  where toBool = maybe False (const True)
+tryWriting wr cbuf = withCryptoBuffer cbuf $ \ sz cptr ->
+  if sz < bytesToWrite wr then return False
+  else do unsafeWrite wr cptr; return True
 
 
 -- | The expression @`writeStorable` a@ gives a write action that
