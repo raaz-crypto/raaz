@@ -41,7 +41,7 @@ module Raaz.Core.Classes
        , HasName(..)
        , CryptoCoerce(..)
          -- ** Pointers and alignment.
-       , CryptoAlign, CryptoPtr
+       , CryptoAlign, CryptoPtr, cryptoAlignment
        , ALIGN
        , ForeignCryptoPtr
        ) where
