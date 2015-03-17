@@ -21,12 +21,10 @@ module Raaz.Core.Primitives
          -- * Type safe lengths in units of blocks.
          -- $typesafelengths$
 
-         Primitive(..), Gadget(..)
-       , newGadget, newInitializedGadget, initialize, finalize
-       , primitiveOf, withGadget
+         Primitive(..), SafePrimitive, Gadget(..)
+       , primitiveOf, withGadget, withGadgetFinalize, withSecureGadget, withSecureGadgetFinalize
        , PaddableGadget(..)
        , CGadget(..), HGadget(..)
-       , SafePrimitive
        , HasPadding(..)
        , CryptoPrimitive(..)
        , BLOCKS, blocksOf
@@ -92,7 +90,7 @@ class Primitive p where
   -- | The block size.
   blockSize :: p -> BYTES Int
 
-  -- | Key used to initializa the gadget
+  -- | The key used to initialise the gadget of the primitive.
   type Key p :: *
 
 -- | A safe primitive is a primitive whose computation does not need
@@ -111,36 +109,26 @@ class Primitive p => SafePrimitive p where
 -- phase which is captured by the `apply` combinator. Depending on the
 -- primitive, data is either written into, or read by or just
 -- transformed (think of a PRG, Cryptographic hash or a Cipher
--- respectively). Gadgets are stateful and the state is typically
--- stored inside the memory of the gadgets captured by the associated
--- type MemoryOf g
+-- respectively). Gadgets are stateful and hence instances of `Memory`
+-- themselves
 --
 -- Gadget instances where the underlying primitive is an instance of
 -- `SafePrimitive` should ensure that the input buffer is not
 -- modified.
 
 class ( Primitive (PrimitiveOf g)
-      , Memory (MemoryOf g)
-      , InitializableMemory (MemoryOf g)
-      , Key (PrimitiveOf g) ~ IV (MemoryOf g)
+      , Memory g
+      , InitializableMemory g
+      , Key (PrimitiveOf g) ~ IV g
       ) => Gadget g where
 
   -- | The primitive for which this is a gadget
   type PrimitiveOf g
 
-  -- | The (type of the) internal memory used by the gadget.
-  type MemoryOf g
-
-  -- | The action @newGadgetWithMemory mem@ creates a gadget which
-  -- uses @mem@ as its internal memory. If you want the internal data
-  -- to be protected from being swapped out (for example if the
-  -- internal memory contains sensitive data) then pass a secured
-  -- memory to this function.
-  newGadgetWithMemory :: MemoryOf g -> IO g
-
-  -- | Returns the memory of the gadget. This is used while
-  -- initializing and finalizing the memory.
-  getMemory :: g -> MemoryOf g
+  -- | This function actually applies the gadget on the buffer. If the
+  -- underlying primitive is an instance of the class `SafePrimitive`,
+  -- please ensure that the contents of the buffer is not modified.
+  apply :: g -> BLOCKS (PrimitiveOf g) -> CryptoPtr -> IO ()
 
   -- | The recommended number of blocks to process at a time. While
   -- processing files, bytestrings it makes sense to handle multiple
@@ -151,35 +139,6 @@ class ( Primitive (PrimitiveOf g)
   recommendedBlocks   :: g -> BLOCKS (PrimitiveOf g)
   recommendedBlocks _ = max 1 $ atMost l1Cache
 
-  -- | This function actually applies the gadget on the buffer. If the
-  -- underlying primitive is an instance of the class `SafePrimitive`,
-  -- please ensure that the contents of the buffer are not modified.
-  apply :: g -> BLOCKS (PrimitiveOf g) -> CryptoPtr -> IO ()
-
-
--- | The function @newInitializedGadget iv@ creates a new instance of
--- the gadget with its memory allocated and initialised to @iv@.
-newInitializedGadget :: Gadget g => IV (MemoryOf g) -> IO g
-newInitializedGadget iv = do
-  g <- newGadget
-  initialize g iv
-  return g
-
--- | The function @newGadget@ creates a new instance of the gadget
--- with its memory allocated.
-newGadget :: Gadget g => IO g
-newGadget = newMemory >>= newGadgetWithMemory
-
--- | Initialize the gadgets memory.
-initialize :: Gadget g => g -> IV (MemoryOf g) -> IO ()
-initialize = initializeMemory . getMemory
-
--- | Finalise the gadgets memory.
-finalize :: ( Gadget g
-            , FinalizableMemory (MemoryOf g)
-            ) => g -> IO (FV (MemoryOf g))
-finalize = finalizeMemory . getMemory
-
 -- | Gives the primitive of a gadget. This function should only be
 -- used to satisy types as the actual value returned is `undefined`.
 primitiveOf :: Gadget g => g -> PrimitiveOf g
@@ -187,11 +146,46 @@ primitiveOf _ = undefined
 
 -- | This function runs an action that expects a gadget as input.
 withGadget :: Gadget g
-           => IV (MemoryOf g) -- ^ IV to initialize the gadget with.
-           -> (g -> IO a)     -- ^ Action to run
+           => Key (PrimitiveOf g)  -- ^ Key to initialise the gadget with.
+           -> (g -> IO a)          -- ^ Action to run
            -> IO a
-withGadget iv action = newInitializedGadget iv >>= action
+withGadget iv action = withMemory $ withG iv action
 
+-- | Similar to `withGadget` except that the memory allocated for the
+-- gadget is a secure memory.
+withSecureGadget :: Gadget g
+                 => Key (PrimitiveOf g)        -- ^ Key to initialise
+                                               -- the gadget with.
+                 -> (g -> IO a)                -- ^ Action to run
+                 -> IO a
+withSecureGadget iv action = withSecureMemory $ withG iv action
+
+withG :: Gadget g
+      => Key (PrimitiveOf g)
+      -> (g -> IO a)
+      -> g
+      -> IO a
+withG iv action g = initializeMemory g iv >> action g
+
+-- | Like with `withGadget` but returns the result of finalising the
+-- gadget rather than the action.  This is useful when the finalised
+-- value is what is of interest to us, like for example while
+-- computing the cryptographic has of some date.
+withGadgetFinalize :: ( Gadget g, FinalizableMemory g)
+                   => Key (PrimitiveOf g)
+                   -> (g -> IO a)
+                   -> IO (FV g)
+withGadgetFinalize iv action = withGadget iv
+                               $ \ g -> action g >> finalizeMemory g
+
+-- | Similar to `withGadgetFinalize` but the memory used by the gadget
+-- is secure.
+withSecureGadgetFinalize :: ( Gadget g, FinalizableMemory g)
+                         => Key (PrimitiveOf g)
+                         -> (g -> IO a)
+                         -> IO (FV g)
+withSecureGadgetFinalize iv action = withSecureGadget iv
+                                     $ \ g -> action g >> finalizeMemory g
 -------------------- Primitives with padding ---------------------------
 
 -- | Block primitives have a padding method. The obvious reason for
@@ -320,26 +314,25 @@ blocksOf n _ = BLOCKS n
 -- | `HGadget` is pure Haskell gadget implemenation used as the
 -- Reference implementation of the `Primitive`. Most of the times it
 -- is around 3-4 times slower than `CPortable` version.
-newtype HGadget p = HGadget (MemoryOf (HGadget p))
+newtype HGadget p m = HGadget m deriving Memory
 
 -- | This is the portable C gadget implementation. It is usually
 -- recommended over `HGadget` because of being faster than
 -- it. However, no architecture specific optimizations are done in
 -- this implementation.
-newtype CGadget p = CGadget (MemoryOf (CGadget p))
+newtype CGadget p m = CGadget m deriving Memory
 
 -- | If primitive has a name then HGadget has a name
-instance HasName p => HasName (HGadget p) where
+instance HasName p  => HasName (HGadget p m) where
   getName g = "HGadget " ++ getName (getP g)
-    where getP :: HGadget p -> p
+    where getP :: HGadget p m -> p
           getP _ = undefined
 
 -- | If primitive has a name the CGadget has a name
-instance HasName p => HasName (CGadget p) where
+instance HasName p => HasName (CGadget p m) where
   getName g = "CGadget " ++ getName (getP g)
-    where getP :: CGadget p -> p
+    where getP :: CGadget p m -> p
           getP _ = undefined
-
 
 --------------------- Cryptographic operation modes -------------------
 
