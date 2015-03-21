@@ -27,11 +27,8 @@ import Data.ByteString.Char8      ()
 import Data.ByteString.Unsafe
 import Data.Bits
 import Data.Word
-import Foreign.Storable           (sizeOf, Storable)
 
-import Raaz.Core.Memory
 import Raaz.Core.Types
-import Raaz.Core.Util.Ptr         (allocaBuffer)
 
 import Raaz.Cipher.AES.Block.Type
 import Raaz.Cipher.Util.GF
@@ -319,7 +316,7 @@ foreign import ccall unsafe
 -- instead of pure Key (similar for IV) and that memory should be
 -- passed while interfacing with C code.
 cExpansionWith :: (EndianStore k, Storable ek)
-               => CryptoCell ek
+               => MemoryCell ek
                -> k
                -> (CryptoPtr -> CryptoPtr -> Int -> IO ())
                -> Int
@@ -333,13 +330,13 @@ cExpansionWith ek k with i = allocaBuffer szk $ \kptr -> do
     szk = BYTES $ sizeOf k
 {-# INLINE cExpansionWith #-}
 
-cExpand128 :: KEY128 -> CryptoCell Expanded128 -> IO ()
+cExpand128 :: KEY128 -> MemoryCell Expanded128 -> IO ()
 cExpand128 k excell = cExpansionWith excell k c_expand 0
 
-cExpand192 :: KEY192 -> CryptoCell Expanded192 -> IO ()
+cExpand192 :: KEY192 -> MemoryCell Expanded192 -> IO ()
 cExpand192 k excell = cExpansionWith excell k c_expand 1
 
-cExpand256 :: KEY256 -> CryptoCell Expanded256 -> IO ()
+cExpand256 :: KEY256 -> MemoryCell Expanded256 -> IO ()
 cExpand256 k excell = cExpansionWith excell k c_expand 2
 
 -- | Incrments the STATE considering it to be a byte string. It is
@@ -417,29 +414,77 @@ invTranspose (STATE w0 w1 w2 w3) =
     s23 = w3 `shiftR` 8
     s33 = w3
 
--- | Memory to store expanded key. Note that it uses the C expand
--- function for key expansion.
-newtype AESKEYMem key = AESKEYMem (CryptoCell key) deriving Memory
 
-instance InitializableMemory (AESKEYMem Expanded128) where
-  type IV (AESKEYMem Expanded128) = KEY128
+----------------------------- Gadgets for AES -----------------------
 
-  initializeMemory (AESKEYMem cell) k = cExpand128 k cell
+type KeyCell k = MemoryCell (Expanded k)
+type StateCell = MemoryCell STATE
 
-instance InitializableMemory (AESKEYMem Expanded192) where
-  type IV (AESKEYMem Expanded192) = KEY192
+data HAESGadget mode key op = HAESGadget (KeyCell key) StateCell
+data CAESGadget mode key op = CAESGadget (KeyCell key) StateCell
 
-  initializeMemory (AESKEYMem cell) k = cExpand192 k cell
+---------------------------- HGadgets ------------------------------------
 
-instance InitializableMemory (AESKEYMem Expanded256) where
-  type IV (AESKEYMem Expanded256) = KEY256
+instance Storable (Expanded key) => Memory (HAESGadget mode key op) where
 
-  initializeMemory (AESKEYMem cell) k = cExpand256 k cell
+  memoryAlloc = HAESGadget <$> memoryAlloc <*> memoryAlloc
 
--- | Memory to store IV (which is just STATE)
-newtype AESIVMem = AESIVMem (CryptoCell STATE) deriving Memory
+  underlyingPtr (HAESGadget keycell _) = underlyingPtr keycell
 
-instance InitializableMemory AESIVMem where
-  type IV AESIVMem = STATE
 
-  initializeMemory (AESIVMem cell) s = withCell cell (flip store s)
+instance InitializableMemory (HAESGadget mode KEY128 op) where
+
+  type IV (HAESGadget mode KEY128 op) = (KEY128, STATE)
+
+  initializeMemory (HAESGadget kC stC) (k,s) = cExpand128 k keyCell
+                                             >> withCell cell (flip store s)
+
+
+instance InitializableMemory (HAESGadget mode KEY192 op) where
+
+  type IV (HAESGadget mode KEY192 op) = (KEY192, STATE)
+
+  initializeMemory (HAESGadget kC stC) (k,s) = cExpand192 k keyCell
+                                             >> withCell cell (flip store s)
+
+
+instance InitializableMemory (HAESGadget mode KEY256 op) where
+
+  type IV (HAESGadget mode KEY256 op) = (KEY256, STATE)
+
+  initializeMemory (HAESGadget kC stC) (k,s) = cExpand256 k keyCell
+                                             >> withCell cell (flip store s)
+
+
+--------------------- C Gadgets -------------------------------------------
+
+instance Storable (Expanded key) => Memory (CAESGadget mode key op) where
+
+  memoryAlloc = CAESGadget <$> memoryAlloc <*> memoryAlloc
+
+  underlyingPtr (CAESGadget keycell _) = underlyingPtr m
+
+
+
+instance InitializableMemory (CAESGadget mode KEY128 op) where
+
+  type IV (CAESGadget mode KEY128 op) = (KEY128, STATE)
+
+  initializeMemory (CAESGadget kC stC) (k,s) = cExpand128 k keyCell
+                                             >> withCell cell (flip store s)
+
+
+instance InitializableMemory (CAESGadget mode KEY192 op) where
+
+  type IV (CAESGadget mode KEY192 op) = (KEY192, STATE)
+
+  initializeMemory (CAESGadget kC stC) (k,s) = cExpand192 k keyCell
+                                             >> withCell cell (flip store s)
+
+
+instance InitializableMemory (CAESGadget mode KEY256 op) where
+
+  type IV (CAESGadget mode KEY256 op) = (KEY256, STATE)
+
+  initializeMemory (CAESGadget kC stC) (k,s) = cExpand256 k keyCell
+                                             >> withCell cell (flip store s)

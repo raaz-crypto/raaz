@@ -8,11 +8,9 @@
 module Raaz.Cipher.AES.Block.Type
        ( STATE(..)
        , KEY128(..)
-       , Expanded128(..)
        , KEY192(..)
-       , Expanded192(..)
        , KEY256(..)
-       , Expanded256(..)
+       , Expanded(..)
        , AEScxt(..)
        ) where
 
@@ -56,8 +54,10 @@ instance Show STATE where
 newtype AEScxt = AEScxt STATE
          deriving (Show,Typeable,Eq,Storable)
 
+data family Expanded key :: *
+
 -- | Expanded Key for 128 Bit Key
-data Expanded128 =
+data instance Expanded KEY128 =
     Expanded128 {-# UNPACK #-} !STATE
                 {-# UNPACK #-} !STATE
                 {-# UNPACK #-} !STATE
@@ -69,10 +69,10 @@ data Expanded128 =
                 {-# UNPACK #-} !STATE
                 {-# UNPACK #-} !STATE
                 {-# UNPACK #-} !STATE
-           deriving (Show,Typeable)
+           deriving Show
 
 -- | Expanded Key for 192 Bit Key
-data Expanded192 =
+data instance Expanded KEY192 =
     Expanded192 {-# UNPACK #-} !STATE
                 {-# UNPACK #-} !STATE
                 {-# UNPACK #-} !STATE
@@ -86,10 +86,10 @@ data Expanded192 =
                 {-# UNPACK #-} !STATE
                 {-# UNPACK #-} !STATE
                 {-# UNPACK #-} !STATE
-        deriving (Show, Typeable)
+        deriving Show
 
 -- | Expanded Key for 256 Bit Key
-data Expanded256 =
+data instance Expanded KEY256 =
     Expanded256 {-# UNPACK #-} !STATE
                 {-# UNPACK #-} !STATE
                 {-# UNPACK #-} !STATE
@@ -105,7 +105,7 @@ data Expanded256 =
                 {-# UNPACK #-} !STATE
                 {-# UNPACK #-} !STATE
                 {-# UNPACK #-} !STATE
-        deriving (Show, Typeable)
+        deriving Show
 
 -- | Timing independent equality testing for STATE
 instance Eq STATE where
@@ -151,10 +151,10 @@ instance EndianStore STATE where
   load cptr = runParser cptr parseState
   store cptr state = runWrite cptr $ writeState state
 
-instance Storable Expanded128 where
+instance Storable (Expanded KEY128)  where
   sizeOf    _ = 11 * sizeOf (undefined :: STATE)
   alignment _ = alignment  (undefined :: STATE)
-  peekByteOff ptr pos = Expanded128 <$> peekByteOff ptr pos0
+  peekByteOff ptr pos = Expanded128  <$> peekByteOff ptr pos0
                                     <*> peekByteOff ptr pos1
                                     <*> peekByteOff ptr pos2
                                     <*> peekByteOff ptr pos3
@@ -178,7 +178,7 @@ instance Storable Expanded128 where
           pos10   = pos9 + offset
           offset = sizeOf (undefined:: STATE)
 
-  pokeByteOff ptr pos (Expanded128 h0 h1 h2 h3 h4 h5 h6 h7 h8 h9 h10)
+  pokeByteOff ptr pos (Expanded128  h0 h1 h2 h3 h4 h5 h6 h7 h8 h9 h10)
       =  pokeByteOff ptr pos0 h0
       >> pokeByteOff ptr pos1 h1
       >> pokeByteOff ptr pos2 h2
@@ -203,10 +203,10 @@ instance Storable Expanded128 where
           pos10   = pos9 + offset
           offset = sizeOf (undefined:: STATE)
 
-instance Storable Expanded192 where
+instance Storable (Expanded KEY192)  where
   sizeOf    _ = 13 * sizeOf (undefined :: STATE)
   alignment _ = alignment  (undefined :: STATE)
-  peekByteOff ptr pos = Expanded192 <$> peekByteOff ptr pos0
+  peekByteOff ptr pos = Expanded192  <$> peekByteOff ptr pos0
                                     <*> peekByteOff ptr pos1
                                     <*> peekByteOff ptr pos2
                                     <*> peekByteOff ptr pos3
@@ -234,7 +234,7 @@ instance Storable Expanded192 where
           pos12   = pos11 + offset
           offset = sizeOf (undefined:: STATE)
 
-  pokeByteOff ptr pos (Expanded192 h0 h1 h2 h3 h4 h5 h6 h7 h8 h9 h10
+  pokeByteOff ptr pos (Expanded192  h0 h1 h2 h3 h4 h5 h6 h7 h8 h9 h10
                        h11 h12)
       =  pokeByteOff ptr pos0 h0
       >> pokeByteOff ptr pos1 h1
@@ -264,7 +264,7 @@ instance Storable Expanded192 where
           pos12   = pos11 + offset
           offset = sizeOf (undefined:: STATE)
 
-instance Storable Expanded256 where
+instance Storable (Expanded KEY256)  where
   sizeOf    _ = 15 * sizeOf (undefined :: STATE)
   alignment _ = alignment  (undefined :: STATE)
   peekByteOff ptr pos = Expanded256 <$> peekByteOff ptr pos0
