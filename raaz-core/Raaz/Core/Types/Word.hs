@@ -3,6 +3,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE DeriveDataTypeable         #-}
+{-# LANGUAGE TypeFamilies               #-}
 
 
 -- | This module provide versions of the word type, i.e. types exposed
@@ -39,13 +40,18 @@ module Raaz.Core.Types.Word
        ( LE, BE
        ) where
 
+import Control.Monad              ( liftM )
 import Data.Bits
 import Data.Typeable
+import Data.Vector.Unboxed        (MVector(..), Vector, Unbox)
+import qualified Data.Vector.Generic as GV
+import qualified Data.Vector.Generic.Mutable as GVM
+
 import Data.Word
 import Foreign.Storable
 import Test.QuickCheck          (Arbitrary)
-import Raaz.Core.Classes
 
+import Raaz.Core.Classes
 
 {-
 
@@ -135,3 +141,107 @@ foreign import ccall unsafe "raaz/core/endian.h raazStoreBE64"
 instance EndianStore (BE Word64) where
   load             = fmap BE .  c_loadBE64
   store ptr (BE w) = c_storeBE64 ptr w
+
+
+------------------- Unboxed vector of Endian word types ---------------
+
+instance Unbox w => Unbox (LE w)
+instance Unbox w => Unbox (BE w)
+
+
+------------------- Defining the vector types --------------------------
+
+newtype instance MVector s (LE w) = MV_LE (MVector s w)
+newtype instance Vector    (LE w) = V_LE  (Vector w)
+
+newtype instance MVector s (BE w) = MV_BE (MVector s w)
+newtype instance Vector    (BE w) = V_BE  (Vector w)
+
+instance Unbox w => GVM.MVector MVector (LE w) where
+  {-# INLINE basicLength #-}
+  {-# INLINE basicUnsafeSlice #-}
+  {-# INLINE basicOverlaps #-}
+  {-# INLINE basicUnsafeNew #-}
+  {-# INLINE basicUnsafeReplicate #-}
+  {-# INLINE basicUnsafeRead #-}
+  {-# INLINE basicUnsafeWrite #-}
+  {-# INLINE basicClear #-}
+  {-# INLINE basicSet #-}
+  {-# INLINE basicUnsafeCopy #-}
+  {-# INLINE basicUnsafeGrow #-}
+  basicLength          (MV_LE v)        = GVM.basicLength v
+  basicUnsafeSlice i n (MV_LE v)        = MV_LE $ GVM.basicUnsafeSlice i n v
+  basicOverlaps (MV_LE v1) (MV_LE v2)   = GVM.basicOverlaps v1 v2
+
+  basicUnsafeRead  (MV_LE v) i          = LE `liftM` GVM.basicUnsafeRead v i
+  basicUnsafeWrite (MV_LE v) i (LE x)   = GVM.basicUnsafeWrite v i x
+
+  basicClear (MV_LE v)                  = GVM.basicClear v
+  basicSet   (MV_LE v)         (LE x)   = GVM.basicSet v x
+
+  basicUnsafeNew n                      = MV_LE `liftM` GVM.basicUnsafeNew n
+  basicUnsafeReplicate n     (LE x)     = MV_LE `liftM` GVM.basicUnsafeReplicate n x
+  basicUnsafeCopy (MV_LE v1) (MV_LE v2) = GVM.basicUnsafeCopy v1 v2
+  basicUnsafeGrow (MV_LE v)   n         = MV_LE `liftM` GVM.basicUnsafeGrow v n
+
+
+instance Unbox w => GV.Vector Vector (LE w) where
+  {-# INLINE basicUnsafeFreeze #-}
+  {-# INLINE basicUnsafeThaw #-}
+  {-# INLINE basicLength #-}
+  {-# INLINE basicUnsafeSlice #-}
+  {-# INLINE basicUnsafeIndexM #-}
+  {-# INLINE elemseq #-}
+  basicUnsafeFreeze (MV_LE v)   = V_LE  `liftM` GV.basicUnsafeFreeze v
+  basicUnsafeThaw (V_LE v)      = MV_LE `liftM` GV.basicUnsafeThaw v
+  basicLength (V_LE v)          = GV.basicLength v
+  basicUnsafeSlice i n (V_LE v) = V_LE $ GV.basicUnsafeSlice i n v
+  basicUnsafeIndexM (V_LE v) i  = LE   `liftM`  GV.basicUnsafeIndexM v i
+
+  basicUnsafeCopy (MV_LE mv) (V_LE v) = GV.basicUnsafeCopy mv v
+  elemseq _ (LE x) y                  = GV.elemseq (undefined :: Vector a) x y
+
+
+instance Unbox w => GVM.MVector MVector (BE w) where
+  {-# INLINE basicLength #-}
+  {-# INLINE basicUnsafeSlice #-}
+  {-# INLINE basicOverlaps #-}
+  {-# INLINE basicUnsafeNew #-}
+  {-# INLINE basicUnsafeReplicate #-}
+  {-# INLINE basicUnsafeRead #-}
+  {-# INLINE basicUnsafeWrite #-}
+  {-# INLINE basicClear #-}
+  {-# INLINE basicSet #-}
+  {-# INLINE basicUnsafeCopy #-}
+  {-# INLINE basicUnsafeGrow #-}
+  basicLength          (MV_BE v)        = GVM.basicLength v
+  basicUnsafeSlice i n (MV_BE v)        = MV_BE $ GVM.basicUnsafeSlice i n v
+  basicOverlaps (MV_BE v1) (MV_BE v2)   = GVM.basicOverlaps v1 v2
+
+  basicUnsafeRead  (MV_BE v) i          = BE `liftM` GVM.basicUnsafeRead v i
+  basicUnsafeWrite (MV_BE v) i (BE x)   = GVM.basicUnsafeWrite v i x
+
+  basicClear (MV_BE v)                  = GVM.basicClear v
+  basicSet   (MV_BE v)         (BE x)   = GVM.basicSet v x
+
+  basicUnsafeNew n                      = MV_BE `liftM` GVM.basicUnsafeNew n
+  basicUnsafeReplicate n     (BE x)     = MV_BE `liftM` GVM.basicUnsafeReplicate n x
+  basicUnsafeCopy (MV_BE v1) (MV_BE v2) = GVM.basicUnsafeCopy v1 v2
+  basicUnsafeGrow (MV_BE v)   n         = MV_BE `liftM` GVM.basicUnsafeGrow v n
+
+
+instance Unbox w => GV.Vector Vector (BE w) where
+  {-# INLINE basicUnsafeFreeze #-}
+  {-# INLINE basicUnsafeThaw #-}
+  {-# INLINE basicLength #-}
+  {-# INLINE basicUnsafeSlice #-}
+  {-# INLINE basicUnsafeIndexM #-}
+  {-# INLINE elemseq #-}
+  basicUnsafeFreeze (MV_BE v)   = V_BE  `liftM` GV.basicUnsafeFreeze v
+  basicUnsafeThaw (V_BE v)      = MV_BE `liftM` GV.basicUnsafeThaw v
+  basicLength (V_BE v)          = GV.basicLength v
+  basicUnsafeSlice i n (V_BE v) = V_BE $ GV.basicUnsafeSlice i n v
+  basicUnsafeIndexM (V_BE v) i  = BE   `liftM`  GV.basicUnsafeIndexM v i
+
+  basicUnsafeCopy (MV_BE mv) (V_BE v) = GV.basicUnsafeCopy mv v
+  elemseq _ (BE x) y                  = GV.elemseq (undefined :: Vector a) x y
