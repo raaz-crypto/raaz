@@ -108,6 +108,7 @@ library
                , test-framework                 >= 0.6 && < 0.9
                , test-framework-hunit           >= 0.2 && < 0.4
                , test-framework-quickcheck2     >= 0.2 && < 0.4
+               , vector
   ghc-options: -Wall
 
   if impl(ghc >= 7.6)
