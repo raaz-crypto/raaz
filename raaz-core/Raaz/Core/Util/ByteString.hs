@@ -6,25 +6,29 @@ Some utility function for byte strings.
 
 {-# LANGUAGE FlexibleContexts #-}
 module Raaz.Core.Util.ByteString
-       ( unsafeCopyToCryptoPtr
-       , unsafeNCopyToCryptoPtr
-       , length, replicate
-       , hex, toHex
-       , unsafeFromHex, fromHex
-       , withByteString
-       , fromByteString, fromByteStringStorable
+       ( length, replicate
+       , fromByteString, fromByteStringStorable, vectorFromByteString
        , createFrom
+       , withByteString
+       , unsafeCopyToCryptoPtr
+       , unsafeNCopyToCryptoPtr
+       -- * Hexadecimal encoding.
+       , hex, toHex, vectorToHex
+       , unsafeFromHex, fromHex
+
        ) where
 
 import           Prelude            hiding (length, replicate)
 import           Data.Bits
 import qualified Data.ByteString    as B
-import           Data.ByteString    (ByteString)
+import           Data.ByteString    (ByteString, empty)
 import           Data.ByteString.Internal( toForeignPtr
                                          , c2w, unsafeCreate
                                          , create
                                          )
+import           Data.Monoid         ((<>))
 import           Data.Word
+import qualified Data.Vector.Generic as G
 import           Foreign.ForeignPtr (withForeignPtr)
 import           Foreign.Ptr        (castPtr, plusPtr)
 import           Foreign.Storable   (poke, peek, Storable)
@@ -70,10 +74,49 @@ unsafeNCopyToCryptoPtr n bs cptr = withForeignPtr fptr $
     where (fptr, offset,_) = toForeignPtr bs
           dest    = castPtr cptr
 
--- | Converts a crypto storable instances to its hexadecimal
--- representation.
+-- | Works directly on the pointer associated with the
+-- `ByteString`. This function should only read and not modify the
+-- contents of the pointer.
+withByteString :: ByteString -> (CryptoPtr -> IO a) -> IO a
+withByteString bs f = withForeignPtr fptr (f . flip plusPtr off . castPtr)
+  where (fptr, off, _) = toForeignPtr bs
+
+-- | Get the value from the bytestring using `load`.
+fromByteString :: EndianStore k => ByteString -> k
+fromByteString src = unsafePerformIO $ withByteString src (load . castPtr)
+
+-- | Get a vector values from a byte string. This is not very fast,
+-- used mainly for defining IsString instances.
+vectorFromByteString :: (EndianStore a, G.Vector v a) => ByteString -> v a
+vectorFromByteString bs = vec
+  where vec = G.fromList $ go bs
+        go bs | length bs >= sz = fromByteString bs : go (B.drop (fromIntegral sz) bs)
+              | otherwise       = []
+        undefA :: (EndianStore a, G.Vector v a) => v a -> a
+        undefA _ = undefined
+        sz       = byteSize $ undefA vec
+
+-- | Get the value from the bytestring using `peek`.
+fromByteStringStorable :: Storable k => ByteString -> k
+fromByteStringStorable src = unsafePerformIO $ withByteString src (peek . castPtr)
+
+-- | The IO action @createFrom n cptr@ creates a bytestring by copying
+-- @n@ bytes from the pointer @cptr@.
+createFrom :: LengthUnit l => l -> CryptoPtr -> IO ByteString
+createFrom l cptr = create bytes filler
+  where filler dest = memcpy (castPtr dest) cptr l
+        BYTES bytes = inBytes l
+
+----------------------  Hexadecimal encoding. -----------------------------------
+
+-- | Hexadecimal encoding of instances of `EndianStore`
 toHex :: EndianStore a => a -> ByteString
 toHex = hex . toByteString
+
+-- | The vector analogue of `toHex`.
+vectorToHex :: (EndianStore a, G.Vector v a) => v a -> ByteString
+vectorToHex = G.foldl' fldFunc empty
+  where fldFunc bs a = bs <> toHex a
 
 -- | Converts bytestring to hexadecimal representation.
 hex :: ByteString -> ByteString
@@ -158,25 +201,3 @@ fromHex bs
     | otherwise           = Nothing
     where isHexByteString = B.foldr foldfn True
           foldfn w sofar  = isHexWord w && sofar
-
--- | Works directly on the pointer associated with the
--- `ByteString`. This function should only read and not modify the
--- contents of the pointer.
-withByteString :: ByteString -> (CryptoPtr -> IO a) -> IO a
-withByteString bs f = withForeignPtr fptr (f . flip plusPtr off . castPtr)
-  where (fptr, off, _) = toForeignPtr bs
-
--- | Get the value from the bytestring using `load`.
-fromByteString :: EndianStore k => ByteString -> k
-fromByteString src = unsafePerformIO $ withByteString src (load . castPtr)
-
--- | Get the value from the bytestring using `peek`.
-fromByteStringStorable :: Storable k => ByteString -> k
-fromByteStringStorable src = unsafePerformIO $ withByteString src (peek . castPtr)
-
--- | The IO action @createFrom n cptr@ creates a bytestring by copying
--- @n@ bytes from the pointer @cptr@.
-createFrom :: LengthUnit l => l -> CryptoPtr -> IO ByteString
-createFrom l cptr = create bytes filler
-  where filler dest = memcpy (castPtr dest) cptr l
-        BYTES bytes = inBytes l
