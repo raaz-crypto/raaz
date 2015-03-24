@@ -15,7 +15,7 @@ little interest for users of the library.
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE DefaultSignatures          #-}
 {-# LANGUAGE CPP                        #-}
-
+{-# LANGUAGE FlexibleContexts           #-}
 #include "MachDeps.h"
 
 module Raaz.Core.Classes
@@ -36,7 +36,7 @@ module Raaz.Core.Classes
        , bitsQuot, bytesQuot
          -- ** Timing safe comparisons
          -- $timingsafe$
-       , EqWord(..), (===)
+       , EqWord(..), (===), eqVector, oftenCorrectEqVector
        -- * Misc type and type classes.
        , HasName(..)
        , CryptoCoerce(..)
@@ -49,6 +49,7 @@ import Data.Bits
 import Data.ByteString          (ByteString)
 import Data.ByteString.Internal (unsafeCreate)
 import Data.Typeable            (Typeable, typeOf)
+import qualified Data.Vector.Generic as G
 import Data.Word
 import Foreign.Ptr
 import Foreign.Storable
@@ -206,6 +207,33 @@ instance ( EqWord a
                                              eqWord e e' .|.
                                              eqWord f f'
 
+-- | Timing independent equality checks for vector of values. /Do not/
+-- use this to check the equality of two general vectors in a timing
+-- independent manner (use `eqVector` instead) because:
+--
+-- 1. They do not work for vectors of unequal lengths,
+--
+-- 2. They do not work for empty vectors.
+--
+-- The use case is for defining equality of data types which have
+-- fixed size vector quantities in it. Like for example
+--
+-- > import Data.Vector.Unboxed
+-- > newtype Sha1 = Sha1 (Vector (BE Word32))
+-- >
+-- > instance Eq Sha1 where
+-- >    (==) (Sha1 g) (Sha1 h) = oftenCorrectEqVector g h
+-- >
+--
+oftenCorrectEqVector :: (G.Vector v a, EqWord a, G.Vector v Word) => v a -> v a -> Bool
+oftenCorrectEqVector v1 v2 =  G.foldl1' (.|.) (G.zipWith eqWord v1 v2) == 0
+
+-- | Timing independent equality checks for vectors. If you know that
+-- the vectors are not empty and of equal length, you may use the
+-- slightly faster `oftenCorrectEqVector`
+eqVector :: (G.Vector v a, EqWord a, G.Vector v Word) => v a -> v a -> Bool
+eqVector v1 v2 | G.length v1 == G.length v2 = G.foldl' (.|.) 0 (G.zipWith eqWord v1 v2) == 0
+               | otherwise                  = False
 
 -- $length$
 --

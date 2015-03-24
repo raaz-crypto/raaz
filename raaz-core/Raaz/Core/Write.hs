@@ -9,12 +9,13 @@
 
 module Raaz.Core.Write
        ( Write, bytesToWrite, tryWriting
-       , write, writeStorable
+       , write, writeStorable, writeVector, writeStorableVector
        , writeBytes, writeByteString
        ) where
 
 import           Data.ByteString           (ByteString)
 import           Data.Monoid
+import qualified Data.Vector.Generic       as G
 import           Data.Word                 (Word8)
 import           Foreign.Ptr               (castPtr)
 import           Foreign.Storable
@@ -79,6 +80,18 @@ writeStorable a = makeWrite (byteSize a) $ pokeIt
 -- serialize data for the consumption of the outside world.
 write :: EndianStore a => a -> Write
 write a = makeWrite (byteSize a) $ flip store a
+
+-- | The vector version of `writeStorable`.
+writeStorableVector :: (Storable a, G.Vector v a) => v a -> Write
+{-# INLINE writeStorableVector #-}
+writeStorableVector = G.foldl' foldFunc mempty
+  where foldFunc w a =  w <> writeStorable a
+
+-- | The vector version of `write`.
+writeVector :: (EndianStore a, G.Vector v a) => v a -> Write
+{-# INLINE writeVector #-}
+writeVector = G.foldl' foldFunc mempty
+  where foldFunc w a =  w <> write a
 
 -- | The combinator @writeBytes n b@ writes @b@ as the next @n@
 -- consecutive bytes.
