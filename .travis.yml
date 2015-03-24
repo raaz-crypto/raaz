@@ -102,5 +102,4 @@ after_failure:
 branches:
   only:
     - master
-    - x-travis
-    - x-length
+    - use-vector
