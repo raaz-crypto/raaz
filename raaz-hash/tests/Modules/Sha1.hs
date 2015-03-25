@@ -7,22 +7,30 @@ import           Control.Applicative
 import qualified Data.ByteString          as B
 import qualified Data.ByteString.Char8    as C8
 import           Data.String
+import qualified Data.Vector.Unboxed      as VU
+import           Data.Word
 import           Test.QuickCheck          ( Arbitrary(..) )
 
 import Raaz.Core.Test.Gadget
+import Raaz.Core.Types
 import Raaz.Core.Primitives.HMAC
+import           Raaz.Core.Primitives
+import           Raaz.Core.Types.Word
+import           Raaz.Core.Classes
 
 import Modules.Generic
 import Raaz.Hash.Sha1.Internal
 
 instance Arbitrary SHA1 where
-  arbitrary = SHA1 <$> arbitrary   -- h0
-                   <*> arbitrary   -- h1
-                   <*> arbitrary   -- h2
-                   <*> arbitrary   -- h3
-                   <*> arbitrary   -- h4
+  arbitrary = do
+    w0 <- arbitrary
+    w1 <- arbitrary
+    w2 <- arbitrary
+    w3 <- arbitrary
+    w4 <- arbitrary
+    return (SHA1 $ VU.fromList [w0,w1,w2,w3,w4])
 
-tests = allHashTests (undefined ::SHA1) exampleStrings
+tests = allHashTests (undefined :: SHA1) exampleStrings
      ++ allHMACTests (undefined :: SHA1) exampleHMAC
 
 exampleStrings :: [(B.ByteString,B.ByteString)]

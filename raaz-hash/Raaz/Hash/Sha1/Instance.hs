@@ -17,8 +17,8 @@ import Raaz.Core.Memory
 import Raaz.Core.Primitives
 import Raaz.Core.Primitives.Hash
 import Raaz.Core.Util.Ptr
+import qualified Data.Vector.Unboxed as VU
 
-import Raaz.Hash.Sha.Util
 import Raaz.Hash.Sha1.Type
 import Raaz.Hash.Sha1.Ref
 import Raaz.Hash.Sha1.CPortable ()
@@ -30,11 +30,12 @@ instance CryptoPrimitive SHA1 where
   type Reference SHA1 = HGadget SHA1
 
 instance Hash SHA1 where
-  defaultCxt _ = SHA1 0x67452301
-                      0xefcdab89
-                      0x98badcfe
-                      0x10325476
-                      0xc3d2e1f0
+  defaultCxt _ = SHA1 $ VU.fromList [ 0x67452301
+                                    , 0xefcdab89
+                                    , 0x98badcfe
+                                    , 0x10325476
+                                    , 0xc3d2e1f0
+                                    ]
 
   hashDigest = id
 

@@ -8,7 +8,7 @@
 
 
 module Raaz.Core.Write
-       ( Write, bytesToWrite, tryWriting
+       ( Write, bytesToWrite, tryWriting, unsafeWrite
        , write, writeStorable, writeVector, writeStorableVector
        , writeBytes, writeByteString
        ) where

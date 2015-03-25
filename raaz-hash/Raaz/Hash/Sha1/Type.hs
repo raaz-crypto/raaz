@@ -15,72 +15,49 @@ module Raaz.Hash.Sha1.Type
        ( SHA1(..)
        ) where
 
-import Control.Applicative ( (<$>), (<*>) )
-import Data.Bits           ( xor, (.|.)   )
-import Data.Monoid
-import Data.Word
-import Data.Typeable       ( Typeable     )
-import Foreign.Ptr         ( castPtr      )
-import Foreign.Storable    ( Storable(..) )
+import qualified Data.Vector.Unboxed                  as VU
+import           Data.Word
+import           Data.Typeable       ( Typeable     )
+import           Foreign.Ptr         ( castPtr      )
+import           Foreign.Storable    ( Storable(..) )
 
-import Raaz.Core.Parse.Unsafe
-import Raaz.Core.Primitives
-import Raaz.Core.Types
-import Raaz.Core.Write.Unsafe
-
-import Raaz.Hash.Sha.Util
+import           Raaz.Core.Classes
+import           Raaz.Core.Parse.Applicative
+import           Raaz.Core.Primitives
+import           Raaz.Core.Types
+import           Raaz.Core.Write
+import           Raaz.Hash.Sha.Util
 
 -- | The SHA1 hash value.
-data SHA1 = SHA1 {-# UNPACK #-} !(BE Word32)
-                 {-# UNPACK #-} !(BE Word32)
-                 {-# UNPACK #-} !(BE Word32)
-                 {-# UNPACK #-} !(BE Word32)
-                 {-# UNPACK #-} !(BE Word32) deriving (Show, Typeable)
+newtype SHA1 = SHA1 (VU.Vector (BE Word32)) deriving ( Show, Typeable )
 
 -- | Timing independent equality testing.
 instance Eq SHA1 where
-  (==) (SHA1 g0 g1 g2 g3 g4) (SHA1 h0 h1 h2 h3 h4) =   xor g0 h0
-                                                   .|. xor g1 h1
-                                                   .|. xor g2 h2
-                                                   .|. xor g3 h3
-                                                   .|. xor g4 h4
-                                                   == 0
+ (==) (SHA1 g) (SHA1 h) = oftenCorrectEqVector g h
 
 instance HasName SHA1
 
 instance Storable SHA1 where
   sizeOf    _ = 5 * sizeOf (undefined :: (BE Word32))
   alignment _ = alignment  (undefined :: (BE Word32))
-  peek ptr = runParser cptr parseSHA1
-    where parseSHA1 = SHA1 <$> parseStorable
-                           <*> parseStorable
-                           <*> parseStorable
-                           <*> parseStorable
-                           <*> parseStorable
-          cptr = castPtr ptr
+  peek ptr = do
+    let parseSHA1 = unsafeParseStorableVector $ sizeOf (undefined :: SHA1)
+        cptr = castPtr ptr
+    parserV <- unsafeRunParser parseSHA1 cptr
+    return $ SHA1 parserV
 
-  poke ptr (SHA1 h0 h1 h2 h3 h4) =  runWrite cptr writeSHA1
-    where writeSHA1 =  writeStorable h0
-                    <> writeStorable h1
-                    <> writeStorable h2
-                    <> writeStorable h3
-                    <> writeStorable h4
+  poke ptr (SHA1 v) = unsafeWrite writeSHA1 cptr
+    where writeSHA1 = writeStorableVector v
           cptr = castPtr ptr
 
 instance EndianStore SHA1 where
-  load cptr = runParser cptr parseSHA1
-    where parseSHA1 = SHA1 <$> parse
-                           <*> parse
-                           <*> parse
-                           <*> parse
-                           <*> parse
+  load cptr = do
+    let parseSHA1 = unsafeParseVector $ sizeOf (undefined :: SHA1)
+    parserV <- unsafeRunParser parseSHA1 cptr
+    return $ SHA1 parserV
 
-  store cptr (SHA1 h0 h1 h2 h3 h4) =  runWrite cptr writeSHA1
-    where writeSHA1 =  write h0
-                    <> write h1
-                    <> write h2
-                    <> write h3
-                    <> write h4
+  store cptr (SHA1 v) = unsafeWrite writeSHA1 cptr
+    where writeSHA1 = writeVector v
 
 instance Primitive SHA1 where
   blockSize _ = BYTES 64
