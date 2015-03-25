@@ -18,9 +18,10 @@ module Raaz.Cipher.AES.Block.Internal
        , encrypt192, decrypt192
        , encrypt256, decrypt256
        , xorState, incrState
-       , AESIVMem(..), AESKEYMem(..)
+
        , module Raaz.Cipher.AES.Block.Type
        ) where
+
 
 import Data.ByteString            (ByteString)
 import Data.ByteString.Char8      ()
@@ -189,7 +190,7 @@ xorState :: STATE -> STATE -> STATE
 xorState = addRoundKey
 {-# INLINE xorState #-}
 
-encrypt128 :: STATE -> Expanded128 -> STATE
+encrypt128 :: STATE -> Expanded KEY128 -> STATE
 encrypt128 inp (Expanded128 k00 k01 k02 k03 k04 k05 k06 k07 k08 k09 k10)
   = invTranspose s10
     where
@@ -206,7 +207,7 @@ encrypt128 inp (Expanded128 k00 k01 k02 k03 k04 k05 k06 k07 k08 k09 k10)
       s09 = aesRound k09 s08
       s10 = addRoundKey (shiftRows $ subBytes s09) k10
 
-decrypt128 :: STATE -> Expanded128 -> STATE
+decrypt128 :: STATE -> Expanded KEY128 -> STATE
 decrypt128 inp (Expanded128 k00 k01 k02 k03 k04 k05 k06 k07 k08 k09 k10)
   = invTranspose s10
     where
@@ -223,7 +224,7 @@ decrypt128 inp (Expanded128 k00 k01 k02 k03 k04 k05 k06 k07 k08 k09 k10)
       s09 = aesRound k01 s08
       s10 = invAddRoundKey (invSubBytes $ invShiftRows s09) k00
 
-encrypt192 :: STATE -> Expanded192 -> STATE
+encrypt192 :: STATE -> Expanded KEY192 -> STATE
 encrypt192 inp (Expanded192 k00 k01 k02 k03 k04 k05 k06 k07 k08 k09 k10
                             k11 k12) = invTranspose s12
     where
@@ -242,7 +243,7 @@ encrypt192 inp (Expanded192 k00 k01 k02 k03 k04 k05 k06 k07 k08 k09 k10
       s11 = aesRound k11 s10
       s12 = flip addRoundKey k12 . shiftRows $ subBytes s11
 
-decrypt192 :: STATE -> Expanded192 -> STATE
+decrypt192 :: STATE -> Expanded KEY192 -> STATE
 decrypt192 inp (Expanded192 k00 k01 k02 k03 k04 k05 k06 k07 k08 k09 k10
                            k11 k12) = invTranspose s12
     where
@@ -261,7 +262,7 @@ decrypt192 inp (Expanded192 k00 k01 k02 k03 k04 k05 k06 k07 k08 k09 k10
       s11 = aesRound k01 s10
       s12 = invAddRoundKey (invSubBytes $ invShiftRows s11) k00
 
-encrypt256 :: STATE -> Expanded256 -> STATE
+encrypt256 :: STATE -> Expanded KEY256 -> STATE
 encrypt256 inp (Expanded256 k00 k01 k02 k03 k04 k05 k06 k07 k08 k09 k10
                            k11 k12 k13 k14) = invTranspose s14
     where
@@ -282,7 +283,7 @@ encrypt256 inp (Expanded256 k00 k01 k02 k03 k04 k05 k06 k07 k08 k09 k10
       s13 = aesRound k13 s12
       s14 = flip addRoundKey k14 . shiftRows $ subBytes s13
 
-decrypt256 :: STATE -> Expanded256 -> STATE
+decrypt256 :: STATE -> Expanded KEY256 -> STATE
 decrypt256 inp (Expanded256 k00 k01 k02 k03 k04 k05 k06 k07 k08 k09 k10
                            k11 k12 k13 k14) = invTranspose s14
     where
@@ -303,41 +304,6 @@ decrypt256 inp (Expanded256 k00 k01 k02 k03 k04 k05 k06 k07 k08 k09 k10
       s13 = aesRound k01 s12
       s14 = invAddRoundKey (invSubBytes $ invShiftRows s13) k00
 
-foreign import ccall unsafe
-  "raaz/cipher/cportable/aes.c raazCipherAESExpand"
-  c_expand  :: CryptoPtr  -- ^ expanded key
-            -> CryptoPtr  -- ^ key
-            -> Int        -- ^ Key type
-            -> IO ()
-
--- | SECURITY LOOPHOLE TO FIX. Memory allocated through `allocaBuffer`
--- is not a secureMemory and would not be scrubbed. The alternative to
--- fix this is to change the context to a Memory containing Key
--- instead of pure Key (similar for IV) and that memory should be
--- passed while interfacing with C code.
-cExpansionWith :: (EndianStore k, Storable ek)
-               => MemoryCell ek
-               -> k
-               -> (CryptoPtr -> CryptoPtr -> Int -> IO ())
-               -> Int
-               -> IO ()
-cExpansionWith ek k with i = allocaBuffer szk $ \kptr -> do
-  store kptr k
-  withCell ek $ expnd kptr
-  where
-    expnd kptr ekptr = with ekptr kptr i
-    szk :: BYTES Int
-    szk = BYTES $ sizeOf k
-{-# INLINE cExpansionWith #-}
-
-cExpand128 :: KEY128 -> MemoryCell Expanded128 -> IO ()
-cExpand128 k excell = cExpansionWith excell k c_expand 0
-
-cExpand192 :: KEY192 -> MemoryCell Expanded192 -> IO ()
-cExpand192 k excell = cExpansionWith excell k c_expand 1
-
-cExpand256 :: KEY256 -> MemoryCell Expanded256 -> IO ()
-cExpand256 k excell = cExpansionWith excell k c_expand 2
 
 -- | Incrments the STATE considering it to be a byte string. It is
 -- sligthly different because of transposing of data during load and
@@ -413,78 +379,3 @@ invTranspose (STATE w0 w1 w2 w3) =
     s13 = w3 `shiftR` 16
     s23 = w3 `shiftR` 8
     s33 = w3
-
-
------------------------------ Gadgets for AES -----------------------
-
-type KeyCell k = MemoryCell (Expanded k)
-type StateCell = MemoryCell STATE
-
-data HAESGadget mode key op = HAESGadget (KeyCell key) StateCell
-data CAESGadget mode key op = CAESGadget (KeyCell key) StateCell
-
----------------------------- HGadgets ------------------------------------
-
-instance Storable (Expanded key) => Memory (HAESGadget mode key op) where
-
-  memoryAlloc = HAESGadget <$> memoryAlloc <*> memoryAlloc
-
-  underlyingPtr (HAESGadget keycell _) = underlyingPtr keycell
-
-
-instance InitializableMemory (HAESGadget mode KEY128 op) where
-
-  type IV (HAESGadget mode KEY128 op) = (KEY128, STATE)
-
-  initializeMemory (HAESGadget kC stC) (k,s) = cExpand128 k keyCell
-                                             >> withCell cell (flip store s)
-
-
-instance InitializableMemory (HAESGadget mode KEY192 op) where
-
-  type IV (HAESGadget mode KEY192 op) = (KEY192, STATE)
-
-  initializeMemory (HAESGadget kC stC) (k,s) = cExpand192 k keyCell
-                                             >> withCell cell (flip store s)
-
-
-instance InitializableMemory (HAESGadget mode KEY256 op) where
-
-  type IV (HAESGadget mode KEY256 op) = (KEY256, STATE)
-
-  initializeMemory (HAESGadget kC stC) (k,s) = cExpand256 k keyCell
-                                             >> withCell cell (flip store s)
-
-
---------------------- C Gadgets -------------------------------------------
-
-instance Storable (Expanded key) => Memory (CAESGadget mode key op) where
-
-  memoryAlloc = CAESGadget <$> memoryAlloc <*> memoryAlloc
-
-  underlyingPtr (CAESGadget keycell _) = underlyingPtr m
-
-
-
-instance InitializableMemory (CAESGadget mode KEY128 op) where
-
-  type IV (CAESGadget mode KEY128 op) = (KEY128, STATE)
-
-  initializeMemory (CAESGadget kC stC) (k,s) = cExpand128 k keyCell
-                                             >> withCell cell (flip store s)
-
-
-instance InitializableMemory (CAESGadget mode KEY192 op) where
-
-  type IV (CAESGadget mode KEY192 op) = (KEY192, STATE)
-
-  initializeMemory (CAESGadget kC stC) (k,s) = cExpand192 k keyCell
-                                             >> withCell cell (flip store s)
-
-
-instance InitializableMemory (CAESGadget mode KEY256 op) where
-
-  type IV (CAESGadget mode KEY256 op) = (KEY256, STATE)
-
-  initializeMemory (CAESGadget kC stC) (k,s) = cExpand256 k keyCell
-                                             >> withCell cell (flip store s)
