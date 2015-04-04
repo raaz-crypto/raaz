@@ -143,6 +143,44 @@ data CAESGadget mode key op = CAESGadget (KeyCell key) StateCell
 
 ---------------------------- HGadgets ------------------------------------
 
+
+instance HasName (HAESGadget CBC KEY128 EncryptMode) where
+  getName _ = "HAES128 CBC EncryptMode"
+
+instance HasName (HAESGadget CBC KEY192 EncryptMode) where
+  getName _ = "HAES192 CBC EncryptMode"
+
+instance HasName (HAESGadget CBC KEY256 EncryptMode) where
+  getName _ = "HAES256 CBC EncryptMode"
+
+instance HasName (HAESGadget CBC KEY128 DecryptMode) where
+  getName _ = "HAES128 CBC DecryptMode"
+
+instance HasName (HAESGadget CBC KEY192 DecryptMode) where
+  getName _ = "HAES192 CBC DecryptMode"
+
+instance HasName (HAESGadget CBC KEY256 DecryptMode) where
+  getName _ = "HAES256 CBC DecryptMode"
+
+
+instance HasName (HAESGadget CTR KEY128 EncryptMode) where
+  getName _ = "HAES128 CTR EncryptMode"
+
+instance HasName (HAESGadget CTR KEY192 EncryptMode) where
+  getName _ = "HAES192 CTR EncryptMode"
+
+instance HasName (HAESGadget CTR KEY256 EncryptMode) where
+  getName _ = "HAES256 CTR EncryptMode"
+
+instance HasName (HAESGadget CTR KEY128 DecryptMode) where
+  getName _ = "HAES128 CTR DecryptMode"
+
+instance HasName (HAESGadget CTR KEY192 DecryptMode) where
+  getName _ = "HAES192 CTR DecryptMode"
+
+instance HasName (HAESGadget CTR KEY256 DecryptMode) where
+  getName _ = "HAES256 CTR DecryptMode"
+
 instance Storable (Expanded key) => Memory (HAESGadget mode key op) where
 
   memoryAlloc = HAESGadget <$> memoryAlloc <*> memoryAlloc
@@ -175,6 +213,44 @@ instance InitializableMemory (HAESGadget mode KEY256 op) where
 
 
 --------------------- C Gadgets -------------------------------------------
+
+instance HasName (CAESGadget CBC KEY128 EncryptMode) where
+  getName _ = "CAES128 CBC EncryptMode"
+
+instance HasName (CAESGadget CBC KEY192 EncryptMode) where
+  getName _ = "CAES192 CBC EncryptMode"
+
+instance HasName (CAESGadget CBC KEY256 EncryptMode) where
+  getName _ = "CAES256 CBC EncryptMode"
+
+instance HasName (CAESGadget CBC KEY128 DecryptMode) where
+  getName _ = "CAES128 CBC DecryptMode"
+
+instance HasName (CAESGadget CBC KEY192 DecryptMode) where
+  getName _ = "CAES192 CBC DecryptMode"
+
+instance HasName (CAESGadget CBC KEY256 DecryptMode) where
+  getName _ = "CAES256 CBC DecryptMode"
+
+
+instance HasName (CAESGadget CTR KEY128 EncryptMode) where
+  getName _ = "CAES128 CTR EncryptMode"
+
+instance HasName (CAESGadget CTR KEY192 EncryptMode) where
+  getName _ = "CAES192 CTR EncryptMode"
+
+instance HasName (CAESGadget CTR KEY256 EncryptMode) where
+  getName _ = "CAES256 CTR EncryptMode"
+
+instance HasName (CAESGadget CTR KEY128 DecryptMode) where
+  getName _ = "CAES128 CTR DecryptMode"
+
+instance HasName (CAESGadget CTR KEY192 DecryptMode) where
+  getName _ = "CAES192 CTR DecryptMode"
+
+instance HasName (CAESGadget CTR KEY256 DecryptMode) where
+  getName _ = "CAES256 CTR DecryptMode"
+
 
 instance Storable (Expanded key) => Memory (CAESGadget mode key op) where
 
