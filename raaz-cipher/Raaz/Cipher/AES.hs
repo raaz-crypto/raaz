@@ -10,6 +10,6 @@ import Raaz.Core.Primitives.Cipher
 
 import Raaz.Cipher.AES.CTR ()
 import Raaz.Cipher.AES.CBC ()
-import Raaz.Cipher.AES.ECB ()
+-- import Raaz.Cipher.AES.ECB ()
 
 {-# ANN module "HLint: ignore Use import/export shortcut" #-}
