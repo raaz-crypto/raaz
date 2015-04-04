@@ -81,7 +81,7 @@ test-Suite tests
   other-modules: Modules.AES
                , Modules.AES.Block
                , Modules.AES.Defaults
-               , Modules.AES.ECB
+               -- , Modules.AES.ECB
                , Modules.AES.CBC
                , Modules.AES.CTR
                , Modules.EcryptTest

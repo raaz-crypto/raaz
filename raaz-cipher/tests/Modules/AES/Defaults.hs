@@ -42,9 +42,9 @@ testsDefault p s128 s192 s256 =
       ]
       where
         first (a,_,_) = a
-        toH :: AES mode k -> HGadget (AESOp mode k EncryptMode)
+        toH :: AES mode k -> HAESGadget mode k EncryptMode
         toH _ = undefined
-        toC :: AES mode k -> CGadget (AESOp mode k EncryptMode)
+        toC :: AES mode k -> CAESGadget mode k EncryptMode
         toC _ = undefined
         p128 :: AES mode key -> AES mode KEY128
         p128 = undefined

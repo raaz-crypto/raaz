@@ -22,7 +22,7 @@ import           Raaz.Core.Util.ByteString      ( fromByteString   )
 import qualified Raaz.Core.Util.ByteString      as BU
 
 import           Raaz.Cipher.Salsa20.Internal
-import           Raaz.Cipher.Salsa20            ()
+import           Raaz.Cipher.Salsa20            (HSalsa20Gadget, CSalsa20Gadget)
 
 import           Modules.EcryptTestParser
 import           Modules.EcryptTest
@@ -67,27 +67,27 @@ tests =
   where
     keySize :: BYTES Int -> EcryptTest -> Bool
     keySize w (EcryptTest _ k _ _ _) = BU.length k == w
-    s20_128 :: HGadget (Salsa20 R20 KEY128)
+    s20_128 :: HSalsa20Gadget R20 KEY128
     s20_128 = undefined
-    s20_256 :: HGadget (Salsa20 R20 KEY256)
+    s20_256 :: HSalsa20Gadget R20 KEY256
     s20_256 = undefined
-    s12_128 :: HGadget (Salsa20 R12 KEY128)
+    s12_128 :: HSalsa20Gadget R12 KEY128
     s12_128 = undefined
-    s12_256 :: HGadget (Salsa20 R12 KEY256)
+    s12_256 :: HSalsa20Gadget R12 KEY256
     s12_256 = undefined
-    s8_128 :: HGadget (Salsa20 R8 KEY128)
+    s8_128 :: HSalsa20Gadget R8 KEY128
     s8_128 = undefined
-    s8_256 :: HGadget (Salsa20 R8 KEY256)
+    s8_256 :: HSalsa20Gadget R8 KEY256
     s8_256 = undefined
-    cs20_128 :: CGadget (Salsa20 R20 KEY128)
+    cs20_128 :: CSalsa20Gadget R20 KEY128
     cs20_128 = undefined
-    cs20_256 :: CGadget (Salsa20 R20 KEY256)
+    cs20_256 :: CSalsa20Gadget R20 KEY256
     cs20_256 = undefined
-    cs12_128 :: CGadget (Salsa20 R12 KEY128)
+    cs12_128 :: CSalsa20Gadget R12 KEY128
     cs12_128 = undefined
-    cs12_256 :: CGadget (Salsa20 R12 KEY256)
+    cs12_256 :: CSalsa20Gadget R12 KEY256
     cs12_256 = undefined
-    cs8_128 :: CGadget (Salsa20 R8 KEY128)
+    cs8_128 :: CSalsa20Gadget R8 KEY128
     cs8_128 = undefined
-    cs8_256 :: CGadget (Salsa20 R8 KEY256)
+    cs8_256 :: CSalsa20Gadget R8 KEY256
     cs8_256 = undefined
