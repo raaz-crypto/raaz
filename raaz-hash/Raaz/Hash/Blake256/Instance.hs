@@ -11,6 +11,7 @@ This module defines the hash instances for blake256 hash.
 module Raaz.Hash.Blake256.Instance () where
 
 import Control.Monad       ( foldM )
+import qualified Data.Vector.Unboxed as VU
 import Data.Word
 
 import Raaz.Core.Memory
@@ -31,15 +32,16 @@ instance CryptoPrimitive BLAKE256 where
 
 instance Hash BLAKE256 where
   defaultCxt _ = (blake, salt)
-    where salt  = Salt 0 0 0 0
-          blake = BLAKE256 0x6a09e667
-                           0xbb67ae85
-                           0x3c6ef372
-                           0xa54ff53a
-                           0x510e527f
-                           0x9b05688c
-                           0x1f83d9ab
-                           0x5be0cd19
+    where salt  = Salt $ VU.fromList [0,0,0,0]
+          blake = BLAKE256 $ VU.fromList [ 0x6a09e667
+                                         , 0xbb67ae85
+                                         , 0x3c6ef372
+                                         , 0xa54ff53a
+                                         , 0x510e527f
+                                         , 0x9b05688c
+                                         , 0x1f83d9ab
+                                         , 0x5be0cd19
+                                         ]
 
   hashDigest = fst
 

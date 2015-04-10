@@ -5,6 +5,7 @@ module Modules.Blake256
 import           Control.Applicative
 import qualified Data.ByteString       as B
 import qualified Data.ByteString.Char8 as C8
+import qualified Data.Vector.Unboxed   as VU
 import           Data.Typeable
 import           Test.QuickCheck       (Arbitrary(..))
 import           Test.Framework        (Test, testGroup)
@@ -17,16 +18,18 @@ import           Modules.Generic
 import           Raaz.Hash.Blake256.Internal
 
 instance Arbitrary BLAKE256 where
-  arbitrary = BLAKE256  <$> arbitrary
-                        <*> arbitrary
-                        <*> arbitrary
-                        <*> arbitrary
-                        <*> arbitrary
-                        <*> arbitrary
-                        <*> arbitrary
-                        <*> arbitrary
-                        
-tests = allHashTests (undefined ::BLAKE256) exampleStrings
+  arbitrary = do
+    w0 <- arbitrary
+    w1 <- arbitrary
+    w2 <- arbitrary
+    w3 <- arbitrary
+    w4 <- arbitrary
+    w5 <- arbitrary
+    w6 <- arbitrary
+    w7 <- arbitrary
+    return (BLAKE256 $ VU.fromList [w0,w1,w2,w3,w4,w5,w6,w7])
+
+tests = allHashTests (undefined :: BLAKE256) exampleStrings
 
 {-tests = [ testStoreLoad h
         , testPadLengthVsPadding h
