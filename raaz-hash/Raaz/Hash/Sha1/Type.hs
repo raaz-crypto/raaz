@@ -15,6 +15,7 @@ module Raaz.Hash.Sha1.Type
        ( SHA1(..)
        ) where
 
+import           Control.Applicative ( (<$>) )
 import qualified Data.Vector.Unboxed                  as VU
 import           Data.Word
 import           Data.Typeable       ( Typeable     )
@@ -40,21 +41,15 @@ instance HasName SHA1
 instance Storable SHA1 where
   sizeOf    _ = 5 * sizeOf (undefined :: (BE Word32))
   alignment _ = alignment  (undefined :: (BE Word32))
-  peek ptr = do
-    let parseSHA1 = unsafeParseStorableVector $ sizeOf (undefined :: SHA1)
-        cptr = castPtr ptr
-    parserV <- unsafeRunParser parseSHA1 cptr
-    return $ SHA1 parserV
+  peek  = unsafeRunParser sha1parse . castPtr
+    where sha1parse = SHA1 <$> unsafeParseStorableVector 5
 
   poke ptr (SHA1 v) = unsafeWrite writeSHA1 cptr
     where writeSHA1 = writeStorableVector v
           cptr = castPtr ptr
 
 instance EndianStore SHA1 where
-  load cptr = do
-    let parseSHA1 = unsafeParseVector $ sizeOf (undefined :: SHA1)
-    parserV <- unsafeRunParser parseSHA1 cptr
-    return $ SHA1 parserV
+  load = unsafeRunParser $ SHA1 <$> unsafeParseVector 5
 
   store cptr (SHA1 v) = unsafeWrite writeSHA1 cptr
     where writeSHA1 = writeVector v

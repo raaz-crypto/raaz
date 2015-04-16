@@ -10,7 +10,7 @@ import           Data.String
 import qualified Data.Vector.Unboxed      as VU
 import           Data.Word
 import           Test.QuickCheck          ( Arbitrary(..) )
-
+import           Test.QuickCheck.Arbitrary
 import Raaz.Core.Test.Gadget
 import Raaz.Core.Types
 import Raaz.Core.Primitives.HMAC
@@ -22,13 +22,7 @@ import Modules.Generic
 import Raaz.Hash.Sha1.Internal
 
 instance Arbitrary SHA1 where
-  arbitrary = do
-    w0 <- arbitrary
-    w1 <- arbitrary
-    w2 <- arbitrary
-    w3 <- arbitrary
-    w4 <- arbitrary
-    return (SHA1 $ VU.fromList [w0,w1,w2,w3,w4])
+  arbitrary = SHA1 . VU.fromList <$> vector 5
 
 tests = allHashTests (undefined :: SHA1) exampleStrings
      ++ allHMACTests (undefined :: SHA1) exampleHMAC
