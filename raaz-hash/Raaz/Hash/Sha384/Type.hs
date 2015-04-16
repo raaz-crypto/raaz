@@ -15,6 +15,7 @@ module Raaz.Hash.Sha384.Type
        ( SHA384(..)
        ) where
 
+import           Control.Applicative ( (<$>) )
 import qualified Data.Vector.Unboxed                  as VU
 import           Data.Word
 import           Data.Typeable       ( Typeable     )
@@ -46,21 +47,15 @@ instance Storable SHA384 where
   sizeOf    _ = 6 * sizeOf (undefined :: (BE Word64))
   alignment _ = alignment  (undefined :: (BE Word64))
 
-  peek ptr = do
-    let parseSHA384 = unsafeParseStorableVector $ sizeOf (undefined :: SHA384)
-        cptr = castPtr ptr
-    parserV <- unsafeRunParser parseSHA384 cptr
-    return $ SHA384 parserV
+  peek = unsafeRunParser sha384parse . castPtr
+    where sha384parse = SHA384 <$> unsafeParseStorableVector 6
 
   poke ptr (SHA384 v) = unsafeWrite writeSHA384 cptr
     where writeSHA384 = writeStorableVector v
           cptr = castPtr ptr
 
 instance EndianStore SHA384 where
-  load cptr = do
-    let parseSHA384 = unsafeParseVector $ sizeOf (undefined :: SHA384)
-    parserV <- unsafeRunParser parseSHA384 cptr
-    return $ SHA384 parserV
+  load = unsafeRunParser $ SHA384 <$> unsafeParseVector 6
 
   store cptr (SHA384 v) = unsafeWrite writeSHA384 cptr
     where writeSHA384 = writeVector v

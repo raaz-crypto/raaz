@@ -6,6 +6,7 @@ module Raaz.Hash.Sha512.Type
        ( SHA512(..)
        ) where
 
+import           Control.Applicative ( (<$>) )
 import qualified Data.Vector.Unboxed                  as VU
 import           Data.Word
 import           Data.Typeable       ( Typeable     )
@@ -34,21 +35,15 @@ instance Storable SHA512 where
   sizeOf    _ = 8 * sizeOf (undefined :: (BE Word64))
   alignment _ = alignment  (undefined :: (BE Word64))
 
-  peek ptr = do
-    let parseSHA512 = unsafeParseStorableVector $ sizeOf (undefined :: SHA512)
-        cptr = castPtr ptr
-    parserV <- unsafeRunParser parseSHA512 cptr
-    return $ SHA512 parserV
+  peek = unsafeRunParser sha512parse . castPtr
+    where sha512parse = SHA512 <$> unsafeParseStorableVector 8
 
   poke ptr (SHA512 v) = unsafeWrite writeSHA512 cptr
     where writeSHA512 = writeStorableVector v
           cptr = castPtr ptr
 
 instance EndianStore SHA512 where
-  load cptr = do
-    let parseSHA512 = unsafeParseVector $ sizeOf (undefined :: SHA512)
-    parserV <- unsafeRunParser parseSHA512 cptr
-    return $ SHA512 parserV
+  load = unsafeRunParser $ SHA512 <$> unsafeParseVector 8
 
   store cptr (SHA512 v) = unsafeWrite writeSHA512 cptr
     where writeSHA512 = writeVector v

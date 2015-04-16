@@ -8,6 +8,7 @@ import qualified Data.ByteString       as B
 import qualified Data.ByteString.Char8 as C8
 import qualified Data.Vector.Unboxed   as VU
 import           Test.QuickCheck       ( Arbitrary(..) )
+import           Test.QuickCheck.Arbitrary
 
 import Raaz.Core.Test.Gadget
 
@@ -15,14 +16,7 @@ import Modules.Generic
 import Raaz.Hash.Sha384.Internal
 
 instance Arbitrary SHA384 where
-  arbitrary = do
-    w0 <- arbitrary
-    w1 <- arbitrary
-    w2 <- arbitrary
-    w3 <- arbitrary
-    w4 <- arbitrary
-    w5 <- arbitrary
-    return (SHA384 $ VU.fromList [w0,w1,w2,w3,w4,w5])
+  arbitrary = SHA384 . VU.fromList <$> vector 6
 
 
 tests = allHashTests (undefined :: SHA384) exampleStrings
