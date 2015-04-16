@@ -9,6 +9,7 @@ module Raaz.Hash.Blake256.Type
        , BLAKEMem(..)
        ) where
 
+import           Control.Applicative ( (<$>) )
 import qualified Data.Vector.Unboxed                  as VU
 import           Data.Word
 import           Data.Typeable       ( Typeable     )
@@ -45,21 +46,15 @@ instance Storable BLAKE256 where
   sizeOf    _ = 8 * sizeOf (undefined :: (BE Word32))
   alignment _ = alignment  (undefined :: (BE Word32))
 
-  peek ptr = do
-    let parseBLAKE256 = unsafeParseStorableVector $ sizeOf (undefined :: BLAKE256)
-        cptr = castPtr ptr
-    parserV <- unsafeRunParser parseBLAKE256 cptr
-    return $ BLAKE256 parserV
+  peek = unsafeRunParser blake256parse . castPtr
+    where blake256parse = BLAKE256 <$> unsafeParseStorableVector 8
 
   poke ptr (BLAKE256 v) = unsafeWrite writeBLAKE256 cptr
     where writeBLAKE256 = writeStorableVector v
           cptr = castPtr ptr
 
 instance EndianStore BLAKE256 where
-  load cptr = do
-    let parseBLAKE256 = unsafeParseVector $ sizeOf (undefined :: BLAKE256)
-    parserV <- unsafeRunParser parseBLAKE256 cptr
-    return $ BLAKE256 parserV
+  load = unsafeRunParser $ BLAKE256 <$> unsafeParseVector 8
 
   store cptr (BLAKE256 v) = unsafeWrite writeBLAKE256 cptr
     where writeBLAKE256 = writeVector v
