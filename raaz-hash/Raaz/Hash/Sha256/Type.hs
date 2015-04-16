@@ -6,6 +6,7 @@ module Raaz.Hash.Sha256.Type
        ( SHA256(..)
        ) where
 
+import           Control.Applicative ( (<$>) )
 import qualified Data.Vector.Unboxed as VU
 import           Data.Word
 import           Data.Typeable       ( Typeable     )
@@ -34,21 +35,15 @@ instance Storable SHA256 where
   sizeOf    _ = 8 * sizeOf (undefined :: (BE Word32))
   alignment _ = alignment  (undefined :: (BE Word32))
 
-  peek ptr = do
-    let parseSHA256 = unsafeParseStorableVector $ sizeOf (undefined :: SHA256)
-        cptr = castPtr ptr
-    parserV <- unsafeRunParser parseSHA256 cptr
-    return $ SHA256 parserV
+  peek = unsafeRunParser sha256parse . castPtr
+    where sha256parse = SHA256 <$> unsafeParseStorableVector 8
 
   poke ptr (SHA256 v) = unsafeWrite writeSHA256 cptr
     where writeSHA256 = writeStorableVector v
           cptr = castPtr ptr
 
 instance EndianStore SHA256 where
-  load cptr = do
-    let parseSHA256 = unsafeParseVector $ sizeOf (undefined :: SHA256)
-    parserV <- unsafeRunParser parseSHA256 cptr
-    return $ SHA256 parserV
+  load = unsafeRunParser $ SHA256 <$> unsafeParseVector 8
 
   store cptr (SHA256 v) = unsafeWrite writeSHA256 cptr
     where writeSHA256 = writeVector v

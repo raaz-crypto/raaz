@@ -9,6 +9,7 @@ import qualified Data.ByteString.Char8 as C8
 import qualified Data.Vector.Unboxed   as VU
 import           Data.String
 import           Test.QuickCheck       ( Arbitrary(..) )
+import           Test.QuickCheck.Arbitrary
 
 import Raaz.Core.Test.Gadget
 import Raaz.Core.Primitives.HMAC
@@ -17,16 +18,7 @@ import Modules.Generic
 import Raaz.Hash.Sha256.Internal
 
 instance Arbitrary SHA256 where
-  arbitrary = do
-    w0 <- arbitrary
-    w1 <- arbitrary
-    w2 <- arbitrary
-    w3 <- arbitrary
-    w4 <- arbitrary
-    w5 <- arbitrary
-    w6 <- arbitrary
-    w7 <- arbitrary
-    return (SHA256 $ VU.fromList [w0,w1,w2,w3,w4,w5,w6,w7])
+  arbitrary = SHA256 . VU.fromList <$> vector 8
 
 tests = allHashTests (undefined :: SHA256) exampleStrings
      ++ allHMACTests (undefined :: SHA256) exampleHMAC

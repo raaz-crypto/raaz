@@ -15,6 +15,7 @@ module Raaz.Hash.Sha224.Type
        ( SHA224(..)
        ) where
 
+import           Control.Applicative ( (<$>) )
 import qualified Data.Vector.Unboxed as VU
 import           Data.Word
 import           Data.Typeable       ( Typeable     )
@@ -46,21 +47,15 @@ instance Storable SHA224 where
   sizeOf    _ = 7 * sizeOf (undefined :: (BE Word32))
   alignment _ = alignment  (undefined :: (BE Word32))
 
-  peek ptr = do
-    let parseSHA224 = unsafeParseStorableVector $ sizeOf (undefined :: SHA224)
-        cptr = castPtr ptr
-    parserV <- unsafeRunParser parseSHA224 cptr
-    return $ SHA224 parserV
+  peek = unsafeRunParser sha224parse . castPtr
+    where sha224parse = SHA224 <$> unsafeParseStorableVector 7
 
   poke ptr (SHA224 v) = unsafeWrite writeSHA224 cptr
     where writeSHA224 = writeStorableVector v
           cptr = castPtr ptr
 
 instance EndianStore SHA224 where
-  load cptr = do
-    let parseSHA224 = unsafeParseVector $ sizeOf (undefined :: SHA224)
-    parserV <- unsafeRunParser parseSHA224 cptr
-    return $ SHA224 parserV
+  load = unsafeRunParser $ SHA224 <$> unsafeParseVector 7
 
   store cptr (SHA224 v) = unsafeWrite writeSHA224 cptr
     where writeSHA224 = writeVector v
