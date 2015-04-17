@@ -117,4 +117,4 @@ parseStorableVector n | n < 0      = parseError $ "parseStorableVector on " ++ s
 -- data.
 parseVector :: (EndianStore a, Vector v a) => Int -> Parser (v a)
 parseVector n | n < 0      = parseError $ "parseVector on " ++ show n
-              | otherwise  = unsafeParseStorableVector n
+              | otherwise  = unsafeParseVector n

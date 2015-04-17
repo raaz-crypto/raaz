@@ -15,7 +15,7 @@ module Raaz.Hash.Sha1.Ref
 import Control.Applicative
 import Data.Bits
 import Data.Word
-
+import qualified Data.Vector.Unboxed as VU
 import Raaz.Core.Types
 import Raaz.Core.Util.Ptr
 
@@ -198,11 +198,11 @@ sha1round h0 w0 w1 w2 w3 w4 w5 w6 w7 w8
               !h79 = trans 78 h78 w78
               !h80 = trans 79 h79 w79
               addHash :: SHA1 -> SHA1 -> SHA1
-              addHash (SHA1 a b c d e) (SHA1 a' b' c' d' e') =
-                  SHA1 (a+a') (b+b') (c+c') (d+d') (e+e')
+              addHash (SHA1 v) (SHA1 v') =
+                  SHA1 $ VU.zipWith (+) v v'
 
 trans :: Int -> SHA1 -> BE Word32 -> SHA1
-trans r (SHA1 a b c d e) w'  = SHA1 a' b' c' d' e'
+trans r (SHA1 v) w'  = SHA1 v'
   where f t x y z
           | t <= 19   = (x .&. y) `xor` (complement x .&. z)
           | t <= 39   =  x `xor` y `xor` z
@@ -214,8 +214,9 @@ trans r (SHA1 a b c d e) w'  = SHA1 a' b' c' d' e'
                     | t <= 59    = 0x8f1bbcdc :: BE Word32
                     | t <= 79    = 0xca62c1d6 :: BE Word32
                     | otherwise = error "sha1:ref: Wrong index used for trans"
-        a' = rotateL a 5 + f r b c d + e + constant r + w'
-        b' = a
-        c' = rotateL b 30
-        d' = c
-        e' = d
+        a' = rotateL (VU.unsafeIndex v 0) 5 + f r (VU.unsafeIndex v 1) (VU.unsafeIndex v 2) (VU.unsafeIndex v 3) + (VU.unsafeIndex v 4) + constant r + w'
+        b' = (VU.unsafeIndex v 0)
+        c' = rotateL (VU.unsafeIndex v 1) 30
+        d' = (VU.unsafeIndex v 2)
+        e' = (VU.unsafeIndex v 3)
+        v' = VU.fromList [a',b',c',d',e']

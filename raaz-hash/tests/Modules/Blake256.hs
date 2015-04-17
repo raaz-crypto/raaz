@@ -5,9 +5,11 @@ module Modules.Blake256
 import           Control.Applicative
 import qualified Data.ByteString       as B
 import qualified Data.ByteString.Char8 as C8
+import qualified Data.Vector.Unboxed   as VU
 import           Data.Typeable
 import           Test.QuickCheck       (Arbitrary(..))
 import           Test.Framework        (Test, testGroup)
+import           Test.QuickCheck.Arbitrary
 
 import           Raaz.Core.Test.EndianStore
 import           Raaz.Core.Test.Cipher
@@ -17,16 +19,9 @@ import           Modules.Generic
 import           Raaz.Hash.Blake256.Internal
 
 instance Arbitrary BLAKE256 where
-  arbitrary = BLAKE256  <$> arbitrary
-                        <*> arbitrary
-                        <*> arbitrary
-                        <*> arbitrary
-                        <*> arbitrary
-                        <*> arbitrary
-                        <*> arbitrary
-                        <*> arbitrary
-                        
-tests = allHashTests (undefined ::BLAKE256) exampleStrings
+  arbitrary = BLAKE256 . VU.fromList <$> vector 8
+
+tests = allHashTests (undefined :: BLAKE256) exampleStrings
 
 {-tests = [ testStoreLoad h
         , testPadLengthVsPadding h
