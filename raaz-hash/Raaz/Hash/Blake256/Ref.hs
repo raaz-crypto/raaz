@@ -18,6 +18,7 @@ import Data.ByteString         (ByteString)
 import Data.ByteString.Char8   ()
 import Data.ByteString.Unsafe  (unsafeIndex)
 import Data.Word
+import qualified Data.Vector.Unboxed as VU
 import Numeric                 ()
 
 import Raaz.Core.Types
@@ -89,13 +90,13 @@ compress :: BLAKE256
          -> BE Word32
          -> BE Word32
          -> BLAKE256
-compress b@(BLAKE256 h0 h1 h2 h3 h4 h5 h6 h7)
-         s@(Salt s0 s1 s2 s3)
+compress b@(BLAKE256 bv)
+         s@(Salt sv)
          !t0  !t1
          !m0  !m1  !m2  !m3
          !m4  !m5  !m6  !m7
          !m8  !m9  !m10 !m11
-         !m12 !m13 !m14 !m15 = BLAKE256 h0' h1' h2' h3' h4' h5' h6' h7'
+         !m12 !m13 !m14 !m15 = BLAKE256 bv'
            where
              initial = initialState b s t0 t1
              (  (v0,  v1,  v2,  v3)
@@ -106,6 +107,18 @@ compress b@(BLAKE256 h0 h1 h2 h3 h4 h5 h6 h7)
                                    m4  m5  m6  m7
                                    m8  m9  m10 m11
                                    m12 m13 m14 m15) initial [0..13]
+             h0   = VU.unsafeIndex bv 0
+             h1   = VU.unsafeIndex bv 1
+             h2   = VU.unsafeIndex bv 2
+             h3   = VU.unsafeIndex bv 3
+             h4   = VU.unsafeIndex bv 4
+             h5   = VU.unsafeIndex bv 5
+             h6   = VU.unsafeIndex bv 6
+             h7   = VU.unsafeIndex bv 7
+             s0   = VU.unsafeIndex sv 0
+             s1   = VU.unsafeIndex sv 1
+             s2   = VU.unsafeIndex sv 2
+             s3   = VU.unsafeIndex sv 3
              !h0' = h0 `xor` s0 `xor` v0 `xor` v8
              !h1' = h1 `xor` s1 `xor` v1 `xor` v9
              !h2' = h2 `xor` s2 `xor` v2 `xor` v10
@@ -114,6 +127,7 @@ compress b@(BLAKE256 h0 h1 h2 h3 h4 h5 h6 h7)
              !h5' = h5 `xor` s1 `xor` v5 `xor` v13
              !h6' = h6 `xor` s2 `xor` v6 `xor` v14
              !h7' = h7 `xor` s3 `xor` v7 `xor` v15
+             bv'   = VU.fromList [h0',h1',h2',h3',h4',h5',h6',h7']
 
 -- | Single Round Function of Blake256
 roundG :: State
@@ -241,8 +255,8 @@ initialState :: BLAKE256
              -> BE Word32
              -> Matrix
 
-initialState (BLAKE256 h0 h1 h2 h3 h4 h5 h6 h7)
-             (Salt s0 s1 s2 s3)
+initialState (BLAKE256 bv)
+             (Salt sv)
              t0 t1 =  ( (h0, h1, h2, h3)
                       , (h4, h5, h6, h7)
                       , ( s0 `xor` lookUpC 0
@@ -256,6 +270,18 @@ initialState (BLAKE256 h0 h1 h2 h3 h4 h5 h6 h7)
                         , t1 `xor` lookUpC 7
                         )
                       )
+              where h0 = VU.unsafeIndex bv 0
+                    h1 = VU.unsafeIndex bv 1
+                    h2 = VU.unsafeIndex bv 2
+                    h3 = VU.unsafeIndex bv 3
+                    h4 = VU.unsafeIndex bv 4
+                    h5 = VU.unsafeIndex bv 5
+                    h6 = VU.unsafeIndex bv 6
+                    h7 = VU.unsafeIndex bv 7
+                    s0 = VU.unsafeIndex sv 0
+                    s1 = VU.unsafeIndex sv 1
+                    s2 = VU.unsafeIndex sv 2
+                    s3 = VU.unsafeIndex sv 3
 
 
 -- | Compresses one block.

@@ -12,13 +12,13 @@ module Raaz.Hash.Sha224.Instance () where
 
 import Control.Applicative ( (<$>) )
 import Control.Monad       ( foldM )
+import qualified Data.Vector.Unboxed as VU
 
 import Raaz.Core.Memory
 import Raaz.Core.Primitives
 import Raaz.Core.Primitives.Hash
 import Raaz.Core.Util.Ptr
 
-import Raaz.Hash.Sha.Util
 import Raaz.Hash.Sha256.Type
 import Raaz.Hash.Sha224.Type
 import Raaz.Hash.Sha256.Instance
@@ -32,18 +32,19 @@ instance CryptoPrimitive SHA224 where
   type Reference SHA224   = HGadget SHA224
 
 instance Hash SHA224 where
-  defaultCxt _ = SHA256 0xc1059ed8
-                        0x367cd507
-                        0x3070dd17
-                        0xf70e5939
-                        0xffc00b31
-                        0x68581511
-                        0x64f98fa7
-                        0xbefa4fa4
+  defaultCxt _ = SHA256 $ VU.fromList [ 0xc1059ed8
+                                      , 0x367cd507
+                                      , 0x3070dd17
+                                      , 0xf70e5939
+                                      , 0xffc00b31
+                                      , 0x68581511
+                                      , 0x64f98fa7
+                                      , 0xbefa4fa4
+                                      ]
 
   hashDigest = sha256Tosha224
-    where sha256Tosha224 (SHA256 h0 h1 h2 h3 h4 h5 h6 _)
-              = SHA224 h0 h1 h2 h3 h4 h5 h6
+    where sha256Tosha224 (SHA256 v)
+              = SHA224 (VU.slice 0 7 v)
 
 instance Gadget (HGadget SHA224) where
   type PrimitiveOf (HGadget SHA224)  = SHA224

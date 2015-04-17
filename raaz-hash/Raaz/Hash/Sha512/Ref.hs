@@ -14,6 +14,7 @@ module Raaz.Hash.Sha512.Ref
 import Control.Applicative
 import Data.Bits
 import Data.Word
+import qualified Data.Vector.Unboxed as VU
 
 import Raaz.Core.Types
 import Raaz.Core.Util.Ptr
@@ -201,17 +202,25 @@ sha512round h0 w0 w1 w2 w3 w4 w5 w6 w7 w8
               !h79 = trans 78 h78 w78
               !h80 = trans 79 h79 w79
               addHash :: SHA512 -> SHA512 -> SHA512
-              addHash (SHA512 a b c d e f g h) (SHA512 a' b' c' d' e' f' g' h') =
-                SHA512 (a+a') (b+b') (c+c') (d+d') (e+e') (f+f') (g+g') (h+h')
+              addHash (SHA512 v) (SHA512 v') =
+                  SHA512 $ VU.zipWith (+) v v'
 
 trans :: Int -> SHA512 -> BE Word64 -> SHA512
-trans r (SHA512 a b c d e f g h) w' = SHA512 a' b' c' d' e' f' g' h'
+trans r (SHA512 v) w' = SHA512 v'
   where
     sigB0,sigB1 :: BE Word64 -> BE Word64
     sigB0 x = rotateR x 28 `xor` rotateR x 34 `xor` rotateR x 39
     sigB1 x = rotateR x 14 `xor` rotateR x 18 `xor` rotateR x 41
     t1 = h + sigB1 e + ((e .&. f) `xor` (complement e .&. g)) + sha512constant r + w'
     t2 = sigB0 a + ((a .&. (b .|. c)) .|. (b .&. c))
+    a  = VU.unsafeIndex v 0
+    b  = VU.unsafeIndex v 1
+    c  = VU.unsafeIndex v 2
+    d  = VU.unsafeIndex v 3
+    e  = VU.unsafeIndex v 4
+    f  = VU.unsafeIndex v 5
+    g  = VU.unsafeIndex v 6
+    h  = VU.unsafeIndex v 7
     a' = t1 + t2
     b' = a
     c' = b
@@ -220,6 +229,7 @@ trans r (SHA512 a b c d e f g h) w' = SHA512 a' b' c' d' e' f' g' h'
     f' = e
     g' = f
     h' = g
+    v' = VU.fromList [a',b',c',d',e',f',g',h']
 
 sha512constant :: Int -> BE Word64
 sha512constant i  |  i == 0     =   0x428a2f98d728ae22

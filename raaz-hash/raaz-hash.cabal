@@ -65,6 +65,7 @@ library
   build-depends: base                           >= 4.5 && < 4.8
                , bytestring                     >= 0.9 && < 0.11
                , mtl                            >= 2.1 && < 2.2
+               , vector
                --
                -- Raaz dependencies
                --
@@ -108,6 +109,7 @@ test-Suite tests
                , test-framework                 >= 0.6 && < 0.9
                , test-framework-hunit           >= 0.2 && < 0.4
                , test-framework-quickcheck2     >= 0.2 && < 0.4
+               , vector
                --
                -- Raaz dependencies
                --
@@ -126,6 +128,7 @@ benchmark bench-builder-all
   build-depends: base                           >= 4.5     && < 4.8
                , bytestring                     >= 0.9     && < 0.11
                , criterion                      >= 0.8.0.2 && < 0.9
+               , vector
                --
                -- Raaz dependencies
                --

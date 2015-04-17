@@ -16,7 +16,6 @@ import Raaz.Core.Memory
 import Raaz.Core.Primitives
 import Raaz.Core.Types
 
-import Raaz.Hash.Sha.Util
 import Raaz.Hash.Sha1.Type
 
 foreign import ccall unsafe

@@ -6,8 +6,10 @@ module Modules.Sha512
 import           Control.Applicative
 import qualified Data.ByteString       as B
 import qualified Data.ByteString.Char8 as C8
+import qualified Data.Vector.Unboxed   as VU
 import           Data.String
 import           Test.QuickCheck       ( Arbitrary(..) )
+import           Test.QuickCheck.Arbitrary
 
 import Raaz.Core.Test.Gadget
 import Raaz.Core.Primitives.HMAC
@@ -16,17 +18,9 @@ import Modules.Generic
 import Raaz.Hash.Sha512.Internal
 
 instance Arbitrary SHA512 where
-  arbitrary = SHA512 <$> arbitrary
-                     <*> arbitrary
-                     <*> arbitrary
-                     <*> arbitrary
-                     <*> arbitrary
-                     <*> arbitrary
-                     <*> arbitrary
-                     <*> arbitrary
+  arbitrary = SHA512 . VU.fromList <$> vector 8
 
-
-tests = allHashTests (undefined ::SHA512) exampleStrings
+tests = allHashTests (undefined :: SHA512) exampleStrings
      ++ allHMACTests (undefined :: SHA512) exampleHMAC
 
 exampleStrings :: [ (B.ByteString , B.ByteString) ]

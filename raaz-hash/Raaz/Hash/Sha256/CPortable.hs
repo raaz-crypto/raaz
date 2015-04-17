@@ -16,7 +16,6 @@ module Raaz.Hash.Sha256.CPortable
 
 import Foreign.Ptr
 
-import Raaz.Hash.Sha.Util
 import Raaz.Core.Memory
 import Raaz.Core.Primitives
 import Raaz.Core.Types

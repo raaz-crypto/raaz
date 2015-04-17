@@ -15,45 +15,31 @@ module Raaz.Hash.Sha224.Type
        ( SHA224(..)
        ) where
 
-import Control.Applicative ( (<$>), (<*>) )
-import Data.Bits           ( xor, (.|.)   )
-import Data.Monoid
-import Data.Word
-import Data.Typeable       ( Typeable     )
-import Foreign.Ptr         ( castPtr      )
-import Foreign.Storable    ( Storable(..) )
+import           Control.Applicative ( (<$>) )
+import qualified Data.Vector.Unboxed as VU
+import           Data.Word
+import           Data.Typeable       ( Typeable     )
+import           Foreign.Ptr         ( castPtr      )
+import           Foreign.Storable    ( Storable(..) )
 
-import Raaz.Core.Parse.Unsafe
-import Raaz.Core.Primitives
-import Raaz.Core.Types
-import Raaz.Core.Write.Unsafe
+import           Raaz.Core.Classes
+import           Raaz.Core.Parse.Applicative
+import           Raaz.Core.Primitives
+import           Raaz.Core.Types
+import           Raaz.Core.Write
+import           Raaz.Hash.Sha.Util
 
-import Raaz.Hash.Sha.Util
-import Raaz.Hash.Sha256.Type
-import Raaz.Hash.Sha256.Instance ()
+import           Raaz.Hash.Sha256.Type
+import           Raaz.Hash.Sha256.Instance ()
 
 ----------------------------- SHA224 -------------------------------------------
 
 -- | Sha224 hash value which consist of 7 32bit words.
-data SHA224 = SHA224 {-# UNPACK #-} !(BE Word32)
-                     {-# UNPACK #-} !(BE Word32)
-                     {-# UNPACK #-} !(BE Word32)
-                     {-# UNPACK #-} !(BE Word32)
-                     {-# UNPACK #-} !(BE Word32)
-                     {-# UNPACK #-} !(BE Word32)
-                     {-# UNPACK #-} !(BE Word32) deriving (Show, Typeable)
+data SHA224 = SHA224 (VU.Vector (BE Word32)) deriving ( Show, Typeable )
 
 -- | Timing independent equality testing for sha224
 instance Eq SHA224 where
-  (==) (SHA224 g0 g1 g2 g3 g4 g5 g6) (SHA224 h0 h1 h2 h3 h4 h5 h6)
-      =   xor g0 h0
-      .|. xor g1 h1
-      .|. xor g2 h2
-      .|. xor g3 h3
-      .|. xor g4 h4
-      .|. xor g5 h5
-      .|. xor g6 h6
-      == 0
+ (==) (SHA224 g) (SHA224 h) = oftenCorrectEqVector g h
 
 instance HasName SHA224
 
@@ -61,44 +47,18 @@ instance Storable SHA224 where
   sizeOf    _ = 7 * sizeOf (undefined :: (BE Word32))
   alignment _ = alignment  (undefined :: (BE Word32))
 
-  peek ptr = runParser cptr parseSHA224
-    where parseSHA224 = SHA224 <$> parseStorable
-                               <*> parseStorable
-                               <*> parseStorable
-                               <*> parseStorable
-                               <*> parseStorable
-                               <*> parseStorable
-                               <*> parseStorable
-          cptr = castPtr ptr
+  peek = unsafeRunParser sha224parse . castPtr
+    where sha224parse = SHA224 <$> unsafeParseStorableVector 7
 
-  poke ptr (SHA224 h0 h1 h2 h3 h4 h5 h6) =  runWrite cptr writeSHA224
-    where writeSHA224 =  writeStorable h0
-                      <> writeStorable h1
-                      <> writeStorable h2
-                      <> writeStorable h3
-                      <> writeStorable h4
-                      <> writeStorable h5
-                      <> writeStorable h6
+  poke ptr (SHA224 v) = unsafeWrite writeSHA224 cptr
+    where writeSHA224 = writeStorableVector v
           cptr = castPtr ptr
 
 instance EndianStore SHA224 where
-  load cptr = runParser cptr parseSHA224
-    where parseSHA224 = SHA224 <$> parse
-                               <*> parse
-                               <*> parse
-                               <*> parse
-                               <*> parse
-                               <*> parse
-                               <*> parse
+  load = unsafeRunParser $ SHA224 <$> unsafeParseVector 7
 
-  store cptr (SHA224 h0 h1 h2 h3 h4 h5 h6) =  runWrite cptr writeSHA224
-    where writeSHA224 =  write h0
-                      <> write h1
-                      <> write h2
-                      <> write h3
-                      <> write h4
-                      <> write h5
-                      <> write h6
+  store cptr (SHA224 v) = unsafeWrite writeSHA224 cptr
+    where writeSHA224 = writeVector v
 
 instance Primitive SHA224 where
   blockSize _ = BYTES 64

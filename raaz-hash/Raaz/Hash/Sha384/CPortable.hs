@@ -13,7 +13,6 @@ module Raaz.Hash.Sha384.CPortable () where
 import Raaz.Core.Memory
 import Raaz.Core.Primitives
 
-import Raaz.Hash.Sha.Util
 import Raaz.Hash.Sha384.Type
 import Raaz.Hash.Sha512.Type      ( SHA512(..)     )
 import Raaz.Hash.Sha512.CPortable ( sha512Compress )
