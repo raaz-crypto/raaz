@@ -10,6 +10,7 @@ module Raaz.Core.MonoidalAction
          RAction(..), LAction(..)
        , Monoidal, Distributive, (<++>)
          -- * Fields
+         -- $fields$
        , FieldA, FieldM, Field, computeField, runFieldM, liftToFieldM
        , SemiR(..), SemiL(..)
        , TwistRA(..), TwistR, TwistRM
@@ -27,27 +28,58 @@ import Raaz.Core.Util.Ptr (movePtr)
 
 -- $basics$
 --
--- Our setting here is a space of points (captured by the type
--- @points@) on which a monoid (captured by the type @g@) acts. The
--- space which we are most interested in is the space of
--- `CryptoPtr`. Any `LengthUnit` with addition being its monoidal
--- operation acts on it via the `movePtr`.
+-- Consider any instance @l@ of a length unit as a monoid under
+-- addition. Length units acts on pointers by displacing them. It
+-- turns out that this action is crucial in abstracting out many
+-- pointer manipulations in our library. In particular, Applicative
+-- parsers, memory allocators and data serialisers can be abstractly
+-- captured using this action.
 --
--- We will consider both right and left actions of monoids. This
--- module captures /monoidal actions/ on spaces and some abstractions
--- related to that.  A lot of pointer gymnastics that are involved in
--- this library like serialisation, parsing and memory allocations can
--- be captured using the abstractions here.
+-- We start with setting up some terminology.  Our setting here is a
+-- space of points (captured by the type @points@) on which a monoid
+-- (captured by the type @g@) acts. The space which we are most
+-- interested in is the space of `CryptoPtr` and the monoid that act
+-- on it can be any instance of `LengthUnit` as described above.
 --
--- The following convention is used when dealing with monoidal
--- actions.  Right actions are written using the exponential notation
--- and left actions in multiplicative notation. When monoids acting on
--- monoidal spaces, i.e. the space itself is monoid, we make the
--- following conventions: For right actions both monoidal operations
--- are written multiplicatively. This is because, we can use the
--- familiar laws of exponentiation for talking about stuff. For left
--- actions, we think of the space as an additive monoid. Again the
--- usual laws of scalar multiplication is valid here.
+-- We will consider both right and left actions of monoids although
+-- for the applications we have in mind, namely for parsers etc, it is
+-- sufficient to restrict our attention to right actions.  The
+-- following convention is used when dealing with monoidal actions.
+-- Right actions are written using the exponential notation and left
+-- actions in multiplicative notation. The advantage of this differing
+-- convention is that the laws of monoid action takes a form that is
+-- familiar to us.
+--
+-- When monoids acting on monoidal spaces, i.e. the space itself is
+-- monoid, we make the following conventions: For right actions both
+-- monoidal operations are written multiplicatively. This is because,
+-- we can use the familiar laws of exponentiation for talking about
+-- stuff. For left actions, we think of the space as an additive
+-- monoid. Again the usual laws of scalar multiplication is valid
+-- here.
+
+-- $fields$
+--
+-- The main goal behind looking at monoidal actions are to captures
+-- concrete objects of interest to us like parsers, serialisers and
+-- memory allocators. These are essentially functions with domain
+-- `CryptoPtr`. For example, a parser is a function that takes a
+-- `CryptoPtr`, reads @n@ bytes say and produces a result a. To
+-- sequence the next parse we need to essentially keep track of this
+-- @n@. If we abstract this out to the general setting we need to
+-- consider functions whose domain is the space of points. We use the
+-- physicist's terminology and call them fields. The action of the
+-- monoid on a space of points naturally extends to fields on them
+--
+-- @F^g   = λ x -> F (x^g) @
+--
+-- For our applications, we need to define generalised fields
+-- associated with arrows (See the type `FieldA`). This is because we
+-- often have to deal with functions that have side effects
+-- (i.e. `Kleisli` arrows). However, for conceptual understanding, it
+-- is sufficient to stick to ordinary functions. In fact, the informal
+-- proofs that we have scattered in the source all have been written
+-- only for the arrow @->@.
 
 
 -- | A (multiplicative) monoid @g@ acting on the right of a space. For
@@ -55,10 +87,11 @@ import Raaz.Core.Util.Ptr (movePtr)
 -- and the monoid action as a multiplication. The following laws
 -- should be true for any right action:
 --
--- [/identity law:/]
---            @p ^ 1 = p@
--- [/successive displacements:/]
---           @p ^ (a . b) = (p ^ a) ^ b@
+-- [@identity law:@]
+--       @p ^ 1 = p@
+--
+-- [@successive displacements:@]
+--       @p ^ (a . b) = (p ^ a) ^ b@
 class Monoid g => RAction point g where
   -- | Apply the monoid on the point
   (<^>)   ::  point -> g -> point
@@ -79,9 +112,10 @@ infixl 7 <^>
 -- action as a multiplication with the monoid. It should satisfy the
 -- law:
 --
--- [/identity law:/]
+-- [identity law:]
 --            @1 . p = p@
--- [/successive displacements:/]
+--
+-- [successive displacements:]
 --           @ (a . b)  p  = a . (b . p)@
 class Monoid g => LAction g point where
   (<.>) :: g -> point -> point
@@ -183,7 +217,9 @@ instance (Arrow arrow, Monoid value, LAction g point) => Distributive g (FieldA 
 
 ---------------------- The semi-direct products ------------------------
 
--- | The semidirect product Space ⋊ Monoid.
+-- | The semidirect product Space ⋊ Monoid. It turns out that data
+-- serialisers (to a buffer) can essentially seen as a semidirect
+-- product.
 newtype SemiR point g = SemiR { unSemiR :: (point, g) }
 
 -- | The semidirect product Monoid ⋉ Space.
@@ -201,7 +237,8 @@ instance Monoidal  point g => Monoid (SemiL g point) where
 -- points tagged with an extra displacement by the monoid. The
 -- applicative instance also keeps track of the extra displacement and
 -- acts accordingly. This is the applicative generalisation of the
--- semidirect product `SemiR`.
+-- semidirect product `SemiR` and in our specific case turns out to
+-- capture applicative parsers.
 data TwistRA a point g value = TwistRA { twistFieldA        :: FieldA a point value
                                        , twistDisplacement  :: g
                                        }
