@@ -35,8 +35,8 @@ import Raaz.Core.Util.Ptr (movePtr)
 -- captured using this action.
 --
 -- We start with setting up some terminology.  Our setting here is a
--- space of points (captured by the type @points@) on which a monoid
--- (captured by the type @g@) acts. The space which we are most
+-- space of points (captured by the type @space@) on which a monoid
+-- (captured by the type @m@) acts. The space which we are most
 -- interested in is the space of `CryptoPtr` and the monoid that act
 -- on it can be any instance of `LengthUnit` as described above.
 --
@@ -90,8 +90,8 @@ import Raaz.Core.Util.Ptr (movePtr)
 --
 -- [successive displacements:]
 --           @ (a . b)  p  = a . (b . p)@
-class Monoid g => LAction g point where
-  (<.>) :: g -> point -> point
+class Monoid m => LAction m space where
+  (<.>) :: m -> space -> space
 
 infixr 6 <.>
 
@@ -102,15 +102,16 @@ infixr 6 <.>
 
 infixr 5 <++>
 
--- | A left-monoid action on a monoidal-space, i.e. the points of the
--- space itself is a monoid is called Distributive if it satisfies the
--- law:
+-- | A left-monoid action on a monoidal-space, i.e. the space on which
+-- the monoid acts is itself a monoid, is /distributive/ if it
+-- satisfies the law:
 --
--- @ a . (p + q)  = a . p + a . q@.
+-- @ a <.> (p <++> q)  = a <.> p <++> a <.> q@.
 --
--- Recall our convention here is to use @+@ for the monoid operation
--- of the space.  It means that for every element @g@ is morphism.
-class (LAction g point, Monoid point) => Distributive g point
+-- Recall our convention here is to use @<++>@ for the monoid
+-- operation of the space. The above law implies that every element
+-- @m@ is a monoid homomorphism.
+class (LAction m space, Monoid space) => Distributive m space
 
 -- | The most interesting monoidal action for us.
 instance LengthUnit u => LAction (Sum u) CryptoPtr where
@@ -120,29 +121,29 @@ instance LengthUnit u => LAction (Sum u) CryptoPtr where
 
 -- | A field on the space is a function from the points in the space
 -- to some value. Here we define it for a general arrow.
-newtype FieldA arrow point value =
-  FieldA { unFieldA :: (arrow point value) } deriving (Category, Arrow)
+newtype FieldA arrow space value =
+  FieldA { unFieldA :: arrow space value } deriving (Category, Arrow)
 
 -- | A field where the underlying arrow is the (->). This is normally
 -- what we call a field.
 type Field = FieldA (->)
 
--- | Compute the value of a field at a given point
-computeField :: Field point b -> point -> b
+-- | Compute the value of a field at a given point in the space.
+computeField :: Field space b -> space -> b
 computeField = unFieldA
 
 -- | A monadic arrow field.
-type FieldM m = FieldA (Kleisli m)
+type FieldM monad = FieldA (Kleisli monad)
 
 -- | Lift a monadic action to FieldM.
 liftToFieldM :: Monad m => (a -> m b) -> FieldM m a b
 liftToFieldM action = FieldA (Kleisli action)
 
--- | Runs a monadic field at a given point.
-runFieldM :: FieldM m a b -> a -> m b
+-- | Runs a monadic field at a given point in the space.
+runFieldM :: FieldM monad space b -> space -> monad b
 runFieldM = runKleisli . unFieldA
 
-instance Arrow a => Functor (FieldA a point) where
+instance Arrow a => Functor (FieldA a space) where
   fmap f fM = fM >>^ f
 
 -- A proof that this is indeed applicative is available in Functional
@@ -156,7 +157,7 @@ instance Arrow a => Applicative (FieldA a point) where
 
 -- | A monoidal field is a monoid in itself @f <> g = \ point -> f
 -- point <> g point@
-instance (Arrow arrow, Monoid value) => Monoid (FieldA arrow point value) where
+instance (Arrow arrow, Monoid value) => Monoid (FieldA arrow space value) where
   mempty        =  arr $ const mempty
   mappend f1 f2 =  proc p -> do n1 <- f1 -< p
                                 n2 <- f2 -< p
@@ -165,22 +166,23 @@ instance (Arrow arrow, Monoid value) => Monoid (FieldA arrow point value) where
 
 
 -- | So does left action @(a . f) (x) = f(a . x)@.
-instance (Arrow arrow, LAction g point) => LAction g (FieldA arrow point value) where
+instance (Arrow arrow, LAction m space) => LAction m (FieldA arrow space value) where
   a <.> f = f <<^ (a<.>) -- first displace the argument and apply the
                          -- function.
 
--- | On monoidal fields the left action is distributive. Proof: @(a
--- . (f <++> g)) = f (a . x) <++> g (a . x) = (f^a . g^a) (x)@
-instance (Arrow arrow, Monoid value, LAction g point) => Distributive g (FieldA arrow point value)
+-- | On monoidal fields the left action is distributive. Proof: @(m
+-- <.> (f <++> g)) = f (m <.> x) <++> g (m <.> x) = ((m <.> f) <> (m
+-- <.> g)) (x)@
+instance (Arrow arrow, Monoid value, LAction m space) => Distributive m (FieldA arrow space value)
 
 ---------------------- The semi-direct products ------------------------
 
 -- | The semidirect product Space ⋊ Monoid. It turns out that data
 -- serialisers (to a buffer) can essentially seen as a semidirect
 -- product.
-newtype SemiR point g = SemiR { unSemiR :: (point, g) }
+newtype SemiR space m = SemiR { unSemiR :: (space, m) }
 
-instance Distributive g point => Monoid (SemiR point g) where
+instance Distributive m space => Monoid (SemiR space m) where
   mempty = SemiR (mempty, mempty)
   mappend (SemiR (x, a)) (SemiR (y, b)) = SemiR (x <++>  a <.> y,  a <> b)
 
@@ -191,22 +193,22 @@ instance Distributive g point => Monoid (SemiR point g) where
 -- acts accordingly. This is the applicative generalisation of the
 -- semidirect product `SemiR` and in our specific case turns out to
 -- capture applicative parsers.
-data TwistRA a point g value = TwistRA { twistFieldA        :: FieldA a point value
-                                       , twistDisplacement  :: g
+data TwistRA a space m value = TwistRA { twistFieldA        :: FieldA a space value
+                                       , twistDisplacement  :: m
                                        }
 
-instance Arrow arrow => Functor (TwistRA arrow point g)  where
-  fmap f (TwistRA fld g) = TwistRA (fmap f fld) g
+instance Arrow arrow => Functor (TwistRA arrow space m)  where
+  fmap f (TwistRA fld m) = TwistRA (fmap f fld) m
 
-instance (Monoid g, Arrow arrow, LAction g point) => Applicative (TwistRA arrow point g) where
+instance (Monoid m, Arrow arrow, LAction m space) => Applicative (TwistRA arrow space m) where
   pure x  = TwistRA (pure x) mempty
   TwistRA f u <*> TwistRA val v = TwistRA (f <*> (u <.> val)) (u <> v)
 
 -- | Twisted field when the underlying arrow is @(->)@.
-type TwistR point g = TwistRA (->) point g
+type TwistR space m = TwistRA (->) space m
 
 -- | Monadic twisted field.
-type TwistRM m point g = TwistRA (Kleisli m) point g
+type TwistRM monad space m = TwistRA (Kleisli monad) space m
 
 
 {----------------------------- Right action --------------------------------
@@ -221,19 +223,19 @@ type TwistRM m point g = TwistRA (Kleisli m) point g
 --
 -- [@successive displacements:@]
 --       @p ^ (a . b) = (p ^ a) ^ b@
-class Monoid g => RAction point g where
-  -- | Apply the monoid on the point
-  (<^>)   ::  point -> g -> point
+class Monoid m => RAction space m where
+  -- | Apply the monoid on the space
+  (<^>)   ::  space -> m -> space
 
 
 -- | A monoid action on a monoidal space is called Monoidal if it
 -- satisfies the additional law:
 --
--- @(p1 . p2) ^ g = (p1 ^ g) . (p2 ^ g)@.
+-- @(p1 . p2) ^ m = (p1 ^ g) . (p2 ^ g)@.
 --
 -- It means that for every element @g@ is monoid morphism of the
 -- space.
-class (RAction point g, Monoid point) => Monoidal point g
+class (RAction space g, Monoid space) => Monoidal space g
 
 infixl 7 <^>
 
@@ -241,20 +243,20 @@ instance LengthUnit u => RAction CryptoPtr (Sum u) where
   ptr <^> a  = movePtr ptr (getSum a)
 
 -- | The semidirect product Monoid ⋉ Space.
-newtype SemiL g point = SemiL { unSemiL :: (g, point) }
+newtype SemiL m space = SemiL { unSemiL :: (g, space) }
 
-instance Monoidal  point g => Monoid (SemiL g point) where
+instance Monoidal  space m => Monoid (SemiL m space) where
   mempty = SemiL (mempty, mempty)
   mappend (SemiL (a, x)) (SemiL (b, y)) = SemiL (a <> b, x <^> b  <> y)
 
 -- | Exponentiation carry over to monoidal fields. @f^a (x) = f
 -- (x^a)@.
-instance (Arrow arrow, RAction point g) => RAction (FieldA arrow point value) g where
+instance (Arrow arrow, RAction space g) => RAction (FieldA arrow space value) m where
   f <^> a  = f <<^ (<^>a) -- first exponentiate the argument and apply
                           -- the function.
 
 -- | Exponentiation on monoidal fields are monoidal. Proof: @ (fg)^a (x) = (fg)(x^a) =
 -- f (x^a) . g(x^a) = (f^a . g^a) (x)@
-instance (Arrow arrow, Monoid value, RAction point g) => Monoidal (FieldA arrow point value) g
+instance (Arrow arrow, Monoid value, RAction space g) => Monoidal (FieldA arrow space value) g
 
 --}
