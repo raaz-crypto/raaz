@@ -7,12 +7,11 @@
 module Raaz.Core.MonoidalAction
        ( -- * Basics
          -- $basics$
-         RAction(..), LAction(..)
-       , Monoidal, Distributive, (<++>)
+        LAction(..), Distributive, (<++>)
          -- * Fields
          -- $fields$
        , FieldA, FieldM, Field, computeField, runFieldM, liftToFieldM
-       , SemiR(..), SemiL(..)
+       , SemiR(..)
        , TwistRA(..), TwistR, TwistRM
        ) where
 
@@ -41,14 +40,15 @@ import Raaz.Core.Util.Ptr (movePtr)
 -- interested in is the space of `CryptoPtr` and the monoid that act
 -- on it can be any instance of `LengthUnit` as described above.
 --
--- We will consider both right and left actions of monoids although
--- for the applications we have in mind, namely for parsers etc, it is
--- sufficient to restrict our attention to right actions.  The
--- following convention is used when dealing with monoidal actions.
--- Right actions are written using the exponential notation and left
--- actions in multiplicative notation. The advantage of this differing
--- convention is that the laws of monoid action takes a form that is
--- familiar to us.
+-- In this module, we consider /left/ actions of monoids, although
+-- right actions can be analogously defined as well. For applications
+-- we have in mind, namely for parsers etc, it is sufficient to
+-- restrict our attention to left actions.  The following convention
+-- is used when dealing with monoidal actions.  Right actions are
+-- written using the exponential notation and left actions in
+-- multiplicative notation. The advantage of this differing convention
+-- is that the laws of monoid action takes a form that is familiar to
+-- us.
 --
 -- When monoids acting on monoidal spaces, i.e. the space itself is
 -- monoid, we make the following conventions: For right actions both
@@ -81,33 +81,6 @@ import Raaz.Core.Util.Ptr (movePtr)
 -- proofs that we have scattered in the source all have been written
 -- only for the arrow @->@.
 
-
--- | A (multiplicative) monoid @g@ acting on the right of a space. For
--- right actions it is intuitive to think of it as an exponentiation
--- and the monoid action as a multiplication. The following laws
--- should be true for any right action:
---
--- [@identity law:@]
---       @p ^ 1 = p@
---
--- [@successive displacements:@]
---       @p ^ (a . b) = (p ^ a) ^ b@
-class Monoid g => RAction point g where
-  -- | Apply the monoid on the point
-  (<^>)   ::  point -> g -> point
-
-
--- | A monoid action on a monoidal space is called Monoidal if it
--- satisfies the additional law:
---
--- @(p1 . p2) ^ g = (p1 ^ g) . (p2 ^ g)@.
---
--- It means that for every element @g@ is monoid morphism of the
--- space.
-class (RAction point g, Monoid point) => Monoidal point g
-
-infixl 7 <^>
-
 -- | A monoid @g@ acting on the left of a space. Think of a left
 -- action as a multiplication with the monoid. It should satisfy the
 -- law:
@@ -133,16 +106,13 @@ infixr 5 <++>
 -- space itself is a monoid is called Distributive if it satisfies the
 -- law:
 --
--- @ a . (p + q)  = a . p + a  q@.
+-- @ a . (p + q)  = a . p + a . q@.
 --
 -- Recall our convention here is to use @+@ for the monoid operation
 -- of the space.  It means that for every element @g@ is morphism.
 class (LAction g point, Monoid point) => Distributive g point
 
 -- | The most interesting monoidal action for us.
-instance LengthUnit u => RAction CryptoPtr (Sum u) where
-  ptr <^> a  = movePtr ptr (getSum a)
-
 instance LengthUnit u => LAction (Sum u) CryptoPtr where
   a <.> ptr  = movePtr ptr (getSum a)
 
@@ -193,27 +163,15 @@ instance (Arrow arrow, Monoid value) => Monoid (FieldA arrow point value) where
                                 returnA -< n1 <> n2
 
 
--- | Exponentiation carry over to monoidal fields. @f^a (x) = f
--- (x^a)@.
-instance (Arrow arrow, RAction point g) => RAction (FieldA arrow point value) g where
-  f <^> a  = f <<^ (<^>a) -- first exponentiate the argument and apply
-                          -- the function.
 
 -- | So does left action @(a . f) (x) = f(a . x)@.
 instance (Arrow arrow, LAction g point) => LAction g (FieldA arrow point value) where
   a <.> f = f <<^ (a<.>) -- first displace the argument and apply the
                          -- function.
 
--- | Exponentiation on monoidal fields are monoidal. Proof: @ (fg)^a (x) = (fg)(x^a) =
--- f (x^a) . g(x^a) = (f^a . g^a) (x)@
-instance (Arrow arrow, Monoid value, RAction point g) => Monoidal (FieldA arrow point value) g
-
 -- | On monoidal fields the left action is distributive. Proof: @(a
 -- . (f <++> g)) = f (a . x) <++> g (a . x) = (f^a . g^a) (x)@
 instance (Arrow arrow, Monoid value, LAction g point) => Distributive g (FieldA arrow point value)
-
-
-
 
 ---------------------- The semi-direct products ------------------------
 
@@ -222,16 +180,10 @@ instance (Arrow arrow, Monoid value, LAction g point) => Distributive g (FieldA 
 -- product.
 newtype SemiR point g = SemiR { unSemiR :: (point, g) }
 
--- | The semidirect product Monoid ⋉ Space.
-newtype SemiL g point = SemiL { unSemiL :: (g, point) }
-
 instance Distributive g point => Monoid (SemiR point g) where
   mempty = SemiR (mempty, mempty)
   mappend (SemiR (x, a)) (SemiR (y, b)) = SemiR (x <++>  a <.> y,  a <> b)
 
-instance Monoidal  point g => Monoid (SemiL g point) where
-  mempty = SemiL (mempty, mempty)
-  mappend (SemiL (a, x)) (SemiL (b, y)) = SemiL (a <> b, x <^> b  <> y)
 
 -- | The twisted field. This is essentially a field on the space of
 -- points tagged with an extra displacement by the monoid. The
@@ -255,3 +207,54 @@ type TwistR point g = TwistRA (->) point g
 
 -- | Monadic twisted field.
 type TwistRM m point g = TwistRA (Kleisli m) point g
+
+
+{----------------------------- Right action --------------------------------
+
+-- | A (multiplicative) monoid @g@ acting on the right of a space. For
+-- right actions it is intuitive to think of it as an exponentiation
+-- and the monoid action as a multiplication. The following laws
+-- should be true for any right action:
+--
+-- [@identity law:@]
+--       @p ^ 1 = p@
+--
+-- [@successive displacements:@]
+--       @p ^ (a . b) = (p ^ a) ^ b@
+class Monoid g => RAction point g where
+  -- | Apply the monoid on the point
+  (<^>)   ::  point -> g -> point
+
+
+-- | A monoid action on a monoidal space is called Monoidal if it
+-- satisfies the additional law:
+--
+-- @(p1 . p2) ^ g = (p1 ^ g) . (p2 ^ g)@.
+--
+-- It means that for every element @g@ is monoid morphism of the
+-- space.
+class (RAction point g, Monoid point) => Monoidal point g
+
+infixl 7 <^>
+
+instance LengthUnit u => RAction CryptoPtr (Sum u) where
+  ptr <^> a  = movePtr ptr (getSum a)
+
+-- | The semidirect product Monoid ⋉ Space.
+newtype SemiL g point = SemiL { unSemiL :: (g, point) }
+
+instance Monoidal  point g => Monoid (SemiL g point) where
+  mempty = SemiL (mempty, mempty)
+  mappend (SemiL (a, x)) (SemiL (b, y)) = SemiL (a <> b, x <^> b  <> y)
+
+-- | Exponentiation carry over to monoidal fields. @f^a (x) = f
+-- (x^a)@.
+instance (Arrow arrow, RAction point g) => RAction (FieldA arrow point value) g where
+  f <^> a  = f <<^ (<^>a) -- first exponentiate the argument and apply
+                          -- the function.
+
+-- | Exponentiation on monoidal fields are monoidal. Proof: @ (fg)^a (x) = (fg)(x^a) =
+-- f (x^a) . g(x^a) = (f^a . g^a) (x)@
+instance (Arrow arrow, Monoid value, RAction point g) => Monoidal (FieldA arrow point value) g
+
+--}
