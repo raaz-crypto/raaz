@@ -7,11 +7,13 @@
 module Raaz.Core.MonoidalAction
        ( -- * Basics
          -- $basics$
-        LAction(..), Distributive, (<++>)
+         LAction (..), Distributive, SemiR (..), (<++>)
+         -- ** Monoidal action on functors
+       , LActionF(..), DistributiveF, TwistRF, unTwistRF
          -- * Fields
          -- $fields$
        , FieldA, FieldM, Field, computeField, runFieldM, liftToFieldM
-       , SemiR(..)
+
        , TwistRA(..), TwistR, TwistRM
        ) where
 
@@ -44,7 +46,7 @@ import Raaz.Core.Util.Ptr (movePtr)
 -- right actions can be analogously defined as well. For applications
 -- we have in mind, namely for parsers etc, it is sufficient to
 -- restrict our attention to left actions.  The following convention
--- is used when dealing with monoidal actions.  Right actions are
+-- is used when dealing with monoidal actions. Right actions are
 -- written using the exponential notation and left actions in
 -- multiplicative notation. The advantage of this differing convention
 -- is that the laws of monoid action takes a form that is familiar to
@@ -57,6 +59,119 @@ import Raaz.Core.Util.Ptr (movePtr)
 -- stuff. For left actions, we think of the space as an additive
 -- monoid. Again the usual laws of scalar multiplication is valid
 -- here.
+
+-- | A monoid @g@ acting on the left of a space. Think of a left
+-- action as a multiplication with the monoid. It should satisfy the
+-- law:
+--
+-- > 1 <.> p = p                         -- identity
+-- > (a <> b) <.> p  = a <.> (b <.> p)   -- successive displacements
+--
+class Monoid m => LAction m space where
+  (<.>) :: m -> space -> space
+
+infixr 6 <.>
+
+-- | An alternate symbol for <> more useful in the additive context.
+(<++>) :: Monoid m => m -> m -> m
+(<++>) = (<>)
+{-# INLINE (<++>) #-}
+
+infixr 5 <++>
+
+-- | The most interesting monoidal action for us.
+instance LengthUnit u => LAction (Sum u) CryptoPtr where
+  a <.> ptr  = movePtr ptr (getSum a)
+
+
+-- | Uniform action of a monoid on a functor. The laws that should
+-- be satisfied are:
+--
+--
+-- > 1 <<.>> fx  = fx
+-- > (a <> b) <<.>> fx  = a . (b <<.>> fx)
+-- > m <<.>> fmap f u = fmap f (m <<.>> u)   -- acts uniformly
+--
+class (Monoid m, Functor f) => LActionF m f where
+  (<<.>>) :: m -> f a -> f a
+
+
+---------------------- The semi-direct products ------------------------
+
+-- | A left-monoid action on a monoidal-space, i.e. the space on which
+-- the monoid acts is itself a monoid, is /distributive/ if it
+-- satisfies the law:
+--
+-- > a <.> (p <> q)  = (a <.> p) <> (a <.> q).
+--
+-- The above law implies that every element @m@ is a monoid
+-- homomorphism.
+class (LAction m space, Monoid space) => Distributive m space
+
+-- | The semidirect product Space ⋊ Monoid. For monoids acting on
+-- monoidal spaces distributively the semi-direct product is itself a
+-- monoid. It turns out that data serialisers can essentially seen as
+-- a semidirect product.
+newtype SemiR space m = SemiR { unSemiR :: (space, m) }
+
+instance Distributive m space => Monoid (SemiR space m) where
+  mempty = SemiR (mempty, mempty)
+  mappend (SemiR (x, a)) (SemiR (y, b)) = SemiR (x <++>  a <.> y,  a <> b)
+
+--------------------------- Twisted functors ----------------------------
+
+
+
+-- | The generalisation of distributivity to applicative
+-- functors. This generalisation is what allows us to capture
+-- applicative functors like parsers. For an applicative functor, and
+-- a monoid acting uniformly on it, we say that the action is
+-- distributive if the following laws are satisfied:
+--
+-- > m <<.>> (pure a) = pure a            -- pure values are stoic
+-- > m <<.>> (a <*> b) = (m <<.>> a) <*> (m <<.>> b)  -- dist
+class (Applicative f, LActionF m f) => DistributiveF m f
+
+-- | The twisted functor is essentially a generalisation of
+-- semi-direct product to applicative functors.
+newtype TwistRF f m a = TwistRF { unTwistRF :: (f a, m) }
+
+
+instance Functor f => Functor (TwistRF f m) where
+  fmap f (TwistRF (x, m)) = TwistRF (fmap f x, m)
+
+-- Proof of functor laws.
+--
+-- fmap id (TwistRF (x, m)) = TwistRF (fmap id x, m)
+--                          = TwistRF (x, m)
+--
+-- fmap (f . g)  (TwistRF fx m) = TwistRF (fmap (f . g) x, m)
+--                              = TwistRF (fmap f . fmap g $ x, m)
+--                              = TwistRF (fmap f (fmap g x), m)
+--                              = fmap f   $ TwistRF (fmap g x,  m)
+--                              = (fmap f . fmap g) (TwistRF fx) m)
+--
+
+instance DistributiveF m f => Applicative (TwistRF f m) where
+  pure a = TwistRF (pure a, mempty)
+
+  TwistRF (f,mf)  <*> TwistRF (val, mval)  = TwistRF (res, mres)
+    where res  = f <*> (mf <<.>> val)
+          mres = mf <> mval
+
+-- Consider an expression @u = u1 <*> u2 <*> ... <ur>@ where
+-- ui = TwistRF fi mi
+--
+-- u = TwistRF f m where m = m1 <> m2 <> .. <> mr
+-- f = f1 <*> m1 f2 <*> (m1 m2) f3 ...    <*> (m1 m2 .. mr-1) fr.
+--
+-- We will separately verify the functor part and the monoid
+-- part of the  ofNow we can verify the laws of applicative
+--
+--
+
+
+------------------------- A generic field -----------------------------------
 
 -- $fields$
 --
@@ -81,46 +196,9 @@ import Raaz.Core.Util.Ptr (movePtr)
 -- proofs that we have scattered in the source all have been written
 -- only for the arrow @->@.
 
--- | A monoid @g@ acting on the left of a space. Think of a left
--- action as a multiplication with the monoid. It should satisfy the
--- law:
---
--- [identity law:]
---            @1 . p = p@
---
--- [successive displacements:]
---           @ (a . b)  p  = a . (b . p)@
-class Monoid m => LAction m space where
-  (<.>) :: m -> space -> space
-
-infixr 6 <.>
-
--- | An alternate symbol for <> more useful in the additive context.
-(<++>) :: Monoid m => m -> m -> m
-(<++>) = (<>)
-{-# INLINE (<++>) #-}
-
-infixr 5 <++>
-
--- | A left-monoid action on a monoidal-space, i.e. the space on which
--- the monoid acts is itself a monoid, is /distributive/ if it
--- satisfies the law:
---
--- @ a <.> (p <++> q)  = a <.> p <++> a <.> q@.
---
--- Recall our convention here is to use @<++>@ for the monoid
--- operation of the space. The above law implies that every element
--- @m@ is a monoid homomorphism.
-class (LAction m space, Monoid space) => Distributive m space
-
--- | The most interesting monoidal action for us.
-instance LengthUnit u => LAction (Sum u) CryptoPtr where
-  a <.> ptr  = movePtr ptr (getSum a)
-
-------------------------- A generic field -----------------------------------
-
 -- | A field on the space is a function from the points in the space
 -- to some value. Here we define it for a general arrow.
+
 newtype FieldA arrow space value =
   FieldA { unFieldA :: arrow space value } deriving (Category, Arrow)
 
@@ -174,17 +252,6 @@ instance (Arrow arrow, LAction m space) => LAction m (FieldA arrow space value) 
 -- <.> (f <++> g)) = f (m <.> x) <++> g (m <.> x) = ((m <.> f) <> (m
 -- <.> g)) (x)@
 instance (Arrow arrow, Monoid value, LAction m space) => Distributive m (FieldA arrow space value)
-
----------------------- The semi-direct products ------------------------
-
--- | The semidirect product Space ⋊ Monoid. It turns out that data
--- serialisers (to a buffer) can essentially seen as a semidirect
--- product.
-newtype SemiR space m = SemiR { unSemiR :: (space, m) }
-
-instance Distributive m space => Monoid (SemiR space m) where
-  mempty = SemiR (mempty, mempty)
-  mappend (SemiR (x, a)) (SemiR (y, b)) = SemiR (x <++>  a <.> y,  a <> b)
 
 
 -- | The twisted field. This is essentially a field on the space of
