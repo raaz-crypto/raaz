@@ -39,7 +39,7 @@ parseError msg = makeParser (0 :: BYTES Int) $ \ _ -> fail msg
 
 -- | Return the bytes that this parser will read.
 parseWidth :: Parser a -> BYTES Int
-parseWidth =  getSum . snd . unTwistRF
+parseWidth =  getSum . twistMonoidValue
 
 -- | Run the given parser.
 runParser :: Parser a -> CryptoBuffer -> IO (Maybe a)
@@ -53,7 +53,7 @@ runParser' pr = fmap fromJust . runParser pr
 
 -- | Run the parser without checking the length constraints.
 unsafeRunParser :: Parser a -> CryptoPtr -> IO a
-unsafeRunParser = runFieldM . fst . unTwistRF
+unsafeRunParser = runFieldM . twistFunctorValue
 
 -- | The primary purpose of this function is to satisfy type checkers.
 undefParse :: Parser a -> a
