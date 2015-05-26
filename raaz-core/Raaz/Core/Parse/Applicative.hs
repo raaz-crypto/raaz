@@ -24,15 +24,14 @@ import           Raaz.Core.Util.ByteString (createFrom)
 import           Raaz.Core.Util.Ptr        (byteSize, loadFromIndex)
 
 
-type BytesMonoid = Sum (BYTES Int)
+type BytesMonoid   = Sum (BYTES Int)
+type ParseAction   = FieldM IO CryptoPtr
 
 -- | An applicative parser type for reading data from a pointer.
-type Parser a = TwistRM IO CryptoPtr BytesMonoid a
+type Parser = TwistRF ParseAction BytesMonoid
 
 makeParser :: LengthUnit l => l -> (CryptoPtr -> IO a) -> Parser a
-makeParser l action = TwistRA { twistFieldA       = liftToFieldM action
-                              , twistDisplacement = Sum (inBytes l)
-                              }
+makeParser l action = TwistRF (liftToFieldM action, Sum $ inBytes l)
 
 -- | A parser that fails with a given error message.
 parseError  :: String -> Parser a
@@ -40,7 +39,7 @@ parseError msg = makeParser (0 :: BYTES Int) $ \ _ -> fail msg
 
 -- | Return the bytes that this parser will read.
 parseWidth :: Parser a -> BYTES Int
-parseWidth =  getSum . twistDisplacement
+parseWidth =  getSum . twistMonoidValue
 
 -- | Run the given parser.
 runParser :: Parser a -> CryptoBuffer -> IO (Maybe a)
@@ -54,7 +53,7 @@ runParser' pr = fmap fromJust . runParser pr
 
 -- | Run the parser without checking the length constraints.
 unsafeRunParser :: Parser a -> CryptoPtr -> IO a
-unsafeRunParser = runFieldM . twistFieldA
+unsafeRunParser = runFieldM . twistFunctorValue
 
 -- | The primary purpose of this function is to satisfy type checkers.
 undefParse :: Parser a -> a
