@@ -59,11 +59,11 @@ makeWrite sz action = SemiR (WriteM . action, Sum sz)
 
 -- | Returns the bytes that will be written when the write action is performed.
 bytesToWrite :: Write -> BYTES Int
-bytesToWrite = getSum . snd . unSemiR
+bytesToWrite = getSum . semiRMonoid
 
 -- | Perform the write action without any checks.
 unsafeWrite :: Write -> CryptoPtr -> IO ()
-unsafeWrite wr =  unWriteM . (fst $ unSemiR wr)
+unsafeWrite wr =  unWriteM . semiRSpace wr
 
 -- | The function tries to write the given `Write` action on the
 -- buffer and returns `True` if successful.
