@@ -7,9 +7,9 @@
 module Raaz.Core.MonoidalAction
        ( -- * Monoidal action
          -- $basics$
-         LAction (..), Distributive, SemiR (..), (<++>)
+         LAction (..), Distributive, SemiR (..), (<++>), semiRSpace, semiRMonoid
          -- ** Monoidal action on functors
-       , LActionF(..), DistributiveF, TwistRF (..), unTwistRF
+       , LActionF(..), DistributiveF, TwistRF(..), twistFunctorValue, twistMonoidValue
          -- * Fields
          -- $fields$
        , FieldA, FieldM, Field, computeField, runFieldM, liftToFieldM
@@ -101,6 +101,18 @@ instance Distributive m space => Monoid (SemiR space m) where
   mempty = SemiR (mempty, mempty)
   mappend (SemiR (x, a)) (SemiR (y, b)) = SemiR (x <++>  a <.> y,  a <> b)
 
+-- | From the an element of semi-direct product Space ⋊ Monoid return
+-- the point.
+semiRSpace :: SemiR space m -> space
+{-# INLINE semiRSpace #-}
+semiRSpace = fst . unSemiR
+
+-- | From the an element of semi-direct product Space ⋊ Monoid return
+-- the monoid element.
+semiRMonoid :: SemiR space m -> m
+{-# INLINE semiRMonoid #-}
+semiRMonoid = snd . unSemiR
+
 --------------------------- Twisted functors ----------------------------
 
 
@@ -119,6 +131,15 @@ class (Applicative f, LActionF m f) => DistributiveF m f
 -- semi-direct product to applicative functors.
 newtype TwistRF f m a = TwistRF { unTwistRF :: (f a, m) }
 
+-- | Get the underlying functor value.
+twistFunctorValue :: TwistRF f m a -> f a
+twistFunctorValue = fst . unTwistRF
+{-# INLINE twistFunctorValue #-}
+
+-- | Get the underlying monoid value.
+twistMonoidValue :: TwistRF f m a -> m
+twistMonoidValue = snd . unTwistRF
+{-# INLINE twistMonoidValue #-}
 
 instance Functor f => Functor (TwistRF f m) where
   fmap f (TwistRF (x, m)) = TwistRF (fmap f x, m)
@@ -206,3 +227,5 @@ runFieldM = runKleisli . unwrapArrow
 -- | The action on the space translates to the action on field.
 instance (Arrow arrow, LAction m space) => LActionF m (WrappedArrow arrow space) where
   m <<.>> field =   WrapArrow $ unwrapArrow field <<^ (m<.>)
+
+instance (Arrow arrow, LAction m space) => DistributiveF m (WrappedArrow arrow space)
