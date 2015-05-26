@@ -5,7 +5,7 @@
 
 -- | A module that abstracts out monoidal actions.
 module Raaz.Core.MonoidalAction
-       ( -- * Basics
+       ( -- * Monoidal action
          -- $basics$
          LAction (..), Distributive, SemiR (..), (<++>)
          -- ** Monoidal action on functors
@@ -42,22 +42,11 @@ import Raaz.Core.Util.Ptr (movePtr)
 -- In this module, we consider /left/ actions of monoids, although
 -- right actions can be analogously defined as well. For applications
 -- we have in mind, namely for parsers etc, it is sufficient to
--- restrict our attention to left actions.  The following convention
--- is used when dealing with monoidal actions. Right actions are
--- written using the exponential notation and left actions in
--- multiplicative notation. The advantage of this differing convention
--- is that the laws of monoid action takes a form that is familiar to
--- us.
---
--- When monoids acting on monoidal spaces, i.e. the space itself is
--- monoid, we make the following conventions: For right actions both
--- monoidal operations are written multiplicatively. This is because,
--- we can use the familiar laws of exponentiation for talking about
--- stuff. For left actions, we think of the space as an additive
--- monoid. Again the usual laws of scalar multiplication is valid
--- here.
+-- restrict our attention to left actions.  The left action will be
+-- written in multiplicative notation with the operator `<.>` being the
+-- multiplication.
 
--- | A monoid @g@ acting on the left of a space. Think of a left
+-- | A monoid @m@ acting on the left of a space. Think of a left
 -- action as a multiplication with the monoid. It should satisfy the
 -- law:
 --
@@ -84,14 +73,11 @@ instance LengthUnit u => LAction (Sum u) CryptoPtr where
 -- | Uniform action of a monoid on a functor. The laws that should
 -- be satisfied are:
 --
---
 -- > 1 <<.>> fx  = fx
 -- > (a <> b) <<.>> fx  = a . (b <<.>> fx)
 -- > m <<.>> fmap f u = fmap f (m <<.>> u)   -- acts uniformly
---
 class (Monoid m, Functor f) => LActionF m f where
   (<<.>>) :: m -> f a -> f a
-
 
 ---------------------- The semi-direct products ------------------------
 
