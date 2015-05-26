@@ -5,7 +5,9 @@
 
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-
+{-# LANGUAGE TypeSynonymInstances       #-}
+{-# LANGUAGE FlexibleInstances          #-}
+{-# LANGUAGE MultiParamTypeClasses      #-}
 
 module Raaz.Core.Write
        ( Write, bytesToWrite, tryWriting, unsafeWrite
@@ -28,9 +30,19 @@ import           Raaz.Core.Util.Ptr
 
 -- | A write action is nothing but an IO action that returns () on
 -- input a pointer.
-type WriteAction = FieldM IO CryptoPtr ()
+newtype WriteM = WriteM { unWriteM :: IO () }
+
+instance Monoid WriteM where
+  mempty        = WriteM $ return ()
+  mappend wa wb = WriteM $ unWriteM wa >> unWriteM wb
+
+type WriteAction = CryptoPtr -> WriteM
 
 type BytesMonoid = Sum (BYTES Int)
+
+instance LAction BytesMonoid WriteAction where
+  m <.> action = action . (m<.>)
+instance Distributive BytesMonoid WriteAction
 
 -- | A write is an action which when executed using `runWrite` writes
 -- bytes to the input buffer. It is similar to the `WU.Write` type
@@ -43,7 +55,7 @@ type Write = SemiR WriteAction BytesMonoid
 
 -- | Create a write action.
 makeWrite :: BYTES Int -> (CryptoPtr -> IO ()) -> Write
-makeWrite sz action = SemiR (liftToFieldM action, Sum sz)
+makeWrite sz action = SemiR (WriteM . action, Sum sz)
 
 -- | Returns the bytes that will be written when the write action is performed.
 bytesToWrite :: Write -> BYTES Int
@@ -51,7 +63,7 @@ bytesToWrite = getSum . snd . unSemiR
 
 -- | Perform the write action without any checks.
 unsafeWrite :: Write -> CryptoPtr -> IO ()
-unsafeWrite = runFieldM . fst . unSemiR
+unsafeWrite wr =  unWriteM . (fst $ unSemiR wr)
 
 -- | The function tries to write the given `Write` action on the
 -- buffer and returns `True` if successful.
