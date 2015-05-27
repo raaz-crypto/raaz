@@ -24,17 +24,22 @@ foreign import ccall unsafe
   "raaz/hash/sha512/portable.h raazHashSha512PortableCompress"
   c_sha512_compress  :: Ptr SHA512 -> Int -> CryptoPtr -> IO ()
 
-sha512Compress :: CryptoCell SHA512 -> BLOCKS SHA512 -> CryptoPtr -> IO ()
+sha512Compress :: MemoryCell SHA512 -> BLOCKS SHA512 -> CryptoPtr -> IO ()
 sha512Compress cc nblocks buffer = withCell cc action
   where action ptr = c_sha512_compress (castPtr ptr) n buffer
         n = fromEnum nblocks
 {-# INLINE sha512Compress #-}
 
-instance Gadget (CGadget SHA512) where
-  type PrimitiveOf (CGadget SHA512) = SHA512
-  type MemoryOf (CGadget SHA512)    = CryptoCell SHA512
-  newGadgetWithMemory               = return . CGadget
-  getMemory (CGadget m)             = m
-  apply (CGadget cc)                = sha512Compress cc
+instance InitializableMemory (CGadget SHA512 (MemoryCell SHA512)) where
+  type IV (CGadget SHA512 (MemoryCell SHA512)) = SHA512
+  initializeMemory (CGadget mc) = cellPoke mc
 
-instance PaddableGadget (CGadget SHA512)
+instance FinalizableMemory (CGadget SHA512 (MemoryCell SHA512)) where
+  type FV (CGadget SHA512 (MemoryCell SHA512)) = SHA512
+  finalizeMemory (CGadget mc) = cellPeek mc
+
+instance Gadget (CGadget SHA512 (MemoryCell SHA512)) where
+  type PrimitiveOf (CGadget SHA512 (MemoryCell SHA512)) = SHA512
+  apply (CGadget mc)                = sha512Compress mc
+
+instance PaddableGadget (CGadget SHA512 (MemoryCell SHA512))
