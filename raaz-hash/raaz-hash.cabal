@@ -28,10 +28,21 @@ library
   exposed-modules: Raaz.Hash
                  , Raaz.Hash.Sha1
                  , Raaz.Hash.Sha1.Internal
+                 , Raaz.Hash.Sha224
+                 , Raaz.Hash.Sha224.Internal
+                 , Raaz.Hash.Sha256
+                 , Raaz.Hash.Sha256.Internal
   other-modules: Raaz.Hash.Sha1.Instance
                , Raaz.Hash.Sha1.Ref
                , Raaz.Hash.Sha1.CPortable
                , Raaz.Hash.Sha1.Type
+               , Raaz.Hash.Sha256.Instance
+               , Raaz.Hash.Sha256.Ref
+               , Raaz.Hash.Sha256.CPortable
+               , Raaz.Hash.Sha256.Type
+               , Raaz.Hash.Sha224.Instance
+               , Raaz.Hash.Sha224.CPortable
+               , Raaz.Hash.Sha224.Type
                , Raaz.Hash.Sha.Util
   build-depends: base                           >= 4.5 && < 4.8
                , bytestring                     >= 0.9 && < 0.11
