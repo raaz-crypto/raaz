@@ -5,7 +5,7 @@ import           Criterion.Config  (Config(..), ljust, defaultConfig)
 import           Paths_raaz_hash   (version)
 
 import qualified Modules.Sha       as Sha
-import qualified Modules.Blake     as Blake
+-- import qualified Modules.Blake     as Blake
 
 import           Modules.Defaults
 
@@ -24,7 +24,7 @@ main = do putStrLn $ "Running benchmarks for " ++ pkgName
 
 benchmarks = do
   sha <- Sha.benchmarks
-  blake <- Blake.benchmarks
-  return [ bgroup "SHA" sha 
-         , bgroup "BLAKE" blake
+  -- blake <- Blake.benchmarks
+  return [ bgroup "SHA" sha
+         -- , bgroup "BLAKE" blake
          ]

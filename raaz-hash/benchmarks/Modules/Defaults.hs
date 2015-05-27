@@ -24,14 +24,14 @@ nSize = 1024 * 1024
 
 benchHash g = do
   g'     <- createGadget g
-  return $ benchGadgetWith g' (defaultCxt $ primitiveOf g) (nBlocks g')
+  return $ benchGadgetWith g' (defaultKey $ primitiveOf g) (nBlocks g')
 
-benchmarksAll h = sequence
-                  [ benchHash (toH h)
-                  , benchHash (toC h)
-                  ]
+benchmarksAll h mc = sequence
+                    [ benchHash (toH h mc)
+                    , benchHash (toC h mc)
+                    ]
   where
-    toH :: p -> HGadget p
-    toH _ = undefined
-    toC :: p -> CGadget p
-    toC _ = undefined
+    toH :: p -> m -> HGadget p m
+    toH _ _ = undefined
+    toC :: p -> m -> CGadget p m
+    toC _ _ = undefined
