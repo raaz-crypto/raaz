@@ -26,8 +26,8 @@ class Auth prim
 
 -- | Generate authentication tag.
 authTag' :: ( PureByteSource src
-            , FinalizableMemory (MemoryOf g)
-            , FV (MemoryOf g) ~ prim
+            , FinalizableMemory g
+            , FV g ~ prim
             , PaddableGadget g
             , Auth prim
             , prim ~ PrimitiveOf g
@@ -39,15 +39,15 @@ authTag' :: ( PureByteSource src
 authTag' g key src = unsafePerformIO $ withGadget key $ go g
   where go :: ( Auth (PrimitiveOf g1)
               , PaddableGadget g1
-              , FinalizableMemory (MemoryOf g1)
+              , FinalizableMemory g1
               )
-           => g1 -> g1 -> IO (FV (MemoryOf g1))
-        go _ gad = transformGadget gad src >> finalize gad
+           => g1 -> g1 -> IO (FV g1)
+        go _ gad = transformGadget gad src >> finalizeMemory gad
 
 -- | Verify generated tag
 verifyTag' :: ( PureByteSource src
-              , FinalizableMemory (MemoryOf g)
-              , FV (MemoryOf g) ~ prim
+              , FinalizableMemory g
+              , FV g ~ prim
               , PaddableGadget g
               , Auth prim
               , prim ~ PrimitiveOf g
@@ -63,8 +63,8 @@ verifyTag' g key src tag = authTag' g key src == tag
 -- | Generate Authentication tag using recommended gadget.
 authTag :: ( PureByteSource src
            , g ~ Recommended prim
-           , FinalizableMemory (MemoryOf g)
-           , FV (MemoryOf g) ~ prim
+           , FinalizableMemory g
+           , FV g ~ prim
            , Auth prim
            , PaddableGadget g
            , CryptoPrimitive prim
@@ -79,8 +79,8 @@ authTag key src = tag
 -- | Verify tag using recommended gadget.
 verifyTag :: ( PureByteSource src
              , g ~ Recommended prim
-             , FinalizableMemory (MemoryOf g)
-             , FV (MemoryOf g) ~ prim
+             , FinalizableMemory g
+             , FV g ~ prim
              , Auth prim
              , PaddableGadget g
              , CryptoPrimitive prim

@@ -27,11 +27,11 @@ import Raaz.Hash.Sha256.CPortable ()
 ----------------------------- SHA256 -------------------------------------------
 
 instance CryptoPrimitive SHA256 where
-  type Recommended SHA256 = CGadget SHA256
-  type Reference SHA256 = HGadget SHA256
+  type Recommended SHA256 = CGadget SHA256 (MemoryCell SHA256)
+  type Reference SHA256 = HGadget SHA256 (MemoryCell SHA256)
 
 instance Hash SHA256 where
-  defaultCxt _ = SHA256 $ VU.fromList [ 0x6a09e667
+  defaultKey _ = SHA256 $ VU.fromList [ 0x6a09e667
                                       , 0xbb67ae85
                                       , 0x3c6ef372
                                       , 0xa54ff53a
@@ -43,18 +43,23 @@ instance Hash SHA256 where
 
   hashDigest = id
 
-instance Gadget (HGadget SHA256) where
-  type PrimitiveOf (HGadget SHA256)  = SHA256
-  type MemoryOf (HGadget SHA256)     = CryptoCell SHA256
-  newGadgetWithMemory                = return . HGadget
-  getMemory (HGadget m)              = m
-  apply (HGadget cc) n cptr          = do
-    initial <- cellPeek cc
+instance InitializableMemory (HGadget SHA256 (MemoryCell SHA256)) where
+  type IV (HGadget SHA256 (MemoryCell SHA256)) = SHA256
+  initializeMemory (HGadget mc) = cellPoke mc
+
+instance FinalizableMemory (HGadget SHA256 (MemoryCell SHA256)) where
+  type FV (HGadget SHA256 (MemoryCell SHA256)) = SHA256
+  finalizeMemory (HGadget mc) = cellPeek mc
+
+instance Gadget (HGadget SHA256 (MemoryCell SHA256)) where
+  type PrimitiveOf (HGadget SHA256 (MemoryCell SHA256)) = SHA256
+  apply (HGadget mc) n cptr = do
+    initial <- cellPeek mc
     final <- fst <$> foldM moveAndHash (initial,cptr) [1..n]
-    cellPoke cc final
+    cellPoke mc final
     where
       sz = blockSize (undefined :: SHA256)
       moveAndHash (cxt,ptr) _ = do newCxt <- sha256CompressSingle cxt ptr
                                    return (newCxt, ptr `movePtr` sz)
 
-instance PaddableGadget (HGadget SHA256)
+instance PaddableGadget (HGadget SHA256 (MemoryCell SHA256))

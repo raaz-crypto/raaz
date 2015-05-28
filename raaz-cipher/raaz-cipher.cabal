@@ -26,7 +26,7 @@ library
                  , Raaz.Cipher.AES.Internal
                  , Raaz.Cipher.AES.CBC
                  , Raaz.Cipher.AES.CTR
-                 , Raaz.Cipher.AES.ECB
+                 -- , Raaz.Cipher.AES.ECB
                  , Raaz.Cipher.AES
                  , Raaz.Cipher.Salsa20
                  , Raaz.Cipher.Salsa20.Internal
@@ -40,10 +40,10 @@ library
                , Raaz.Cipher.AES.CTR.Instance
                , Raaz.Cipher.AES.CTR.Ref
                , Raaz.Cipher.AES.CTR.Type
-               , Raaz.Cipher.AES.ECB.CPortable
-               , Raaz.Cipher.AES.ECB.Instance
-               , Raaz.Cipher.AES.ECB.Ref
-               , Raaz.Cipher.AES.ECB.Type
+               -- , Raaz.Cipher.AES.ECB.CPortable
+               -- , Raaz.Cipher.AES.ECB.Instance
+               -- , Raaz.Cipher.AES.ECB.Ref
+               -- , Raaz.Cipher.AES.ECB.Type
                , Raaz.Cipher.Salsa20.Block.Internal
                , Raaz.Cipher.Salsa20.Block.Type
                , Raaz.Cipher.Salsa20.Instances
@@ -81,7 +81,7 @@ test-Suite tests
   other-modules: Modules.AES
                , Modules.AES.Block
                , Modules.AES.Defaults
-               , Modules.AES.ECB
+               -- , Modules.AES.ECB
                , Modules.AES.CBC
                , Modules.AES.CTR
                , Modules.EcryptTest

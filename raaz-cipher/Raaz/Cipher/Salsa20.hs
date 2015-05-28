@@ -25,10 +25,11 @@ module Raaz.Cipher.Salsa20
        , Counter
        , module Raaz.Core.Primitives
        , module Raaz.Core.Primitives.Cipher
+       , HSalsa20Gadget, CSalsa20Gadget
        ) where
 
 import Raaz.Core.Primitives
 import Raaz.Core.Primitives.Cipher
 
-import Raaz.Cipher.Salsa20.Instances()
+import Raaz.Cipher.Salsa20.Instances
 import Raaz.Cipher.Salsa20.Internal

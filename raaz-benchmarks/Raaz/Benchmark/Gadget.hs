@@ -9,6 +9,7 @@ module Raaz.Benchmark.Gadget
 
 import Criterion.Main
 
+import Raaz.Core.Memory
 import Raaz.Core.Primitives
 import Raaz.Core.Types
 import Raaz.Core.Util.Ptr
@@ -21,10 +22,7 @@ benchGadget  :: (Gadget g, HasName g)
              -> BLOCKS (PrimitiveOf g) -- ^ Size of Buffer
              -> Benchmark
 benchGadget g iv cptr nblks = bench (getName g) process
-  where
-    process = do
-      initialize g iv
-      apply g nblks cptr
+  where process = initializeMemory g iv >> apply g nblks cptr
 
 -- | Allocates the buffer and performs the benchmark
 benchGadgetWith :: (Gadget g, HasName g)
@@ -35,13 +33,13 @@ benchGadgetWith :: (Gadget g, HasName g)
 benchGadgetWith g iv nblks = bench (getName g) process
   where
     process = do
-      initialize g iv
-      allocaBuffer rblks (go g nblks)
-    go g blks cptr | blks > rblks =  apply g rblks cptr
-                                  >> go g (blks - rblks) cptr
-                   | otherwise    = apply g blks cptr
+      initializeMemory g iv
+      allocaBuffer rblks (go nblks)
+    go blks cptr | blks > rblks =  apply g rblks cptr
+                                >> go (blks - rblks) cptr
+                 | otherwise    = apply g blks cptr
     rblks = recommendedBlocks g
 
 -- Helper to satisfy typechecker
 createGadget :: Gadget g => g -> IO g
-createGadget _ = newGadget
+createGadget _ = return undefined

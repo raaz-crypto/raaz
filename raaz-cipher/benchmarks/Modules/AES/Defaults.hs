@@ -18,7 +18,7 @@ import           Raaz.Core.Primitives.Cipher
 import           Raaz.Core.Util.ByteString
 
 import           Raaz.Cipher.AES.Internal
-import           Raaz.Cipher.AES.ECB
+-- import           Raaz.Cipher.AES.ECB
 
 import           Modules.Defaults
 
@@ -58,9 +58,9 @@ benchmarksDefault p s128 s192 s256 = sequence
                       ]
   where
     first (a,_,_) = a
-    toH :: AES mode k -> HGadget (AESOp mode k EncryptMode)
+    toH :: AES mode k -> HAESGadget mode k EncryptMode
     toH _ = undefined
-    toC :: AES mode k -> CGadget (AESOp mode k EncryptMode)
+    toC :: AES mode k -> CAESGadget mode k EncryptMode
     toC _ = undefined
     prim128 :: AES mode key -> AES mode KEY128
     prim128 = undefined

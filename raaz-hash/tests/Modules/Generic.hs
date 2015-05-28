@@ -42,25 +42,26 @@ import           Raaz.Core.Util.ByteString            ( toHex             )
 allHashTests :: ( Arbitrary h
                 , Show h
                 , Hash h
-                , PrimitiveOf (CGadget h) ~ h
-                , PrimitiveOf (HGadget h) ~ h
-                , Gadget (HGadget h)
-                , Gadget (CGadget h)
+                , PrimitiveOf (CGadget h m) ~ h
+                , PrimitiveOf (HGadget h m) ~ h
+                , Gadget (HGadget h m)
+                , Gadget (CGadget h m)
                 , Eq (Key h)
                 , Show (Key h)
                 , HasName h
                 , Typeable h
                 )
              => h         -- ^ dummy hash type to satisfy the type checker
+             -> m
              -> [(B.ByteString,B.ByteString)]
                           -- ^ string hash pairs
              -> [Test]
-allHashTests h pairs = [ testStoreLoad h
-                       , testPadLengthVsPadding h
-                       , testLengthDivisibility h
-                       , testGroup unitTestName unitTests
-                       , testCGadgetvsHGadget h
-                       ]
+allHashTests h m pairs = [ testStoreLoad h
+                         , testPadLengthVsPadding h
+                         , testLengthDivisibility h
+                         , testGroup unitTestName unitTests
+                         , testCGadgetvsHGadget h m
+                         ]
     where unitTestName  = unwords [getName h, "Unit tests"]
           unitTests     = testStandardHashValues h pairs
 
@@ -133,17 +134,17 @@ testStandardHMACValues h = hUnitTestToTests . test . map checkHMAC
         checkHMAC (k,b,h) = label b ~: getHMAC k b ~?= h
 
 
-testCGadgetvsHGadget :: ( PrimitiveOf (CGadget p) ~ p
-                        , PrimitiveOf (HGadget p) ~ p
-                        , Gadget (HGadget p)
-                        , Gadget (CGadget p)
+testCGadgetvsHGadget :: ( PrimitiveOf (CGadget p m) ~ p
+                        , PrimitiveOf (HGadget p m) ~ p
+                        , Gadget (HGadget p m)
+                        , Gadget (CGadget p m)
                         , Eq (Key p)
                         , Hash p
                         , HasName p
-                        ) => p -> Test
-testCGadgetvsHGadget p = testGadget (g p) (ref p) (defaultCxt p)
+                        ) => p -> m -> Test
+testCGadgetvsHGadget p m = testGadget (g p m) (ref p m) (defaultKey p)
   where
-    g :: p -> CGadget p
-    g _ = undefined
-    ref :: p -> HGadget p
-    ref _ = undefined
+    g :: p -> m -> CGadget p m
+    g _ _ = undefined
+    ref :: p -> m -> HGadget p m
+    ref _ _ = undefined

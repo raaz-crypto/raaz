@@ -25,8 +25,8 @@ foreign import ccall unsafe
   "raaz/hash/blake256/portable.h raazHashBlake256PortableCompress"
   c_blake256_compress  :: CryptoPtr -> CryptoPtr -> BITS Word64 -> Int -> CryptoPtr -> IO ()
 
-blake256Compress :: CryptoCell BLAKE256
-                 -> CryptoCell Salt
+blake256Compress :: MemoryCell BLAKE256
+                 -> MemoryCell Salt
                  -> BITS Word64
                  -> BLOCKS BLAKE256
                  -> CryptoPtr
@@ -39,19 +39,31 @@ blake256Compress cellBlake cellSalt counter nblocks buffer = withCell cellBlake 
       where
         action2 saltptr = c_blake256_compress ptr saltptr counter n buffer
 
+instance InitializableMemory (CGadgetBlake256) where
+  type IV (CGadgetBlake256) = (BLAKE256, Salt)
 
-instance Gadget (CGadget BLAKE256) where
-  type PrimitiveOf (CGadget BLAKE256) = BLAKE256
-  type MemoryOf (CGadget BLAKE256)    = BLAKEMem BLAKE256
-  newGadgetWithMemory                 = return . CGadget
-  getMemory (CGadget m)               = m
-  apply (CGadget (BLAKEMem (cellBlake, cellSalt, cellCounter))) n cptr = do
+  initializeMemory (CGadget (cblake, csalt, ccounter)) (blake,salt) = do
+    cellPoke cblake blake
+    cellPoke csalt salt
+    cellPoke ccounter 0
+
+instance FinalizableMemory (CGadgetBlake256) where
+  type FV (CGadgetBlake256) = (BLAKE256, Salt)
+
+  finalizeMemory (CGadget (cblake, csalt, _)) = do
+    blake <- cellPeek cblake
+    salt <- cellPeek csalt
+    return (blake, salt)
+
+instance Gadget (CGadgetBlake256) where
+  type PrimitiveOf (CGadgetBlake256) = BLAKE256
+  apply (CGadget (cellBlake, cellSalt, cellCounter)) n cptr = do
     counter <- cellPeek cellCounter
     cellModify cellCounter $ (+) (inBits n)
     blake256Compress cellBlake cellSalt counter n cptr
 
-instance PaddableGadget (CGadget BLAKE256) where
-  unsafeApplyLast g@(CGadget (BLAKEMem (_, _, cellCounter))) blocks bytes cptr = do
+instance PaddableGadget (CGadgetBlake256) where
+  unsafeApplyLast g@(CGadget (_, _, cellCounter)) blocks bytes cptr = do
     let bits      = inBits bytes
         len       = inBits blocks + bits
         p         = primitiveOf g

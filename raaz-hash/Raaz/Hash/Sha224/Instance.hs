@@ -28,11 +28,11 @@ import Raaz.Hash.Sha224.CPortable ()
 ----------------------------- SHA224 -------------------------------------------
 
 instance CryptoPrimitive SHA224 where
-  type Recommended SHA224 = CGadget SHA224
-  type Reference SHA224   = HGadget SHA224
+  type Recommended SHA224 = CGadget SHA224 (MemoryCell SHA256)
+  type Reference SHA224 = HGadget SHA224 (MemoryCell SHA256)
 
 instance Hash SHA224 where
-  defaultCxt _ = SHA256 $ VU.fromList [ 0xc1059ed8
+  defaultKey _ = SHA256 $ VU.fromList [ 0xc1059ed8
                                       , 0x367cd507
                                       , 0x3070dd17
                                       , 0xf70e5939
@@ -46,18 +46,23 @@ instance Hash SHA224 where
     where sha256Tosha224 (SHA256 v)
               = SHA224 (VU.slice 0 7 v)
 
-instance Gadget (HGadget SHA224) where
-  type PrimitiveOf (HGadget SHA224)  = SHA224
-  type MemoryOf (HGadget SHA224)     = CryptoCell SHA256
-  newGadgetWithMemory                = return . HGadget
-  getMemory (HGadget m)              = m
-  apply (HGadget cc) n cptr          = do
-    initial <- cellPeek cc
+instance InitializableMemory (HGadget SHA224 (MemoryCell SHA256)) where
+  type IV (HGadget SHA224 (MemoryCell SHA256)) = SHA256
+  initializeMemory (HGadget mc) = cellPoke mc
+
+instance FinalizableMemory (HGadget SHA224 (MemoryCell SHA256)) where
+  type FV (HGadget SHA224 (MemoryCell SHA256)) = SHA256
+  finalizeMemory (HGadget mc) = cellPeek mc
+
+instance Gadget (HGadget SHA224 (MemoryCell SHA256)) where
+  type PrimitiveOf (HGadget SHA224 (MemoryCell SHA256)) = SHA224
+  apply (HGadget mc) n cptr = do
+    initial <- cellPeek mc
     final <- fst <$> foldM moveAndHash (initial,cptr) [1..n]
-    cellPoke cc final
+    cellPoke mc final
     where
       sz = blockSize (undefined :: SHA256)
       moveAndHash (cxt,ptr) _ = do newCxt <- sha256CompressSingle cxt ptr
                                    return (newCxt, ptr `movePtr` sz)
 
-instance PaddableGadget (HGadget SHA224)
+instance PaddableGadget (HGadget SHA224 (MemoryCell SHA256))

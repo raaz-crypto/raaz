@@ -18,7 +18,6 @@ module Raaz.Core.Primitives.Hash
 import           Control.Applicative  ((<$>))
 import qualified Data.ByteString      as B
 import qualified Data.ByteString.Lazy as L
-import           Foreign.Storable     ( Storable )
 import           Prelude              hiding (length)
 import           System.IO            (withBinaryFile, IOMode(ReadMode), Handle)
 import           System.IO.Unsafe     (unsafePerformIO)
@@ -41,21 +40,20 @@ import           Raaz.Core.Util.Ptr   (byteSize)
 --    multiples of block size. In raaz we allow hashing only byte
 --    messages even though standard hashes also allow hashing bit
 --    messages.
---
 class ( SafePrimitive h
       , PaddableGadget (Recommended h)
       , PaddableGadget (Reference h)
-      , FinalizableMemory (MemoryOf (Recommended h))
-      , FinalizableMemory (MemoryOf (Reference h))
-      , FV (MemoryOf (Recommended h)) ~ Key h
-      , FV (MemoryOf (Reference h)) ~ Key h
+      , FinalizableMemory (Recommended h)
+      , FinalizableMemory (Reference h)
+      , FV (Recommended h) ~ Key h
+      , FV (Reference h) ~ Key h
       , HasPadding h
       , CryptoPrimitive h
       , Eq h
       , EndianStore h
       ) => Hash h where
-  -- | Get the intial IV for the hash.
-  defaultCxt :: h -> Key h
+  -- | Get the intial key for the hash.
+  defaultKey :: h -> Key h
 
   -- | Calculate the digest from the Context.
   hashDigest :: Key h -> h
@@ -70,33 +68,35 @@ type HashMemoryBuf h = MemoryBuf (HashMemoryBufSize h)
 data HashMemoryBufSize h
 
 instance Hash h => Bufferable (HashMemoryBufSize h) where
-  maxSizeOf hbsz = padLength thisHash (inBits sz) + sz
-    where sz       = byteSize thisHash
-          thisHash = getH hbsz
-          getH     :: HashMemoryBufSize h -> h
-          getH _   = undefined
+  maxSizeOf hbsz = padLength thisHash (inBits contentSz) + inBytes contentSz
+    where contentSz    = inBlks thisHash (byteSize thisHash)
+          thisHash     = getH hbsz
+          inBlks       ::  Hash h => h -> BYTES Int -> BLOCKS h
+          inBlks _ sz  = atLeast sz
+          getH         :: HashMemoryBufSize h -> h
+          getH _       = undefined
 
 -- | Hash a given byte source.
 sourceHash' :: ( ByteSource src
                , Hash h
                , PaddableGadget g
                , h ~ PrimitiveOf g
-               , FinalizableMemory (MemoryOf g)
-               , FV (MemoryOf g) ~ Key h
+               , FinalizableMemory g
+               , FV g ~ Key h
                )
             => g    -- ^ Gadget
             -> src  -- ^ Message
             -> IO h
-sourceHash' g src = hashDigest <$> withGadget (defaultCxt $ primitiveOf g) (go g)
+sourceHash' g src = hashDigest <$> withGadget (defaultKey $ primitiveOf g) (go g)
   where go :: ( Gadget g1
               , Hash (PrimitiveOf g1)
               , PaddableGadget g1
-              , FinalizableMemory (MemoryOf g1)
+              , FinalizableMemory g1
               )
-            => g1 -> g1 -> IO (FV (MemoryOf g1))
+            => g1 -> g1 -> IO (FV g1)
         go _ gad =  do
           transformGadget gad src
-          finalize gad
+          finalizeMemory gad
 {-# INLINEABLE sourceHash' #-}
 
 -- | Compute the hash of a byte source.
@@ -115,8 +115,8 @@ sourceHash src = go undefined
 hash' :: ( PureByteSource src
          , Hash h
          , PaddableGadget g
-         , FinalizableMemory (MemoryOf g)
-         , FV (MemoryOf g) ~ Key h
+         , FinalizableMemory g
+         , FV g ~ Key h
          , h ~ PrimitiveOf g
          )
       => g    -- ^ Gadget
@@ -138,8 +138,8 @@ hash = unsafePerformIO . sourceHash
 -- | Hash a given file given `FilePath`. Implementation dependent.
 hashFile' :: ( Hash h
              , PaddableGadget g
-             , FinalizableMemory (MemoryOf g)
-             , FV (MemoryOf g) ~ Key h
+             , FinalizableMemory g
+             , FV g ~ Key h
              , h ~ PrimitiveOf g
              )
           => g           -- ^ Implementation
