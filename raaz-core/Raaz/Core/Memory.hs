@@ -26,7 +26,7 @@ module Raaz.Core.Memory
        , withMemoryBuf
        ) where
 
-import           Control.Applicative ( WrappedArrow(..) )
+import           Control.Applicative ( WrappedArrow(..) , (<$>) , (<*>))
 import           Data.Monoid (Sum (..))
 import           Foreign.Storable(Storable(..))
 import           Foreign.Ptr (castPtr)
@@ -140,6 +140,29 @@ withSecureMemory = withSM memoryAlloc
         withSM alctr action = allocaSecure sz $ action . getM
           where sz     = getSum $ twistMonoidValue alctr
                 getM   = computeField $ twistFunctorValue alctr
+
+instance ( Memory a, Memory b, Memory c) => Memory (a,b,c) where
+  memoryAlloc  = (,,) <$> memoryAlloc <*> memoryAlloc <*> memoryAlloc
+  underlyingPtr (a,_,_) = underlyingPtr a
+
+instance ( InitializableMemory a
+         , InitializableMemory b
+         , InitializableMemory c
+         ) => InitializableMemory (a,b,c) where
+  type IV (a,b,c) = (IV a, IV b, IV c)
+  initializeMemory (a,b,c) (iva, ivb, ivc) = initializeMemory a iva
+                                          >> initializeMemory b ivb
+                                          >> initializeMemory c ivc
+
+instance ( FinalizableMemory a
+         , FinalizableMemory b
+         , FinalizableMemory c
+         ) => FinalizableMemory (a,b,c) where
+  type FV (a,b,c) = (FV a, FV b, FV c)
+  finalizeMemory (a,b,c) =  (,,) <$> finalizeMemory a
+                                 <*> finalizeMemory b
+                                 <*> finalizeMemory c
+
 
 ---------------------------------------------------------------------
 {--

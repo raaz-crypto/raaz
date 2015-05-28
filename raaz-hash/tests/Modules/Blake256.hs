@@ -7,6 +7,7 @@ import qualified Data.ByteString       as B
 import qualified Data.ByteString.Char8 as C8
 import qualified Data.Vector.Unboxed   as VU
 import           Data.Typeable
+import           Data.Word
 import           Test.QuickCheck       (Arbitrary(..))
 import           Test.Framework        (Test, testGroup)
 import           Test.QuickCheck.Arbitrary
@@ -16,12 +17,14 @@ import           Raaz.Core.Test.Cipher
 import           Raaz.Core.Test.Gadget
 
 import           Modules.Generic
+import           Raaz.Core.Memory
+import           Raaz.Core.Types
 import           Raaz.Hash.Blake256.Internal
 
 instance Arbitrary BLAKE256 where
   arbitrary = BLAKE256 . VU.fromList <$> vector 8
 
-tests = allHashTests (undefined :: BLAKE256) exampleStrings
+tests = allHashTests (undefined :: BLAKE256) (undefined :: (MemoryCell BLAKE256, MemoryCell Salt, MemoryCell (BITS Word64))) exampleStrings
 
 {-tests = [ testStoreLoad h
         , testPadLengthVsPadding h
