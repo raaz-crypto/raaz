@@ -23,11 +23,13 @@ main = do putStrLn $ "Running benchmarks for " ++ pkgName
           defaultMainWith myConfig (return ()) b
 
 benchmarksTiny = do
-  aes <- AES.benchmarksTiny
-  salsa <- S20.benchmarksTiny
-  return [bgroup "AES" aes, bgroup "Salsa20" salsa]
+  -- aes <- AES.benchmarksTiny
+  -- salsa <- S20.benchmarksTiny
+  -- return [bgroup "AES" aes, bgroup "Salsa20" salsa]
+  return []
 
 benchmarks= do
-  aes <- AES.benchmarks
+  -- aes <- AES.benchmarks
   salsa <- S20.benchmarks
-  return [bgroup "AES" aes, bgroup "Salsa20" salsa]
+  -- return [bgroup "AES" aes, bgroup "Salsa20" salsa]
+  return [ bgroup "Salsa20" salsa ]
