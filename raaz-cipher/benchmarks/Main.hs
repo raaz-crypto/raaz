@@ -19,7 +19,7 @@ myConfig = defaultConfig {
 main :: IO ()
 main = do putStrLn $ "Running benchmarks for " ++ pkgName
           putStrLn $ "Data Size : " ++ show nSize
-          b <- benchmarksTiny
+          b <- benchmarks
           defaultMainWith myConfig (return ()) b
 
 benchmarksTiny = do

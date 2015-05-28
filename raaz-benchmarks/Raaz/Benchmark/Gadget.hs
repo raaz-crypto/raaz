@@ -5,6 +5,7 @@ module Raaz.Benchmark.Gadget
        ( benchGadget
        , benchGadgetWith
        , createGadget
+       , benchmarker
        ) where
 
 import Criterion.Main
@@ -43,3 +44,24 @@ benchGadgetWith g iv nblks = bench (getName g) process
 -- Helper to satisfy typechecker
 createGadget :: Gadget g => g -> IO g
 createGadget _ = return undefined
+
+benchmarker :: ( Gadget g
+               , HasName g
+               ) => g                      -- ^ Gadget
+                 -> Key (PrimitiveOf g)    -- ^ Gadget Key
+                 -> BLOCKS (PrimitiveOf g) -- ^ Size of random buffer which will be allocated
+                 -> IO Benchmark
+benchmarker g iv nblks = return $ bench (getName g) benchAction
+  where process :: ( g1 ~ g
+                   , Gadget g1
+                   , Key (PrimitiveOf g) ~ Key (PrimitiveOf g1)
+                   ) => Key (PrimitiveOf g1) -> BLOCKS (PrimitiveOf g1) -> g1 -> g1 -> IO ()
+        process iv1 nblks1 _ g1 = do
+          let rblks = recommendedBlocks g1
+              go blks g' cptr | blks > rblks = apply g' rblks cptr
+                                             >> go (blks - rblks) g' cptr
+                               | otherwise   = apply g' blks cptr
+          initializeMemory g1 iv1
+          allocaBuffer rblks (go nblks1 g1)
+
+        benchAction = withMemory $ (process iv nblks g)
