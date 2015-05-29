@@ -51,12 +51,12 @@ import Raaz.Core.Util.Ptr (movePtr)
 -- law:
 --
 -- > 1 <.> p = p                         -- identity
--- > (a <> b) <.> p  = a <.> (b <.> p)   -- successive displacements
+-- > a <> b <.> p  = a <.> b <.> p   -- successive displacements
 --
 class Monoid m => LAction m space where
   (<.>) :: m -> space -> space
 
-infixr 6 <.>
+infixr 5 <.>
 
 -- | An alternate symbol for <> more useful in the additive context.
 (<++>) :: Monoid m => m -> m -> m
@@ -79,13 +79,15 @@ instance LengthUnit u => LAction (Sum u) CryptoPtr where
 class (Monoid m, Functor f) => LActionF m f where
   (<<.>>) :: m -> f a -> f a
 
+infixr 5 <<.>>
+
 ---------------------- The semi-direct products ------------------------
 
 -- | A left-monoid action on a monoidal-space, i.e. the space on which
 -- the monoid acts is itself a monoid, is /distributive/ if it
 -- satisfies the law:
 --
--- > a <.> (p <> q)  = (a <.> p) <> (a <.> q).
+-- > a <.> p <> q  = (a <.> p) <> (a <.> q).
 --
 -- The above law implies that every element @m@ is a monoid
 -- homomorphism.
@@ -160,7 +162,7 @@ instance DistributiveF m f => Applicative (TwistRF f m) where
   pure a = TwistRF (pure a, mempty)
 
   TwistRF (f,mf)  <*> TwistRF (val, mval)  = TwistRF (res, mres)
-    where res  = f <*> (mf <<.>> val)
+    where res  = f <*> mf <<.>> val
           mres = mf <> mval
 
 -- Consider an expression @u = u1 <*> u2 <*> ... <ur>@ where
