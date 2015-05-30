@@ -27,15 +27,15 @@ import           Raaz.Core.Types
 import           Raaz.Core.Util.ByteString as BU
 import           Raaz.Core.Util.Ptr
 
-
--- | A write action is nothing but an IO action that returns () on
--- input a pointer.
+-- | The monoid for write.
 newtype WriteM = WriteM { unWriteM :: IO () }
 
 instance Monoid WriteM where
   mempty        = WriteM $ return ()
   mappend wa wb = WriteM $ unWriteM wa >> unWriteM wb
 
+-- | A write action is nothing but an IO action that returns () on
+-- input a pointer.
 type WriteAction = CryptoPtr -> WriteM
 
 type BytesMonoid = Sum (BYTES Int)
