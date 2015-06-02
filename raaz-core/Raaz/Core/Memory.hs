@@ -141,6 +141,24 @@ withSecureMemory = withSM memoryAlloc
           where sz     = getSum $ twistMonoidValue alctr
                 getM   = computeField $ twistFunctorValue alctr
 
+instance ( Memory a, Memory b) => Memory (a,b) where
+  memoryAlloc  = (,) <$> memoryAlloc <*> memoryAlloc
+  underlyingPtr (a,_) = underlyingPtr a
+
+instance ( InitializableMemory a
+         , InitializableMemory b
+         ) => InitializableMemory (a,b) where
+  type IV (a,b) = (IV a, IV b)
+  initializeMemory (a,b) (iva, ivb) = initializeMemory a iva
+                                   >> initializeMemory b ivb
+
+instance ( FinalizableMemory a
+         , FinalizableMemory b
+         ) => FinalizableMemory (a,b) where
+  type FV (a,b) = (FV a, FV b)
+  finalizeMemory (a,b) =  (,) <$> finalizeMemory a
+                              <*> finalizeMemory b
+
 instance ( Memory a, Memory b, Memory c) => Memory (a,b,c) where
   memoryAlloc  = (,,) <$> memoryAlloc <*> memoryAlloc <*> memoryAlloc
   underlyingPtr (a,_,_) = underlyingPtr a
