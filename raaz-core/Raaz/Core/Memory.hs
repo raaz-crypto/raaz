@@ -292,15 +292,15 @@ instance ( FinalizableMemory a
 
 -- | A memory location to store a value of type having `Storable`
 -- instance.
-newtype MemoryCell a = MemoryCell CryptoPtr
+newtype MemoryCell a = MemoryCell { unMemoryCell :: CryptoPtr }
 
 -- | Read the value from the MemoryCell.
 cellPeek :: Storable a => MemoryCell a -> IO a
-cellPeek (MemoryCell cptr) = peek $ castPtr cptr
+cellPeek = peek . castPtr . unMemoryCell
 
 -- | Write the value to the MemoryCell.
 cellPoke :: Storable a => MemoryCell a -> a -> IO ()
-cellPoke (MemoryCell cptr) v = flip poke v $ castPtr cptr
+cellPoke = poke . castPtr . unMemoryCell
 
 -- | Apply the given function to the value in the cell.
 cellModify :: Storable a => MemoryCell a -> (a -> a) -> IO ()
