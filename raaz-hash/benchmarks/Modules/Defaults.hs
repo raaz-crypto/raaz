@@ -24,25 +24,13 @@ nBlocks g = atMost nSize
 nSize :: BYTES Int
 nSize = 1024 * 1024
 
-actionH :: ( PrimitiveOf (HGadget p m) ~ p
-           , Gadget (HGadget p m)
-           , (HGadget p m) ~ g
-           , Eq (Key p)
-           , Hash p
-           , HasName p
-           ) => p -> m -> g -> IO Benchmark
-actionH p m g = return $ benchGadgetWith g (defaultKey p) (nBlocks g)
-
-actionC :: ( PrimitiveOf (CGadget p m) ~ p
-           , Gadget (CGadget p m)
-           , (CGadget p m) ~ g
-           , Eq (Key p)
-           , Hash p
-           , HasName p
-           ) => p -> m -> g -> IO Benchmark
-actionC p m g = return $ benchGadgetWith g (defaultKey p) (nBlocks g)
-
 benchmarksAll h mc = sequence
-                    [ withMemory (actionH h mc)
-                    , withMemory (actionC h mc)
+                    [ benchmarkHash (toH h mc) h
+                    , benchmarkHash (toC h mc) h
                     ]
+  where
+    benchmarkHash g p = benchmarker g (defaultKey p) (nBlocks g)
+    toH :: p -> m -> HGadget p m
+    toH _ _ = undefined
+    toC :: p -> m -> CGadget p m
+    toC _ _ = undefined
