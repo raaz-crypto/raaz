@@ -43,6 +43,7 @@ module Raaz.Core.Primitives
 #endif
        ) where
 
+import           Control.Applicative
 import qualified Data.ByteString          as B
 import           Data.ByteString.Internal (unsafeCreate)
 import           Data.Word                (Word64)
@@ -314,13 +315,23 @@ blocksOf n _ = BLOCKS n
 -- | `HGadget` is pure Haskell gadget implemenation used as the
 -- Reference implementation of the `Primitive`. Most of the times it
 -- is around 3-4 times slower than `CPortable` version.
-newtype HGadget p m = HGadget m deriving Memory
+newtype HGadget p m = HGadget m
 
 -- | This is the portable C gadget implementation. It is usually
 -- recommended over `HGadget` because of being faster than
 -- it. However, no architecture specific optimizations are done in
 -- this implementation.
-newtype CGadget p m = CGadget m deriving Memory
+newtype CGadget p m = CGadget m
+
+-- | HGadget is an instance of memory.
+instance Memory m => Memory (HGadget p m) where
+  memoryAlloc = HGadget <$> memoryAlloc
+  underlyingPtr (HGadget m) = underlyingPtr m
+
+-- | CGadget is an instance of memory.
+instance Memory m => Memory (CGadget p m) where
+  memoryAlloc = CGadget <$> memoryAlloc
+  underlyingPtr (CGadget m) = underlyingPtr m
 
 -- | If primitive has a name then HGadget has a name
 instance HasName p  => HasName (HGadget p m) where
