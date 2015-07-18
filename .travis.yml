@@ -74,26 +74,39 @@ before_install:
   # Output other variables.
   - echo HASKELL_PLATFORM=${HASKELL_PLATFORM}
   - echo PARALLEL_BUILDS=${PARALLEL_BUILDS}
-  # Compile the script which will be used to install, build and test
-  # raaz packages.
-  - ghc -o travis scripts/travis-build.hs
+  # # Compile the script which will be used to install, build and test
+  # # raaz packages.
+  # - ghc -o travis scripts/travis-build.hs
+
+# install:
+#   # Installing
+#   - ./travis install
+# before_script:
+#   # Configuring raaz packages.
+#   - ./travis configure --enable-tests
+#   # Building raaz packages.
+#   - ./travis build
+# # Running test suites of raaz packages.
+# script:
+#   - ./travis test --show-details=failures
+
+# after_script:
+#   - ./travis sdist
+#   # Make source tarball of all raaz packages.
 
 install:
-  # Installing
-  - ./travis install
+ - cabal install --enable-tests --enable-benchmarks
+
 before_script:
-  # Configuring raaz packages.
-  - ./travis configure --enable-tests
-  # Building raaz packages.
-  - ./travis build
-# Running test suites of raaz packages.
+  - cabal configure --enable-tests --enable-benchmarks
+  - cabal build
+
 script:
-  - ./travis test --show-details=failures
+  - cabal test --show-details=failures
+  - cabal bench
 
 after_script:
-  - ./travis sdist
-  # Make source tarball of all raaz packages.
-
+  - cabal sdist
 
 after_success:
   - echo "All is well."
