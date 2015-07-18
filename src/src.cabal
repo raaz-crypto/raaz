@@ -20,6 +20,7 @@ cabal-version: >=1.9.2
 
 bug-reports: https://github.com/raaz-crypto/raaz/issues
 
+-- Core
 -- These files are used by the setup script.
 extra-source-files: Config.hs
                     Config/Cache.hs
@@ -49,6 +50,14 @@ extra-source-files: Config.hs
                     Config/ffi/mlockall/DESCRIPTION
                     Config/ffi/mlockall/Test.hs
                     Config/ffi/mlockall/test.c
+---------
+
+-- Cipher
+extra-source-files: ecryptTestData/salsa20_20.vectors
+                  , ecryptTestData/salsa20_12.vectors
+                  , ecryptTestData/salsa20_8.vectors
+---------
+
 
 source-repository head
   type: git
@@ -88,13 +97,16 @@ library
                  , Raaz.System.Parameters
 
   if os(linux) || os(freebsd) || os(openbsd)
-     hs-source-dirs: core/
-                   , core/src/urandom/
+     hs-source-dirs: core
+                   , core/src/urandom
                    , hash
+                   , cipher
      exposed-modules: Raaz.System.Random
   else
-     hs-source-dirs: core/
-                   , hash/
+     hs-source-dirs: core
+                   , hash
+                   , cipher
+
   other-modules: Raaz.Core.Memory.Internal
   build-depends: base                           >= 4.5 && < 4.8
                , bytestring                     >= 0.9 && < 0.11
@@ -121,6 +133,7 @@ library
                   , raaz/primitives/config.h
                   , raaz/primitives/load.h
 
+-- Hash
   exposed-modules: Raaz.Hash
                  , Raaz.Hash.Blake256
                  , Raaz.Hash.Sha1
@@ -182,3 +195,56 @@ library
      cc-options: -Wall -DRAAZ_HAVE_GCC
   else
      cc-options:
+
+-- Cipher
+  exposed-modules: Raaz.Cipher.AES.Type
+                 , Raaz.Cipher.AES.Internal
+                 , Raaz.Cipher.AES.CBC
+                 , Raaz.Cipher.AES.CTR
+                 , Raaz.Cipher.AES.ECB
+                 , Raaz.Cipher.AES
+                 , Raaz.Cipher.Salsa20
+                 , Raaz.Cipher.Salsa20.Internal
+  other-modules: Raaz.Cipher.Util.GF
+               , Raaz.Cipher.AES.Block.Type
+               , Raaz.Cipher.AES.CBC.CPortable
+               , Raaz.Cipher.AES.CBC.Instance
+               , Raaz.Cipher.AES.CBC.Ref
+               , Raaz.Cipher.AES.CBC.Type
+               , Raaz.Cipher.AES.CTR.CPortable
+               , Raaz.Cipher.AES.CTR.Instance
+               , Raaz.Cipher.AES.CTR.Ref
+               , Raaz.Cipher.AES.CTR.Type
+               , Raaz.Cipher.AES.ECB.CPortable
+               , Raaz.Cipher.AES.ECB.Instance
+               , Raaz.Cipher.AES.ECB.Ref
+               , Raaz.Cipher.AES.ECB.Type
+               , Raaz.Cipher.Salsa20.Block.Internal
+               , Raaz.Cipher.Salsa20.Block.Type
+               , Raaz.Cipher.Salsa20.Instances
+               , Raaz.Cipher.AES.Block.Internal
+  build-depends: base                           >= 4.5 && < 4.8
+               , bytestring                     >= 0.9 && < 0.11
+               , data-default                   >= 0.4 && < 0.6
+               , mtl                            >= 2.1 && < 2.2
+               --
+               -- Raaz dependencies
+               --
+               , raaz-core                      >=0.0.0.1 && < 0.0.0.2
+  ghc-options: -Wall
+
+  if impl(ghc >= 7.6)
+    cpp-options: -DUseKinds
+    extensions: DataKinds
+
+  c-sources: cipher/cbits/raaz/cipher/cportable/aes.c
+           , cipher/cbits/raaz/cipher/cportable/salsa20.c
+  include-dirs: cipher/cbits
+  include: cipher/raaz/cipher/cportable/aes.h
+         , cipher/raaz/cipher/cportable/salsa20.h
+
+  if os(linux)
+     cc-options: -Wall -O3 -DRAAZ_HAVE_GCC
+  else
+     cc-options:
+
