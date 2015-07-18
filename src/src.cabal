@@ -90,9 +90,11 @@ library
   if os(linux) || os(freebsd) || os(openbsd)
      hs-source-dirs: core/
                    , core/src/urandom/
+                   , hash
      exposed-modules: Raaz.System.Random
   else
      hs-source-dirs: core/
+                   , hash/
   other-modules: Raaz.Core.Memory.Internal
   build-depends: base                           >= 4.5 && < 4.8
                , bytestring                     >= 0.9 && < 0.11
@@ -119,3 +121,64 @@ library
                   , raaz/primitives/config.h
                   , raaz/primitives/load.h
 
+  exposed-modules: Raaz.Hash
+                 , Raaz.Hash.Blake256
+                 , Raaz.Hash.Sha1
+                 , Raaz.Hash.Sha224
+                 , Raaz.Hash.Sha256
+                 , Raaz.Hash.Sha384
+                 , Raaz.Hash.Sha512
+                 , Raaz.Hash.Blake256.Internal
+                 , Raaz.Hash.Sha1.Internal
+                 , Raaz.Hash.Sha224.Internal
+                 , Raaz.Hash.Sha256.Internal
+                 , Raaz.Hash.Sha384.Internal
+                 , Raaz.Hash.Sha512.Internal
+  other-modules: Raaz.Hash.Blake.Util
+               , Raaz.Hash.Blake256.Instance
+               , Raaz.Hash.Blake256.Ref
+               , Raaz.Hash.Blake256.Type
+               , Raaz.Hash.Blake256.CPortable
+               , Raaz.Hash.Sha1.Instance
+               , Raaz.Hash.Sha1.Ref
+               , Raaz.Hash.Sha1.CPortable
+               , Raaz.Hash.Sha1.Type
+               , Raaz.Hash.Sha224.Instance
+               , Raaz.Hash.Sha224.CPortable
+               , Raaz.Hash.Sha224.Type
+               , Raaz.Hash.Sha256.Instance
+               , Raaz.Hash.Sha256.Ref
+               , Raaz.Hash.Sha256.CPortable
+               , Raaz.Hash.Sha256.Type
+               , Raaz.Hash.Sha384.Instance
+               , Raaz.Hash.Sha384.CPortable
+               , Raaz.Hash.Sha384.Type
+               , Raaz.Hash.Sha512.Instance
+               , Raaz.Hash.Sha512.Ref
+               , Raaz.Hash.Sha512.CPortable
+               , Raaz.Hash.Sha512.Type
+               , Raaz.Hash.Sha.Util
+  build-depends: base                           >= 4.5 && < 4.8
+               , bytestring                     >= 0.9 && < 0.11
+               , mtl                            >= 2.1 && < 2.2
+               , vector
+               --
+               -- Raaz dependencies
+               --
+               , raaz-core                      >=0.0.0.1 && < 0.0.0.2
+
+  if arch(i386) && impl(ghc < 7.6.0)
+      ghc-options: -Wall -fregs-graph
+  else
+      ghc-options: -Wall
+  c-sources: hash/cbits/raaz/hash/sha1/portable.c
+           , hash/cbits/raaz/hash/blake256/portable.c
+           , hash/cbits/raaz/hash/sha256/portable.c
+           , hash/cbits/raaz/hash/sha512/portable.c
+  include-dirs: hash/cbits
+
+
+  if os(linux)
+     cc-options: -Wall -DRAAZ_HAVE_GCC
+  else
+     cc-options:
