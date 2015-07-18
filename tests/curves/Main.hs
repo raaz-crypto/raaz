@@ -1,6 +1,6 @@
 import           Data.Version
 
-import           Paths_raaz_curves (version)
+import           Paths_src (version)
 import qualified Modules.EC25519.Defaults as EC25519
 import           Test.Framework     (defaultMain, testGroup)
 

@@ -401,3 +401,71 @@ test-Suite tests-cipher
   if impl(ghc >= 7.6)
     extensions: DataKinds
 
+--- Random Tests
+test-Suite tests-random
+  type: exitcode-stdio-1.0
+  hs-source-dirs: tests/random
+  main-is: Main.hs
+
+  other-modules: Modules.Stream
+               , Modules.Number
+
+  build-depends: base                           >= 4.5 && < 4.8
+               , bytestring                     >= 0.9 && < 0.11
+               , data-default                   >= 0.4 && < 0.6
+               , HUnit                          >= 1.2 && < 1.3
+               , QuickCheck                     >= 2.4 && < 2.8
+               , test-framework                 >= 0.6 && < 0.9
+               , test-framework-hunit           >= 0.2 && < 0.4
+               , test-framework-quickcheck2     >= 0.2 && < 0.4
+               --
+               -- Raaz dependencies
+               --
+               , src
+
+  if impl(ghc >= 7.6)
+    extensions: DataKinds
+
+--- Modular Tests
+test-Suite tests-modular
+  type: exitcode-stdio-1.0
+  hs-source-dirs: tests/modular
+  main-is: Main.hs
+  other-modules: Modules.Number
+               , Modules.RSA.Sign
+  build-depends: base                           >= 4.5 && < 4.8
+               , bytestring                     >= 0.9 && < 0.11
+               , mtl                            >= 2.1 && < 2.2
+               , HUnit                          >= 1.2 && < 1.3
+               , QuickCheck                     >= 2.4 && < 2.8
+               , test-framework                 >= 0.6 && < 0.9
+               , test-framework-hunit           >= 0.2 && < 0.4
+               , test-framework-quickcheck2     >= 0.2 && < 0.4
+               --
+               -- Raaz dependencies
+               --
+               , src
+  if impl(ghc >= 7.6)
+     extensions: DataKinds
+
+--- Curves Tests
+test-Suite tests-curves
+  type: exitcode-stdio-1.0
+  hs-source-dirs: tests/curves
+  main-is: Main.hs
+
+  other-modules:
+
+  build-depends: base                       >= 4.5 && < 4.8
+               , bytestring                 >= 0.9 && < 0.11
+               , data-default               >= 0.5 && < 0.6
+               , HUnit                      >= 1.2 && < 1.3
+               , QuickCheck                 >= 2.4 && < 2.7
+               , test-framework             >= 0.6 && < 0.9
+               , test-framework-hunit       >= 0.2 && < 0.4
+               , test-framework-quickcheck2 >= 0.2 && < 0.4
+               --
+               -- Raaz dependencies
+               --
+               , src
+

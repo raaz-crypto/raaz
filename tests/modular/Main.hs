@@ -1,6 +1,6 @@
 import           Data.Version
 
-import           Paths_raaz_modular (version)
+import           Paths_src (version)
 import           Test.Framework     (defaultMain, testGroup)
 
 import qualified Modules.Number     as Number
