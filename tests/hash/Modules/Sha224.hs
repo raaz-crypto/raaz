@@ -11,7 +11,7 @@ import           Test.QuickCheck       ( Arbitrary(..) )
 import           Test.QuickCheck.Arbitrary
 
 import Raaz.Core.Memory
-import Raaz.Core.Test.Gadget
+import Test.Gadget
 
 import Modules.Generic
 import Raaz.Hash.Sha224.Internal

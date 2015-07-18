@@ -11,7 +11,7 @@ import qualified Data.Vector.Unboxed      as VU
 import           Data.Word
 import           Test.QuickCheck          ( Arbitrary(..) )
 import           Test.QuickCheck.Arbitrary
-import Raaz.Core.Test.Gadget
+import Test.Gadget
 import Raaz.Core.Types
 import Raaz.Core.Primitives.HMAC
 import           Raaz.Core.Primitives

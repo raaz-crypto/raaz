@@ -29,9 +29,9 @@ import           Raaz.Core.Primitives
 import           Raaz.Core.Primitives.Hash
 import           Raaz.Core.Primitives.HMAC
 import           Raaz.Core.Types
-import           Raaz.Core.Test.EndianStore
-import           Raaz.Core.Test.Cipher
-import           Raaz.Core.Test.Gadget
+import           Test.EndianStore
+import           Test.Cipher
+import           Test.Gadget
 import           Raaz.Core.Util.ByteString            ( toHex             )
 
 

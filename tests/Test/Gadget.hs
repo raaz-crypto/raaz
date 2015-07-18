@@ -7,7 +7,7 @@ implementation.
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GADTs            #-}
 
-module Raaz.Core.Test.Gadget
+module Test.Gadget
        ( testGadget
        , testGadgetFinal
        , testInverse

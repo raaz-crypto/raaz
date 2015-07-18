@@ -6,7 +6,7 @@ import Test.Framework                       ( Test          )
 import Test.Framework.Providers.QuickCheck2 ( testProperty  )
 import Test.QuickCheck                      ( Arbitrary(..) )
 
-import Raaz.Core.Test                       ()
+import Test                       ()
 
 import Raaz.Cipher.AES.Internal
 
