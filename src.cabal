@@ -97,21 +97,21 @@ library
                  , Raaz.System.Parameters
 
   if os(linux) || os(freebsd) || os(openbsd)
-     hs-source-dirs: core
-                   , core/src/urandom
-                   , hash
-                   , cipher
-                   , random
-                   , modular
-                   , curves
+     hs-source-dirs: src/core
+                   , src/core/src/urandom
+                   , src/hash
+                   , src/cipher
+                   , src/random
+                   , src/modular
+                   , src/curves
      exposed-modules: Raaz.System.Random
   else
-     hs-source-dirs: core
-                   , hash
-                   , cipher
-                   , random
-                   , modular
-                   , curves
+     hs-source-dirs: src/core
+                   , src/hash
+                   , src/cipher
+                   , src/random
+                   , src/modular
+                   , src/curves
   other-modules: Raaz.Core.Memory.Internal
   build-depends: base                           >= 4.5 && < 4.8
                , bytestring                     >= 0.9 && < 0.11
@@ -127,10 +127,10 @@ library
   if impl(ghc >= 7.6)
      cpp-options:-DUseKinds
 
-  c-sources: core/cbits/raaz/core/memory.c
-           , core/cbits/raaz/core/endian.c
-  include-dirs: core/includes/
-              , core/cbits/
+  c-sources: src/core/cbits/raaz/core/memory.c
+           , src/core/cbits/raaz/core/endian.c
+  include-dirs: src/core/includes/
+              , src/core/cbits/
   includes: raaz/primitives.h
           , raaz/primitives/config.h
           , raaz/primitives/load.h
@@ -189,11 +189,11 @@ library
       ghc-options: -Wall -fregs-graph
   else
       ghc-options: -Wall
-  c-sources: hash/cbits/raaz/hash/sha1/portable.c
-           , hash/cbits/raaz/hash/blake256/portable.c
-           , hash/cbits/raaz/hash/sha256/portable.c
-           , hash/cbits/raaz/hash/sha512/portable.c
-  include-dirs: hash/cbits
+  c-sources: src/hash/cbits/raaz/hash/sha1/portable.c
+           , src/hash/cbits/raaz/hash/blake256/portable.c
+           , src/hash/cbits/raaz/hash/sha256/portable.c
+           , src/hash/cbits/raaz/hash/sha512/portable.c
+  include-dirs: src/hash/cbits
 
 
   if os(linux)
@@ -242,11 +242,11 @@ library
     cpp-options: -DUseKinds
     extensions: DataKinds
 
-  c-sources: cipher/cbits/raaz/cipher/cportable/aes.c
-           , cipher/cbits/raaz/cipher/cportable/salsa20.c
-  include-dirs: cipher/cbits
-  include: cipher/raaz/cipher/cportable/aes.h
-         , cipher/raaz/cipher/cportable/salsa20.h
+  c-sources: src/cipher/cbits/raaz/cipher/cportable/aes.c
+           , src/cipher/cbits/raaz/cipher/cportable/salsa20.c
+  include-dirs: src/cipher/cbits
+  include: src/cipher/raaz/cipher/cportable/aes.h
+         , src/cipher/raaz/cipher/cportable/salsa20.h
 
   if os(linux)
      cc-options: -Wall -O3 -DRAAZ_HAVE_GCC
@@ -335,9 +335,9 @@ library
       ghc-options: -Wall -fregs-graph
   else
       ghc-options: -Wall
-  c-sources: curves/cbits/raaz/curves/cportable/curve25519-donna.c
-           , curves/cbits/raaz/curves/cportable/curve25519-donna-c64.c
-  include-dirs: curves/cbits
+  c-sources: src/curves/cbits/raaz/curves/cportable/curve25519-donna.c
+           , src/curves/cbits/raaz/curves/cportable/curve25519-donna-c64.c
+  include-dirs: src/curves/cbits
 
   if os(linux)
      cc-options: -Wall -DRAAZ_HAVE_GCC
