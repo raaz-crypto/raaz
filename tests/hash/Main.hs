@@ -1,6 +1,6 @@
 import Data.Version
 
-import Paths_raaz_hash(version)
+import Paths_src(version)
 import qualified Modules.Sha1 as Sha1
 import qualified Modules.Sha224 as Sha224
 import qualified Modules.Sha256 as Sha256

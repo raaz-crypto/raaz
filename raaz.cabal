@@ -62,7 +62,7 @@ extra-source-files: ecryptTestData/salsa20_20.vectors
 source-repository head
   type: git
   location: https://github.com/raaz-crypto/raaz
-  subdir: src
+  subdir: raaz
 
 flag auto-configure
   description: Detects and configurs system parameters automatically
@@ -85,6 +85,10 @@ library
                  , Raaz.Core.Primitives.HMAC
                  , Raaz.Core.Primitives.Symmetric
                  , Raaz.Core.Random
+                 , Raaz.Core.Test
+                 , Raaz.Core.Test.Cipher
+                 , Raaz.Core.Test.EndianStore
+                 , Raaz.Core.Test.Gadget
                  , Raaz.Core.Types
                  , Raaz.Core.Types.Word
                  , Raaz.Core.Types.CryptoBuffer
@@ -122,6 +126,11 @@ library
                , test-framework-hunit           >= 0.2 && < 0.4
                , test-framework-quickcheck2     >= 0.2 && < 0.4
                , vector
+               , data-default                   >= 0.4 && < 0.6
+               , entropy                        >= 0.2 && < 0.3
+               , integer-gmp                    >= 0.4 && < 0.6
+               , template-haskell               >= 2.7 && < 2.10
+
   ghc-options: -Wall
 
   if impl(ghc >= 7.6)
@@ -176,14 +185,6 @@ library
                , Raaz.Hash.Sha512.CPortable
                , Raaz.Hash.Sha512.Type
                , Raaz.Hash.Sha.Util
-  build-depends: base                           >= 4.5 && < 4.8
-               , bytestring                     >= 0.9 && < 0.11
-               , mtl                            >= 2.1 && < 2.2
-               , vector
-               --
-               -- Raaz dependencies
-               --
-               , raaz-core                      >=0.0.0.1 && < 0.0.0.2
 
   if arch(i386) && impl(ghc < 7.6.0)
       ghc-options: -Wall -fregs-graph
@@ -228,14 +229,7 @@ library
                , Raaz.Cipher.Salsa20.Block.Type
                , Raaz.Cipher.Salsa20.Instances
                , Raaz.Cipher.AES.Block.Internal
-  build-depends: base                           >= 4.5 && < 4.8
-               , bytestring                     >= 0.9 && < 0.11
-               , data-default                   >= 0.4 && < 0.6
-               , mtl                            >= 2.1 && < 2.2
-               --
-               -- Raaz dependencies
-               --
-               , raaz-core                      >=0.0.0.1 && < 0.0.0.2
+
   ghc-options: -Wall
 
   if impl(ghc >= 7.6)
@@ -257,16 +251,6 @@ library
   exposed-modules: Raaz.Random
   other-modules: Raaz.Random.Stream
                , Raaz.Random.Number
-  build-depends: base                           >= 4.5 && < 4.8
-               , bytestring                     >= 0.9 && < 0.11
-               , data-default                   >= 0.4 && < 0.6
-               , mtl                            >= 2.1 && < 2.2
-               , entropy                        >= 0.2 && < 0.3
-               --
-               -- Raaz dependencies
-               --
-               , raaz-core                      >=0.0.0.1 && < 0.0.0.2
-               , raaz-cipher                    >=0.0.0.1 && < 0.0.0.2
   ghc-options: -Wall
 
   if os(linux)
@@ -289,16 +273,6 @@ library
                , Raaz.DH.Exchange
                , Raaz.Number.Util
                , Raaz.Number.Modular
-  build-depends: base                           >= 4.5 && < 4.8
-               , bytestring                     >= 0.9 && < 0.11
-               , integer-gmp                    >= 0.4 && < 0.6
-               --
-               -- Raaz dependencies
-               --
-               , raaz-core                      >=0.0.0.1 && < 0.0.0.2
-               , raaz-random                    >=0.0.0.1 && < 0.0.0.2
-               , raaz-hash                      >=0.0.0.1 && < 0.0.0.2
-               , raaz-cipher                    >=0.0.0.1 && < 0.0.0.2
 
   ghc-options: -Wall
 
@@ -319,17 +293,6 @@ library
                  , Raaz.Curves.EC25519
                  , Raaz.Curves.EC25519.Internal
   other-modules: Raaz.Curves.EC25519.CPortable
-  build-depends: base                           >= 4.5 && < 4.8
-               , bytestring                     >= 0.9 && < 0.11
-               , data-default                   >= 0.4 && < 0.6
-               , mtl                            >= 2.1 && < 2.2
-               , template-haskell               >= 2.7 && < 2.10
-               --
-               -- Raaz dependencies
-               --
-               , raaz-core                      >=0.0.0.1 && < 0.0.0.2
-               , raaz-random                    >=0.0.0.1 && < 0.0.0.2
-               , raaz-modular                   >=0.0.0.1 && < 0.0.0.2
 
   if arch(i386) && impl(ghc < 7.6.0)
       ghc-options: -Wall -fregs-graph
@@ -345,7 +308,9 @@ library
      cc-options:
 
 --------------------------    Tests     ------------------------
-test-Suite tests
+
+--- Core Tests
+test-Suite tests-core
   type: exitcode-stdio-1.0
   hs-source-dirs: tests/core/
   main-is: Main.hs
@@ -357,6 +322,14 @@ test-Suite tests
      cc-options:
 
   c-sources: tests/core/cbits/raaz/tests/load_test.c
+  include-dirs: src/core/includes/
+              , src/core/cbits/
+  includes: raaz/primitives.h
+          , raaz/primitives/config.h
+          , raaz/primitives/load.h
+  install-includes: raaz/primitives.h
+                  , raaz/primitives/config.h
+                  , raaz/primitives/load.h
 
   other-modules: Modules.C.Load
                , Modules.Types
@@ -369,8 +342,30 @@ test-Suite tests
                , test-framework                 >= 0.6 && < 0.9
                , test-framework-hunit           >= 0.2 && < 0.4
                , test-framework-quickcheck2     >= 0.2 && < 0.4
+               , src
 
-               --
-               -- Dependency on other raaz packages.
-               --
-               , raaz-core                      >= 0.0.0.1 && < 0.0.0.2
+--- Hash Tests
+test-Suite tests-hash
+  type: exitcode-stdio-1.0
+  hs-source-dirs: tests/hash
+  main-is: Main.hs
+
+  other-modules: Modules.Blake256
+               , Modules.Generic
+               , Modules.Sha1
+               , Modules.Sha224
+               , Modules.Sha256
+               , Modules.Sha384
+               , Modules.Sha512
+
+  build-depends: base                           >= 4.5 && < 4.8
+               , bytestring                     >= 0.9 && < 0.11
+               , HUnit                          >= 1.2 && < 1.3
+               , QuickCheck                     >= 2.4 && < 2.8
+               , test-framework                 >= 0.6 && < 0.9
+               , test-framework-hunit           >= 0.2 && < 0.4
+               , test-framework-quickcheck2     >= 0.2 && < 0.4
+               , vector
+               , src
+
+
