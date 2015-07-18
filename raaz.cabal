@@ -131,14 +131,14 @@ library
 
   c-sources: src/core/cbits/raaz/core/memory.c
            , src/core/cbits/raaz/core/endian.c
-  include-dirs: src/core/includes/
+  include-dirs: includes/
               , src/core/cbits/
-  includes: raaz/primitives.h
-          , raaz/primitives/config.h
-          , raaz/primitives/load.h
-  install-includes: raaz/primitives.h
-                  , raaz/primitives/config.h
-                  , raaz/primitives/load.h
+  includes: includes/raaz/primitives.h
+          , includes/raaz/primitives/config.h
+          , includes/raaz/primitives/load.h
+  install-includes: includes/raaz/primitives.h
+                  , includes/raaz/primitives/config.h
+                  , includes/raaz/primitives/load.h
 
 -- Hash
   exposed-modules: Raaz.Hash
