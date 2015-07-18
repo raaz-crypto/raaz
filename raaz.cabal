@@ -53,9 +53,9 @@ extra-source-files: Config.hs
 ---------
 
 -- Cipher
-extra-source-files: ecryptTestData/salsa20_20.vectors
-                  , ecryptTestData/salsa20_12.vectors
-                  , ecryptTestData/salsa20_8.vectors
+extra-source-files: src/cipher/ecryptTestData/salsa20_20.vectors
+                  , src/cipher/ecryptTestData/salsa20_12.vectors
+                  , src/cipher/ecryptTestData/salsa20_8.vectors
 ---------
 
 
