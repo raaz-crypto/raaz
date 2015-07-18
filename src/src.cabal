@@ -101,12 +101,15 @@ library
                    , core/src/urandom
                    , hash
                    , cipher
+                   , random
+                   , modular
      exposed-modules: Raaz.System.Random
   else
      hs-source-dirs: core
                    , hash
                    , cipher
-
+                   , random
+                   , modular
   other-modules: Raaz.Core.Memory.Internal
   build-depends: base                           >= 4.5 && < 4.8
                , bytestring                     >= 0.9 && < 0.11
@@ -242,6 +245,67 @@ library
   include-dirs: cipher/cbits
   include: cipher/raaz/cipher/cportable/aes.h
          , cipher/raaz/cipher/cportable/salsa20.h
+
+  if os(linux)
+     cc-options: -Wall -O3 -DRAAZ_HAVE_GCC
+  else
+     cc-options:
+
+-- Random
+  exposed-modules: Raaz.Random
+  other-modules: Raaz.Random.Stream
+               , Raaz.Random.Number
+  build-depends: base                           >= 4.5 && < 4.8
+               , bytestring                     >= 0.9 && < 0.11
+               , data-default                   >= 0.4 && < 0.6
+               , mtl                            >= 2.1 && < 2.2
+               , entropy                        >= 0.2 && < 0.3
+               --
+               -- Raaz dependencies
+               --
+               , raaz-core                      >=0.0.0.1 && < 0.0.0.2
+               , raaz-cipher                    >=0.0.0.1 && < 0.0.0.2
+  ghc-options: -Wall
+
+  if os(linux)
+     cc-options: -Wall -O3 -DRAAZ_HAVE_GCC
+  else
+     cc-options:
+
+-- Modular
+  exposed-modules: Raaz.Number
+                 , Raaz.RSA.Exception
+                 , Raaz.Public
+                 , Raaz.RSA.Signature
+                 , Raaz.Number.Internals
+                 , Raaz.DH
+                 , Raaz.KeyExchange
+  other-modules: Raaz.RSA.Types
+               , Raaz.RSA.Signature.Instances
+               , Raaz.RSA.Signature.Primitives
+               , Raaz.DH.Types
+               , Raaz.DH.Exchange
+               , Raaz.Number.Util
+               , Raaz.Number.Modular
+  build-depends: base                           >= 4.5 && < 4.8
+               , bytestring                     >= 0.9 && < 0.11
+               , integer-gmp                    >= 0.4 && < 0.6
+               --
+               -- Raaz dependencies
+               --
+               , raaz-core                      >=0.0.0.1 && < 0.0.0.2
+               , raaz-random                    >=0.0.0.1 && < 0.0.0.2
+               , raaz-hash                      >=0.0.0.1 && < 0.0.0.2
+               , raaz-cipher                    >=0.0.0.1 && < 0.0.0.2
+
+  ghc-options: -Wall
+
+  c-sources:
+  include-dirs:
+
+  if impl(ghc >= 7.6)
+     cpp-options: -DUseKinds
+     extensions: DataKinds
 
   if os(linux)
      cc-options: -Wall -O3 -DRAAZ_HAVE_GCC
