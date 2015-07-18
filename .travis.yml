@@ -95,7 +95,7 @@ before_install:
 #   # Make source tarball of all raaz packages.
 
 install:
- - cabal install --enable-tests --enable-benchmarks
+ - cabal install --only-dependencies --enable-tests --enable-benchmarks
 
 before_script:
   - cabal configure --enable-tests --enable-benchmarks
