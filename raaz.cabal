@@ -523,3 +523,25 @@ benchmark bench-cipher
 
   if impl(ghc >= 7.6)
     extensions: DataKinds
+
+--- Benchmarks for Modular
+benchmark bench-modular
+  type: exitcode-stdio-1.0
+  hs-source-dirs: benchmarks
+                , benchmarks/modular
+  main-is: Main.hs
+
+  other-modules: Raaz.Benchmark.Gadget
+
+  build-depends: base                           >= 4.5 && < 4.8
+               , criterion                      >= 0.6 && < 0.9
+               , deepseq                        >= 1.1 && < 1.4
+               , random                         >= 1.0 && < 2.0
+               --
+               -- Raaz dependencies
+               --
+               , src
+
+  if impl(ghc >= 7.6)
+     extensions: DataKinds
+

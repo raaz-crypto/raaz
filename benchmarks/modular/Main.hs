@@ -3,7 +3,7 @@ import           Data.Version
 import           Criterion.Main    (defaultMainWith)
 import           Criterion         (bgroup)
 import           Criterion.Config  (Config(..), ljust, defaultConfig)
-import           Paths_raaz_modular (version)
+import           Paths_src         (version)
 import           System.Random
 
 import qualified Modules.Number.Modular as Modular
