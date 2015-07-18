@@ -473,6 +473,7 @@ test-Suite tests-curves
 ----------------------------------------------------------------------
 
 ------------------     Benchmarks    ---------------------------------
+--- Benchmarks for Hash
 benchmark bench-hash
   type: exitcode-stdio-1.0
   hs-source-dirs: benchmarks
@@ -487,6 +488,34 @@ benchmark bench-hash
                , bytestring                     >= 0.9     && < 0.11
                , criterion                      >= 0.8.0.2 && < 0.9
                , vector
+               --
+               -- Raaz dependencies
+               --
+               , src
+
+  if impl(ghc >= 7.6)
+    extensions: DataKinds
+
+--- Benchmarks for Cipher
+benchmark bench-cipher
+  type: exitcode-stdio-1.0
+  hs-source-dirs: benchmarks
+                , benchmarks/cipher
+  main-is: Main.hs
+
+  other-modules: Modules.AES
+               , Modules.AES.Defaults
+               , Modules.AES.ECB
+               , Modules.AES.CBC
+               , Modules.AES.CTR
+               , Modules.Defaults
+               , Modules.Salsa20
+               , Raaz.Benchmark.Gadget
+
+  build-depends: base                           >= 4.5     && < 4.8
+               , bytestring                     >= 0.9     && < 0.11
+               , data-default                   >= 0.4     && < 0.6
+               , criterion                      >= 0.8.0.2 && < 0.9
                --
                -- Raaz dependencies
                --
