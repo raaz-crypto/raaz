@@ -1,0 +1,593 @@
+name:    src
+version: 0.0.0.1
+
+synopsis: The source of the raaz cryptographic library.
+
+description: This package contains all the source of primitives.
+  Besides the basic types and classes, it defines cryptographic
+  primitives like hashes, ciphers, macs etc..
+
+homepage: http://github.com/raaz-crypto/raaz
+
+license:      BSD3
+license-file: LICENSE
+author:       Piyush P Kurur
+maintainer:   ppk@cse.iitk.ac.in
+
+category:      Codec, Raaz
+build-type:    Custom
+cabal-version: >=1.9.2
+
+bug-reports: https://github.com/raaz-crypto/raaz/issues
+
+-- Core
+-- These files are used by the setup script.
+extra-source-files: Config.hs
+                    Config/Cache.hs
+                    Config/Cache/Linux.hs
+                    Config/FFI.hs
+                    Config/Monad.hs
+                    Config/Page.hs
+                    Config/Page/Linux.hs
+                    Config/ffi/htobe32/DESCRIPTION
+                    Config/ffi/htobe32/Test.hs
+                    Config/ffi/htobe32/test.c
+                    Config/ffi/htobe64/DESCRIPTION
+                    Config/ffi/htobe64/Test.hs
+                    Config/ffi/htobe64/test.c
+                    Config/ffi/htole32/DESCRIPTION
+                    Config/ffi/htole32/Test.hs
+                    Config/ffi/htole32/test.c
+                    Config/ffi/htole64/DESCRIPTION
+                    Config/ffi/htole64/Test.hs
+                    Config/ffi/htole64/test.c
+                    Config/ffi/memalign/DESCRIPTION
+                    Config/ffi/memalign/Test.hs
+                    Config/ffi/memalign/test.c
+                    Config/ffi/mlock/DESCRIPTION
+                    Config/ffi/mlock/Test.hs
+                    Config/ffi/mlock/test.c
+                    Config/ffi/mlockall/DESCRIPTION
+                    Config/ffi/mlockall/Test.hs
+                    Config/ffi/mlockall/test.c
+---------
+
+-- Cipher
+extra-source-files: src/cipher/ecryptTestData/salsa20_20.vectors
+                  , src/cipher/ecryptTestData/salsa20_12.vectors
+                  , src/cipher/ecryptTestData/salsa20_8.vectors
+---------
+
+
+source-repository head
+  type: git
+  location: https://github.com/raaz-crypto/raaz
+  subdir: raaz
+
+flag auto-configure
+  description: Detects and configurs system parameters automatically
+  default: True
+
+library
+  exposed-modules: Raaz.Core
+                 , Raaz.Core.ByteSource
+                 , Raaz.Core.Classes
+                 , Raaz.Core.DH
+                 , Raaz.Core.Memory
+                 , Raaz.Core.MonoidalAction
+                 , Raaz.Core.Parse
+                 , Raaz.Core.Parse.Applicative
+                 , Raaz.Core.Parse.Unsafe
+                 , Raaz.Core.Primitives
+                 , Raaz.Core.Primitives.Asymmetric
+                 , Raaz.Core.Primitives.Cipher
+                 , Raaz.Core.Primitives.Hash
+                 , Raaz.Core.Primitives.HMAC
+                 , Raaz.Core.Primitives.Symmetric
+                 , Raaz.Core.Random
+                 , Raaz.Core.Types
+                 , Raaz.Core.Types.Word
+                 , Raaz.Core.Types.CryptoBuffer
+                 , Raaz.Core.Util
+                 , Raaz.Core.Util.ByteString
+                 , Raaz.Core.Util.Gadget
+                 , Raaz.Core.Util.Ptr
+                 , Raaz.Core.Write
+                 , Raaz.Core.Write.Unsafe
+                 , Raaz.System.Parameters
+
+  if os(linux) || os(freebsd) || os(openbsd)
+     hs-source-dirs: src/core
+                   , src/core/src/urandom
+                   , src/hash
+                   , src/cipher
+                   , src/random
+                   , src/modular
+                   , src/curves
+     exposed-modules: Raaz.System.Random
+  else
+     hs-source-dirs: src/core
+                   , src/hash
+                   , src/cipher
+                   , src/random
+                   , src/modular
+                   , src/curves
+  other-modules: Raaz.Core.Memory.Internal
+  build-depends: base                           >= 4.5 && < 4.8
+               , bytestring                     >= 0.9 && < 0.11
+               , mtl                            >= 2.1 && < 2.2
+               , QuickCheck                     >= 2.4 && < 2.8
+               , HUnit                          >= 1.2 && < 1.3
+               , vector
+               , data-default                   >= 0.4 && < 0.6
+               , entropy                        >= 0.2 && < 0.3
+               , integer-gmp                    >= 0.4 && < 0.6
+               , template-haskell               >= 2.7 && < 2.10
+
+  ghc-options: -Wall
+
+  if impl(ghc >= 7.6)
+     cpp-options:-DUseKinds
+
+  c-sources: src/core/cbits/raaz/core/memory.c
+           , src/core/cbits/raaz/core/endian.c
+  include-dirs: includes/
+              , src/core/cbits/
+  includes: includes/raaz/primitives.h
+          , includes/raaz/primitives/config.h
+          , includes/raaz/primitives/load.h
+  install-includes: includes/raaz/primitives.h
+                  , includes/raaz/primitives/config.h
+                  , includes/raaz/primitives/load.h
+
+-- Hash
+  exposed-modules: Raaz.Hash
+                 , Raaz.Hash.Blake256
+                 , Raaz.Hash.Sha1
+                 , Raaz.Hash.Sha224
+                 , Raaz.Hash.Sha256
+                 , Raaz.Hash.Sha384
+                 , Raaz.Hash.Sha512
+                 , Raaz.Hash.Blake256.Internal
+                 , Raaz.Hash.Sha1.Internal
+                 , Raaz.Hash.Sha224.Internal
+                 , Raaz.Hash.Sha256.Internal
+                 , Raaz.Hash.Sha384.Internal
+                 , Raaz.Hash.Sha512.Internal
+  other-modules: Raaz.Hash.Blake.Util
+               , Raaz.Hash.Blake256.Instance
+               , Raaz.Hash.Blake256.Ref
+               , Raaz.Hash.Blake256.Type
+               , Raaz.Hash.Blake256.CPortable
+               , Raaz.Hash.Sha1.Instance
+               , Raaz.Hash.Sha1.Ref
+               , Raaz.Hash.Sha1.CPortable
+               , Raaz.Hash.Sha1.Type
+               , Raaz.Hash.Sha224.Instance
+               , Raaz.Hash.Sha224.CPortable
+               , Raaz.Hash.Sha224.Type
+               , Raaz.Hash.Sha256.Instance
+               , Raaz.Hash.Sha256.Ref
+               , Raaz.Hash.Sha256.CPortable
+               , Raaz.Hash.Sha256.Type
+               , Raaz.Hash.Sha384.Instance
+               , Raaz.Hash.Sha384.CPortable
+               , Raaz.Hash.Sha384.Type
+               , Raaz.Hash.Sha512.Instance
+               , Raaz.Hash.Sha512.Ref
+               , Raaz.Hash.Sha512.CPortable
+               , Raaz.Hash.Sha512.Type
+               , Raaz.Hash.Sha.Util
+
+  if arch(i386) && impl(ghc < 7.6.0)
+      ghc-options: -Wall -fregs-graph
+  else
+      ghc-options: -Wall
+  c-sources: src/hash/cbits/raaz/hash/sha1/portable.c
+           , src/hash/cbits/raaz/hash/blake256/portable.c
+           , src/hash/cbits/raaz/hash/sha256/portable.c
+           , src/hash/cbits/raaz/hash/sha512/portable.c
+  include-dirs: src/hash/cbits
+
+
+  if os(linux)
+     cc-options: -Wall -DRAAZ_HAVE_GCC
+  else
+     cc-options:
+
+-- Cipher
+  exposed-modules: Raaz.Cipher.AES.Type
+                 , Raaz.Cipher.AES.Internal
+                 , Raaz.Cipher.AES.CBC
+                 , Raaz.Cipher.AES.CTR
+                 , Raaz.Cipher.AES.ECB
+                 , Raaz.Cipher.AES
+                 , Raaz.Cipher.Salsa20
+                 , Raaz.Cipher.Salsa20.Internal
+  other-modules: Raaz.Cipher.Util.GF
+               , Raaz.Cipher.AES.Block.Type
+               , Raaz.Cipher.AES.CBC.CPortable
+               , Raaz.Cipher.AES.CBC.Instance
+               , Raaz.Cipher.AES.CBC.Ref
+               , Raaz.Cipher.AES.CBC.Type
+               , Raaz.Cipher.AES.CTR.CPortable
+               , Raaz.Cipher.AES.CTR.Instance
+               , Raaz.Cipher.AES.CTR.Ref
+               , Raaz.Cipher.AES.CTR.Type
+               , Raaz.Cipher.AES.ECB.CPortable
+               , Raaz.Cipher.AES.ECB.Instance
+               , Raaz.Cipher.AES.ECB.Ref
+               , Raaz.Cipher.AES.ECB.Type
+               , Raaz.Cipher.Salsa20.Block.Internal
+               , Raaz.Cipher.Salsa20.Block.Type
+               , Raaz.Cipher.Salsa20.Instances
+               , Raaz.Cipher.AES.Block.Internal
+
+  ghc-options: -Wall
+
+  if impl(ghc >= 7.6)
+    cpp-options: -DUseKinds
+    extensions: DataKinds
+
+  c-sources: src/cipher/cbits/raaz/cipher/cportable/aes.c
+           , src/cipher/cbits/raaz/cipher/cportable/salsa20.c
+  include-dirs: src/cipher/cbits
+  include: src/cipher/raaz/cipher/cportable/aes.h
+         , src/cipher/raaz/cipher/cportable/salsa20.h
+
+  if os(linux)
+     cc-options: -Wall -O3 -DRAAZ_HAVE_GCC
+  else
+     cc-options:
+
+-- Random
+  exposed-modules: Raaz.Random
+  other-modules: Raaz.Random.Stream
+               , Raaz.Random.Number
+  ghc-options: -Wall
+
+  if os(linux)
+     cc-options: -Wall -O3 -DRAAZ_HAVE_GCC
+  else
+     cc-options:
+
+-- Modular
+  exposed-modules: Raaz.Number
+                 , Raaz.RSA.Exception
+                 , Raaz.Public
+                 , Raaz.RSA.Signature
+                 , Raaz.Number.Internals
+                 , Raaz.DH
+                 , Raaz.KeyExchange
+  other-modules: Raaz.RSA.Types
+               , Raaz.RSA.Signature.Instances
+               , Raaz.RSA.Signature.Primitives
+               , Raaz.DH.Types
+               , Raaz.DH.Exchange
+               , Raaz.Number.Util
+               , Raaz.Number.Modular
+
+  ghc-options: -Wall
+
+  c-sources:
+  include-dirs:
+
+  if impl(ghc >= 7.6)
+     cpp-options: -DUseKinds
+     extensions: DataKinds
+
+  if os(linux)
+     cc-options: -Wall -O3 -DRAAZ_HAVE_GCC
+  else
+     cc-options:
+
+-- Curves
+  exposed-modules: Raaz.Curves
+                 , Raaz.Curves.EC25519
+                 , Raaz.Curves.EC25519.Internal
+  other-modules: Raaz.Curves.EC25519.CPortable
+
+  if arch(i386) && impl(ghc < 7.6.0)
+      ghc-options: -Wall -fregs-graph
+  else
+      ghc-options: -Wall
+  c-sources: src/curves/cbits/raaz/curves/cportable/curve25519-donna.c
+           , src/curves/cbits/raaz/curves/cportable/curve25519-donna-c64.c
+  include-dirs: src/curves/cbits
+
+  if os(linux)
+     cc-options: -Wall -DRAAZ_HAVE_GCC
+  else
+     cc-options:
+
+--------------------------    Tests     ------------------------
+--- Common Test Code from Core?
+
+--- Core Tests
+test-Suite tests-core
+  type: exitcode-stdio-1.0
+  hs-source-dirs: tests
+                , tests/core
+
+  main-is: Main.hs
+  ghc-options: -Wall
+
+  if os(linux)
+     cc-options: -Wall -O3 -DRAAZ_HAVE_GCC
+  else
+     cc-options:
+
+  c-sources: tests/core/cbits/raaz/tests/load_test.c
+  include-dirs: src/core/includes/
+              , src/core/cbits/
+  includes: raaz/primitives.h
+          , raaz/primitives/config.h
+          , raaz/primitives/load.h
+  install-includes: raaz/primitives.h
+                  , raaz/primitives/config.h
+                  , raaz/primitives/load.h
+
+  other-modules: Modules.C.Load
+               , Modules.Types
+               , Modules.Util.ByteString
+               , Test
+               , Test.Cipher
+               , Test.EndianStore
+               , Test.Gadget
+
+  build-depends: base                           >= 4.5 && < 4.8
+               , bytestring                     >= 0.9 && < 0.11
+               , HUnit                          >= 1.2 && < 1.3
+               , QuickCheck                     >= 2.4 && < 2.8
+               , test-framework                 >= 0.6 && < 0.9
+               , test-framework-hunit           >= 0.2 && < 0.4
+               , test-framework-quickcheck2     >= 0.2 && < 0.4
+               , src
+
+--- Hash Tests
+test-Suite tests-hash
+  type: exitcode-stdio-1.0
+  hs-source-dirs: tests
+                , tests/hash
+  main-is: Main.hs
+
+  other-modules: Modules.Blake256
+               , Modules.Generic
+               , Modules.Sha1
+               , Modules.Sha224
+               , Modules.Sha256
+               , Modules.Sha384
+               , Modules.Sha512
+               , Test
+               , Test.Cipher
+               , Test.EndianStore
+               , Test.Gadget
+
+  build-depends: base                           >= 4.5 && < 4.8
+               , bytestring                     >= 0.9 && < 0.11
+               , HUnit                          >= 1.2 && < 1.3
+               , QuickCheck                     >= 2.4 && < 2.8
+               , test-framework                 >= 0.6 && < 0.9
+               , test-framework-hunit           >= 0.2 && < 0.4
+               , test-framework-quickcheck2     >= 0.2 && < 0.4
+               , vector
+               , src
+
+--- Cipher Tests
+test-Suite tests-cipher
+  type: exitcode-stdio-1.0
+  hs-source-dirs: tests
+                , tests/cipher
+  main-is: Main.hs
+
+  other-modules: Modules.AES
+               , Modules.AES.Block
+               , Modules.AES.Defaults
+               , Modules.AES.ECB
+               , Modules.AES.CBC
+               , Modules.AES.CTR
+               , Modules.EcryptTest
+               , Modules.EcryptTestParser
+               , Modules.Salsa20
+               , Modules.Salsa20.Block
+               , Modules.Salsa20.Stream
+               , Modules.Util
+               , Test
+               , Test.Cipher
+               , Test.EndianStore
+               , Test.Gadget
+
+  build-depends: base                           >= 4.5 && < 4.8
+               , bytestring                     >= 0.9 && < 0.11
+               , data-default                   >= 0.4 && < 0.6
+               , HUnit                          >= 1.2 && < 1.3
+               , parsec                         >= 3.0 && < 4.0
+               , QuickCheck                     >= 2.4 && < 2.8
+               , test-framework                 >= 0.6 && < 0.9
+               , test-framework-hunit           >= 0.2 && < 0.4
+               , test-framework-quickcheck2     >= 0.2 && < 0.4
+               , src
+
+  if impl(ghc >= 7.6)
+    extensions: DataKinds
+
+--- Random Tests
+test-Suite tests-random
+  type: exitcode-stdio-1.0
+  hs-source-dirs: tests
+                , tests/random
+  main-is: Main.hs
+
+  other-modules: Modules.Stream
+               , Modules.Number
+               , Test
+               , Test.Cipher
+               , Test.EndianStore
+               , Test.Gadget
+
+  build-depends: base                           >= 4.5 && < 4.8
+               , bytestring                     >= 0.9 && < 0.11
+               , data-default                   >= 0.4 && < 0.6
+               , HUnit                          >= 1.2 && < 1.3
+               , QuickCheck                     >= 2.4 && < 2.8
+               , test-framework                 >= 0.6 && < 0.9
+               , test-framework-hunit           >= 0.2 && < 0.4
+               , test-framework-quickcheck2     >= 0.2 && < 0.4
+               --
+               -- Raaz dependencies
+               --
+               , src
+
+  if impl(ghc >= 7.6)
+    extensions: DataKinds
+
+--- Modular Tests
+test-Suite tests-modular
+  type: exitcode-stdio-1.0
+  hs-source-dirs: tests
+                , tests/modular
+  main-is: Main.hs
+  other-modules: Modules.Number
+               , Modules.RSA.Sign
+               , Test
+               , Test.Cipher
+               , Test.EndianStore
+               , Test.Gadget
+
+  build-depends: base                           >= 4.5 && < 4.8
+               , bytestring                     >= 0.9 && < 0.11
+               , mtl                            >= 2.1 && < 2.2
+               , HUnit                          >= 1.2 && < 1.3
+               , QuickCheck                     >= 2.4 && < 2.8
+               , test-framework                 >= 0.6 && < 0.9
+               , test-framework-hunit           >= 0.2 && < 0.4
+               , test-framework-quickcheck2     >= 0.2 && < 0.4
+               --
+               -- Raaz dependencies
+               --
+               , src
+  if impl(ghc >= 7.6)
+     extensions: DataKinds
+
+--- Curves Tests
+test-Suite tests-curves
+  type: exitcode-stdio-1.0
+  hs-source-dirs: tests
+                , tests/curves
+  main-is: Main.hs
+
+  other-modules: Test
+               , Test.Cipher
+               , Test.EndianStore
+               , Test.Gadget
+
+
+  build-depends: base                       >= 4.5 && < 4.8
+               , bytestring                 >= 0.9 && < 0.11
+               , data-default               >= 0.5 && < 0.6
+               , HUnit                      >= 1.2 && < 1.3
+               , QuickCheck                 >= 2.4 && < 2.7
+               , test-framework             >= 0.6 && < 0.9
+               , test-framework-hunit       >= 0.2 && < 0.4
+               , test-framework-quickcheck2 >= 0.2 && < 0.4
+               --
+               -- Raaz dependencies
+               --
+               , src
+
+----------------------------------------------------------------------
+
+------------------     Benchmarks    ---------------------------------
+--- Benchmarks for Hash
+benchmark bench-hash
+  type: exitcode-stdio-1.0
+  hs-source-dirs: benchmarks
+                , benchmarks/hash
+  main-is: Main.hs
+
+  other-modules: Modules.Sha
+               , Modules.Defaults
+               , Raaz.Benchmark.Gadget
+
+  build-depends: base                           >= 4.5     && < 4.8
+               , bytestring                     >= 0.9     && < 0.11
+               , criterion                      >= 0.8.0.2 && < 0.9
+               , vector
+               --
+               -- Raaz dependencies
+               --
+               , src
+
+  if impl(ghc >= 7.6)
+    extensions: DataKinds
+
+--- Benchmarks for Cipher
+benchmark bench-cipher
+  type: exitcode-stdio-1.0
+  hs-source-dirs: benchmarks
+                , benchmarks/cipher
+  main-is: Main.hs
+
+  other-modules: Modules.AES
+               , Modules.AES.Defaults
+               , Modules.AES.ECB
+               , Modules.AES.CBC
+               , Modules.AES.CTR
+               , Modules.Defaults
+               , Modules.Salsa20
+               , Raaz.Benchmark.Gadget
+
+  build-depends: base                           >= 4.5     && < 4.8
+               , bytestring                     >= 0.9     && < 0.11
+               , data-default                   >= 0.4     && < 0.6
+               , criterion                      >= 0.8.0.2 && < 0.9
+               --
+               -- Raaz dependencies
+               --
+               , src
+
+  if impl(ghc >= 7.6)
+    extensions: DataKinds
+
+--- Benchmarks for Modular
+benchmark bench-modular
+  type: exitcode-stdio-1.0
+  hs-source-dirs: benchmarks
+                , benchmarks/modular
+  main-is: Main.hs
+
+  other-modules: Raaz.Benchmark.Gadget
+
+  build-depends: base                           >= 4.5 && < 4.8
+               , criterion                      >= 0.6 && < 0.9
+               , deepseq                        >= 1.1 && < 1.4
+               , random                         >= 1.0 && < 2.0
+               --
+               -- Raaz dependencies
+               --
+               , src
+
+  if impl(ghc >= 7.6)
+     extensions: DataKinds
+
+benchmark bench-curves
+  type: exitcode-stdio-1.0
+  hs-source-dirs: benchmarks
+                , benchmarks/curves
+  main-is: Main.hs
+
+  other-modules: Raaz.Benchmark.Gadget
+
+  build-depends: base                           >= 4.5     && < 4.8
+               , bytestring                     >= 0.9     && < 0.11
+               , data-default                   >= 0.5     && < 0.6
+               , criterion                      >= 0.8.0.2 && < 0.9
+               , deepseq                        >= 1.2.0.1 && < 1.5
+               , random                         >= 1.0     && < 2.0
+               --
+               -- Raaz dependencies
+               --
+               , src
+
+  if impl(ghc >= 7.6)
+    extensions: DataKinds
