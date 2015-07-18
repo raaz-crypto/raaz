@@ -368,4 +368,36 @@ test-Suite tests-hash
                , vector
                , src
 
+--- Cipher Tests
+test-Suite tests-cipher
+  type: exitcode-stdio-1.0
+  hs-source-dirs: tests/cipher
+  main-is: Main.hs
+
+  other-modules: Modules.AES
+               , Modules.AES.Block
+               , Modules.AES.Defaults
+               , Modules.AES.ECB
+               , Modules.AES.CBC
+               , Modules.AES.CTR
+               , Modules.EcryptTest
+               , Modules.EcryptTestParser
+               , Modules.Salsa20
+               , Modules.Salsa20.Block
+               , Modules.Salsa20.Stream
+               , Modules.Util
+
+  build-depends: base                           >= 4.5 && < 4.8
+               , bytestring                     >= 0.9 && < 0.11
+               , data-default                   >= 0.4 && < 0.6
+               , HUnit                          >= 1.2 && < 1.3
+               , parsec                         >= 3.0 && < 4.0
+               , QuickCheck                     >= 2.4 && < 2.8
+               , test-framework                 >= 0.6 && < 0.9
+               , test-framework-hunit           >= 0.2 && < 0.4
+               , test-framework-quickcheck2     >= 0.2 && < 0.4
+               , src
+
+  if impl(ghc >= 7.6)
+    extensions: DataKinds
 

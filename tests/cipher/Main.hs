@@ -1,6 +1,6 @@
 import Data.Version
 
-import Paths_raaz_cipher(version)
+import Paths_src(version)
 import qualified Modules.AES as AES
 import qualified Modules.Salsa20 as Salsa20
 import Test.Framework (defaultMain, testGroup)
