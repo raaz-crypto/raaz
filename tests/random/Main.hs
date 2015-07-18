@@ -3,7 +3,7 @@ import           Data.Version
 
 import qualified Modules.Number              as Number
 import qualified Modules.Stream              as Stream
-import           Paths_raaz_random           (version)
+import           Paths_src                   (version)
 import           Test.Framework              (defaultMain, testGroup)
 
 import           Raaz.Core.Primitives
