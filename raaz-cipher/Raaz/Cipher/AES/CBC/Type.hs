@@ -3,7 +3,7 @@
 {-# LANGUAGE TypeFamilies         #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module Raaz.Cipher.AES.CBC.Type where
+module Raaz.Cipher.AES.CBC.Type () where
 
 import Raaz.Core.Primitives
 import Raaz.Core.Primitives.Cipher

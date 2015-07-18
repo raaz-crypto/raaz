@@ -21,6 +21,7 @@ module Raaz.Random.Stream
        ) where
 import           Control.Monad                 (void)
 
+import           Control.Applicative           ( (<*>) , (<$>) )
 import qualified Data.ByteString               as BS
 import           Data.ByteString.Internal      (ByteString, create)
 import qualified Data.ByteString.Internal      as BS
@@ -41,37 +42,20 @@ import           Raaz.Core.Util.Ptr
 -- underlying source for generating random bytes.
 data RandomSource g = RandomSource g
                                    (MemoryBuf (GadgetBuff g))
-                                   (CryptoCell (BYTES Int))
-                                   (CryptoCell (BYTES Int)) -- ^ Gadget, Buffer, Offset in Buffer, Bytes generated so far
+                                   (MemoryCell (BYTES Int))
+                                   (MemoryCell (BYTES Int)) -- ^ Gadget, Buffer, Offset in Buffer, Bytes generated so far
 
 -- | Primitive for Random Source
 newtype RandomPrim p = RandomPrim p
 
--- | Memory for random number generator. Note that this could be done
--- just by having gadget's type, however it requires
--- undecidableInstances when we try defining InitializableMemory as it
--- requires nested type family application (as type IV (RandomMem g) =
--- IV (MemoryOf g))
-newtype RandomMem m g = RandomMem ( m
-                                  , MemoryBuf (GadgetBuff g)
-                                  , CryptoCell (BYTES Int)
-                                  , CryptoCell (BYTES Int)
-                                  )
-
-deriving instance (Gadget g, Memory m) => Memory (RandomMem m g)
-
-instance (Gadget g, InitializableMemory m) => InitializableMemory (RandomMem m g) where
-  type IV (RandomMem m g) = IV m
-
-  initializeMemory (RandomMem (gmem, buffer, celloffset, cellcounter)) iv = do
-    initializeMemory gmem iv
-    initializeMemory celloffset (memoryBufSize buffer)
-    initializeMemory cellcounter 0
-    zeroOutMemoryBuf buffer
+memoryBufSize :: Bufferable b => MemoryBuf b -> BYTES Int
+memoryBufSize mbuf = maxSizeOf $ getBufferable mbuf
+  where getBufferable :: Bufferable b => MemoryBuf b -> b
+        getBufferable _ = undefined
 
 -- | Memory for random
-zeroOutMemoryBuf :: MemoryBuf g -> IO ()
-zeroOutMemoryBuf buff = withMemoryBuf buff $ zeroMemory $ memoryBufSize buff
+zeroOutMemoryBuf :: Bufferable g => MemoryBuf g -> IO ()
+zeroOutMemoryBuf buff = withMemoryBuf buff zeroMemory
 {-# INLINE zeroOutMemoryBuf #-}
 
 -- | Buffer for storing random data.
@@ -88,17 +72,20 @@ instance Primitive p => Primitive (RandomPrim p) where
 
   type Key (RandomPrim p) = Key p
 
+instance (Memory g, Gadget g) => Memory (RandomSource g) where
+  memoryAlloc = RandomSource <$> memoryAlloc <*> memoryAlloc <*> memoryAlloc <*> memoryAlloc
+  underlyingPtr (RandomSource g _ _ _) = underlyingPtr g
+
+instance (Memory g, Gadget g) => InitializableMemory (RandomSource g) where
+  type IV (RandomSource g) = IV g
+  initializeMemory (RandomSource g buffer celloffset cellcounter) iv = do
+    initializeMemory g iv
+    initializeMemory celloffset (memoryBufSize buffer)
+    initializeMemory cellcounter 0
+    zeroOutMemoryBuf buffer
+
 instance StreamGadget g => Gadget (RandomSource g) where
   type PrimitiveOf (RandomSource g) = RandomPrim (PrimitiveOf g)
-
-  type MemoryOf (RandomSource g) = RandomMem (MemoryOf g) g
-
-  -- | Uses the buffer of recommended block size.
-  newGadgetWithMemory (RandomMem (gmem, buffer, celloffset, cellcounter)) = do
-    g <- newGadgetWithMemory gmem
-    return $ RandomSource g buffer celloffset cellcounter
-
-  getMemory (RandomSource g b off cnt) = RandomMem (getMemory g, b, off, cnt)
 
   apply rs blks cptr = void $ fillBytes (inBytes blks) rs cptr
 
@@ -119,9 +106,11 @@ instance StreamGadget g => ByteSource (RandomSource g) where
       where
         go !sz !offset !outptr
           -- Internal buffer already has required amount of random data so use it
-          | netsz >= sz = withMemoryBuf buff $ \bfr -> do
-              memcpy outptr (movePtr bfr offset) sz
-              return $ offset + sz
+          | netsz >= sz = do
+            let action sz bfr = do
+                  memcpy outptr (movePtr bfr offset) sz
+                  return $ offset + sz
+            withMemoryBuf buff action
          -- Internal buffer has less random data so use it and
          -- refill the buffer to use again
           | otherwise = do
@@ -131,8 +120,8 @@ instance StreamGadget g => ByteSource (RandomSource g) where
                 where
                   bsz = memoryBufSize buff
                   netsz = bsz - offset
-                  doWithBuffer bfr = memcpy outptr (movePtr bfr offset) netsz
-                                  >> fillFromGadget g bsz bfr
+                  doWithBuffer netsz bfr = memcpy outptr (movePtr bfr offset) netsz
+                                      >> fillFromGadget g bsz bfr
 
 -- | Applies the gadget on the given buffer. Note that this is valid
 -- as the underlying gadget is `StreamGadget` and the `blockSize` is 1

@@ -26,17 +26,22 @@ foreign import ccall unsafe
   "raaz/hash/sha256/portable.h raazHashSha256PortableCompress"
   c_sha256_compress  :: Ptr SHA256 -> Int -> CryptoPtr -> IO ()
 
-sha256Compress :: CryptoCell SHA256 -> BLOCKS SHA256 -> CryptoPtr -> IO ()
-sha256Compress cc nblocks buffer = withCell cc action
+sha256Compress :: MemoryCell SHA256 -> BLOCKS SHA256 -> CryptoPtr -> IO ()
+sha256Compress mc nblocks buffer = withCell mc action
   where action ptr = c_sha256_compress (castPtr ptr) n buffer
         n = fromEnum nblocks
 {-# INLINE sha256Compress #-}
 
-instance Gadget (CGadget SHA256) where
-  type PrimitiveOf (CGadget SHA256) = SHA256
-  type MemoryOf (CGadget SHA256)    = CryptoCell SHA256
-  newGadgetWithMemory               = return . CGadget
-  getMemory (CGadget m)             = m
-  apply (CGadget cc)                = sha256Compress cc
+instance InitializableMemory (CGadget SHA256 (MemoryCell SHA256)) where
+  type IV (CGadget SHA256 (MemoryCell SHA256)) = SHA256
+  initializeMemory (CGadget mc) = cellPoke mc
 
-instance PaddableGadget (CGadget SHA256)
+instance FinalizableMemory (CGadget SHA256 (MemoryCell SHA256)) where
+  type FV (CGadget SHA256 (MemoryCell SHA256)) = SHA256
+  finalizeMemory (CGadget mc) = cellPeek mc
+
+instance Gadget (CGadget SHA256 (MemoryCell SHA256)) where
+  type PrimitiveOf (CGadget SHA256 (MemoryCell SHA256)) = SHA256
+  apply (CGadget mc) = sha256Compress mc
+
+instance PaddableGadget (CGadget SHA256 (MemoryCell SHA256))

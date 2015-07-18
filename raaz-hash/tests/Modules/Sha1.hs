@@ -17,6 +17,7 @@ import Raaz.Core.Primitives.HMAC
 import           Raaz.Core.Primitives
 import           Raaz.Core.Types.Word
 import           Raaz.Core.Classes
+import           Raaz.Core.Memory
 
 import Modules.Generic
 import Raaz.Hash.Sha1.Internal
@@ -24,7 +25,7 @@ import Raaz.Hash.Sha1.Internal
 instance Arbitrary SHA1 where
   arbitrary = SHA1 . VU.fromList <$> vector 5
 
-tests = allHashTests (undefined :: SHA1) exampleStrings
+tests = allHashTests (undefined :: SHA1) (undefined :: (MemoryCell SHA1)) exampleStrings
      ++ allHMACTests (undefined :: SHA1) exampleHMAC
 
 exampleStrings :: [(B.ByteString,B.ByteString)]

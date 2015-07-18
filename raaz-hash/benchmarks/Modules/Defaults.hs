@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleContexts          #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
+{-# LANGUAGE TypeFamilies              #-}
 
 module Modules.Defaults
        ( nBlocks
@@ -10,6 +11,7 @@ module Modules.Defaults
 import Criterion.Main
 
 import Raaz.Core.Primitives
+import Raaz.Core.Memory
 import Raaz.Core.Types
 import Raaz.Benchmark.Gadget
 import Raaz.Core.Primitives.Hash
@@ -22,16 +24,13 @@ nBlocks g = atMost nSize
 nSize :: BYTES Int
 nSize = 1024 * 1024
 
-benchHash g = do
-  g'     <- createGadget g
-  return $ benchGadgetWith g' (defaultCxt $ primitiveOf g) (nBlocks g')
-
-benchmarksAll h = sequence
-                  [ benchHash (toH h)
-                  , benchHash (toC h)
-                  ]
+benchmarksAll h mc = sequence
+                    [ benchmarkHash (toH h mc) h
+                    , benchmarkHash (toC h mc) h
+                    ]
   where
-    toH :: p -> HGadget p
-    toH _ = undefined
-    toC :: p -> CGadget p
-    toC _ = undefined
+    benchmarkHash g p = benchmarker g (defaultKey p) (nBlocks g)
+    toH :: p -> m -> HGadget p m
+    toH _ _ = undefined
+    toC :: p -> m -> CGadget p m
+    toC _ _ = undefined

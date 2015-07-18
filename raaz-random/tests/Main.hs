@@ -23,6 +23,6 @@ tests = [ testGroup "Raaz.Random.Stream" (Stream.testWith g k)
         , testGroup "Raaz.Random.Number" (Number.testWith g k)
         ]
   where
-    g :: CGadget (AESOp CTR KEY128 EncryptMode)
+    g :: CAESGadget CTR KEY128 EncryptMode
     g = undefined
     k = (fromByteString $ BS.replicate 128 1, fromByteString $ BS.replicate 128 1)

@@ -22,17 +22,22 @@ foreign import ccall unsafe
   "raaz/hash/sha1/portable.h raazHashSha1PortableCompress"
   c_sha1_compress  :: CryptoPtr -> Int -> CryptoPtr -> IO ()
 
-sha1Compress :: CryptoCell SHA1 -> BLOCKS SHA1 -> CryptoPtr -> IO ()
+sha1Compress :: MemoryCell SHA1 -> BLOCKS SHA1 -> CryptoPtr -> IO ()
 {-# INLINE sha1Compress #-}
-sha1Compress cc nblocks buffer = withCell cc action
+sha1Compress mc nblocks buffer = withCell mc action
   where action ptr = c_sha1_compress ptr n buffer
         n = fromEnum nblocks
 
-instance Gadget (CGadget SHA1) where
-  type PrimitiveOf (CGadget SHA1) = SHA1
-  type MemoryOf (CGadget SHA1)    = CryptoCell SHA1
-  newGadgetWithMemory             = return . CGadget
-  getMemory (CGadget m)           = m
-  apply (CGadget cc)              = sha1Compress cc
+instance InitializableMemory (CGadget SHA1 (MemoryCell SHA1)) where
+  type IV (CGadget SHA1 (MemoryCell SHA1)) = SHA1
+  initializeMemory (CGadget mc) = cellPoke mc
 
-instance PaddableGadget (CGadget SHA1)
+instance FinalizableMemory (CGadget SHA1 (MemoryCell SHA1)) where
+  type FV (CGadget SHA1 (MemoryCell SHA1)) = SHA1
+  finalizeMemory (CGadget mc) = cellPeek mc
+
+instance Gadget (CGadget SHA1 (MemoryCell SHA1)) where
+  type PrimitiveOf (CGadget SHA1 (MemoryCell SHA1)) = SHA1
+  apply (CGadget mc) = sha1Compress mc
+
+instance PaddableGadget (CGadget SHA1 (MemoryCell SHA1))

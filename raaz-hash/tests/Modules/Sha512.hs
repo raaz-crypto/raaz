@@ -11,6 +11,7 @@ import           Data.String
 import           Test.QuickCheck       ( Arbitrary(..) )
 import           Test.QuickCheck.Arbitrary
 
+import Raaz.Core.Memory
 import Raaz.Core.Test.Gadget
 import Raaz.Core.Primitives.HMAC
 
@@ -20,7 +21,7 @@ import Raaz.Hash.Sha512.Internal
 instance Arbitrary SHA512 where
   arbitrary = SHA512 . VU.fromList <$> vector 8
 
-tests = allHashTests (undefined :: SHA512) exampleStrings
+tests = allHashTests (undefined :: SHA512) (undefined :: (MemoryCell SHA512)) exampleStrings
      ++ allHMACTests (undefined :: SHA512) exampleHMAC
 
 exampleStrings :: [ (B.ByteString , B.ByteString) ]

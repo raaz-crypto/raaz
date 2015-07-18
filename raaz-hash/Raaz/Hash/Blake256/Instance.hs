@@ -27,11 +27,11 @@ import Raaz.Hash.Blake256.CPortable()
 ----------------------------- BLAKE256 -------------------------------------------
 
 instance CryptoPrimitive BLAKE256 where
-  type Recommended BLAKE256 = CGadget BLAKE256
-  type Reference BLAKE256 = HGadget BLAKE256
+  type Recommended BLAKE256 = CGadgetBlake256
+  type Reference BLAKE256 = HGadgetBlake256
 
 instance Hash BLAKE256 where
-  defaultCxt _ = (blake, salt)
+  defaultKey _ = (blake, salt)
     where salt  = Salt $ VU.fromList [0,0,0,0]
           blake = BLAKE256 $ VU.fromList [ 0x6a09e667
                                          , 0xbb67ae85
@@ -45,16 +45,26 @@ instance Hash BLAKE256 where
 
   hashDigest = fst
 
-instance Gadget (HGadget BLAKE256) where
-  type PrimitiveOf (HGadget BLAKE256) = BLAKE256
+instance InitializableMemory (HGadgetBlake256) where
+  type IV (HGadgetBlake256) = (BLAKE256, Salt)
 
-  type MemoryOf (HGadget BLAKE256)    = BLAKEMem BLAKE256
+  initializeMemory (HGadget (cblake, csalt, ccounter)) (blake,salt) = do
+    cellPoke cblake blake
+    cellPoke csalt salt
+    cellPoke ccounter 0
 
-  newGadgetWithMemory                 = return . HGadget
+instance FinalizableMemory (HGadgetBlake256) where
+  type FV (HGadgetBlake256) = (BLAKE256, Salt)
 
-  getMemory (HGadget m)               = m
+  finalizeMemory (HGadget (cblake, csalt, _)) = do
+    blake <- cellPeek cblake
+    salt <- cellPeek csalt
+    return (blake, salt)
 
-  apply (HGadget (BLAKEMem (cellBlake, cellSalt, cellCounter))) n cptr = do
+instance Gadget (HGadgetBlake256) where
+  type PrimitiveOf (HGadgetBlake256) = BLAKE256
+
+  apply (HGadget (cellBlake, cellSalt, cellCounter)) n cptr = do
     initial <- cellPeek cellBlake
     salt <- cellPeek cellSalt
     counter <- cellPeek cellCounter
@@ -69,8 +79,8 @@ instance Gadget (HGadget BLAKE256) where
         return (newCxt, nCounter, ptr `movePtr` sz)
 
 
-instance PaddableGadget (HGadget BLAKE256) where
-  unsafeApplyLast g@(HGadget (BLAKEMem (_, _, cellCounter))) blocks bytes cptr = do
+instance PaddableGadget (HGadgetBlake256) where
+  unsafeApplyLast g@(HGadget (_, _, cellCounter)) blocks bytes cptr = do
     let bits      = inBits bytes :: BITS Word64
         len       = inBits blocks + bits
         p         = primitiveOf g

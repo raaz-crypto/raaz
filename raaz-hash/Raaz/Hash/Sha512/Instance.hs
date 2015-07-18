@@ -27,11 +27,11 @@ import Raaz.Hash.Sha512.CPortable ()
 ----------------------------- SHA512 -------------------------------------------
 
 instance CryptoPrimitive SHA512 where
-  type Recommended SHA512 = CGadget SHA512
-  type Reference SHA512   = HGadget SHA512
+  type Recommended SHA512 = CGadget SHA512 (MemoryCell SHA512)
+  type Reference SHA512   = HGadget SHA512 (MemoryCell SHA512)
 
 instance Hash SHA512 where
-  defaultCxt _ = SHA512 $ VU.fromList [ 0x6a09e667f3bcc908
+  defaultKey _ = SHA512 $ VU.fromList [ 0x6a09e667f3bcc908
                                       , 0xbb67ae8584caa73b
                                       , 0x3c6ef372fe94f82b
                                       , 0xa54ff53a5f1d36f1
@@ -43,18 +43,23 @@ instance Hash SHA512 where
 
   hashDigest = id
 
-instance Gadget (HGadget SHA512) where
-  type PrimitiveOf (HGadget SHA512)  = SHA512
-  type MemoryOf (HGadget SHA512)     = CryptoCell SHA512
-  newGadgetWithMemory                = return . HGadget
-  getMemory (HGadget m)              = m
-  apply (HGadget cc) n cptr          = do
-    initial <- cellPeek cc
+instance InitializableMemory (HGadget SHA512 (MemoryCell SHA512)) where
+  type IV (HGadget SHA512 (MemoryCell SHA512)) = SHA512
+  initializeMemory (HGadget mc) = cellPoke mc
+
+instance FinalizableMemory (HGadget SHA512 (MemoryCell SHA512)) where
+  type FV (HGadget SHA512 (MemoryCell SHA512)) = SHA512
+  finalizeMemory (HGadget mc) = cellPeek mc
+
+instance Gadget (HGadget SHA512 (MemoryCell SHA512)) where
+  type PrimitiveOf (HGadget SHA512 (MemoryCell SHA512)) = SHA512
+  apply (HGadget mc) n cptr = do
+    initial <- cellPeek mc
     final <- fst <$> foldM moveAndHash (initial,cptr) [1..n]
-    cellPoke cc final
+    cellPoke mc final
     where
       sz = blockSize (undefined :: SHA512)
       moveAndHash (cxt,ptr) _ = do newCxt <- sha512CompressSingle cxt ptr
                                    return (newCxt, ptr `movePtr` sz)
 
-instance PaddableGadget (HGadget SHA512)
+instance PaddableGadget (HGadget SHA512 (MemoryCell SHA512))

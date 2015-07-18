@@ -100,13 +100,9 @@ createAndApply' :: Gadget g
                 -> Key (PrimitiveOf g)      -- ^ Key and IV
                 -> ByteString               -- ^ Plain data
                 -> IO ByteString            -- ^ Encrypted data
-createAndApply' g key src = do
-  ng <- createGadget g
-  initialize ng key
-  unsafeTransformUnsafeGadget' ng src
-    where
-      createGadget :: (Gadget g) => g -> IO g
-      createGadget _ = newGadget
+createAndApply' g key src = withGadget key $ trans g
+    where trans :: Gadget gad => gad -> gad-> IO ByteString
+          trans _ newG = unsafeTransformUnsafeGadget' newG src
 {-# INLINEABLE createAndApply' #-}
 
 -- | Returns the result of applying a gadget with the given iv on the

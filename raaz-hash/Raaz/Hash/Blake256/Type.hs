@@ -6,7 +6,8 @@
 module Raaz.Hash.Blake256.Type
        ( BLAKE256(..)
        , Salt(..)
-       , BLAKEMem(..)
+       , CGadgetBlake256
+       , HGadgetBlake256
        ) where
 
 import           Control.Applicative ( (<$>) )
@@ -94,29 +95,12 @@ instance HasPadding BLAKE256 where
   padLength = blakePadLength 8
   padding   = blakePadding   8
 
--- | Memory for BLAKE. It stores three things
+-- | BLAKE gadget stores three things
 --
 -- 1. Blake hash value for data processed so far
 -- 2. Salt used
 -- 3. Counter of bits hashed so far
 --
-newtype BLAKEMem blake = BLAKEMem (CryptoCell blake, CryptoCell Salt, CryptoCell (BITS Word64))
-                       deriving Memory
 
-instance Storable blake => InitializableMemory (BLAKEMem blake) where
-
-  type IV (BLAKEMem blake) = (blake, Salt)
-
-  initializeMemory (BLAKEMem (cblake, csalt, ccounter)) (blake,salt) = do
-    cellPoke cblake blake
-    cellPoke csalt salt
-    cellPoke ccounter 0
-
-instance Storable blake => FinalizableMemory (BLAKEMem blake) where
-
-  type FV (BLAKEMem blake) = (blake, Salt)
-
-  finalizeMemory (BLAKEMem (cblake, csalt, _)) = do
-    blake <- cellPeek cblake
-    salt <- cellPeek csalt
-    return (blake, salt)
+type CGadgetBlake256 = CGadget BLAKE256 (MemoryCell BLAKE256, MemoryCell Salt, MemoryCell (BITS Word64))
+type HGadgetBlake256 = HGadget BLAKE256 (MemoryCell BLAKE256, MemoryCell Salt, MemoryCell (BITS Word64))

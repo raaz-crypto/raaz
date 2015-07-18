@@ -9,6 +9,7 @@ implementation.
 
 module Raaz.Core.Test.Gadget
        ( testGadget
+       , testGadgetFinal
        , testInverse
        ) where
 
@@ -34,132 +35,99 @@ data Sized = Sized Int deriving Show
 -- | Type to capture ByteString of size Sized
 data TestData p = TestData ByteString deriving Show
 
-instance Arbitrary Sized where
-  arbitrary = Sized <$> choose (1,100)
+genByteString :: LengthUnit l => l -> Gen ByteString
+genByteString l = B.pack <$> vectorOf n arbitrary
+  where BYTES n = inBytes l
+
+chooseLengthUnits :: LengthUnit l => (Int, Int) -> Gen l
+chooseLengthUnits range = fromIntegral <$> choose range
 
 instance Primitive p => Arbitrary (TestData p) where
-  arbitrary = do
-    (Sized s) <- arbitrary
-    generate undefined s
-    where
-      generate :: Primitive p => p -> Int -> Gen (TestData p)
-      generate p s = TestData . B.pack
-                     <$> vectorOf (s * fromIntegral (blockSize p)) arbitrary
+  arbitrary = chooseLengthUnits (1,100) >>= gen
+    where gen :: Primitive p =>  BLOCKS p -> Gen (TestData p)
+          gen nblocks = TestData <$> genByteString nblocks
 
--- | Quickcheck property of testing a gadget against a reference
--- one. It only checks the underlying buffer and not the final value
--- produced.
-prop_Gadget :: (Gadget g, Gadget ref, PrimitiveOf g ~ PrimitiveOf ref)
-            => ref
+
+
+-- | Checks if the result of applying the two gadgets on a buffer
+-- gives the same results. Only the contents of the buffer are
+-- compared.
+checkBuffer :: (Gadget g, Gadget ref, prim ~ PrimitiveOf g, prim  ~ PrimitiveOf ref)
+            => TestData prim
+            -> ref
             -> g
-            -> IV (MemoryOf g)
-            -> TestData (PrimitiveOf g)
-            -> Property
-prop_Gadget ref' g' cxt (TestData bs) = monadicIO $ do
-  g   <- run $ createGadget g' cxt
-  ref <- run $ createGadget ref' cxt
-  outg <- run $ onByteString g bs
-  outref <- run $ onByteString ref bs
-  assert (outg == outref)
+            -> IO Bool
+checkBuffer (TestData bs) ref g = (==) <$> applyOnByteString g bs <*> applyOnByteString ref bs
 
--- | Apply a gadget on the given bytestring.
-onByteString :: Gadget g => g -> ByteString -> IO ByteString
-onByteString g bs = create (fromIntegral bsize) (applyTo . castPtr)
-  where
-    bsize = BU.length bs
-    applyTo ptr =  BU.unsafeCopyToCryptoPtr bs ptr
-                >> apply g numBlocks ptr
-    numBlocks = atMost bsize
+-- | Check whether the final values produced are the same
+checkFV :: ( Gadget g
+           , Gadget ref
+           , FinalizableMemory g
+           , FinalizableMemory ref
+           , FV ref ~ FV g
+           , Eq (FV g)
+           , prim ~ PrimitiveOf g, prim ~ PrimitiveOf ref
+           )
+           => TestData prim
+           -> ref
+           -> g
+           -> IO Bool
+checkFV (TestData bs) ref g = (==) <$> getFV ref <*> getFV g
+  where getFV :: ( Gadget g
+                 , FinalizableMemory g
+                 )
+                 => g -> IO (FV g)
+        getFV gadget = allocaBuffer (BU.length bs) go
+          where go cptr = applyGadget gadget bs cptr >> finalizeMemory gadget
 
 
--- | Quickcheck property to test final value produced by gadgets.
-prop_GadgetFinal :: ( Gadget g
-                    , Gadget ref
-                    , FinalizableMemory (MemoryOf g)
-                    , FinalizableMemory (MemoryOf ref)
-                    , FV (MemoryOf ref) ~ FV (MemoryOf g)
-                    , Eq (FV (MemoryOf g))
-                    , PrimitiveOf g ~ PrimitiveOf ref
-                    )
-                 => ref
-                 -> g
-                 -> IV (MemoryOf g)
-                 -> TestData (PrimitiveOf g)
-                 -> Property
-prop_GadgetFinal ref' g' cxt (TestData bs) = monadicIO $ do
-  g   <- run $ createGadget g' cxt
-  ref <- run $ createGadget ref' cxt
-  run $ initialize ref cxt
-  fvg <- run $ getFV g
-  fvref <- run $ getFV ref
-  assert (fvg == fvref)
-  where
-    bsize = BU.length bs
-    getFV :: ( Gadget g
-             , FinalizableMemory (MemoryOf g)
-             )
-          => g -> IO (FV (MemoryOf g))
-    getFV g = allocaBuffer bsize (with g . castPtr)
-      where
-        with g ptr =  BU.unsafeCopyToCryptoPtr bs ptr
-                   >> apply g (atMost bsize) ptr
-                   >> finalize g
-
--- | Quickcheck test for inverseGadget . gadget is identity. It is
--- mainly useful in checking the working of encrypt and decrypt
--- gadgets.
-prop_inverse :: ( Gadget g
+-- | Check whether running the gadget and its inverse results in the
+-- same buffer contents.
+checkInverse :: ( Gadget g
                 , Gadget g'
                 )
-             => g  -- ^ Gadget
+             => TestData (PrimitiveOf g)
+             -> g  -- ^ Gadget
              -> g' -- ^ Inverse Gadget
-             -> Key (PrimitiveOf g)
-             -> Key (PrimitiveOf g')
-             -> TestData (PrimitiveOf g)
-             -> Property
-prop_inverse g1' g2' cxtg cxtig (TestData bs) = monadicIO $ do
-  g1 <- run $ createGadget g1'
-  run $ initialize g1 cxtg
-  g2 <- run $ createGadget g2'
-  run $ initialize g2 cxtig
-  outbs <- run $ onByteString g1 bs
-  bs' <- run $ onByteString g2 outbs
-  assert (bs == bs')
-  where
-    createGadget :: Gadget g => g -> IO g
-    createGadget _ = newGadget
+             -> IO Bool
+checkInverse (TestData bs) g1 g2 = do
+  outbs <- applyOnByteString g1 bs
+  bs'   <- applyOnByteString g2 outbs
+  return $ bs == bs'
 
 -- | Tests the given gadget against a reference one.
 testGadget :: ( Gadget g
               , HasName g
               , Gadget ref
               , HasName ref
-              , PrimitiveOf g ~ PrimitiveOf ref
-              , Eq (IV (MemoryOf g))
+              , prim ~ PrimitiveOf g, prim ~ PrimitiveOf ref
+              , Eq (IV g)
               )
-           => g
-           -> ref
-           -> IV (MemoryOf g)
+           => ref
+           -> g
+           -> Key prim
            -> Test
-testGadget g ref cxt = testProperty msg $ prop_Gadget g ref cxt
+testGadget ref g key = testProperty msg prop
   where msg = getName g ++ " VS " ++ getName ref
+        prop tdata = monadicIO $ run (with2Gadgets ref g key key $ checkBuffer tdata) >>= assert
 
 testGadgetFinal :: ( Gadget g
                    , Gadget ref
                    , HasName g
                    , HasName ref
-                   , FinalizableMemory (MemoryOf g)
-                   , FinalizableMemory (MemoryOf ref)
-                   , FV (MemoryOf ref) ~ FV (MemoryOf g)
-                   , Eq (FV (MemoryOf g))
+                   , FinalizableMemory g
+                   , FinalizableMemory ref
+                   , FV ref ~ FV g
+                   , Eq (FV g)
                    , PrimitiveOf g ~ PrimitiveOf ref
                    )
                 => g
                 -> ref
-                -> IV (MemoryOf g)
+                -> IV g
                 -> Test
-testGadgetFinal g ref cxt = testProperty msg $ prop_GadgetFinal g ref cxt
+testGadgetFinal g ref key = testProperty msg prop
   where msg = getName g ++ " VS " ++ getName ref
+        prop tdata = monadicIO $ run (with2Gadgets ref g key key $ checkFV tdata) >>= assert
 
 
 -- | Tests g . inverseGadget g == id
@@ -173,8 +141,31 @@ testInverse :: ( Gadget g
             -> Key (PrimitiveOf g)
             -> Key (PrimitiveOf g')
             -> Test
-testInverse g g' cxt icxt = testProperty msg $ prop_inverse g g' cxt icxt
-  where msg = getName g' ++ " . " ++ getName g ++ " == id"
+testInverse g1 g2 key1 key2 = testProperty msg prop
+  where msg = getName g1 ++ " . " ++ getName g2 ++ " == id"
+        prop tdata = monadicIO $ run (with2Gadgets g1 g2 key1 key2 $ checkInverse tdata) >>= assert
 
-createGadget :: Gadget g => g -> IV (MemoryOf g)-> IO g
-createGadget _ = newInitializedGadget
+
+----------------------- Some helper functions -----------------------------------
+
+-- | Apply the gadget on a bytestring and return the resulting bytestring.
+applyOnByteString      :: Gadget g => g -> ByteString -> IO ByteString
+applyOnByteString g bs = create bsize $ applyGadget g bs . castPtr
+  where BYTES bsize = BU.length bs
+
+-- | Applies a given gadget on a byte string.
+applyGadget :: Gadget g => g -> ByteString -> CryptoPtr -> IO ()
+applyGadget g bs cptr = BU.unsafeCopyToCryptoPtr bs cptr
+                        >> apply g (atMost (BU.length bs)) cptr
+
+
+withNewGadget :: Gadget g => g -> Key (PrimitiveOf g) -> (g -> IO a) -> IO a
+withNewGadget _ key action = withGadget key action
+
+with2Gadgets :: (Gadget g1, Gadget g2 )
+             => g1 -> g2
+             -> Key (PrimitiveOf g1) -> Key (PrimitiveOf g2)
+             -> (g1 -> g2 -> IO a)
+             -> IO a
+with2Gadgets g1 g2 k1 k2 action = withNewGadget g1 k1 $ actionG1
+  where actionG1 newG1  = withNewGadget g2 k2 $ action newG1

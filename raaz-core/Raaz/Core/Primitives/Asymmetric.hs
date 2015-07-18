@@ -29,8 +29,8 @@ class ( Primitive (prim SignMode)
 -- | Generate Signature.
 sign' :: ( PureByteSource src
          , Sign p
-         , FinalizableMemory (MemoryOf g)
-         , FV (MemoryOf g) ~ prim
+         , FinalizableMemory g
+         , FV g ~ prim
          , prim ~ p SignMode
          , PaddableGadget g
          , prim ~ PrimitiveOf g
@@ -42,20 +42,20 @@ sign' :: ( PureByteSource src
 sign' g key src = unsafePerformIO $ withGadget key $ go g
   where go :: ( Sign prim
               , PaddableGadget g1
-              , FinalizableMemory (MemoryOf g1)
+              , FinalizableMemory g1
               , prim SignMode ~ PrimitiveOf g1
               )
-           => g1 -> g1 -> IO (FV (MemoryOf g1))
+           => g1 -> g1 -> IO (FV g1)
         go _ gad =  do
           transformGadget gad src
-          finalize gad
+          finalizeMemory gad
 
 -- | Generate signature using recommended gadget.
 sign :: ( PureByteSource src
         , Sign p
         , g ~ Recommended prim
-        , FinalizableMemory (MemoryOf g)
-        , FV (MemoryOf g) ~ prim
+        , FinalizableMemory g
+        , FV g ~ prim
         , prim ~ p SignMode
         , PaddableGadget g
         , CryptoPrimitive prim
@@ -72,8 +72,8 @@ sign key src = sig
 -- | Verify Signature.
 verify' :: ( PureByteSource src
            , Sign p
-           , FinalizableMemory (MemoryOf g)
-           , FV (MemoryOf g) ~ Bool
+           , FinalizableMemory g
+           , FV g ~ Bool
            , prim ~ p VerifyMode
            , PaddableGadget g
            , prim ~ PrimitiveOf g
@@ -87,20 +87,20 @@ verify' :: ( PureByteSource src
 verify' g key sig src = unsafePerformIO $ withGadget (key,sig) $ go g
   where go :: ( Sign prim
               , PaddableGadget g1
-              , FinalizableMemory (MemoryOf g1)
+              , FinalizableMemory g1
               , prim VerifyMode ~ PrimitiveOf g1
               )
-           => g1 -> g1 -> IO (FV (MemoryOf g1))
+           => g1 -> g1 -> IO (FV g1)
         go _ gad =  do
           transformGadget gad src
-          finalize gad
+          finalizeMemory gad
 
 -- | Verify tag using recommended gadget.
 verify :: ( PureByteSource src
           , Sign p
           , g ~ Recommended prim
-          , FinalizableMemory (MemoryOf g)
-          , FV (MemoryOf g) ~ Bool
+          , FinalizableMemory g
+          , FV g ~ Bool
           , prim ~ p VerifyMode
           , PaddableGadget g
           , CryptoPrimitive prim

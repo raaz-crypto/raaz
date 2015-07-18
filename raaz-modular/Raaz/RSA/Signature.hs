@@ -17,7 +17,8 @@ module Raaz.RSA.Signature
        , PSS
        , OAEP
 #endif
-       , RSAGadget
+       , RSASignGadget
+       , RSAVerifyGadget
        ) where
 
 import Raaz.RSA.Types
