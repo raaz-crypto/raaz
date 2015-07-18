@@ -10,7 +10,7 @@ import qualified Data.Vector.Unboxed   as VU
 import           Test.QuickCheck       ( Arbitrary(..) )
 import           Test.QuickCheck.Arbitrary
 
-import Raaz.Core.Test.Gadget
+import Test.Gadget
 
 import Modules.Generic
 import Raaz.Hash.Sha224.Internal

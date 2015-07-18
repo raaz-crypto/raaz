@@ -85,10 +85,6 @@ library
                  , Raaz.Core.Primitives.HMAC
                  , Raaz.Core.Primitives.Symmetric
                  , Raaz.Core.Random
-                 , Raaz.Core.Test
-                 , Raaz.Core.Test.Cipher
-                 , Raaz.Core.Test.EndianStore
-                 , Raaz.Core.Test.Gadget
                  , Raaz.Core.Types
                  , Raaz.Core.Types.Word
                  , Raaz.Core.Types.CryptoBuffer
@@ -122,9 +118,6 @@ library
                , mtl                            >= 2.1 && < 2.2
                , QuickCheck                     >= 2.4 && < 2.8
                , HUnit                          >= 1.2 && < 1.3
-               , test-framework                 >= 0.6 && < 0.9
-               , test-framework-hunit           >= 0.2 && < 0.4
-               , test-framework-quickcheck2     >= 0.2 && < 0.4
                , vector
                , data-default                   >= 0.4 && < 0.6
                , entropy                        >= 0.2 && < 0.3
@@ -313,7 +306,9 @@ library
 --- Core Tests
 test-Suite tests-core
   type: exitcode-stdio-1.0
-  hs-source-dirs: tests/core/
+  hs-source-dirs: tests
+                , tests/core
+
   main-is: Main.hs
   ghc-options: -Wall
 
@@ -335,6 +330,10 @@ test-Suite tests-core
   other-modules: Modules.C.Load
                , Modules.Types
                , Modules.Util.ByteString
+               , Test
+               , Test.Cipher
+               , Test.EndianStore
+               , Test.Gadget
 
   build-depends: base                           >= 4.5 && < 4.8
                , bytestring                     >= 0.9 && < 0.11
@@ -348,7 +347,8 @@ test-Suite tests-core
 --- Hash Tests
 test-Suite tests-hash
   type: exitcode-stdio-1.0
-  hs-source-dirs: tests/hash
+  hs-source-dirs: tests
+                , tests/hash
   main-is: Main.hs
 
   other-modules: Modules.Blake256
@@ -358,6 +358,10 @@ test-Suite tests-hash
                , Modules.Sha256
                , Modules.Sha384
                , Modules.Sha512
+               , Test
+               , Test.Cipher
+               , Test.EndianStore
+               , Test.Gadget
 
   build-depends: base                           >= 4.5 && < 4.8
                , bytestring                     >= 0.9 && < 0.11
@@ -372,7 +376,8 @@ test-Suite tests-hash
 --- Cipher Tests
 test-Suite tests-cipher
   type: exitcode-stdio-1.0
-  hs-source-dirs: tests/cipher
+  hs-source-dirs: tests
+                , tests/cipher
   main-is: Main.hs
 
   other-modules: Modules.AES
@@ -387,6 +392,10 @@ test-Suite tests-cipher
                , Modules.Salsa20.Block
                , Modules.Salsa20.Stream
                , Modules.Util
+               , Test
+               , Test.Cipher
+               , Test.EndianStore
+               , Test.Gadget
 
   build-depends: base                           >= 4.5 && < 4.8
                , bytestring                     >= 0.9 && < 0.11
@@ -405,11 +414,16 @@ test-Suite tests-cipher
 --- Random Tests
 test-Suite tests-random
   type: exitcode-stdio-1.0
-  hs-source-dirs: tests/random
+  hs-source-dirs: tests
+                , tests/random
   main-is: Main.hs
 
   other-modules: Modules.Stream
                , Modules.Number
+               , Test
+               , Test.Cipher
+               , Test.EndianStore
+               , Test.Gadget
 
   build-depends: base                           >= 4.5 && < 4.8
                , bytestring                     >= 0.9 && < 0.11
@@ -430,10 +444,16 @@ test-Suite tests-random
 --- Modular Tests
 test-Suite tests-modular
   type: exitcode-stdio-1.0
-  hs-source-dirs: tests/modular
+  hs-source-dirs: tests
+                , tests/modular
   main-is: Main.hs
   other-modules: Modules.Number
                , Modules.RSA.Sign
+               , Test
+               , Test.Cipher
+               , Test.EndianStore
+               , Test.Gadget
+
   build-depends: base                           >= 4.5 && < 4.8
                , bytestring                     >= 0.9 && < 0.11
                , mtl                            >= 2.1 && < 2.2
@@ -452,10 +472,15 @@ test-Suite tests-modular
 --- Curves Tests
 test-Suite tests-curves
   type: exitcode-stdio-1.0
-  hs-source-dirs: tests/curves
+  hs-source-dirs: tests
+                , tests/curves
   main-is: Main.hs
 
-  other-modules:
+  other-modules: Test
+               , Test.Cipher
+               , Test.EndianStore
+               , Test.Gadget
+
 
   build-depends: base                       >= 4.5 && < 4.8
                , bytestring                 >= 0.9 && < 0.11

@@ -9,7 +9,7 @@ import Test.Framework                       ( Test, testGroup )
 import Test.Framework.Providers.QuickCheck2 ( testProperty    )
 import Test.QuickCheck
 
-import Raaz.Core.Test.EndianStore
+import Test.EndianStore
 
 import Raaz.Number
 

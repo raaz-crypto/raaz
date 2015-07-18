@@ -9,9 +9,9 @@ import           Data.Typeable
 
 import           Test.Framework              ( Test, testGroup  )
 
-import           Raaz.Core.Test              ()
-import           Raaz.Core.Test.Cipher
-import           Raaz.Core.Test.Gadget       ( testGadget       )
+import           Test              ()
+import           Test.Cipher
+import           Test.Gadget       ( testGadget       )
 import           Raaz.Core.Primitives
 import           Raaz.Core.Primitives.Cipher
 import           Raaz.Core.Util.ByteString

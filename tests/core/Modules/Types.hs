@@ -10,9 +10,9 @@ import           Data.Typeable
 import           Test.Framework
 import           Test.Framework.Providers.QuickCheck2 (testProperty)
 
-import           Raaz.Core.Test                       ()
+import           Test                       ()
 import           Raaz.Core.Types
-import           Raaz.Core.Test.EndianStore
+import           Test.EndianStore
 
 -- | This test captures the property that bytestring encodings of
 -- Little Endian word is same as reversing the bytestring encoding of

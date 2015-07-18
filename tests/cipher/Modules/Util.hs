@@ -8,7 +8,7 @@ import Test.Framework              ( Test, testGroup )
 import Raaz.Core
 import Raaz.Core.Primitives
 import Raaz.Core.Primitives.Cipher
-import Raaz.Core.Test.Gadget
+import Test.Gadget
 
 cportableVsReference :: ( HasName g1
                         , HasName (Inverse g1)

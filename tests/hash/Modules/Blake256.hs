@@ -11,9 +11,9 @@ import           Test.QuickCheck       (Arbitrary(..))
 import           Test.Framework        (Test, testGroup)
 import           Test.QuickCheck.Arbitrary
 
-import           Raaz.Core.Test.EndianStore
-import           Raaz.Core.Test.Cipher
-import           Raaz.Core.Test.Gadget
+import           Test.EndianStore
+import           Test.Cipher
+import           Test.Gadget
 
 import           Modules.Generic
 import           Raaz.Hash.Blake256.Internal

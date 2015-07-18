@@ -11,7 +11,7 @@ import           Data.String
 import           Test.QuickCheck       ( Arbitrary(..) )
 import           Test.QuickCheck.Arbitrary
 
-import Raaz.Core.Test.Gadget
+import Test.Gadget
 import Raaz.Core.Primitives.HMAC
 
 import Modules.Generic

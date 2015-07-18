@@ -9,7 +9,7 @@ import           Test.Framework.Providers.HUnit (testCase)
 import           Raaz.Core.Primitives
 import           Raaz.Core.Primitives.Asymmetric
 import           Raaz.Core.Types
-import           Raaz.Core.Test.Cipher               (shorten)
+import           Test.Cipher               (shorten)
 import           Raaz.Number
 
 import           Raaz.RSA.Signature
