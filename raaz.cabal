@@ -296,13 +296,15 @@ library
      cc-options:
 
 --------------------------    Tests     ------------------------
---- Common Test Code from Core?
-
---- Core Tests
-test-Suite tests-core
+test-Suite tests
   type: exitcode-stdio-1.0
   hs-source-dirs: tests
                 , tests/core
+                , tests/hash
+                , tests/cipher
+                , tests/modular
+                , tests/random
+                , tests/curves
 
   main-is: Main.hs
   ghc-options: -Wall
@@ -322,71 +324,39 @@ test-Suite tests-core
                   , raaz/primitives/config.h
                   , raaz/primitives/load.h
 
-  other-modules: Modules.C.Load
-               , Modules.Types
-               , Modules.Util.ByteString
-               , Test
-               , Test.Cipher
-               , Test.EndianStore
-               , Test.Gadget
-
-  build-depends: base                           >= 4.5 && < 4.8
-               , bytestring                     >= 0.9 && < 0.11
-               , HUnit                          >= 1.2 && < 1.3
-               , QuickCheck                     >= 2.4 && < 2.8
-               , test-framework                 >= 0.6 && < 0.9
-               , test-framework-hunit           >= 0.2 && < 0.4
-               , test-framework-quickcheck2     >= 0.2 && < 0.4
-               , src
-
---- Hash Tests
-test-Suite tests-hash
-  type: exitcode-stdio-1.0
-  hs-source-dirs: tests
-                , tests/hash
-  main-is: Main.hs
-
-  other-modules: Modules.Blake256
-               , Modules.Generic
-               , Modules.Sha1
-               , Modules.Sha224
-               , Modules.Sha256
-               , Modules.Sha384
-               , Modules.Sha512
-               , Test
-               , Test.Cipher
-               , Test.EndianStore
-               , Test.Gadget
-
-  build-depends: base                           >= 4.5 && < 4.8
-               , bytestring                     >= 0.9 && < 0.11
-               , HUnit                          >= 1.2 && < 1.3
-               , QuickCheck                     >= 2.4 && < 2.8
-               , test-framework                 >= 0.6 && < 0.9
-               , test-framework-hunit           >= 0.2 && < 0.4
-               , test-framework-quickcheck2     >= 0.2 && < 0.4
-               , vector
-               , src
-
---- Cipher Tests
-test-Suite tests-cipher
-  type: exitcode-stdio-1.0
-  hs-source-dirs: tests
-                , tests/cipher
-  main-is: Main.hs
-
-  other-modules: Modules.AES
-               , Modules.AES.Block
-               , Modules.AES.Defaults
-               , Modules.AES.ECB
-               , Modules.AES.CBC
-               , Modules.AES.CTR
-               , Modules.EcryptTest
-               , Modules.EcryptTestParser
-               , Modules.Salsa20
-               , Modules.Salsa20.Block
-               , Modules.Salsa20.Stream
-               , Modules.Util
+  other-modules: Core
+               , Core.C.Load
+               , Core.Types
+               , Core.Util.ByteString
+               , Hash
+               , Hash.Blake256
+               , Hash.Generic
+               , Hash.Sha1
+               , Hash.Sha224
+               , Hash.Sha256
+               , Hash.Sha384
+               , Hash.Sha512
+               , Cipher
+               , Cipher.AES
+               , Cipher.AES.Block
+               , Cipher.AES.Defaults
+               , Cipher.AES.ECB
+               , Cipher.AES.CBC
+               , Cipher.AES.CTR
+               , Cipher.EcryptTest
+               , Cipher.EcryptTestParser
+               , Cipher.Salsa20
+               , Cipher.Salsa20.Block
+               , Cipher.Salsa20.Stream
+               , Cipher.Util
+               , Random
+               , Random.Stream
+               , Random.Number
+               , Modular
+               , Modular.Number
+               , Modular.RSA.Sign
+               , Curves
+               , Curves.EC25519.Defaults
                , Test
                , Test.Cipher
                , Test.EndianStore
@@ -401,94 +371,11 @@ test-Suite tests-cipher
                , test-framework                 >= 0.6 && < 0.9
                , test-framework-hunit           >= 0.2 && < 0.4
                , test-framework-quickcheck2     >= 0.2 && < 0.4
+               , vector
                , src
 
   if impl(ghc >= 7.6)
     extensions: DataKinds
-
---- Random Tests
-test-Suite tests-random
-  type: exitcode-stdio-1.0
-  hs-source-dirs: tests
-                , tests/random
-  main-is: Main.hs
-
-  other-modules: Modules.Stream
-               , Modules.Number
-               , Test
-               , Test.Cipher
-               , Test.EndianStore
-               , Test.Gadget
-
-  build-depends: base                           >= 4.5 && < 4.8
-               , bytestring                     >= 0.9 && < 0.11
-               , data-default                   >= 0.4 && < 0.6
-               , HUnit                          >= 1.2 && < 1.3
-               , QuickCheck                     >= 2.4 && < 2.8
-               , test-framework                 >= 0.6 && < 0.9
-               , test-framework-hunit           >= 0.2 && < 0.4
-               , test-framework-quickcheck2     >= 0.2 && < 0.4
-               --
-               -- Raaz dependencies
-               --
-               , src
-
-  if impl(ghc >= 7.6)
-    extensions: DataKinds
-
---- Modular Tests
-test-Suite tests-modular
-  type: exitcode-stdio-1.0
-  hs-source-dirs: tests
-                , tests/modular
-  main-is: Main.hs
-  other-modules: Modules.Number
-               , Modules.RSA.Sign
-               , Test
-               , Test.Cipher
-               , Test.EndianStore
-               , Test.Gadget
-
-  build-depends: base                           >= 4.5 && < 4.8
-               , bytestring                     >= 0.9 && < 0.11
-               , mtl                            >= 2.1 && < 2.2
-               , HUnit                          >= 1.2 && < 1.3
-               , QuickCheck                     >= 2.4 && < 2.8
-               , test-framework                 >= 0.6 && < 0.9
-               , test-framework-hunit           >= 0.2 && < 0.4
-               , test-framework-quickcheck2     >= 0.2 && < 0.4
-               --
-               -- Raaz dependencies
-               --
-               , src
-  if impl(ghc >= 7.6)
-     extensions: DataKinds
-
---- Curves Tests
-test-Suite tests-curves
-  type: exitcode-stdio-1.0
-  hs-source-dirs: tests
-                , tests/curves
-  main-is: Main.hs
-
-  other-modules: Test
-               , Test.Cipher
-               , Test.EndianStore
-               , Test.Gadget
-
-
-  build-depends: base                       >= 4.5 && < 4.8
-               , bytestring                 >= 0.9 && < 0.11
-               , data-default               >= 0.5 && < 0.6
-               , HUnit                      >= 1.2 && < 1.3
-               , QuickCheck                 >= 2.4 && < 2.7
-               , test-framework             >= 0.6 && < 0.9
-               , test-framework-hunit       >= 0.2 && < 0.4
-               , test-framework-quickcheck2 >= 0.2 && < 0.4
-               --
-               -- Raaz dependencies
-               --
-               , src
 
 ----------------------------------------------------------------------
 

@@ -1,3 +1,5 @@
+module Random (tests) where
+
 import qualified Data.ByteString             as BS
 import           Data.Version
 
@@ -12,12 +14,6 @@ import           Raaz.Core.Util.ByteString   (fromByteString)
 
 import           Raaz.Cipher.AES.CTR
 import           Raaz.Cipher.AES.Internal
-
-pkgName = "raaz-random-" ++ showVersion version
-
-main :: IO ()
-main = do putStrLn $ "Running tests for " ++ pkgName
-          defaultMain tests
 
 tests = [ testGroup "Raaz.Random.Stream" (Stream.testWith g k)
         , testGroup "Raaz.Random.Number" (Number.testWith g k)
