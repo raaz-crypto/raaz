@@ -27,10 +27,9 @@ env:
     - ADDITIONAL_CONSTRAINTS=
     - PARALLEL_BUILDS="yes"
   matrix:
-    - GHC_VERSION=7.8.3 CABAL_VERSION=1.20
-    - HASKELL_PLATFORM=2013.2.0.0 GHC_VERSION=7.6.3 CABAL_VERSION=1.20
-    - HASKELL_PLATFORM=2012.4.0.0 GHC_VERSION=7.4.2 CABAL_VERSION=1.20
-    - HASKELL_PLATFORM=2012.2.0.0 GHC_VERSION=7.4.1 CABAL_VERSION=1.20
+    - CABAL_VERSION=1.18 GHC_VERSION=7.6.3
+    - CABAL_VERSION=1.18 GHC_VERSION=7.8.4 STACKAGEVER=snapshot/lts-2.11
+    - CABAL_VERSION=1.22 GHC_VERSION=7.10.1 STACKAGEVER=nightly
     - HLINT="yes"
 
 matrix:
@@ -65,6 +64,13 @@ before_install:
       export PATH=/opt/cabal/$CABAL_VERSION/bin:$PATH;
       cabal-$CABAL_VERSION update;
     fi
+  # if STACKAGEVER then get the corresponding configuration
+  - |
+    if [ -n "$STACKAGEVER" ]; then
+        wget https://www.stackage.org/$STACKAGEVER/cabal.config
+    fi
+  - travis_retry cabal update
+
   # Output the version of GHC installed in the system.
   - ghc --version
   # Output the version of CABAL installed in the system.
@@ -78,27 +84,11 @@ before_install:
   # # raaz packages.
   # - ghc -o travis scripts/travis-build.hs
 
-# install:
-#   # Installing
-#   - ./travis install
-# before_script:
-#   # Configuring raaz packages.
-#   - ./travis configure --enable-tests
-#   # Building raaz packages.
-#   - ./travis build
-# # Running test suites of raaz packages.
-# script:
-#   - ./travis test --show-details=failures
-
-# after_script:
-#   - ./travis sdist
-#   # Make source tarball of all raaz packages.
-
 install:
  - cabal install --only-dependencies --enable-tests --enable-benchmarks
 
 before_script:
-  - cabal configure --enable-tests --enable-benchmarks
+  - cabal configure --enable-tests --enable-benchmarks -v2
   - cabal build
 
 script:
