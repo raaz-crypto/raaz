@@ -96,23 +96,17 @@ library
                  , Raaz.Core.Write.Unsafe
                  , Raaz.System.Parameters
 
+  hs-source-dirs: src/core
+                , src/hash
+                , src/cipher
+                , src/random
+                , src/modular
+                , src/curves
+
   if os(linux) || os(freebsd) || os(openbsd)
-     hs-source-dirs: src/core
-                   , src/core/src/urandom
-                   , src/hash
-                   , src/cipher
-                   , src/random
-                   , src/modular
-                   , src/curves
-     exposed-modules: Raaz.System.Random
-  else
-     hs-source-dirs: src/core
-                   , src/hash
-                   , src/cipher
-                   , src/random
-                   , src/modular
-                   , src/curves
-  other-modules:
+    hs-source-dirs: src/core/src/urandom
+    exposed-modules: Raaz.System.Random
+
   build-depends: base                           >= 4.5 && < 4.8
                , bytestring                     >= 0.9 && < 0.11
                , mtl                            >= 2.1 && < 2.2
@@ -227,8 +221,8 @@ library
   c-sources: src/cipher/cbits/raaz/cipher/cportable/aes.c
            , src/cipher/cbits/raaz/cipher/cportable/salsa20.c
   include-dirs: src/cipher/cbits
-  include: src/cipher/raaz/cipher/cportable/aes.h
-         , src/cipher/raaz/cipher/cportable/salsa20.h
+  includes: src/cipher/cbits/raaz/cipher/cportable/aes.h
+          , src/cipher/cbits/raaz/cipher/cportable/salsa20.h
 
   if os(linux)
      cc-options: -Wall -O3 -DRAAZ_HAVE_GCC
