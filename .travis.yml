@@ -1,99 +1,47 @@
+language: c
+sudo: false
 notifications:
   irc: "irc.freenode.net#haskell-raaz"
-env:
-  # Variables.
-  # 1. GHC_VERSION: The version of ghc to build against. If not set
-  #    the default version of haskell on travis build system in used.
-  #
-  # 2. CABAL_VERSION: The version of cabal install command to use. If
-  #    not set the default version available is used.
-  #
-  # 3. PARALLEL_BUILDS: Whether the version of cabal install supports
-  #    parallel builds. Set it to "yes" if the version of cabal
-  #    install supports parallel builds.
-  #
-  # 4. PACKAGE_CONSTRAINTS: The constraints to put on packages.
-  #
-  # 5. HASKELL_PLATFORM: You can build against a give platform. The
-  #    corresponding makefile:
-  #    ./platform/${HASKELL_PLATFORM}/Makefile.configure should
-  #    exist. The platform makefile should usually set the GHC_VERSION
-  #    and PACKAGE_CONSTRAINTS
-  #
-  # 6. ADDITIONAL_CONSTRAINTS: Set additional constraints on certain
-  #    problematic packages.
-  global:
-    # To be included in all the jobs of the build.
-    - ADDITIONAL_CONSTRAINTS=
-    - PARALLEL_BUILDS="yes"
-  matrix:
-    - GHC_VERSION=7.8.3 CABAL_VERSION=1.20
-    - HASKELL_PLATFORM=2013.2.0.0 GHC_VERSION=7.6.3 CABAL_VERSION=1.20
-    - HASKELL_PLATFORM=2012.4.0.0 GHC_VERSION=7.4.2 CABAL_VERSION=1.20
-    - HASKELL_PLATFORM=2012.2.0.0 GHC_VERSION=7.4.1 CABAL_VERSION=1.20
-    - HLINT="yes"
+
+addons: { apt: { sources: [hvr-ghc] }}
+
+matrix:
+  include:
+    - env: STACK_VERSION=lts-2.13 GHCVER=7.8.4 CABALVER=1.18
+      addons: {apt: {packages: [cabal-install-1.18, ghc-7.8.4]}}
+    - env: HLINT="yes"
+      addons: {apt: {packages: [hlint]}}
 
 matrix:
   # To notify immediately about it when a job of a build fails.
   fast_finish: true
   allow_failures:
     - env: HLINT="yes"
+
 before_install:
-  - if [ "$HLINT" == "yes" ]; then
-       sudo apt-get install hlint;
-       hlint "--ignore=Parse error" .;
-       exit $?;
-    fi
-  - echo `uname -a`
-  - travis_retry sudo add-apt-repository -y ppa:hvr/ghc
-  - travis_retry sudo apt-get update
-  # Install default version of GHC if GHC_VERSION
-  # environment variable is not set.
-  - if [ "$GHC_VERSION" == "" ]; then
-      travis_retry sudo apt-get install ghc happy haddock;
-    else
-      travis_retry sudo apt-get install ghc-$GHC_VERSION happy haddock;
-      export PATH=/opt/ghc/$GHC_VERSION/bin:$PATH;
-    fi
-  # Install default version of CABAL if CABAL_VERSION
-  # environment variable is not set.
-  - if [ "$CABAL_VERSION" == "" ]; then
-      travis_retry sudo apt-get install cabal-install;
-      cabal update;
-    else
-      travis_retry sudo apt-get install cabal-install-$CABAL_VERSION;
-      export PATH=/opt/cabal/$CABAL_VERSION/bin:$PATH;
-      cabal-$CABAL_VERSION update;
-    fi
-  # Output the version of GHC installed in the system.
-  - ghc --version
-  # Output the version of CABAL installed in the system.
-  - cabal --version
-  # Output all the registered packages.
-  - ghc-pkg list
-  # Output other variables.
-  - echo HASKELL_PLATFORM=${HASKELL_PLATFORM}
-  - echo PARALLEL_BUILDS=${PARALLEL_BUILDS}
-  # Compile the script which will be used to install, build and test
-  # raaz packages.
-  - ghc -o travis scripts/travis-build.hs
+ - export PATH=/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:$PATH
 
 install:
-  # Installing
-  - ./travis install
-before_script:
-  # Configuring raaz packages.
-  - ./travis configure --enable-tests
-  # Building raaz packages.
-  - ./travis build
-# Running test suites of raaz packages.
+ - cabal --version
+ - echo "$(ghc --version) [$(ghc --print-project-git-commit-id 2> /dev/null || echo '?')]"
+ - travis_retry cabal update
+ - cabal install --only-dependencies --enable-tests --enable-benchmarks
+
 script:
-  - ./travis test --show-details=failures
+  - cabal configure --enable-tests --enable-benchmarks -v2
+  - cabal build
+  - cabal test
+  - cabal check
+  - cabal sdist   # tests that a source-distribution can be generated
 
-after_script:
-  - ./travis sdist
-  # Make source tarball of all raaz packages.
+# Check that the resulting source distribution can be built & installed.
+# If there are no other `.tar.gz` files in `dist`, this can be even simpler:
+# `cabal install --force-reinstalls dist/*-*.tar.gz`
 
+ - cabal install --force-reinstalls dist/*-*.tar.gz
+
+ # - SRC_TGZ=$(cabal info . | awk '{print $2;exit}').tar.gz &&
+ #  (cd dist && cabal install --force-reinstalls "$SRC_TGZ")
 
 after_success:
   - echo "All is well."
@@ -102,4 +50,4 @@ after_failure:
 branches:
   only:
     - master
-    - x-merge-packages
+    - x-merge-package
