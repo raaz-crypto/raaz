@@ -84,10 +84,6 @@ library
                  , Raaz.Core.Primitives.HMAC
                  , Raaz.Core.Primitives.Symmetric
                  , Raaz.Core.Random
-                 , Raaz.Core.Test
-                 , Raaz.Core.Test.Cipher
-                 , Raaz.Core.Test.EndianStore
-                 , Raaz.Core.Test.Gadget
                  , Raaz.Core.Types
                  , Raaz.Core.Types.Word
                  , Raaz.Core.Types.CryptoBuffer
@@ -110,11 +106,11 @@ library
   build-depends: base                           >= 4.5 && < 4.8
                , bytestring                     >= 0.9 && < 0.11
                , mtl                            >= 2.1 && < 2.2
-               , QuickCheck                     >= 2.4 && < 2.8
-               , HUnit                          >= 1.2 && < 1.3
-               , test-framework                 >= 0.6 && < 0.9
-               , test-framework-hunit           >= 0.2 && < 0.4
-               , test-framework-quickcheck2     >= 0.2 && < 0.4
+               -- , QuickCheck                     >= 2.4 && < 2.8
+               -- , HUnit                          >= 1.2 && < 1.3
+               -- , test-framework                 >= 0.6 && < 0.9
+               -- , test-framework-hunit           >= 0.2 && < 0.4
+               -- , test-framework-quickcheck2     >= 0.2 && < 0.4
                , vector
   c-sources: cbits/raaz/core/memory.c
            , cbits/raaz/core/endian.c
