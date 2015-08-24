@@ -102,4 +102,4 @@ after_failure:
 branches:
   only:
     - master
-    - use-vector
+    - x-merge-packages
