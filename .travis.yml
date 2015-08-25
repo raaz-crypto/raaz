@@ -7,7 +7,7 @@ addons: { apt: { sources: [hvr-ghc] }}
 
 matrix:
   include:
-    - env: STACK_VERSION=lts-2.13 GHCVER=7.8.4 CABALVER=1.18
+    - env: STACKVER=lts-2.13 GHCVER=7.8.4 CABALVER=1.18
       addons: {apt: {packages: [cabal-install-1.18, ghc-7.8.4]}}
     - env: HLINT="yes"
       addons: {apt: {packages: [hlint]}}
@@ -20,6 +20,9 @@ matrix:
 
 before_install:
  - export PATH=/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:$PATH
+ - if [ "$STACKVER" != "" ]; then
+      wget "https://www.stackage.org/$STACKVER/cabal.config"
+   fi
 
 install:
  - cabal --version
