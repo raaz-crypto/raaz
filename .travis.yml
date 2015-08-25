@@ -48,4 +48,4 @@ after_failure:
 branches:
   only:
     - master
-    - x-merge-package
+    - x-merge-packages
