@@ -21,7 +21,7 @@ matrix:
 before_install:
  - export PATH=/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:$PATH
  - if [ "$STACKVER" != "" ]; then
-      wget "https://www.stackage.org/$STACKVER/cabal.config"
+      wget "https://www.stackage.org/$STACKVER/cabal.config";
    fi
 
 install:
