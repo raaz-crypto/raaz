@@ -3,14 +3,12 @@ sudo: false
 notifications:
   irc: "irc.freenode.net#haskell-raaz"
 
-addons: { apt: { sources: [hvr-ghc] }}
-
 matrix:
   include:
     - env: STACKVER=lts-2.13 GHCVER=7.8.4 CABALVER=1.18
-      addons: {apt: {packages: [cabal-install-1.18, ghc-7.8.4]}}
+      addons: {apt: {sources: [hvr-ghc], packages: [cabal-install-1.18, ghc-7.8.4]}}
     - env: HLINT="yes"
-      addons: {apt: {packages: [hlint]}}
+      addons: {apt: {sources: [hvr-ghc], packages: [hlint]}}
 
 matrix:
   # To notify immediately about it when a job of a build fails.
@@ -24,7 +22,6 @@ before_install:
       echo getting the stackage cabal.config;
       wget "https://www.stackage.org/$STACKVER/cabal.config";
    fi
- - set
 install:
  - cabal --version
  - echo "$(ghc --version) [$(ghc --print-project-git-commit-id 2> /dev/null || echo '?')]"
