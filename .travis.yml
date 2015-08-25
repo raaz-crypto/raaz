@@ -21,9 +21,10 @@ matrix:
 before_install:
  - export PATH=/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:$PATH
  - if [ "$STACKVER" != "" ]; then
+      echo getting the stackage cabal.config;
       wget "https://www.stackage.org/$STACKVER/cabal.config";
    fi
-
+ - set
 install:
  - cabal --version
  - echo "$(ghc --version) [$(ghc --print-project-git-commit-id 2> /dev/null || echo '?')]"
