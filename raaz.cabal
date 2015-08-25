@@ -1,13 +1,15 @@
-name:    raaz-core
+name:    raaz
 version: 0.0.0.1
 
-synopsis: The core of the raaz cryptographic library.
+synopsis: The raaz cryptographic library.
 
-description: This package defines core types and classes that is used
-  by the rest of the raaz library. We also provides common types and
-  functions that might be used accross the other raaz packages here.
-  Besides the basic types and classes, it defines cryptographic
-  primitives like hashes, ciphers, macs etc..
+description: Raaz is a cryptographic network library for Haskell
+  designed to use strong typing to eliminate some common errors that
+  occur in cryptographic settings like side channel attacks. This
+  package implements basic types and cryptographic primitives like
+  hashes, macs etc. Actual network protocols are expected to use this
+  library. Common abstractions like for example packet parsing should
+  be part of this library.
 
 homepage: http://github.com/raaz-crypto/raaz
 
@@ -55,13 +57,17 @@ extra-source-files: Config.hs
 source-repository head
   type: git
   location: https://github.com/raaz-crypto/raaz
-  subdir: raaz-core
 
 flag auto-configure
   description: Detects and configurs system parameters automatically
   default: True
 
 library
+
+  ghc-options: -Wall
+  if impl(ghc >= 7.6)
+     cpp-options:-DUseKinds
+
   exposed-modules: Raaz.Core
                  , Raaz.Core.ByteSource
                  , Raaz.Core.Classes
@@ -78,10 +84,6 @@ library
                  , Raaz.Core.Primitives.HMAC
                  , Raaz.Core.Primitives.Symmetric
                  , Raaz.Core.Random
-                 , Raaz.Core.Test
-                 , Raaz.Core.Test.Cipher
-                 , Raaz.Core.Test.EndianStore
-                 , Raaz.Core.Test.Gadget
                  , Raaz.Core.Types
                  , Raaz.Core.Types.Word
                  , Raaz.Core.Types.CryptoBuffer
@@ -99,21 +101,17 @@ library
      exposed-modules: Raaz.System.Random
   else
      hs-source-dirs: .
+
   -- other-modules: Raaz.Core.Memory.Internal
   build-depends: base                           >= 4.5 && < 4.8
                , bytestring                     >= 0.9 && < 0.11
                , mtl                            >= 2.1 && < 2.2
-               , QuickCheck                     >= 2.4 && < 2.8
-               , HUnit                          >= 1.2 && < 1.3
-               , test-framework                 >= 0.6 && < 0.9
-               , test-framework-hunit           >= 0.2 && < 0.4
-               , test-framework-quickcheck2     >= 0.2 && < 0.4
+               -- , QuickCheck                     >= 2.4 && < 2.8
+               -- , HUnit                          >= 1.2 && < 1.3
+               -- , test-framework                 >= 0.6 && < 0.9
+               -- , test-framework-hunit           >= 0.2 && < 0.4
+               -- , test-framework-quickcheck2     >= 0.2 && < 0.4
                , vector
-  ghc-options: -Wall
-
-  if impl(ghc >= 7.6)
-     cpp-options:-DUseKinds
-
   c-sources: cbits/raaz/core/memory.c
            , cbits/raaz/core/endian.c
   include-dirs: includes
@@ -125,32 +123,31 @@ library
                   , raaz/primitives/config.h
                   , raaz/primitives/load.h
 
-test-Suite tests
+test-Suite spec
   type: exitcode-stdio-1.0
-  hs-source-dirs: tests
-  main-is: Main.hs
+  hs-source-dirs: spec
+  main-is: Spec.hs
   ghc-options: -Wall
 
-  if os(linux)
-     cc-options: -Wall -Werror -O3 -DRAAZ_HAVE_GCC
-  else
-     cc-options:
 
-  c-sources: cbits/raaz/tests/load_test.c
+  -- if os(linux)
+  --    cc-options: -Wall -Werror -O3 -DRAAZ_HAVE_GCC
+  -- else
+  --    cc-options:
 
-  other-modules: Modules.C.Load
-               , Modules.Types
-               , Modules.Util.ByteString
+  -- c-sources: cbits/raaz/tests/load_test.c
+
+  -- other-modules: Modules.C.Load
+  --              , Modules.Types
+  --              , Modules.Util.ByteString
 
   build-depends: base                           >= 4.5 && < 4.8
                , bytestring                     >= 0.9 && < 0.11
                , HUnit                          >= 1.2 && < 1.3
                , QuickCheck                     >= 2.4 && < 2.8
-               , test-framework                 >= 0.6 && < 0.9
-               , test-framework-hunit           >= 0.2 && < 0.4
-               , test-framework-quickcheck2     >= 0.2 && < 0.4
-
-               --
-               -- Dependency on other raaz packages.
-               --
-               , raaz-core                      >= 0.0.0.1 && < 0.0.0.2
+               , hspec
+               -- , test-framework                 >= 0.6 && < 0.9
+               -- , test-framework-hunit           >= 0.2 && < 0.4
+               -- , test-framework-quickcheck2     >= 0.2 && < 0.4
+               , transformers
+               , raaz                           >= 0.0.0.1 && < 0.0.0.2

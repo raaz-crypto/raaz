@@ -6,7 +6,7 @@ Generic tests for Hash implementations.
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TypeFamilies     #-}
 
-module Raaz.Core.Test.Cipher
+module Generic.Cipher
        ( testStandardCiphers
        , applyGadget
        , encryptDecrypt

@@ -37,7 +37,7 @@
 -- correct order.
 
 module Raaz.Core.Types.Word
-       ( LE, BE
+       ( LE, BE, littleEndian, bigEndian
        ) where
 
 import Control.Monad              ( liftM )
@@ -46,10 +46,8 @@ import Data.Typeable
 import Data.Vector.Unboxed        (MVector(..), Vector, Unbox)
 import qualified Data.Vector.Generic as GV
 import qualified Data.Vector.Generic.Mutable as GVM
-
 import Data.Word
 import Foreign.Storable
-import Test.QuickCheck          (Arbitrary)
 
 import Raaz.Core.Classes
 
@@ -66,7 +64,7 @@ by ghc.
 
 -- | Little endian version of the word type @w@
 newtype LE w = LE w
-    deriving ( Arbitrary, Bounded, Enum, Read, Show
+    deriving ( Bounded, Enum, Read, Show
              , Integral, Num, Real, Eq, EqWord, Ord
              , Bits, Storable, Typeable
              )
@@ -74,10 +72,20 @@ newtype LE w = LE w
 
 -- | Big endian version of the word type @w@
 newtype BE w = BE w
-    deriving ( Arbitrary, Bounded, Enum, Read, Show
+    deriving ( Bounded, Enum, Read, Show
              , Integral, Num, Real, Eq, EqWord, Ord
              , Bits, Storable, Typeable
              )
+
+-- | Convert to the little endian variant.
+littleEndian :: w -> LE w
+{-# INLINE littleEndian #-}
+littleEndian = LE
+
+-- | Convert to the big endian variants.
+bigEndian :: w -> BE w
+bigEndian = BE
+
 
 instance HasName w => HasName (LE w) where
   getName (LE w) = "LE " ++ getName w

@@ -6,7 +6,7 @@ using them.
 
 -}
 
-module Raaz.Core.Test.EndianStore
+module Generic.EndianStore
        ( testStoreLoad
        , testPokePeek
        ) where

@@ -56,8 +56,6 @@ import Foreign.Ptr
 import Foreign.Storable
 import Foreign.ForeignPtr.Safe  (ForeignPtr)
 
-import Test.QuickCheck          (Arbitrary)
-
 -- $typesafety$
 --
 -- One of the aims of raaz is to avoid many bugs by making use of the
@@ -269,7 +267,7 @@ eqVector v1 v2 | G.length v1 == G.length v2 = G.foldl' (.|.) 0 (G.zipWith eqWord
 -- convert to a more convenient length units.  The `CrytoCoerce`
 -- instance is guranteed to do the appropriate scaling.
 newtype BYTES a  = BYTES a
-        deriving ( Arbitrary, Show, Eq, EqWord, Ord, Enum, Integral
+        deriving ( Show, Eq, EqWord, Ord, Enum, Integral
                  , Real, Num, Storable, EndianStore
                  )
 
@@ -278,7 +276,7 @@ newtype BYTES a  = BYTES a
 -- convert to a more convenient length units.  The `CrytoCoerce`
 -- instance is guranteed to do the appropriate scaling.
 newtype BITS  a  = BITS  a
-        deriving ( Arbitrary, Show, Eq, EqWord, Ord, Enum, Integral
+        deriving ( Show, Eq, EqWord, Ord, Enum, Integral
                  , Real, Num, Storable, EndianStore
                  )
 
@@ -405,7 +403,7 @@ cryptoAlignment = alignment (undefined :: CryptoAlign)
 {-# INLINE cryptoAlignment #-}
 
 newtype ALIGN = ALIGN Int
-              deriving ( Arbitrary, Show, Eq, Ord, Enum, Integral
+              deriving ( Show, Eq, Ord, Enum, Integral
                        , Real, Num
                        )
 
