@@ -37,7 +37,7 @@
 -- correct order.
 
 module Raaz.Core.Types.Word
-       ( LE (..), BE(..)
+       ( LE, BE, littleEndian, bigEndian
        ) where
 
 import Control.Monad              ( liftM )
@@ -76,6 +76,16 @@ newtype BE w = BE w
              , Integral, Num, Real, Eq, EqWord, Ord
              , Bits, Storable, Typeable
              )
+
+-- | Convert to the little endian variant.
+littleEndian :: w -> LE w
+{-# INLINE littleEndian #-}
+littleEndian = LE
+
+-- | Convert to the big endian variants.
+bigEndian :: w -> BE w
+bigEndian = BE
+
 
 instance HasName w => HasName (LE w) where
   getName (LE w) = "LE " ++ getName w
