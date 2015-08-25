@@ -11,18 +11,22 @@ addons:
       - cabal-install-1.18
       - ghc-7.8.4
 
-matrix:
-  include:
-    - env: STACKVER=lts-2.13 GHCVER=7.8.4 CABALVER=1.18
-    - env: HLINT="yes"
+fast_finish: true
 
-matrix:
+env:
+  - STACKVER=lts-2.13 GHCVER=7.8.4 CABALVER=1.18
+  - HLINT="yes"
+
+allow_failures:
+  - env: HLINT="yes"
   # To notify immediately about it when a job of a build fails.
-  fast_finish: true
-  allow_failures:
-    - env: HLINT="yes"
+
 
 before_install:
+ - if [ "$HLINT" =="yes" ] then;
+      hlint .;
+      exit $?;
+   fi
  - export PATH=/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:$PATH
  - if [ "$STACKVER" != "" ]; then
       echo getting the stackage cabal.config;
