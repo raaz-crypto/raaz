@@ -23,7 +23,7 @@ allow_failures:
 
 
 before_install:
- - if [ "$HLINT" =="yes" ] then;
+ - if [ "$HLINT" =="yes" ]; then
       hlint .;
       exit $?;
    fi
