@@ -44,6 +44,18 @@ extra-source-files: Config.hs
                     Config/ffi/htole64/DESCRIPTION
                     Config/ffi/htole64/Test.hs
                     Config/ffi/htole64/test.c
+		    Config/ffi/be32toh/DESCRIPTION
+                    Config/ffi/be32toh/Test.hs
+                    Config/ffi/be32toh/test.c
+                    Config/ffi/be64toh/DESCRIPTION
+                    Config/ffi/be64toh/Test.hs
+                    Config/ffi/be64toh/test.c
+                    Config/ffi/le32toh/DESCRIPTION
+                    Config/ffi/le32toh/Test.hs
+                    Config/ffi/le32toh/test.c
+                    Config/ffi/le64toh/DESCRIPTION
+                    Config/ffi/le64toh/Test.hs
+                    Config/ffi/le64toh/test.c
                     Config/ffi/memalign/DESCRIPTION
                     Config/ffi/memalign/Test.hs
                     Config/ffi/memalign/test.c
@@ -119,16 +131,22 @@ library
   includes: raaz/primitives.h
           , raaz/primitives/config.h
           , raaz/primitives/load.h
+          , raaz/core/memory.h
+          , raaz/core/endian.h
   install-includes: raaz/primitives.h
                   , raaz/primitives/config.h
                   , raaz/primitives/load.h
-
+                  , raaz/core/memory.h
+                  , raaz/core/endian.h
 test-Suite spec
   type: exitcode-stdio-1.0
   hs-source-dirs: spec
   main-is: Spec.hs
   ghc-options: -Wall
-
+  other-modules: Arbitrary
+               , Generic.EndianStore
+               , Raaz.Core.Types.WordSpec
+               , Raaz.Core.Util.ByteStringSpec
 
   -- if os(linux)
   --    cc-options: -Wall -Werror -O3 -DRAAZ_HAVE_GCC
