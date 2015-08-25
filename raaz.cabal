@@ -123,28 +123,30 @@ library
                   , raaz/primitives/config.h
                   , raaz/primitives/load.h
 
-test-Suite tests
+test-Suite spec
   type: exitcode-stdio-1.0
-  hs-source-dirs: tests
-  main-is: Main.hs
+  hs-source-dirs: spec
+  main-is: Spec.hs
   ghc-options: -Wall
 
-  if os(linux)
-     cc-options: -Wall -Werror -O3 -DRAAZ_HAVE_GCC
-  else
-     cc-options:
 
-  c-sources: cbits/raaz/tests/load_test.c
+  -- if os(linux)
+  --    cc-options: -Wall -Werror -O3 -DRAAZ_HAVE_GCC
+  -- else
+  --    cc-options:
 
-  other-modules: Modules.C.Load
-               , Modules.Types
-               , Modules.Util.ByteString
+  -- c-sources: cbits/raaz/tests/load_test.c
+
+  -- other-modules: Modules.C.Load
+  --              , Modules.Types
+  --              , Modules.Util.ByteString
 
   build-depends: base                           >= 4.5 && < 4.8
                , bytestring                     >= 0.9 && < 0.11
                , HUnit                          >= 1.2 && < 1.3
                , QuickCheck                     >= 2.4 && < 2.8
-               , test-framework                 >= 0.6 && < 0.9
-               , test-framework-hunit           >= 0.2 && < 0.4
-               , test-framework-quickcheck2     >= 0.2 && < 0.4
-               , raaz                           >= 0.0.0.1 && < 0.0.0.2
+               , hspec
+               -- , test-framework                 >= 0.6 && < 0.9
+               -- , test-framework-hunit           >= 0.2 && < 0.4
+               -- , test-framework-quickcheck2     >= 0.2 && < 0.4
+               -- , raaz                           >= 0.0.0.1 && < 0.0.0.2
