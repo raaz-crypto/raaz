@@ -88,8 +88,8 @@ fromByteString src = unsafePerformIO $ withByteString src (load . castPtr)
 -- | Get a vector values from a byte string. This is not very fast,
 -- used mainly for defining IsString instances.
 vectorFromByteString :: (EndianStore a, G.Vector v a) => ByteString -> v a
-vectorFromByteString bs = vec
-  where vec = G.fromList $ go bs
+vectorFromByteString str = vec
+  where vec = G.fromList $ go str
         go bs | length bs >= sz = fromByteString bs : go (B.drop (fromIntegral sz) bs)
               | otherwise       = []
         undefA :: (EndianStore a, G.Vector v a) => v a -> a
