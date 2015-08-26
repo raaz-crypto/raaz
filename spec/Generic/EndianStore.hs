@@ -14,10 +14,10 @@ import Raaz.Core
 
 import Arbitrary
 
-storeAndLoadSpec :: (EndianStore a, HasName a, Arbitrary a, Eq a, Show a)
+storeAndLoadSpec :: (EndianStore a, Arbitrary a, Eq a, Show a)
                  => a  -- ^ Value unused. Only to make type checker happy.
                  -> Spec
-storeAndLoadSpec a = context (getName a) $ do
+storeAndLoadSpec a = do
   it "checks whether store followed by load gives the same value" $ do
     feedArbitrary $ storeLoad a
   where storeLoad :: (EndianStore a, Eq a) => a -> a -> IO Bool
