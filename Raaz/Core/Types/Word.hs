@@ -50,6 +50,7 @@ import Data.Word
 import Foreign.Storable
 
 import Raaz.Core.Classes
+import Raaz.Core.Encode
 
 {-
 
@@ -113,6 +114,7 @@ instance EndianStore (LE Word32) where
   load             = fmap LE .  c_loadLE32
   store ptr (LE w) = c_storeLE32 ptr w
 
+instance Encode (LE Word32)
 ------------------- Endian store for BE 32 ------------------------
 
 foreign import ccall unsafe "raaz/core/endian.h raazLoadBE32"
@@ -125,6 +127,7 @@ instance EndianStore (BE Word32) where
   load             = fmap BE .  c_loadBE32
   store ptr (BE w) = c_storeBE32 ptr w
 
+instance Encode (BE Word32)
 
 ------------------- Endian store for LE 64 ------------------------
 
@@ -138,6 +141,8 @@ instance EndianStore (LE Word64) where
   load             = fmap LE .  c_loadLE64
   store ptr (LE w) = c_storeLE64 ptr w
 
+instance Encode (LE Word64)
+
 ------------------- Endian store for BE 64 ------------------------
 
 foreign import ccall unsafe "raaz/core/endian.h raazLoadBE64"
@@ -150,6 +155,7 @@ instance EndianStore (BE Word64) where
   load             = fmap BE .  c_loadBE64
   store ptr (BE w) = c_storeBE64 ptr w
 
+instance Encode (BE Word64)
 
 ------------------- Unboxed vector of Endian word types ---------------
 
