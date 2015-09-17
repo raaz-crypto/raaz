@@ -29,7 +29,7 @@ import           Foreign.Storable   (peek, Storable)
 
 import           System.IO.Unsafe   (unsafePerformIO)
 
-import           Raaz.Core.Types
+import           Raaz.Core.Classes
 import           Raaz.Core.Util.Ptr
 
 -- | A typesafe length for Bytestring
