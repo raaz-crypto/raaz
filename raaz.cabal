@@ -85,6 +85,7 @@ library
                  , Raaz.Core.Classes
                  , Raaz.Core.DH
                  , Raaz.Core.Encode
+                 , Raaz.Core.Encode.Base16
                  , Raaz.Core.Memory
                  , Raaz.Core.MonoidalAction
                  , Raaz.Core.Parse

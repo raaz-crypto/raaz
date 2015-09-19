@@ -4,7 +4,7 @@
 -- | Internal module that has the encode class and some utility functions.
 module Raaz.Core.Encode.Internal
        ( Encode(..)
-       , between
+       , between, isDigit
        ) where
 
 
