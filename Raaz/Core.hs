@@ -6,6 +6,7 @@ Core functions, data types and classes of the raaz package.
 
 module Raaz.Core
        ( module Raaz.Core.ByteSource
+       , module Raaz.Core.Encode
        , module Raaz.Core.Memory
        , module Raaz.Core.Primitives
        , module Raaz.Core.Primitives.Asymmetric
@@ -19,6 +20,7 @@ module Raaz.Core
        ) where
 
 import Raaz.Core.ByteSource
+import Raaz.Core.Encode
 import Raaz.Core.Memory
 import Raaz.Core.Primitives
 import Raaz.Core.Primitives.Asymmetric
