@@ -143,8 +143,8 @@ hmacSetGadget pad k@(HMACKey key) gad buf = withMemoryBuf buf $ \ _ cptr -> do
 
 -- | HMAC Gadget with underlying hash gadget @g@.
 data HMACGadget g =
-  HMACGadget g -- ^ The gadget to do the inner hash.
-             g -- ^ The outher hash gadget.
+  HMACGadget g --  The gadget to do the inner hash.
+             g --  The outher hash gadget.
              (HashMemoryBuf (PrimitiveOf g))
                                -- ^ the buffer used for hashing the
                                -- hash ( innerpad ++ message)
