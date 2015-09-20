@@ -18,7 +18,10 @@ import Data.Word
 import Raaz.Core.Encode.Internal
 
 -- | The base16 type
-newtype Base16 = Base16 {unBase16 :: ByteString} deriving (Show, Eq)
+newtype Base16 = Base16 {unBase16 :: ByteString} deriving Eq
+
+instance Show Base16 where
+  show = C8.unpack . unBase16
 
 -- The internal field contains
 
