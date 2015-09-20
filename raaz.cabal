@@ -84,6 +84,8 @@ library
                  , Raaz.Core.ByteSource
                  , Raaz.Core.Classes
                  , Raaz.Core.DH
+                 , Raaz.Core.Encode
+                 , Raaz.Core.Encode.Base16
                  , Raaz.Core.Memory
                  , Raaz.Core.MonoidalAction
                  , Raaz.Core.Parse
@@ -106,7 +108,7 @@ library
                  , Raaz.Core.Write
                  , Raaz.Core.Write.Unsafe
                  , Raaz.System.Parameters
-
+  other-modules: Raaz.Core.Encode.Internal
   if os(linux) || os(freebsd) || os(openbsd)
      hs-source-dirs: .
                    , src/urandom/

@@ -27,7 +27,7 @@ import Foreign.Ptr
 import Foreign.Marshal.Alloc
 import Foreign.Storable      (Storable, sizeOf)
 import System.IO             (hGetBuf, Handle)
-import Raaz.Core.Types
+import Raaz.Core.Classes
 
 -------------------- Sizes, offsets and pointer arithmetic -------
 

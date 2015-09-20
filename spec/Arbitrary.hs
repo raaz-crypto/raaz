@@ -8,6 +8,7 @@ module Arbitrary where
 import Control.Applicative
 import Test.QuickCheck
 import Test.QuickCheck.Monadic
+import Data.ByteString(pack, ByteString)
 
 import Raaz.Core.Types.Word
 import Raaz.Core.Classes
@@ -27,6 +28,9 @@ instance Arbitrary w => Arbitrary (BITS w) where
 
 instance Arbitrary ALIGN where
   arbitrary = toEnum <$> arbitrary
+
+instance Arbitrary ByteString where
+  arbitrary = pack <$> listOf arbitrary
 
 feed          :: (Testable prop, Show a) => Gen a -> (a -> IO prop) -> Property
 feed gen prop = monadicIO $ pick gen >>= (run . prop)

@@ -34,14 +34,6 @@ spec = do context "unsafeCopyToCryptoPtr" $ do
             it "reads exactly the same bytes from the byte string pointer" $ do
               feed genBS $ \ bs -> (==bs) <$> readFrom bs
 
-          context "fromHex" $ do
-            it "is essentially the inverse of hex" $ do
-              forAll genBS $ \ bs -> B.fromHex (B.hex bs) == Just bs
-
-          context "unsafeFromHex" $ do
-            it "is essentiall the inverse of hex" $ do
-              forAll genBS $ \ bs -> B.unsafeFromHex (B.hex bs) == bs
-
     where clone       bs     = create (length bs) $ B.unsafeCopyToCryptoPtr bs . castPtr
           clonePrefix (bs,n) = createAndTrim (length bs) $ \ cptr -> do
                                    B.unsafeNCopyToCryptoPtr (BYTES n) bs $ castPtr cptr

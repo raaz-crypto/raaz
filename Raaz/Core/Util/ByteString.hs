@@ -12,30 +12,24 @@ module Raaz.Core.Util.ByteString
        , withByteString
        , unsafeCopyToCryptoPtr
        , unsafeNCopyToCryptoPtr
-       -- * Hexadecimal encoding.
-       , hex, toHex, vectorToHex
-       , unsafeFromHex, fromHex
 
        ) where
 
 import           Prelude            hiding (length, replicate)
-import           Data.Bits
 import qualified Data.ByteString    as B
-import           Data.ByteString    (ByteString, empty)
+import           Data.ByteString    (ByteString)
 import           Data.ByteString.Internal( toForeignPtr
-                                         , c2w, unsafeCreate
                                          , create
                                          )
-import           Data.Monoid         ((<>))
 import           Data.Word
 import qualified Data.Vector.Generic as G
 import           Foreign.ForeignPtr (withForeignPtr)
 import           Foreign.Ptr        (castPtr, plusPtr)
-import           Foreign.Storable   (poke, peek, Storable)
+import           Foreign.Storable   (peek, Storable)
 
 import           System.IO.Unsafe   (unsafePerformIO)
 
-import           Raaz.Core.Types
+import           Raaz.Core.Classes
 import           Raaz.Core.Util.Ptr
 
 -- | A typesafe length for Bytestring
@@ -108,96 +102,3 @@ createFrom l cptr = create bytes filler
         BYTES bytes = inBytes l
 
 ----------------------  Hexadecimal encoding. -----------------------------------
-
--- | Hexadecimal encoding of instances of `EndianStore`
-toHex :: EndianStore a => a -> ByteString
-toHex = hex . toByteString
-
--- | The vector analogue of `toHex`.
-vectorToHex :: (EndianStore a, G.Vector v a) => v a -> ByteString
-vectorToHex = G.foldl' fldFunc empty
-  where fldFunc bs a = bs <> toHex a
-
--- | Converts bytestring to hexadecimal representation.
-hex :: ByteString -> ByteString
-hex bs = unsafeCreate (2 * n) filler
-  where (fptr, offset, n)      = toForeignPtr bs
-
-        filler ptr = withForeignPtr fptr $
-             \ bsPtr -> putBS (bsPtr `plusPtr` offset) 0 ptr
-
-        putBS bsPtr i ptr
-              | i < n     = do x <- peek bsPtr
-                               put ptr x
-                               putBS bsNewPtr (i+1) ptrNew
-              | otherwise = return ()
-          where bsNewPtr = bsPtr `plusPtr` 1
-                ptrNew   = ptr `plusPtr`   2
-        hexDigit x | x < 10    = c2w '0' + x
-                   | otherwise = c2w 'a' + (x - 10)
-
-        top4 x  = x `shiftR` 4
-        bot4 x  = x  .&. 0x0F
-
-        put ptr x = do poke ptr0 $ hexDigit $ top4 x
-                       poke ptr1 $ hexDigit $ bot4 x
-            where ptr0 = ptr
-                  ptr1 = ptr `plusPtr` 1
-
-isDigit :: Word8 -> Bool
-isDigit x = x >= c2w '0' && x <= c2w '9'
-{-# INLINE isDigit #-}
-
-isLowercaseHexChar :: Word8 -> Bool
-isLowercaseHexChar x = x >= c2w 'a' && x <= c2w 'f'
-{-# INLINE isLowercaseHexChar #-}
-
-isUppercaseHexChar :: Word8 -> Bool
-isUppercaseHexChar x = x >= c2w 'A' && x <= c2w 'F'
-{-# INLINE isUppercaseHexChar #-}
-
-isHexWord :: Word8 -> Bool
-isHexWord x = isDigit x || isLowercaseHexChar x || isUppercaseHexChar x
-{-# INLINE isHexWord #-}
-
-fromHexWord :: Word8 -> Word8
-fromHexWord x
-  | isDigit x             = x - c2w '0'
-  | isLowercaseHexChar x  = 10 + (x - c2w 'a')
-  | isUppercaseHexChar x  = 10 + (x - c2w 'A')
-  | otherwise             = -1
-{-# INLINE fromHexWord #-}
-
--- | Converts hexadecimal bytestring to binary assuming that the input
---   bytestring is hexadecimal only.
-unsafeFromHex :: ByteString -> ByteString
-unsafeFromHex bs = unsafeCreate nOutput filler
-  where (fptr, offset, n)      = toForeignPtr bs
-
-        nOutput    = n `quot` 2
-
-        filler ptr = withForeignPtr fptr $
-             \ bsPtr -> putBS (bsPtr `plusPtr` offset) 0 ptr
-
-        putBS bsPtr i ptr
-              | i < nOutput = do x <- peek  bsPtr
-                                 y <- peek (bsPtr `plusPtr` 1)
-                                 put ptr x y
-                                 putBS bsNewPtr (i+1) ptrNew
-              | otherwise = return ()
-          where bsNewPtr = bsPtr `plusPtr` 2
-                ptrNew   = ptr   `plusPtr` 1
-
-        put ptr x y = poke ptr binaryWord
-          where binaryWord = (fromHexWord x `shiftL` 4) .|.
-                             fromHexWord y
-
--- | Converts hexadecimal encoded bytestring to binary. If the input
--- bytestring is not hexadecimal, returns Nothing.
-fromHex :: ByteString -> Maybe ByteString
-fromHex bs
-    | odd (B.length bs)   = Nothing
-    | isHexByteString bs  = Just (unsafeFromHex bs)
-    | otherwise           = Nothing
-    where isHexByteString = B.foldr foldfn True
-          foldfn w sofar  = isHexWord w && sofar
