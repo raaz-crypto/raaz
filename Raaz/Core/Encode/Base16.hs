@@ -11,14 +11,10 @@ import Data.Char (toLower)
 import Data.Maybe(fromMaybe)
 import Data.ByteString as B
 import Data.ByteString.Char8 as C8
-import Data.ByteString.Internal( toForeignPtr
-                               , c2w, unsafeCreate
-                               )
+import Data.ByteString.Internal (c2w )
 
+import Data.ByteString.Unsafe(unsafeIndex)
 import Data.Word
-import           Foreign.ForeignPtr (withForeignPtr)
-import Foreign.Ptr
-import Foreign.Storable
 import Raaz.Core.Encode.Internal
 
 -- | The base16 type
@@ -50,10 +46,31 @@ fromBase16  = decode . unsafeFromHex . unBase16
 fromBase16Maybe :: Encode a => Base16 -> Maybe a
 fromBase16Maybe = decodeMaybe . unsafeFromHex . unBase16
 
+-- TODO: Since the encoding to base16 is usually used for user interaction
+-- we can afford to be slower here.
 
--- | Converts bytestring to hexadecimal representation.
+hexDigit :: Word8 -> Word8
+hexDigit x | x < 10    = c2w '0' + x
+           | otherwise = c2w 'a' + (x - 10)
+
+top4 :: Word8 -> Word8; top4 x  = x `shiftR` 4
+bot4 :: Word8 -> Word8; bot4 x  = x  .&. 0x0F
+
+-- | Converts to hexadecimal.
 hex :: ByteString -> ByteString
-hex bs = unsafeCreate (2 * n) filler
+hex bs = fst $ B.unfoldrN (2 * B.length bs) gen 0
+  where gen i | rm == 0   = Just (hexDigit $ top4 w, i+1)
+              | otherwise = Just (hexDigit $ bot4 w, i+1)
+          where (idx, rm) = quotRem i 2
+                w         = unsafeIndex bs idx
+
+{--
+
+-- This is potentially faster but unsafe version of hex.converts
+bytestring to hexadecimal representation.
+
+hexFast :: ByteString -> ByteString
+hexFast bs = unsafeCreate (2 * n) filler
   where (fptr, offset, n)      = toForeignPtr bs
 
         filler ptr = withForeignPtr fptr $
@@ -66,17 +83,12 @@ hex bs = unsafeCreate (2 * n) filler
               | otherwise = return ()
           where bsNewPtr = bsPtr `plusPtr` 1
                 ptrNew   = ptr `plusPtr`   2
-        hexDigit x | x < 10    = c2w '0' + x
-                   | otherwise = c2w 'a' + (x - 10)
-
-        top4 x  = x `shiftR` 4
-        bot4 x  = x  .&. 0x0F
-
         put ptr x = do poke ptr0 $ hexDigit $ top4 x
                        poke ptr1 $ hexDigit $ bot4 x
             where ptr0 = ptr
                   ptr1 = ptr `plusPtr` 1
 
+--}
 
 isHexWord :: Word8 -> Bool
 isHexWord x = between '0' '9' x || between 'a' 'f' x || between 'A' 'F' x
@@ -90,8 +102,22 @@ fromHexWord x
   | otherwise          = -1
 {-# INLINE fromHexWord #-}
 
+
 -- | Converts hexadecimal bytestring to binary assuming that the input
 --   bytestring is hexadecimal only.
+unsafeFromHex :: ByteString -> ByteString
+unsafeFromHex bs = fst $ B.unfoldrN len gen 0
+  where len = B.length bs `quot` 2
+        gen i = Just (shiftL w0 4 .|. w1, i + 1)
+          where w0 = fromHexWord $ unsafeIndex bs (2 * i)
+                w1 = fromHexWord $ unsafeIndex bs (2 * i + 1)
+
+
+{--
+
+-- Faster but dangerous version
+
+
 unsafeFromHex :: ByteString -> ByteString
 unsafeFromHex bs = unsafeCreate nOutput filler
   where (fptr, offset, n)      = toForeignPtr bs
@@ -113,3 +139,5 @@ unsafeFromHex bs = unsafeCreate nOutput filler
         put ptr x y = poke ptr binaryWord
           where binaryWord = (fromHexWord x `shiftL` 4) .|.
                              fromHexWord y
+
+--}
