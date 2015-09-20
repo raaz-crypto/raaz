@@ -11,7 +11,6 @@ module Raaz.Hash
          -- $computingHash$
          --
          sourceHash, hash, hashFile
-       , toHex, toByteString
          -- * Exposing individual hashes.
          -- $individualHashes$
        , module Raaz.Hash.Sha1
@@ -22,16 +21,14 @@ module Raaz.Hash
        , module Raaz.Hash.Blake256
        ) where
 
-import Raaz.Hash.Blake256 hiding ( toByteString, toHex )
-import Raaz.Hash.Sha1     hiding ( toByteString, toHex )
-import Raaz.Hash.Sha224   hiding ( toByteString, toHex )
-import Raaz.Hash.Sha256   hiding ( toByteString, toHex )
-import Raaz.Hash.Sha384   hiding ( toByteString, toHex )
-import Raaz.Hash.Sha512   hiding ( toByteString, toHex )
+import Raaz.Hash.Blake256
+import Raaz.Hash.Sha1
+import Raaz.Hash.Sha224
+import Raaz.Hash.Sha256
+import Raaz.Hash.Sha384
+import Raaz.Hash.Sha512
 
 import Raaz.Core.Primitives.Hash ( sourceHash, hash, hashFile )
-import Raaz.Core.Types           ( toByteString               )
-import Raaz.Core.Util.ByteString ( toHex                      )
 
 -- $computingHash$
 --

@@ -13,10 +13,8 @@ import           Data.Typeable       ( Typeable     )
 import           Foreign.Ptr         ( castPtr      )
 import           Foreign.Storable    ( Storable(..) )
 
-import           Raaz.Core.Classes
+import           Raaz.Core
 import           Raaz.Core.Parse.Applicative
-import           Raaz.Core.Primitives
-import           Raaz.Core.Types
 import           Raaz.Core.Write
 import           Raaz.Hash.Sha.Util
 
@@ -47,6 +45,8 @@ instance EndianStore SHA512 where
 
   store cptr (SHA512 v) = unsafeWrite writeSHA512 cptr
     where writeSHA512 = writeVector v
+
+instance Encode SHA512
 
 instance Primitive SHA512 where
   blockSize _ = BYTES 128

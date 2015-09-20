@@ -17,11 +17,8 @@ import           Data.Typeable       ( Typeable     )
 import           Foreign.Ptr         ( castPtr      )
 import           Foreign.Storable    ( Storable(..) )
 
-import           Raaz.Core.Memory
-import           Raaz.Core.Classes
+import           Raaz.Core
 import           Raaz.Core.Parse.Applicative
-import           Raaz.Core.Primitives
-import           Raaz.Core.Types
 import           Raaz.Core.Write
 
 import           Raaz.Hash.Blake.Util
@@ -60,6 +57,8 @@ instance EndianStore BLAKE256 where
   store cptr (BLAKE256 v) = unsafeWrite writeBLAKE256 cptr
     where writeBLAKE256 = writeVector v
 
+instance Encode BLAKE256
+
 instance Storable Salt where
   sizeOf    _ = 4 * sizeOf (undefined :: (BE Word32))
   alignment _ = alignment  (undefined :: (BE Word32))
@@ -82,6 +81,8 @@ instance EndianStore Salt where
 
   store cptr (Salt v) = unsafeWrite writeSalt cptr
     where writeSalt = writeVector v
+
+instance Encode Salt
 
 instance Primitive BLAKE256 where
   blockSize _ = BYTES 64
