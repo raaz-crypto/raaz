@@ -16,6 +16,7 @@ module Raaz.Hash.Sha384.Type
        ) where
 
 import           Control.Applicative ( (<$>) )
+import           Data.String
 import qualified Data.Vector.Unboxed                  as VU
 import           Data.Word
 import           Data.Typeable       ( Typeable     )
@@ -33,7 +34,7 @@ import           Raaz.Hash.Sha512.Type ( SHA512(..) )
 ----------------------------- SHA384 -------------------------------------------
 
 -- | The Sha384 hash value.
-newtype SHA384 = SHA384 (VU.Vector (BE Word64)) deriving ( Show, Typeable )
+newtype SHA384 = SHA384 (VU.Vector (BE Word64)) deriving Typeable
 
 -- | Timing independent equality testing for sha384
 instance Eq SHA384 where
@@ -59,6 +60,12 @@ instance EndianStore SHA384 where
     where writeSHA384 = writeVector v
 
 instance Encode SHA384
+
+instance IsString SHA384 where
+  fromString = fromBase16 . fromString
+
+instance Show SHA384 where
+  show = show . base16
 
 instance Primitive SHA384 where
   blockSize _ = BYTES 128

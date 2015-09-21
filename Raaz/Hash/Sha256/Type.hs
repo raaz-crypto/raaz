@@ -7,6 +7,7 @@ module Raaz.Hash.Sha256.Type
        ) where
 
 import           Control.Applicative ( (<$>) )
+import           Data.String
 import qualified Data.Vector.Unboxed as VU
 import           Data.Word
 import           Data.Typeable       ( Typeable     )
@@ -21,7 +22,7 @@ import           Raaz.Hash.Sha.Util
 ----------------------------- SHA256 -------------------------------------------
 
 -- | The Sha256 hash value. Used in implementation of Sha224 as well.
-data SHA256 = SHA256 (VU.Vector (BE Word32)) deriving ( Show, Typeable )
+data SHA256 = SHA256 (VU.Vector (BE Word32)) deriving Typeable
 
 -- | Timing independent equality testing for sha256
 instance Eq SHA256 where
@@ -47,6 +48,12 @@ instance EndianStore SHA256 where
     where writeSHA256 = writeVector v
 
 instance Encode SHA256
+
+instance IsString SHA256 where
+  fromString = fromBase16 . fromString
+
+instance Show SHA256 where
+  show = show . base16
 
 instance Primitive SHA256 where
   blockSize _ = BYTES 64

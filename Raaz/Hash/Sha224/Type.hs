@@ -16,6 +16,7 @@ module Raaz.Hash.Sha224.Type
        ) where
 
 import           Control.Applicative ( (<$>) )
+import           Data.String
 import qualified Data.Vector.Unboxed as VU
 import           Data.Word
 import           Data.Typeable       ( Typeable     )
@@ -33,7 +34,7 @@ import           Raaz.Hash.Sha256.Instance ()
 ----------------------------- SHA224 -------------------------------------------
 
 -- | Sha224 hash value which consist of 7 32bit words.
-data SHA224 = SHA224 (VU.Vector (BE Word32)) deriving ( Show, Typeable )
+data SHA224 = SHA224 (VU.Vector (BE Word32)) deriving Typeable
 
 -- | Timing independent equality testing for sha224
 instance Eq SHA224 where
@@ -59,6 +60,12 @@ instance EndianStore SHA224 where
     where writeSHA224 = writeVector v
 
 instance Encode SHA224
+
+instance IsString SHA224 where
+  fromString = fromBase16 . fromString
+
+instance Show SHA224 where
+  show = show . base16
 
 instance Primitive SHA224 where
   blockSize _ = BYTES 64
