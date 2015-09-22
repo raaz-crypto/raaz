@@ -12,48 +12,77 @@ import Generic.EndianStore
 import Raaz.Core.Types.Word
 import Raaz.Core.Encode
 
-import Raaz.Core
 
 msbFirst :: (Bits a, Integral a) => B.ByteString -> a
 msbFirst = B.foldl (\ x b -> shiftL x 8 + fromIntegral b) 0
+lsbFirst :: (Bits a, Integral a) => B.ByteString -> a
+lsbFirst = B.foldr (\ b x -> shiftL x 8 + fromIntegral b) 0
 
 
 spec :: Spec
-spec = do context "little endian word32" $ storeAndLoadSpec (undefined :: LE Word32)
-          context "little endian word64" $ storeAndLoadSpec (undefined :: LE Word64)
-          context "big endian word32"    $ storeAndLoadSpec (undefined :: BE Word32)
-          context "big ending word64"    $ storeAndLoadSpec (undefined :: BE Word64)
+spec = do
 
-          describe "decode . encode = id" $ do
-            prop "for LE Word32" $ \ (x :: LE Word32) -> decode (encode x) == x
-            prop "for LE Word64" $ \ (x :: LE Word64) -> decode (encode x) == x
-            prop "for BE Word32" $ \ (x :: BE Word32) -> decode (encode x) == x
-            prop "for BE Word32" $ \ (x :: BE Word64) -> decode (encode x) == x
+  describe "little and big endian encodings are opposites" $ do
 
-          context "Word32" $ do
+    prop "for 32-bit quantities" $ \ (x :: Word32) ->
+      encode (littleEndian x) `shouldBe` B.reverse (encode $ bigEndian x)
 
-            prop "size of encodings of little endian is 4" $
-              \ (w :: LE Word32) -> B.length (toByteString w) == 4
+    prop "for 64-bit quantities" $ \ (x :: Word64) ->
+      encode (littleEndian x) `shouldBe` B.reverse (encode $ bigEndian x)
 
-            prop "size of encodings of big endian is 4" $
-              \ (w :: BE Word32) -> B.length (toByteString w) == 4
 
-            prop "big endian encoding is MSB first" $
-              \ (w :: BE Word32) -> w == (msbFirst $ toByteString w)
+  describe "32-bit little endian" $ do
 
-            prop "little endian is reverse of big endian" $
-              \ (w :: Word32) -> (toByteString $ littleEndian w) == (B.reverse $ toByteString $ bigEndian w)
+    prop "store followed by load returns original value" $ \ (x :: LE Word32) ->
+      storeAndThenLoad x `shouldReturn` x
 
-          context "Word64" $ do
+    prop "size of encodings of is 4 bytes" $ \ (w :: LE Word32) ->
+      B.length (encode w) `shouldBe` 4
 
-            prop "size of encodings of little endian is 8" $
-              \ (w :: LE Word64) -> B.length (toByteString w) == 8
+    prop "encode in lsb first order" $ \ (x :: LE Word32) ->
+      lsbFirst (encode x) `shouldBe` x
 
-            prop "size of encodings of big endian is 8" $
-              \ (w :: BE Word64) -> B.length (toByteString w) == 8
+    prop "decode . encode = id" $ \ (x :: LE Word32) ->
+      decode (encode x) `shouldBe` x
 
-            prop "big endian encoding is MSB first" $
-              \ (w :: BE Word64) -> w == (msbFirst $ toByteString w)
+  describe "64-bit little endian" $ do
 
-            prop "little endian is reverse of big endian" $
-              \ (w :: Word64) -> (toByteString $ littleEndian w) == (B.reverse $ toByteString $ bigEndian w)
+    prop "store followed by load returns original value" $ \ (x :: LE Word64) ->
+      storeAndThenLoad x `shouldReturn` x
+
+    prop "size of encodings of is 8 bytes" $ \ (w :: LE Word64) ->
+      B.length (encode w) `shouldBe` 8
+
+    prop "encode in lsb first order" $ \ (x :: LE Word64) ->
+      lsbFirst (encode x) `shouldBe` x
+
+    prop "decode . encode = id" $ \ (x :: LE Word64) ->
+      decode (encode x) `shouldBe` x
+
+  describe "32-bit big endian" $ do
+
+    prop "store followed by load returns original value" $ \ (x :: BE Word32) ->
+      storeAndThenLoad x `shouldReturn` x
+
+    prop "size of encodings of is 4 bytes" $ \ (w :: BE Word32) ->
+      B.length (encode w) `shouldBe` 4
+
+    prop "encode in lsb first order" $ \ (x :: BE Word32) ->
+      msbFirst (encode x) `shouldBe` x
+
+    prop "decode . encode = id" $ \ (x :: BE Word32) ->
+      decode (encode x) `shouldBe` x
+
+  describe "64-bit big endian" $ do
+
+    prop "store followed by load returns original value" $ \ (x :: BE Word64) ->
+      storeAndThenLoad x `shouldReturn` x
+
+    prop "size of encodings of is 8 bytes" $ \ (w :: BE Word64) ->
+      B.length (encode w) `shouldBe` 8
+
+    prop "encode in lsb first order" $ \ (x :: BE Word64) ->
+      msbFirst (encode x) `shouldBe` x
+
+    prop "decode . encode = id" $ \ (x :: BE Word64) ->
+      decode (encode x) `shouldBe` x
