@@ -200,7 +200,7 @@ test-Suite spec
                , Generic.EndianStore
                , Raaz.Core.Types.WordSpec
                , Raaz.Core.Util.ByteStringSpec
-
+               , Raaz.Core.Encode.Base16Spec
   -- if os(linux)
   --    cc-options: -Wall -Werror -O3 -DRAAZ_HAVE_GCC
   -- else
