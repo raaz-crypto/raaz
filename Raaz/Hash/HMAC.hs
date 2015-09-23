@@ -10,7 +10,7 @@
 {-# LANGUAGE UndecidableInstances       #-}
 {-# LANGUAGE StandaloneDeriving         #-}
 
-module Raaz.Core.Primitives.HMAC
+module Raaz.Hash.HMAC
        ( HMAC(..)
        , HMACKey
        , hmacShortenKey
@@ -37,7 +37,7 @@ import qualified Raaz.Core.Write.Unsafe         as U
 import           Raaz.Core.Types
 import           Raaz.Core.Util.ByteString
 import           Raaz.Core.Util.Ptr
-
+import           Raaz.Core.Encode
 
 
 -- | The HMAC associated to a hash value. The HMAC type is essentially
@@ -51,12 +51,14 @@ newtype HMAC h = HMAC h deriving (Eq, Storable, EndianStore, Show)
 -- of the underlying hash.
 newtype HMACKey h = HMACKey ByteString deriving Show
 
+-- | Base16 representation of the string.
 instance Hash h => IsString (HMACKey h) where
   fromString str = key
     where getH :: Hash h1 => HMACKey h1 -> h1
           getH = undefined
           hsh  = getH key
           key  = HMACKey $ hmacShortenKey hsh $ fromString str
+          key  =
 
 instance Hash h => Storable (HMACKey h) where
 
@@ -68,6 +70,11 @@ instance Hash h => Storable (HMACKey h) where
                                                     (blockSize (undefined :: h))
 
   poke ptr (HMACKey bs) = U.runWrite (castPtr ptr) (U.writeByteString bs)
+
+instance Hash h => EndianStore (HMACKey h) where
+  store = poke . castPtr
+  load  = peek . castPtr
+
 
 
 instance Primitive h => Primitive (HMAC h) where
@@ -110,18 +117,12 @@ hmacShortenKey :: Hash h
                -> B.ByteString -- ^ the key.
                -> B.ByteString
 hmacShortenKey h key
-  | length key > blockSize h = toByteString (hash key `asTypeOf` h)
-  | otherwise                = key
-
--- | This function computes the padded key for for a given byteString.
--- We will assume that the key is of size at most the block size.
-hmacPad :: BYTES Int    -- ^ Block size
-        -> Word8        -- ^ The pad character
-        -> B.ByteString -- ^ the pad size
-        -> B.ByteString
-hmacPad sz pad key =  B.map (xor pad) key
-                              <> replicate extra pad
-  where extra = sz - length key
+  | keyLen > sz = padIt $ encode $ hash key `asTypeOf` h
+  | otherwise   = padIt key
+  where padIt k = k <> replicate padLen 0
+        sz      = blockSize h
+        keyLen  = length key
+        padLen  = sz - keyLen
 
 -- | Sets the given hash gadget for doing an hmac operation. for a given key and its pad character. The
 -- key is assumed of size at most the block size.
@@ -135,7 +136,7 @@ hmacSetGadget pad k@(HMACKey key) gad buf = withMemoryBuf buf $ \ _ cptr -> do
   unsafeNCopyToCryptoPtr sz paddedKey cptr
   apply gad 1 cptr
     where sz        = blockSize (keyHash k)
-          paddedKey = hmacPad sz pad key
+          paddedKey = B.map (xor pad) key
           keyHash :: HMACKey h -> h
           keyHash = undefined
 
