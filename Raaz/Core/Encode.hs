@@ -1,8 +1,6 @@
--- | This module exposes encoding of cryptographic data.
+-- | This module exposes routines to encode cryptographic data into.
 module Raaz.Core.Encode
-       ( Encode(..)
-       , module Raaz.Core.Encode.Base16
+       ( Encodable(..), Format(..)
        ) where
 
 import Raaz.Core.Encode.Internal
-import Raaz.Core.Encode.Base16

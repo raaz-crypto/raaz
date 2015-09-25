@@ -1,13 +1,10 @@
 -- | Base 16 or hexadecimal encoding of objects.
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-module Raaz.Core.Encode.Base16
-       ( Base16, base16, fromBase16, fromBase16Maybe
-       ) where
+module Raaz.Core.Encode.Base16( Base16 ) where
 
 import Data.Bits
 import Data.String
 
-import Data.Char (toLower)
 import Data.Maybe(fromMaybe)
 import Data.ByteString as B
 import Data.ByteString.Char8 as C8
@@ -17,37 +14,27 @@ import Data.ByteString.Unsafe(unsafeIndex)
 import Data.Word
 import Raaz.Core.Encode.Internal
 
--- | The base16 type
+-- | The base16 type.
 newtype Base16 = Base16 {unBase16 :: ByteString} deriving Eq
 
+-- Developers note: Internally base16 just stores the bytestring as
+-- is. The conversion happens when we do an encode and decode of
+-- actual base16.
+
+
 instance Show Base16 where
-  show = C8.unpack . unBase16
-
--- The internal field contains
-
-instance Encode Base16 where
-  encode = unBase16
-  decodeMaybe bs
-    | odd (B.length bs)   = Nothing
-    | isHexByteString bs  = Just $ Base16 $ C8.map toLower bs
-    | otherwise           = Nothing
-    where isHexByteString = B.foldr foldfn True
-          foldfn w sofar  = isHexWord w && sofar
+  show = C8.unpack . hex . unBase16
 
 instance IsString Base16 where
-  fromString = fromMaybe (error "bad base16 string") . decodeMaybe . fromString
+  fromString = Base16 . unsafeFromHex . fromString
 
--- | Base16 variant of `encode`
-base16 :: Encode a => a -> Base16
-base16 =  Base16 . hex . encode
 
--- | Base16 variant of `decode`.
-fromBase16 :: Encode a      => Base16 -> a
-fromBase16  = decode . unsafeFromHex . unBase16
+instance Format Base16 where
+  encodeByteString = Base16
+  {-# INLINE encodeByteString #-}
 
--- | Base16 variant of `decodeMaybe`.
-fromBase16Maybe :: Encode a => Base16 -> Maybe a
-fromBase16Maybe = decodeMaybe . unsafeFromHex . unBase16
+  decodeFormat     = unBase16
+  {-# INLINE decodeFormat #-}
 
 -- TODO: Since the encoding to base16 is usually used for user interaction
 -- we can afford to be slower here.
@@ -93,27 +80,22 @@ hexFast bs = unsafeCreate (2 * n) filler
 
 --}
 
-isHexWord :: Word8 -> Bool
-isHexWord x = between '0' '9' x || between 'a' 'f' x || between 'A' 'F' x
-{-# INLINE isHexWord #-}
-
-fromHexWord :: Word8 -> Word8
-fromHexWord x
-  | isDigit x          = x - c2w '0'
-  | between 'a' 'f' x  = 10 + (x - c2w 'a')
-  | between 'A' 'F' x  = 10 + (x - c2w 'A')
-  | otherwise          = -1
-{-# INLINE fromHexWord #-}
-
 
 -- | Converts hexadecimal bytestring to binary assuming that the input
---   bytestring is hexadecimal only.
+-- bytestring is hexadecimal only.
+
 unsafeFromHex :: ByteString -> ByteString
-unsafeFromHex bs = fst $ B.unfoldrN len gen 0
+unsafeFromHex bs | odd (B.length bs) = error "base16 encoding is always of even size"
+                 | otherwise         = fst $ B.unfoldrN len gen 0
   where len = B.length bs `quot` 2
         gen i = Just (shiftL w0 4 .|. w1, i + 1)
           where w0 = fromHexWord $ unsafeIndex bs (2 * i)
                 w1 = fromHexWord $ unsafeIndex bs (2 * i + 1)
+        fromHexWord x
+          | isDigit x          = x - c2w '0'
+          | between 'a' 'f' x  = 10 + (x - c2w 'a')
+          | between 'A' 'F' x  = 10 + (x - c2w 'A')
+          | otherwise          = error "bad base16 character"
 
 
 {--
