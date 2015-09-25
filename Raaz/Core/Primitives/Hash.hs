@@ -27,7 +27,7 @@ import           Raaz.Core.Memory
 import           Raaz.Core.Primitives
 import           Raaz.Core.Types
 import           Raaz.Core.Util.Ptr   (byteSize)
-
+import           Raaz.Core.Encode
 
 -- | Type class capturing a cryptographic hash. The important
 -- properties of a hash are
@@ -51,6 +51,7 @@ class ( SafePrimitive h
       , CryptoPrimitive h
       , Eq h
       , EndianStore h
+      , Encodable h
       ) => Hash h where
   -- | Get the intial key for the hash.
   defaultKey :: h -> Key h
