@@ -5,7 +5,6 @@ module Raaz.Core.Encode.Base16( Base16 ) where
 import Data.Bits
 import Data.String
 
-import Data.Maybe(fromMaybe)
 import Data.ByteString as B
 import Data.ByteString.Char8 as C8
 import Data.ByteString.Internal (c2w )

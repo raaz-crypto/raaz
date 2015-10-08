@@ -52,14 +52,14 @@ class Encodable a where
   unsafeFromByteString  :: ByteString  -> a
 
   default toByteString :: EndianStore a => a -> ByteString
-  toByteString w = unsafeCreate (sizeOf w) putit
+  toByteString w    = unsafeCreate (sizeOf w) putit
     where putit ptr = store (castPtr ptr) w
 
 
   default fromByteString :: EndianStore a => ByteString -> Maybe a
-  fromByteString bs | byteSize proxy == length bs = Just w
-                         | otherwise                   = Nothing
-         where w = unsafePerformIO $ withByteString bs (load . castPtr)
+  fromByteString bs  | byteSize proxy == length bs = Just w
+                     | otherwise                   = Nothing
+         where w     = unsafePerformIO $ withByteString bs (load . castPtr)
                proxy = undefined `asTypeOf` w
 
   unsafeFromByteString = fromMaybe (error "fromByteString error") . fromByteString
@@ -71,6 +71,19 @@ instance Encodable ByteString where
   {-# INLINE fromByteString #-}
   unsafeFromByteString = id
   {-# INLINE unsafeFromByteString #-}
+
+instance Encodable a => Encodable (BITS a) where
+  toByteString (BITS a) = toByteString a
+  fromByteString        = fmap BITS . fromByteString
+  unsafeFromByteString  = BITS      . unsafeFromByteString
+
+
+
+instance Encodable a => Encodable (BYTES a) where
+  toByteString         (BYTES a) = toByteString a
+  fromByteString        = fmap BYTES . fromByteString
+  unsafeFromByteString  = BYTES      . unsafeFromByteString
+
 
 -- | Encode in a given format.
 encode :: (Encodable a, Format fmt) => a -> fmt
