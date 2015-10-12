@@ -47,13 +47,13 @@ instance EndianStore SHA256 where
   store cptr (SHA256 v) = unsafeWrite writeSHA256 cptr
     where writeSHA256 = writeVector v
 
-instance Encode SHA256
+instance Encodable SHA256
 
 instance IsString SHA256 where
-  fromString = fromBase16 . fromString
+  fromString = (unsafeDecode :: Base16 -> SHA256) . fromString
 
 instance Show SHA256 where
-  show = show . base16
+  show =  show . (encode :: SHA256 -> Base16)
 
 instance Primitive SHA256 where
   blockSize _ = BYTES 64

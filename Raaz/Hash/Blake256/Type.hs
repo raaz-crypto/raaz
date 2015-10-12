@@ -58,13 +58,14 @@ instance EndianStore BLAKE256 where
   store cptr (BLAKE256 v) = unsafeWrite writeBLAKE256 cptr
     where writeBLAKE256 = writeVector v
 
-instance Encode BLAKE256
+
+instance Encodable BLAKE256
 
 instance IsString BLAKE256 where
-  fromString = fromBase16 . fromString
+  fromString = (unsafeDecode :: Base16 -> BLAKE256) . fromString
 
 instance Show BLAKE256 where
-  show = show . base16
+  show =  show . (encode :: BLAKE256 -> Base16)
 
 instance Storable Salt where
   sizeOf    _ = 4 * sizeOf (undefined :: (BE Word32))
@@ -89,13 +90,14 @@ instance EndianStore Salt where
   store cptr (Salt v) = unsafeWrite writeSalt cptr
     where writeSalt = writeVector v
 
-instance Encode Salt
+instance Encodable Salt
 
 instance IsString Salt where
-  fromString = fromBase16 . fromString
+  fromString = (unsafeDecode :: Base16 -> Salt) . fromString
 
 instance Show Salt where
-  show = show . base16
+  show =  show . (encode :: Salt -> Base16)
+
 
 instance Primitive BLAKE256 where
   blockSize _ = BYTES 64
