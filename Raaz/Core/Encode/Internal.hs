@@ -6,7 +6,6 @@
 module Raaz.Core.Encode.Internal
        ( Encodable(..), Format(..)
        , encode, decode, unsafeDecode
-       , between, isDigit
        ) where
 
 
@@ -25,20 +24,6 @@ import Raaz.Core.Classes
 import Raaz.Core.Util.ByteString(length, withByteString)
 import Raaz.Core.Util.Ptr(byteSize)
 
--- | A binary encoding format is something for which there is a 1:1
--- correspondence with bytestrings. We also insist that it is an
--- instance of `IsString`, so that it can be easily included in source
--- code, and `Show`, so that it can be easily printed out.
-class (IsString fmt, Show fmt) => Format fmt where
-  encodeByteString :: ByteString -> fmt
-  decodeFormat     :: fmt        -> ByteString
-
--- | Bytestring itself is an encoding format (namely binary format).
-instance Format ByteString where
-  encodeByteString = id
-  {-# INLINE encodeByteString #-}
-  decodeFormat     = id
-  {-# INLINE decodeFormat     #-}
 
 -- | Stuff that can be encoded into byte strings.
 class Encodable a where
@@ -85,6 +70,22 @@ instance Encodable a => Encodable (BYTES a) where
   unsafeFromByteString  = BYTES      . unsafeFromByteString
 
 
+-- | A binary encoding format is something for which there is a 1:1
+-- correspondence with bytestrings. We also insist that it is an
+-- instance of `IsString`, so that it can be easily included in source
+-- code, and `Show`, so that it can be easily printed out.
+class (IsString fmt, Show fmt, Encodable fmt) => Format fmt where
+  encodeByteString :: ByteString -> fmt
+  decodeFormat     :: fmt        -> ByteString
+
+-- | Bytestring itself is an encoding format (namely binary format).
+instance Format ByteString where
+  encodeByteString = id
+  {-# INLINE encodeByteString #-}
+  decodeFormat     = id
+  {-# INLINE decodeFormat     #-}
+
+
 -- | Encode in a given format.
 encode :: (Encodable a, Format fmt) => a -> fmt
 encode = encodeByteString . toByteString
@@ -97,14 +98,3 @@ decode = fromByteString . decodeFormat
 -- | The unsafe version of `decodeMaybe`.
 unsafeDecode :: (Format fmt, Encodable a) => fmt -> a
 unsafeDecode = unsafeFromByteString . decodeFormat
-
-
--- | Check whether a given word8 is in a given range of characters.
-between :: Char -> Char -> Word8 -> Bool
-between low high = \ x -> x >= c2w low && x <= c2w high
-{-# INLINE between #-}
-
--- | Check whether it is a valid digit.
-isDigit :: Word8 -> Bool
-{-# INLINE isDigit #-}
-isDigit = between '0' '9'
