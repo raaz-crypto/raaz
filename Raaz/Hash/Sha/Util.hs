@@ -11,9 +11,10 @@ import Data.Word
 import Prelude              hiding  ( length, replicate )
 
 
-import Raaz.Core.Primitives
-import Raaz.Core.Types
-import Raaz.Core.Util.ByteString ( replicate )
+import Raaz.Core
+-- import Raaz.Core.Primitives
+-- import Raaz.Core.Types
+-- import Raaz.Core.Util.ByteString ( replicate )
 
 -- The padding used by sha family of hashes is as follows
 --
