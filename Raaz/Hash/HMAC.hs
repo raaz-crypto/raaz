@@ -13,7 +13,7 @@
 module Raaz.Hash.HMAC
        ( HMAC(..)
        , HMACKey
-       , hmacShortenKey
+       , hmacAdjustKey
        , hmac, hmac'
        ) where
 
@@ -21,23 +21,17 @@ import           Control.Applicative
 import           Data.Bits                 (xor)
 import           Data.ByteString.Char8     (ByteString)
 import qualified Data.ByteString           as B
-import           Data.Monoid               ((<>))
+import           Data.Monoid               ((<>), Monoid)
 import           Data.String
 import           Data.Word                 (Word8)
 import           Foreign.Storable          (Storable(..))
 import           Foreign.Ptr
 import           Prelude                   hiding (length, replicate)
-import           Raaz.Core.ByteSource
-import           Raaz.Core.Memory
-import           Raaz.Core.Primitives
-import           Raaz.Core.Primitives.Symmetric
-import           Raaz.Core.Primitives.Hash
+import           Raaz.Core
+
+
 import qualified Raaz.Core.Parse.Unsafe         as U
 import qualified Raaz.Core.Write.Unsafe         as U
-import           Raaz.Core.Types
-import           Raaz.Core.Util.ByteString
-import           Raaz.Core.Util.Ptr
-import           Raaz.Core.Encode
 
 
 -- | The HMAC associated to a hash value. The HMAC type is essentially
@@ -45,43 +39,18 @@ import           Raaz.Core.Encode
 -- `Eq` instance for HMAC is essentially the `Eq` instance for the
 -- underlying hash. It is safe against timing attack provided the
 -- underlying hash comparison is safe under timing attack.
-newtype HMAC h = HMAC h deriving (Eq, Storable, EndianStore, Show)
+newtype HMAC h = HMAC {unHMAC :: h} deriving (Eq, Storable, EndianStore, Encodable)
 
--- | HMAC key which is a wrapper around `ByteString` of 1 block size
--- of the underlying hash.
-newtype HMACKey h = HMACKey ByteString deriving Show
+instance IsString h => IsString (HMAC h) where
+  fromString = HMAC . fromString
 
--- | Base16 representation of the string.
-instance Hash h => IsString (HMACKey h) where
-  fromString str = key
-    where getH :: Hash h1 => HMACKey h1 -> h1
-          getH = undefined
-          hsh  = getH key
-          key  = HMACKey $ hmacShortenKey hsh $ fromString str
-          key  =
-
-instance Hash h => Storable (HMACKey h) where
-
-  sizeOf _    = fromIntegral $ blockSize (undefined :: h)
-
-  alignment _  = cryptoAlignment
-
-  peek ptr    = U.runParser (castPtr ptr) $ HMACKey <$> U.parseByteString
-                                                    (blockSize (undefined :: h))
-
-  poke ptr (HMACKey bs) = U.runWrite (castPtr ptr) (U.writeByteString bs)
-
-instance Hash h => EndianStore (HMACKey h) where
-  store = poke . castPtr
-  load  = peek . castPtr
-
-
+instance Show h => Show (HMAC h) where
+  show  = show . unHMAC
 
 instance Primitive h => Primitive (HMAC h) where
-
   -- | The block size is the same as the block size of the underlying
   -- hash.
-  blockSize         = blockSize . getHash
+  blockSize _      = blockSize (undefined :: h)
 
   type Key (HMAC h) = HMACKey h
 
@@ -95,50 +64,21 @@ instance HasPadding h => HasPadding (HMAC h) where
   -- inner pad that is already hashed before the actual data is
   -- processed.
 
-  padLength hmc bits = padLength h bits'
-    where h     = getHash hmc
-          bits' = bits + inBits (blocksOf 1 hmc)
+  padLength hmc bits = padLength (undefined :: h) bits'
+    where bits' = bits + inBits (blocksOf 1 hmc)
 
-  padding hmc bits = padding h bits'
-    where h     = getHash hmc
-          bits' = bits + inBits (blocksOf 1 hmc)
+  padding hmc bits = padding (undefined :: h) bits'
+    where bits'    = bits + inBits (blocksOf 1 hmc)
 
-  unsafePad hmc bits = unsafePad h bits'
-    where h     = getHash hmc
-          bits' = bits + inBits (blocksOf 1 hmc)
+  unsafePad hmc bits = unsafePad (undefined :: h) bits'
+    where bits'      = bits + inBits (blocksOf 1 hmc)
 
   maxAdditionalBlocks  = toEnum . fromEnum
                        . maxAdditionalBlocks
                        . getHash
 
--- | Shorten a key that is longer than the block size.
-hmacShortenKey :: Hash h
-               => h            -- ^ underlying hash
-               -> B.ByteString -- ^ the key.
-               -> B.ByteString
-hmacShortenKey h key
-  | keyLen > sz = padIt $ encode $ hash key `asTypeOf` h
-  | otherwise   = padIt key
-  where padIt k = k <> replicate padLen 0
-        sz      = blockSize h
-        keyLen  = length key
-        padLen  = sz - keyLen
 
--- | Sets the given hash gadget for doing an hmac operation. for a given key and its pad character. The
--- key is assumed of size at most the block size.
-hmacSetGadget :: (Hash h, Gadget g, PrimitiveOf g ~ h)
-              => Word8         -- ^ pad character
-              -> HMACKey h     -- ^ key
-              -> g             -- ^ Hash Gadget
-              -> HashMemoryBuf h
-              -> IO ()
-hmacSetGadget pad k@(HMACKey key) gad buf = withMemoryBuf buf $ \ _ cptr -> do
-  unsafeNCopyToCryptoPtr sz paddedKey cptr
-  apply gad 1 cptr
-    where sz        = blockSize (keyHash k)
-          paddedKey = B.map (xor pad) key
-          keyHash :: HMACKey h -> h
-          keyHash = undefined
+
 
 ----------------------------- HMAC Gadget --------------------------------------
 
@@ -197,6 +137,22 @@ instance ( Gadget g
   finalizeMemory (HMACGadget _ og _) = (HMAC . hashDigest) <$> finalizeMemory og
 
 
+-- | Sets the given hash gadget for doing an hmac operation. For a
+-- given key and its pad character. The key is assumed of size at most
+-- the block size.
+hmacSetGadget :: (Hash h, Gadget g, h ~ PrimitiveOf g)
+              => Word8         -- ^ pad character
+              -> HMACKey h     -- ^ key
+              -> g             -- ^ Hash Gadget
+              -> HashMemoryBuf h
+              -> IO ()
+hmacSetGadget pad key gad buf = withMemoryBuf buf $ \ _ cptr -> do
+  unsafeNCopyToCryptoPtr sz paddedKey cptr
+  apply gad 1 cptr
+    where sz        = blockSize $ getHMAC key
+          paddedKey = B.map (xor pad) $ hmacAdjustKey key
+          getHMAC   :: HMACKey hsh -> HMAC hsh
+          getHMAC _ = undefined
 ----------------- PaddableGadget instance  -------------------------------------
 
 -- The padding strategy of HMAC is the same as that of the underlying
@@ -291,9 +247,70 @@ hmac' = authTag'
 
 --}
 
+
+
+
+--------------------------- The HMAC Key -----------------------------
+
+-- | The HMAC key type. The HMAC keys are usually of size at most the
+-- block size of the hash. The HMAC standard however allows using keys
+-- arbitrary size. However, using smaller keys can compromise
+-- security.
+--
+-- == A note on `Show` and `IsString` instances of keys.
+--
+-- As any other cryptographic type HMAC keys also have a `IsString`
+-- and `Show` instance which is essentially the key expressed in
+-- base16.  Keys larger than the block size of the underlying hashes
+-- are shortened by applying the appropriate hash. As a result the
+-- `show` and `fromString` need not be inverses of each other.
+
+newtype HMACKey h = HMACKey { unKey :: ByteString } deriving Monoid
+
+
+instance Hash h => Storable (HMACKey h) where
+
+  sizeOf    _  = fromIntegral $ blockSize (undefined :: h)
+
+  alignment _  = cryptoAlignment
+
+  peek ptr     = U.runParser (castPtr ptr) $ HMACKey <$> U.parseByteString (blockSize (undefined :: h))
+
+  poke ptr     = U.runWrite (castPtr ptr) . U.writeByteString . hmacAdjustKey
+
+
+-- | Shorten/Lengthen an HMACKey to fill the block.
+hmacAdjustKey :: Hash h
+              => HMACKey h -- ^ the key.
+              -> B.ByteString
+hmacAdjustKey key = padIt $ trimedKey
+  where keyStr      = unKey key
+        trimedKey   = if length keyStr > sz then toByteString $ hash keyStr `asTypeOf` (hashProxy key)
+                      else keyStr
+        padIt k     = k <> replicate (sz - length k) 0
+        sz          = blockSize $ hashProxy key
+        hashProxy   :: HMACKey h -> h
+        hashProxy _ = undefined
+
+
+instance Hash h => EndianStore (HMACKey h) where
+  store = poke . castPtr
+  load  = peek . castPtr
+
+instance Hash h => Encodable (HMACKey h)
+
+-- | Base16 representation of the string.
+instance IsString (HMACKey h) where
+  fromString = HMACKey . (decodeFormat :: Base16 -> ByteString) . fromString
+
+instance Show (HMACKey h) where
+  show = show . (encodeByteString :: ByteString -> Base16) . unKey
+
+------------------------------- Some helper functions ----------------------------------
+
 --- | These functions are used to keep type checker happy.
 getHash :: HMAC h -> h
 getHash _ = undefined
 
 getHashGadget :: HMACGadget g -> g
-getHashGadget (HMACGadget g _ _) = g
+getHashGadget _ = undefined
