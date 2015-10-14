@@ -2,12 +2,13 @@
 
 module Generic.Hash where
 
-
-import Data.ByteString
+import Data.ByteString hiding (replicate)
+import Data.Monoid
 import Test.Hspec
 
 import Generic.Utils
-import Raaz.Core
+import Raaz.Core hiding ( replicate)
+import Raaz.Hash
 
 --
 -- For unit tests for hash we have the following idiom
@@ -24,5 +25,24 @@ hashesTo str h = it msg (hash str `shouldBe` h)
   where msg   = unwords [ "hashes"
                         , shortened $ show str
                         , "to"
-                        , shortened $ show $ (encode h :: Base16)
+                        , shortened $ show h
                         ]
+
+withKey :: Hash h => HMACKey h -> (HMACKey h -> Spec) -> Spec
+withKey key hmsto = hmsto key
+
+hmacsTo :: ( Hash h, Show h)
+        => ByteString
+        -> HMAC h
+        -> HMACKey h
+        -> Spec
+hmacsTo str hm key = it mesg $ hmac key str `shouldBe` hm
+  where mesg       = unwords [ "with key", shortened $ show key
+                             ,  shortened $ show str
+                             ,  "hmacs to"
+                             ,  shortened $ show hm
+                             ]
+
+
+repeated :: Monoid m => m -> Int -> m
+repeated m n = mconcat $ replicate n m
