@@ -7,7 +7,7 @@ Some utility function for byte strings.
 {-# LANGUAGE FlexibleContexts #-}
 module Raaz.Core.Util.ByteString
        ( length, replicate
-       , fromByteString, fromByteStringStorable, vectorFromByteString
+       , fromByteStringStorable
        , createFrom
        , withByteString
        , unsafeCopyToCryptoPtr
@@ -74,21 +74,6 @@ unsafeNCopyToCryptoPtr n bs cptr = withForeignPtr fptr $
 withByteString :: ByteString -> (CryptoPtr -> IO a) -> IO a
 withByteString bs f = withForeignPtr fptr (f . flip plusPtr off . castPtr)
   where (fptr, off, _) = toForeignPtr bs
-
--- | Get the value from the bytestring using `load`.
-fromByteString :: EndianStore k => ByteString -> k
-fromByteString src = unsafePerformIO $ withByteString src (load . castPtr)
-
--- | Get a vector values from a byte string. This is not very fast,
--- used mainly for defining IsString instances.
-vectorFromByteString :: (EndianStore a, G.Vector v a) => ByteString -> v a
-vectorFromByteString str = vec
-  where vec = G.fromList $ go str
-        go bs | length bs >= sz = fromByteString bs : go (B.drop (fromIntegral sz) bs)
-              | otherwise       = []
-        undefA :: (EndianStore a, G.Vector v a) => v a -> a
-        undefA _ = undefined
-        sz       = byteSize $ undefA vec
 
 -- | Get the value from the bytestring using `peek`.
 fromByteStringStorable :: Storable k => ByteString -> k

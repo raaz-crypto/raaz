@@ -47,13 +47,14 @@ instance EndianStore SHA512 where
   store cptr (SHA512 v) = unsafeWrite writeSHA512 cptr
     where writeSHA512 = writeVector v
 
-instance Encode SHA512
+
+instance Encodable SHA512
 
 instance IsString SHA512 where
-  fromString = fromBase16 . fromString
+  fromString = (unsafeDecode :: Base16 -> SHA512) . fromString
 
 instance Show SHA512 where
-  show = show . base16
+  show =  show . (encode :: SHA512 -> Base16)
 
 instance Primitive SHA512 where
   blockSize _ = BYTES 128

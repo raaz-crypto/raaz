@@ -16,7 +16,7 @@ import Raaz.Core
 -- where y1 is the hexadecimal encoding of the hash of x2.
 --
 
-hashesTo :: (Hash h, Encode h, Show h)
+hashesTo :: (Hash h, Encodable h, Show h)
          => ByteString
          -> h
          -> Spec
@@ -24,5 +24,5 @@ hashesTo str h = it msg (hash str `shouldBe` h)
   where msg   = unwords [ "hashes"
                         , shortened $ show str
                         , "to"
-                        , shortened $ show $ base16 h
+                        , shortened $ show $ (encode h :: Base16)
                         ]

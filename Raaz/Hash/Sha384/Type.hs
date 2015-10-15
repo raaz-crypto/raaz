@@ -59,13 +59,14 @@ instance EndianStore SHA384 where
   store cptr (SHA384 v) = unsafeWrite writeSHA384 cptr
     where writeSHA384 = writeVector v
 
-instance Encode SHA384
+
+instance Encodable SHA384
 
 instance IsString SHA384 where
-  fromString = fromBase16 . fromString
+  fromString = (unsafeDecode :: Base16 -> SHA384) . fromString
 
 instance Show SHA384 where
-  show = show . base16
+  show =  show . (encode :: SHA384 -> Base16)
 
 instance Primitive SHA384 where
   blockSize _ = BYTES 128

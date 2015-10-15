@@ -26,7 +26,7 @@ module Raaz.Core.Classes
 
          -- ** Endian safe loading and storing.
          -- $endianSafe$
-         EndianStore(..), toByteString
+         EndianStore(..)
 
          -- ** Type safe lengths
          -- $length$
@@ -47,8 +47,6 @@ module Raaz.Core.Classes
        ) where
 
 import Data.Bits
-import Data.ByteString          (ByteString)
-import Data.ByteString.Internal (unsafeCreate)
 import Data.Typeable            (Typeable, typeOf)
 import qualified Data.Vector.Generic as G
 import Data.Word
@@ -88,12 +86,6 @@ class Storable w => EndianStore w where
 
   -- | Load the value from the location pointed by the pointer.
   load  :: CryptoPtr -> IO w
-
--- | Generate a bytestring representation of the object.
-toByteString :: EndianStore w => w -> ByteString
-toByteString w = unsafeCreate (sizeOf w) putit
-      where putit ptr = store (castPtr ptr) w
-
 
 -- $timingsafe$
 --

@@ -25,10 +25,10 @@ spec = do
   describe "little and big endian encodings are opposites" $ do
 
     prop "for 32-bit quantities" $ \ (x :: Word32) ->
-      encode (littleEndian x) `shouldBe` B.reverse (encode $ bigEndian x)
+      toByteString (littleEndian x) `shouldBe` B.reverse (toByteString $ bigEndian x)
 
     prop "for 64-bit quantities" $ \ (x :: Word64) ->
-      encode (littleEndian x) `shouldBe` B.reverse (encode $ bigEndian x)
+      toByteString (littleEndian x) `shouldBe` B.reverse (toByteString $ bigEndian x)
 
 
   describe "32-bit little endian" $ do
@@ -37,13 +37,13 @@ spec = do
       storeAndThenLoad x `shouldReturn` x
 
     prop "size of encodings of is 4 bytes" $ \ (w :: LE Word32) ->
-      B.length (encode w) `shouldBe` 4
+      B.length (toByteString w) `shouldBe` 4
 
-    prop "encode in lsb first order" $ \ (x :: LE Word32) ->
-      lsbFirst (encode x) `shouldBe` x
+    prop "toByteString in lsb first order" $ \ (x :: LE Word32) ->
+      lsbFirst (toByteString x) `shouldBe` x
 
-    prop "decode . encode = id" $ \ (x :: LE Word32) ->
-      decode (encode x) `shouldBe` x
+    prop "unsafeFromByteString . toByteString = id" $ \ (x :: LE Word32) ->
+      unsafeFromByteString (toByteString x) `shouldBe` x
 
   describe "64-bit little endian" $ do
 
@@ -51,13 +51,13 @@ spec = do
       storeAndThenLoad x `shouldReturn` x
 
     prop "size of encodings of is 8 bytes" $ \ (w :: LE Word64) ->
-      B.length (encode w) `shouldBe` 8
+      B.length (toByteString w) `shouldBe` 8
 
-    prop "encode in lsb first order" $ \ (x :: LE Word64) ->
-      lsbFirst (encode x) `shouldBe` x
+    prop "toByteString in lsb first order" $ \ (x :: LE Word64) ->
+      lsbFirst (toByteString x) `shouldBe` x
 
-    prop "decode . encode = id" $ \ (x :: LE Word64) ->
-      decode (encode x) `shouldBe` x
+    prop "unsafeFromByteString . toByteString = id" $ \ (x :: LE Word64) ->
+      unsafeFromByteString (toByteString x) `shouldBe` x
 
   describe "32-bit big endian" $ do
 
@@ -65,13 +65,13 @@ spec = do
       storeAndThenLoad x `shouldReturn` x
 
     prop "size of encodings of is 4 bytes" $ \ (w :: BE Word32) ->
-      B.length (encode w) `shouldBe` 4
+      B.length (toByteString w) `shouldBe` 4
 
-    prop "encode in lsb first order" $ \ (x :: BE Word32) ->
-      msbFirst (encode x) `shouldBe` x
+    prop "toByteString in lsb first order" $ \ (x :: BE Word32) ->
+      msbFirst (toByteString x) `shouldBe` x
 
-    prop "decode . encode = id" $ \ (x :: BE Word32) ->
-      decode (encode x) `shouldBe` x
+    prop "unsafeFromByteString . toByteString = id" $ \ (x :: BE Word32) ->
+      unsafeFromByteString (toByteString x) `shouldBe` x
 
   describe "64-bit big endian" $ do
 
@@ -79,10 +79,10 @@ spec = do
       storeAndThenLoad x `shouldReturn` x
 
     prop "size of encodings of is 8 bytes" $ \ (w :: BE Word64) ->
-      B.length (encode w) `shouldBe` 8
+      B.length (toByteString w) `shouldBe` 8
 
-    prop "encode in lsb first order" $ \ (x :: BE Word64) ->
-      msbFirst (encode x) `shouldBe` x
+    prop "toByteString in lsb first order" $ \ (x :: BE Word64) ->
+      msbFirst (toByteString x) `shouldBe` x
 
-    prop "decode . encode = id" $ \ (x :: BE Word64) ->
-      decode (encode x) `shouldBe` x
+    prop "unsafeFromByteString . toByteString = id" $ \ (x :: BE Word64) ->
+      unsafeFromByteString (toByteString x) `shouldBe` x
