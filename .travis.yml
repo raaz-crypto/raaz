@@ -12,15 +12,14 @@ addons:
       - ghc-7.8.4
 
 fast_finish: true
-
+# To notify immediately about it when a job of a build fails.
 env:
   - STACKVER=lts-2.13 GHCVER=7.8.4 CABALVER=1.18
   - HLINT="yes"
 
-allow_failures:
-  - env: HLINT="yes"
-  # To notify immediately about it when a job of a build fails.
-
+matrix:
+  allow_failures:
+    - env: HLINT="yes"
 
 before_install:
  - if [ "$HLINT" =="yes" ]; then
