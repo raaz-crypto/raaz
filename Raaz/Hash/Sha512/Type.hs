@@ -7,23 +7,22 @@ module Raaz.Hash.Sha512.Type
        ) where
 
 import           Control.Applicative ( (<$>) )
+import           Data.String
 import qualified Data.Vector.Unboxed                  as VU
 import           Data.Word
 import           Data.Typeable       ( Typeable     )
 import           Foreign.Ptr         ( castPtr      )
 import           Foreign.Storable    ( Storable(..) )
 
-import           Raaz.Core.Classes
+import           Raaz.Core
 import           Raaz.Core.Parse.Applicative
-import           Raaz.Core.Primitives
-import           Raaz.Core.Types
 import           Raaz.Core.Write
 import           Raaz.Hash.Sha.Util
 
 ----------------------------- SHA512 -------------------------------------------
 
 -- | The Sha512 hash value. Used in implementation of Sha384 as well.
-newtype SHA512 = SHA512 (VU.Vector (BE Word64)) deriving ( Show, Typeable )
+newtype SHA512 = SHA512 (VU.Vector (BE Word64)) deriving Typeable
 
 -- | Timing independent equality testing for sha512
 instance Eq SHA512 where
@@ -47,6 +46,14 @@ instance EndianStore SHA512 where
 
   store cptr (SHA512 v) = unsafeWrite writeSHA512 cptr
     where writeSHA512 = writeVector v
+
+instance Encode SHA512
+
+instance IsString SHA512 where
+  fromString = fromBase16 . fromString
+
+instance Show SHA512 where
+  show = show . base16
 
 instance Primitive SHA512 where
   blockSize _ = BYTES 128

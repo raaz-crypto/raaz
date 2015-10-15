@@ -8,7 +8,6 @@ module Raaz.Hash.Sha384
        ( SHA384, sha384
        , sha384File, sourceSha384
        -- * Encoding as binary/hexadecimal
-       , toByteString, toHex
        ) where
 
 import qualified Data.ByteString as B
@@ -16,8 +15,6 @@ import qualified Data.ByteString.Lazy as L
 
 import Raaz.Core.ByteSource
 import Raaz.Core.Primitives.Hash ( sourceHash, hash, hashFile )
-import Raaz.Core.Types           ( toByteString               )
-import Raaz.Core.Util.ByteString ( toHex                      )
 
 import Raaz.Hash.Sha384.Type     ( SHA384 )
 import Raaz.Hash.Sha384.Instance (        )

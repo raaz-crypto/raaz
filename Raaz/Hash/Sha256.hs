@@ -8,7 +8,6 @@ module Raaz.Hash.Sha256
        ( SHA256, sha256
        , sha256File, sourceSha256
        -- * Encoding as binary/hexadecimal
-       , toByteString, toHex
        ) where
 
 import qualified Data.ByteString as B
@@ -16,9 +15,6 @@ import qualified Data.ByteString.Lazy as L
 
 import Raaz.Core.ByteSource
 import Raaz.Core.Primitives.Hash ( sourceHash, hash, hashFile )
-import Raaz.Core.Types           ( toByteString               )
-import Raaz.Core.Util.ByteString ( toHex                      )
-
 import Raaz.Hash.Sha256.Type     ( SHA256 )
 import Raaz.Hash.Sha256.Instance (        )
 

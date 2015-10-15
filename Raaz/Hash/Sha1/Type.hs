@@ -16,21 +16,20 @@ module Raaz.Hash.Sha1.Type
        ) where
 
 import           Control.Applicative ( (<$>) )
+import           Data.String
 import qualified Data.Vector.Unboxed                  as VU
 import           Data.Word
 import           Data.Typeable       ( Typeable     )
 import           Foreign.Ptr         ( castPtr      )
 import           Foreign.Storable    ( Storable(..) )
 
-import           Raaz.Core.Classes
+import           Raaz.Core
 import           Raaz.Core.Parse.Applicative
-import           Raaz.Core.Primitives
-import           Raaz.Core.Types
 import           Raaz.Core.Write
 import           Raaz.Hash.Sha.Util
 
 -- | The SHA1 hash value.
-newtype SHA1 = SHA1 (VU.Vector (BE Word32)) deriving ( Show, Typeable )
+newtype SHA1 = SHA1 (VU.Vector (BE Word32)) deriving Typeable
 
 -- | Timing independent equality testing.
 instance Eq SHA1 where
@@ -53,6 +52,14 @@ instance EndianStore SHA1 where
 
   store cptr (SHA1 v) = unsafeWrite writeSHA1 cptr
     where writeSHA1 = writeVector v
+
+instance Encode SHA1
+
+instance IsString SHA1 where
+  fromString = fromBase16 . fromString
+
+instance Show SHA1 where
+  show = show . base16
 
 instance Primitive SHA1 where
   blockSize _ = BYTES 64

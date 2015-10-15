@@ -11,17 +11,15 @@ module Raaz.Hash.Blake256.Type
        ) where
 
 import           Control.Applicative ( (<$>) )
+import           Data.String
 import qualified Data.Vector.Unboxed                  as VU
 import           Data.Word
 import           Data.Typeable       ( Typeable     )
 import           Foreign.Ptr         ( castPtr      )
 import           Foreign.Storable    ( Storable(..) )
 
-import           Raaz.Core.Memory
-import           Raaz.Core.Classes
+import           Raaz.Core
 import           Raaz.Core.Parse.Applicative
-import           Raaz.Core.Primitives
-import           Raaz.Core.Types
 import           Raaz.Core.Write
 
 import           Raaz.Hash.Blake.Util
@@ -29,10 +27,10 @@ import           Raaz.Hash.Blake.Util
 ------------------------------------BLAKE256----------------------------------
 
 -- | The Blake256 hash value.
-data BLAKE256 = BLAKE256 (VU.Vector (BE Word32)) deriving ( Show, Typeable )
+data BLAKE256 = BLAKE256 (VU.Vector (BE Word32)) deriving Typeable
 
 -- | The Blake256 salt value.
-data Salt = Salt (VU.Vector (BE Word32)) deriving ( Show, Typeable )
+data Salt = Salt (VU.Vector (BE Word32)) deriving Typeable
 
 -- | Timing independent equality testing for Blake256
 instance Eq BLAKE256 where
@@ -60,6 +58,14 @@ instance EndianStore BLAKE256 where
   store cptr (BLAKE256 v) = unsafeWrite writeBLAKE256 cptr
     where writeBLAKE256 = writeVector v
 
+instance Encode BLAKE256
+
+instance IsString BLAKE256 where
+  fromString = fromBase16 . fromString
+
+instance Show BLAKE256 where
+  show = show . base16
+
 instance Storable Salt where
   sizeOf    _ = 4 * sizeOf (undefined :: (BE Word32))
   alignment _ = alignment  (undefined :: (BE Word32))
@@ -82,6 +88,14 @@ instance EndianStore Salt where
 
   store cptr (Salt v) = unsafeWrite writeSalt cptr
     where writeSalt = writeVector v
+
+instance Encode Salt
+
+instance IsString Salt where
+  fromString = fromBase16 . fromString
+
+instance Show Salt where
+  show = show . base16
 
 instance Primitive BLAKE256 where
   blockSize _ = BYTES 64

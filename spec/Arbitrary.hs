@@ -6,6 +6,7 @@
 module Arbitrary where
 
 import Control.Applicative
+import Data.Vector.Unboxed
 import Test.QuickCheck
 import Test.QuickCheck.Monadic
 import Data.ByteString(pack, ByteString)
@@ -31,6 +32,10 @@ instance Arbitrary ALIGN where
 
 instance Arbitrary ByteString where
   arbitrary = pack <$> listOf arbitrary
+
+-- | Generate an arbitrary unboxed vector.
+arbitraryVector :: (Arbitrary a, Unbox a)=> Int -> Gen (Vector a)
+arbitraryVector = fmap fromList . vector
 
 feed          :: (Testable prop, Show a) => Gen a -> (a -> IO prop) -> Property
 feed gen prop = monadicIO $ pick gen >>= (run . prop)

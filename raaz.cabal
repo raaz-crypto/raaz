@@ -76,7 +76,11 @@ flag auto-configure
 
 library
 
-  ghc-options: -Wall
+  if arch(i386) && impl(ghc < 7.6.0)
+      ghc-options: -Wall -fregs-graph
+  else
+      ghc-options: -Wall
+
   if impl(ghc >= 7.6)
      cpp-options:-DUseKinds
 
@@ -108,7 +112,48 @@ library
                  , Raaz.Core.Write
                  , Raaz.Core.Write.Unsafe
                  , Raaz.System.Parameters
+                 --
+                 -- Cryptographic hashes
+                 --
+                 , Raaz.Hash
+                 , Raaz.Hash.Sha1
+                 , Raaz.Hash.Sha1.Internal
+                 , Raaz.Hash.Sha224
+                 , Raaz.Hash.Sha224.Internal
+                 , Raaz.Hash.Sha256
+                 , Raaz.Hash.Sha256.Internal
+                 , Raaz.Hash.Sha384
+                 , Raaz.Hash.Sha384.Internal
+                 , Raaz.Hash.Sha512
+                 , Raaz.Hash.Sha512.Internal
+                 , Raaz.Hash.Blake256
+                 , Raaz.Hash.Blake256.Internal
+
   other-modules: Raaz.Core.Encode.Internal
+               , Raaz.Hash.Sha1.Instance
+               , Raaz.Hash.Sha1.Ref
+               , Raaz.Hash.Sha1.CPortable
+               , Raaz.Hash.Sha1.Type
+               , Raaz.Hash.Sha256.Instance
+               , Raaz.Hash.Sha256.Ref
+               , Raaz.Hash.Sha256.CPortable
+               , Raaz.Hash.Sha256.Type
+               , Raaz.Hash.Sha224.Instance
+               , Raaz.Hash.Sha224.CPortable
+               , Raaz.Hash.Sha224.Type
+               , Raaz.Hash.Sha512.Instance
+               , Raaz.Hash.Sha512.Ref
+               , Raaz.Hash.Sha512.CPortable
+               , Raaz.Hash.Sha512.Type
+               , Raaz.Hash.Sha384.Instance
+               , Raaz.Hash.Sha384.CPortable
+               , Raaz.Hash.Sha384.Type
+               , Raaz.Hash.Sha.Util
+               , Raaz.Hash.Blake256.Instance
+               , Raaz.Hash.Blake256.Ref
+               , Raaz.Hash.Blake256.CPortable
+               , Raaz.Hash.Blake256.Type
+               , Raaz.Hash.Blake.Util
   if os(linux) || os(freebsd) || os(openbsd)
      hs-source-dirs: .
                    , src/urandom/
@@ -128,6 +173,12 @@ library
                , vector
   c-sources: cbits/raaz/core/memory.c
            , cbits/raaz/core/endian.c
+           -- hash implementations
+           , cbits/raaz/hash/sha1/portable.c
+           , cbits/raaz/hash/blake256/portable.c
+           , cbits/raaz/hash/sha256/portable.c
+           , cbits/raaz/hash/sha512/portable.c
+
   include-dirs: includes
               , cbits
   includes: raaz/primitives.h
@@ -149,7 +200,13 @@ test-Suite spec
                , Generic.EndianStore
                , Raaz.Core.Types.WordSpec
                , Raaz.Core.Util.ByteStringSpec
-
+               , Raaz.Core.Encode.Base16Spec
+               , Raaz.Hash.Sha1Spec
+               , Raaz.Hash.Sha224Spec
+               , Raaz.Hash.Sha256Spec
+               , Raaz.Hash.Sha384Spec
+               , Raaz.Hash.Sha512Spec
+               , Raaz.Hash.Blake256Spec
   -- if os(linux)
   --    cc-options: -Wall -Werror -O3 -DRAAZ_HAVE_GCC
   -- else
@@ -171,3 +228,4 @@ test-Suite spec
                -- , test-framework-quickcheck2     >= 0.2 && < 0.4
                , transformers
                , raaz                           >= 0.0.0.1 && < 0.0.0.2
+               , vector

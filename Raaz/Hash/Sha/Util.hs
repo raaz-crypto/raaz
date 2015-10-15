@@ -7,11 +7,10 @@ module Raaz.Hash.Sha.Util
 import Data.ByteString              ( ByteString, singleton )
 import Data.Monoid                  ( (<>)      )
 import Data.Word
-import Data.Bits
-import Foreign.Storable (Storable)
+
 import Prelude              hiding  ( length, replicate )
 
-import Raaz.Core.Memory
+
 import Raaz.Core.Primitives
 import Raaz.Core.Types
 import Raaz.Core.Util.ByteString ( replicate )

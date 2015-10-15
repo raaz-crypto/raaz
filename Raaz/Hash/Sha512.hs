@@ -8,7 +8,6 @@ module Raaz.Hash.Sha512
        ( SHA512, sha512
        , sha512File, sourceSha512
        -- * Encoding as binary/hexadecimal
-       , toByteString, toHex
        ) where
 
 import qualified Data.ByteString as B
@@ -16,8 +15,6 @@ import qualified Data.ByteString.Lazy as L
 
 import Raaz.Core.ByteSource
 import Raaz.Core.Primitives.Hash ( sourceHash, hash, hashFile )
-import Raaz.Core.Types           ( toByteString               )
-import Raaz.Core.Util.ByteString ( toHex                      )
 
 import Raaz.Hash.Sha512.Type     ( SHA512 )
 import Raaz.Hash.Sha512.Instance (        )
