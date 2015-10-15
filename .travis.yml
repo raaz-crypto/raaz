@@ -22,8 +22,8 @@ matrix:
     - env: HLINT="yes"
 
 before_install:
- - if [ "$HLINT" =="yes" ]; then
-      hlint .;
+ - if [ "$HLINT" == "yes" ]; then
+      hlint Raaz;
       exit $?;
    fi
  - export PATH=/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:$PATH
