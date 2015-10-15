@@ -26,6 +26,8 @@ import Raaz.Core.Util.Ptr
 
 import Raaz.Hash.Blake256.Type
 
+{-# ANN module ("HLint: ignore Reduce duplication" :: String) #-}
+
 -- | This gives the 10 permutation of {0,...,15} used by Blake functions.
 table :: ByteString
 table = "\x0\x1\x2\x3\x4\x5\x6\x7\x8\x9\xa\xb\xc\xd\xe\xf\
