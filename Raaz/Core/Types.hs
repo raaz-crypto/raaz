@@ -9,3 +9,5 @@ module Raaz.Core.Types
 import Raaz.Core.Classes
 import Raaz.Core.Types.CryptoBuffer
 import Raaz.Core.Types.Word
+
+{-# ANN module "HLint: ignore Use import/export shortcut" #-}
