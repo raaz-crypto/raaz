@@ -10,9 +10,11 @@ import Test.Hspec
 import Test.Hspec.QuickCheck
 import Test.QuickCheck
 
-import Data.ByteString.Char8
-import Raaz.Core
-import Raaz.Core.Util.ByteString as B
+import Data.ByteString.Char8 (ByteString)
+import Data.String
+import Raaz.Core hiding     (replicate)
+import Raaz.Hash
+import qualified Raaz.Core.Util.ByteString as B
 import Raaz.Hash.Sha512.Internal
 import Generic.EndianStore
 import qualified Generic.Hash as GH
@@ -24,6 +26,15 @@ instance Arbitrary SHA512 where
 
 hashesTo :: ByteString -> SHA512 -> Spec
 hashesTo = GH.hashesTo
+
+withKey  :: HMACKey SHA512 -> (HMACKey SHA512 -> Spec) -> Spec
+withKey  = GH.withKey
+
+hmacsTo  :: ByteString -> HMAC SHA512 -> HMACKey SHA512 -> Spec
+hmacsTo  = GH.hmacsTo
+
+repeated :: HMACKey SHA512 -> Int -> HMACKey SHA512
+repeated = GH.repeated
 
 pad     :: BITS Word64 -> ByteString
 padLen  :: BITS Word64 -> BYTES Int
@@ -66,29 +77,25 @@ spec =  do
   "The quick brown fox jumps over the lazy dog The quick brown fox jumps over the lazy dog The quick brown fox jumps over the lazy dog The quick brown fox jumps over the lazy dog The quick brown fox jumps over the lazy dog" `hashesTo`
     "e489dcc2e8867d0bbeb0a35e6b94951a11affd7041ef39fa21719eb01800c29a2c3522924443939a7848fde58fb1dbd9698fece092c0c2b412c51a47602cfd38"
 
-{-
-exampleHMAC :: [ (HMACKey SHA512, B.ByteString, B.ByteString) ]
-exampleHMAC =
-  [ ( fromString $ replicate 20 '\x0b'
-    , "Hi There"
-    , "87aa7cdea5ef619d4ff0b4241a1d6cb02379f4e2ce4ec2787ad0b30545e17cdedaa833b7d6b8a702038b274eaea3f4e4be9d914eeb61f1702e696c203a126854"
-    )
-  , ( "Jefe"
-    , "what do ya want for nothing?"
-    , "164b7a7bfcf819e2e395fbe73b56e0a387bd64222e831fd610270cd7ea2505549758bf75c05a994a6d034f65f8f0e6fdcaeab1a34d4a6b4b636e070a38bce737"
-    )
-  , ( fromString $ replicate 20 '\xaa'
-    , B.replicate 50 0xdd
-    , "fa73b0089d56a284efb0f0756c890be9b1b5dbdd8ee81a3655f83e33b2279d39bf3e848279a722c806b485a47e67c807b946a337bee8942674278859e13292fb"
-    )
-  , ( fromString $ replicate 131 '\xaa'
-    , "Test Using Larger Than Block-Size Key - Hash Key First"
-    , "80b24263c7c1a3ebb71493c1dd7be8b49b46d1f41b4aeec1121b013783f8f3526b56d037e05f2598bd0fd2215d6a1e5295e64f73f63f0aec8b915a985d786598"
-    )
-  , ( fromString $ replicate 131 '\xaa'
-    , "This is a test using a larger than block-size key and a larger than block-size data. The key needs to be hashed before being used by the HMAC algorithm."
-    , "e37b6a775dc87dbaa4dfa9f96e5e3ffddebd71f8867289865df5a32d20cdc944b6022cac3c4982b10d5eeb55c3e4de15134676fb6de0446065c97440fa8c6a58"
-    )
-  ]
+  -- Some hmac specs
+  hmacSpec
 
--}
+
+hmacSpec :: Spec
+hmacSpec = do
+  withKey ("0b" `repeated` 20) $ "Hi There" `hmacsTo`
+    "87aa7cdea5ef619d4ff0b4241a1d6cb02379f4e2ce4ec2787ad0b30545e17cdedaa833b7d6b8a702038b274eaea3f4e4be9d914eeb61f1702e696c203a126854"
+
+  withKey ("aa" `repeated` 20) $ (B.replicate (50 :: BYTES Int) 0xdd) `hmacsTo`
+    "fa73b0089d56a284efb0f0756c890be9b1b5dbdd8ee81a3655f83e33b2279d39bf3e848279a722c806b485a47e67c807b946a337bee8942674278859e13292fb"
+
+  withKey ("aa" `repeated` 131) $ "Test Using Larger Than Block-Size Key - Hash Key First" `hmacsTo`
+    "80b24263c7c1a3ebb71493c1dd7be8b49b46d1f41b4aeec1121b013783f8f3526b56d037e05f2598bd0fd2215d6a1e5295e64f73f63f0aec8b915a985d786598"
+
+  withKey ("aa" `repeated` 131) $
+    "This is a test using a larger than block-size key and a larger than block-size data. The key needs to be hashed before being used by the HMAC algorithm." `hmacsTo`
+    "e37b6a775dc87dbaa4dfa9f96e5e3ffddebd71f8867289865df5a32d20cdc944b6022cac3c4982b10d5eeb55c3e4de15134676fb6de0446065c97440fa8c6a58"
+
+  let key = fromString $ (show  :: Base16 -> String) $ encodeByteString "Jefe"
+      in withKey key  $ "what do ya want for nothing?" `hmacsTo`
+           "164b7a7bfcf819e2e395fbe73b56e0a387bd64222e831fd610270cd7ea2505549758bf75c05a994a6d034f65f8f0e6fdcaeab1a34d4a6b4b636e070a38bce737"

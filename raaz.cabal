@@ -99,7 +99,6 @@ library
                  , Raaz.Core.Primitives.Asymmetric
                  , Raaz.Core.Primitives.Cipher
                  , Raaz.Core.Primitives.Hash
-                 , Raaz.Core.Primitives.HMAC
                  , Raaz.Core.Primitives.Symmetric
                  , Raaz.Core.Random
                  , Raaz.Core.Types
@@ -116,6 +115,9 @@ library
                  -- Cryptographic hashes
                  --
                  , Raaz.Hash
+                 , Raaz.Hash.HMAC
+                 , Raaz.Hash.Blake256
+                 , Raaz.Hash.Blake256.Internal
                  , Raaz.Hash.Sha1
                  , Raaz.Hash.Sha1.Internal
                  , Raaz.Hash.Sha224
@@ -126,8 +128,6 @@ library
                  , Raaz.Hash.Sha384.Internal
                  , Raaz.Hash.Sha512
                  , Raaz.Hash.Sha512.Internal
-                 , Raaz.Hash.Blake256
-                 , Raaz.Hash.Blake256.Internal
 
   other-modules: Raaz.Core.Encode.Internal
                , Raaz.Hash.Sha1.Instance

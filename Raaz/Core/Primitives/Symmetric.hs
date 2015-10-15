@@ -26,11 +26,10 @@ class Auth prim
 
 -- | Generate authentication tag.
 authTag' :: ( PureByteSource src
-            , FinalizableMemory g
-            , FV g ~ prim
-            , PaddableGadget g
             , Auth prim
-            , prim ~ PrimitiveOf g
+            , FinalizableMemory g
+            , PaddableGadget g
+            , FV g ~ prim, prim ~ PrimitiveOf g
             )
          => g             -- ^ Type of Gadget
          -> Key prim      -- ^ Key
