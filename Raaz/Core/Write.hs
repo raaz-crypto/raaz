@@ -4,7 +4,6 @@
 -- writing stuff to it.
 
 {-# LANGUAGE FlexibleContexts           #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE TypeSynonymInstances       #-}
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
@@ -83,7 +82,7 @@ tryWriting wr cbuf = withCryptoBuffer cbuf $ \ sz cptr ->
 -- (otherwise this could lead to endian confusion). To take care of
 -- endianness use the `write` combinator.
 writeStorable :: Storable a => a -> Write
-writeStorable a = makeWrite (byteSize a) $ pokeIt
+writeStorable a = makeWrite (byteSize a) pokeIt
   where pokeIt = flip poke a . castPtr
 -- | The expression @`write` a@ gives a write action that stores a
 -- value @a@. One needs the type of the value @a@ to be an instance of

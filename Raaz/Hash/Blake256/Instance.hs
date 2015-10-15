@@ -45,24 +45,24 @@ instance Hash BLAKE256 where
 
   hashDigest = fst
 
-instance InitializableMemory (HGadgetBlake256) where
-  type IV (HGadgetBlake256) = (BLAKE256, Salt)
+instance InitializableMemory HGadgetBlake256 where
+  type IV HGadgetBlake256 = (BLAKE256, Salt)
 
   initializeMemory (HGadget (cblake, csalt, ccounter)) (blake,salt) = do
     cellPoke cblake blake
     cellPoke csalt salt
     cellPoke ccounter 0
 
-instance FinalizableMemory (HGadgetBlake256) where
-  type FV (HGadgetBlake256) = (BLAKE256, Salt)
+instance FinalizableMemory HGadgetBlake256 where
+  type FV HGadgetBlake256 = (BLAKE256, Salt)
 
   finalizeMemory (HGadget (cblake, csalt, _)) = do
     blake <- cellPeek cblake
     salt <- cellPeek csalt
     return (blake, salt)
 
-instance Gadget (HGadgetBlake256) where
-  type PrimitiveOf (HGadgetBlake256) = BLAKE256
+instance Gadget HGadgetBlake256 where
+  type PrimitiveOf HGadgetBlake256 = BLAKE256
 
   apply (HGadget (cellBlake, cellSalt, cellCounter)) n cptr = do
     initial <- cellPeek cellBlake

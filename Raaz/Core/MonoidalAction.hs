@@ -1,7 +1,6 @@
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE FlexibleInstances          #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE Arrows                     #-}
+
 
 -- | A module that abstracts out monoidal actions.
 module Raaz.Core.MonoidalAction

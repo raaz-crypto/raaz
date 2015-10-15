@@ -214,9 +214,9 @@ trans r (SHA1 v) w'  = SHA1 v'
                     | t <= 59    = 0x8f1bbcdc :: BE Word32
                     | t <= 79    = 0xca62c1d6 :: BE Word32
                     | otherwise = error "sha1:ref: Wrong index used for trans"
-        a' = rotateL (VU.unsafeIndex v 0) 5 + f r (VU.unsafeIndex v 1) (VU.unsafeIndex v 2) (VU.unsafeIndex v 3) + (VU.unsafeIndex v 4) + constant r + w'
-        b' = (VU.unsafeIndex v 0)
+        a' = rotateL (VU.unsafeIndex v 0) 5 + f r (VU.unsafeIndex v 1) (VU.unsafeIndex v 2) (VU.unsafeIndex v 3) + VU.unsafeIndex v 4 + constant r + w'
+        b' = VU.unsafeIndex v 0
         c' = rotateL (VU.unsafeIndex v 1) 30
-        d' = (VU.unsafeIndex v 2)
-        e' = (VU.unsafeIndex v 3)
+        d' = VU.unsafeIndex v 2
+        e' = VU.unsafeIndex v 3
         v' = VU.fromList [a',b',c',d',e']

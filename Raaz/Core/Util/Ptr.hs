@@ -20,6 +20,7 @@ module Raaz.Core.Util.Ptr
        , memset, memmove, memcpy
        ) where
 
+import Control.Applicative
 import Control.Exception     (bracket_)
 import Control.Monad         (void)
 import Data.Word             (Word8)
@@ -168,7 +169,7 @@ hFillBuf :: LengthUnit bufSize
          -> bufSize
          -> IO (BYTES Int)
 {-# INLINE hFillBuf #-}
-hFillBuf handle cptr bufSize = fmap BYTES $ hGetBuf handle cptr bytes
+hFillBuf handle cptr bufSize = BYTES <$> hGetBuf handle cptr bytes
   where BYTES bytes = inBytes bufSize
 
 -- | Some common PTR functions abstracted over type safe length.

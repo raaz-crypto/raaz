@@ -1,6 +1,6 @@
 -- | An applicative version of parser. This provides a restricted
 -- parser which has only an applicative instance.
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+
 module Raaz.Core.Parse.Applicative
        ( Parser, parseWidth, parseError
        , runParser, runParser', unsafeRunParser
@@ -10,6 +10,7 @@ module Raaz.Core.Parse.Applicative
        , parseByteString
        ) where
 
+import           Control.Applicative
 import           Data.ByteString           (ByteString)
 import           Data.Maybe                (fromJust)
 import           Data.Monoid               (Sum(..))
@@ -45,7 +46,7 @@ parseWidth =  getSum . twistMonoidValue
 runParser :: Parser a -> CryptoBuffer -> IO (Maybe a)
 runParser pr cbuf = withCryptoBuffer cbuf $ \ sz cptr ->
   if sz < parseWidth pr then return Nothing
-  else fmap Just $ unsafeRunParser pr cptr
+  else Just <$> unsafeRunParser pr cptr
 
 -- | Run the parser given the
 runParser' :: Parser a -> CryptoBuffer -> IO a

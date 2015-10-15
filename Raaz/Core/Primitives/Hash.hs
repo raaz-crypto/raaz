@@ -73,7 +73,7 @@ instance Hash h => Bufferable (HashMemoryBufSize h) where
     where contentSz    = inBlks thisHash (byteSize thisHash)
           thisHash     = getH hbsz
           inBlks       ::  Hash h => h -> BYTES Int -> BLOCKS h
-          inBlks _ sz  = atLeast sz
+          inBlks _     = atLeast
           getH         :: HashMemoryBufSize h -> h
           getH _       = undefined
 

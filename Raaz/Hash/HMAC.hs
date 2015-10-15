@@ -8,7 +8,6 @@
 {-# LANGUAGE ScopedTypeVariables        #-}
 {-# LANGUAGE CPP                        #-}
 {-# LANGUAGE UndecidableInstances       #-}
-{-# LANGUAGE StandaloneDeriving         #-}
 
 module Raaz.Hash.HMAC
        ( HMAC(..)
@@ -283,9 +282,9 @@ instance Hash h => Storable (HMACKey h) where
 hmacAdjustKey :: Hash h
               => HMACKey h -- ^ the key.
               -> B.ByteString
-hmacAdjustKey key = padIt $ trimedKey
+hmacAdjustKey key = padIt trimedKey
   where keyStr      = unKey key
-        trimedKey   = if length keyStr > sz then toByteString $ hash keyStr `asTypeOf` (hashProxy key)
+        trimedKey   = if length keyStr > sz then toByteString $ hash keyStr `asTypeOf` hashProxy key
                       else keyStr
         padIt k     = k <> replicate (sz - length k) 0
         sz          = blockSize $ hashProxy key

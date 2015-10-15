@@ -39,24 +39,24 @@ blake256Compress cellBlake cellSalt counter nblocks buffer = withCell cellBlake 
       where
         action2 saltptr = c_blake256_compress ptr saltptr counter n buffer
 
-instance InitializableMemory (CGadgetBlake256) where
-  type IV (CGadgetBlake256) = (BLAKE256, Salt)
+instance InitializableMemory CGadgetBlake256 where
+  type IV CGadgetBlake256 = (BLAKE256, Salt)
 
   initializeMemory (CGadget (cblake, csalt, ccounter)) (blake,salt) = do
     cellPoke cblake blake
     cellPoke csalt salt
     cellPoke ccounter 0
 
-instance FinalizableMemory (CGadgetBlake256) where
-  type FV (CGadgetBlake256) = (BLAKE256, Salt)
+instance FinalizableMemory CGadgetBlake256 where
+  type FV CGadgetBlake256 = (BLAKE256, Salt)
 
   finalizeMemory (CGadget (cblake, csalt, _)) = do
     blake <- cellPeek cblake
     salt <- cellPeek csalt
     return (blake, salt)
 
-instance Gadget (CGadgetBlake256) where
-  type PrimitiveOf (CGadgetBlake256) = BLAKE256
+instance Gadget CGadgetBlake256 where
+  type PrimitiveOf CGadgetBlake256 = BLAKE256
   apply (CGadget (cellBlake, cellSalt, cellCounter)) n cptr = do
     counter <- cellPeek cellCounter
     cellModify cellCounter $ (+) (inBits n)

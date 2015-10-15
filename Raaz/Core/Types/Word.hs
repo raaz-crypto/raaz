@@ -213,7 +213,7 @@ instance Unbox w => GV.Vector Vector (LE w) where
   basicUnsafeIndexM (V_LE v) i  = LE   `liftM`  GV.basicUnsafeIndexM v i
 
   basicUnsafeCopy (MV_LE mv) (V_LE v) = GV.basicUnsafeCopy mv v
-  elemseq _ (LE x) y                  = GV.elemseq (undefined :: Vector a) x y
+  elemseq _ (LE x)                    = GV.elemseq (undefined :: Vector a) x
 
 
 instance Unbox w => GVM.MVector MVector (BE w) where
@@ -258,4 +258,4 @@ instance Unbox w => GV.Vector Vector (BE w) where
   basicUnsafeIndexM (V_BE v) i  = BE   `liftM`  GV.basicUnsafeIndexM v i
 
   basicUnsafeCopy (MV_BE mv) (V_BE v) = GV.basicUnsafeCopy mv v
-  elemseq _ (BE x) y                  = GV.elemseq (undefined :: Vector a) x y
+  elemseq _ (BE x)                    = GV.elemseq (undefined :: Vector a) x

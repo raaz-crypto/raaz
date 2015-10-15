@@ -1,7 +1,6 @@
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE FlexibleInstances          #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 module Raaz.Hash.Blake256.Type
        ( BLAKE256(..)
