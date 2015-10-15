@@ -23,7 +23,7 @@ matrix:
 
 before_install:
  - if [ "$HLINT" == "yes" ]; then
-      hlint Raaz;
+      hlint "--ignore=Parse error" Raaz;
       exit $?;
    fi
  - export PATH=/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:$PATH
