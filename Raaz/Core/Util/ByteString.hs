@@ -22,7 +22,6 @@ import           Data.ByteString.Internal( toForeignPtr
                                          , create
                                          )
 import           Data.Word
-import qualified Data.Vector.Generic as G
 import           Foreign.ForeignPtr (withForeignPtr)
 import           Foreign.Ptr        (castPtr, plusPtr)
 import           Foreign.Storable   (peek, Storable)

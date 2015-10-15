@@ -12,9 +12,8 @@ module Raaz.Core.Encode.Internal
 import Data.Maybe
 
 import Data.ByteString              (ByteString)
-import Data.ByteString.Internal     (unsafeCreate, c2w)
+import Data.ByteString.Internal     (unsafeCreate)
 import Data.String
-import Data.Word
 import Foreign.Ptr
 import Foreign.Storable
 import Prelude hiding               (length)
