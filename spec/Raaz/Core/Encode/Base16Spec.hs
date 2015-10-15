@@ -25,7 +25,7 @@ spec = do
     unsafeFromByteString (toByteString x) `shouldBe` x
   let range      = (0x10, 0xff :: Word8)
       genInRange = choose range
-      in do
-    context ("for bytes in the range " ++ show range) $ do
-      it "base16 and showHex should match" $
-        forAll genInRange $ \ (x :: Word8) -> show (encodeByteString $ singleton x :: Base16) == fromString (showHex x "")
+      in
+   context ("for bytes in the range " ++ show range)
+   $ it "base16 and showHex should match"
+   $ forAll genInRange $ \ (x :: Word8) -> show (encodeByteString $ singleton x :: Base16) == fromString (showHex x "")

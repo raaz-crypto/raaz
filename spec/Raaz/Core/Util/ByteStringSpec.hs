@@ -23,16 +23,17 @@ genBS' = do bs <- genBS
             return (bs, l)
 
 spec :: Spec
-spec = do context "unsafeCopyToCryptoPtr" $ do
-            it "creates from a pointer, the same byte string that was copied" $ do
-              feed genBS $ \ bs -> (==bs) <$> clone bs
-          context "unsafeNCopyToCryptoPtr" $ do
-            it "creates form a pointer, the same prefix of the string that was copied" $ do
-              feed genBS' $ \ (bs,n) -> (==) (take n bs) <$> clonePrefix (bs,n)
+spec = do context "unsafeCopyToCryptoPtr" $
+            it "creates from a pointer, the same byte string that was copied"
+            $ feed genBS $ \ bs -> (==bs) <$> clone bs
 
-          context "createFrom" $ do
-            it "reads exactly the same bytes from the byte string pointer" $ do
-              feed genBS $ \ bs -> (==bs) <$> readFrom bs
+          context "unsafeNCopyToCryptoPtr"
+            $ it "creates form a pointer, the same prefix of the string that was copied"
+            $ feed genBS' $ \ (bs,n) -> (==) (take n bs) <$> clonePrefix (bs,n)
+
+          context "createFrom"
+            $ it "reads exactly the same bytes from the byte string pointer"
+            $ feed genBS $ \ bs -> (==bs) <$> readFrom bs
 
     where clone       bs     = create (length bs) $ B.unsafeCopyToCryptoPtr bs . castPtr
           clonePrefix (bs,n) = createAndTrim (length bs) $ \ cptr -> do
