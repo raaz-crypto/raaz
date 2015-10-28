@@ -63,10 +63,10 @@ instance EndianStore SHA384 where
 instance Encodable SHA384
 
 instance IsString SHA384 where
-  fromString = (unsafeDecode :: Base16 -> SHA384) . fromString
+  fromString = fromBase16
 
 instance Show SHA384 where
-  show =  show . (encode :: SHA384 -> Base16)
+  show =  showBase16
 
 instance Primitive SHA384 where
   blockSize _ = BYTES 128

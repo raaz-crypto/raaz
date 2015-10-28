@@ -61,10 +61,10 @@ instance EndianStore BLAKE256 where
 instance Encodable BLAKE256
 
 instance IsString BLAKE256 where
-  fromString = (unsafeDecode :: Base16 -> BLAKE256) . fromString
+  fromString = fromBase16
 
 instance Show BLAKE256 where
-  show =  show . (encode :: BLAKE256 -> Base16)
+  show =  showBase16
 
 instance Storable Salt where
   sizeOf    _ = 4 * sizeOf (undefined :: (BE Word32))
@@ -92,10 +92,10 @@ instance EndianStore Salt where
 instance Encodable Salt
 
 instance IsString Salt where
-  fromString = (unsafeDecode :: Base16 -> Salt) . fromString
+  fromString = fromBase16
 
 instance Show Salt where
-  show =  show . (encode :: Salt -> Base16)
+  show =  showBase16
 
 
 instance Primitive BLAKE256 where

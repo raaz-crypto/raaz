@@ -51,10 +51,10 @@ instance EndianStore SHA512 where
 instance Encodable SHA512
 
 instance IsString SHA512 where
-  fromString = (unsafeDecode :: Base16 -> SHA512) . fromString
+  fromString = fromBase16
 
 instance Show SHA512 where
-  show =  show . (encode :: SHA512 -> Base16)
+  show =  showBase16
 
 instance Primitive SHA512 where
   blockSize _ = BYTES 128
