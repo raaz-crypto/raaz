@@ -89,7 +89,6 @@ library
                  , Raaz.Core.Classes
                  , Raaz.Core.DH
                  , Raaz.Core.Encode
-                 , Raaz.Core.Encode.Base16
                  , Raaz.Core.Memory
                  , Raaz.Core.MonoidalAction
                  , Raaz.Core.Parse
@@ -130,6 +129,7 @@ library
                  , Raaz.Hash.Sha512.Internal
 
   other-modules: Raaz.Core.Encode.Internal
+               , Raaz.Core.Encode.Base16
                , Raaz.Hash.Sha1.Instance
                , Raaz.Hash.Sha1.Ref
                , Raaz.Hash.Sha1.CPortable
