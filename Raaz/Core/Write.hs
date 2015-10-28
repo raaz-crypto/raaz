@@ -15,6 +15,7 @@ module Raaz.Core.Write
        ) where
 
 import           Data.ByteString           (ByteString)
+import           Data.ByteString.Internal  (unsafeCreate)
 import           Data.Monoid
 import qualified Data.Vector.Generic       as G
 import           Data.Word                 (Word8)
@@ -25,6 +26,7 @@ import           Raaz.Core.MonoidalAction
 import           Raaz.Core.Types
 import           Raaz.Core.Util.ByteString as BU
 import           Raaz.Core.Util.Ptr
+import           Raaz.Core.Encode
 
 -- | The monoid for write.
 newtype WriteM = WriteM { unWriteM :: IO () }
@@ -113,3 +115,13 @@ writeBytes w8 n = makeWrite (inBytes n) memsetIt
 -- | Writes a strict bytestring.
 writeByteString :: ByteString -> Write
 writeByteString bs = makeWrite (BU.length bs) $  BU.unsafeCopyToCryptoPtr bs
+
+
+instance Encodable Write where
+
+  toByteString w  = unsafeCreate n $ unsafeWrite w . castPtr
+    where BYTES n = bytesToWrite w
+
+  unsafeFromByteString = writeByteString
+
+  fromByteString       = Just . writeByteString
