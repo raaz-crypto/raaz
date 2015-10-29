@@ -15,6 +15,7 @@ module Raaz.Core.Write
        ) where
 
 import           Data.ByteString           (ByteString)
+import           Data.String
 import           Data.ByteString.Internal  (unsafeCreate)
 import           Data.Monoid
 import qualified Data.Vector.Generic       as G
@@ -116,6 +117,8 @@ writeBytes w8 n = makeWrite (inBytes n) memsetIt
 writeByteString :: ByteString -> Write
 writeByteString bs = makeWrite (BU.length bs) $  BU.unsafeCopyToCryptoPtr bs
 
+instance IsString Write where
+  fromString = writeByteString . fromString
 
 instance Encodable Write where
 
