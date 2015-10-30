@@ -28,9 +28,6 @@ hashesTo str h = it msg (hash str `shouldBe` h)
                         , shortened $ show h
                         ]
 
-withKey :: Hash h => HMACKey h -> (HMACKey h -> Spec) -> Spec
-withKey key hmsto = hmsto key
-
 hmacsTo :: ( Hash h, Show h)
         => ByteString
         -> HMAC h

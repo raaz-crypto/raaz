@@ -1,4 +1,10 @@
 module Generic.Utils where
+import Test.Hspec
+
+with :: key -> (key -> Spec) -> Spec
+with key hmsto = hmsto key
+
+
 
 shortened :: String -> String
 shortened x | l <= 11    = paddedx

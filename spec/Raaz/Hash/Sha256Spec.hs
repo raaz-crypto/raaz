@@ -17,6 +17,7 @@ import Raaz.Core.Util.ByteString as B
 import Raaz.Hash.Sha256.Internal
 import Raaz.Hash.HMAC
 import Generic.EndianStore
+import Generic.Utils
 import qualified Generic.Hash as GH
 import Arbitrary
 
@@ -31,8 +32,6 @@ pad     :: BITS Word64 -> ByteString
 padLen  :: BITS Word64 -> BYTES Int
 blockSz :: BYTES Int
 
-withKey  :: HMACKey SHA256 -> (HMACKey SHA256 -> Spec) -> Spec
-withKey  = GH.withKey
 
 hmacsTo  :: ByteString -> HMAC SHA256 -> HMACKey SHA256 -> Spec
 hmacsTo  = GH.hmacsTo
@@ -79,14 +78,14 @@ spec =  do
 
 hmacSpec :: Spec
 hmacSpec = do
-  withKey ("0b" `repeated` 20)  $ "Hi There" `hmacsTo` "b0344c61d8db38535ca8afceaf0bf12b881dc200c9833da726e9376c2e32cff7"
+  with ("0b" `repeated` 20)  $ "Hi There" `hmacsTo` "b0344c61d8db38535ca8afceaf0bf12b881dc200c9833da726e9376c2e32cff7"
 
-  withKey ("aa" `repeated` 20)  $ (B.replicate (50 :: BYTES Int) 0xdd) `hmacsTo` "773ea91e36800e46854db8ebd09181a72959098b3ef8c122d9635514ced565fe"
+  with ("aa" `repeated` 20)  $ (B.replicate (50 :: BYTES Int) 0xdd) `hmacsTo` "773ea91e36800e46854db8ebd09181a72959098b3ef8c122d9635514ced565fe"
 
-  withKey ("aa" `repeated` 131) $ "Test Using Larger Than Block-Size Key - Hash Key First" `hmacsTo`
+  with ("aa" `repeated` 131) $ "Test Using Larger Than Block-Size Key - Hash Key First" `hmacsTo`
     "60e431591ee0b67f0d8a26aacbf5b77f8e0bc6213728c5140546040f0ee37f54"
 
-  withKey ("aa" `repeated` 131) $ "This is a test using a larger than block-size key and a larger than block-size data. The key needs to be hashed before being used by the HMAC algorithm." `hmacsTo` "9b09ffa71b942fcb27635fbcd5b0e944bfdc63644f0713938a7f51535c3a35e2"
+  with ("aa" `repeated` 131) $ "This is a test using a larger than block-size key and a larger than block-size data. The key needs to be hashed before being used by the HMAC algorithm." `hmacsTo` "9b09ffa71b942fcb27635fbcd5b0e944bfdc63644f0713938a7f51535c3a35e2"
 
   let key = fromString $ (show  :: Base16 -> String) $ encodeByteString "Jefe"
-      in withKey key  $ "what do ya want for nothing?" `hmacsTo` "5bdcc146bf60754e6a042426089575c75a003f089d2739839dec58b964ec3843"
+      in with key  $ "what do ya want for nothing?" `hmacsTo` "5bdcc146bf60754e6a042426089575c75a003f089d2739839dec58b964ec3843"
