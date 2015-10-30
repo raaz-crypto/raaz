@@ -3,6 +3,7 @@
 {-# LANGUAGE FlexibleContexts          #-}
 {-# LANGUAGE MultiParamTypeClasses     #-}
 {-# LANGUAGE TypeFamilies              #-}
+{-# LANGUAGE DataKinds                 #-}
 {-# OPTIONS_GHC -fno-warn-orphans      #-}
 {-# CFILES raaz/cipher/cportable/aes.c #-}
 

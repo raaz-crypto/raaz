@@ -31,16 +31,7 @@ module Raaz.Core.Primitives
        , transformGadget, transformGadgetFile
        , CryptoInverse(..), inverse
          -- * Cryptographic operation modes
-#if UseKinds
        , Mode(..)
-#else
-       , SignMode(..)
-       , VerifyMode(..)
-       , EncryptMode(..)
-       , DecryptMode(..)
-       , AuthEncryptMode(..)
-       , VerifyDecryptMode(..)
-#endif
        ) where
 
 import           Control.Applicative
@@ -360,7 +351,6 @@ instance HasName p => HasName (CGadget p m) where
 -- * Authenticated encryption
 --
 -- * Decryption of message and verification of its signature
-#if UseKinds
 data Mode = SignMode
           | VerifyMode
           | EncryptMode
@@ -368,23 +358,6 @@ data Mode = SignMode
           | AuthEncryptMode
           | VerifyDecryptMode
           deriving (Show, Eq)
-#else
-data SignMode = SignMode deriving (Show, Eq)
-
-data VerifyMode = VerifyMode deriving (Show, Eq)
-
-data EncryptMode = EncryptMode deriving (Show, Eq)
-
-data DecryptMode = DecryptMode deriving (Show, Eq)
-
-data AuthEncryptMode = AuthEncryptMode deriving (Show, Eq)
-
-data VerifyDecryptMode = VerifyDecryptMode deriving (Show, Eq)
-
-{-# DEPRECATED SignMode, VerifyMode, EncryptMode, DecryptMode,
-   AuthEncryptMode, VerifyDecryptMode
-   "Will be changed to Data Constructor of type Mode from ghc7.6 onwards" #-}
-#endif
 
 -------------------- Some helper functions -----------------------------
 

@@ -1,9 +1,10 @@
 {-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE ScopedTypeVariables  #-}
 {-# LANGUAGE TypeFamilies         #-}
+{-# LANGUAGE DataKinds            #-}
+{-# LANGUAGE ScopedTypeVariables  #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module Raaz.Cipher.AES.CBC.Type () where
+module Raaz.Cipher.AES.CTR.Type where
 
 import Raaz.Core.Primitives
 import Raaz.Core.Primitives.Cipher
@@ -13,9 +14,9 @@ import Raaz.Cipher.AES.Block.Internal
 import Raaz.Cipher.AES.Internal
 
 
-instance Primitive (AES CBC k) where
-  blockSize _          = BYTES 16
+instance Primitive (AES CTR k) where
+  blockSize _          = BYTES 1
   {-# INLINE blockSize #-}
-  type Key (AES CBC k) = (k, STATE)
+  type Key (AES CTR k) = (k, STATE)
 
-instance Cipher (AES CBC k)
+instance Cipher (AES CTR k)

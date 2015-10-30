@@ -8,19 +8,14 @@ be used directly by the user.
 {-# LANGUAGE FlexibleInstances             #-}
 {-# LANGUAGE TypeFamilies                  #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving    #-}
+{-# LANGUAGE DataKinds                     #-}
 {-# LANGUAGE CPP                           #-}
 {-# LANGUAGE ForeignFunctionInterface      #-}
 
 
 module Raaz.Cipher.Salsa20.Internal
        ( Salsa20(..)
-#if UseKinds
        , Rounds(..)
-#else
-       , R20(..)
-       , R12(..)
-       , R8(..)
-#endif
        , KEY128
        , KEY256
        , Nonce
@@ -38,32 +33,12 @@ import Raaz.Cipher.Salsa20.Block.Type
 import Raaz.Cipher.Salsa20.Block.Internal
 
 -- | Salsa20 with given rounds
-#if UseKinds
 data Salsa20 (rounds :: Rounds) key = Salsa20 deriving (Show, Eq)
 
 -- | Rounds in Salsa20 core
 data Rounds = R20
             | R12
             | R8
-#else
-data Salsa20 rounds key = Salsa20 deriving (Show, Eq)
-
-{-# DEPRECATED Salsa20
-  "Kind restrictions will be used in rounds from ghc7.6 onwards" #-}
-
--- | 20 Rounds
-data R20 = R20 deriving (Show, Eq)
-
--- | 12 Rounds
-data R12 = R12 deriving (Show, Eq)
-
--- | 8 Rounds
-data R8  = R8 deriving (Show, Eq)
-
-{-# DEPRECATED R20, R12, R8
-  "Will be changed to Data Constructor of type Rounds from ghc7.6 onwards" #-}
-#endif
-
 
 
 instance HasName (Salsa20 R20 KEY128) where

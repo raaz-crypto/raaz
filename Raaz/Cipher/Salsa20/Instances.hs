@@ -7,6 +7,7 @@ This module provides required instances for Salsa20 Cipher.
 {-# LANGUAGE FlexibleInstances             #-}
 {-# LANGUAGE FlexibleContexts              #-}
 {-# LANGUAGE ScopedTypeVariables           #-}
+{-# LANGUAGE DataKinds                     #-}
 {-# LANGUAGE ForeignFunctionInterface      #-}
 {-# OPTIONS_GHC -fno-warn-orphans          #-}
 {-# CFILES raaz/cipher/cportable/salsa20.c #-}
@@ -22,6 +23,7 @@ import Data.Word
 import Foreign.Ptr
 import Foreign.Storable
 
+import Raaz.Core.Encode
 import Raaz.Core.Memory
 import Raaz.Core.Primitives
 import Raaz.Core.Primitives.Cipher

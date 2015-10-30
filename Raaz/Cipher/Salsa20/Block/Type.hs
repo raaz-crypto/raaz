@@ -19,6 +19,7 @@ import Foreign.Storable
 import Foreign.Ptr         ( castPtr )
 import Numeric             ( showHex )
 
+import Raaz.Core.Encode
 import Raaz.Core.Parse.Unsafe
 import Raaz.Core.Types
 import Raaz.Core.Write.Unsafe
@@ -97,6 +98,8 @@ instance EndianStore STATE where
   load cptr = runParser cptr parseState
   store cptr state = runWrite cptr $ writeState state
 
+instance Encodable STATE
+
 -- | Matrix which consists of 4 `STATE`.
 data Matrix = Matrix {-# UNPACK #-} !STATE
                      {-# UNPACK #-} !STATE
@@ -145,6 +148,8 @@ instance Storable Matrix where
 instance EndianStore Matrix where
   load cptr = runParser cptr parseMatrix
   store cptr matrix = runWrite cptr $ writeMatrix matrix
+
+instance Encodable Matrix
 
 -- | Transpose of the `Matrix`.
 transposeMatrix :: Matrix -> Matrix

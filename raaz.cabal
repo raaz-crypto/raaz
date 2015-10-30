@@ -127,9 +127,22 @@ library
                  , Raaz.Hash.Sha384.Internal
                  , Raaz.Hash.Sha512
                  , Raaz.Hash.Sha512.Internal
-
+                 --
+                 -- Ciphers
+                 --
+                 , Raaz.Cipher.AES.Type
+                 , Raaz.Cipher.AES.Internal
+                 , Raaz.Cipher.AES.CBC
+                 , Raaz.Cipher.AES.CTR
+                 -- , Raaz.Cipher.AES.ECB
+                 , Raaz.Cipher.AES
+                 , Raaz.Cipher.Salsa20
+                 , Raaz.Cipher.Salsa20.Internal
   other-modules: Raaz.Core.Encode.Internal
                , Raaz.Core.Encode.Base16
+               --
+               -- Internal modules from Hash
+               --
                , Raaz.Hash.Sha1.Instance
                , Raaz.Hash.Sha1.Ref
                , Raaz.Hash.Sha1.CPortable
@@ -154,6 +167,28 @@ library
                , Raaz.Hash.Blake256.CPortable
                , Raaz.Hash.Blake256.Type
                , Raaz.Hash.Blake.Util
+               --
+               -- Internal modules from cipher
+               --
+               , Raaz.Cipher.Util.GF
+               , Raaz.Cipher.AES.Block.Type
+               , Raaz.Cipher.AES.CBC.CPortable
+               , Raaz.Cipher.AES.CBC.Instance
+               , Raaz.Cipher.AES.CBC.Ref
+               , Raaz.Cipher.AES.CBC.Type
+               , Raaz.Cipher.AES.CTR.CPortable
+               , Raaz.Cipher.AES.CTR.Instance
+               , Raaz.Cipher.AES.CTR.Ref
+               , Raaz.Cipher.AES.CTR.Type
+               -- , Raaz.Cipher.AES.ECB.CPortable
+               -- , Raaz.Cipher.AES.ECB.Instance
+               -- , Raaz.Cipher.AES.ECB.Ref
+               -- , Raaz.Cipher.AES.ECB.Type
+               , Raaz.Cipher.Salsa20.Block.Internal
+               , Raaz.Cipher.Salsa20.Block.Type
+               , Raaz.Cipher.Salsa20.Instances
+               , Raaz.Cipher.AES.Block.Internal
+
   if os(linux) || os(freebsd) || os(openbsd)
      hs-source-dirs: .
                    , src/urandom/

@@ -9,10 +9,10 @@ import Control.Applicative
 import Data.Vector.Unboxed
 import Test.QuickCheck
 import Test.QuickCheck.Monadic
-import Data.ByteString(pack, ByteString)
+import Data.ByteString as B
+import Foreign.Storable
 
-import Raaz.Core.Types.Word
-import Raaz.Core.Classes
+import Raaz.Core
 
 instance Arbitrary w => Arbitrary (LE w) where
   arbitrary = littleEndian <$> arbitrary
@@ -36,6 +36,19 @@ instance Arbitrary ByteString where
 -- | Generate an arbitrary unboxed vector.
 arbitraryVector :: (Arbitrary a, Unbox a)=> Int -> Gen (Vector a)
 arbitraryVector = fmap fromList . vector
+
+genStorable :: (Storable a, Encodable a) => Gen a
+genStorable = gen
+  where proxy    :: Gen a -> a
+        proxy _  = undefined
+        gen      = unsafeFromByteString . pack <$> vector sz
+        sz       = sizeOf $ proxy gen
+
+-- | Generate bytestrings that are multiples of block size of a primitive.
+blocks :: Primitive prim => prim -> Gen ByteString
+blocks prim = B.concat <$> listOf singleBlock
+  where singleBlock = pack <$> vector sz
+        BYTES sz    = blockSize prim
 
 feed          :: (Testable prop, Show a) => Gen a -> (a -> IO prop) -> Property
 feed gen prop = monadicIO $ pick gen >>= (run . prop)
