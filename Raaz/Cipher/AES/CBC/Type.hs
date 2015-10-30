@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE ScopedTypeVariables  #-}
 {-# LANGUAGE TypeFamilies         #-}
+{-# LANGUAGE DataKinds            #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module Raaz.Cipher.AES.CBC.Type () where

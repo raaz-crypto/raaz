@@ -1,6 +1,7 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
 {-# LANGUAGE FlexibleInstances        #-}
 {-# LANGUAGE TypeFamilies             #-}
+{-# LANGUAGE DataKinds                #-}
 {-# OPTIONS_GHC -fno-warn-orphans     #-}
 
 module Raaz.Cipher.AES.CTR.CPortable () where

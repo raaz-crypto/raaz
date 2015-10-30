@@ -9,6 +9,7 @@ used directly by the user.
 {-# LANGUAGE CPP                #-}
 {-# LANGUAGE FlexibleContexts   #-}
 {-# LANGUAGE ForeignFunctionInterface   #-}
+{-# LANGUAGE DataKinds                  #-}
 {-# CFILES raaz/cipher/cportable/aes.c  #-}
 
 module Raaz.Cipher.AES.Internal
@@ -43,26 +44,14 @@ import Raaz.Cipher.AES.Block.Type
 import Raaz.Cipher.AES.Block.Internal
 
 -- | AES Data type with associated modes.
-#if UseKinds
-data AES (mode :: CipherMode) key = AES deriving (Show, Eq)
-#else
-data AES mode key = AES deriving (Show, Eq)
 
-{-# DEPRECATED AES
-  "Mode will be kind restricted from ghc7.6 onwards" #-}
-#endif
+data AES (mode :: CipherMode) key = AES deriving (Show, Eq)
 
 
 
 
 -- | AES with the direction of operation.
-#if UseKinds
 data AESOp (mode :: CipherMode) key (op :: Mode) = AESOp deriving (Show, Eq)
-#else
-data AESOp mode key op = AESOp deriving (Show, Eq)
-{-# DEPRECATED AESOp
-  "mode and op will be kind restricted from ghc7.6 onwards" #-}
-#endif
 
 
 instance HasName (AESOp ECB KEY128 EncryptMode) where
@@ -128,17 +117,8 @@ instance HasName (AESOp CTR KEY256 DecryptMode) where
 type KeyCell k = MemoryCell (Expanded k)
 type StateCell = MemoryCell STATE
 
-#if UseKinds
-
 data HAESGadget (mode :: CipherMode) key (op :: Mode) = HAESGadget (KeyCell key) StateCell
 data CAESGadget (mode :: CipherMode) key (op :: Mode) = CAESGadget (KeyCell key) StateCell
-
-# else
-
-data HAESGadget mode key op = HAESGadget (KeyCell key) StateCell
-data CAESGadget mode key op = CAESGadget (KeyCell key) StateCell
-
-#endif
 
 
 ---------------------------- HGadgets ------------------------------------

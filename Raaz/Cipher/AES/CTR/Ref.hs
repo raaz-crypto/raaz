@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE TypeFamilies         #-}
+{-# LANGUAGE DataKinds            #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module Raaz.Cipher.AES.CTR.Ref () where
@@ -13,6 +14,7 @@ import Foreign.Ptr
 import Foreign.Storable
 
 import Raaz.Core.Memory
+import Raaz.Core.Encode
 import Raaz.Core.Primitives
 import Raaz.Core.Primitives.Cipher
 import Raaz.Core.Types
