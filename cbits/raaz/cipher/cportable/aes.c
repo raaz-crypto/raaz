@@ -540,7 +540,7 @@ void raazCipherAESCBCDecrypt(Word32 *key, Word8 *input, Word8 *iv, Word32 nblock
         raazCipherAESBlockDecrypt(key,ptr,k);
         Xor128(ptr,ptr,iv);
     }
-    Copy128(iv, ivCopy);    
+    Copy128(iv, ivCopy);
 }
 
 #define Incr128(ptr)               \
