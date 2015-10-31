@@ -86,7 +86,6 @@ library
 
   exposed-modules: Raaz.Core
                  , Raaz.Core.ByteSource
-                 , Raaz.Core.Classes
                  , Raaz.Core.DH
                  , Raaz.Core.Encode
                  , Raaz.Core.Memory
@@ -101,8 +100,6 @@ library
                  , Raaz.Core.Primitives.Symmetric
                  , Raaz.Core.Random
                  , Raaz.Core.Types
-                 , Raaz.Core.Types.Word
-                 , Raaz.Core.Types.Tuple
                  , Raaz.Core.Types.CryptoBuffer
                  , Raaz.Core.Util
                  , Raaz.Core.Write
@@ -141,6 +138,8 @@ library
                , Raaz.Core.Util.ByteString
                , Raaz.Core.Util.Gadget
                , Raaz.Core.Util.Ptr
+               , Raaz.Core.Types.Pointer
+               , Raaz.Core.Types.Tuple
                --
                -- Internal modules from Hash
                --

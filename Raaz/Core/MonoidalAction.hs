@@ -1,7 +1,6 @@
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE FlexibleInstances          #-}
 
-
 -- | A module that abstracts out monoidal actions.
 module Raaz.Core.MonoidalAction
        ( -- * Monoidal action
@@ -17,9 +16,6 @@ module Raaz.Core.MonoidalAction
 import Control.Arrow
 import Control.Applicative
 import Data.Monoid
-
-import Raaz.Core.Types    (CryptoPtr, LengthUnit)
-import Raaz.Core.Util.Ptr (movePtr)
 
 ------------------ Actions and Monoidal actions -----------------------
 
@@ -63,10 +59,6 @@ infixr 5 <.>
 {-# INLINE (<++>) #-}
 
 infixr 5 <++>
-
--- | The most interesting monoidal action for us.
-instance LengthUnit u => LAction (Sum u) CryptoPtr where
-  a <.> ptr  = movePtr ptr (getSum a)
 
 
 -- | Uniform action of a monoid on a functor. The laws that should

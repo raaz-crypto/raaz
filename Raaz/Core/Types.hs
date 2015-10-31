@@ -1,13 +1,9 @@
 -- | Top level module that exposes the basic types in Raaz.
 
 module Raaz.Core.Types
-       ( module Raaz.Core.Classes
-       , module Raaz.Core.Types.CryptoBuffer
-       , module Raaz.Core.Types.Word
+       ( module Raaz.Core.Types.Pointer
        ) where
 
-import Raaz.Core.Classes
-import Raaz.Core.Types.CryptoBuffer
-import Raaz.Core.Types.Word
+import Raaz.Core.Types.Pointer
 
 {-# ANN module "HLint: ignore Use import/export shortcut" #-}

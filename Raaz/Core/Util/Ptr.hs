@@ -37,16 +37,6 @@ byteSize :: Storable a => a -> BYTES Int
 {-# INLINE byteSize #-}
 byteSize = BYTES . sizeOf
 
--- | Moves a pointer by a specified offset. The offset can be of any
--- type that supports coercion to @`BYTES` Int@. It is safer to use
--- this function than @`plusPtr`@, as it does type safe scaling.
-movePtr :: LengthUnit offset
-        => CryptoPtr
-        -> offset
-        -> CryptoPtr
-{-# INLINE movePtr #-}
-movePtr cptr offset = plusPtr cptr bytes
-  where BYTES bytes = inBytes offset
 
 ------------------------ Allocation --------------------------------
 
