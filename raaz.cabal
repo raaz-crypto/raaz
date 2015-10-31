@@ -104,9 +104,6 @@ library
                  , Raaz.Core.Types.Word
                  , Raaz.Core.Types.CryptoBuffer
                  , Raaz.Core.Util
-                 , Raaz.Core.Util.ByteString
-                 , Raaz.Core.Util.Gadget
-                 , Raaz.Core.Util.Ptr
                  , Raaz.Core.Write
                  , Raaz.Core.Write.Unsafe
                  , Raaz.System.Parameters
@@ -140,6 +137,9 @@ library
                  , Raaz.Cipher.Salsa20.Internal
   other-modules: Raaz.Core.Encode.Internal
                , Raaz.Core.Encode.Base16
+               , Raaz.Core.Util.ByteString
+               , Raaz.Core.Util.Gadget
+               , Raaz.Core.Util.Ptr
                --
                -- Internal modules from Hash
                --

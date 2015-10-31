@@ -3,14 +3,13 @@ module Raaz.Core.Util.ByteStringSpec where
 import Prelude hiding (length, take)
 import Control.Applicative
 import Data.ByteString.Internal(create, createAndTrim)
-import Data.ByteString (pack, ByteString, length, take)
+import Data.ByteString as B
 import Foreign.Ptr
 import Test.Hspec
 import Test.QuickCheck
 
 
-import           Raaz.Core (BYTES(..))
-import qualified Raaz.Core.Util.ByteString as B
+import           Raaz.Core as RC
 
 import Arbitrary
 
@@ -19,7 +18,7 @@ genBS = pack <$> arbitrary
 
 genBS' :: Gen (ByteString, Int)
 genBS' = do bs <- genBS
-            l  <- choose (0, length bs)
+            l  <- choose (0, B.length bs)
             return (bs, l)
 
 spec :: Spec
@@ -35,8 +34,8 @@ spec = do context "unsafeCopyToCryptoPtr" $
             $ it "reads exactly the same bytes from the byte string pointer"
             $ feed genBS $ \ bs -> (==bs) <$> readFrom bs
 
-    where clone       bs     = create (length bs) $ B.unsafeCopyToCryptoPtr bs . castPtr
-          clonePrefix (bs,n) = createAndTrim (length bs) $ \ cptr -> do
-                                   B.unsafeNCopyToCryptoPtr (BYTES n) bs $ castPtr cptr
+    where clone       bs     = create (B.length bs) $ RC.unsafeCopyToCryptoPtr bs . castPtr
+          clonePrefix (bs,n) = createAndTrim (B.length bs) $ \ cptr -> do
+                                   RC.unsafeNCopyToCryptoPtr (BYTES n) bs $ castPtr cptr
                                    return n
-          readFrom bs        = B.withByteString bs $ B.createFrom (B.length bs)
+          readFrom bs        = RC.withByteString bs $ RC.createFrom (RC.length bs)
