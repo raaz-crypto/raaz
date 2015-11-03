@@ -38,7 +38,6 @@ import Raaz.Core.Types
 import Raaz.Core.Primitives
 import Raaz.Core.Primitives.Cipher
 import Raaz.Core.Memory
-import Raaz.Core.Util.Ptr         (allocaBuffer)
 
 import Raaz.Cipher.AES.Block.Type
 import Raaz.Cipher.AES.Block.Internal
@@ -53,7 +52,7 @@ data AES (mode :: CipherMode) key = AES deriving (Show, Eq)
 -- | AES with the direction of operation.
 data AESOp (mode :: CipherMode) key (op :: Mode) = AESOp deriving (Show, Eq)
 
-
+{-
 instance HasName (AESOp ECB KEY128 EncryptMode) where
   getName _ = "AES128 ECB EncryptMode"
 
@@ -110,7 +109,7 @@ instance HasName (AESOp CTR KEY192 DecryptMode) where
 instance HasName (AESOp CTR KEY256 DecryptMode) where
   getName _ = "AES256 CTR DecryptMode"
 
-
+-}
 
 ----------------------------- Gadgets for AES -----------------------
 
@@ -123,6 +122,7 @@ data CAESGadget (mode :: CipherMode) key (op :: Mode) = CAESGadget (KeyCell key)
 
 ---------------------------- HGadgets ------------------------------------
 
+{--
 
 instance HasName (HAESGadget CBC KEY128 EncryptMode) where
   getName _ = "HAES128 CBC EncryptMode"
@@ -161,6 +161,8 @@ instance HasName (HAESGadget CTR KEY192 DecryptMode) where
 instance HasName (HAESGadget CTR KEY256 DecryptMode) where
   getName _ = "HAES256 CTR DecryptMode"
 
+--}
+
 instance Storable (Expanded key) => Memory (HAESGadget mode key op) where
 
   memoryAlloc = HAESGadget <$> memoryAlloc <*> memoryAlloc
@@ -194,6 +196,7 @@ instance InitializableMemory (HAESGadget mode KEY256 op) where
 
 --------------------- C Gadgets -------------------------------------------
 
+{--
 instance HasName (CAESGadget CBC KEY128 EncryptMode) where
   getName _ = "CAES128 CBC EncryptMode"
 
@@ -231,6 +234,7 @@ instance HasName (CAESGadget CTR KEY192 DecryptMode) where
 instance HasName (CAESGadget CTR KEY256 DecryptMode) where
   getName _ = "CAES256 CTR DecryptMode"
 
+--}
 
 instance Storable (Expanded key) => Memory (CAESGadget mode key op) where
 
@@ -275,7 +279,7 @@ instance InitializableMemory (CAESGadget mode KEY256 op) where
 cExpansionWith :: (EndianStore k, Storable ek)
                => MemoryCell ek
                -> k
-               -> (CryptoPtr -> CryptoPtr -> Int -> IO ())
+               -> (Pointer -> Pointer -> Int -> IO ())
                -> Int
                -> IO ()
 cExpansionWith ek k with i = allocaBuffer szk $ \kptr -> do
@@ -299,7 +303,7 @@ cExpand256 k excell = cExpansionWith excell k c_expand 2
 
 foreign import ccall unsafe
   "raaz/cipher/cportable/aes.c raazCipherAESExpand"
-  c_expand  :: CryptoPtr  -- ^ expanded key
-            -> CryptoPtr  -- ^ key
+  c_expand  :: Pointer  -- ^ expanded key
+            -> Pointer  -- ^ key
             -> Int        -- ^ Key type
             -> IO ()
