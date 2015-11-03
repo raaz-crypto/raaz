@@ -9,7 +9,7 @@ import Test.Hspec
 import Test.Hspec.QuickCheck
 
 import Generic.EndianStore
-import Raaz.Core.Types.Word
+import Raaz.Core.Types
 import Raaz.Core.Encode
 
 
