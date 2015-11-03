@@ -40,6 +40,7 @@ data Rounds = R20
             | R12
             | R8
 
+{--
 
 instance HasName (Salsa20 R20 KEY128) where
   getName _ = "Salsa20/20 KEY128"
@@ -58,3 +59,5 @@ instance HasName (Salsa20 R8 KEY128) where
 
 instance HasName (Salsa20 R8 KEY256) where
   getName _ = "Salsa20/8 KEY256"
+
+--}

@@ -20,9 +20,9 @@ import Foreign.Ptr         ( castPtr )
 import Numeric             ( showHex )
 
 import Raaz.Core.Encode
-import Raaz.Core.Parse.Unsafe
+import Raaz.Core.Parse.Applicative
 import Raaz.Core.Types
-import Raaz.Core.Write.Unsafe
+import Raaz.Core.Write
 
 
 -- | State which consists of 4 `(LE Word32)`.
@@ -90,13 +90,13 @@ writeState (STATE s0 s1 s2 s3) = write s0
 
 instance Storable STATE where
   sizeOf    _ = 4 * sizeOf (undefined :: (LE Word32))
-  alignment _ = alignment  (undefined :: CryptoAlign)
-  peek cptr = runParser (castPtr cptr) parseState
-  poke cptr state = runWrite (castPtr cptr) $ writeState state
+  alignment _ = alignment  (undefined :: Align)
+  peek        = unsafeRunParser parseState . castPtr
+  poke cptr state = unsafeWrite (writeState state) $ castPtr cptr
 
 instance EndianStore STATE where
-  load cptr = runParser cptr parseState
-  store cptr state = runWrite cptr $ writeState state
+  load             = unsafeRunParser parseState
+  store cptr state = unsafeWrite (writeState state) cptr
 
 instance Encodable STATE
 
@@ -142,12 +142,12 @@ writeMatrix (Matrix s0 s1 s2 s3) = write s0
 instance Storable Matrix where
   sizeOf    _ = 4 * sizeOf (undefined :: STATE)
   alignment _ = alignment  (undefined :: STATE)
-  peek cptr = runParser (castPtr cptr) parseMatrix
-  poke cptr matrix = runWrite (castPtr cptr) $ writeMatrix matrix
+  peek             = unsafeRunParser parseMatrix . castPtr
+  poke cptr matrix = unsafeWrite (writeMatrix matrix) $ castPtr cptr
 
 instance EndianStore Matrix where
-  load cptr = runParser cptr parseMatrix
-  store cptr matrix = runWrite cptr $ writeMatrix matrix
+  load              = unsafeRunParser parseMatrix
+  store cptr matrix = unsafeWrite (writeMatrix matrix) cptr
 
 instance Encodable Matrix
 
@@ -262,13 +262,13 @@ writeKey128 (KEY128 s0 s1 s2 s3) = write s0
 
 instance Storable KEY128 where
   sizeOf    _ = 4 * sizeOf (undefined :: (LE Word32))
-  alignment _ = alignment  (undefined :: CryptoAlign)
-  peek cptr = runParser (castPtr cptr) parseKey128
-  poke cptr key128 = runWrite (castPtr cptr) $ writeKey128 key128
+  alignment _ = alignment  (undefined :: Align)
+  peek             = unsafeRunParser parseKey128 . castPtr
+  poke cptr key128 = unsafeWrite (writeKey128 key128) $ castPtr cptr
 
 instance EndianStore KEY128 where
-  load cptr = runParser cptr parseKey128
-  store cptr key128 = runWrite cptr $ writeKey128 key128
+  load              = unsafeRunParser parseKey128
+  store cptr key128 = unsafeWrite (writeKey128 key128) cptr
 
 parseKey256 :: Parser KEY256
 parseKey256 = KEY256 <$> parse
@@ -292,13 +292,13 @@ writeKey256 (KEY256 s0 s1 s2 s3 s4 s5 s6 s7) = write s0
 
 instance Storable KEY256 where
   sizeOf    _ = 8 * sizeOf (undefined :: (LE Word32))
-  alignment _ = alignment  (undefined :: CryptoAlign)
-  peek cptr = runParser (castPtr cptr) parseKey256
-  poke cptr key256 = runWrite (castPtr cptr) $ writeKey256 key256
+  alignment _ = alignment  (undefined :: Align)
+  peek             = unsafeRunParser parseKey256 . castPtr
+  poke cptr key256 = unsafeWrite (writeKey256 key256) $ castPtr cptr
 
 instance EndianStore KEY256 where
-  load cptr = runParser cptr parseKey256
-  store cptr key256 = runWrite cptr $ writeKey256 key256
+  load              = unsafeRunParser parseKey256
+  store cptr key256 = unsafeWrite (writeKey256 key256) cptr
 
 -- | Performs summation for `Matrix`.
 showWord32 :: LE Word32 -> ShowS
@@ -334,13 +334,13 @@ writeSplitWord64 (SplitWord64 s0 s1) = write s0
 
 instance Storable SplitWord64 where
   sizeOf    _ = 2 * sizeOf (undefined :: (LE Word32))
-  alignment _ = alignment  (undefined :: CryptoAlign)
-  peek cptr = runParser (castPtr cptr) parseSplitWord64
-  poke cptr splitWord64 = runWrite (castPtr cptr) $ writeSplitWord64 splitWord64
+  alignment _ = alignment  (undefined :: Align)
+  peek                  = unsafeRunParser parseSplitWord64 . castPtr
+  poke cptr splitWord64 = unsafeWrite (writeSplitWord64 splitWord64) $ castPtr cptr
 
 instance EndianStore SplitWord64 where
-  load cptr = runParser cptr parseSplitWord64
-  store cptr splitWord64 = runWrite cptr $ writeSplitWord64 splitWord64
+  load                   = unsafeRunParser parseSplitWord64
+  store cptr splitWord64 = unsafeWrite (writeSplitWord64 splitWord64) cptr
 
 -- | Nonce of 8 Byte.
 newtype Nonce   = Nonce SplitWord64
