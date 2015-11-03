@@ -90,9 +90,7 @@ library
                  , Raaz.Core.Encode
                  , Raaz.Core.Memory
                  , Raaz.Core.MonoidalAction
-                 , Raaz.Core.Parse
                  , Raaz.Core.Parse.Applicative
-                 , Raaz.Core.Parse.Unsafe
                  , Raaz.Core.Primitives
                  , Raaz.Core.Primitives.Asymmetric
                  , Raaz.Core.Primitives.Cipher
@@ -103,7 +101,6 @@ library
                  , Raaz.Core.Types.CryptoBuffer
                  , Raaz.Core.Util
                  , Raaz.Core.Write
-                 , Raaz.Core.Write.Unsafe
                  , Raaz.System.Parameters
                  --
                  -- Cryptographic hashes
@@ -137,10 +134,10 @@ library
                , Raaz.Core.Encode.Base16
                , Raaz.Core.Util.ByteString
                , Raaz.Core.Util.Gadget
-               , Raaz.Core.Util.Ptr
                , Raaz.Core.Types.Pointer
                , Raaz.Core.Types.Tuple
                , Raaz.Core.Types.Equality
+               , Raaz.Core.Types.Endian
                --
                -- Internal modules from Hash
                --
