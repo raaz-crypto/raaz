@@ -17,13 +17,12 @@ import qualified Data.Vector.Unboxed as VU
 import Data.Word
 
 import Raaz.Core.Types
-import Raaz.Core.Util.Ptr
 
 import Raaz.Hash.Sha256.Type ( SHA256(..) )
 
 -- | Compresses one block.
 sha256CompressSingle :: SHA256
-                     -> CryptoPtr
+                     -> Pointer
                      -> IO SHA256
 sha256CompressSingle sha256 cptr =
          sha256round sha256

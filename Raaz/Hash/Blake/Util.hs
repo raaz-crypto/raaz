@@ -40,15 +40,15 @@ blakePadding :: Primitive prim
              -> BITS Word64    -- ^ The length of the message
              -> ByteString
 {-# INLINE blakePadding #-}
-blakePadding lSize prim lBits
+blakePadding lSize prim (BITS lbits)
   | pLen == lSize + 1 =  singleton 0x81  <> lPad
   | otherwise         =  singleton 0x80
                          <> replicate zeros 0
                          <> singleton 0x01
                          <> lPad
-  where pLen    = blakePadLength lSize prim lBits
+  where pLen    = blakePadLength lSize prim (BITS lbits)
         zeros   = pLen - lSize - 2
         -- The length pad
-        l       = cryptoCoerce lBits :: BITS (BE Word64)
+        l       = BITS $ bigEndian lbits
         lPad    = msb <> toByteString l
         msb     = replicate (lSize - 8) 0

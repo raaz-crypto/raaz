@@ -38,8 +38,6 @@ instance Eq BLAKE256 where
 instance Eq Salt where
  (==) (Salt g) (Salt h) = oftenCorrectEqVector g h
 
-instance HasName BLAKE256
-
 instance Storable BLAKE256 where
   sizeOf    _ = 8 * sizeOf (undefined :: (BE Word32))
   alignment _ = alignment  (undefined :: (BE Word32))

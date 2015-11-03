@@ -18,7 +18,6 @@ import Raaz.Core.Memory
 import Raaz.Core.Primitives
 import Raaz.Core.Primitives.Hash
 import Raaz.Core.Types
-import Raaz.Core.Util.Ptr
 
 import Raaz.Hash.Blake256.Type
 import Raaz.Hash.Blake256.Ref

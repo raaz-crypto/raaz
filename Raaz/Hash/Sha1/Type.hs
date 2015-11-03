@@ -35,8 +35,6 @@ newtype SHA1 = SHA1 (VU.Vector (BE Word32)) deriving Typeable
 instance Eq SHA1 where
  (==) (SHA1 g) (SHA1 h) = oftenCorrectEqVector g h
 
-instance HasName SHA1
-
 instance Storable SHA1 where
   sizeOf    _ = 5 * sizeOf (undefined :: (BE Word32))
   alignment _ = alignment  (undefined :: (BE Word32))

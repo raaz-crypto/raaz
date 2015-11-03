@@ -40,8 +40,6 @@ newtype SHA384 = SHA384 (VU.Vector (BE Word64)) deriving Typeable
 instance Eq SHA384 where
  (==) (SHA384 g) (SHA384 h) = oftenCorrectEqVector g h
 
-instance HasName SHA384
-
 instance Storable SHA384 where
   sizeOf    _ = 6 * sizeOf (undefined :: (BE Word64))
   alignment _ = alignment  (undefined :: (BE Word64))

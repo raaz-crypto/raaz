@@ -16,14 +16,13 @@ import Control.Applicative
 import Data.Bits
 import Data.Word
 import qualified Data.Vector.Unboxed as VU
-import Raaz.Core.Types
-import Raaz.Core.Util.Ptr
 
+import Raaz.Core.Types
 import Raaz.Hash.Sha1.Type ( SHA1(..) )
 
 -- | Compresses one block.
 sha1CompressSingle :: SHA1
-                   -> CryptoPtr
+                   -> Pointer
                    -> IO SHA1
 sha1CompressSingle sha1 cptr = sha1round sha1
          <$> load cptr

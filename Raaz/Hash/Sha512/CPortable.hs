@@ -22,9 +22,9 @@ import Raaz.Hash.Sha512.Type
 
 foreign import ccall unsafe
   "raaz/hash/sha512/portable.h raazHashSha512PortableCompress"
-  c_sha512_compress  :: Ptr SHA512 -> Int -> CryptoPtr -> IO ()
+  c_sha512_compress  :: Ptr SHA512 -> Int -> Pointer -> IO ()
 
-sha512Compress :: MemoryCell SHA512 -> BLOCKS SHA512 -> CryptoPtr -> IO ()
+sha512Compress :: MemoryCell SHA512 -> BLOCKS SHA512 -> Pointer -> IO ()
 sha512Compress cc nblocks buffer = withCell cc action
   where action ptr = c_sha512_compress (castPtr ptr) n buffer
         n = fromEnum nblocks

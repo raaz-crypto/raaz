@@ -28,10 +28,8 @@ import           Foreign.Ptr
 import           Prelude                   hiding (length, replicate)
 import           Raaz.Core
 
-
-import qualified Raaz.Core.Parse.Unsafe         as U
-import qualified Raaz.Core.Write.Unsafe         as U
-
+import           Raaz.Core.Parse.Applicative
+import           Raaz.Core.Write
 
 -- | The HMAC associated to a hash value. The HMAC type is essentially
 -- the underlying hash type wrapped inside a newtype. Therefore the
@@ -146,7 +144,7 @@ hmacSetGadget :: (Hash h, Gadget g, h ~ PrimitiveOf g)
               -> HashMemoryBuf h
               -> IO ()
 hmacSetGadget pad key gad buf = withMemoryBuf buf $ \ _ cptr -> do
-  unsafeNCopyToCryptoPtr sz paddedKey cptr
+  unsafeNCopyToPointer sz paddedKey cptr
   apply gad 1 cptr
     where sz        = blockSize $ getHMAC key
           paddedKey = B.map (xor pad) $ hmacAdjustKey key
@@ -271,11 +269,11 @@ instance Hash h => Storable (HMACKey h) where
 
   sizeOf    _  = fromIntegral $ blockSize (undefined :: h)
 
-  alignment _  = cryptoAlignment
+  alignment _  = alignment (undefined :: Align)
 
-  peek ptr     = U.runParser (castPtr ptr) $ HMACKey <$> U.parseByteString (blockSize (undefined :: h))
+  peek         = unsafeRunParser (HMACKey <$> parseByteString (blockSize (undefined :: h))) . castPtr
 
-  poke ptr     = U.runWrite (castPtr ptr) . U.writeByteString . hmacAdjustKey
+  poke ptr key = unsafeWrite (writeByteString $ hmacAdjustKey key) $ castPtr ptr
 
 
 -- | Shorten/Lengthen an HMACKey to fill the block.
