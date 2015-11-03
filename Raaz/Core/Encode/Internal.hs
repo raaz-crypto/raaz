@@ -20,10 +20,8 @@ import Foreign.Storable
 import Prelude hiding               (length)
 import System.IO.Unsafe   (unsafePerformIO)
 
-import Raaz.Core.Types.Endian
-import Raaz.Core.Types.Length
+import Raaz.Core.Types
 import Raaz.Core.Util.ByteString(length, withByteString)
-import Raaz.Core.Util.Ptr(byteSize)
 
 
 -- | Stuff that can be encoded into byte strings.

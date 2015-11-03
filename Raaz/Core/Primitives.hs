@@ -45,7 +45,7 @@ import           Raaz.Core.ByteSource
 import           Raaz.Core.Memory
 import           Raaz.Core.Types
 import           Raaz.Core.Util.ByteString
-import           Raaz.Core.Util.Ptr
+import           Raaz.Core.Types.Pointer
 import           Raaz.System.Parameters  (l1Cache)
 
 -- $primAndGadget$
@@ -120,7 +120,7 @@ class ( Primitive (PrimitiveOf g)
   -- | This function actually applies the gadget on the buffer. If the
   -- underlying primitive is an instance of the class `SafePrimitive`,
   -- please ensure that the contents of the buffer is not modified.
-  apply :: g -> BLOCKS (PrimitiveOf g) -> CryptoPtr -> IO ()
+  apply :: g -> BLOCKS (PrimitiveOf g) -> Pointer -> IO ()
 
   -- | The recommended number of blocks to process at a time. While
   -- processing files, bytestrings it makes sense to handle multiple
@@ -214,9 +214,9 @@ class Primitive p => HasPadding p where
   -- given pointer.
   unsafePad :: p           -- ^ the block primitive
             -> BITS Word64 -- ^ the total message size in bits
-            -> CryptoPtr   -- ^ the message buffer
+            -> Pointer   -- ^ the message buffer
             -> IO ()
-  unsafePad p bits = unsafeCopyToCryptoPtr $ padding p bits
+  unsafePad p bits = unsafeCopyToPointer $ padding p bits
 
   -- | This counts the number of additional blocks required so that
   -- one can hold the padding. This function is useful if you want to
@@ -234,7 +234,7 @@ class (Gadget g, HasPadding (PrimitiveOf g)) => PaddableGadget g where
   unsafeApplyLast :: g                      -- ^ Gadget
                   -> BLOCKS (PrimitiveOf g) -- ^ Number of Blocks processed so far
                   -> BYTES Int              -- ^ Bytes to process
-                  -> CryptoPtr              -- ^ Location
+                  -> Pointer              -- ^ Location
                   -> IO ()
   unsafeApplyLast g blocks bytes cptr = do
     let bits = inBits bytes :: BITS Word64
@@ -324,6 +324,7 @@ instance Memory m => Memory (CGadget p m) where
   memoryAlloc = CGadget <$> memoryAlloc
   underlyingPtr (CGadget m) = underlyingPtr m
 
+{--
 -- | If primitive has a name then HGadget has a name
 instance HasName p  => HasName (HGadget p m) where
   getName g = "HGadget " ++ getName (getP g)
@@ -336,6 +337,7 @@ instance HasName p => HasName (CGadget p m) where
     where getP :: CGadget p m -> p
           getP _ = undefined
 
+--}
 --------------------- Cryptographic operation modes -------------------
 
 -- | A primitive cryptographic operation consists of the following

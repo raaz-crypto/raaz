@@ -11,7 +11,7 @@ import Foreign.Ptr     (castPtr)
 import Foreign.Storable(Storable, peek)
 
 import Raaz.Core.ByteSource(ByteSource, fillBytes)
-import Raaz.Core.Util.Ptr  (byteSize, allocaBuffer)
+import Raaz.Core.Types.Pointer  (byteSize, allocaBuffer)
 
 -- | The class that captures pseudo-random generators. Essentially the
 -- a pseudo-random generator (PRG) is a byte sources that can be

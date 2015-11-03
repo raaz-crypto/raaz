@@ -10,9 +10,8 @@ module Raaz.Core.Util.ByteString
        , fromByteStringStorable
        , createFrom
        , withByteString
-       , unsafeCopyToCryptoPtr
-       , unsafeNCopyToCryptoPtr
-
+       , unsafeCopyToPointer
+       , unsafeNCopyToPointer
        ) where
 
 import           Prelude            hiding (length, replicate)
@@ -28,8 +27,7 @@ import           Foreign.Storable   (peek, Storable)
 
 import           System.IO.Unsafe   (unsafePerformIO)
 
-import           Raaz.Core.Classes
-import           Raaz.Core.Util.Ptr
+import           Raaz.Core.Types
 
 -- | A typesafe length for Bytestring
 length :: ByteString -> BYTES Int
@@ -43,26 +41,26 @@ replicate l = B.replicate sz
 -- | Copy the bytestring to the crypto buffer. This operation leads to
 -- undefined behaviour if the crypto pointer points to an area smaller
 -- than the size of the byte string.
-unsafeCopyToCryptoPtr :: ByteString   -- ^ The source.
-                      -> CryptoPtr    -- ^ The destination.
+unsafeCopyToPointer :: ByteString   -- ^ The source.
+                      -> Pointer    -- ^ The destination.
                       -> IO ()
-unsafeCopyToCryptoPtr bs cptr =  withForeignPtr fptr $
+unsafeCopyToPointer bs cptr =  withForeignPtr fptr $
            \ p -> memcpy dest (p `plusPtr` offset) (BYTES n)
     where (fptr, offset,n) = toForeignPtr bs
           dest = castPtr cptr
 
 
--- | Similar to `unsafeCopyToCryptoPtr` but takes an additional input
+-- | Similar to `unsafeCopyToPointer` but takes an additional input
 -- @n@ which is the number of bytes (expressed in type safe length
 -- units) to transfer. This operation leads to undefined behaviour if
 -- either the bytestring is shorter than @n@ or the crypto pointer
 -- points to an area smaller than @n@.
-unsafeNCopyToCryptoPtr :: LengthUnit n
+unsafeNCopyToPointer :: LengthUnit n
                        => n              -- ^ length of data to be copied
                        -> ByteString     -- ^ The source byte string
-                       -> CryptoPtr      -- ^ The buffer
+                       -> Pointer      -- ^ The buffer
                        -> IO ()
-unsafeNCopyToCryptoPtr n bs cptr = withForeignPtr fptr $
+unsafeNCopyToPointer n bs cptr = withForeignPtr fptr $
            \ p -> memcpy dest (p `plusPtr` offset) n
     where (fptr, offset,_) = toForeignPtr bs
           dest    = castPtr cptr
@@ -70,7 +68,7 @@ unsafeNCopyToCryptoPtr n bs cptr = withForeignPtr fptr $
 -- | Works directly on the pointer associated with the
 -- `ByteString`. This function should only read and not modify the
 -- contents of the pointer.
-withByteString :: ByteString -> (CryptoPtr -> IO a) -> IO a
+withByteString :: ByteString -> (Pointer -> IO a) -> IO a
 withByteString bs f = withForeignPtr fptr (f . flip plusPtr off . castPtr)
   where (fptr, off, _) = toForeignPtr bs
 
@@ -80,7 +78,7 @@ fromByteStringStorable src = unsafePerformIO $ withByteString src (peek . castPt
 
 -- | The IO action @createFrom n cptr@ creates a bytestring by copying
 -- @n@ bytes from the pointer @cptr@.
-createFrom :: LengthUnit l => l -> CryptoPtr -> IO ByteString
+createFrom :: LengthUnit l => l -> Pointer -> IO ByteString
 createFrom l cptr = create bytes filler
   where filler dest = memcpy (castPtr dest) cptr l
         BYTES bytes = inBytes l

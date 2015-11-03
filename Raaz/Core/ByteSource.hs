@@ -11,15 +11,17 @@ module Raaz.Core.ByteSource
 import           Control.Monad        (liftM)
 import qualified Data.ByteString      as B
 import qualified Data.ByteString.Lazy as L
+import           Data.Monoid
 import           Prelude hiding(length)
 import           System.IO            (Handle)
 
-import           Raaz.Core.Types      (BYTES, CryptoPtr, LengthUnit (..))
-import           Raaz.Core.Util.ByteString( unsafeCopyToCryptoPtr
-                                          , unsafeNCopyToCryptoPtr
+import           Raaz.Core.MonoidalAction
+import           Raaz.Core.Types      (BYTES, Pointer, LengthUnit (..))
+import           Raaz.Core.Util.ByteString( unsafeCopyToPointer
+                                          , unsafeNCopyToPointer
                                           , length
                                           )
-import           Raaz.Core.Util.Ptr        (movePtr, hFillBuf)
+import           Raaz.Core.Types.Pointer  (hFillBuf)
 
 
 -- | This type captures the result of a fill operation.
@@ -48,7 +50,7 @@ class ByteSource src where
   -- | Fills a buffer from the source.
   fillBytes :: BYTES Int  -- ^ Buffer size
             -> src        -- ^ The source to fill.
-            -> CryptoPtr  -- ^ Buffer pointer
+            -> Pointer  -- ^ Buffer pointer
             -> IO (FillResult src)
 
 
@@ -59,7 +61,7 @@ fill :: ( LengthUnit len
         )
      => len
      -> src
-     -> CryptoPtr
+     -> Pointer
      -> IO (FillResult src)
 fill = fillBytes . inBytes
 {-# INLINE fill #-}
@@ -86,9 +88,9 @@ instance ByteSource Handle where
 
 instance ByteSource B.ByteString where
   {-# INLINE fillBytes #-}
-  fillBytes sz bs cptr | l < sz    = do unsafeCopyToCryptoPtr bs cptr
+  fillBytes sz bs cptr | l < sz    = do unsafeCopyToPointer bs cptr
                                         return $ Exhausted $ sz - l
-                       | otherwise = do unsafeNCopyToCryptoPtr sz bs cptr
+                       | otherwise = do unsafeNCopyToPointer sz bs cptr
                                         return $ Remaining rest
        where l    = length bs
              rest = B.drop (fromIntegral sz) bs
@@ -110,7 +112,8 @@ instance ByteSource src => ByteSource [src] where
   fillBytes sz (x:xs) cptr = do
     result <- fillBytes sz x cptr
     case result of
-      Exhausted nSz -> fillBytes nSz xs $ movePtr cptr $ sz - nSz
+      Exhausted nSz -> let nptr = Sum (sz - nSz) <.> cptr
+                           in fillBytes nSz xs nptr
       Remaining nx  -> return $ Remaining $ nx:xs
 
 --------------------- Instances of pure byte source --------------------

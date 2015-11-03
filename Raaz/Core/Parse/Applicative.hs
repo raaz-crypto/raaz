@@ -3,16 +3,14 @@
 
 module Raaz.Core.Parse.Applicative
        ( Parser, parseWidth, parseError
-       , runParser, runParser', unsafeRunParser
+       , unsafeRunParser
        , parse, parseStorable
        , parseVector, parseStorableVector
        , unsafeParseVector, unsafeParseStorableVector
        , parseByteString
        ) where
 
-import           Control.Applicative
 import           Data.ByteString           (ByteString)
-import           Data.Maybe                (fromJust)
 import           Data.Monoid               (Sum(..))
 import           Data.Vector.Generic       (Vector, generateM)
 import           Foreign.Ptr               (castPtr)
@@ -22,16 +20,15 @@ import           Foreign.Storable          (Storable, peek, peekElemOff)
 import           Raaz.Core.MonoidalAction
 import           Raaz.Core.Types
 import           Raaz.Core.Util.ByteString (createFrom)
-import           Raaz.Core.Util.Ptr        (byteSize, loadFromIndex)
 
 
 type BytesMonoid   = Sum (BYTES Int)
-type ParseAction   = FieldM IO CryptoPtr
+type ParseAction   = FieldM IO Pointer
 
 -- | An applicative parser type for reading data from a pointer.
 type Parser = TwistRF ParseAction BytesMonoid
 
-makeParser :: LengthUnit l => l -> (CryptoPtr -> IO a) -> Parser a
+makeParser :: LengthUnit l => l -> (Pointer -> IO a) -> Parser a
 makeParser l action = TwistRF (liftToFieldM action, Sum $ inBytes l)
 
 -- | A parser that fails with a given error message.
@@ -42,6 +39,7 @@ parseError msg = makeParser (0 :: BYTES Int) $ \ _ -> fail msg
 parseWidth :: Parser a -> BYTES Int
 parseWidth =  getSum . twistMonoidValue
 
+{-
 -- | Run the given parser.
 runParser :: Parser a -> CryptoBuffer -> IO (Maybe a)
 runParser pr cbuf = withCryptoBuffer cbuf $ \ sz cptr ->
@@ -52,8 +50,10 @@ runParser pr cbuf = withCryptoBuffer cbuf $ \ sz cptr ->
 runParser' :: Parser a -> CryptoBuffer -> IO a
 runParser' pr = fmap fromJust . runParser pr
 
+-}
+
 -- | Run the parser without checking the length constraints.
-unsafeRunParser :: Parser a -> CryptoPtr -> IO a
+unsafeRunParser :: Parser a -> Pointer -> IO a
 unsafeRunParser = runFieldM . twistFunctorValue
 
 -- | The primary purpose of this function is to satisfy type checkers.
