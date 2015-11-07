@@ -14,14 +14,14 @@ import Data.Maybe
 import Data.ByteString              (ByteString)
 import Data.ByteString.Internal     (unsafeCreate)
 import Data.String
+import Data.Word
 import Foreign.Ptr
 import Foreign.Storable
 import Prelude hiding               (length)
 import System.IO.Unsafe   (unsafePerformIO)
 
-import Raaz.Core.Classes
+import Raaz.Core.Types
 import Raaz.Core.Util.ByteString(length, withByteString)
-import Raaz.Core.Util.Ptr(byteSize)
 
 
 -- | Stuff that can be encoded into byte strings.
@@ -47,6 +47,11 @@ class Encodable a where
                proxy = undefined `asTypeOf` w
 
   unsafeFromByteString = fromMaybe (error "fromByteString error") . fromByteString
+
+instance Encodable (LE Word32)
+instance Encodable (LE Word64)
+instance Encodable (BE Word32)
+instance Encodable (BE Word64)
 
 instance Encodable ByteString where
   toByteString         = id

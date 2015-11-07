@@ -28,7 +28,6 @@ import Raaz.Core.Memory
 import Raaz.Core.Primitives
 import Raaz.Core.Primitives.Cipher
 import Raaz.Core.Types
-import Raaz.Core.Util.Ptr
 
 import Raaz.Cipher.Salsa20.Block.Internal
 import Raaz.Cipher.Salsa20.Block.Type
@@ -143,7 +142,7 @@ instance Gadget (CSalsa20Gadget R8 KEY256) where
 
 
 applyGad :: (Integral i, Gadget (HSalsa20Gadget r k))
-            => HSalsa20Gadget r k -> (Matrix -> Matrix) -> i -> CryptoPtr -> IO ()
+            => HSalsa20Gadget r k -> (Matrix -> Matrix) -> i -> Pointer -> IO ()
 applyGad g@(HGadget mc) with n cptr = do
     state <- cellPeek mc
     (newstate,restptr) <- foldM moveAndHash (state,cptr) [1..nblks]
@@ -162,7 +161,7 @@ applyGad g@(HGadget mc) with n cptr = do
         let newCxt = with cxt
         xorWords cptr' nextra (unpack $ toByteString newCxt)
         return $ incrCounter cxt
-      xorWords :: CryptoPtr -> Int -> [Word8] -> IO ()
+      xorWords :: Pointer -> Int -> [Word8] -> IO ()
       xorWords _ 0 _  = return ()
       xorWords _ _ [] = return ()
       xorWords ptr left (w:ws) = do
@@ -176,7 +175,7 @@ applyGad g@(HGadget mc) with n cptr = do
 {-# INLINE applyGad #-}
 
 applyCGad :: (LengthUnit s, Gadget (CSalsa20Gadget r k))
-             => (CryptoPtr -> x -> BYTES Int -> IO b) -> CSalsa20Gadget r k -> s -> x -> IO b
+             => (Pointer -> x -> BYTES Int -> IO b) -> CSalsa20Gadget r k -> s -> x -> IO b
 applyCGad with (CGadget mc) n cptr = withCell mc go
   where
     go mptr = with mptr cptr (atMost n)
@@ -266,35 +265,35 @@ instance Cipher (Salsa20 r k)
 
 foreign import ccall unsafe
   "raaz/cipher/cportable/salsa20.c salsa20_20"
-  c_salsa20_20  :: CryptoPtr  -- ^ Expanded Key
-                -> CryptoPtr  -- ^ Input
+  c_salsa20_20  :: Pointer  -- ^ Expanded Key
+                -> Pointer  -- ^ Input
                 -> BYTES Int  -- ^ Number of Bytes
                 -> IO ()
 
 foreign import ccall unsafe
   "raaz/cipher/cportable/salsa20.c salsa20_12"
-  c_salsa20_12  :: CryptoPtr  -- ^ Expanded Key
-                -> CryptoPtr  -- ^ Input
+  c_salsa20_12  :: Pointer  -- ^ Expanded Key
+                -> Pointer  -- ^ Input
                 -> BYTES Int  -- ^ Number of Bytes
                 -> IO ()
 
 foreign import ccall unsafe
   "raaz/cipher/cportable/salsa20.c salsa20_8"
-  c_salsa20_8  :: CryptoPtr  -- ^ Expanded Key
-               -> CryptoPtr  -- ^ Input
+  c_salsa20_8  :: Pointer  -- ^ Expanded Key
+               -> Pointer  -- ^ Input
                -> BYTES Int  -- ^ Number of Bytes
                -> IO ()
 
 foreign import ccall unsafe
   "raaz/cipher/cportable/salsa20.c expand128"
-  c_expand128  :: CryptoPtr -- ^ IV = (Key || Nonce || Counter)
-               -> CryptoPtr -- ^ expanded key
+  c_expand128  :: Pointer -- ^ IV = (Key || Nonce || Counter)
+               -> Pointer -- ^ expanded key
                -> IO ()
 
 foreign import ccall unsafe
   "raaz/cipher/cportable/salsa20.c expand256"
-  c_expand256  :: CryptoPtr  -- ^ IV = (Key || Nonce || Counter)
-               -> CryptoPtr  -- ^ expanded key
+  c_expand256  :: Pointer  -- ^ IV = (Key || Nonce || Counter)
+               -> Pointer  -- ^ expanded key
                -> IO ()
 
 
@@ -302,7 +301,7 @@ foreign import ccall unsafe
 -- | SECURITY LOOPHOLE. Read similar function in AES for description
 -- of the problem.
 cExpansionWith :: EndianStore k
-                => (CryptoPtr -> CryptoPtr -> IO ())
+                => (Pointer -> Pointer -> IO ())
                 -> MemoryCell Matrix
                 -> k
                 -> Nonce

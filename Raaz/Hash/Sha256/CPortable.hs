@@ -24,9 +24,9 @@ import Raaz.Hash.Sha256.Type
 
 foreign import ccall unsafe
   "raaz/hash/sha256/portable.h raazHashSha256PortableCompress"
-  c_sha256_compress  :: Ptr SHA256 -> Int -> CryptoPtr -> IO ()
+  c_sha256_compress  :: Ptr SHA256 -> Int -> Pointer -> IO ()
 
-sha256Compress :: MemoryCell SHA256 -> BLOCKS SHA256 -> CryptoPtr -> IO ()
+sha256Compress :: MemoryCell SHA256 -> BLOCKS SHA256 -> Pointer -> IO ()
 sha256Compress mc nblocks buffer = withCell mc action
   where action ptr = c_sha256_compress (castPtr ptr) n buffer
         n = fromEnum nblocks

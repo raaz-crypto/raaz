@@ -26,8 +26,8 @@ import Foreign.Storable          ( sizeOf,Storable(..)  )
 
 import Raaz.Core.Encode
 import Raaz.Core.Types
-import Raaz.Core.Parse.Unsafe
-import Raaz.Core.Write.Unsafe
+import Raaz.Core.Parse.Applicative
+import Raaz.Core.Write
 
 
 
@@ -80,13 +80,13 @@ writeStateStorable (STATE s0 s1 s2 s3) =  writeStorable s0
 
 instance Storable STATE where
   sizeOf    _ = 4 * sizeOf (undefined :: (BE Word32))
-  alignment _ = alignment  (undefined :: CryptoAlign)
-  peek cptr = runParser (castPtr cptr) parseStateStorable
-  poke cptr state = runWrite (castPtr cptr) $ writeStateStorable state
+  alignment _ = alignment  (undefined :: Align)
+  peek        = unsafeRunParser parseStateStorable . castPtr
+  poke cptr state = unsafeWrite (writeStateStorable state) $ castPtr cptr
 
 instance EndianStore STATE where
-  load cptr = runParser cptr parseState
-  store cptr state = runWrite cptr $ writeState state
+  load = unsafeRunParser parseState
+  store cptr state = unsafeWrite (writeState state) $ cptr
 
 instance Encodable STATE
 
@@ -144,13 +144,13 @@ writeStorableKey128 (KEY128 s0 s1 s2 s3) = writeStorable s0
 
 instance Storable KEY128 where
   sizeOf    _ = 4 * sizeOf (undefined :: (BE Word32))
-  alignment _ = alignment  (undefined :: CryptoAlign)
-  peek cptr = runParser (castPtr cptr) parseStorableKey128
-  poke cptr key128 = runWrite (castPtr cptr) $ writeStorableKey128 key128
+  alignment _ = alignment  (undefined :: Align)
+  peek        = unsafeRunParser parseStorableKey128 . castPtr
+  poke cptr key128 = unsafeWrite (writeStorableKey128 key128) $ castPtr cptr
 
 instance EndianStore KEY128 where
-  load cptr = runParser cptr parseKey128
-  store cptr key128 = runWrite cptr $ writeKey128 key128
+  load              = unsafeRunParser parseKey128
+  store cptr key128 = unsafeWrite (writeKey128 key128) cptr
 
 instance Encodable KEY128
 
@@ -221,13 +221,13 @@ writeStorableKey192 (KEY192 s0 s1 s2 s3 s4 s5) = writeStorable s0
 
 instance Storable KEY192 where
   sizeOf    _ = 6 * sizeOf (undefined :: (BE Word32))
-  alignment _ = alignment  (undefined :: CryptoAlign)
-  peek cptr = runParser (castPtr cptr) parseStorableKey192
-  poke cptr key192 = runWrite (castPtr cptr) $ writeStorableKey192 key192
+  alignment _ = alignment  (undefined :: Align)
+  peek        = unsafeRunParser parseStorableKey192 . castPtr
+  poke cptr key192 = unsafeWrite (writeStorableKey192 key192) $ castPtr cptr
 
 instance EndianStore KEY192 where
-  load cptr = runParser cptr parseKey192
-  store cptr key192 = runWrite cptr $ writeKey192 key192
+  load              = unsafeRunParser parseKey192
+  store cptr key192 = unsafeWrite (writeKey192 key192) cptr
 
 
 instance Encodable KEY192
@@ -305,14 +305,14 @@ writeStorableKey256 (KEY256 s0 s1 s2 s3 s4 s5 s6 s7) = writeStorable s0
                                                      <> writeStorable s7
 
 instance Storable KEY256 where
-  sizeOf    _ = 8 * sizeOf (undefined :: (BE Word32))
-  alignment _ = alignment  (undefined :: CryptoAlign)
-  peek cptr = runParser (castPtr cptr) parseStorableKey256
-  poke cptr key256 = runWrite (castPtr cptr) $ writeStorableKey256 key256
+  sizeOf    _      = 8 * sizeOf (undefined :: (BE Word32))
+  alignment _      = alignment  (undefined :: Align)
+  peek             = unsafeRunParser parseStorableKey256 . castPtr
+  poke cptr key256 = unsafeWrite (writeStorableKey256 key256) $ castPtr cptr
 
 instance EndianStore KEY256 where
-  load cptr = runParser cptr parseKey256
-  store cptr key256 = runWrite cptr $ writeKey256 key256
+  load              = unsafeRunParser parseKey256
+  store cptr key256 = unsafeWrite (writeKey256 key256) cptr
 
 instance Encodable KEY256
 

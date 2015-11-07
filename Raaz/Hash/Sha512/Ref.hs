@@ -17,13 +17,12 @@ import Data.Word
 import qualified Data.Vector.Unboxed as VU
 
 import Raaz.Core.Types
-import Raaz.Core.Util.Ptr
 
 import Raaz.Hash.Sha512.Type ( SHA512(..) )
 
 -- | Compresses one block.
 sha512CompressSingle :: SHA512
-                     -> CryptoPtr
+                     -> Pointer
                      -> IO SHA512
 sha512CompressSingle sha512 cptr =
          sha512round sha512

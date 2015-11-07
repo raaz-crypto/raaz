@@ -5,55 +5,102 @@
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE TypeFamilies               #-}
 
-
--- | This module provide versions of the word type, i.e. types exposed
--- from "Data.Word", with their endianness explicitly specified: the
--- type @LE w@ (@BE w@) is @w@ with little-endian (respectively
--- big-endian) encoding.  These types inherit their parent type's
--- `Num` instance (besides `Ord`, `Eq` etc). The advantage is the
--- following uniformity in their usage in Haskell code:
---
--- 1. For any word type @w@, numeric constants are represented in
---    their Haskell notation (which is big endian). For example, 0xF0
---    represents the number 240 whether the LE or the BE variant.
---
--- 2. The normal arithmetic work on them.
---
--- 3. They have the same printed form except for the constructor
---    sticking around.
---
--- Therefore, as far as Haskell programmers are concerned, the endian
--- explicit version of the word type @w@ behave pretty much the same
--- way as @w@. However, we provide of `EndianStore` instances to the
--- endian explicit versions of `Word32` and `Word64` therefore making
--- them suitable for serialisation without endian confusion.
---
--- Complicated endian sensitive data types like hashes are built out
--- of these basic types. For example SHA1 is defined as
---
--- > data SHA1 = SHA1 (BE Word32) (BE Word32) (BE Word32) (BE Word32) (BE Word32)
---
--- Then the `EndianStore` instance boils down to storing the words in
--- correct order.
-
-module Raaz.Core.Types.Word
-       ( LE, BE, littleEndian, bigEndian
+module Raaz.Core.Types.Endian
+       ( EndianStore(..)
+       -- ** Endian explicit word types.
+       , LE, BE, littleEndian, bigEndian
+       -- ** Helper functions for endian aware storing and loading.
+       , storeAt, storeAtIndex
+       , loadFrom, loadFromIndex
        ) where
 
-import Control.Monad              ( liftM )
-import Data.Bits
-import Data.Typeable
-import Data.Vector.Unboxed        (MVector(..), Vector, Unbox)
-import qualified Data.Vector.Generic as GV
-import qualified Data.Vector.Generic.Mutable as GVM
-import Data.Word
-import Foreign.Storable
+import           Control.Monad               ( liftM )
+import           Data.Bits
+import           Data.Monoid
+import           Data.Typeable
+import           Data.Vector.Unboxed         ( MVector(..), Vector, Unbox )
+import           Data.Word                   ( Word32, Word64, Word8      )
+import           Foreign.Ptr                 ( castPtr      )
+import           Foreign.Storable            ( Storable(..) )
 
-import Raaz.Core.Classes
-import Raaz.Core.Encode
+
+import qualified Data.Vector.Generic         as GV
+import qualified Data.Vector.Generic.Mutable as GVM
+
+import           Raaz.Core.MonoidalAction
+import           Raaz.Core.Types.Pointer
+import           Raaz.Core.Types.Equality
+
+-- | This class is the starting point of an endian agnostic interface
+-- to basic cryptographic data types. Endianness only matters when we
+-- first load the data from the buffer or when we finally write the
+-- data out. Any multi-byte type that are meant to be serialised
+-- should define and instance of this class. The `load` and `store`
+-- should takes care of the appropriate endian conversion.
+class Storable w => EndianStore w where
+
+  -- | Store the given value at the locating pointed by the pointer
+  store :: Pointer   -- ^ the location.
+        -> w           -- ^ value to store
+        -> IO ()
+
+  -- | Load the value from the location pointed by the pointer.
+  load  :: Pointer -> IO w
+
+instance EndianStore Word8 where
+  store = poke . castPtr
+  load  = peek . castPtr
+
+{--}
+-- | Store the given value as the @n@-th element of the array
+-- pointed by the crypto pointer.
+storeAtIndex :: EndianStore w
+             => Pointer -- ^ the pointer to the first element of the
+                          -- array
+             -> Int       -- ^ the index of the array
+             -> w         -- ^ the value to store
+             -> IO ()
+{-# INLINE storeAtIndex #-}
+storeAtIndex cptr index w = storeAt cptr offset w
+  where offset = toEnum index * byteSize w
+
+-- | Store the given value at an offset from the crypto pointer. The
+-- offset is given in type safe units.
+storeAt :: ( EndianStore w
+           , LengthUnit offset
+           )
+        => Pointer   -- ^ the pointer
+        -> offset      -- ^ the absolute offset in type safe length units.
+        -> w           -- ^ value to store
+        -> IO ()
+{-# INLINE storeAt #-}
+storeAt cptr offset = store (Sum offset <.> cptr)
+
+-- | Load the @n@-th value of an array pointed by the crypto pointer.
+loadFromIndex :: EndianStore w
+              => Pointer -- ^ the pointer to the first element of
+                           -- the array
+              -> Int       -- ^ the index of the array
+              -> IO w
+{-# INLINE loadFromIndex #-}
+loadFromIndex cptr index = loadP undefined
+   where loadP ::  (EndianStore w, Storable w) => w -> IO w
+         loadP w = loadFrom cptr offset
+           where offset = toEnum index * byteSize w
+
+-- | Load from a given offset. The offset is given in type safe units.
+loadFrom :: ( EndianStore w
+            , LengthUnit offset
+            )
+         => Pointer -- ^ the pointer
+         -> offset    -- ^ the offset
+         -> IO w
+{-# INLINE loadFrom #-}
+loadFrom cptr offset = load (Sum offset <.> cptr)
+
+--}
 
 {-
-
 Developers notes:
 -----------------
 
@@ -66,7 +113,7 @@ by ghc.
 -- | Little endian version of the word type @w@
 newtype LE w = LE w
     deriving ( Bounded, Enum, Read, Show
-             , Integral, Num, Real, Eq, EqWord, Ord
+             , Integral, Num, Real, Eq, Equality, Ord
              , Bits, Storable, Typeable
              )
 
@@ -74,7 +121,7 @@ newtype LE w = LE w
 -- | Big endian version of the word type @w@
 newtype BE w = BE w
     deriving ( Bounded, Enum, Read, Show
-             , Integral, Num, Real, Eq, EqWord, Ord
+             , Integral, Num, Real, Eq, Equality, Ord
              , Bits, Storable, Typeable
              )
 
@@ -87,81 +134,61 @@ littleEndian = LE
 bigEndian :: w -> BE w
 bigEndian = BE
 
-
-instance HasName w => HasName (LE w) where
-  getName (LE w) = "LE " ++ getName w
-
-instance HasName w => HasName (BE w) where
-  getName (BE w) = "BE " ++ getName w
-
---  We should be able to coerce from a word type to its endian
---  explicit form but not otherwise.
-instance CryptoCoerce w (LE w) where
-  cryptoCoerce = LE
-
-instance CryptoCoerce w (BE w) where
-  cryptoCoerce = BE
-
 ------------------- Endian store for LE 32 ------------------------
 
 foreign import ccall unsafe "raaz/core/endian.h raazLoadLE32"
-  c_loadLE32 :: CryptoPtr -> IO Word32
+  c_loadLE32 :: Pointer -> IO Word32
 
 foreign import ccall unsafe "raaz/core/endian.h raazStoreLE32"
-  c_storeLE32 :: CryptoPtr -> Word32 -> IO ()
+  c_storeLE32 :: Pointer -> Word32 -> IO ()
 
 instance EndianStore (LE Word32) where
   load             = fmap LE .  c_loadLE32
   store ptr (LE w) = c_storeLE32 ptr w
 
-instance Encodable (LE Word32)
 ------------------- Endian store for BE 32 ------------------------
 
 foreign import ccall unsafe "raaz/core/endian.h raazLoadBE32"
-  c_loadBE32 :: CryptoPtr -> IO Word32
+  c_loadBE32 :: Pointer -> IO Word32
 
 foreign import ccall unsafe "raaz/core/endian.h raazStoreBE32"
-  c_storeBE32 :: CryptoPtr -> Word32 -> IO ()
+  c_storeBE32 :: Pointer -> Word32 -> IO ()
 
 instance EndianStore (BE Word32) where
   load             = fmap BE .  c_loadBE32
   store ptr (BE w) = c_storeBE32 ptr w
 
-instance Encodable (BE Word32)
 
 ------------------- Endian store for LE 64 ------------------------
 
 foreign import ccall unsafe "raaz/core/endian.h raazLoadLE64"
-  c_loadLE64 :: CryptoPtr -> IO Word64
+  c_loadLE64 :: Pointer -> IO Word64
 
 foreign import ccall unsafe "raaz/core/endian.h raazStoreLE64"
-  c_storeLE64 :: CryptoPtr -> Word64 -> IO ()
+  c_storeLE64 :: Pointer -> Word64 -> IO ()
 
 instance EndianStore (LE Word64) where
   load             = fmap LE .  c_loadLE64
   store ptr (LE w) = c_storeLE64 ptr w
 
-instance Encodable (LE Word64)
 
 ------------------- Endian store for BE 64 ------------------------
 
 foreign import ccall unsafe "raaz/core/endian.h raazLoadBE64"
-  c_loadBE64 :: CryptoPtr -> IO Word64
+  c_loadBE64 :: Pointer -> IO Word64
 
 foreign import ccall unsafe "raaz/core/endian.h raazStoreBE64"
-  c_storeBE64 :: CryptoPtr -> Word64 -> IO ()
+  c_storeBE64 :: Pointer -> Word64 -> IO ()
 
 instance EndianStore (BE Word64) where
   load             = fmap BE .  c_loadBE64
   store ptr (BE w) = c_storeBE64 ptr w
 
-instance Encodable (BE Word64)
 
 ------------------- Unboxed vector of Endian word types ---------------
 
 instance Unbox w => Unbox (LE w)
 instance Unbox w => Unbox (BE w)
-
 
 ------------------- Defining the vector types --------------------------
 
@@ -259,3 +286,4 @@ instance Unbox w => GV.Vector Vector (BE w) where
 
   basicUnsafeCopy (MV_BE mv) (V_BE v) = GV.basicUnsafeCopy mv v
   elemseq _ (BE x)                    = GV.elemseq (undefined :: Vector a) x
+--}

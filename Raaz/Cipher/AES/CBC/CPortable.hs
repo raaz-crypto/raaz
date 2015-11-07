@@ -58,11 +58,11 @@ instance Gadget (DecryptG KEY256) where
 
 ----------------------------- Helper function ----------------------------------------------
 
-loadAndApply :: (CryptoPtr -> CryptoPtr -> CryptoPtr -> Int -> Int -> IO ())
+loadAndApply :: (Pointer -> Pointer -> Pointer -> Int -> Int -> IO ())
              -> Int
              -> CAESGadget CBC key op
              -> BLOCKS (AES CBC key)
-             -> CryptoPtr
+             -> Pointer
              -> IO ()
 loadAndApply encrypt i (CAESGadget  kC stC) n cptr = withCell kC (withCell stC . doStuff)
     where
@@ -73,18 +73,18 @@ loadAndApply encrypt i (CAESGadget  kC stC) n cptr = withCell kC (withCell stC .
 
 foreign import ccall unsafe
   "raaz/cipher/cportable/aes.h raazCipherAESCBCEncrypt"
-  c_cbc_encrypt  :: CryptoPtr  -- ^ expanded key
-                 -> CryptoPtr  -- ^ Input
-                 -> CryptoPtr  -- ^ IV
+  c_cbc_encrypt  :: Pointer  -- ^ expanded key
+                 -> Pointer  -- ^ Input
+                 -> Pointer  -- ^ IV
                  -> Int        -- ^ Number of Blocks
                  -> Int        -- ^ Key type
                  -> IO ()
 
 foreign import ccall unsafe
   "raaz/cipher/cportable/aes.h raazCipherAESCBCDecrypt"
-  c_cbc_decrypt  :: CryptoPtr  -- ^ expanded key
-                 -> CryptoPtr  -- ^ Input
-                 -> CryptoPtr  -- ^ IV
+  c_cbc_decrypt  :: Pointer  -- ^ expanded key
+                 -> Pointer  -- ^ Input
+                 -> Pointer  -- ^ IV
                  -> Int        -- ^ Number of Blocks
                  -> Int        -- ^ Key type
                  -> IO ()

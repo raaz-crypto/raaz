@@ -28,8 +28,6 @@ data SHA256 = SHA256 (VU.Vector (BE Word32)) deriving Typeable
 instance Eq SHA256 where
  (==) (SHA256 g) (SHA256 h) = oftenCorrectEqVector g h
 
-instance HasName SHA256
-
 instance Storable SHA256 where
   sizeOf    _ = 8 * sizeOf (undefined :: (BE Word32))
   alignment _ = alignment  (undefined :: (BE Word32))

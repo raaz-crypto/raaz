@@ -16,7 +16,7 @@ import Control.Monad       ( foldM )
 import Raaz.Core.Memory
 import Raaz.Core.Primitives
 import Raaz.Core.Primitives.Hash
-import Raaz.Core.Util.Ptr
+import Raaz.Core.Types
 import qualified Data.Vector.Unboxed as VU
 
 import Raaz.Hash.Sha1.Type

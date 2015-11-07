@@ -17,19 +17,18 @@ import Data.Word
 import Raaz.Core.Memory
 import Raaz.Core.Primitives
 import Raaz.Core.Types
-import Raaz.Core.Util.Ptr
 
 import Raaz.Hash.Blake256.Type
 
 foreign import ccall unsafe
   "raaz/hash/blake256/portable.h raazHashBlake256PortableCompress"
-  c_blake256_compress  :: CryptoPtr -> CryptoPtr -> BITS Word64 -> Int -> CryptoPtr -> IO ()
+  c_blake256_compress  :: Pointer -> Pointer -> BITS Word64 -> Int -> Pointer -> IO ()
 
 blake256Compress :: MemoryCell BLAKE256
                  -> MemoryCell Salt
                  -> BITS Word64
                  -> BLOCKS BLAKE256
-                 -> CryptoPtr
+                 -> Pointer
                  -> IO ()
 {-# INLINE blake256Compress #-}
 blake256Compress cellBlake cellSalt counter nblocks buffer = withCell cellBlake action1

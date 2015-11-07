@@ -12,9 +12,8 @@ import Test.QuickCheck
 
 import Data.ByteString.Char8 (ByteString)
 import Data.String
-import Raaz.Core hiding     (replicate)
+import Raaz.Core as RC
 import Raaz.Hash
-import qualified Raaz.Core.Util.ByteString as B
 import Raaz.Hash.Sha512.Internal
 import Generic.EndianStore
 import Generic.Utils
@@ -50,7 +49,7 @@ spec =  do
     storeAndThenLoad x `shouldReturn` x
 
   prop "checks that the padding string has the same length as padLength" $
-    \ w -> padLen w == (B.length $ pad w)
+    \ w -> padLen w == (RC.length $ pad w)
 
   prop "length after padding should be an integral multiple of block size" $
     \ w -> (padLen w + bitsQuot w) `rem` blockSz == 0
@@ -84,7 +83,7 @@ hmacSpec = do
   with ("0b" `repeated` 20) $ "Hi There" `hmacsTo`
     "87aa7cdea5ef619d4ff0b4241a1d6cb02379f4e2ce4ec2787ad0b30545e17cdedaa833b7d6b8a702038b274eaea3f4e4be9d914eeb61f1702e696c203a126854"
 
-  with ("aa" `repeated` 20) $ (B.replicate (50 :: BYTES Int) 0xdd) `hmacsTo`
+  with ("aa" `repeated` 20) $ (RC.replicate (50 :: BYTES Int) 0xdd) `hmacsTo`
     "fa73b0089d56a284efb0f0756c890be9b1b5dbdd8ee81a3655f83e33b2279d39bf3e848279a722c806b485a47e67c807b946a337bee8942674278859e13292fb"
 
   with ("aa" `repeated` 131) $ "Test Using Larger Than Block-Size Key - Hash Key First" `hmacsTo`

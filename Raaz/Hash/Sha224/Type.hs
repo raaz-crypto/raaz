@@ -40,7 +40,6 @@ data SHA224 = SHA224 (VU.Vector (BE Word32)) deriving Typeable
 instance Eq SHA224 where
  (==) (SHA224 g) (SHA224 h) = oftenCorrectEqVector g h
 
-instance HasName SHA224
 
 instance Storable SHA224 where
   sizeOf    _ = 7 * sizeOf (undefined :: (BE Word32))

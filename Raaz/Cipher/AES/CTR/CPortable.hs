@@ -16,9 +16,9 @@ import           Raaz.Cipher.AES.Internal
 
 foreign import ccall unsafe
   "raaz/cipher/cportable/aes.h raazCipherAESCTREncrypt"
-  c_ctr_encrypt  :: CryptoPtr  -- ^ expanded key
-                 -> CryptoPtr  -- ^ Input
-                 -> CryptoPtr  -- ^ IV
+  c_ctr_encrypt  :: Pointer  -- ^ expanded key
+                 -> Pointer  -- ^ Input
+                 -> Pointer  -- ^ IV
                  -> Int        -- ^ Number of Blocks
                  -> Int        -- ^ Key Type
                  -> IO ()
@@ -43,7 +43,7 @@ instance Gadget (CTRG KEY256) where
 
 loadAndApply :: Int -> (CTRG key)
              -> BLOCKS (AES CTR key)
-             -> CryptoPtr
+             -> Pointer
              -> IO ()
 loadAndApply i (CAESGadget kC stC) n cptr = withCell kC (withCell stC . doStuff)
     where

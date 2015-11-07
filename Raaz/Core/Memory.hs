@@ -34,20 +34,19 @@ import           Foreign.Ptr (castPtr)
 -- import           Raaz.Core.Memory.Internal
 import           Raaz.Core.MonoidalAction
 import           Raaz.Core.Types
-import           Raaz.Core.Util.Ptr
 
 ------------------------ A memory allocator -----------------------
 
 type ALIGNMonoid = Sum ALIGN
 
-type AllocField = Field CryptoPtr
+type AllocField = Field Pointer
 
 -- | A memory allocator. The allocator allocates memory from a fixed
 -- chunk of memory pointed by a cryptoPtr.
 type Alloc = TwistRF AllocField ALIGNMonoid
 
 -- | Make an allocator for a given memory type.
-makeAlloc :: LengthUnit l => l -> (CryptoPtr -> mem) -> Alloc mem
+makeAlloc :: LengthUnit l => l -> (Pointer -> mem) -> Alloc mem
 makeAlloc l memCreate = TwistRF (WrapArrow memCreate, Sum $ atLeast l)
 
 -- | Any cryptographic primitives use memory to store stuff. This
@@ -64,7 +63,7 @@ class Memory m where
   memoryAlloc    :: Alloc m
 
   -- | Returns the pointer to the underlying buffer.
-  underlyingPtr :: m -> CryptoPtr
+  underlyingPtr :: m -> Pointer
 
   {-
   -- | This value @unsafeAllocate cptr@ creates a new instance of the
@@ -79,7 +78,7 @@ class Memory m where
   -- `withSecureMemory`, the two combinators that any law abiding
   -- Haskell programmer should use when dealing with murky things like
   -- memory.
-  unsafeAllocateMemory :: CryptoPtr -> m
+  unsafeAllocateMemory :: Pointer -> m
   -}
 
 -- | Copy data from a given memory location to the other. The first
@@ -292,7 +291,7 @@ instance ( FinalizableMemory a
 
 -- | A memory location to store a value of type having `Storable`
 -- instance.
-newtype MemoryCell a = MemoryCell { unMemoryCell :: CryptoPtr }
+newtype MemoryCell a = MemoryCell { unMemoryCell :: Pointer }
 
 -- | Read the value from the MemoryCell.
 cellPeek :: Storable a => MemoryCell a -> IO a
@@ -308,7 +307,7 @@ cellModify cp f = cellPeek cp >>= cellPoke cp . f
 
 -- | Perform some pointer action on MemoryCell. Useful while working
 -- with ffi functions.
-withCell :: MemoryCell a -> (CryptoPtr -> IO b) -> IO b
+withCell :: MemoryCell a -> (Pointer -> IO b) -> IO b
 withCell (MemoryCell cptr) fp = fp cptr
 
 instance Storable a => Memory (MemoryCell a) where
@@ -337,7 +336,7 @@ class Bufferable b where
 
 -- | A memory buffer whose size depends on the `Bufferable` instance
 -- of @b@.
-data MemoryBuf b = MemoryBuf {-# UNPACK #-} !CryptoPtr
+data MemoryBuf b = MemoryBuf {-# UNPACK #-} !Pointer
 
 {-
 -- | Size of the buffer.
@@ -347,7 +346,7 @@ memoryBufSize (MemoryBuf sz _) = sz
 -}
 
 -- | Perform some pointer action on `MemoryBuf`.
-withMemoryBuf :: Bufferable b => MemoryBuf b -> (BYTES Int -> CryptoPtr -> IO a) -> IO a
+withMemoryBuf :: Bufferable b => MemoryBuf b -> (BYTES Int -> Pointer -> IO a) -> IO a
 withMemoryBuf mbuf@(MemoryBuf cptr) action =  action (maxSizeOf $ getBufferable mbuf) cptr
   where getBufferable :: Bufferable b => MemoryBuf b -> b
         getBufferable _ = undefined

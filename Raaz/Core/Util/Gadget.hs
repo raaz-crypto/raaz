@@ -9,7 +9,6 @@ module Raaz.Core.Util.Gadget ( applyOnByteSource )where
 import Raaz.Core.ByteSource
 import Raaz.Core.Primitives
 import Raaz.Core.Types
-import Raaz.Core.Util.Ptr
 
 -- TODO: Remove if not required. This is really unsafe.
 

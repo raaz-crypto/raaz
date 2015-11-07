@@ -11,8 +11,7 @@ import Test.Hspec.QuickCheck
 import Test.QuickCheck
 
 import Data.ByteString.Char8
-import Raaz.Core
-import Raaz.Core.Util.ByteString as B
+import Raaz.Core as RC
 import Raaz.Hash.Sha384.Internal
 import Generic.EndianStore
 import qualified Generic.Hash as GH
@@ -41,7 +40,7 @@ spec =  do
     storeAndThenLoad x `shouldReturn` x
 
   prop "checks that the padding string has the same length as padLength" $
-    \ w -> padLen w == (B.length $ pad w)
+    \ w -> padLen w == (RC.length $ pad w)
 
   prop "length after padding should be an integral multiple of block size" $
     \ w -> (padLen w + bitsQuot w) `rem` blockSz == 0

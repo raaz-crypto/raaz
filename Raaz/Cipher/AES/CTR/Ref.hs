@@ -18,7 +18,6 @@ import Raaz.Core.Encode
 import Raaz.Core.Primitives
 import Raaz.Core.Primitives.Cipher
 import Raaz.Core.Types
-import Raaz.Core.Util.Ptr
 
 import Raaz.Cipher.AES.CTR.Type()
 import Raaz.Cipher.AES.Block.Internal
@@ -43,7 +42,7 @@ applyGad :: ( Gadget (CTRG key), Storable (Expanded key))
          => CTRG key
          -> (STATE -> Expanded key -> STATE)
          -> BLOCKS (AES CTR key)
-         -> CryptoPtr
+         -> Pointer
          -> IO ()
 applyGad g@(HAESGadget kC stC) with n cptr = do
     expanded <- cellPeek kC
@@ -66,7 +65,7 @@ applyGad g@(HAESGadget kC stC) with n cptr = do
         let newCxt = with cxt expanded
         xorWords cptr' nextra (unpack $ toByteString newCxt)
         return $ incrState cxt
-      xorWords :: CryptoPtr -> Int -> [Word8] -> IO ()
+      xorWords :: Pointer -> Int -> [Word8] -> IO ()
       xorWords _ 0 _  = return ()
       xorWords _ _ [] = return ()
       xorWords ptr left (w:ws) = do

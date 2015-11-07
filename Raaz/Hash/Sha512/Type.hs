@@ -28,8 +28,6 @@ newtype SHA512 = SHA512 (VU.Vector (BE Word64)) deriving Typeable
 instance Eq SHA512 where
  (==) (SHA512 g) (SHA512 h) = oftenCorrectEqVector g h
 
-instance HasName SHA512
-
 instance Storable SHA512 where
   sizeOf    _ = 8 * sizeOf (undefined :: (BE Word64))
   alignment _ = alignment  (undefined :: (BE Word64))

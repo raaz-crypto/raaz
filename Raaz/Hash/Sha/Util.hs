@@ -55,10 +55,10 @@ shaPadding :: Primitive prim
            -> BITS Word64    -- ^ The length of the message
            -> ByteString
 {-# INLINEABLE shaPadding #-}
-shaPadding lenSize prim lBits =  singleton firstPadByte
-                              <> replicate zeros 0
-                              <> lPad
-     where pLen  = shaPadLength lenSize prim lBits
+shaPadding lenSize prim (BITS lBits) =  singleton firstPadByte
+                                     <> replicate zeros 0
+                                     <> lPad
+     where pLen  = shaPadLength lenSize prim (BITS lBits)
            lPad  = toByteString l
-           l     = cryptoCoerce lBits :: BITS (BE Word64)
+           l     = BITS $ bigEndian lBits
            zeros = pLen - 1 - 8

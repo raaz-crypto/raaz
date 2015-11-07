@@ -20,9 +20,9 @@ import Raaz.Hash.Sha1.Type
 
 foreign import ccall unsafe
   "raaz/hash/sha1/portable.h raazHashSha1PortableCompress"
-  c_sha1_compress  :: CryptoPtr -> Int -> CryptoPtr -> IO ()
+  c_sha1_compress  :: Pointer -> Int -> Pointer -> IO ()
 
-sha1Compress :: MemoryCell SHA1 -> BLOCKS SHA1 -> CryptoPtr -> IO ()
+sha1Compress :: MemoryCell SHA1 -> BLOCKS SHA1 -> Pointer -> IO ()
 {-# INLINE sha1Compress #-}
 sha1Compress mc nblocks buffer = withCell mc action
   where action ptr = c_sha1_compress ptr n buffer

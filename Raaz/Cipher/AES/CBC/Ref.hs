@@ -14,7 +14,6 @@ import Raaz.Core.Memory
 import Raaz.Core.Primitives
 import Raaz.Core.Primitives.Cipher
 import Raaz.Core.Types
-import Raaz.Core.Util.Ptr
 
 import Raaz.Cipher.AES.CBC.Type()
 import Raaz.Cipher.AES.Block.Internal
@@ -73,8 +72,8 @@ getPrim _ = undefined
 moveAndEncrypt :: Expanded key
                -> BYTES Int
                -> (STATE -> Expanded key -> STATE)
-               -> (STATE, CryptoPtr)
-               -> IO (STATE, CryptoPtr)
+               -> (STATE, Pointer)
+               -> IO (STATE, Pointer)
 moveAndEncrypt expanded sz with (cxt,ptr) = do
   blk <- load ptr
   let newCxt = with (blk `xorState` cxt) expanded
@@ -85,8 +84,8 @@ moveAndEncrypt expanded sz with (cxt,ptr) = do
 moveAndDecrypt :: Expanded key
                -> BYTES Int
                -> (STATE -> Expanded key -> STATE)
-               -> (STATE,CryptoPtr)
-               -> IO (STATE,CryptoPtr)
+               -> (STATE,Pointer)
+               -> IO (STATE,Pointer)
 moveAndDecrypt expanded sz with (cxt,ptr) = do
   blk <- load ptr
   let newCxt = with blk expanded

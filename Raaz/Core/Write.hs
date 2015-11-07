@@ -9,7 +9,7 @@
 {-# LANGUAGE MultiParamTypeClasses      #-}
 
 module Raaz.Core.Write
-       ( Write, bytesToWrite, tryWriting, unsafeWrite
+       ( Write, bytesToWrite, unsafeWrite
        , write, writeStorable, writeVector, writeStorableVector
        , writeBytes, writeByteString
        ) where
@@ -26,7 +26,6 @@ import           Foreign.Storable
 import           Raaz.Core.MonoidalAction
 import           Raaz.Core.Types
 import           Raaz.Core.Util.ByteString as BU
-import           Raaz.Core.Util.Ptr
 import           Raaz.Core.Encode
 
 -- | The monoid for write.
@@ -38,7 +37,7 @@ instance Monoid WriteM where
 
 -- | A write action is nothing but an IO action that returns () on
 -- input a pointer.
-type WriteAction = CryptoPtr -> WriteM
+type WriteAction = Pointer -> WriteM
 
 type BytesMonoid = Sum (BYTES Int)
 
@@ -56,7 +55,7 @@ instance Distributive BytesMonoid WriteAction
 type Write = SemiR WriteAction BytesMonoid
 
 -- | Create a write action.
-makeWrite :: BYTES Int -> (CryptoPtr -> IO ()) -> Write
+makeWrite :: BYTES Int -> (Pointer -> IO ()) -> Write
 makeWrite sz action = SemiR (WriteM . action, Sum sz)
 
 -- | Returns the bytes that will be written when the write action is performed.
@@ -64,9 +63,10 @@ bytesToWrite :: Write -> BYTES Int
 bytesToWrite = getSum . semiRMonoid
 
 -- | Perform the write action without any checks.
-unsafeWrite :: Write -> CryptoPtr -> IO ()
+unsafeWrite :: Write -> Pointer -> IO ()
 unsafeWrite wr =  unWriteM . semiRSpace wr
 
+{-
 -- | The function tries to write the given `Write` action on the
 -- buffer and returns `True` if successful.
 tryWriting :: Write         -- ^ The write action.
@@ -77,6 +77,7 @@ tryWriting wr cbuf = withCryptoBuffer cbuf $ \ sz cptr ->
   if sz < bytesToWrite wr then return False
   else do unsafeWrite wr cptr; return True
 
+-}
 
 -- | The expression @`writeStorable` a@ gives a write action that
 -- stores a value @a@ in machine endian. The type of the value @a@ has
@@ -115,7 +116,7 @@ writeBytes w8 n = makeWrite (inBytes n) memsetIt
 
 -- | Writes a strict bytestring.
 writeByteString :: ByteString -> Write
-writeByteString bs = makeWrite (BU.length bs) $  BU.unsafeCopyToCryptoPtr bs
+writeByteString bs = makeWrite (BU.length bs) $  BU.unsafeCopyToPointer bs
 
 instance IsString Write where
   fromString = writeByteString . fromString

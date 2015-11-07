@@ -14,10 +14,10 @@ import Control.Applicative ( (<$>) )
 import Control.Monad       ( foldM )
 import qualified Data.Vector.Unboxed as VU
 
+import Raaz.Core.Types
 import Raaz.Core.Memory
 import Raaz.Core.Primitives
 import Raaz.Core.Primitives.Hash
-import Raaz.Core.Util.Ptr
 
 import Raaz.Hash.Sha256.Type
 import Raaz.Hash.Sha256.Ref

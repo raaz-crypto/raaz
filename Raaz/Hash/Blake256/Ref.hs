@@ -22,7 +22,6 @@ import qualified Data.Vector.Unboxed as VU
 import Numeric                 ()
 
 import Raaz.Core.Types
-import Raaz.Core.Util.Ptr
 
 import Raaz.Hash.Blake256.Type
 
@@ -290,7 +289,7 @@ initialState (BLAKE256 bv)
 blake256CompressSingle :: BLAKE256
                        -> Salt
                        -> BITS Word64
-                       -> CryptoPtr
+                       -> Pointer
                        -> IO BLAKE256
 blake256CompressSingle blake256 s t cptr = compress blake256 s t0 t1
       <$> load cptr
