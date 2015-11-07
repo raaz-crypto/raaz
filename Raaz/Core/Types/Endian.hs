@@ -7,9 +7,11 @@
 
 module Raaz.Core.Types.Endian
        ( EndianStore(..)
+       -- ** Endian explicit word types.
+       , LE, BE, littleEndian, bigEndian
+       -- ** Helper functions for endian aware storing and loading.
        , storeAt, storeAtIndex
        , loadFrom, loadFromIndex
-       , LE, BE, littleEndian, bigEndian
        ) where
 
 import           Control.Monad               ( liftM )
