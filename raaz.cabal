@@ -98,7 +98,6 @@ library
                  , Raaz.Core.Primitives.Symmetric
                  , Raaz.Core.Random
                  , Raaz.Core.Types
-                 , Raaz.Core.Types.CryptoBuffer
                  , Raaz.Core.Util
                  , Raaz.Core.Write
                  , Raaz.System.Parameters
