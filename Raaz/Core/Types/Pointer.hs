@@ -3,15 +3,18 @@
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE ForeignFunctionInterface   #-}
 module Raaz.Core.Types.Pointer
-       ( Pointer, Align, movePtr
-       , LengthUnit(..), inBits, atLeast, atMost
-       , BYTES(..), BITS(..), ALIGN
+       ( -- ** The pointer type.
+         Pointer
+         -- ** Type safe length units.
+       , LengthUnit(..), movePtr
+       , BYTES(..), BITS(..),  ALIGN, Align, inBits
+         -- ** Some length arithmetic
        , bitsQuotRem, bytesQuotRem
        , bitsQuot, bytesQuot
-       , byteSize
-         -- * Allocation of memory
+       , atLeast, atMost
+         -- * Helper function that uses generalised length units.
        , allocaBuffer, allocaSecure, mallocBuffer
-       , hFillBuf
+       , hFillBuf, byteSize
        , memset, memmove, memcpy
        ) where
 
@@ -41,7 +44,11 @@ newtype Align = Align Word deriving Storable
 type Pointer = Ptr Align
 
 
--- | Type class capturing type safe length units.
+-- | In cryptographic settings, we need to measure pointer offsets and
+-- buffer sizes in different units. To avoid errors due to unit
+-- conversions, we distinguish between different length units at the
+-- type level. This type class capturing such types, i.e. types that
+-- stand of length units.
 class (Num u, Enum u) => LengthUnit u where
   -- | Express the length units in bytes.
   inBytes :: u -> BYTES Int
