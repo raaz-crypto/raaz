@@ -3,8 +3,10 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FlexibleContexts      #-}
 module Raaz.Core.Types.Equality
-       ( Result
-       , Equality, (===)
+       ( Equality(..), (===)
+       -- ** The result of comparion.
+       , Result, isSuccessful
+       -- ** Comparing vectors.
        , oftenCorrectEqVector, eqVector
        ) where
 
@@ -16,10 +18,18 @@ import qualified Data.Vector.Generic.Mutable as GM
 import           Data.Vector.Unboxed         ( MVector(..), Vector, Unbox )
 import           Data.Word
 
--- | The result of the comparison. The monoid operation accumulates
--- the results of multiple comparisons into one. If any of the
--- equality comparisons fail the resulting comparison fails.
-newtype Result =  Result { unResult :: Word } deriving Eq
+-- | An opaque type that captures the result of a comparison. The monoid
+-- instances allows us to combine the results of two equality comparisons
+-- in a timing independent manner. We have the following properties.
+--
+-- > isSuccessful mempty            = True
+-- > isSuccessful (r `mappend` s)   = isSuccessful r && isSuccessful s
+--
+newtype Result =  Result { unResult :: Word }
+
+-- | Checks whether a given equality comparison is successful.
+isSuccessful :: Result -> Bool
+isSuccessful = (==0) . unResult
 
 instance Monoid Result where
   mempty      = Result 0
@@ -85,16 +95,25 @@ instance G.Vector Vector Result where
 -- cryptographically sensitive data is as follows.
 --
 -- 1. Define an instance of `Equality`.
+--
 -- 2. Make use of the above instance to define `Eq` instance as follows.
 --
--- instance Eq SomeType where
---      (==) a b = a === b
+-- > data SomeSensitiveType = ...
+-- >
+-- > instance Equality SomeSensitiveType where
+-- >          eq a b = ...
+-- >
+-- > instance Eq SomeSensitiveType where
+-- >      (==) a b = a === b
 --
 class Equality a where
   eq :: a -> a -> Result
 
+-- | Check whether two values are equal using the timing safe `eq`
+-- function. Use this function when defining the `Eq` instance for a
+-- Sensitive data type.
 (===) :: Equality a => a -> a -> Bool
-(===) a b = unResult (eq a b) == 0
+(===) a b = isSuccessful $ eq a b
 
 instance Equality Word where
   eq a b = Result $ a `xor` b
@@ -149,11 +168,11 @@ instance Equality Word64 where
 
 
 oftenCorrectEqVector :: (G.Vector v a, Equality a, G.Vector v Result) => v a -> v a -> Bool
-oftenCorrectEqVector v1 v2 =  G.foldl1' mappend (G.zipWith eq v1 v2) == Result 0
+oftenCorrectEqVector v1 v2 =  isSuccessful $ G.foldl1' mappend $ G.zipWith eq v1 v2
 
 -- | Timing independent equality checks for vectors. If you know that
 -- the vectors are not empty and of equal length, you may use the
 -- slightly faster `oftenCorrectEqVector`
 eqVector :: (G.Vector v a, Equality a, G.Vector v Result) => v a -> v a -> Bool
-eqVector v1 v2 | G.length v1 == G.length v2 = G.foldl' mappend (Result 0) (G.zipWith eq v1 v2) == Result 0
+eqVector v1 v2 | G.length v1 == G.length v2 = isSuccessful $ G.foldl' mappend (Result 0) $ G.zipWith eq v1 v2
                | otherwise                  = False
