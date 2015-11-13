@@ -24,7 +24,7 @@ import Raaz.Core.Types
 import Raaz.Core.Util.ByteString(length, withByteString)
 
 
--- | Stuff that can be encoded into byte strings.
+-- | The type class `Encodable` captures all the types can be encoding into `ByteString`.
 class Encodable a where
   -- | Convert stuff to bytestring
   toByteString          :: a           -> ByteString
@@ -99,6 +99,6 @@ encode = encodeByteString . toByteString
 decode :: (Format fmt, Encodable a) => fmt -> Maybe a
 decode = fromByteString . decodeFormat
 
--- | The unsafe version of `decodeMaybe`.
+-- | The unsafe version of `decode`.
 unsafeDecode :: (Format fmt, Encodable a) => fmt -> a
 unsafeDecode = unsafeFromByteString . decodeFormat
