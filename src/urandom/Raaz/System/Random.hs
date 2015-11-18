@@ -1,7 +1,7 @@
 {-|
 
-This module exposes the @/dev/urandom@ device as a PRG for the raaz
-libraries.
+This module exposes the high quality cryptographic pseudo-random
+generator exposed by the system.
 
 -}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
@@ -20,9 +20,11 @@ import Raaz.Core.Random     (PRG(..))
 
 -- | The system wide pseudo-random generator. Many systems provide
 -- high quality pseudo-random generator within the system like for
--- example the @/dev/random@ file on a posix system. This type
+-- example the @\/dev\/urandom@ file on a posix system. This type
 -- captures such a pseudo-random generator. The source is expected to
 -- be of high quality, albeit a bit slow due to system call overheads.
+-- You do not need to seed this PRG and hence the associated type
+-- @`Seed` `SystemPRG`@ is the unit type @()@.
 newtype SystemPRG = SystemPRG Handle deriving ByteSource
 
 instance PRG SystemPRG where
