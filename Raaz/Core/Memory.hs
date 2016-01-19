@@ -10,7 +10,7 @@ Abstraction of a memory object.
 {-# LANGUAGE GADTs                      #-}
 
 module Raaz.Core.Memory
-       ( Memory(..)
+       ( Memory(..), MemoryT, MemoryIO, runMemoryT
        , InitializableMemory(..)
        , FinalizableMemory(..)
        , withMemory, withSecureMemory , copyMemory
@@ -26,7 +26,8 @@ module Raaz.Core.Memory
        , withMemoryBuf
        ) where
 
-import           Control.Applicative ( WrappedArrow(..) , (<$>) , (<*>))
+import           Control.Applicative
+import           Control.Monad.Trans.Class
 import           Data.Monoid (Sum (..))
 import           Foreign.Storable(Storable(..))
 import           Foreign.Ptr (castPtr)
@@ -110,6 +111,24 @@ class Memory m => FinalizableMemory m where
   -- | Get the final value from the memory.
   finalizeMemory :: m -> IO (FV m)
 
+newtype MemoryT mem f a = MemoryT { runMemoryT :: (mem -> f a) }
+type MemoryIO mem       = MemoryT mem IO
+
+instance Functor f => Functor (MemoryT mem f) where
+  fmap f memM = MemoryT $ \ m -> f <$> runMemoryT memM m
+
+instance Applicative f => Applicative (MemoryT mem f) where
+  pure       = MemoryT . const . pure
+  mf <*> ma  = MemoryT $ \ m -> runMemoryT mf m <*> runMemoryT ma m
+
+instance Monad monad => Monad (MemoryT mem monad) where
+  return    =  MemoryT . const . return
+  ma >>= f  =  MemoryT runIt
+    where runIt mem = runMemoryT ma mem >>= \ a -> runMemoryT (f a) mem
+
+
+instance MonadTrans (MemoryT mem) where
+  lift = MemoryT . const
 -------------------------- The With combinators. ----------------
 
 -- | Perform an action which makes use of this memory. The memory
