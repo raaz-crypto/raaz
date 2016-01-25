@@ -201,7 +201,8 @@ allocaSecure l action = allocaBuffer actualSz actualAction
   where actualSz = atLeast l :: ALIGN
         BYTES sz = inBytes actualSz
         actualAction cptr = let
-          lockIt    = void $ c_mlock cptr sz
+          lockIt    = do c <- c_mlock cptr sz
+                         when (c != 0) $ fail "Unable to lock memory"
           releaseIt = c_wipe cptr sz >>  c_munlock cptr sz
           in bracket_ lockIt releaseIt $ action cptr
 
@@ -238,11 +239,11 @@ hFillBuf :: LengthUnit bufSize
 hFillBuf handle cptr bufSize = BYTES <$> hGetBuf handle cptr bytes
   where BYTES bytes = inBytes bufSize
 
+------------------- Copy move and set contents ----------------------------
+
 -- | Some common PTR functions abstracted over type safe length.
 foreign import ccall unsafe "string.h memcpy" c_memcpy
     :: Pointer -> Pointer -> BYTES Int -> IO Pointer
-
-------------------- Copy move and set contents ----------------------------
 
 -- | Copy between pointers.
 memcpy :: LengthUnit l
