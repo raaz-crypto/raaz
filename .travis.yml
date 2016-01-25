@@ -10,21 +10,27 @@ addons:
       - hlint
       - cabal-install-1.18
       - cabal-install-1.22
+      - cabal-install-head
       - ghc-7.8.4
       - ghc-7.10.3
+      - ghc-head
 
 fast_finish: true
 # To notify immediately about it when a job of a build fails.
 env:
   - STACKVER=lts-2   GHCVER=7.8.4 CABALVER=1.18
-  - STACKVER=lts-4   GHCVER=7.10.3 CABALVER=1.22
-  - STACKVER=nightly GHCVER=7.10.3 CABALVER=1.22
+  - GHCVER=7.10.3    CABALVER=1.22
+  # This stack versions are not being build because of cabal version
+  # mis-match between hvrs cabal packages and stacks cabal packages.
+  # - STACKVER=lts-4   GHCVER=7.10.3 CABALVER=1.22
+  # - STACKVER=nightly GHCVER=7.10.3 CABALVER=1.22
+  - GHCVER=head CABALVER=head # Build against haskell head version.
   - HLINT="yes"
 
 matrix:
   allow_failures:
     - env: HLINT="yes"
-    - env: STACKVER=nightly
+    - env: GHCVER=head CABALVER=head
 
 before_install:
  - if [ "$HLINT" == "yes" ]; then
