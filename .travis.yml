@@ -9,17 +9,22 @@ addons:
     packages:
       - hlint
       - cabal-install-1.18
+      - cabal-install-1.22
       - ghc-7.8.4
+      - ghc-7.10.3
 
 fast_finish: true
 # To notify immediately about it when a job of a build fails.
 env:
-  - STACKVER=lts-2.13 GHCVER=7.8.4 CABALVER=1.18
+  - STACKVER=lts-2   GHCVER=7.8.4 CABALVER=1.18
+  - STACKVER=lts-4   GHCVER=7.10.3 CABALVER=1.22
+  - STACKVER=nightly GHCVER=7.10.3 CABALVER=1.22
   - HLINT="yes"
 
 matrix:
   allow_failures:
     - env: HLINT="yes"
+    - env: STACKVER=nightly
 
 before_install:
  - if [ "$HLINT" == "yes" ]; then
