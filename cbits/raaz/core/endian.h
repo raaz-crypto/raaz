@@ -1,14 +1,12 @@
 #ifndef __RAAZ_ENDIAN_H_
 #define __RAAZ_ENDIAN_H_
-
 #include <stdint.h>
-#include <raaz/primitives/config.h>
 
-#if defined(RAAZ_HAVE_htole32)   | defined(RAAZ_HAVE_htobe32)	\
-    | defined(RAAZ_HAVE_htole64) | defined(RAAZ_HAVE_htobe64)	\
-    | defined(RAAZ_HAVE_be32toh) | defined(RAAZ_HAVE_le32toh)	\
-    | defined(RAAZ_HAVE_be64toh) | defined(RAAZ_HAVE_le64toh)
+/* Include the right header file based on the platform */
+#ifdef PLATFORM_LINUX
 #include <endian.h>
+#elif defined(PLATFORM_BSD) || defined(PLATFORM_OPENBSD)
+#include <sys/endian.h>
 #endif
 
 /* Loads */

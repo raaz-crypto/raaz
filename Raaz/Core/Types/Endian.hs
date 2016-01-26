@@ -55,10 +55,10 @@ instance EndianStore Word8 where
 -- | Store the given value as the @n@-th element of the array
 -- pointed by the crypto pointer.
 storeAtIndex :: EndianStore w
-             => Pointer -- ^ the pointer to the first element of the
-                          -- array
-             -> Int       -- ^ the index of the array
-             -> w         -- ^ the value to store
+             => Pointer        -- ^ the pointer to the first element of the
+                               -- array
+             -> Int            -- ^ the index of the array
+             -> w              -- ^ the value to store
              -> IO ()
 {-# INLINE storeAtIndex #-}
 storeAtIndex cptr index w = storeAt cptr offset w

@@ -86,6 +86,13 @@ library
   if !os(windows)
      cpp-options: -DHAVE_MLOCK
 
+  if os(linux)
+     cc-options: -DPLATFORM_LINUX
+  if os(freebsd) || os(netbsd)
+     cc-options: -DPLATFORM_BSD
+  if os(openbsd)
+     cc-options: -DPLATFORM_OPENBSD
+
   exposed-modules: Raaz.Core
                  , Raaz.Core.ByteSource
                  , Raaz.Core.DH
