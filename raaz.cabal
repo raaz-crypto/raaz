@@ -24,48 +24,6 @@ cabal-version: >=1.9.2
 
 bug-reports: https://github.com/raaz-crypto/raaz/issues
 
--- These files are used by the setup script.
-extra-source-files: Config.hs
-                    Config/Cache.hs
-                    Config/Cache/Linux.hs
-                    Config/FFI.hs
-                    Config/Monad.hs
-                    Config/Page.hs
-                    Config/Page/Linux.hs
-                    Config/ffi/htobe32/DESCRIPTION
-                    Config/ffi/htobe32/Test.hs
-                    Config/ffi/htobe32/test.c
-                    Config/ffi/htobe64/DESCRIPTION
-                    Config/ffi/htobe64/Test.hs
-                    Config/ffi/htobe64/test.c
-                    Config/ffi/htole32/DESCRIPTION
-                    Config/ffi/htole32/Test.hs
-                    Config/ffi/htole32/test.c
-                    Config/ffi/htole64/DESCRIPTION
-                    Config/ffi/htole64/Test.hs
-                    Config/ffi/htole64/test.c
-		    Config/ffi/be32toh/DESCRIPTION
-                    Config/ffi/be32toh/Test.hs
-                    Config/ffi/be32toh/test.c
-                    Config/ffi/be64toh/DESCRIPTION
-                    Config/ffi/be64toh/Test.hs
-                    Config/ffi/be64toh/test.c
-                    Config/ffi/le32toh/DESCRIPTION
-                    Config/ffi/le32toh/Test.hs
-                    Config/ffi/le32toh/test.c
-                    Config/ffi/le64toh/DESCRIPTION
-                    Config/ffi/le64toh/Test.hs
-                    Config/ffi/le64toh/test.c
-                    Config/ffi/memalign/DESCRIPTION
-                    Config/ffi/memalign/Test.hs
-                    Config/ffi/memalign/test.c
-                    Config/ffi/mlock/DESCRIPTION
-                    Config/ffi/mlock/Test.hs
-                    Config/ffi/mlock/test.c
-                    Config/ffi/mlockall/DESCRIPTION
-                    Config/ffi/mlockall/Test.hs
-                    Config/ffi/mlockall/test.c
-
 source-repository head
   type: git
   location: https://github.com/raaz-crypto/raaz
@@ -109,7 +67,6 @@ library
                  , Raaz.Core.Types
                  , Raaz.Core.Util
                  , Raaz.Core.Write
-                 , Raaz.System.Parameters
                  --
                  -- Cryptographic hashes
                  --
@@ -213,26 +170,18 @@ library
                -- , test-framework-quickcheck2     >= 0.2 && < 0.4
                , transformers
                , vector
-  c-sources: cbits/raaz/core/memory.c
-           , cbits/raaz/core/endian.c
+
+  c-sources: cbits/raaz/core/endian.c
            -- hash implementations
            , cbits/raaz/hash/sha1/portable.c
            , cbits/raaz/hash/blake256/portable.c
            , cbits/raaz/hash/sha256/portable.c
            , cbits/raaz/hash/sha512/portable.c
 
-  include-dirs: includes
-              , cbits
-  includes: raaz/primitives.h
-          , raaz/primitives/config.h
-          , raaz/primitives/load.h
-          , raaz/core/memory.h
-          , raaz/core/endian.h
-  install-includes: raaz/primitives.h
-                  , raaz/primitives/config.h
-                  , raaz/primitives/load.h
-                  , raaz/core/memory.h
-                  , raaz/core/endian.h
+  include-dirs: cbits
+  includes: raaz/core/endian.h
+  install-includes: raaz/core/endian.h
+
 test-Suite spec
   type: exitcode-stdio-1.0
   hs-source-dirs: spec
