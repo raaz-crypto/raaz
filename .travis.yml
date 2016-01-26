@@ -16,6 +16,16 @@ addons:
       - ghc-7.10.3
       - ghc-head
 
+# Setting up caches
+before-cache:
+  - rm -fv $HOME/.cabal/packages/hackage.haskell.org/build-reports.log
+  - rm -fv $HOME/.cabal/packages/hackage.haskell.org/00-index.tar
+
+cache:
+  directories:
+    - $HOME/.cabsnap
+    - $HOME/.cabal/packages
+
 fast_finish: true
 # To notify immediately about it when a job of a build fails.
 env:
