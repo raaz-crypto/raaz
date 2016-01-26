@@ -14,7 +14,7 @@ condition.
 
 */
 
-#include <raaz/primitives/load.h>
+#include <raaz/core/endian.h>
 #include <stdint.h>
 
 typedef uint32_t   Word;  /* basic unit of sha256 hash  */
@@ -234,22 +234,22 @@ void raazHashSha256PortableCompress(Hash hash, int nblocks, Block *mesg)
 
         */
 
-        w0 = raazLoad32BE( (Word *) mesg, 0);
-        w1 = raazLoad32BE( (Word *) mesg, 1);
-        w2 = raazLoad32BE( (Word *) mesg, 2);
-        w3 = raazLoad32BE( (Word *) mesg, 3);
-        w4 = raazLoad32BE( (Word *) mesg, 4);
-        w5 = raazLoad32BE( (Word *) mesg, 5);
-        w6 = raazLoad32BE( (Word *) mesg, 6);
-        w7 = raazLoad32BE( (Word *) mesg, 7);
-        w8 = raazLoad32BE( (Word *) mesg, 8);
-        w9 = raazLoad32BE( (Word *) mesg, 9);
-        w10 = raazLoad32BE( (Word *) mesg, 10);
-        w11 = raazLoad32BE( (Word *) mesg, 11);
-        w12 = raazLoad32BE( (Word *) mesg, 12);
-        w13 = raazLoad32BE( (Word *) mesg, 13);
-        w14 = raazLoad32BE( (Word *) mesg, 14);
-        w15 = raazLoad32BE( (Word *) mesg, 15);
+        w0  = raazLoadBE32( (Word *) mesg);
+        w1  = raazLoadBE32( (Word *) mesg + 1);
+        w2  = raazLoadBE32( (Word *) mesg + 2);
+        w3  = raazLoadBE32( (Word *) mesg + 3);
+        w4  = raazLoadBE32( (Word *) mesg + 4);
+        w5  = raazLoadBE32( (Word *) mesg + 5);
+        w6  = raazLoadBE32( (Word *) mesg + 6);
+        w7  = raazLoadBE32( (Word *) mesg + 7);
+        w8  = raazLoadBE32( (Word *) mesg + 8);
+        w9  = raazLoadBE32( (Word *) mesg + 9);
+        w10 = raazLoadBE32( (Word *) mesg + 10);
+        w11 = raazLoadBE32( (Word *) mesg + 11);
+        w12 = raazLoadBE32( (Word *) mesg + 12);
+        w13 = raazLoadBE32( (Word *) mesg + 13);
+        w14 = raazLoadBE32( (Word *) mesg + 14);
+        w15 = raazLoadBE32( (Word *) mesg + 15);
 
         /* End of reading the message */
 
