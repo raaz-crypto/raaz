@@ -46,7 +46,7 @@ import           Raaz.Core.Memory
 import           Raaz.Core.Types
 import           Raaz.Core.Util.ByteString
 import           Raaz.Core.Types.Pointer
-import           Raaz.System.Parameters  (l1Cache)
+
 
 -- $primAndGadget$
 --
@@ -129,7 +129,7 @@ class ( Primitive (PrimitiveOf g)
   -- improve cache performance of your program. Default setting is the
   -- number of blocks that fit in @32KB@.
   recommendedBlocks   :: g -> BLOCKS (PrimitiveOf g)
-  recommendedBlocks _ = max 1 $ atMost l1Cache
+  recommendedBlocks _ = max 1 $ atMost (32768 :: BYTES Int)
 
 -- | Gives the primitive of a gadget. This function should only be
 -- used to satisy types as the actual value returned is `undefined`.

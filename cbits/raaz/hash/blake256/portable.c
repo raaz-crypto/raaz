@@ -8,7 +8,7 @@ This is a part of raaz cryptographic library.
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
-#include <raaz/primitives/load.h>
+#include <raaz/core/endian.h>
 
 #define HASH_SIZE 8     /* Size of input hash */
 #define BLOCK_SIZE 16   /* Size of a block    */
@@ -243,22 +243,22 @@ void raazHashBlake256PortableCompress(Hash hash, Salt salt, uint64_t counter, in
         v15 = t1 ^ c7;
 
         /* Loading the message into 16 words */
-        m0 = raazLoad32BE((Word *)mesg,0);
-        m1 = raazLoad32BE((Word *)mesg,1);
-        m2 = raazLoad32BE((Word *)mesg,2);
-        m3 = raazLoad32BE((Word *)mesg,3);
-        m4 = raazLoad32BE((Word *)mesg,4);
-        m5 = raazLoad32BE((Word *)mesg,5);
-        m6 = raazLoad32BE((Word *)mesg,6);
-        m7 = raazLoad32BE((Word *)mesg,7);
-        m8 = raazLoad32BE((Word *)mesg,8);
-        m9 = raazLoad32BE((Word *)mesg,9);
-        m10 = raazLoad32BE((Word *)mesg,10);
-        m11 = raazLoad32BE((Word *)mesg,11);
-        m12 = raazLoad32BE((Word *)mesg,12);
-        m13 = raazLoad32BE((Word *)mesg,13);
-        m14 = raazLoad32BE((Word *)mesg,14);
-        m15 = raazLoad32BE((Word *)mesg,15);
+        m0  = raazLoadBE32((Word *)mesg);
+        m1  = raazLoadBE32((Word *)mesg + 1);
+        m2  = raazLoadBE32((Word *)mesg + 2);
+        m3  = raazLoadBE32((Word *)mesg + 3);
+        m4  = raazLoadBE32((Word *)mesg + 4);
+        m5  = raazLoadBE32((Word *)mesg + 5);
+        m6  = raazLoadBE32((Word *)mesg + 6);
+        m7  = raazLoadBE32((Word *)mesg + 7);
+        m8  = raazLoadBE32((Word *)mesg + 8);
+        m9  = raazLoadBE32((Word *)mesg + 9);
+        m10 = raazLoadBE32((Word *)mesg + 10);
+        m11 = raazLoadBE32((Word *)mesg + 11);
+        m12 = raazLoadBE32((Word *)mesg + 12);
+        m13 = raazLoadBE32((Word *)mesg + 13);
+        m14 = raazLoadBE32((Word *)mesg + 14);
+        m15 = raazLoadBE32((Word *)mesg + 15);
 
         /* End of reading the message block */
 

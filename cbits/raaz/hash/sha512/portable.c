@@ -14,7 +14,7 @@ condition.
 
 */
 
-#include <raaz/primitives/load.h>
+#include <raaz/core/endian.h>
 #include <stdint.h>
 
 typedef uint64_t   Word;  /* basic unit of sha512 hash  */
@@ -253,22 +253,22 @@ void raazHashSha512PortableCompress(Hash hash, int nblocks, Block *mesg)
 
         */
 
-	w0 = raazLoad64BE( (Word *) mesg, 0);
-	w1 = raazLoad64BE( (Word *) mesg, 1);
-	w2 = raazLoad64BE( (Word *) mesg, 2);
-	w3 = raazLoad64BE( (Word *) mesg, 3);
-	w4 = raazLoad64BE( (Word *) mesg, 4);
-	w5 = raazLoad64BE( (Word *) mesg, 5);
-	w6 = raazLoad64BE( (Word *) mesg, 6);
-	w7 = raazLoad64BE( (Word *) mesg, 7);
-	w8 = raazLoad64BE( (Word *) mesg, 8);
-	w9 = raazLoad64BE( (Word *) mesg, 9);
-	w10 = raazLoad64BE( (Word *) mesg, 10);
-	w11 = raazLoad64BE( (Word *) mesg, 11);
-	w12 = raazLoad64BE( (Word *) mesg, 12);
-	w13 = raazLoad64BE( (Word *) mesg, 13);
-	w14 = raazLoad64BE( (Word *) mesg, 14);
-	w15 = raazLoad64BE( (Word *) mesg, 15);
+	w0  = raazLoadBE64( (Word *) mesg);
+	w1  = raazLoadBE64( (Word *) mesg + 1);
+	w2  = raazLoadBE64( (Word *) mesg + 2);
+	w3  = raazLoadBE64( (Word *) mesg + 3);
+	w4  = raazLoadBE64( (Word *) mesg + 4);
+	w5  = raazLoadBE64( (Word *) mesg + 5);
+	w6  = raazLoadBE64( (Word *) mesg + 6);
+	w7  = raazLoadBE64( (Word *) mesg + 7);
+	w8  = raazLoadBE64( (Word *) mesg + 8);
+	w9  = raazLoadBE64( (Word *) mesg + 9);
+	w10 = raazLoadBE64( (Word *) mesg + 10);
+	w11 = raazLoadBE64( (Word *) mesg + 11);
+	w12 = raazLoadBE64( (Word *) mesg + 12);
+	w13 = raazLoadBE64( (Word *) mesg + 13);
+	w14 = raazLoadBE64( (Word *) mesg + 14);
+	w15 = raazLoadBE64( (Word *) mesg + 15);
 
 
         /* End of reading the message */

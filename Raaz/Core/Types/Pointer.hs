@@ -2,6 +2,8 @@
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE ForeignFunctionInterface   #-}
+{-# LANGUAGE CPP                        #-}
+
 module Raaz.Core.Types.Pointer
        ( -- ** The pointer type.
          Pointer
@@ -20,7 +22,7 @@ module Raaz.Core.Types.Pointer
 
 import Control.Applicative
 import Control.Exception     ( bracket_)
-import Control.Monad         ( void    )
+import Control.Monad         ( void, when )
 import Data.Monoid
 import Data.Word             ( Word64, Word, Word8)
 import Foreign.Marshal.Alloc
@@ -197,24 +199,30 @@ allocaSecure :: LengthUnit l
               => l
               -> (Pointer -> IO a)
               -> IO a
+
+#ifdef HAVE_MLOCK
+
+foreign import ccall unsafe "sys/mman.h mlock"
+  c_mlock :: Pointer -> Int -> IO Int
+
+
+foreign import ccall unsafe "sys/mman.h munlock"
+  c_munlock :: Pointer -> Int -> IO ()
+
 allocaSecure l action = allocaBuffer actualSz actualAction
   where actualSz = atLeast l :: ALIGN
         BYTES sz = inBytes actualSz
         actualAction cptr = let
-          lockIt    = void $ c_mlock cptr sz
-          releaseIt = c_wipe cptr sz >>  c_munlock cptr sz
+          lockIt    = do c <- c_mlock cptr sz
+                         when (c /= 0) $ fail "secure memory: unable to lock memory"
+          releaseIt =  memset cptr 0 actualSz >>  c_munlock cptr sz
           in bracket_ lockIt releaseIt $ action cptr
 
+#else
 
-foreign import ccall unsafe "raaz/core/memory.h memorylock"
-  c_mlock :: Pointer -> Int -> IO Int
+allocaSecure _ _ = fail "memory locking not supported on this platform"
 
-foreign import ccall unsafe "raaz/core/memory.h memoryunlock"
-  c_munlock :: Pointer -> Int -> IO ()
-
-foreign import ccall unsafe "raaz/core/memory.h wipememory"
-  c_wipe :: Pointer -> Int -> IO ()
-
+#endif
 
 -- | Creates a memory of given size. It is better to use over
 -- @`mallocBytes`@ as it uses typesafe length.
@@ -238,11 +246,11 @@ hFillBuf :: LengthUnit bufSize
 hFillBuf handle cptr bufSize = BYTES <$> hGetBuf handle cptr bytes
   where BYTES bytes = inBytes bufSize
 
+------------------- Copy move and set contents ----------------------------
+
 -- | Some common PTR functions abstracted over type safe length.
 foreign import ccall unsafe "string.h memcpy" c_memcpy
     :: Pointer -> Pointer -> BYTES Int -> IO Pointer
-
-------------------- Copy move and set contents ----------------------------
 
 -- | Copy between pointers.
 memcpy :: LengthUnit l
