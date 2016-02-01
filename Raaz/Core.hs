@@ -6,6 +6,7 @@ Core functions, data types and classes of the raaz package.
 
 module Raaz.Core
        ( module Raaz.Core.ByteSource
+       , module Raaz.Core.Constants
        , module Raaz.Core.Encode
        , module Raaz.Core.Memory
        , module Raaz.Core.Primitives
