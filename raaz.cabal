@@ -34,13 +34,11 @@ flag auto-configure
 
 library
 
-  if arch(i386) && impl(ghc < 7.6.0)
-      ghc-options: -Wall -fregs-graph
-  else
-      ghc-options: -Wall
+  ghc-options: -Wall
 
-  if impl(ghc >= 7.6)
-     cpp-options:-DUseKinds
+  if os(linux) || os(freebsd) || os(openbsd) || os (netbsd)
+     cpp-options: -DHAVE_SYSTEM_PRG -DHAVE_DEV_URANDOM
+
   if !os(windows)
      cpp-options: -DHAVE_MLOCK
 
@@ -151,13 +149,6 @@ library
                , Raaz.Cipher.Salsa20.Block.Type
                , Raaz.Cipher.Salsa20.Instances
                , Raaz.Cipher.AES.Block.Internal
-
-  if os(linux) || os(freebsd) || os(openbsd)
-     hs-source-dirs: .
-                   , src/urandom/
-     exposed-modules: Raaz.System.Random
-  else
-     hs-source-dirs: .
 
   -- other-modules: Raaz.Core.Memory.Internal
   build-depends: base                           >= 4.5  && < 5.0
