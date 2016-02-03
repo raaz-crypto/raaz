@@ -52,22 +52,28 @@ class Random r where
 
 
 
--- TODO: support system prg for oses that do not have @\/dev\/urandom@
+
 
 #ifdef HAVE_SYSTEM_PRG
-
--- | The system wide pseudo-random generator. Many systems provide
--- high quality pseudo-random generator within the system like for
--- example the @\/dev\/urandom@ file on a posix system. This type
--- captures such a pseudo-random generator. The source is expected to
--- be of high quality, albeit a bit slow due to system call overheads.
--- You do not need to seed this PRG and hence the associated type
--- @`Seed` `SystemPRG`@ is the unit type @()@.
-newtype SystemPRG = SystemPRG Handle
-
+-- | The system wide pseudo-random generator. The source is expected
+-- to be of high quality, albeit a bit slow due to system call
+-- overheads. It is expected that this source is automatically seeded
+-- from the entropy pool maintained by the platform. Hence, it is
+-- neither necessary nor possible to seed this generator which
+-- reflected by the fact that the associated type @`Seed` `SystemPRG`@
+-- is the unit type @()@.
 #endif
 
+
+-- Currently only POSIX platforms are supported where the file
+-- @\/dev\/urandom@ acts as the underlying randomness source.
+--
+-- TODO: Support other platforms.
+--
 #ifdef HAVE_DEV_URANDOM
+newtype SystemPRG = SystemPRG Handle
+
+
 instance InfiniteSource SystemPRG where
   slurpBytes sz sprg@(SystemPRG hand) cptr = hFillBuf hand cptr sz >> return sprg
 
