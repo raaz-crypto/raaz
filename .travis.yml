@@ -27,19 +27,36 @@ cache:
     - $HOME/.cabal/packages
 
 fast_finish: true
-# To notify immediately about it when a job of a build fails.
-env:
-  - STACKVER=lts-2   GHCVER=7.8.4 CABALVER=1.18
-  - STACKVER=lts-3   GHCVER=7.10.2 CABALVER=1.22
-  - STACKVER=lts-4   GHCVER=7.10.3 CABALVER=1.22
-  - STACKVER=lts-5   GHCVER=7.10.3 CABALVER=1.22
-  - GHCVER=head CABALVER=head # Build against haskell head version.
-  - HLINT="yes"
+# # To notify immediately about it when a job of a build fails.
+# env:
+#   - STACKVER=lts-2   GHCVER=7.8.4 CABALVER=1.18
+#   - STACKVER=lts-3   GHCVER=7.10.2 CABALVER=1.22
+#   - STACKVER=lts-4   GHCVER=7.10.3 CABALVER=1.22
+#   - STACKVER=lts-5   GHCVER=7.10.3 CABALVER=1.22
+#   - GHCVER=head CABALVER=head # Build against haskell head version.
+#   - HLINT="yes"
 
 matrix:
+  include:
+    # Linux builds
+    - os: linux
+      env: STACKVER=lts-2   GHCVER=7.8.4 CABALVER=1.18
+    - os: linux
+      env: STACKVER=lts-3   GHCVER=7.10.2 CABALVER=1.22
+    - os: linux
+      env: STACKVER=lts-4   GHCVER=7.10.3 CABALVER=1.22
+    - os: linux
+      env: STACKVER=lts-5   GHCVER=7.10.3 CABALVER=1.22
+    - os: linux
+      env: GHCVER=head CABALVER=head # Build against haskell head version.
+    - os: linux
+      env: HLINT="yes"
+    # Other builds
+    - os: osx
   allow_failures:
     - env: HLINT="yes"
     - env: GHCVER=head CABALVER=head
+    - os: osx
 
 before_install:
  - if [ "$HLINT" == "yes" ]; then
@@ -51,6 +68,10 @@ before_install:
       echo getting the stackage cabal.config;
       wget "https://www.stackage.org/$STACKVER/cabal.config";
    fi
+ - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew update; fi
+ - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install ghc cabal-install; fi
+ - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew info ghc cabal-install; fi
+
 install:
  - cabal --version
  - echo "$(ghc --version) [$(ghc --print-project-git-commit-id 2> /dev/null || echo '?')]"
