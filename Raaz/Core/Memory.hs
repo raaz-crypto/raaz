@@ -19,7 +19,7 @@ module Raaz.Core.Memory
          MonadMemory(..)
        , MemoryM, MT, runMT, execute, liftSubMT
        -- ** Memory elements
-       , Memory(..), Alloc
+       , Memory(..), Alloc, pointerAlloc
        , withMemory, withSecureMemory , copyMemory
        , MemoryCell
        , cellPeek
@@ -185,6 +185,10 @@ type Alloc mem = TwistRF AllocField ALIGNMonoid mem
 makeAlloc :: LengthUnit l => l -> (Pointer -> mem) -> Alloc mem
 makeAlloc l memCreate = TwistRF (WrapArrow memCreate) (Sum $ atLeast l)
 
+-- | Allocates a buffer of size @l@ and returns the pointer to it pointer.
+pointerAlloc :: LengthUnit l => l -> Alloc Pointer
+pointerAlloc l = makeAlloc l id
+
 ---------------------------------------------------------------------
 
 -- | Any cryptographic primitives use memory to store stuff. This
@@ -215,7 +219,7 @@ class Memory m where
   memoryAlloc    :: Alloc m
 
   -- | Returns the pointer to the underlying buffer.
-  underlyingPtr :: m -> Pointer
+  underlyingPtr  :: m -> Pointer
 
 instance ( Memory ma, Memory mb ) => Memory (ma, mb) where
     memoryAlloc           = (,) <$> memoryAlloc <*> memoryAlloc
