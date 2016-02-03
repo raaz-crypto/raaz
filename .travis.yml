@@ -57,6 +57,7 @@ matrix:
     - env: HLINT="yes"
     - env: GHCVER=head CABALVER=head
     - os: osx
+
 before_install:
  - if [ "$HLINT" == "yes" ]; then
       hlint "--ignore=Parse error" Raaz;
@@ -67,6 +68,10 @@ before_install:
       echo getting the stackage cabal.config;
       wget "https://www.stackage.org/$STACKVER/cabal.config";
    fi
+ - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew update; fi
+ - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install ghc cabal-install; fi
+ - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew info ghc cabal-install; fi
+
 install:
  - cabal --version
  - echo "$(ghc --version) [$(ghc --print-project-git-commit-id 2> /dev/null || echo '?')]"
