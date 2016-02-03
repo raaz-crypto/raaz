@@ -25,7 +25,11 @@ import Raaz.Core.Random     (PRG(..))
 -- be of high quality, albeit a bit slow due to system call overheads.
 -- You do not need to seed this PRG and hence the associated type
 -- @`Seed` `SystemPRG`@ is the unit type @()@.
-newtype SystemPRG = SystemPRG Handle deriving ByteSource
+newtype SystemPRG = SystemPRG Handle
+
+instance InfiniteSource SystemPRG where
+  slurpBytes sz sprg@(SystemPRG hand) cptr = hFillBuf hand cptr sz >> return sprg
+
 
 instance PRG SystemPRG where
   type Seed SystemPRG = ()
