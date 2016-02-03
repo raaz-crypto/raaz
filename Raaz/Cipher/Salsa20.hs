@@ -16,11 +16,7 @@ module Raaz.Cipher.Salsa20
        ( Salsa20
        , KEY128
        , KEY256
-#if UseKinds
        , Rounds(..)
-#else
-       , R20, R12, R8
-#endif
        , Nonce
        , Counter
        , module Raaz.Core.Primitives
