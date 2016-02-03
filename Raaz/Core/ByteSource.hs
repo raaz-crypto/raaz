@@ -1,13 +1,15 @@
-{-# LANGUAGE FlexibleContexts #-}
-
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE DefaultSignatures #-}
 -- | Module define byte sources.
 module Raaz.Core.ByteSource
        ( ByteSource(..), fill
+       , InfiniteSource(..), slurp
        , PureByteSource
        , FillResult(..)
        , withFillResult
        ) where
 
+import           Control.Applicative
 import           Control.Monad        (liftM)
 import qualified Data.ByteString      as B
 import qualified Data.ByteString.Lazy as L
@@ -25,11 +27,10 @@ import           Raaz.Core.Types.Pointer  (hFillBuf)
 
 
 -- | This type captures the result of a fill operation.
-data FillResult a = Remaining a           -- ^ only partially filled
-                                          -- the buffer.
-                  | Exhausted (BYTES Int) -- ^ source exhausted and
-                                          -- there is still so much of
-                                          -- bytes left in the buffer
+data FillResult a = Remaining a           -- ^ the buffer is filled completely
+                  | Exhausted (BYTES Int) -- ^ source exhausted with so much
+                                          -- bytes read.
+
 instance Functor FillResult where
   fmap f (Remaining a ) = Remaining $ f a
   fmap _ (Exhausted sz) = Exhausted sz
@@ -52,8 +53,17 @@ class ByteSource src where
             -> src        -- ^ The source to fill.
             -> Pointer  -- ^ Buffer pointer
             -> IO (FillResult src)
+  default fillBytes :: InfiniteSource src => BYTES Int ->  src -> Pointer -> IO (FillResult src)
+  fillBytes sz src pointer = Remaining <$> slurp sz src pointer
 
-
+-- | Never ending stream of bytes. The reads to the stream might get
+-- delayed but it will always return the number of bytes that were
+-- asked for.
+class InfiniteSource src where
+  slurpBytes :: BYTES Int -- ^ bytes to read,
+             -> src       -- ^ the source to fill from,
+             -> Pointer   -- ^ the buffer source to fill.
+             -> IO src
 
 -- | A version of fillBytes that takes type safe lengths as input.
 fill :: ( LengthUnit len
@@ -65,6 +75,15 @@ fill :: ( LengthUnit len
      -> IO (FillResult src)
 fill = fillBytes . inBytes
 {-# INLINE fill #-}
+
+slurp :: ( LengthUnit len
+         , InfiniteSource src
+         )
+       => len
+       -> src
+       -> Pointer
+       -> IO src
+slurp = slurpBytes . inBytes
 
 -- | A byte source src is pure if filling from it does not have any
 -- other side effect on the state of the byte source. Formally, two
@@ -83,13 +102,13 @@ instance ByteSource Handle where
   fillBytes sz hand cptr = do
             count <- hFillBuf hand cptr sz
             return
-              (if count < sz then Exhausted $ sz - count
+              (if count < sz then Exhausted count
                              else Remaining hand)
 
 instance ByteSource B.ByteString where
   {-# INLINE fillBytes #-}
   fillBytes sz bs cptr | l < sz    = do unsafeCopyToPointer bs cptr
-                                        return $ Exhausted $ sz - l
+                                        return $ Exhausted l
                        | otherwise = do unsafeNCopyToPointer sz bs cptr
                                         return $ Remaining rest
        where l    = length bs
@@ -104,17 +123,17 @@ instance ByteSource L.ByteString where
 instance ByteSource src => ByteSource (Maybe src) where
   {-# INLINE fillBytes #-}
   fillBytes sz ma cptr = maybe exhausted fillIt ma
-          where exhausted = return $ Exhausted sz
-                fillIt a  = liftM (fmap Just) $ fillBytes sz a cptr
+          where exhausted = return $ Exhausted 0
+                fillIt a  = fmap Just <$> fillBytes sz a cptr
 
 instance ByteSource src => ByteSource [src] where
-  fillBytes sz []     _    = return $ Exhausted sz
+  fillBytes _  []     _    = return $ Exhausted 0
   fillBytes sz (x:xs) cptr = do
     result <- fillBytes sz x cptr
     case result of
-      Exhausted nSz -> let nptr = Sum (sz - nSz) <.> cptr
-                           in fillBytes nSz xs nptr
-      Remaining nx  -> return $ Remaining $ nx:xs
+      Exhausted rbytes -> let nptr = Sum rbytes <.> cptr
+                          in  fillBytes (sz - rbytes) xs nptr
+      Remaining nx     -> return $ Remaining $ nx:xs
 
 --------------------- Instances of pure byte source --------------------
 

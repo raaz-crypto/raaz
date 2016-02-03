@@ -381,8 +381,7 @@ transformGadget g src = allocaBuffer bufSize $ go 0 src
                              >>= withFillResult continue endIt
            where continue rest = do apply g nBlocks cptr
                                     go (k + nBlocks) rest cptr
-                 endIt r       = unsafeApplyLast g k len cptr
-                       where len    = inBytes nBlocks - r
+                 endIt r       = unsafeApplyLast g k r cptr
 
 -- | A version of `transformContext` which takes a filename instead.
 transformGadgetFile :: PaddableGadget g

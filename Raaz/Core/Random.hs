@@ -1,22 +1,34 @@
-{-# LANGUAGE TypeFamilies     #-}
-{-# LANGUAGE KindSignatures   #-}
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE TypeFamilies      #-}
+{-# LANGUAGE KindSignatures    #-}
+{-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE DefaultSignatures #-}
+{-# LANGUAGE CPP               #-}
 module Raaz.Core.Random
   ( PRG(..), Random(..)
+
+#ifdef HAVE_SYSTEM_PRG
+  , SystemPRG
+#endif
+
   ) where
 
 import Control.Monad   (void)
+import Data.Word
 import Foreign.Ptr     (castPtr)
 import Foreign.Storable(Storable, peek)
 
-import Raaz.Core.ByteSource(ByteSource, fillBytes)
-import Raaz.Core.Types.Pointer  (byteSize, allocaBuffer)
+
+import System.IO ( openBinaryFile, Handle, IOMode(ReadMode)
+                 , BufferMode(NoBuffering), hSetBuffering
+                 )
+
+import Raaz.Core.ByteSource(InfiniteSource, slurpBytes)
+import Raaz.Core.Types
 
 -- | The class that captures pseudo-random generators. Essentially the
 -- a pseudo-random generator (PRG) is a byte sources that can be
 -- seeded.
-class ByteSource prg => PRG prg where
+class InfiniteSource prg => PRG prg where
 
   -- | Associated type that captures the seed for the PRG.
   type Seed prg :: *
@@ -36,5 +48,50 @@ class Random r where
     where go       :: (PRG prg, Storable a) => a -> prg -> IO a
           go w prg = let sz = byteSize w in
             allocaBuffer sz $ \ ptr -> do
-              void $ fillBytes sz prg ptr
+              void $ slurpBytes sz prg ptr
               peek $ castPtr ptr
+
+instance Random Word
+instance Random Word16
+instance Random Word32
+instance Random Word64
+
+instance Random w => Random (LE w) where
+  random = fmap littleEndian . random
+
+instance Random w => Random (BE w) where
+  random = fmap bigEndian . random
+
+#ifdef HAVE_SYSTEM_PRG
+-- | The system wide pseudo-random generator. The source is expected
+-- to be of high quality, albeit a bit slow due to system call
+-- overheads. It is expected that this source is automatically seeded
+-- from the entropy pool maintained by the platform. Hence, it is
+-- neither necessary nor possible to seed this generator which
+-- reflected by the fact that the associated type @`Seed` `SystemPRG`@
+-- is the unit type @()@.
+#endif
+
+
+-- Currently only POSIX platforms are supported where the file
+-- @\/dev\/urandom@ acts as the underlying randomness source.
+--
+-- TODO: Support other platforms.
+--
+#ifdef HAVE_DEV_URANDOM
+newtype SystemPRG = SystemPRG Handle
+
+
+instance InfiniteSource SystemPRG where
+  slurpBytes sz sprg@(SystemPRG hand) cptr = hFillBuf hand cptr sz >> return sprg
+
+
+instance PRG SystemPRG where
+  type Seed SystemPRG = ()
+
+  newPRG _ = do h <- openBinaryFile "/dev/urandom" ReadMode
+                hSetBuffering h NoBuffering
+                return $ SystemPRG h
+  reseed _ _ = return ()
+
+#endif
