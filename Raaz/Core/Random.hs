@@ -13,15 +13,17 @@ module Raaz.Core.Random
   ) where
 
 import Control.Monad   (void)
+import Data.Word
 import Foreign.Ptr     (castPtr)
 import Foreign.Storable(Storable, peek)
 
-import Raaz.Core.ByteSource(InfiniteSource, slurpBytes)
-import Raaz.Core.Types.Pointer  (byteSize, allocaBuffer, hFillBuf)
 
 import System.IO ( openBinaryFile, Handle, IOMode(ReadMode)
                  , BufferMode(NoBuffering), hSetBuffering
                  )
+
+import Raaz.Core.ByteSource(InfiniteSource, slurpBytes)
+import Raaz.Core.Types
 
 -- | The class that captures pseudo-random generators. Essentially the
 -- a pseudo-random generator (PRG) is a byte sources that can be
@@ -49,10 +51,16 @@ class Random r where
               void $ slurpBytes sz prg ptr
               peek $ castPtr ptr
 
+instance Random Word
+instance Random Word16
+instance Random Word32
+instance Random Word64
 
+instance Random w => Random (LE w) where
+  random = fmap littleEndian . random
 
-
-
+instance Random w => Random (BE w) where
+  random = fmap bigEndian . random
 
 #ifdef HAVE_SYSTEM_PRG
 -- | The system wide pseudo-random generator. The source is expected
