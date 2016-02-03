@@ -27,11 +27,10 @@ import           Raaz.Core.Types.Pointer  (hFillBuf)
 
 
 -- | This type captures the result of a fill operation.
-data FillResult a = Remaining a           -- ^ only partially filled
-                                          -- the buffer.
-                  | Exhausted (BYTES Int) -- ^ source exhausted and
-                                          -- there is still so much of
-                                          -- bytes left in the buffer
+data FillResult a = Remaining a           -- ^ the buffer is filled completely
+                  | Exhausted (BYTES Int) -- ^ source exhausted with so much
+                                          -- bytes read.
+
 instance Functor FillResult where
   fmap f (Remaining a ) = Remaining $ f a
   fmap _ (Exhausted sz) = Exhausted sz
@@ -103,13 +102,13 @@ instance ByteSource Handle where
   fillBytes sz hand cptr = do
             count <- hFillBuf hand cptr sz
             return
-              (if count < sz then Exhausted $ sz - count
+              (if count < sz then Exhausted count
                              else Remaining hand)
 
 instance ByteSource B.ByteString where
   {-# INLINE fillBytes #-}
   fillBytes sz bs cptr | l < sz    = do unsafeCopyToPointer bs cptr
-                                        return $ Exhausted $ sz - l
+                                        return $ Exhausted l
                        | otherwise = do unsafeNCopyToPointer sz bs cptr
                                         return $ Remaining rest
        where l    = length bs
@@ -124,17 +123,17 @@ instance ByteSource L.ByteString where
 instance ByteSource src => ByteSource (Maybe src) where
   {-# INLINE fillBytes #-}
   fillBytes sz ma cptr = maybe exhausted fillIt ma
-          where exhausted = return $ Exhausted sz
-                fillIt a  = liftM (fmap Just) $ fillBytes sz a cptr
+          where exhausted = return $ Exhausted 0
+                fillIt a  = fmap Just <$> fillBytes sz a cptr
 
 instance ByteSource src => ByteSource [src] where
-  fillBytes sz []     _    = return $ Exhausted sz
+  fillBytes _  []     _    = return $ Exhausted 0
   fillBytes sz (x:xs) cptr = do
     result <- fillBytes sz x cptr
     case result of
-      Exhausted nSz -> let nptr = Sum (sz - nSz) <.> cptr
-                           in fillBytes nSz xs nptr
-      Remaining nx  -> return $ Remaining $ nx:xs
+      Exhausted rbytes -> let nptr = Sum rbytes <.> cptr
+                          in  fillBytes (sz - rbytes) xs nptr
+      Remaining nx     -> return $ Remaining $ nx:xs
 
 --------------------- Instances of pure byte source --------------------
 
