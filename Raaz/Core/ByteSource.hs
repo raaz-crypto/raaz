@@ -1,13 +1,15 @@
-{-# LANGUAGE FlexibleContexts #-}
-
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE DefaultSignatures #-}
 -- | Module define byte sources.
 module Raaz.Core.ByteSource
        ( ByteSource(..), fill
+       , InfiniteSource(..), slurp
        , PureByteSource
        , FillResult(..)
        , withFillResult
        ) where
 
+import           Control.Applicative
 import           Control.Monad        (liftM)
 import qualified Data.ByteString      as B
 import qualified Data.ByteString.Lazy as L
@@ -52,8 +54,17 @@ class ByteSource src where
             -> src        -- ^ The source to fill.
             -> Pointer  -- ^ Buffer pointer
             -> IO (FillResult src)
+  default fillBytes :: InfiniteSource src => BYTES Int ->  src -> Pointer -> IO (FillResult src)
+  fillBytes sz src pointer = Remaining <$> slurp sz src pointer
 
-
+-- | Never ending stream of bytes. The reads to the stream might get
+-- delayed but it will always return the number of bytes that were
+-- asked for.
+class InfiniteSource src where
+  slurpBytes :: BYTES Int -- ^ bytes to read,
+             -> src       -- ^ the source to fill from,
+             -> Pointer   -- ^ the buffer source to fill.
+             -> IO src
 
 -- | A version of fillBytes that takes type safe lengths as input.
 fill :: ( LengthUnit len
@@ -65,6 +76,15 @@ fill :: ( LengthUnit len
      -> IO (FillResult src)
 fill = fillBytes . inBytes
 {-# INLINE fill #-}
+
+slurp :: ( LengthUnit len
+         , InfiniteSource src
+         )
+       => len
+       -> src
+       -> Pointer
+       -> IO src
+slurp = slurpBytes . inBytes
 
 -- | A byte source src is pure if filling from it does not have any
 -- other side effect on the state of the byte source. Formally, two
