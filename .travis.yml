@@ -1,8 +1,9 @@
 language: c
 sudo: false
 os:
-  - linux
-  - osx
+  - linux  # Build for linux systems.
+  - osx    # Build for osx systems.
+
 notifications:
   irc: "irc.freenode.net#haskell-raaz"
 addons:
@@ -43,7 +44,7 @@ matrix:
   allow_failures:
     - env: HLINT="yes"
     - env: GHCVER=head CABALVER=head
-
+    - os: osx
 before_install:
  - if [ "$HLINT" == "yes" ]; then
       hlint "--ignore=Parse error" Raaz;
