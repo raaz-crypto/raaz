@@ -32,7 +32,7 @@ library
 
   ghc-options: -Wall
 
-  if os(linux) || os(freebsd) || os(openbsd) || os (netbsd)
+  if os(linux) || os(freebsd) || os(openbsd) || os(netbsd) || os(osx)
      cpp-options: -DHAVE_SYSTEM_PRG -DHAVE_DEV_URANDOM
 
   if !os(windows)
