@@ -28,26 +28,36 @@ source-repository head
   type: git
   location: https://github.com/raaz-crypto/raaz
 
-flag auto-configure
-  description: Detects and configurs system parameters automatically
-  default: True
-
 library
 
   ghc-options: -Wall
 
-  if os(linux) || os(freebsd) || os(openbsd) || os (netbsd)
-     cpp-options: -DHAVE_SYSTEM_PRG -DHAVE_DEV_URANDOM
+  -- Conditional compilation using CPP
 
+  -- 1. Configuring system PRG.
+  --
+  --    * HAVE_SYSTEM_PRG: If a system prg is exposed.
+  --
+  --    * HAVE_DEV_URANDON: If the device /dev/urandom exists.
+  --
+  if os(linux) || os(freebsd) || os(openbsd) || os(netbsd) || os(osx)
+     cpp-options: -DHAVE_SYSTEM_PRG
+                  -DHAVE_DEV_URANDOM
+  -- 2. Memory Locking
+  --    System supports mlock/munlock calls.
+  -- configurations for memory locking
   if !os(windows)
      cpp-options: -DHAVE_MLOCK
 
+  -- 3. Platform macros for endian conversion functions
+  --
   if os(linux)
      cc-options: -DPLATFORM_LINUX
   if os(freebsd) || os(netbsd)
      cc-options: -DPLATFORM_BSD
   if os(openbsd)
      cc-options: -DPLATFORM_OPENBSD
+
 
   exposed-modules: Raaz.Core
                  , Raaz.Core.ByteSource
