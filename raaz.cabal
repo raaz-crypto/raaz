@@ -78,7 +78,8 @@ library
                  --
                  -- Cryptographic hashes
                  --
-                 -- , Raaz.Hash
+                 , Raaz.Hash
+                 , Raaz.Hash.Internal
                  -- , Raaz.Hash.HMAC
                  -- , Raaz.Hash.Blake256
                  -- , Raaz.Hash.Blake256.Internal
