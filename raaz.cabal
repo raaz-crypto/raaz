@@ -28,10 +28,6 @@ source-repository head
   type: git
   location: https://github.com/raaz-crypto/raaz
 
-flag auto-configure
-  description: Detects and configurs system parameters automatically
-  default: True
-
 library
 
   ghc-options: -Wall
