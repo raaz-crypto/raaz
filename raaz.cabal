@@ -67,10 +67,10 @@ library
                  , Raaz.Core.MonoidalAction
                  , Raaz.Core.Parse.Applicative
                  , Raaz.Core.Primitives
-                 , Raaz.Core.Primitives.Asymmetric
-                 , Raaz.Core.Primitives.Cipher
-                 , Raaz.Core.Primitives.Hash
-                 , Raaz.Core.Primitives.Symmetric
+                 -- , Raaz.Core.Primitives.Asymmetric
+                 -- , Raaz.Core.Primitives.Cipher
+                 -- , Raaz.Core.Primitives.Hash
+                 -- , Raaz.Core.Primitives.Symmetric
                  , Raaz.Core.Random
                  , Raaz.Core.Types
                  , Raaz.Core.Util
@@ -78,35 +78,37 @@ library
                  --
                  -- Cryptographic hashes
                  --
-                 , Raaz.Hash
-                 , Raaz.Hash.HMAC
-                 , Raaz.Hash.Blake256
-                 , Raaz.Hash.Blake256.Internal
-                 , Raaz.Hash.Sha1
-                 , Raaz.Hash.Sha1.Internal
-                 , Raaz.Hash.Sha224
-                 , Raaz.Hash.Sha224.Internal
-                 , Raaz.Hash.Sha256
-                 , Raaz.Hash.Sha256.Internal
-                 , Raaz.Hash.Sha384
-                 , Raaz.Hash.Sha384.Internal
-                 , Raaz.Hash.Sha512
-                 , Raaz.Hash.Sha512.Internal
+                 -- , Raaz.Hash
+                 -- , Raaz.Hash.HMAC
+                 -- , Raaz.Hash.Blake256
+                 -- , Raaz.Hash.Blake256.Internal
+                 -- , Raaz.Hash.Sha1
+                 -- , Raaz.Hash.Sha1.Internal
+                 -- , Raaz.Hash.Sha224
+                 -- , Raaz.Hash.Sha224.Internal
+                 -- , Raaz.Hash.Sha256
+                 -- , Raaz.Hash.Sha256.Internal
+                 -- , Raaz.Hash.Sha384
+                 -- , Raaz.Hash.Sha384.Internal
+                 -- , Raaz.Hash.Sha512
+                 -- , Raaz.Hash.Sha512.Internal
+
                  --
                  -- Ciphers
                  --
-                 , Raaz.Cipher.AES.Type
-                 , Raaz.Cipher.AES.Internal
-                 , Raaz.Cipher.AES.CBC
-                 , Raaz.Cipher.AES.CTR
-                 -- , Raaz.Cipher.AES.ECB
-                 , Raaz.Cipher.AES
-                 , Raaz.Cipher.Salsa20
-                 , Raaz.Cipher.Salsa20.Internal
+                 -- , Raaz.Cipher.AES.Type
+                 -- , Raaz.Cipher.AES.Internal
+                 -- , Raaz.Cipher.AES.CBC
+                 -- , Raaz.Cipher.AES.CTR
+                 -- -- , Raaz.Cipher.AES.ECB
+                 -- , Raaz.Cipher.AES
+                 -- , Raaz.Cipher.Salsa20
+                 -- , Raaz.Cipher.Salsa20.Internal
+
   other-modules: Raaz.Core.Encode.Internal
                , Raaz.Core.Encode.Base16
                , Raaz.Core.Util.ByteString
-               , Raaz.Core.Util.Gadget
+--               , Raaz.Core.Util.Gadget
                , Raaz.Core.Types.Pointer
                , Raaz.Core.Types.Tuple
                , Raaz.Core.Types.Equality
@@ -114,51 +116,51 @@ library
                --
                -- Internal modules from Hash
                --
-               , Raaz.Hash.Sha1.Instance
-               , Raaz.Hash.Sha1.Ref
-               , Raaz.Hash.Sha1.CPortable
-               , Raaz.Hash.Sha1.Type
-               , Raaz.Hash.Sha256.Instance
-               , Raaz.Hash.Sha256.Ref
-               , Raaz.Hash.Sha256.CPortable
-               , Raaz.Hash.Sha256.Type
-               , Raaz.Hash.Sha224.Instance
-               , Raaz.Hash.Sha224.CPortable
-               , Raaz.Hash.Sha224.Type
-               , Raaz.Hash.Sha512.Instance
-               , Raaz.Hash.Sha512.Ref
-               , Raaz.Hash.Sha512.CPortable
-               , Raaz.Hash.Sha512.Type
-               , Raaz.Hash.Sha384.Instance
-               , Raaz.Hash.Sha384.CPortable
-               , Raaz.Hash.Sha384.Type
-               , Raaz.Hash.Sha.Util
-               , Raaz.Hash.Blake256.Instance
-               , Raaz.Hash.Blake256.Ref
-               , Raaz.Hash.Blake256.CPortable
-               , Raaz.Hash.Blake256.Type
-               , Raaz.Hash.Blake.Util
+               -- , Raaz.Hash.Sha1.Instance
+               -- , Raaz.Hash.Sha1.Ref
+               -- , Raaz.Hash.Sha1.CPortable
+               -- , Raaz.Hash.Sha1.Type
+               -- , Raaz.Hash.Sha256.Instance
+               -- , Raaz.Hash.Sha256.Ref
+               -- , Raaz.Hash.Sha256.CPortable
+               -- , Raaz.Hash.Sha256.Type
+               -- , Raaz.Hash.Sha224.Instance
+               -- , Raaz.Hash.Sha224.CPortable
+               -- , Raaz.Hash.Sha224.Type
+               -- , Raaz.Hash.Sha512.Instance
+               -- , Raaz.Hash.Sha512.Ref
+               -- , Raaz.Hash.Sha512.CPortable
+               -- , Raaz.Hash.Sha512.Type
+               -- , Raaz.Hash.Sha384.Instance
+               -- , Raaz.Hash.Sha384.CPortable
+               -- , Raaz.Hash.Sha384.Type
+               -- , Raaz.Hash.Sha.Util
+               -- , Raaz.Hash.Blake256.Instance
+               -- , Raaz.Hash.Blake256.Ref
+               -- , Raaz.Hash.Blake256.CPortable
+               -- , Raaz.Hash.Blake256.Type
+               -- , Raaz.Hash.Blake.Util
                --
                -- Internal modules from cipher
                --
-               , Raaz.Cipher.Util.GF
-               , Raaz.Cipher.AES.Block.Type
-               , Raaz.Cipher.AES.CBC.CPortable
-               , Raaz.Cipher.AES.CBC.Instance
-               , Raaz.Cipher.AES.CBC.Ref
-               , Raaz.Cipher.AES.CBC.Type
-               , Raaz.Cipher.AES.CTR.CPortable
-               , Raaz.Cipher.AES.CTR.Instance
-               , Raaz.Cipher.AES.CTR.Ref
-               , Raaz.Cipher.AES.CTR.Type
-               -- , Raaz.Cipher.AES.ECB.CPortable
-               -- , Raaz.Cipher.AES.ECB.Instance
-               -- , Raaz.Cipher.AES.ECB.Ref
-               -- , Raaz.Cipher.AES.ECB.Type
-               , Raaz.Cipher.Salsa20.Block.Internal
-               , Raaz.Cipher.Salsa20.Block.Type
-               , Raaz.Cipher.Salsa20.Instances
-               , Raaz.Cipher.AES.Block.Internal
+               -- , Raaz.Cipher.Util.GF
+               -- , Raaz.Cipher.AES.Block.Type
+               -- , Raaz.Cipher.AES.CBC.CPortable
+               -- , Raaz.Cipher.AES.CBC.Instance
+               -- , Raaz.Cipher.AES.CBC.Ref
+               -- , Raaz.Cipher.AES.CBC.Type
+               -- , Raaz.Cipher.AES.CTR.CPortable
+               -- , Raaz.Cipher.AES.CTR.Instance
+               -- , Raaz.Cipher.AES.CTR.Ref
+               -- , Raaz.Cipher.AES.CTR.Type
+               -- -- , Raaz.Cipher.AES.ECB.CPortable
+               -- -- , Raaz.Cipher.AES.ECB.Instance
+               -- -- , Raaz.Cipher.AES.ECB.Ref
+               -- -- , Raaz.Cipher.AES.ECB.Type
+               -- , Raaz.Cipher.Salsa20.Block.Internal
+               -- , Raaz.Cipher.Salsa20.Block.Type
+               -- , Raaz.Cipher.Salsa20.Instances
+               -- , Raaz.Cipher.AES.Block.Internal
 
   -- other-modules: Raaz.Core.Memory.Internal
   build-depends: base                           >= 4.5  && < 5.0
