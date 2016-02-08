@@ -29,7 +29,7 @@ type ParseAction   = FieldM IO Pointer
 type Parser = TwistRF ParseAction BytesMonoid
 
 makeParser :: LengthUnit l => l -> (Pointer -> IO a) -> Parser a
-makeParser l action = TwistRF (liftToFieldM action, Sum $ inBytes l)
+makeParser l action = TwistRF (liftToFieldM action) (Sum $ inBytes l)
 
 -- | A parser that fails with a given error message.
 parseError  :: String -> Parser a

@@ -130,20 +130,20 @@ class (Applicative f, LActionF m f) => DistributiveF m f
 
 -- | The twisted functor is essentially a generalisation of
 -- semi-direct product to applicative functors.
-newtype TwistRF f m a = TwistRF { unTwistRF :: (f a, m) }
+data TwistRF f m a = TwistRF (f a) !m
 
 -- | Get the underlying functor value.
 twistFunctorValue :: TwistRF f m a -> f a
-twistFunctorValue = fst . unTwistRF
+twistFunctorValue (TwistRF fa _) = fa
 {-# INLINE twistFunctorValue #-}
 
 -- | Get the underlying monoid value.
 twistMonoidValue :: TwistRF f m a -> m
-twistMonoidValue = snd . unTwistRF
+twistMonoidValue (TwistRF _ m) =  m
 {-# INLINE twistMonoidValue #-}
 
 instance Functor f => Functor (TwistRF f m) where
-  fmap f (TwistRF (x, m)) = TwistRF (fmap f x, m)
+  fmap f (TwistRF x m) = TwistRF (fmap f x) $ m
 
 -- Proof of functor laws.
 --
@@ -158,9 +158,10 @@ instance Functor f => Functor (TwistRF f m) where
 --
 
 instance DistributiveF m f => Applicative (TwistRF f m) where
-  pure a = TwistRF (pure a, mempty)
+  pure a = TwistRF (pure a) mempty
+  {-# INLINE pure #-}
 
-  TwistRF (f,mf)  <*> TwistRF (val, mval)  = TwistRF (res, mres)
+  (TwistRF f mf)  <*> (TwistRF val mval)  = TwistRF res mres
     where res  = f <*> mf <<.>> val
           mres = mf <> mval
 
@@ -213,6 +214,7 @@ type Field = FieldA (->)
 -- | Compute the value of a field at a given point in the space.
 computeField :: Field space b -> space -> b
 computeField = unwrapArrow
+{-# INLINE computeField #-}
 
 -- | A monadic arrow field.
 type FieldM monad = FieldA (Kleisli monad)
@@ -220,13 +222,15 @@ type FieldM monad = FieldA (Kleisli monad)
 -- | Lift a monadic action to FieldM.
 liftToFieldM :: Monad m => (a -> m b) -> FieldM m a b
 liftToFieldM = WrapArrow . Kleisli
-
+{-# INLINE liftToFieldM #-}
 -- | Runs a monadic field at a given point in the space.
 runFieldM :: FieldM monad space b -> space -> monad b
 runFieldM = runKleisli . unwrapArrow
+{-# INLINE runFieldM #-}
 
 -- | The action on the space translates to the action on field.
 instance (Arrow arrow, LAction m space) => LActionF m (WrappedArrow arrow space) where
   m <<.>> field =   WrapArrow $ unwrapArrow field <<^ (m<.>)
+  {-# INLINE (<<.>>) #-}
 
 instance (Arrow arrow, LAction m space) => DistributiveF m (WrappedArrow arrow space)
