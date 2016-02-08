@@ -221,3 +221,13 @@ test-Suite spec
                , transformers
                , raaz                           >= 0.0.0.1 && < 0.0.0.2
                , vector
+
+benchmark blaze-vs-write
+  hs-source-dirs: benchmarks
+  main-is: BlazeVsWrite.hs
+  type: exitcode-stdio-1.0
+  build-depends: base
+               , raaz
+               , blaze-builder
+               , criterion
+               , bytestring

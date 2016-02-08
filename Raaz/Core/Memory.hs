@@ -48,7 +48,7 @@ type Alloc = TwistRF AllocField ALIGNMonoid
 
 -- | Make an allocator for a given memory type.
 makeAlloc :: LengthUnit l => l -> (Pointer -> mem) -> Alloc mem
-makeAlloc l memCreate = TwistRF (WrapArrow memCreate, Sum $ atLeast l)
+makeAlloc l memCreate = TwistRF (WrapArrow memCreate) (Sum $ atLeast l)
 
 -- | Any cryptographic primitives use memory to store stuff. This
 -- class abstracts all types that hold some memory. Cryptographic
