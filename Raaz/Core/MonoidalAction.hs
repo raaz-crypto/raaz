@@ -88,23 +88,31 @@ class (LAction m space, Monoid space) => Distributive m space
 -- monoidal spaces distributively the semi-direct product is itself a
 -- monoid. It turns out that data serialisers can essentially seen as
 -- a semidirect product.
-newtype SemiR space m = SemiR { unSemiR :: (space, m) }
+data SemiR space m = SemiR space !m
+
 
 instance Distributive m space => Monoid (SemiR space m) where
-  mempty = SemiR (mempty, mempty)
-  mappend (SemiR (x, a)) (SemiR (y, b)) = SemiR (x <++>  a <.> y,  a <> b)
+
+  mempty = SemiR mempty mempty
+  {-# INLINE mempty #-}
+
+  mappend (SemiR x a) (SemiR y b) = SemiR (x <++>  a <.> y)  (a <> b)
+  {-# INLINE mappend #-}
+
+  mconcat = foldr mappend mempty
+  {-# INLINE mconcat #-}
 
 -- | From the an element of semi-direct product Space ⋊ Monoid return
 -- the point.
 semiRSpace :: SemiR space m -> space
 {-# INLINE semiRSpace #-}
-semiRSpace = fst . unSemiR
+semiRSpace (SemiR space _) = space
 
 -- | From the an element of semi-direct product Space ⋊ Monoid return
 -- the monoid element.
 semiRMonoid :: SemiR space m -> m
 {-# INLINE semiRMonoid #-}
-semiRMonoid = snd . unSemiR
+semiRMonoid (SemiR _ m) =  m
 
 --------------------------- Twisted functors ----------------------------
 

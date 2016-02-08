@@ -33,7 +33,13 @@ newtype WriteM = WriteM { unWriteM :: IO () }
 
 instance Monoid WriteM where
   mempty        = WriteM $ return ()
+  {-# INLINE mempty #-}
+
   mappend wa wb = WriteM $ unWriteM wa >> unWriteM wb
+  {-# INLINE mappend #-}
+
+  mconcat = foldr mappend mempty
+  {-# INLINE mconcat #-}
 
 -- | A write action is nothing but an IO action that returns () on
 -- input a pointer.
@@ -43,6 +49,8 @@ type BytesMonoid = Sum (BYTES Int)
 
 instance LAction BytesMonoid WriteAction where
   m <.> action = action . (m<.>)
+  {-# INLINE (<.>) #-}
+
 instance Distributive BytesMonoid WriteAction
 
 -- | A write is an action which when executed using `runWrite` writes
@@ -56,7 +64,7 @@ type Write = SemiR WriteAction BytesMonoid
 
 -- | Create a write action.
 makeWrite :: BYTES Int -> (Pointer -> IO ()) -> Write
-makeWrite sz action = SemiR (WriteM . action, Sum sz)
+makeWrite sz action = SemiR (WriteM . action) $ Sum sz
 
 -- | Returns the bytes that will be written when the write action is performed.
 bytesToWrite :: Write -> BYTES Int
@@ -122,10 +130,12 @@ instance IsString Write where
   fromString = writeByteString . fromString
 
 instance Encodable Write where
-
+  {-# INLINE toByteString #-}
   toByteString w  = unsafeCreate n $ unsafeWrite w . castPtr
     where BYTES n = bytesToWrite w
 
+  {-# INLINE unsafeFromByteString #-}
   unsafeFromByteString = writeByteString
 
+  {-# INLINE fromByteString #-}
   fromByteString       = Just . writeByteString

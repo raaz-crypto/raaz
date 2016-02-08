@@ -74,6 +74,7 @@ newtype ALIGN    = ALIGN Int
 
 instance LengthUnit ALIGN where
   inBytes (ALIGN x) = BYTES $ x * alignment (undefined :: Align)
+  {-# INLINE inBytes #-}
 
 instance LengthUnit (BYTES Int) where
   inBytes = id
@@ -148,9 +149,12 @@ bitsQuot bits = u
 instance LengthUnit u => LAction (Sum u) Pointer where
   a <.> ptr  = plusPtr ptr offset
     where BYTES offset = inBytes $ getSum a
+  {-# INLINE (<.>) #-}
 
 movePtr :: LengthUnit u => Pointer -> u -> Pointer
 movePtr ptr u = Sum u <.> ptr
+{-# INLINE movePtr #-}
+
 -------------------------------------------------------------------
 
 
