@@ -15,9 +15,9 @@ import qualified Raaz.Core.Encode as E
 
 main :: IO ()
 main = defaultMain
-    [ bench "BB Write Word32s"   $ whnf blazeWriteWords word32s
-    , bench "Raaz Write Word32s" $ whnf raazWriteWords  word32s
-    ]
+       [ bench "BB Write Word32s"   $ whnf blazeWriteWords word32s
+       , bench "mconcat"            $ whnf raazWriteWords  word32s
+       ]
   where
     n = 100000
     word32s :: [Word32]
