@@ -10,6 +10,7 @@ The memory subsystem associated with raaz.
 {-# LANGUAGE GADTs                      #-}
 {-# LANGUAGE RankNTypes                 #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE FlexibleInstances          #-}
 
 module Raaz.Core.Memory
        (
@@ -20,14 +21,10 @@ module Raaz.Core.Memory
          MonadMemory(..)
        , MemoryM, MT, runMT, execute, getMemory, liftSubMT
        -- ** Memory elements.
-       , Memory(..), Initialisable(..), Extractable(..)
-       , withMemory, withSecureMemory , copyMemory
+       , Memory(..), Initialisable(..), Extractable(..), modify
+       -- , withMemory, withSecureMemory , copyMemory
        -- *** Some basic memory elements.
-       , MemoryCell, cellPeek, cellPoke, cellModify, withCell
-       , Bufferable(..)
-       , MemoryBuf
-       , withMemoryBuf
-
+       , MemoryCell, withCell
        -- ** Memory allocation
        ,  Alloc, pointerAlloc
        ) where
@@ -307,22 +304,13 @@ newtype MemoryCell a = MemoryCell { unMemoryCell :: Pointer }
 
 -- | Perform some pointer action on MemoryCell. Useful while working
 -- with ffi functions.
-withCell :: (Pointer -> IO b) -> MemoryCell a -> IO b
-withCell fp  = fp . unMemoryCell
+withCell :: (Pointer -> IO b) -> MT (MemoryCell a) b
+withCell fp  = execute $ fp . unMemoryCell
 {-# INLINE withCell #-}
 
--- | Read the value from the MemoryCell.
-cellPeek :: Storable a => MT (MemoryCell a) a
-{-# INLINE cellPeek #-}
-cellPeek = execute $ withCell (peek . castPtr)
-
--- | Write the value to the MemoryCell.
-cellPoke :: Storable a => a -> MT (MemoryCell a) ()
-cellPoke a = execute $ withCell (flip poke a . castPtr)
-
 -- | Apply the given function to the value in the cell.
-cellModify :: Storable a =>  (a -> a) -> MT (MemoryCell a) ()
-cellModify f = cellPeek >>= cellPoke . f
+modify :: (Initialisable m a, Extractable m b) =>  (b -> a) -> MT m ()
+modify f = extract >>= initialise . f
 
 instance Storable a => Memory (MemoryCell a) where
 
@@ -332,36 +320,10 @@ instance Storable a => Memory (MemoryCell a) where
 
   underlyingPtr (MemoryCell cptr) = cptr
 
--- | Types which can be stored in a buffer.
-class Bufferable b where
+instance Storable a => Initialisable (MemoryCell a) a where
+  initialise a = withCell (flip poke a . castPtr)
+  {-# INLINE initialise #-}
 
-  maxSizeOf         ::               b -> BYTES Int
-  default maxSizeOf :: Storable b => b -> BYTES Int
-  maxSizeOf = fromIntegral . sizeOf
-
--- | A memory buffer whose size depends on the `Bufferable` instance
--- of @b@.
-data MemoryBuf b = MemoryBuf {-# UNPACK #-} !Pointer
-
-{-
--- | Size of the buffer.
-memoryBufSize :: MemoryBuf b -> BYTES Int
-memoryBufSize (MemoryBuf sz _) = sz
-{-# INLINE memoryBufSize #-}
--}
-
--- | Perform some pointer action on `MemoryBuf`.
-withMemoryBuf :: Bufferable b => MemoryBuf b -> (BYTES Int -> Pointer -> IO a) -> IO a
-withMemoryBuf mbuf@(MemoryBuf cptr) action =  action (maxSizeOf $ getBufferable mbuf) cptr
-  where getBufferable :: Bufferable b => MemoryBuf b -> b
-        getBufferable _ = undefined
-{-# INLINE withMemoryBuf #-}
-
--- | Memory instance of `MemoryBuf`
-instance Bufferable b => Memory (MemoryBuf b) where
-
-  memoryAlloc = allocator undefined
-    where allocator :: Bufferable b => b -> Alloc (MemoryBuf b)
-          allocator b = makeAlloc (maxSizeOf b) MemoryBuf
-
-  underlyingPtr (MemoryBuf cptr) = cptr
+instance Storable a => Extractable (MemoryCell a) a where
+  extract = withCell (peek . castPtr)
+  {-# INLINE extract #-}
