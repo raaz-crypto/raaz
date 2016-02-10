@@ -9,6 +9,7 @@ The memory subsystem associated with raaz.
 {-# LANGUAGE ForeignFunctionInterface   #-}
 {-# LANGUAGE GADTs                      #-}
 {-# LANGUAGE RankNTypes                 #-}
+{-# LANGUAGE MultiParamTypeClasses      #-}
 
 module Raaz.Core.Memory
        (
@@ -17,19 +18,18 @@ module Raaz.Core.Memory
 
        -- ** Memory monads
          MonadMemory(..)
-       , MemoryM, MT, runMT, execute, liftSubMT
-       -- ** Memory elements
-       , Memory(..), Alloc, pointerAlloc
+       , MemoryM, MT, runMT, execute, getMemory, liftSubMT
+       -- ** Memory elements.
+       , Memory(..), Initialisable(..), Extractable(..)
        , withMemory, withSecureMemory , copyMemory
-       , MemoryCell
-       , cellPeek
-       , cellPoke
-       , cellModify
-       , withCell
-         -- Buffer
+       -- *** Some basic memory elements.
+       , MemoryCell, cellPeek, cellPoke, cellModify, withCell
        , Bufferable(..)
        , MemoryBuf
        , withMemoryBuf
+
+       -- ** Memory allocation
+       ,  Alloc, pointerAlloc
        ) where
 
 import           Control.Applicative
@@ -106,6 +106,9 @@ runMT mem = MemoryM $ \ runner -> runner mem
 execute :: (mem -> IO a) -> MT mem a
 {-# INLINE execute #-}
 execute = MT
+
+getMemory :: MT mem mem
+getMemory = execute return
 
 -- | Compound memory elements might intern be composed of
 -- sub-elements. Often one might want to /lift/ the memory thread for
@@ -221,6 +224,12 @@ class Memory m where
   -- | Returns the pointer to the underlying buffer.
   underlyingPtr  :: m -> Pointer
 
+class Memory m => Initialisable m v where
+  initialise :: v -> MT m ()
+
+class Memory m => Extractable m v where
+  extract  :: MT m v
+
 instance ( Memory ma, Memory mb ) => Memory (ma, mb) where
     memoryAlloc           = (,) <$> memoryAlloc <*> memoryAlloc
     underlyingPtr (ma, _) =  underlyingPtr ma
@@ -295,23 +304,25 @@ withSecureMemory = withSM memoryAlloc
 -- instance.
 newtype MemoryCell a = MemoryCell { unMemoryCell :: Pointer }
 
--- | Read the value from the MemoryCell.
-cellPeek :: Storable a => MemoryCell a -> IO a
-{-# INLINE cellPeek #-}
-cellPeek = peek . castPtr . unMemoryCell
-
--- | Write the value to the MemoryCell.
-cellPoke :: Storable a => a -> MemoryCell a -> IO ()
-cellPoke a = flip poke a . castPtr . unMemoryCell
-
--- | Apply the given function to the value in the cell.
-cellModify :: Storable a =>  (a -> a) -> MemoryCell a -> IO ()
-cellModify f cp = cellPeek cp  >>= flip cellPoke cp . f
 
 -- | Perform some pointer action on MemoryCell. Useful while working
 -- with ffi functions.
-withCell :: MemoryCell a -> (Pointer -> IO b) -> IO b
-withCell (MemoryCell cptr) fp = fp cptr
+withCell :: (Pointer -> IO b) -> MemoryCell a -> IO b
+withCell fp  = fp . unMemoryCell
+{-# INLINE withCell #-}
+
+-- | Read the value from the MemoryCell.
+cellPeek :: Storable a => MT (MemoryCell a) a
+{-# INLINE cellPeek #-}
+cellPeek = execute $ withCell (peek . castPtr)
+
+-- | Write the value to the MemoryCell.
+cellPoke :: Storable a => a -> MT (MemoryCell a) ()
+cellPoke a = execute $ withCell (flip poke a . castPtr)
+
+-- | Apply the given function to the value in the cell.
+cellModify :: Storable a =>  (a -> a) -> MT (MemoryCell a) ()
+cellModify f = cellPeek >>= cellPoke . f
 
 instance Storable a => Memory (MemoryCell a) where
 
