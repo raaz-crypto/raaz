@@ -51,6 +51,9 @@ import Data.Monoid
 class Monoid m => LAction m space where
   (<.>) :: m -> space -> space
 
+{-# RULES "monoid-action/identity"
+   (<.>) mempty = id #-}
+
 infixr 5 <.>
 
 -- | An alternate symbol for <> more useful in the additive context.
@@ -69,6 +72,9 @@ infixr 5 <++>
 -- > m <<.>> fmap f u = fmap f (m <<.>> u)   -- acts uniformly
 class (Monoid m, Functor f) => LActionF m f where
   (<<.>>) :: m -> f a -> f a
+
+{-# RULES "monoid-action-functor/identity"
+   (<<.>>) mempty = id #-}
 
 infixr 5 <<.>>
 
