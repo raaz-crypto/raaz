@@ -20,6 +20,7 @@ module Raaz.Core.Memory
        -- ** Memory monads
          MonadMemory(..)
        , MemoryM, MT, runMT, execute, getMemory, liftSubMT
+       , allocate
        -- ** Memory elements.
        , Memory(..), Initialisable(..), Extractable(..), modify
        -- , withMemory, withSecureMemory , copyMemory
@@ -98,6 +99,12 @@ newtype MT mem a = MT { unMT :: (mem -> IO a) }
 -- | Run the memory thread to obtain a memory action.
 runMT :: Memory mem => MT mem a -> MemoryM a
 runMT mem = MemoryM $ \ runner -> runner mem
+
+-- | Given an memory thread
+allocate :: LengthUnit bufSize => bufSize -> (Pointer -> MT mem a) -> MT mem a
+allocate bufSize bufAction = execute $
+                             \ mem
+                             -> allocaBuffer bufSize (\ptr -> unMT (bufAction ptr) mem)
 
 -- | Run a given memory action in the memory thread.
 execute :: (mem -> IO a) -> MT mem a
