@@ -7,71 +7,61 @@ under the raaz library.
 
 module Raaz.Hash
        (
-         -- * Computing cryptographic hashes.
+         -- * Cryptographic hashes
          -- $computingHash$
+
+         -- ** Encoding hash values
+         -- $encoding$
          --
-         sourceHash, hash, hashFile
+         hash, hashFile, hashSource
+         -- ** HMAC computation
+       , hmac, hmacFile, hmacSource
          -- * Exposing individual hashes.
          -- $individualHashes$
-       , module Raaz.Hash.Sha1
-       , module Raaz.Hash.Sha224
-       , module Raaz.Hash.Sha256
-       , module Raaz.Hash.Sha384
-       , module Raaz.Hash.Sha512
-       , module Raaz.Hash.Blake256
-       , module Raaz.Hash.HMAC
+
+       -- , module Raaz.Hash.Sha1
+       -- , module Raaz.Hash.Sha224
+       -- , module Raaz.Hash.Sha256
+       -- , module Raaz.Hash.Sha384
+       -- , module Raaz.Hash.Sha512
+       -- , module Raaz.Hash.Blake256
+
        ) where
 
-import Raaz.Hash.Blake256
-import Raaz.Hash.Sha1
-import Raaz.Hash.Sha224
-import Raaz.Hash.Sha256
-import Raaz.Hash.Sha384
-import Raaz.Hash.Sha512
-import Raaz.Hash.HMAC
+-- import Raaz.Hash.Blake256
+-- import Raaz.Hash.Sha1
+-- import Raaz.Hash.Sha224
+-- import Raaz.Hash.Sha256
+-- import Raaz.Hash.Sha384
+-- import Raaz.Hash.Sha512
 
-import Raaz.Core.Primitives.Hash ( sourceHash, hash, hashFile )
-
+import Raaz.Hash.Internal      ( hash, hashFile, hashSource )
+import Raaz.Hash.Internal.HMAC ( hmac, hmacFile, hmacSource )
 -- $computingHash$
 --
 -- As opposed to other cryptographic libraries, we capture each
 -- cryptographic hash by a separate type. These types are instances of
--- the type class `Raaz.Primitives.Hash.Hash`. Each of the hash types
+-- the type class `Raaz.Hash.Internal.Hash`. Each of the hash types
 -- are to be treated as /opaque types/ as their constructors are not
 -- exposed from this module. This is to take advantage of the type
--- checking. A cryptographic hash is an instances of the class
--- `EndianStore`. Therefore, binary or for that matter hexadecimal
--- encoding can be obtained using the functions `toByteString` and
--- `toHex` respectively without having access to the constructors.
--- There is an internal module for each hash type which exposes the
--- constructors. For example, constructor for the hash `SHA1` is
--- exposed through the module "Raaz.Hash.Sha1.Internal". However, this
--- is meant to be used when the standard interfaces provided by raaz
--- is not sufficient and should be imported in those rare occasions.
+-- checking.
 --
--- There are three functions that you may use to compute the
--- cryptographic hash. The most generic function for computing a
--- cryptographic hash is `sourceHash`. The input to this function is
--- any instance of the class `Raaz.ByteSource.ByteSource` which
--- includes file `System.IO.Handle`, strict as well as lazy
--- bytestrings. The result type is wrapped in an `IO` monad as reading
--- data from certain byte sources like handle can have side effect.
---
--- > sourceHash :: (Hash hash, ByteSource src) => src -> IO hash
---
--- If the input byte source is an instance of
--- `Raaz.ByteSource.PureByteSource`, like for example strict
--- `Data.ByteString.Bytestring` or lazy
--- `Data.ByteString.Lazy.ByteString` byte strings, one can use the
--- pure function `hash`.
---
--- > hash :: (Hash hash, PureByteSource src) => src -> hash
---
--- Finally there is `hashFile` that computes the hash of a file
---
--- > hashFile :: Hash hash => FilePath -> IO hash
---
+-- We expose three functions for computing the hash of a message:
+-- `hash`, `hashFile` and `sourceHash`.
 
+
+-- $encoding$
+--
+-- When interfacing with other applications or when printing output to
+-- users, it is often necessary to encode hash values as strings.
+-- Applications usually present hashes encoded in base16. The `Show`
+-- and `Data.String.IsString` instances for the hashes exposed here
+-- follow this convention. For example, you can print the sha1Sum of a
+-- file using the following as follows @show . sha1File@.
+--
+-- More generaly, hashes exposed here are instances of type class
+-- `Raaz.Core.Encode.Encodable` and can hence can be encoded in any of
+-- the supported formats.
 
 -- $individualHashes$
 --
