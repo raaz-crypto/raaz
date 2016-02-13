@@ -32,19 +32,22 @@ import Raaz.Core
 
 -- | The Hash implementation. Implementations should ensure the following.
 --
--- 1. The action @compress impl ptr blks@ should only read till the @blks@ offset starting
---    at ptr and never write any data.
+-- 1. The action @compress impl ptr blks@ should only read till the
+-- @blks@ offset starting at ptr and never write any data.
 --
--- 2. The action @padFinal impl ptr byts@ should touch at most @⌈byts/blocksize⌉ + padBlocks@ blocks
---    starting at ptr. It should not write anything till the @byts@ offset but may write stuff
---    beyond that.
+-- 2. The action @padFinal impl ptr byts@ should touch at most
+-- @⌈byts/blocksize⌉ + padBlocks@ blocks starting at ptr. It should
+-- not write anything till the @byts@ offset but may write stuff
+-- beyond that.
 --
 -- An easy to remember this rule is to remember that computing hash of
 -- a payload should not modify the payload.
 --
 data HashI h m = HashI
-  { compress       :: Pointer -> BLOCKS h  -> MT m () -- ^ compress the blocks,
-  , compressFinal  :: Pointer -> BYTES Int -> MT m () -- ^ pad and process the final bytes,
+  { compress       :: Pointer -> BLOCKS h  -> MT m ()
+                      -- ^ compress the blocks,
+  , compressFinal  :: Pointer -> BYTES Int -> MT m ()
+                      -- ^ pad and process the final bytes,
   }
 
 -- | Constraints that a memory used by a hash implementation should satisfy.
@@ -158,8 +161,10 @@ completeHashing (HashI{..}) src =
 -- helps keep track of these items.
 data HashMemory h =
   HashMemory
-  { hashCell          :: MemoryCell h              -- ^ Cell to store the hash
-  , messageLengthCell :: MemoryCell (BITS Word64)  -- ^ Cell to store the length
+  { hashCell          :: MemoryCell h
+                         -- ^ Cell to store the hash
+  , messageLengthCell :: MemoryCell (BITS Word64)
+                         -- ^ Cell to store the length
   }
 
 instance Storable h => Memory (HashMemory h) where

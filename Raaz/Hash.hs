@@ -37,6 +37,7 @@ module Raaz.Hash
 
 import Raaz.Hash.Internal      ( hash, hashFile, hashSource )
 import Raaz.Hash.Internal.HMAC ( hmac, hmacFile, hmacSource )
+
 -- $computingHash$
 --
 -- As opposed to other cryptographic libraries, we capture each
@@ -47,7 +48,7 @@ import Raaz.Hash.Internal.HMAC ( hmac, hmacFile, hmacSource )
 -- checking.
 --
 -- We expose three functions for computing the hash of a message:
--- `hash`, `hashFile` and `sourceHash`.
+-- `hash`, `hashFile` and `hashSource`.
 
 
 -- $encoding$
@@ -56,8 +57,7 @@ import Raaz.Hash.Internal.HMAC ( hmac, hmacFile, hmacSource )
 -- users, it is often necessary to encode hash values as strings.
 -- Applications usually present hashes encoded in base16. The `Show`
 -- and `Data.String.IsString` instances for the hashes exposed here
--- follow this convention. For example, you can print the sha1Sum of a
--- file using the following as follows @show . sha1File@.
+-- follow this convention.
 --
 -- More generaly, hashes exposed here are instances of type class
 -- `Raaz.Core.Encode.Encodable` and can hence can be encoded in any of
@@ -66,18 +66,18 @@ import Raaz.Hash.Internal.HMAC ( hmac, hmacFile, hmacSource )
 -- $individualHashes$
 --
 -- Individual hash are exposed via their respective modules.  These
--- module also export the specialized variants for `sourceHash`,
+-- module also export the specialized variants for `hashSource`,
 -- `hash` and `hashFile` for specific hashes.  For example, if you are
--- interested only in say `SHA1` you can import the module
--- "Raaz.Hash.Sha1". This will expose the functions `sourceSha1`,
--- `sha1` and `sha1File` which are specialized variants of
--- `sourceHash` `hash` and `hashFile` respectively for the hash
--- `SHA1`. For example, the sha1 checksum can be computed using the
--- following code.
+-- interested only in say `SHA512` you can import the module
+-- "Raaz.Hash.Sha512". This will expose the functions `sha512Source`,
+-- `sha512` and `sha512File` which are specialized variants of
+-- `hashSource` `hash` and `hashFile` respectively for the hash
+-- `SHA512`. For example, if you want to print the sha512 checksum of
+-- a file, you can use the following.
 --
--- > sha1Checksum :: FilePath -> IO ByteString
--- >            -- compute the  sha1 checksum
--- > sha1Checksum = fmap toHex . sha1File
+-- > sha512Checksum :: FilePath -> IO ()
+-- >            -- print the sha512 checksum of a given file.
+-- > sha512Checksum fname =  sha512File fname >>= print
 
 
 {-# ANN module "HLint: ignore Use import/export shortcut" #-}
