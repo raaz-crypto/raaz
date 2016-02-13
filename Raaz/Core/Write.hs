@@ -11,7 +11,7 @@
 module Raaz.Core.Write
        ( Write, bytesToWrite, unsafeWrite
        , write, writeStorable, writeVector, writeStorableVector
-       , writeBytes, writeByteString
+       , writeBytes, writeByteString, skipWrite
        ) where
 
 import           Data.ByteString           (ByteString)
@@ -63,8 +63,9 @@ instance Distributive BytesMonoid WriteAction
 type Write = SemiR WriteAction BytesMonoid
 
 -- | Create a write action.
-makeWrite :: BYTES Int -> (Pointer -> IO ()) -> Write
-makeWrite sz action = SemiR (WriteM . action) $ Sum sz
+makeWrite :: LengthUnit u => u -> (Pointer -> IO ()) -> Write
+{-# INLINE makeWrite #-}
+makeWrite sz action = SemiR (WriteM . action) $ Sum (inBytes sz)
 
 -- | Returns the bytes that will be written when the write action is performed.
 bytesToWrite :: Write -> BYTES Int
@@ -119,12 +120,16 @@ writeVector = G.foldl' foldFunc mempty
 -- | The combinator @writeBytes n b@ writes @b@ as the next @n@
 -- consecutive bytes.
 writeBytes :: LengthUnit n => Word8 -> n -> Write
-writeBytes w8 n = makeWrite (inBytes n) memsetIt
+writeBytes w8 n = makeWrite n memsetIt
   where memsetIt cptr = memset cptr w8 n
 
 -- | Writes a strict bytestring.
 writeByteString :: ByteString -> Write
 writeByteString bs = makeWrite (BU.length bs) $  BU.unsafeCopyToPointer bs
+
+-- | A write action that just skips over the given bytes.
+skipWrite :: LengthUnit u => u -> Write
+skipWrite = flip makeWrite $ const $ return ()
 
 instance IsString Write where
   fromString = writeByteString . fromString
