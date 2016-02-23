@@ -227,7 +227,7 @@ benchmark blaze-vs-write
   main-is: BlazeVsWrite.hs
   type: exitcode-stdio-1.0
   build-depends: base
-               , raaz
                , blaze-builder
-               , criterion
                , bytestring
+               , criterion
+               , raaz
