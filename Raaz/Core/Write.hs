@@ -38,7 +38,7 @@ instance Monoid WriteM where
   mappend wa wb = WriteM $ unWriteM wa >> unWriteM wb
   {-# INLINE mappend #-}
 
-  mconcat = foldr mappend mempty
+  mconcat = WriteM . mapM_ unWriteM
   {-# INLINE mconcat #-}
 
 -- | A write action is nothing but an IO action that returns () on
