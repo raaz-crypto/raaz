@@ -14,6 +14,7 @@ module Raaz.Core.Types.Endian
        , loadFrom, loadFromIndex
        ) where
 
+import           Control.DeepSeq             ( NFData)
 import           Control.Monad               ( liftM )
 import           Data.Bits
 import           Data.Monoid
@@ -114,15 +115,14 @@ by ghc.
 newtype LE w = LE w
     deriving ( Bounded, Enum, Read, Show
              , Integral, Num, Real, Eq, Equality, Ord
-             , Bits, Storable, Typeable
+             , Bits, Storable, Typeable, NFData
              )
-
 
 -- | Big endian version of the word type @w@
 newtype BE w = BE w
     deriving ( Bounded, Enum, Read, Show
              , Integral, Num, Real, Eq, Equality, Ord
-             , Bits, Storable, Typeable
+             , Bits, Storable, Typeable, NFData
              )
 
 -- | Convert to the little endian variant.
