@@ -14,6 +14,8 @@ module Raaz.Hash.Internal
        , hash', hashFile', hashSource'
          -- * Hash implementations.
        , HashI(..), SomeHashI(..), HashM
+         -- ** Implementation of truncated hashes.
+       , truncatedI
          -- * Memory used by most hashes.
        , HashMemory(..), extractLength, updateLength
        -- * Some low level functions.
@@ -49,6 +51,19 @@ data HashI h m = HashI
   , compressFinal  :: Pointer -> BYTES Int -> MT m ()
                       -- ^ pad and process the final bytes,
   }
+
+
+-- | Certain hashes are essentially bit-truncated versions of other
+-- hashes. For example, SHA224 is obtained from SHA256 by dropping the
+-- last 32-bits. This combinator can be used build an implementation of
+-- truncated hash from the implementation of its parent hash.
+truncatedI :: (BLOCKS htrunc -> BLOCKS h)
+           -> (mtrunc        -> m)
+           -> HashI h m -> HashI htrunc mtrunc
+truncatedI coerce unMtrunc (HashI{..}) = HashI comp compF
+  where comp  ptr = liftSubMT unMtrunc . compress ptr . coerce
+        compF ptr = liftSubMT unMtrunc . compressFinal ptr
+
 
 -- | Constraints that a memory used by a hash implementation should satisfy.
 type HashM h m = (Initialisable m (), Extractable m h)
