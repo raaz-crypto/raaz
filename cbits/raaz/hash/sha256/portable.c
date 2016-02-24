@@ -24,7 +24,7 @@ typedef uint32_t   Word;  /* basic unit of sha256 hash  */
 typedef Word Hash [ HASH_SIZE  ];
 typedef Word Block[ BLOCK_SIZE ];
 
-void raazHashSha256PortableCompress(Hash hash, int nblocks, Block *mesg);
+void raazHashSha256PortableCompress(Block *mesg, int nblocks, Hash h);
 
 /* WARNING: Macro variables not protected use only simple
  * expressions.
@@ -184,7 +184,7 @@ Notice the values of a,b,c,e,f,g are carried over but d and h gets updated.
 
 */
 
-void raazHashSha256PortableCompress(Hash hash, int nblocks, Block *mesg)
+void raazHashSha256PortableCompress(Block *mesg, int nblocks, Hash hash)
 {
 
     register Word a,b,c,d,e,f,g,h; /* Stores the hash state  */
