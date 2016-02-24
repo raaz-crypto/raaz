@@ -19,9 +19,9 @@ module Raaz.Hash
          -- * Exposing individual hashes.
          -- $individualHashes$
 
-       -- , module Raaz.Hash.Sha1
+       , module Raaz.Hash.Sha1
        -- , module Raaz.Hash.Sha224
-       -- , module Raaz.Hash.Sha256
+       , module Raaz.Hash.Sha256
        -- , module Raaz.Hash.Sha384
        -- , module Raaz.Hash.Sha512
        -- , module Raaz.Hash.Blake256
@@ -29,9 +29,9 @@ module Raaz.Hash
        ) where
 
 -- import Raaz.Hash.Blake256
--- import Raaz.Hash.Sha1
+import Raaz.Hash.Sha1
 -- import Raaz.Hash.Sha224
--- import Raaz.Hash.Sha256
+import Raaz.Hash.Sha256
 -- import Raaz.Hash.Sha384
 -- import Raaz.Hash.Sha512
 
