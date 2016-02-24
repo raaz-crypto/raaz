@@ -1,6 +1,6 @@
 {-|
 
-Abstraction of a memory object.
+The memory subsystem associated with raaz.
 
 -}
 
@@ -8,33 +8,174 @@ Abstraction of a memory object.
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE ForeignFunctionInterface   #-}
 {-# LANGUAGE GADTs                      #-}
+{-# LANGUAGE RankNTypes                 #-}
+{-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE FlexibleInstances          #-}
 
 module Raaz.Core.Memory
-       ( Memory(..), MemoryT, MemoryIO, runMemoryT
-       , InitializableMemory(..)
-       , FinalizableMemory(..)
-       , withMemory, withSecureMemory , copyMemory
-         -- * Memory cells
-       , MemoryCell
-       , cellPeek
-       , cellPoke
-       , cellModify
-       , withCell
-         -- Buffer
-       , Bufferable(..)
-       , MemoryBuf
-       , withMemoryBuf
+       (
+       -- * The Memory subsystem
+       -- $memorysubsystem$
+
+       -- ** Memory monads
+         MonadMemory(..)
+       , MemoryM, MT, runMT, execute, getMemory, liftSubMT
+       , allocate
+       -- ** Memory elements.
+       , Memory(..), Initialisable(..), Extractable(..), modify
+       -- , withMemory, withSecureMemory , copyMemory
+       -- *** Some basic memory elements.
+       , MemoryCell, withCell
+       -- ** Memory allocation
+       ,  Alloc, pointerAlloc
        ) where
 
 import           Control.Applicative
-import           Control.Monad.Trans.Class
+import           Control.Monad.IO.Class
 import           Data.Monoid (Sum (..))
 import           Foreign.Storable(Storable(..))
 import           Foreign.Ptr (castPtr)
-
--- import           Raaz.Core.Memory.Internal
 import           Raaz.Core.MonoidalAction
 import           Raaz.Core.Types
+
+-- $memorysubsystem$
+--
+-- The memory subsystem consists of two main components.
+--
+-- 1. Abstract elements captured by the `Memory` type class.
+--
+-- 2. Abstract memory actions captured by the type class `MonadMemory`.
+--
+
+-- | A class that captures monads that use an internal memory element.
+--
+-- Any instance of `MonadMemory` can be executed `securely` in which
+-- case all allocations are performed from a locked pool of
+-- memory. which at the end of the operation is also wiped clean
+-- before deallocation.
+--
+-- Systems often put tight restriction on the amount of memory a
+-- process can lock.  Therefore, secure memory is often to be used
+-- judiciously. Instances of this class /should/ implement the the
+-- combinator `insecurely` which allocates all memory from an unlocked
+-- memory pool.
+--
+-- This library exposes two instances of `MonadMemory`
+--
+-- 1. /Memory threads/ captured by the type `MT`, which are a sequence
+-- of actions that use the same memory element and
+--
+-- 2. /Memory actions/ captured by the type `MemoryM`.
+--
+
+class (Monad m, MonadIO m) => MonadMemory m where
+
+  -- | Perform the memory action where all memory elements are allocated
+  -- locked memory. All memory allocated will be locked and hence will
+  -- never be swapped out by the operating system. It will also be wiped
+  -- clean before releasing.
+  --
+  -- Memory locking is an expensive operation and usually there would be
+  -- a limit to how much locked memory can be allocated. Nonetheless,
+  -- actions that work with sensitive information like passwords should
+  -- use this to run an memory action.
+  securely   :: m a -> IO a
+
+
+  -- | Perform the memory action where all memory elements are
+  -- allocated unlocked memory. Use this function when you work with
+  -- data that is not sensitive to security considerations (for example,
+  -- when you want to verify checksums of files).
+  insecurely :: m a -> IO a
+
+
+-- | An action of type @`MT` mem a@ is an action that uses internally
+-- a a single memory object of type @mem@ and returns a result of type
+-- @a@. All the actions are performed on a single memory element and
+-- hence the side effects persist. It is analogues to the @ST@
+-- monad.
+newtype MT mem a = MT { unMT :: (mem -> IO a) }
+
+-- | Run the memory thread to obtain a memory action.
+runMT :: Memory mem => MT mem a -> MemoryM a
+runMT mem = MemoryM $ \ runner -> runner mem
+
+-- | Given an memory thread
+allocate :: LengthUnit bufSize => bufSize -> (Pointer -> MT mem a) -> MT mem a
+allocate bufSize bufAction = execute $
+                             \ mem
+                             -> allocaBuffer bufSize (\ptr -> unMT (bufAction ptr) mem)
+
+-- | Run a given memory action in the memory thread.
+execute :: (mem -> IO a) -> MT mem a
+{-# INLINE execute #-}
+execute = MT
+
+getMemory :: MT mem mem
+getMemory = execute return
+
+-- | Compound memory elements might intern be composed of
+-- sub-elements. Often one might want to /lift/ the memory thread for
+-- a sub-element to the compound element. Given a sub-element of type
+-- @mem'@ which can be obtained from the compound memory element of
+-- type @mem@ using the projection @proj@, @liftSubMT proj@ lifts the
+-- a memory thread of the sub element to the compound element.
+--
+liftSubMT :: (mem -> mem') -- ^ Projection from the compound element
+                           -- to sub-element
+          -> MT mem' a     -- ^ Memory thread of the sub-element.
+          -> MT mem  a
+liftSubMT proj mt' = execute $ unMT mt' . proj
+
+instance Functor (MT mem) where
+  fmap f mst = MT $ \ m -> f <$> unMT mst m
+
+instance Applicative (MT mem) where
+  pure       = MT . const . pure
+  mf <*> ma  = MT $ \ m -> unMT mf m <*> unMT ma m
+
+instance Monad (MT mem) where
+  return    =  MT . const . return
+  ma >>= f  =  MT runIt
+    where runIt mem = unMT ma mem >>= \ a -> unMT (f a) mem
+
+instance MonadIO (MT mem) where
+  liftIO = MT . const
+
+instance Memory mem => MonadMemory (MT mem) where
+
+  securely   = withSecureMemory . unMT
+  insecurely = withMemory       . unMT
+
+
+-- | A runner of a memory state thread.
+type    Runner mem b = MT mem b -> IO b
+
+-- | A memory action that uses some sort of memory element
+-- internally.
+newtype MemoryM a = MemoryM
+   { unMemoryM :: (forall mem b. Memory mem => Runner mem b) -> IO a }
+
+
+instance Functor MemoryM where
+  fmap f mem = MemoryM $ \ runner -> fmap f $ unMemoryM mem runner
+
+instance Applicative MemoryM where
+  pure          = MemoryM . const . return
+  memF <*> memA = MemoryM $ \ runner ->  unMemoryM memF runner <*> unMemoryM memA runner
+
+instance Monad MemoryM where
+  return = pure
+  memA >>= f    = MemoryM $ \ runner -> do a <- unMemoryM memA runner
+                                           unMemoryM (f a) runner
+
+instance MonadIO MemoryM where
+  liftIO = MemoryM . const
+
+instance MonadMemory MemoryM  where
+
+  securely   mem = unMemoryM mem $ securely
+  insecurely mem = unMemoryM mem $ insecurely
 
 ------------------------ A memory allocator -----------------------
 
@@ -42,13 +183,20 @@ type ALIGNMonoid = Sum ALIGN
 
 type AllocField = Field Pointer
 
--- | A memory allocator. The allocator allocates memory from a fixed
--- chunk of memory pointed by a cryptoPtr.
-type Alloc = TwistRF AllocField ALIGNMonoid
+-- | A memory allocator for the memory type @mem@. The `Applicative`
+-- instance of @Alloc@ can be used to build allocations for
+-- complicated memory elements from simpler ones.
+type Alloc mem = TwistRF AllocField ALIGNMonoid mem
 
 -- | Make an allocator for a given memory type.
 makeAlloc :: LengthUnit l => l -> (Pointer -> mem) -> Alloc mem
 makeAlloc l memCreate = TwistRF (WrapArrow memCreate) (Sum $ atLeast l)
+
+-- | Allocates a buffer of size @l@ and returns the pointer to it pointer.
+pointerAlloc :: LengthUnit l => l -> Alloc Pointer
+pointerAlloc l = makeAlloc l id
+
+---------------------------------------------------------------------
 
 -- | Any cryptographic primitives use memory to store stuff. This
 -- class abstracts all types that hold some memory. Cryptographic
@@ -58,29 +206,62 @@ makeAlloc l memCreate = TwistRF (WrapArrow memCreate) (Sum $ atLeast l)
 -- memory locking, then securing a memory will prevent the memory from
 -- being swapped to the disk. Once secured the memory location is
 -- overwritten by nonsense before being freed.
+--
+-- While some basic memory elements like `MemoryCell` are exposed from
+-- the library, often we require compound memory objects built out of
+-- simpler ones. The `Applicative` instance of the `Alloc` can be made
+-- use of in such situation to simplify such instance declaration as
+-- illustrated in the instance declaration for a pair of memory
+-- elements.
+--
+-- > instance (Memory ma, Memory mb) => Memory (ma, mb) where
+-- >
+-- >    memoryAlloc   = (,) <$> memoryAlloc <*> memoryAlloc
+-- >
+-- >    underlyingPtr (ma, _) =  underlyingPtr ma
+--
 class Memory m where
 
   -- | Returns an allocator for this memory.
   memoryAlloc    :: Alloc m
 
   -- | Returns the pointer to the underlying buffer.
-  underlyingPtr :: m -> Pointer
+  underlyingPtr  :: m -> Pointer
 
-  {-
-  -- | This value @unsafeAllocate cptr@ creates a new instance of the
-  -- memory @m@ with the underlying buffer being the memory pointed by
-  -- @cptr@. The function in unsafe as it does not (and cannot) verify
-  -- whether the passed pointer points to a valid memory location,
-  -- i.e. has at least @allocSize m@ space, or whether it satisfies
-  -- the allignment constraint.
-  --
-  -- It is highly unlikely that a user would need to use this function
-  -- directly. Rather it is used to implement `withMemory` and
-  -- `withSecureMemory`, the two combinators that any law abiding
-  -- Haskell programmer should use when dealing with murky things like
-  -- memory.
-  unsafeAllocateMemory :: Pointer -> m
-  -}
+class Memory m => Initialisable m v where
+  initialise :: v -> MT m ()
+
+class Memory m => Extractable m v where
+  extract  :: MT m v
+
+instance ( Memory ma, Memory mb ) => Memory (ma, mb) where
+    memoryAlloc           = (,) <$> memoryAlloc <*> memoryAlloc
+    underlyingPtr (ma, _) =  underlyingPtr ma
+
+instance ( Memory ma
+         , Memory mb
+         , Memory mc
+         )
+         => Memory (ma, mb, mc) where
+    memoryAlloc           = (,,)
+                            <$> memoryAlloc
+                            <*> memoryAlloc
+                            <*> memoryAlloc
+    underlyingPtr (ma,_,_) =  underlyingPtr ma
+
+instance ( Memory ma
+         , Memory mb
+         , Memory mc
+         , Memory md
+         )
+         => Memory (ma, mb, mc, md) where
+    memoryAlloc           = (,,,)
+                            <$> memoryAlloc
+                            <*> memoryAlloc
+                            <*> memoryAlloc
+                            <*> memoryAlloc
+
+    underlyingPtr (ma,_,_,_) =  underlyingPtr ma
 
 -- | Copy data from a given memory location to the other. The first
 -- argument is destionation and the second argument is source to match
@@ -92,44 +273,6 @@ copyMemory dest src = memcpy (underlyingPtr dest) (underlyingPtr src) sz
   where sz = getSum $ twistMonoidValue $ getAlloc src
         getAlloc :: Memory m => m -> Alloc m
         getAlloc _ = memoryAlloc
-
--- | The memory which can be initialized from an initial value.
-class Memory m => InitializableMemory m where
-
-  -- | Initial value of the memory.
-  type IV m :: *
-
-  -- | Initialize memory with the give IV.
-  initializeMemory :: m -> IV m -> IO ()
-
--- | The memory from which a final value can be extracted.
-class Memory m => FinalizableMemory m where
-
-  -- | Final value of the memory.
-  type FV m :: *
-
-  -- | Get the final value from the memory.
-  finalizeMemory :: m -> IO (FV m)
-
-newtype MemoryT mem f a = MemoryT { runMemoryT :: (mem -> f a) }
-type MemoryIO mem       = MemoryT mem IO
-
-instance Functor f => Functor (MemoryT mem f) where
-  fmap f memM = MemoryT $ \ m -> f <$> runMemoryT memM m
-
-instance Applicative f => Applicative (MemoryT mem f) where
-  pure       = MemoryT . const . pure
-  mf <*> ma  = MemoryT $ \ m -> runMemoryT mf m <*> runMemoryT ma m
-
-instance Monad monad => Monad (MemoryT mem monad) where
-  return    =  MemoryT . const . return
-  ma >>= f  =  MemoryT runIt
-    where runIt mem = runMemoryT ma mem >>= \ a -> runMemoryT (f a) mem
-
-
-instance MonadTrans (MemoryT mem) where
-  lift = MemoryT . const
--------------------------- The With combinators. ----------------
 
 -- | Perform an action which makes use of this memory. The memory
 -- allocated will automatically be freed when the action finishes
@@ -159,175 +302,22 @@ withSecureMemory = withSM memoryAlloc
           where sz     = getSum $ twistMonoidValue alctr
                 getM   = computeField $ twistFunctorValue alctr
 
-instance ( Memory a, Memory b) => Memory (a,b) where
-  memoryAlloc  = (,) <$> memoryAlloc <*> memoryAlloc
-  underlyingPtr (a,_) = underlyingPtr a
-
-instance ( InitializableMemory a
-         , InitializableMemory b
-         ) => InitializableMemory (a,b) where
-  type IV (a,b) = (IV a, IV b)
-  initializeMemory (a,b) (iva, ivb) = initializeMemory a iva
-                                   >> initializeMemory b ivb
-
-instance ( FinalizableMemory a
-         , FinalizableMemory b
-         ) => FinalizableMemory (a,b) where
-  type FV (a,b) = (FV a, FV b)
-  finalizeMemory (a,b) =  (,) <$> finalizeMemory a
-                              <*> finalizeMemory b
-
-instance ( Memory a, Memory b, Memory c) => Memory (a,b,c) where
-  memoryAlloc  = (,,) <$> memoryAlloc <*> memoryAlloc <*> memoryAlloc
-  underlyingPtr (a,_,_) = underlyingPtr a
-
-instance ( InitializableMemory a
-         , InitializableMemory b
-         , InitializableMemory c
-         ) => InitializableMemory (a,b,c) where
-  type IV (a,b,c) = (IV a, IV b, IV c)
-  initializeMemory (a,b,c) (iva, ivb, ivc) = initializeMemory a iva
-                                          >> initializeMemory b ivb
-                                          >> initializeMemory c ivc
-
-instance ( FinalizableMemory a
-         , FinalizableMemory b
-         , FinalizableMemory c
-         ) => FinalizableMemory (a,b,c) where
-  type FV (a,b,c) = (FV a, FV b, FV c)
-  finalizeMemory (a,b,c) =  (,,) <$> finalizeMemory a
-                                 <*> finalizeMemory b
-                                 <*> finalizeMemory c
-
-
----------------------------------------------------------------------
-{--
-
--- | memory that does not hold anything.
-instance Memory () where
-  memoryAlloc    = pure ()
-  underlyingPtr  = nullPtr
-
-instance InitializableMemory () where
-  type IV () = ()
-  initializeMemory _ () = return ()
-
-instance FinalizableMemory () where
-  type FV () = ()
-  finalizeMemory _ = return ()
-
-
-instance (Memory a, Memory b) => Memory (a,b) where
-
-  memoryAlloc                = (,) <$> memoryAlloc <*> memoryAlloc
-  copyMemory (sa,sb) (da,db) = copyMemory sa da >> copyMemory sb db
-
-
-instance ( InitializableMemory a
-         , InitializableMemory b
-         ) => InitializableMemory (a,b) where
-  type IV (a,b) = (IV a, IV b)
-  initializeMemory (a,b) (iva, ivb) =  initializeMemory a iva
-                                    >> initializeMemory b ivb
-
-instance ( FinalizableMemory a
-         , FinalizableMemory b
-         ) => FinalizableMemory (a,b) where
-  type FV (a,b) = (FV a, FV b)
-  finalizeMemory (a,b) =  (,) <$> finalizeMemory a
-                              <*> finalizeMemory b
-
-
-instance (Memory a, Memory b, Memory c) => Memory (a,b,c) where
-  newMemory = (,,) <$> newMemory <*> newMemory <*> newMemory
-  freeMemory (a,b,c) = freeMemory a >> freeMemory b >> freeMemory c
-  copyMemory (sa,sb,sc) (da,db,dc) = copyMemory sa da
-                                  >> copyMemory sb db
-                                  >> copyMemory sc dc
-  withSecureMemory f bk = withSecureMemory sec bk
-    where sec c = withSecureMemory sec2 bk
-            where sec2 b = withSecureMemory (\a -> f (a,b,c)) bk
-
-instance ( InitializableMemory a
-         , InitializableMemory b
-         , InitializableMemory c
-         ) => InitializableMemory (a,b,c) where
-  type IV (a,b,c) = (IV a, IV b, IV c)
-  initializeMemory (a,b,c) (iva, ivb, ivc) =  initializeMemory a iva
-                                           >> initializeMemory b ivb
-                                           >> initializeMemory c ivc
-
-instance ( FinalizableMemory a
-         , FinalizableMemory b
-         , FinalizableMemory c
-         ) => FinalizableMemory (a,b,c) where
-  type FV (a,b,c) = (FV a, FV b, FV c)
-  finalizeMemory (a,b,c) =  (,,) <$> finalizeMemory a
-                                 <*> finalizeMemory b
-                                 <*> finalizeMemory c
-
-instance (Memory a, Memory b, Memory c, Memory d) => Memory (a,b,c,d) where
-  newMemory = (,,,) <$> newMemory
-                    <*> newMemory
-                    <*> newMemory
-                    <*> newMemory
-  freeMemory (a,b,c,d) =  freeMemory a
-                       >> freeMemory b
-                       >> freeMemory c
-                       >> freeMemory d
-  copyMemory (sa,sb,sc,sd) (da,db,dc,dd) =  copyMemory sa da
-                                         >> copyMemory sb db
-                                         >> copyMemory sc dc
-                                         >> copyMemory sd dd
-  withSecureMemory f bk = withSecureMemory sec bk
-    where sec d = withSecureMemory sec2 bk
-            where sec2 c = withSecureMemory sec3 bk
-                    where sec3 b = withSecureMemory (\a -> f (a,b,c,d)) bk
-
-instance ( InitializableMemory a
-         , InitializableMemory b
-         , InitializableMemory c
-         , InitializableMemory d
-         ) => InitializableMemory (a,b,c,d) where
-  type IV (a,b,c,d) = (IV a, IV b, IV c, IV d)
-  initializeMemory (a,b,c,d) (iva, ivb, ivc, ivd) =  initializeMemory a iva
-                                                  >> initializeMemory b ivb
-                                                  >> initializeMemory c ivc
-                                                  >> initializeMemory d ivd
-
-instance ( FinalizableMemory a
-         , FinalizableMemory b
-         , FinalizableMemory c
-         , FinalizableMemory d
-         ) => FinalizableMemory (a,b,c,d) where
-  type FV (a,b,c,d) = (FV a, FV b, FV c, FV d)
-  finalizeMemory (a,b,c,d) =  (,,,) <$> finalizeMemory a
-                                    <*> finalizeMemory b
-                                    <*> finalizeMemory c
-                                    <*> finalizeMemory d
-
---}
+--------------------- Some instances of Memory --------------------
 
 -- | A memory location to store a value of type having `Storable`
 -- instance.
 newtype MemoryCell a = MemoryCell { unMemoryCell :: Pointer }
 
--- | Read the value from the MemoryCell.
-cellPeek :: Storable a => MemoryCell a -> IO a
-cellPeek = peek . castPtr . unMemoryCell
-
--- | Write the value to the MemoryCell.
-cellPoke :: Storable a => MemoryCell a -> a -> IO ()
-cellPoke = poke . castPtr . unMemoryCell
-
--- | Apply the given function to the value in the cell.
-cellModify :: Storable a => MemoryCell a -> (a -> a) -> IO ()
-cellModify cp f = cellPeek cp >>= cellPoke cp . f
 
 -- | Perform some pointer action on MemoryCell. Useful while working
 -- with ffi functions.
-withCell :: MemoryCell a -> (Pointer -> IO b) -> IO b
-withCell (MemoryCell cptr) fp = fp cptr
+withCell :: (Pointer -> IO b) -> MT (MemoryCell a) b
+withCell fp  = execute $ fp . unMemoryCell
+{-# INLINE withCell #-}
+
+-- | Apply the given function to the value in the cell.
+modify :: (Initialisable m a, Extractable m b) =>  (b -> a) -> MT m ()
+modify f = extract >>= initialise . f
 
 instance Storable a => Memory (MemoryCell a) where
 
@@ -337,45 +327,10 @@ instance Storable a => Memory (MemoryCell a) where
 
   underlyingPtr (MemoryCell cptr) = cptr
 
-instance Storable a => InitializableMemory (MemoryCell a) where
-  type IV (MemoryCell a) = a
-  initializeMemory = cellPoke
+instance Storable a => Initialisable (MemoryCell a) a where
+  initialise a = withCell (flip poke a . castPtr)
+  {-# INLINE initialise #-}
 
-instance Storable a => FinalizableMemory (MemoryCell a) where
-  type FV (MemoryCell a) = a
-  finalizeMemory = cellPeek
-
-
--- | Types which can be stored in a buffer.
-class Bufferable b where
-
-  maxSizeOf         ::               b -> BYTES Int
-  default maxSizeOf :: Storable b => b -> BYTES Int
-  maxSizeOf = fromIntegral . sizeOf
-
--- | A memory buffer whose size depends on the `Bufferable` instance
--- of @b@.
-data MemoryBuf b = MemoryBuf {-# UNPACK #-} !Pointer
-
-{-
--- | Size of the buffer.
-memoryBufSize :: MemoryBuf b -> BYTES Int
-memoryBufSize (MemoryBuf sz _) = sz
-{-# INLINE memoryBufSize #-}
--}
-
--- | Perform some pointer action on `MemoryBuf`.
-withMemoryBuf :: Bufferable b => MemoryBuf b -> (BYTES Int -> Pointer -> IO a) -> IO a
-withMemoryBuf mbuf@(MemoryBuf cptr) action =  action (maxSizeOf $ getBufferable mbuf) cptr
-  where getBufferable :: Bufferable b => MemoryBuf b -> b
-        getBufferable _ = undefined
-{-# INLINE withMemoryBuf #-}
-
--- | Memory instance of `MemoryBuf`
-instance Bufferable b => Memory (MemoryBuf b) where
-
-  memoryAlloc = allocator undefined
-    where allocator :: Bufferable b => b -> Alloc (MemoryBuf b)
-          allocator b = makeAlloc (maxSizeOf b) MemoryBuf
-
-  underlyingPtr (MemoryBuf cptr) = cptr
+instance Storable a => Extractable (MemoryCell a) a where
+  extract = withCell (peek . castPtr)
+  {-# INLINE extract #-}
