@@ -13,9 +13,9 @@ module Raaz.Hash
          -- ** Encoding hash values
          -- $encoding$
          --
-         hash, hashFile, hashSource
+         Hash, hash, hashFile, hashSource
          -- ** HMAC computation
-       , hmac, hmacFile, hmacSource
+       , HMAC, hmac, hmacFile, hmacSource
          -- * Exposing individual hashes.
          -- $individualHashes$
 
@@ -35,8 +35,8 @@ import Raaz.Hash.Sha256
 import Raaz.Hash.Sha384
 import Raaz.Hash.Sha512
 
-import Raaz.Hash.Internal      ( hash, hashFile, hashSource )
-import Raaz.Hash.Internal.HMAC ( hmac, hmacFile, hmacSource )
+import Raaz.Hash.Internal      ( Hash, hash, hashFile, hashSource )
+import Raaz.Hash.Internal.HMAC ( HMAC, hmac, hmacFile, hmacSource )
 
 -- $computingHash$
 --
