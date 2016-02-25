@@ -14,7 +14,7 @@ import Raaz.Core hiding (length, replicate)
 with :: key -> (key -> Spec) -> Spec
 with key hmsto = hmsto key
 
-
+{-
 transform :: Gadget g => Base16 -> g -> IO Base16
 transform inp g  = encodeByteString <$> create size (action  . castPtr)
   where size  = B.length src
@@ -24,6 +24,7 @@ transform inp g  = encodeByteString <$> create size (action  . castPtr)
           void $ fillBytes bytes src cptr
           apply g (atMost bytes) cptr
 
+-}
 shortened :: String -> String
 shortened x | l <= 11    = paddedx
             | otherwise  = prefix ++ "..." ++ suffix

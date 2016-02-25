@@ -31,7 +31,7 @@ hashesTo str h = it msg (hash str `shouldBe` h)
 hmacsTo :: ( Hash h, Show h)
         => ByteString
         -> HMAC h
-        -> HMACKey h
+        -> Key (HMAC h)
         -> Spec
 hmacsTo str hm key = it mesg $ hmac key str `shouldBe` hm
   where mesg       = unwords [ "with key", shortened $ show key

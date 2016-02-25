@@ -17,21 +17,11 @@ import Generic.EndianStore
 import qualified Generic.Hash as GH
 import Arbitrary
 
-import Data.Word
 instance Arbitrary SHA384 where
   arbitrary = SHA384 <$> arbitraryVector 6
 
 hashesTo :: ByteString -> SHA384 -> Spec
 hashesTo = GH.hashesTo
-
-pad     :: BITS Word64 -> ByteString
-padLen  :: BITS Word64 -> BYTES Int
-blockSz :: BYTES Int
-
-
-pad     = padding   (undefined :: SHA384)
-padLen  = padLength (undefined :: SHA384)
-blockSz = blockSize (undefined :: SHA384)
 
 spec :: Spec
 spec =  do
@@ -39,11 +29,6 @@ spec =  do
   prop "store followed by load returns original value" $ \ (x :: SHA384) ->
     storeAndThenLoad x `shouldReturn` x
 
-  prop "checks that the padding string has the same length as padLength" $
-    \ w -> padLen w == (RC.length $ pad w)
-
-  prop "length after padding should be an integral multiple of block size" $
-    \ w -> (padLen w + bitsQuot w) `rem` blockSz == 0
   --
   -- Some unit tests
   --
