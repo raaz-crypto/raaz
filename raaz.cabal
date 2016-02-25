@@ -106,7 +106,8 @@ library
                  -- , Raaz.Cipher.Salsa20
                  -- , Raaz.Cipher.Salsa20.Internal
 
-  other-modules: Raaz.Core.Encode.Internal
+  other-modules: Raaz.Core.Constants
+               , Raaz.Core.Encode.Internal
                , Raaz.Core.Encode.Base16
                , Raaz.Core.Util.ByteString
 --               , Raaz.Core.Util.Gadget
