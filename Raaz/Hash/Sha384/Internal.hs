@@ -4,7 +4,6 @@
 {-# LANGUAGE ForeignFunctionInterface   #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE RecordWildCards            #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# CFILES raaz/hash/sha1/portable.c    #-}
 
 module Raaz.Hash.Sha384.Internal
@@ -63,7 +62,10 @@ instance Show SHA384 where
   show =  showBase16
 
 newtype SHA384Memory = SHA384Memory { unSHA384Mem :: HashMemory SHA512 }
-                     deriving Memory
+
+instance Memory SHA384Memory where
+  memoryAlloc   = SHA384Memory <$> memoryAlloc
+  underlyingPtr = underlyingPtr . unSHA384Mem
 
 instance Initialisable SHA384Memory () where
   initialise _ = liftSubMT unSHA384Mem

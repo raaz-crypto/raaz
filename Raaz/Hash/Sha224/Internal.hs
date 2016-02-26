@@ -15,7 +15,6 @@ binary instance etc.
 {-# LANGUAGE ForeignFunctionInterface   #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE RecordWildCards            #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# CFILES raaz/hash/sha1/portable.c    #-}
 
 module Raaz.Hash.Sha224.Internal
@@ -74,7 +73,10 @@ instance Show SHA224 where
   show =  showBase16
 
 newtype SHA224Memory = SHA224Memory { unSHA224Mem :: HashMemory SHA256 }
-                     deriving Memory
+
+instance Memory SHA224Memory where
+  memoryAlloc   = SHA224Memory <$> memoryAlloc
+  underlyingPtr = underlyingPtr . unSHA224Mem
 
 instance Initialisable SHA224Memory () where
   initialise _ = liftSubMT unSHA224Mem $
