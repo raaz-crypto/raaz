@@ -76,7 +76,7 @@ instance Primitive SHA1 where
   blockSize _              = BYTES 64
   type Implementation SHA1 = SomeHashI SHA1
 
-  recommended  _           = SomeHashI $ cPortable
+  recommended  _           = SomeHashI cPortable
 
 instance Hash SHA1 where
   additionalPadBlocks _ = 1

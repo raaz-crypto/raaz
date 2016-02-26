@@ -139,9 +139,9 @@ instance Equality Word64 where
       w21 :: Word
       w22 :: Word
       w11 = fromIntegral $ w1 `shiftR` 32
-      w12 = fromIntegral $ w1
+      w12 = fromIntegral w1
       w21 = fromIntegral $ w2 `shiftR` 32
-      w22 = fromIntegral $ w2
+      w22 = fromIntegral w2
 #else
   eq w1 w2 = Result $ fromIntegral $ xor w1 w2
 #endif

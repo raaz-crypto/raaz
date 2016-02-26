@@ -60,7 +60,7 @@ instance Show SHA512 where
 instance Primitive SHA512 where
   blockSize _ = BYTES 128
   type Implementation SHA512 = SomeHashI SHA512
-  recommended  _             = SomeHashI $ cPortable
+  recommended  _             = SomeHashI cPortable
 
 instance Initialisable (HashMemory SHA512) () where
   initialise _ = initialise $ SHA512

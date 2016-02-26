@@ -70,7 +70,7 @@ instance Initialisable (HashMemory SHA256) () where
 instance Primitive SHA256 where
   blockSize _                = BYTES 64
   type Implementation SHA256 = SomeHashI SHA256
-  recommended  _             = SomeHashI $ cPortable
+  recommended  _             = SomeHashI cPortable
 
 instance Hash SHA256 where
   additionalPadBlocks _ = 1

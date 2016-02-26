@@ -6,7 +6,6 @@ The memory subsystem associated with raaz.
 
 {-# LANGUAGE DefaultSignatures          #-}
 {-# LANGUAGE TypeFamilies               #-}
-{-# LANGUAGE ForeignFunctionInterface   #-}
 {-# LANGUAGE GADTs                      #-}
 {-# LANGUAGE RankNTypes                 #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
@@ -23,7 +22,7 @@ module Raaz.Core.Memory
        -- , MemoryM, runMT
        , allocate
        -- ** Memory elements.
-       , Memory(..), copyMemory,
+       , Memory(..), copyMemory
        , Initialisable(..), Extractable(..), modify
        -- , withMemory, withSecureMemory
        -- *** Some basic memory elements.
@@ -96,7 +95,7 @@ class (Monad m, MonadIO m) => MonadMemory m where
 -- @a@. All the actions are performed on a single memory element and
 -- hence the side effects persist. It is analogues to the @ST@
 -- monad.
-newtype MT mem a = MT { unMT :: (mem -> IO a) }
+newtype MT mem a = MT { unMT :: mem -> IO a }
 
 -- | Given an memory thread
 allocate :: LengthUnit bufSize => bufSize -> (Pointer -> MT mem a) -> MT mem a

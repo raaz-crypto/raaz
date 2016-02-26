@@ -8,7 +8,6 @@
 {-# LANGUAGE ScopedTypeVariables        #-}
 {-# LANGUAGE CPP                        #-}
 {-# LANGUAGE UndecidableInstances       #-}
-{-# LANGUAGE RecordWildCards            #-}
 {-# LANGUAGE ExistentialQuantification  #-}
 {-# LANGUAGE ConstraintKinds            #-}
 module Raaz.Hash.Internal.HMAC
@@ -126,7 +125,7 @@ instance Hash h => Symmetric (HMAC h) where
 hmac :: ( Hash h, PureByteSource src )
      => Key (HMAC h)
      -> src  -- ^ Message
-     -> (HMAC h)
+     -> HMAC h
 hmac key = unsafePerformIO . hmacSource key
 {-# INLINEABLE hmac #-}
 {-# SPECIALIZE hmac :: Hash h => Key (HMAC h) -> B.ByteString -> HMAC h #-}
@@ -160,7 +159,7 @@ hmac' :: ( Hash h, PureByteSource src )
       => Implementation h
       -> Key (HMAC h)
       -> src  -- ^ Message
-      -> (HMAC h)
+      -> HMAC h
 hmac' impl key = unsafePerformIO . hmacSource' impl key
 {-# INLINEABLE hmac' #-}
 {-# SPECIALIZE hmac' :: Hash h

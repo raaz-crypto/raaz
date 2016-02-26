@@ -105,7 +105,7 @@ hash = unsafePerformIO . hashSource
 hashFile :: Hash h
          => FilePath  -- ^ File to be hashed
          -> IO h
-hashFile fileName = withBinaryFile fileName ReadMode $ hashSource
+hashFile fileName = withBinaryFile fileName ReadMode hashSource
 {-# INLINEABLE hashFile #-}
 
 
@@ -162,10 +162,10 @@ completeHashing :: (Hash h, ByteSource src, HashM h m)
                 -> src
                 -> MT m h
 completeHashing (HashI{..}) src =
-  allocate totalSize $ \ ptr -> do
-    let comp                = compress ptr bufSize
-        finish bytes        = compressFinal ptr bytes >> extract
-      in processChunks comp finish src bufSize ptr
+  allocate totalSize $ \ ptr -> let
+    comp                = compress ptr bufSize
+    finish bytes        = compressFinal ptr bytes >> extract
+    in processChunks comp finish src bufSize ptr
   where bufSize             = atLeast l1Cache + 1
         totalSize           = bufSize + additionalPadBlocks undefined
 
@@ -205,6 +205,6 @@ extractLength = liftSubMT messageLengthCell extract
 -- | Update the message length by a given amount.
 updateLength :: LengthUnit u => u -> MT (HashMemory h) ()
 {-# INLINE updateLength #-}
-updateLength u = liftSubMT messageLengthCell $ modify ((+) nBits)
+updateLength u = liftSubMT messageLengthCell $ modify (nBits +)
   where nBits :: BITS Word64
         nBits =  inBits u

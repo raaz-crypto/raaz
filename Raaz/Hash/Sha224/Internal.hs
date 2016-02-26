@@ -12,9 +12,7 @@ binary instance etc.
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE FlexibleInstances          #-}
-{-# LANGUAGE ForeignFunctionInterface   #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
-{-# LANGUAGE RecordWildCards            #-}
 {-# CFILES raaz/hash/sha1/portable.c    #-}
 
 module Raaz.Hash.Sha224.Internal
