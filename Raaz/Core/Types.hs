@@ -36,11 +36,13 @@ module Raaz.Core.Types
        , module Raaz.Core.Types.Endian
          -- * The pointer type and Length offsets.
        , module Raaz.Core.Types.Pointer
+         -- * Tuples with length encoded in their types.
+       , module Raaz.Core.Types.Tuple
        ) where
 
 
 import Raaz.Core.Types.Pointer
 import Raaz.Core.Types.Equality
 import Raaz.Core.Types.Endian
-
+import Raaz.Core.Types.Tuple
 {-# ANN module "HLint: ignore Use import/export shortcut" #-}

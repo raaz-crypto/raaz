@@ -24,7 +24,8 @@ import           Foreign.Ptr               (castPtr)
 import           Foreign.Storable
 
 import           Raaz.Core.MonoidalAction
-import           Raaz.Core.Types
+import           Raaz.Core.Types.Endian
+import           Raaz.Core.Types.Pointer
 import           Raaz.Core.Util.ByteString as BU
 import           Raaz.Core.Encode
 

@@ -20,7 +20,8 @@ import Foreign.Storable
 import Prelude hiding               (length)
 import System.IO.Unsafe   (unsafePerformIO)
 
-import Raaz.Core.Types
+import Raaz.Core.Types.Endian
+import Raaz.Core.Types.Pointer
 import Raaz.Core.Util.ByteString(length, withByteString)
 
 

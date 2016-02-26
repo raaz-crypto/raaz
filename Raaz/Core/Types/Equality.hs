@@ -38,8 +38,8 @@ isSuccessful = (==0) . unResult
 instance Monoid Result where
   mempty      = Result 0
   mappend a b = Result (unResult a .|. unResult b)
-
-
+  {-# INLINE mempty  #-}
+  {-# INLINE mappend #-}
 
 newtype instance MVector s Result = MV_Result (MVector s Word)
 newtype instance Vector    Result = V_Result  (Vector Word)
