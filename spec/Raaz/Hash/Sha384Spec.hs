@@ -11,7 +11,6 @@ import Test.Hspec.QuickCheck
 import Test.QuickCheck
 
 import Data.ByteString.Char8
-import Raaz.Core as RC
 import Raaz.Hash.Sha384.Internal
 import Generic.EndianStore
 import qualified Generic.Hash as GH
