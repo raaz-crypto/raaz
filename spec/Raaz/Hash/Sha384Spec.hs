@@ -14,10 +14,10 @@ import Data.ByteString.Char8
 import Raaz.Hash.Sha384.Internal
 import Generic.EndianStore
 import qualified Generic.Hash as GH
-import Arbitrary
+import Arbitrary()
 
 instance Arbitrary SHA384 where
-  arbitrary = SHA384 <$> arbitraryVector 6
+  arbitrary = SHA384 <$> arbitrary
 
 hashesTo :: ByteString -> SHA384 -> Spec
 hashesTo = GH.hashesTo

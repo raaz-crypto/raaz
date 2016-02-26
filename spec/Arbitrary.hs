@@ -39,7 +39,7 @@ instance (V.Unbox a, Arbitrary a, SingI dim)
     where gTup   :: (V.Unbox a, SingI dim) => Gen (Tuple dim a)
                                            -> Tuple dim a
           gTup _ = undefined
-          g      = fmap fromList $ vector $ dimension $ gTup g
+          g      = fmap unsafeFromList $ vector $ dimension $ gTup g
 
 -- | Generate an arbitrary unboxed vector.
 arbitraryVector :: (Arbitrary a, V.Unbox a)=> Int -> Gen (V.Vector a)

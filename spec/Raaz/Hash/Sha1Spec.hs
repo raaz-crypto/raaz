@@ -17,12 +17,12 @@ import Raaz.Hash
 import Raaz.Hash.Sha1.Internal
 import Generic.EndianStore
 import qualified Generic.Hash as GH
-import Arbitrary
+import Arbitrary()
 import Generic.Utils
 
 
 instance Arbitrary SHA1 where
-  arbitrary = SHA1 <$> arbitraryVector 5
+  arbitrary = SHA1 <$> arbitrary
 
 -- Particular case for SHA1
 hashesTo :: ByteString -> SHA1 -> Spec

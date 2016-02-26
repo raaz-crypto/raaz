@@ -1,5 +1,6 @@
 {-# LANGUAGE CPP                        #-}
-{-# LANGUAGE DeriveDataTypeable         #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE DataKinds                  #-}
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
@@ -32,29 +33,8 @@ import           Raaz.Hash.Sha512.Internal ( SHA512(..) )
 ----------------------------- SHA384 -------------------------------------------
 
 -- | The Sha384 hash value.
-newtype SHA384 = SHA384 (VU.Vector (BE Word64)) deriving Typeable
-
--- | Timing independent equality testing for sha384
-instance Eq SHA384 where
- (==) (SHA384 g) (SHA384 h) = oftenCorrectEqVector g h
-
-instance Storable SHA384 where
-  sizeOf    _ = 6 * sizeOf (undefined :: (BE Word64))
-  alignment _ = alignment  (undefined :: (BE Word64))
-
-  peek = unsafeRunParser sha384parse . castPtr
-    where sha384parse = SHA384 <$> unsafeParseStorableVector 6
-
-  poke ptr (SHA384 v) = unsafeWrite writeSHA384 cptr
-    where writeSHA384 = writeStorableVector v
-          cptr = castPtr ptr
-
-instance EndianStore SHA384 where
-  load = unsafeRunParser $ SHA384 <$> unsafeParseVector 6
-
-  store cptr (SHA384 v) = unsafeWrite writeSHA384 cptr
-    where writeSHA384 = writeVector v
-
+newtype SHA384 = SHA384 (Tuple 6 (BE Word64))
+                 deriving (Eq, Equality, Storable, EndianStore)
 
 instance Encodable SHA384
 
@@ -74,20 +54,19 @@ instance Initialisable SHA384Memory () where
   initialise _ = liftSubMT unSHA384Mem
                  $ initialise
                  $ SHA512
-                 $ VU.fromList [ 0xcbbb9d5dc1059ed8
-                               , 0x629a292a367cd507
-                               , 0x9159015a3070dd17
-                               , 0x152fecd8f70e5939
-                               , 0x67332667ffc00b31
-                               , 0x8eb44a8768581511
-                               , 0xdb0c2e0d64f98fa7
-                               , 0x47b5481dbefa4fa4
-                               ]
+                 $ unsafeFromList [ 0xcbbb9d5dc1059ed8
+                                  , 0x629a292a367cd507
+                                  , 0x9159015a3070dd17
+                                  , 0x152fecd8f70e5939
+                                  , 0x67332667ffc00b31
+                                  , 0x8eb44a8768581511
+                                  , 0xdb0c2e0d64f98fa7
+                                  , 0x47b5481dbefa4fa4
+                                  ]
 
 instance Extractable SHA384Memory SHA384 where
   extract = trunc <$> liftSubMT unSHA384Mem extract
-    where trunc :: SHA512 -> SHA384
-          trunc (SHA512 v) = SHA384 (VU.slice 0 6 v)
+    where trunc (SHA512 v) = SHA384 $ initial v
 
 instance Primitive SHA384 where
   blockSize _ = BYTES 128

@@ -1,5 +1,6 @@
 {-# LANGUAGE CPP                        #-}
-{-# LANGUAGE DeriveDataTypeable         #-}
+{-# LANGUAGE DataKinds                  #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE ForeignFunctionInterface   #-}
@@ -38,8 +39,10 @@ import           Raaz.Hash.Sha.Util
 import           Raaz.Hash.Internal
 
 -- | The cryptographic hash SHA1.
-newtype SHA1 = SHA1 (VU.Vector (BE Word32)) deriving Typeable
+newtype SHA1 = SHA1 (Tuple 5 (BE Word32))
+             deriving (Storable, EndianStore, Equality, Eq)
 
+{--
 -- | Timing independent equality testing.
 instance Eq SHA1 where
  (==) (SHA1 g) (SHA1 h) = oftenCorrectEqVector g h
@@ -60,6 +63,7 @@ instance EndianStore SHA1 where
   store cptr (SHA1 v) = unsafeWrite writeSHA1 cptr
     where writeSHA1 = writeVector v
 
+-}
 instance Encodable SHA1
 
 instance IsString SHA1 where
@@ -69,12 +73,12 @@ instance Show SHA1 where
   show = showBase16
 
 instance Initialisable (HashMemory SHA1) () where
-  initialise _ = initialise $ SHA1 $ VU.fromList [ 0x67452301
-                                                 , 0xefcdab89
-                                                 , 0x98badcfe
-                                                 , 0x10325476
-                                                 , 0xc3d2e1f0
-                                                 ]
+  initialise _ = initialise $ SHA1 $ unsafeFromList [ 0x67452301
+                                                    , 0xefcdab89
+                                                    , 0x98badcfe
+                                                    , 0x10325476
+                                                    , 0xc3d2e1f0
+                                                    ]
 
 
 instance Primitive SHA1 where

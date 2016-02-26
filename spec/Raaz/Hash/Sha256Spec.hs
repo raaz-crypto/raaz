@@ -18,10 +18,10 @@ import Raaz.Hash.Sha256.Internal
 import Generic.EndianStore
 import Generic.Utils
 import qualified Generic.Hash as GH
-import Arbitrary
+import Arbitrary()
 
 instance Arbitrary SHA256 where
-  arbitrary = SHA256 <$> arbitraryVector 8
+  arbitrary = SHA256 <$> arbitrary
 
 hashesTo :: ByteString -> SHA256 -> Spec
 hashesTo = GH.hashesTo
