@@ -8,7 +8,7 @@ binary instance etc.
 
 -}
 
-
+{-# LANGUAGE CPP                        #-}
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE FlexibleInstances          #-}
@@ -19,7 +19,12 @@ module Raaz.Hash.Sha224.Internal
        ( SHA224(..)
        ) where
 
-import           Control.Applicative ( (<$>) )
+
+#if !MIN_VERSION_base(4,8,0)
+import           Control.Applicative
+#endif
+
+
 import           Data.String
 import qualified Data.Vector.Unboxed                  as VU
 import           Data.Word

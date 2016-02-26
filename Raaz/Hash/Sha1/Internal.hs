@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP                        #-}
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE FlexibleInstances          #-}
@@ -17,7 +18,11 @@ instance etc.
 
 module Raaz.Hash.Sha1.Internal (SHA1(..)) where
 
-import           Control.Applicative ( (<$>) )
+
+#if !MIN_VERSION_base(4,8,0)
+import           Control.Applicative
+#endif
+
 import           Data.String
 import qualified Data.Vector.Unboxed                  as VU
 import           Data.Word

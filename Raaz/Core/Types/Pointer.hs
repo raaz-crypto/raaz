@@ -20,11 +20,15 @@ module Raaz.Core.Types.Pointer
        , memset, memmove, memcpy
        ) where
 
-import Control.Applicative
+
+#if !MIN_VERSION_base(4,8,0)
+import Control.Applicative   ( (<$>)   )
+#endif
+
 import Control.Exception     ( bracket_)
 import Control.Monad         ( void, when )
 import Data.Monoid
-import Data.Word             ( Word64, Word, Word8)
+import Data.Word
 import Foreign.Marshal.Alloc
 import Foreign.Ptr           ( Ptr, plusPtr)
 import Foreign.Storable      (Storable, sizeOf, alignment)
