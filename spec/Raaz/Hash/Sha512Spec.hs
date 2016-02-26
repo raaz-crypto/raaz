@@ -20,39 +20,24 @@ import Generic.Utils
 import qualified Generic.Hash as GH
 import Arbitrary
 
-import Data.Word
 instance Arbitrary SHA512 where
   arbitrary = SHA512 <$> arbitraryVector 8
 
 hashesTo :: ByteString -> SHA512 -> Spec
 hashesTo = GH.hashesTo
 
-hmacsTo  :: ByteString -> HMAC SHA512 -> HMACKey SHA512 -> Spec
+hmacsTo  :: ByteString -> HMAC SHA512 -> Key (HMAC SHA512) -> Spec
 hmacsTo  = GH.hmacsTo
 
-repeated :: HMACKey SHA512 -> Int -> HMACKey SHA512
+repeated :: Key (HMAC SHA512) -> Int -> Key (HMAC SHA512)
 repeated = GH.repeated
 
-pad     :: BITS Word64 -> ByteString
-padLen  :: BITS Word64 -> BYTES Int
-blockSz :: BYTES Int
-
-
-pad     = padding   (undefined :: SHA512)
-padLen  = padLength (undefined :: SHA512)
-blockSz = blockSize (undefined :: SHA512)
 
 spec :: Spec
 spec =  do
 
   prop "store followed by load returns original value" $ \ (x :: SHA512) ->
     storeAndThenLoad x `shouldReturn` x
-
-  prop "checks that the padding string has the same length as padLength" $
-    \ w -> padLen w == (RC.length $ pad w)
-
-  prop "length after padding should be an integral multiple of block size" $
-    \ w -> (padLen w + bitsQuot w) `rem` blockSz == 0
   --
   -- Some unit tests
   --

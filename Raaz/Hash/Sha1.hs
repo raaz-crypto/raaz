@@ -1,34 +1,53 @@
 {-|
 
-The Sha1 hash.
+This module exposes combinators to compute the SHA1 hash and the
+associated HMAC for some common types.
 
 -}
-
 module Raaz.Hash.Sha1
-       ( SHA1, sha1
-       , sha1File, sourceSha1
-       -- * Encoding as binary/hexadecimal
+       (
+         -- * The SHA1 cryptographic hash
+         SHA1
+       , sha1, sha1File, sha1Source
+         -- * HMAC computation using SHA1
+       , hmacSha1, hmacSha1File, hmacSha1Source
        ) where
 
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as L
 
-import Raaz.Core.ByteSource
-import Raaz.Core.Primitives.Hash ( sourceHash, hash, hashFile )
+import Raaz.Core
 
-import Raaz.Hash.Sha1.Type     ( SHA1 )
-import Raaz.Hash.Sha1.Instance (      )
+import Raaz.Hash.Internal      ( hashSource, hash, hashFile       )
+import Raaz.Hash.Internal.HMAC ( hmacSource, hmac, hmacFile, HMAC )
+import Raaz.Hash.Sha1.Internal ( SHA1 )
 
--- | Compute the sha1 hash of the given byte source.
-sourceSha1 :: ByteSource src => src -> IO SHA1
-sourceSha1 = sourceHash
+
+
+-- | Compute the sha1 hash of an instance of `PureByteSource`. Use
+-- this for computing the sha1 hash of a strict or lazy byte string.
+sha1       :: PureByteSource src => src -> SHA1
+sha1       = hash
+{-# SPECIALIZE sha1 :: B.ByteString -> SHA1 #-}
+{-# SPECIALIZE sha1 :: L.ByteString -> SHA1 #-}
+
 
 -- | Compute the sha1 hash of a file.
 sha1File   :: FilePath -> IO SHA1
 sha1File   = hashFile
 
--- | Compute the sha1 hash of a pure byte source.
-sha1       :: PureByteSource src => src -> SHA1
-sha1       = hash
-{-# SPECIALIZE sha1 :: B.ByteString -> SHA1 #-}
-{-# SPECIALIZE sha1 :: L.ByteString -> SHA1 #-}
+-- | Compute the sha1 hash of a general byte source.
+sha1Source :: ByteSource src => src -> IO SHA1
+sha1Source = hashSource
+
+-- | Compute the message authentication code using hmac-sha1.
+hmacSha1 :: PureByteSource src  => Key (HMAC SHA1) -> src -> HMAC SHA1
+hmacSha1 = hmac
+
+-- | Compute the message authentication code for a file.
+hmacSha1File :: Key (HMAC SHA1) -> FilePath -> IO (HMAC SHA1)
+hmacSha1File = hmacFile
+
+-- | Compute the message authetication code for a generic byte source.
+hmacSha1Source :: ByteSource src => Key (HMAC SHA1) -> src -> IO (HMAC SHA1)
+hmacSha1Source = hmacSource

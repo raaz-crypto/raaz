@@ -149,7 +149,7 @@ twistMonoidValue (TwistRF _ m) =  m
 {-# INLINE twistMonoidValue #-}
 
 instance Functor f => Functor (TwistRF f m) where
-  fmap f (TwistRF x m) = TwistRF (fmap f x) $ m
+  fmap f (TwistRF x m) = TwistRF (fmap f x) m
 
 -- Proof of functor laws.
 --

@@ -6,7 +6,6 @@ The memory subsystem associated with raaz.
 
 {-# LANGUAGE DefaultSignatures          #-}
 {-# LANGUAGE TypeFamilies               #-}
-{-# LANGUAGE ForeignFunctionInterface   #-}
 {-# LANGUAGE GADTs                      #-}
 {-# LANGUAGE RankNTypes                 #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
@@ -19,11 +18,13 @@ module Raaz.Core.Memory
 
        -- ** Memory monads
          MonadMemory(..)
-       , MemoryM, MT, runMT, execute, getMemory, liftSubMT
+       , MT, execute, getMemory, liftSubMT
+       -- , MemoryM, runMT
        , allocate
        -- ** Memory elements.
-       , Memory(..), Initialisable(..), Extractable(..), modify
-       -- , withMemory, withSecureMemory , copyMemory
+       , Memory(..), copyMemory
+       , Initialisable(..), Extractable(..), modify
+       -- , withMemory, withSecureMemory
        -- *** Some basic memory elements.
        , MemoryCell, withCell
        -- ** Memory allocation
@@ -94,11 +95,7 @@ class (Monad m, MonadIO m) => MonadMemory m where
 -- @a@. All the actions are performed on a single memory element and
 -- hence the side effects persist. It is analogues to the @ST@
 -- monad.
-newtype MT mem a = MT { unMT :: (mem -> IO a) }
-
--- | Run the memory thread to obtain a memory action.
-runMT :: Memory mem => MT mem a -> MemoryM a
-runMT mem = MemoryM $ \ runner -> runner mem
+newtype MT mem a = MT { unMT :: mem -> IO a }
 
 -- | Given an memory thread
 allocate :: LengthUnit bufSize => bufSize -> (Pointer -> MT mem a) -> MT mem a
@@ -147,7 +144,7 @@ instance Memory mem => MonadMemory (MT mem) where
   securely   = withSecureMemory . unMT
   insecurely = withMemory       . unMT
 
-
+{-
 -- | A runner of a memory state thread.
 type    Runner mem b = MT mem b -> IO b
 
@@ -177,6 +174,12 @@ instance MonadMemory MemoryM  where
   securely   mem = unMemoryM mem $ securely
   insecurely mem = unMemoryM mem $ insecurely
 
+
+-- | Run the memory thread to obtain a memory action.
+runMT :: Memory mem => MT mem a -> MemoryM a
+runMT mem = MemoryM $ \ runner -> runner mem
+
+-}
 ------------------------ A memory allocator -----------------------
 
 type ALIGNMonoid = Sum ALIGN

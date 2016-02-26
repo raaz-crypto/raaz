@@ -2,7 +2,7 @@
 {-# LANGUAGE DefaultSignatures #-}
 -- | Module define byte sources.
 module Raaz.Core.ByteSource
-       ( ByteSource(..), fill
+       ( ByteSource(..), fill, processChunks
        , InfiniteSource(..), slurp
        , PureByteSource
        , FillResult(..)
@@ -11,6 +11,7 @@ module Raaz.Core.ByteSource
 
 import           Control.Applicative
 import           Control.Monad        (liftM)
+import           Control.Monad.IO.Class
 import qualified Data.ByteString      as B
 import qualified Data.ByteString.Lazy as L
 import           Data.Monoid
@@ -84,6 +85,20 @@ slurp :: ( LengthUnit len
        -> Pointer
        -> IO src
 slurp = slurpBytes . inBytes
+
+-- | Process data from a source in chunks of a particular size.
+processChunks :: ( MonadIO m, LengthUnit chunkSize, ByteSource src)
+              => m a                 -- action on a complete chunk,
+              -> (BYTES Int -> m b)  -- action on the last partial chunk,
+              -> src                 -- the source
+              -> chunkSize           -- size of the chunksize
+              -> Pointer             -- buffer to fill the chunk in
+              -> m b
+processChunks mid end source csz ptr = go source
+  where fillChunk src = liftIO $ fill csz src ptr
+        step src      = mid >> go src
+        go src        = fillChunk src >>= withFillResult step end
+
 
 -- | A byte source src is pure if filling from it does not have any
 -- other side effect on the state of the byte source. Formally, two

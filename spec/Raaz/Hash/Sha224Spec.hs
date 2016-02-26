@@ -11,39 +11,22 @@ import Test.Hspec.QuickCheck
 import Test.QuickCheck
 
 import Data.ByteString.Char8
-import Raaz.Core as RC
 import Raaz.Hash.Sha224.Internal
 import Generic.EndianStore
 import qualified Generic.Hash as GH
 import Arbitrary
 
-import Data.Word
 instance Arbitrary SHA224 where
   arbitrary = SHA224 <$> arbitraryVector 7
 
 hashesTo :: ByteString -> SHA224 -> Spec
 hashesTo = GH.hashesTo
 
-pad     :: BITS Word64 -> ByteString
-padLen  :: BITS Word64 -> BYTES Int
-blockSz :: BYTES Int
-
-
-pad     = padding   (undefined :: SHA224)
-padLen  = padLength (undefined :: SHA224)
-blockSz = blockSize (undefined :: SHA224)
-
 spec :: Spec
 spec =  do
 
   prop "store followed by load returns original value" $ \ (x :: SHA224) ->
     storeAndThenLoad x `shouldReturn` x
-
-  prop "checks that the padding string has the same length as padLength" $
-    \ w -> padLen w == (RC.length $ pad w)
-
-  prop "length after padding should be an integral multiple of block size" $
-    \ w -> (padLen w + bitsQuot w) `rem` blockSz == 0
 
   --
   -- Some unit tests

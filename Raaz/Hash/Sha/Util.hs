@@ -1,64 +1,86 @@
 {-# LANGUAGE TypeFamilies               #-}
-
+{-# LANGUAGE FlexibleContexts           #-}
 module Raaz.Hash.Sha.Util
-       ( shaPadLength, shaPadding
+       ( shaImplementation
+       , length64Write
+       , length128Write
+       , Compressor
        ) where
 
-import Data.ByteString              ( ByteString, singleton )
+import Control.Monad.IO.Class
 import Data.Monoid                  ( (<>)      )
 import Data.Word
-
-import Prelude              hiding  ( length, replicate )
-
+import Foreign.Storable
 
 import Raaz.Core
--- import Raaz.Core.Primitives
--- import Raaz.Core.Types
--- import Raaz.Core.Util.ByteString ( replicate )
-
--- The padding used by sha family of hashes is as follows
---
--- 1. append a 1 to the bit stream
---
--- 2. In the current block if there is enough space for storing the
--- message length, then append the message length in big endian at the
--- end of the block and fill the rest with zeros. Otherwise have an
--- extra block and do the above.
---
--- Since we handle messages in bytes instead of bits we invariably
--- have to append first a byte with 1 as the MSB and follow the above
--- procedure.
+import Raaz.Core.Write
+import Raaz.Hash.Internal
 
 
-firstPadByte :: Word8
-firstPadByte = 0x80
+-- | The type alias for the raw compressor function.
+type Compressor = Pointer  -- ^ The buffer to compress
+                -> Int     -- ^ The number of blocks to compress
+                -> Pointer -- ^ The cell memory containing the hash
+                -> IO ()
 
--- | This computes the padding length for the sha family of hashes.
-shaPadLength :: Primitive prim
-          => BYTES Int      -- ^ The bytes need to encode the
-                            -- message length
-          -> prim           -- ^ The primitive
-          -> BITS Word64    -- ^ The length of the message
-          -> BYTES Int
-{-# INLINEABLE shaPadLength #-}
-shaPadLength lenSize h l
-  | r >= lenSize + 1 = r
-  | otherwise        = r + blockSize h
-  where lb = bitsQuot l `rem` blockSize h
-        r  = blockSize h - lb
+-- | Creates an implementation for a sha hash given the compressor and
+-- the length writer.
+shaImplementation :: ( Primitive h
+                     , Storable h
+                     , Initialisable (HashMemory h) ()
+                     )
+                  => Compressor
+                  -> (BITS Word64 -> Write)
+                  -> HashI h (HashMemory h)
+shaImplementation comp lenW = HashI {
+  compress      = shaCompress comp,
+  compressFinal = shaCompressFinal undefined lenW comp
+  }
 
--- | This computes the padding for the sha family of hashes.
-shaPadding :: Primitive prim
-           => BYTES Int      -- ^ The bytes need to encode the
-                             -- message length
-           -> prim           -- ^ The primitive
-           -> BITS Word64    -- ^ The length of the message
-           -> ByteString
-{-# INLINEABLE shaPadding #-}
-shaPadding lenSize prim (BITS lBits) =  singleton firstPadByte
-                                     <> replicate zeros 0
-                                     <> lPad
-     where pLen  = shaPadLength lenSize prim (BITS lBits)
-           lPad  = toByteString l
-           l     = BITS $ bigEndian lBits
-           zeros = pLen - 1 - 8
+
+-- | The generic compress function for the sha family of hashes.
+shaCompress :: Primitive h
+            => Compressor -- ^ raw compress function.
+            -> Pointer    -- ^ buffer pointer
+            -> BLOCKS h   -- ^ number of blocks
+            -> MT (HashMemory h) ()
+shaCompress comp ptr nblocks = do
+  liftSubMT  hashCell $ withCell $ comp ptr $ fromEnum nblocks
+  updateLength nblocks
+
+-- | The compressor for the last function.
+shaCompressFinal :: Primitive h
+                  => h
+                  -> (BITS Word64 -> Write) -- ^ the length writer
+                  -> Compressor             -- ^ the raw compressor
+                  -> Pointer                -- ^ the buffer
+                  -> BYTES Int              -- ^ the message length
+                  -> MT (HashMemory h) ()
+shaCompressFinal h lenW comp ptr nbytes = do
+  updateLength nbytes
+  totalBits <- extractLength
+  let pad       = paddedMesg (lenW totalBits) h nbytes
+      blocks    = atMost (bytesToWrite pad) `asTypeOf` blocksOf 1 h
+    in do liftIO $ unsafeWrite pad ptr
+          liftSubMT hashCell $ withCell $ comp ptr $ fromEnum blocks
+
+-- | The length encoding that uses 64-bits.
+length64Write :: BITS Word64 ->  Write
+length64Write (BITS w) = write $ bigEndian w
+
+-- | The length encoding that uses 128-bits.
+length128Write :: BITS Word64 -> Write
+length128Write w = writeStorable (0 :: Word64) <> length64Write w
+
+-- | The padding to be used
+paddedMesg :: Primitive h
+           => Write        -- ^ The length encoding
+           -> h            -- ^ The hash
+           -> BYTES Int    -- ^ The message length
+           -> Write
+paddedMesg lenW h msgLen = start <> zeros <> lenW
+   where start      = skipWrite msgLen <> writeStorable (0x80 :: Word8)
+         zeros      = writeBytes    0    sz
+         totalBytes = bytesToWrite start + bytesToWrite lenW
+         sz         = inBytes (atLeast totalBytes `asTypeOf` blocksOf 1 h)
+                    - totalBytes

@@ -12,7 +12,11 @@ module Raaz.Core.Types.Equality
 
 import           Control.Monad               ( liftM )
 import           Data.Bits
-import           Data.Monoid
+
+#if !MIN_VERSION_base(4,8,0)
+import Data.Monoid  -- Import only when base < 4.8.0
+#endif
+
 import qualified Data.Vector.Generic         as G
 import qualified Data.Vector.Generic.Mutable as GM
 import           Data.Vector.Unboxed         ( MVector(..), Vector, Unbox )
@@ -139,9 +143,9 @@ instance Equality Word64 where
       w21 :: Word
       w22 :: Word
       w11 = fromIntegral $ w1 `shiftR` 32
-      w12 = fromIntegral $ w1
+      w12 = fromIntegral w1
       w21 = fromIntegral $ w2 `shiftR` 32
-      w22 = fromIntegral $ w2
+      w22 = fromIntegral w2
 #else
   eq w1 w2 = Result $ fromIntegral $ xor w1 w2
 #endif

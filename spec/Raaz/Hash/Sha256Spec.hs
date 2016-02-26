@@ -13,35 +13,24 @@ import Test.QuickCheck
 import Data.ByteString.Char8
 import Data.String
 import Raaz.Core as RC
+import Raaz.Hash
 import Raaz.Hash.Sha256.Internal
-import Raaz.Hash.HMAC
 import Generic.EndianStore
 import Generic.Utils
 import qualified Generic.Hash as GH
 import Arbitrary
 
-import Data.Word
 instance Arbitrary SHA256 where
   arbitrary = SHA256 <$> arbitraryVector 8
 
 hashesTo :: ByteString -> SHA256 -> Spec
 hashesTo = GH.hashesTo
 
-pad     :: BITS Word64 -> ByteString
-padLen  :: BITS Word64 -> BYTES Int
-blockSz :: BYTES Int
-
-
-hmacsTo  :: ByteString -> HMAC SHA256 -> HMACKey SHA256 -> Spec
+hmacsTo  :: ByteString -> HMAC SHA256 -> Key (HMAC SHA256) -> Spec
 hmacsTo  = GH.hmacsTo
 
-repeated :: HMACKey SHA256 -> Int -> HMACKey SHA256
+repeated :: Key (HMAC SHA256) -> Int -> Key (HMAC SHA256)
 repeated = GH.repeated
-
-
-pad     = padding   (undefined :: SHA256)
-padLen  = padLength (undefined :: SHA256)
-blockSz = blockSize (undefined :: SHA256)
 
 spec :: Spec
 spec =  do
@@ -49,11 +38,6 @@ spec =  do
   prop "store followed by load returns original value" $ \ (x :: SHA256) ->
     storeAndThenLoad x `shouldReturn` x
 
-  prop "checks that the padding string has the same length as padLength" $
-    \ w -> padLen w == (RC.length $ pad w)
-
-  prop "length after padding should be an integral multiple of block size" $
-    \ w -> (padLen w + bitsQuot w) `rem` blockSz == 0
   --
   -- Some unit tests
   --
