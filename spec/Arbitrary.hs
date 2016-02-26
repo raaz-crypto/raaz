@@ -2,17 +2,17 @@
 -- files. This has some orphan instance declarations.
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-
+{-# LANGUAGE DataKinds            #-}
 module Arbitrary where
 
-import Control.Applicative
-import Data.Vector.Unboxed
-import Test.QuickCheck
-import Test.QuickCheck.Monadic
-import Data.ByteString as B
-import Foreign.Storable
-
-import Raaz.Core
+import           Control.Applicative
+import qualified Data.Vector.Unboxed as V
+import           GHC.TypeLits
+import           Test.QuickCheck
+import           Test.QuickCheck.Monadic
+import           Data.ByteString as B
+import           Foreign.Storable
+import           Raaz.Core
 
 instance Arbitrary w => Arbitrary (LE w) where
   arbitrary = littleEndian <$> arbitrary
@@ -33,9 +33,17 @@ instance Arbitrary ALIGN where
 instance Arbitrary ByteString where
   arbitrary = pack <$> listOf arbitrary
 
+instance (V.Unbox a, Arbitrary a, SingI dim)
+         => Arbitrary (Tuple dim a) where
+  arbitrary = g
+    where gTup   :: (V.Unbox a, SingI dim) => Gen (Tuple dim a)
+                                           -> Tuple dim a
+          gTup _ = undefined
+          g      = fmap fromList $ vector $ dimension $ gTup g
+
 -- | Generate an arbitrary unboxed vector.
-arbitraryVector :: (Arbitrary a, Unbox a)=> Int -> Gen (Vector a)
-arbitraryVector = fmap fromList . vector
+arbitraryVector :: (Arbitrary a, V.Unbox a)=> Int -> Gen (V.Vector a)
+arbitraryVector = fmap V.fromList . vector
 
 genStorable :: (Storable a, Encodable a) => Gen a
 genStorable = gen
