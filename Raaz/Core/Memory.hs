@@ -23,8 +23,9 @@ module Raaz.Core.Memory
        -- , MemoryM, runMT
        , allocate
        -- ** Memory elements.
-       , Memory(..), Initialisable(..), Extractable(..), modify
-       -- , withMemory, withSecureMemory , copyMemory
+       , Memory(..), copyMemory,
+       , Initialisable(..), Extractable(..), modify
+       -- , withMemory, withSecureMemory
        -- *** Some basic memory elements.
        , MemoryCell, withCell
        -- ** Memory allocation
