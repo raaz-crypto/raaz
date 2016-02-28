@@ -2,8 +2,6 @@
 module Raaz.Core.MemorySpec where
 
 import Common
-import Raaz.Core.Memory
-
 
 spec :: Spec
 spec = do prop "store followed by read gives identical values"

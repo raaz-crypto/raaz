@@ -4,8 +4,6 @@
 module Raaz.Core.Encode.Base16Spec where
 
 import Common
-import Numeric
-import Data.ByteString( singleton )
 
 spec :: Spec
 spec = do
