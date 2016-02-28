@@ -41,10 +41,6 @@ instance (V.Unbox a, Arbitrary a, SingI dim)
           gTup _ = undefined
           g      = fmap unsafeFromList $ vector $ dimension $ gTup g
 
--- | Generate an arbitrary unboxed vector.
-arbitraryVector :: (Arbitrary a, V.Unbox a)=> Int -> Gen (V.Vector a)
-arbitraryVector = fmap V.fromList . vector
-
 genStorable :: (Storable a, Encodable a) => Gen a
 genStorable = gen
   where proxy    :: Gen a -> a
