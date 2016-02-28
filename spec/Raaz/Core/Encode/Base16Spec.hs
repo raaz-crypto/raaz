@@ -3,21 +3,9 @@
 {-# LANGUAGE OverloadedStrings   #-}
 module Raaz.Core.Encode.Base16Spec where
 
-
-import Control.Applicative
-import Data.ByteString
-import Data.String
-import Data.Word
+import Common
 import Numeric
-import Test.Hspec
-import Test.Hspec.QuickCheck
-import Test.QuickCheck
-
-import Raaz.Core.Encode
-import Arbitrary()
-
-instance Arbitrary Base16 where
-  arbitrary =  (encodeByteString . pack) <$> listOf arbitrary
+import Data.ByteString( singleton )
 
 spec :: Spec
 spec = do

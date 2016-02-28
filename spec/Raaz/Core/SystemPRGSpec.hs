@@ -1,14 +1,10 @@
 module Raaz.Core.SystemPRGSpec where
 
-import Control.Applicative
-import Data.Word
-import Test.Hspec
-
-import Raaz.Core.Random
+import Common
 
 spec :: Spec
-spec = do it "system prg should return two different words for two distinct calls" $ do
-            compareWords `shouldReturn` False
+spec = it "system prg should return different words on distinct calls"
+       $ compareWords `shouldReturn` False
   where randomWord :: SystemPRG -> IO Word
         randomWord  = random
         compareWords = do systemPRG <- newPRG ()

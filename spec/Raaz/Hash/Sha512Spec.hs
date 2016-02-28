@@ -5,33 +5,17 @@
 
 module Raaz.Hash.Sha512Spec where
 
-import Control.Applicative
-import Test.Hspec
-import Test.Hspec.QuickCheck
-import Test.QuickCheck
+import           Prelude hiding (replicate)
 
-import Data.ByteString.Char8 (ByteString)
-import Data.String
-import Raaz.Core as RC
-import Raaz.Hash
-import Raaz.Hash.Sha512.Internal
-import Generic.EndianStore
-import Generic.Utils
-import qualified Generic.Hash as GH
-import Arbitrary()
+import           Common
+import qualified Common.Hash as CH
 
-instance Arbitrary SHA512 where
-  arbitrary = SHA512 <$> arbitrary
 
 hashesTo :: ByteString -> SHA512 -> Spec
-hashesTo = GH.hashesTo
+hashesTo = CH.hashesTo
 
 hmacsTo  :: ByteString -> HMAC SHA512 -> Key (HMAC SHA512) -> Spec
-hmacsTo  = GH.hmacsTo
-
-repeated :: Key (HMAC SHA512) -> Int -> Key (HMAC SHA512)
-repeated = GH.repeated
-
+hmacsTo  = CH.hmacsTo
 
 spec :: Spec
 spec =  do
@@ -68,7 +52,7 @@ hmacSpec = do
   with ("0b" `repeated` 20) $ "Hi There" `hmacsTo`
     "87aa7cdea5ef619d4ff0b4241a1d6cb02379f4e2ce4ec2787ad0b30545e17cdedaa833b7d6b8a702038b274eaea3f4e4be9d914eeb61f1702e696c203a126854"
 
-  with ("aa" `repeated` 20) $ (RC.replicate (50 :: BYTES Int) 0xdd) `hmacsTo`
+  with ("aa" `repeated` 20) $ (replicate (50 :: BYTES Int) 0xdd) `hmacsTo`
     "fa73b0089d56a284efb0f0756c890be9b1b5dbdd8ee81a3655f83e33b2279d39bf3e848279a722c806b485a47e67c807b946a337bee8942674278859e13292fb"
 
   with ("aa" `repeated` 131) $ "Test Using Larger Than Block-Size Key - Hash Key First" `hmacsTo`

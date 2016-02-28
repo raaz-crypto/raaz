@@ -5,34 +5,16 @@
 
 module Raaz.Hash.Blake256Spec where
 
-import Control.Applicative
-import Test.Hspec
-import Test.Hspec.QuickCheck
-import Test.QuickCheck
+import           Common
 
-import Data.ByteString.Char8
-import Raaz.Core as RC
--- import Raaz.Hash.Blake256.Internal
-import Generic.EndianStore
-import qualified Generic.Hash as GH
-import Arbitrary
 {-
-import Data.Word
-instance Arbitrary BLAKE256 where
-  arbitrary = BLAKE256 <$> arbitraryVector 8
+import qualified Common.Hash as CH
+
 
 hashesTo :: ByteString -> BLAKE256 -> Spec
 hashesTo = GH.hashesTo
-
-pad     :: BITS Word64 -> ByteString
-padLen  :: BITS Word64 -> BYTES Int
-blockSz :: BYTES Int
-
-
-pad     = padding   (undefined :: BLAKE256)
-padLen  = padLength (undefined :: BLAKE256)
-blockSz = blockSize (undefined :: BLAKE256)
 -}
+
 spec :: Spec
 spec = it "Blake tests" $ pendingWith "Blake"
 {-

@@ -193,17 +193,21 @@ test-Suite spec
   hs-source-dirs: spec
   main-is: Spec.hs
   ghc-options: -Wall
-  other-modules: Arbitrary
-               , Generic.EndianStore
+  other-modules: Common
+               , Common.Hash
+               , Common.Instances
+               , Common.Utils
+               , Raaz.Core.Encode.Base16Spec
+               , Raaz.Core.MemorySpec
                , Raaz.Core.Types.WordSpec
                , Raaz.Core.Util.ByteStringSpec
-               , Raaz.Core.Encode.Base16Spec
                , Raaz.Hash.Sha1Spec
                , Raaz.Hash.Sha224Spec
                , Raaz.Hash.Sha256Spec
                , Raaz.Hash.Sha384Spec
                , Raaz.Hash.Sha512Spec
                , Raaz.Hash.Blake256Spec
+
   -- if os(linux)
   --    cc-options: -Wall -Werror -O3 -DRAAZ_HAVE_GCC
   -- else
