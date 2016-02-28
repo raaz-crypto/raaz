@@ -39,15 +39,11 @@ blocks prim = B.concat <$> listOf singleBlock
   where singleBlock = pack <$> vector sz
         BYTES sz    = blockSize prim
 
+
 -- | Run a property with a given generator.
 feed :: (Testable pr, Show a)
      => Gen a -> (a -> IO pr) -> Property
 feed gen pr = monadicIO $ pick gen >>= (run . pr)
-
--- | Run a property with an instance of arbitrary.
-feedArbitrary :: (Testable pr, Arbitrary a, Show a)
-              => (a -> IO pr) -> Property
-feedArbitrary = feed arbitrary
 
 repeated :: Monoid m => m -> Int -> m
 repeated m n = mconcat $ replicate n m
