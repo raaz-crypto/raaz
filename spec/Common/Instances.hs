@@ -31,7 +31,7 @@ instance Arbitrary ALIGN where
   arbitrary = toEnum <$> arbitrary
 
 instance Arbitrary ByteString where
-  arbitrary = pack <$> listOf arbitrary
+  arbitrary = pack <$> arbitrary
 
 instance (V.Unbox a, Arbitrary a, SingI dim)
          => Arbitrary (Tuple dim a) where
