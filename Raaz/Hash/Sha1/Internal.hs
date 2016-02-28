@@ -19,21 +19,11 @@ instance etc.
 
 module Raaz.Hash.Sha1.Internal (SHA1(..)) where
 
-
-#if !MIN_VERSION_base(4,8,0)
-import           Control.Applicative
-#endif
-
 import           Data.String
-import qualified Data.Vector.Unboxed                  as VU
 import           Data.Word
-import           Data.Typeable       ( Typeable     )
-import           Foreign.Ptr         ( castPtr      )
 import           Foreign.Storable    ( Storable(..) )
 
 import           Raaz.Core
-import           Raaz.Core.Parse.Applicative
-import           Raaz.Core.Write
 import           Raaz.Hash.Sha.Util
 
 import           Raaz.Hash.Internal
