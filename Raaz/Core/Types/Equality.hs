@@ -73,6 +73,10 @@ instance GM.MVector MVector Result where
   basicUnsafeCopy (MV_Result v1) (MV_Result v2) = GM.basicUnsafeCopy v1 v2
   basicUnsafeGrow (MV_Result v)   n             = MV_Result `liftM` GM.basicUnsafeGrow v n
 
+#if MIN_VERSION_vector(0,11,0)
+  basicInitialize (MV_Result v)               = GM.basicInitialize v
+#endif
+
 
 
 instance G.Vector Vector Result where

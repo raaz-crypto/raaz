@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP                        #-}
 {-# LANGUAGE ForeignFunctionInterface   #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
@@ -225,6 +226,9 @@ instance Unbox w => GVM.MVector MVector (LE w) where
   basicUnsafeCopy (MV_LE v1) (MV_LE v2) = GVM.basicUnsafeCopy v1 v2
   basicUnsafeGrow (MV_LE v)   n         = MV_LE `liftM` GVM.basicUnsafeGrow v n
 
+#if MIN_VERSION_vector(0,11,0)
+  basicInitialize (MV_LE v)           = GVM.basicInitialize v
+#endif
 
 instance Unbox w => GV.Vector Vector (LE w) where
   {-# INLINE basicUnsafeFreeze #-}
@@ -270,6 +274,11 @@ instance Unbox w => GVM.MVector MVector (BE w) where
   basicUnsafeCopy (MV_BE v1) (MV_BE v2) = GVM.basicUnsafeCopy v1 v2
   basicUnsafeGrow (MV_BE v)   n         = MV_BE `liftM` GVM.basicUnsafeGrow v n
 
+#if MIN_VERSION_vector(0,11,0)
+  basicInitialize (MV_BE v)           = GVM.basicInitialize v
+#endif
+
+
 
 instance Unbox w => GV.Vector Vector (BE w) where
   {-# INLINE basicUnsafeFreeze #-}
@@ -286,4 +295,3 @@ instance Unbox w => GV.Vector Vector (BE w) where
 
   basicUnsafeCopy (MV_BE mv) (V_BE v) = GV.basicUnsafeCopy mv v
   elemseq _ (BE x)                    = GV.elemseq (undefined :: Vector a) x
---}
