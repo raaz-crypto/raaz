@@ -2,19 +2,6 @@ language: c
 sudo: false
 notifications:
   irc: "irc.freenode.net#haskell-raaz"
-addons:
-  apt:
-    sources:
-      - hvr-ghc
-    packages:
-      - hlint
-      - cabal-install-1.18
-      - cabal-install-1.22
-      - cabal-install-head
-      - ghc-7.8.4
-      - ghc-7.10.2
-      - ghc-7.10.3
-      - ghc-head
 
 # Setting up caches
 before-cache:
@@ -27,37 +14,65 @@ cache:
     - $HOME/.cabal/packages
 
 fast_finish: true
-# # To notify immediately about it when a job of a build fails.
-# env:
-#   - STACKVER=lts-2   GHCVER=7.8.4 CABALVER=1.18
-#   - STACKVER=lts-3   GHCVER=7.10.2 CABALVER=1.22
-#   - STACKVER=lts-4   GHCVER=7.10.3 CABALVER=1.22
-#   - STACKVER=lts-5   GHCVER=7.10.3 CABALVER=1.22
-#   - GHCVER=head CABALVER=head # Build against haskell head version.
-#   - HLINT="yes"
 
 matrix:
   include:
+    #
     # Linux builds
+    #
+    # Stackage LTS-2
     - os: linux
       env: STACKVER=lts-2   GHCVER=7.8.4 CABALVER=1.18
+      addons:
+        apt:
+          packages: [ghc-7.8.4, cabal-install-1.18]
+          sources: [hvr-ghc]
+    #
+    # Stackage LTS-3
+    #
     - os: linux
       env: STACKVER=lts-3   GHCVER=7.10.2 CABALVER=1.22
+      addons:
+        apt:
+          packages: [ghc-7.10.2, cabal-install-1.22]
+          sources:  [hvr-ghc]
+    #
+    # Stackage LTS-4
+    #
     - os: linux
       env: STACKVER=lts-4   GHCVER=7.10.3 CABALVER=1.22
+      addons:
+        apt:
+          packages: [ghc-7.10.3, cabal-install-1.22]
+          sources:  [hvr-ghc]
+    #
+    # Stackage LTS-5
+    #
     - os: linux
       env: STACKVER=lts-5   GHCVER=7.10.3 CABALVER=1.22
+      addons:
+        apt:
+          packages: [ghc-7.10.3, cabal-install-1.22]
+          sources:  [hvr-ghc]
+    #
+    # Stackage GHC-Head
+    #
     - os: linux
-      env: GHCVER=head CABALVER=head # Build against haskell head version.
+      env: GHCVER=head CABALVER=head
+      addons:
+        apt:
+          packages: [ghc-head, cabal-install-head]
+          sources:  [hvr-ghc]
     - os: linux
       env: HLINT="yes"
+      addons:
+        apt: { packages: [hlint] }
     # Other builds
     - os: osx
   allow_failures:
     - env: HLINT="yes"
     - env: GHCVER=head CABALVER=head
     - os: osx
-
 before_install:
  - if [ "$HLINT" == "yes" ]; then
       hlint "--ignore=Parse error" Raaz;
