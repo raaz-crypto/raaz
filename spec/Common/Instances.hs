@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP                  #-}
 {-# LANGUAGE DataKinds            #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
@@ -33,13 +34,26 @@ instance Arbitrary ALIGN where
 instance Arbitrary ByteString where
   arbitrary = pack <$> arbitrary
 
+#if !MIN_VERSION_base(4,7,0)
 instance (V.Unbox a, Arbitrary a, SingI dim)
          => Arbitrary (Tuple dim a) where
+
   arbitrary = g
-    where gTup   :: (V.Unbox a, SingI dim) => Gen (Tuple dim a)
-                                           -> Tuple dim a
+    where g = fmap unsafeFromList $ vector $ dimension $ gTup g
+          gTup   :: (V.Unbox a, SingI dim)
+                 => Gen (Tuple dim a)
+                 -> Tuple dim a
           gTup _ = undefined
-          g      = fmap unsafeFromList $ vector $ dimension $ gTup g
+#else
+instance (V.Unbox a, Arbitrary a, KnownNat dim)
+         => Arbitrary (Tuple dim a) where
+  arbitrary = g
+    where g = fmap unsafeFromList $ vector $ dimension $ gTup g
+          gTup   :: (V.Unbox a, KnownNat dim)
+                 => Gen (Tuple dim a)
+                 -> Tuple dim a
+          gTup _ = undefined
+#endif
 
 ---------------   Arbitrary instances for Hashes ----------------
 
