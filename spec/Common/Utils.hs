@@ -1,7 +1,12 @@
+{-# LANGUAGE CPP #-}
 module Common.Utils where
 
 import Common.Imports hiding (length, replicate)
+
+#if !MIN_VERSION_base(4,8,0)
 import Data.Monoid
+#endif
+
 import Data.ByteString as B  (concat)
 
 -- | Run a spec with a give key.
