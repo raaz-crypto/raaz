@@ -24,7 +24,7 @@ import           Data.Bits                 (xor)
 import           Data.ByteString.Char8     (ByteString)
 import qualified Data.ByteString           as B
 import qualified Data.ByteString.Lazy      as L
-import           Data.Monoid               ( (<>), Monoid )
+import           Data.Monoid
 import           Data.String
 import           Foreign.Ptr               ( castPtr      )
 import           Foreign.Storable          ( Storable(..) )

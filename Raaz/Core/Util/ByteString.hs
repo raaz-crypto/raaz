@@ -27,7 +27,7 @@ import           Foreign.Storable   (peek, Storable)
 
 import           System.IO.Unsafe   (unsafePerformIO)
 
-import           Raaz.Core.Types
+import           Raaz.Core.Types.Pointer
 
 -- | A typesafe length for Bytestring
 length :: ByteString -> BYTES Int

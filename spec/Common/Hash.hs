@@ -1,14 +1,12 @@
 -- Generic tests for hash.
 
-module Generic.Hash where
+module Common.Hash
+       ( hashesTo
+       , hmacsTo
+       ) where
 
-import Data.ByteString hiding (replicate)
-import Data.Monoid
-import Test.Hspec
-
-import Generic.Utils
-import Raaz.Core hiding ( replicate)
-import Raaz.Hash
+import Common.Imports  hiding (replicate)
+import Common.Utils
 
 --
 -- For unit tests for hash we have the following idiom
@@ -39,7 +37,3 @@ hmacsTo str hm key = it mesg $ hmac key str `shouldBe` hm
                              ,  "hmacs to"
                              ,  shortened $ show hm
                              ]
-
-
-repeated :: Monoid m => m -> Int -> m
-repeated m n = mconcat $ replicate n m

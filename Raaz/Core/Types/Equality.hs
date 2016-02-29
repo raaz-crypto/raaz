@@ -38,8 +38,8 @@ isSuccessful = (==0) . unResult
 instance Monoid Result where
   mempty      = Result 0
   mappend a b = Result (unResult a .|. unResult b)
-
-
+  {-# INLINE mempty  #-}
+  {-# INLINE mappend #-}
 
 newtype instance MVector s Result = MV_Result (MVector s Word)
 newtype instance Vector    Result = V_Result  (Vector Word)
@@ -72,6 +72,10 @@ instance GM.MVector MVector Result where
   basicUnsafeReplicate n     (Result x)         = MV_Result `liftM` GM.basicUnsafeReplicate n x
   basicUnsafeCopy (MV_Result v1) (MV_Result v2) = GM.basicUnsafeCopy v1 v2
   basicUnsafeGrow (MV_Result v)   n             = MV_Result `liftM` GM.basicUnsafeGrow v n
+
+#if MIN_VERSION_vector(0,11,0)
+  basicInitialize (MV_Result v)               = GM.basicInitialize v
+#endif
 
 
 

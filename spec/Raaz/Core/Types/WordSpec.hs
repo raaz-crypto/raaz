@@ -1,16 +1,9 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 module Raaz.Core.Types.WordSpec where
 
+import Common
 import Data.ByteString as B
-import Arbitrary()
-import Data.Word
 import Data.Bits
-import Test.Hspec
-import Test.Hspec.QuickCheck
-
-import Generic.EndianStore
-import Raaz.Core.Types
-import Raaz.Core.Encode
 
 
 msbFirst :: (Bits a, Integral a) => B.ByteString -> a

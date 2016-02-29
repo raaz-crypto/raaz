@@ -5,22 +5,11 @@
 
 module Raaz.Hash.Sha384Spec where
 
-import Control.Applicative
-import Test.Hspec
-import Test.Hspec.QuickCheck
-import Test.QuickCheck
-
-import Data.ByteString.Char8
-import Raaz.Hash.Sha384.Internal
-import Generic.EndianStore
-import qualified Generic.Hash as GH
-import Arbitrary
-
-instance Arbitrary SHA384 where
-  arbitrary = SHA384 <$> arbitraryVector 6
+import           Common
+import qualified Common.Hash as CH
 
 hashesTo :: ByteString -> SHA384 -> Spec
-hashesTo = GH.hashesTo
+hashesTo = CH.hashesTo
 
 spec :: Spec
 spec =  do
