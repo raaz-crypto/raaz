@@ -86,18 +86,16 @@ instance (V.Unbox a, Equality a) => Equality (Tuple dim a) where
 instance (V.Unbox a, Equality a) => Eq (Tuple dim a) where
   (==) = (===)
 
--- TODO: Currently mkTuple gives a runtime error. With some type
--- hackery one can do better than this.
-fromListP :: V.Unbox a => Sing dim -> [a] -> Tuple dim a
-fromListP sz xs | fromSing sz == len = Tuple $ V.fromList xs
-                | otherwise          = error "Wrong tuple"
-  where len = toInteger $ L.length xs
-
 -- | Construct a tuple out of the list. This function is unsafe and
 -- will result in run time error if the list is not of the correct
 -- dimension.
+
 unsafeFromList :: (V.Unbox a, SingI dim) => [a] -> Tuple dim a
-unsafeFromList = withSing fromListP
+unsafeFromList xs
+  | dimension tup == L.length xs = tup
+  | otherwise                    = wrongLengthMesg
+  where tup = Tuple $ V.fromList xs
+        wrongLengthMesg = error "tuple: unsafeFromList: wrong length"
 
 -- | Computes the initial fragment of a tuple. No length needs to be given
 -- as it is infered from the types.
