@@ -83,7 +83,7 @@ instance Hash SHA1 where
 ------------------- The portable C implementation ------------
 
 cPortable :: HashI SHA1 (HashMemory SHA1)
-cPortable = shaImplementation c_sha1_compress length64Write
+cPortable = portableC c_sha1_compress length64Write
 
 foreign import ccall unsafe
   "raaz/hash/sha1/portable.h raazHashSha1PortableCompress"

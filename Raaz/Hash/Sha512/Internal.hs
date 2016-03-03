@@ -56,7 +56,7 @@ instance Hash SHA512 where
 ------------------- The portable C implementation ------------
 
 cPortable :: HashI SHA512 (HashMemory SHA512)
-cPortable = shaImplementation c_sha512_compress length128Write
+cPortable = portableC c_sha512_compress length128Write
 
 foreign import ccall unsafe
   "raaz/hash/sha512/portable.h raazHashSha512PortableCompress"
