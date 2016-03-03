@@ -40,7 +40,7 @@ import Raaz.Core.Types
 -- the correctness of the other implementations for the same
 -- primitive. Apart from this, for production use, we have a
 -- recommended implementation.
-class Primitive p where
+class (Describable (Implementation p)) => Primitive p where
 
   -- | The block size.
   blockSize :: p -> BYTES Int
