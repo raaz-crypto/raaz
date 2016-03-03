@@ -115,6 +115,7 @@ library
                , Raaz.Core.Types.Tuple
                , Raaz.Core.Types.Equality
                , Raaz.Core.Types.Endian
+               , Raaz.Core.Types.Describe
                --
                -- Internal modules from Hash
                --
