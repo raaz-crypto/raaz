@@ -60,7 +60,7 @@ instance Hash SHA256 where
 
 -- | The portable C-implementation of sha256.
 cPortable :: HashI SHA256 (HashMemory SHA256)
-cPortable = shaImplementation c_sha256_compress length64Write
+cPortable = portableC c_sha256_compress length64Write
 
 foreign import ccall unsafe
   "raaz/hash/sha256/portable.h raazHashSha256PortableCompress"

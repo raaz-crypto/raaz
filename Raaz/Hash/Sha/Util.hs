@@ -1,7 +1,7 @@
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE FlexibleContexts           #-}
 module Raaz.Hash.Sha.Util
-       ( shaImplementation
+       ( shaImplementation, portableC
        , length64Write
        , length128Write
        , Compressor
@@ -29,13 +29,30 @@ shaImplementation :: ( Primitive h
                      , Storable h
                      , Initialisable (HashMemory h) ()
                      )
-                  => Compressor
+                  => String                   -- ^ Name
+                  -> String                   -- ^ Description
+                  -> Compressor
                   -> (BITS Word64 -> Write)
                   -> HashI h (HashMemory h)
-shaImplementation comp lenW = HashI {
-  compress      = shaCompress comp,
-  compressFinal = shaCompressFinal undefined lenW comp
-  }
+shaImplementation nam des comp lenW
+  = HashI { hashIName        = nam
+          , hashIDescription = des
+          , compress         = shaCompress comp
+          , compressFinal    = shaCompressFinal undefined lenW comp
+          }
+
+{-# INLINE shaImplementation #-}
+{-# INLINE portableC         #-}
+portableC :: ( Primitive h
+             , Storable h
+             , Initialisable (HashMemory h) ()
+             )
+          => Compressor
+          -> (BITS Word64 -> Write)
+          -> HashI h (HashMemory h)
+portableC = shaImplementation "portable-c-ffi"
+            "Implementation using portable C and Haskell FFI"
+
 
 
 -- | The generic compress function for the sha family of hashes.

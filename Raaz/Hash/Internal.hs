@@ -37,7 +37,10 @@ import           System.IO.Unsafe     (unsafePerformIO)
 
 import Raaz.Core
 
--- | The Hash implementation. Implementations should ensure the following.
+-------------------- Hash Implementations --------------------------
+
+-- | The Hash implementation. Implementations should ensure the
+-- following.
 --
 -- 1. The action @compress impl ptr blks@ should only read till the
 -- @blks@ offset starting at ptr and never write any data.
@@ -51,30 +54,51 @@ import Raaz.Core
 -- a payload should not modify the payload.
 --
 data HashI h m = HashI
-  { compress       :: Pointer -> BLOCKS h  -> MT m ()
+  { hashIName           :: String
+  , hashIDescription    :: String
+  , compress       :: Pointer -> BLOCKS h  -> MT m ()
                       -- ^ compress the blocks,
   , compressFinal  :: Pointer -> BYTES Int -> MT m ()
                       -- ^ pad and process the final bytes,
   }
 
+-- | The constraints that a memory used by a hash implementation
+-- should satisfy.
+type HashM h m = (Initialisable m (), Extractable m h)
+
+-- | Some implementation of a given hash. The existentially
+-- quantification allows us freedom to choose the best memory type
+-- suitable for each implementations.
+data SomeHashI h = forall m . HashM h m =>
+     SomeHashI (HashI h m)
+
+instance Describable (HashI h m) where
+  name        = hashIName
+  description = hashIDescription
+
+
+instance Describable (SomeHashI h) where
+  name         (SomeHashI hI) = name hI
+  description  (SomeHashI hI) = description hI
+
 
 -- | Certain hashes are essentially bit-truncated versions of other
 -- hashes. For example, SHA224 is obtained from SHA256 by dropping the
--- last 32-bits. This combinator can be used build an implementation of
--- truncated hash from the implementation of its parent hash.
+-- last 32-bits. This combinator can be used build an implementation
+-- of truncated hash from the implementation of its parent hash.
 truncatedI :: (BLOCKS htrunc -> BLOCKS h)
            -> (mtrunc        -> m)
            -> HashI h m -> HashI htrunc mtrunc
-truncatedI coerce unMtrunc (HashI{..}) = HashI comp compF
+truncatedI coerce unMtrunc (HashI{..})
+  = HashI { hashIName        = hashIName
+          , hashIDescription = hashIDescription
+          , compress         = comp
+          , compressFinal    = compF
+          }
   where comp  ptr = liftSubMT unMtrunc . compress ptr . coerce
         compF ptr = liftSubMT unMtrunc . compressFinal ptr
 
-
--- | Constraints that a memory used by a hash implementation should satisfy.
-type HashM h m = (Initialisable m (), Extractable m h)
-
-data SomeHashI h = forall m . HashM h m =>
-     SomeHashI (HashI h m)
+---------------------- The Hash class ---------------------------------
 
 -- | Type class capturing a cryptographic hash.
 class ( Primitive h
@@ -87,15 +111,8 @@ class ( Primitive h
   -- a multiple of the block size. This combinator computes the
   -- maximum size of padding that can be attached to a message.
   additionalPadBlocks :: h -> BLOCKS h
-{--
 
-data HashImplementation h = forall m . Memory m => HashImplementation (HashI h m)
--- | Get the implementation of a hash.
-implementation :: (Hash h, Memory m) => HashI h m -> Implementation h
-implementation = HashImplementation
-{-# INLINE implementation #-}
-
---}
+---------------------- Helper combinators --------------------------
 
 -- | Compute the hash of a pure byte source like, `B.ByteString`.
 hash :: ( Hash h, PureByteSource src )
@@ -174,11 +191,15 @@ completeHashing (HashI{..}) src =
   where bufSize             = atLeast l1Cache + 1
         totalSize           = bufSize + additionalPadBlocks undefined
 
--- | Computing hashes involves chunking the message into blocks and
--- compressing one block at a time. Usually this compression makes use
--- of the hash of the previous block and the length of the message
--- seen so far for compressing the current block. This memory element
--- helps keep track of these items.
+----------------------- Hash memory ----------------------------------
+
+-- | Computing cryptographic hashes usually involves chunking the
+-- message into blocks and compressing one block at a time. Usually
+-- this compression makes use of the hash of the previous block and
+-- the length of the message seen so far to compressing the current
+-- block. Most implementations therefore need to keep track of only
+-- hash and the length of the message seen so. This memory can be used
+-- in such situations.
 data HashMemory h =
   HashMemory
   { hashCell          :: MemoryCell h
