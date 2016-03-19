@@ -85,14 +85,20 @@ library
                  -- , Raaz.Hash.Blake256.Internal
                  , Raaz.Hash.Sha1
                  , Raaz.Hash.Sha1.Internal
+                 , Raaz.Hash.Sha1.Implementation.CPortable
                  , Raaz.Hash.Sha224
                  , Raaz.Hash.Sha224.Internal
+                 , Raaz.Hash.Sha224.Implementation.CPortable
                  , Raaz.Hash.Sha256
                  , Raaz.Hash.Sha256.Internal
+                 , Raaz.Hash.Sha256.Implementation.CPortable
                  , Raaz.Hash.Sha384
                  , Raaz.Hash.Sha384.Internal
+                 , Raaz.Hash.Sha384.Implementation.CPortable
                  , Raaz.Hash.Sha512
                  , Raaz.Hash.Sha512.Internal
+                 , Raaz.Hash.Sha512.Implementation.CPortable
+
 
                  --
                  -- Ciphers
@@ -138,6 +144,11 @@ library
                -- , Raaz.Hash.Sha384.CPortable
                -- , Raaz.Hash.Sha384.Type
                , Raaz.Hash.Sha.Util
+               , Raaz.Hash.Sha1.Recommendation
+               , Raaz.Hash.Sha256.Recommendation
+               , Raaz.Hash.Sha224.Recommendation
+               , Raaz.Hash.Sha384.Recommendation
+               , Raaz.Hash.Sha512.Recommendation
                -- , Raaz.Hash.Blake256.Instance
                -- , Raaz.Hash.Blake256.Ref
                -- , Raaz.Hash.Blake256.CPortable

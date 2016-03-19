@@ -56,7 +56,7 @@ import           Raaz.Hash.Internal
 --
 newtype HMACKey h = HMACKey { unKey :: B.ByteString } deriving Monoid
 
-instance Hash h => Storable (HMACKey h) where
+instance (Hash h, Recommendation h) => Storable (HMACKey h) where
 
   sizeOf    _  = fromIntegral $ blockSize (undefined :: h)
 
@@ -66,7 +66,7 @@ instance Hash h => Storable (HMACKey h) where
 
   poke ptr key = unsafeWrite (writeByteString $ hmacAdjustKey key) $ castPtr ptr
 
-hmacAdjustKey :: (Hash h, Encodable h)
+hmacAdjustKey :: (Hash h, Recommendation h, Encodable h)
               => HMACKey h -- ^ the key.
               -> ByteString
 hmacAdjustKey key = padIt trimedKey
@@ -80,11 +80,11 @@ hmacAdjustKey key = padIt trimedKey
         theHash     :: HMACKey h -> h
         theHash  _  = undefined
 
-instance (Hash h, Encodable h) => EndianStore (HMACKey h) where
+instance (Hash h, Recommendation h, Encodable h) => EndianStore (HMACKey h) where
   store = poke . castPtr
   load  = peek . castPtr
 
-instance (Hash h, Encodable h) => Encodable (HMACKey h)
+instance (Hash h, Recommendation h, Encodable h) => Encodable (HMACKey h)
 
 -- | Base16 representation of the string.
 instance IsString (HMACKey h) where
@@ -110,11 +110,13 @@ newtype HMAC h = HMAC {unHMAC :: h} deriving ( Eq, Storable
 instance Show h => Show (HMAC h) where
   show  = show . unHMAC
 
-instance Hash h => Primitive (HMAC h) where
+instance (Hash h) => Primitive (HMAC h) where
 
   blockSize _ = blockSize (undefined :: h)
 
   type Implementation (HMAC h) = Implementation h
+
+instance (Hash h, Recommendation h) => Recommendation (HMAC h) where
 
   recommended _ =  recommended (undefined :: h)
 
@@ -154,20 +156,20 @@ hmacSource = go undefined
 
 
 -- | Compute the hash of a pure byte source like, `B.ByteString`.
-hmac' :: ( Hash h, PureByteSource src )
+hmac' :: ( Hash h, Recommendation h, PureByteSource src )
       => Implementation h
       -> Key (HMAC h)
       -> src  -- ^ Message
       -> HMAC h
 hmac' impl key = unsafePerformIO . hmacSource' impl key
 {-# INLINEABLE hmac' #-}
-{-# SPECIALIZE hmac' :: Hash h
+{-# SPECIALIZE hmac' :: (Hash h, Recommendation h)
                      => Implementation h
                      -> Key (HMAC h)
                      -> B.ByteString
                      -> HMAC h
   #-}
-{-# SPECIALIZE hmac' :: Hash h
+{-# SPECIALIZE hmac' :: (Hash h, Recommendation h)
                      => Implementation h
                      -> Key (HMAC h)
                      -> L.ByteString
@@ -176,7 +178,7 @@ hmac' impl key = unsafePerformIO . hmacSource' impl key
 
 
 -- | Compute the hash of file.
-hmacFile' :: Hash h
+hmacFile' :: (Hash h, Recommendation h)
          => Implementation h
          -> Key (HMAC h)
          -> FilePath  -- ^ File to be hashed
@@ -185,7 +187,7 @@ hmacFile' impl key fileName = withBinaryFile fileName ReadMode $ hmacSource' imp
 {-# INLINEABLE hmacFile' #-}
 
 
-hmacSource' :: (Hash h, ByteSource src)
+hmacSource' :: (Hash h, Recommendation h, ByteSource src)
             => Implementation h
             -> Key (HMAC h)
             -> src

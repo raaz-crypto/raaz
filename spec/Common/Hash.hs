@@ -15,7 +15,7 @@ import Common.Utils
 -- where y1 is the hexadecimal encoding of the hash of x2.
 --
 
-hashesTo :: (Hash h, Encodable h, Show h)
+hashesTo :: (Hash h, Recommendation h, Encodable h, Show h)
          => ByteString
          -> h
          -> Spec
@@ -26,7 +26,7 @@ hashesTo str h = it msg (hash str `shouldBe` h)
                         , shortened $ show h
                         ]
 
-hmacsTo :: ( Hash h, Show h)
+hmacsTo :: ( Hash h, Recommendation h, Show h)
         => ByteString
         -> HMAC h
         -> Key (HMAC h)
