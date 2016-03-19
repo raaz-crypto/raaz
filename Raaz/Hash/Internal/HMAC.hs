@@ -122,17 +122,17 @@ instance Hash h => Symmetric (HMAC h) where
   type Key (HMAC h) = HMACKey h
 
 -- | Compute the hash of a pure byte source like, `B.ByteString`.
-hmac :: ( Hash h, PureByteSource src )
+hmac :: ( Hash h, Recommendation h, PureByteSource src )
      => Key (HMAC h)
      -> src  -- ^ Message
      -> HMAC h
 hmac key = unsafePerformIO . hmacSource key
 {-# INLINEABLE hmac #-}
-{-# SPECIALIZE hmac :: Hash h => Key (HMAC h) -> B.ByteString -> HMAC h #-}
-{-# SPECIALIZE hmac :: Hash h => Key (HMAC h) -> L.ByteString -> HMAC h #-}
+{-# SPECIALIZE hmac :: (Hash h, Recommendation h) => Key (HMAC h) -> B.ByteString -> HMAC h #-}
+{-# SPECIALIZE hmac :: (Hash h, Recommendation h) => Key (HMAC h) -> L.ByteString -> HMAC h #-}
 
 -- | Compute the hash of file.
-hmacFile :: Hash h
+hmacFile :: (Hash h, Recommendation h)
          => Key (HMAC h)
          -> FilePath  -- ^ File to be hashed
          -> IO (HMAC h)
@@ -140,18 +140,17 @@ hmacFile key fileName = withBinaryFile fileName ReadMode $ hmacSource key
 {-# INLINEABLE hmacFile #-}
 
 -- | Compute the hash of a generic byte source.
-hmacSource :: ( Hash h, ByteSource src )
+hmacSource :: ( Hash h, Recommendation h, ByteSource src )
            => Key (HMAC h)
            -> src  -- ^ Message
            -> IO (HMAC h)
 hmacSource = go undefined
-  where go :: (Hash h, ByteSource src) => h -> Key (HMAC h) -> src -> IO (HMAC h)
+  where go :: (Hash h, Recommendation h, ByteSource src)
+              => h -> Key (HMAC h) -> src -> IO (HMAC h)
         go h = hmacSource' (recommended h)
 
 {-# INLINEABLE hmacSource #-}
-{-# SPECIALIZE hmacSource :: Hash h => Key (HMAC h) -> B.ByteString -> IO (HMAC h) #-}
-{-# SPECIALIZE hmacSource :: Hash h => Key (HMAC h) -> L.ByteString -> IO (HMAC h) #-}
-{-# SPECIALIZE hmacSource :: Hash h => Key (HMAC h) -> Handle -> IO (HMAC h)       #-}
+{-# SPECIALIZE hmacSource :: (Hash h, Recommendation h) => Key (HMAC h) -> Handle -> IO (HMAC h) #-}
 
 
 -- | Compute the hash of a pure byte source like, `B.ByteString`.

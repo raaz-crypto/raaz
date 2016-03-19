@@ -115,16 +115,16 @@ class ( Primitive h
 ---------------------- Helper combinators --------------------------
 
 -- | Compute the hash of a pure byte source like, `B.ByteString`.
-hash :: ( Hash h, PureByteSource src )
+hash :: ( Hash h, Recommendation h, PureByteSource src )
      => src  -- ^ Message
      -> h
 hash = unsafePerformIO . hashSource
 {-# INLINEABLE hash #-}
-{-# SPECIALIZE hash :: Hash h => B.ByteString -> h #-}
-{-# SPECIALIZE hash :: Hash h => L.ByteString -> h #-}
+{-# SPECIALIZE hash :: (Hash h, Recommendation h) => B.ByteString -> h #-}
+{-# SPECIALIZE hash :: (Hash h, Recommendation h) => L.ByteString -> h #-}
 
 -- | Compute the hash of file.
-hashFile :: Hash h
+hashFile :: ( Hash h, Recommendation h)
          => FilePath  -- ^ File to be hashed
          -> IO h
 hashFile fileName = withBinaryFile fileName ReadMode hashSource
@@ -132,17 +132,15 @@ hashFile fileName = withBinaryFile fileName ReadMode hashSource
 
 
 -- | Compute the hash of a generic byte source.
-hashSource :: ( Hash h, ByteSource src )
+hashSource :: ( Hash h, Recommendation h, ByteSource src )
            => src  -- ^ Message
            -> IO h
 hashSource = go undefined
-  where go :: (Hash h, ByteSource src) => h -> src -> IO h
+  where go :: (Hash h, Recommendation h, ByteSource src) => h -> src -> IO h
         go h = hashSource' $ recommended h
 
 {-# INLINEABLE hashSource #-}
-{-# SPECIALIZE hashSource :: Hash h => B.ByteString -> IO h #-}
-{-# SPECIALIZE hashSource :: Hash h => L.ByteString -> IO h #-}
-{-# SPECIALIZE hashSource :: Hash h => Handle -> IO h #-}
+{-# SPECIALIZE hashSource :: (Hash h, Recommendation h) => Handle -> IO h #-}
 
 
 -- | Similar to `hash` but the user can specify the implementation to
