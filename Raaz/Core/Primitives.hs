@@ -18,7 +18,7 @@ use a more high level interface.
 
 module Raaz.Core.Primitives
        ( -- * Primtives and their implementations.
-         Primitive(..), Symmetric(..), Asymmetric(..)
+         Primitive(..), Symmetric(..), Asymmetric(..), Recommendation(..)
        , BLOCKS, blocksOf
        ) where
 
@@ -49,6 +49,8 @@ class (Describable (Implementation p)) => Primitive p where
   -- primitive.
   type Implementation p :: *
 
+-- | Primitives that have a recommended implementations.
+class Primitive p => Recommendation p where
   -- | The recommended implementation for the primitive.
   recommended :: p -> Implementation p
 

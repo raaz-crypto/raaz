@@ -7,7 +7,7 @@
 {-# LANGUAGE DataKinds                  #-}
 {-# CFILES raaz/hash/sha1/portable.c    #-}
 
-module Raaz.Hash.Sha512.Internal ( SHA512(..), cPortable ) where
+module Raaz.Hash.Sha512.Internal (SHA512(..)) where
 
 
 import           Data.String
@@ -36,7 +36,6 @@ instance Show SHA512 where
 instance Primitive SHA512 where
   blockSize _ = BYTES 128
   type Implementation SHA512 = SomeHashI SHA512
-  recommended  _             = SomeHashI cPortable
 
 instance Initialisable (HashMemory SHA512) () where
   initialise _ = initialise $ SHA512
@@ -52,12 +51,3 @@ instance Initialisable (HashMemory SHA512) () where
 
 instance Hash SHA512 where
   additionalPadBlocks _ = 1
-
-------------------- The portable C implementation ------------
-
-cPortable :: HashI SHA512 (HashMemory SHA512)
-cPortable = portableC c_sha512_compress length128Write
-
-foreign import ccall unsafe
-  "raaz/hash/sha512/portable.h raazHashSha512PortableCompress"
-  c_sha512_compress  :: Pointer -> Int -> Pointer -> IO ()

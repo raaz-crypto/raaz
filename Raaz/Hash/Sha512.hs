@@ -21,7 +21,7 @@ import Raaz.Core
 import Raaz.Hash.Internal        ( hashSource, hash, hashFile       )
 import Raaz.Hash.Internal.HMAC   ( hmacSource, hmac, hmacFile, HMAC )
 import Raaz.Hash.Sha512.Internal ( SHA512 )
-
+import Raaz.Hash.Sha512.Recommendation()
 
 -- | Compute the sha512 hash of an instance of `PureByteSource`. Use
 -- this for computing the sha512 hash of a strict or lazy byte string.
