@@ -98,6 +98,7 @@ library
                  --
                  -- Ciphers
                  --
+                 , Raaz.Cipher.AES
                  -- , Raaz.Cipher.AES.Type
                  -- , Raaz.Cipher.AES.Internal
                  -- , Raaz.Cipher.AES.CBC
@@ -158,6 +159,7 @@ library
                --
                -- Internal modules from cipher
                --
+               , Raaz.Cipher.AES.Type
                -- , Raaz.Cipher.Util.GF
                -- , Raaz.Cipher.AES.Block.Type
                -- , Raaz.Cipher.AES.CBC.CPortable
@@ -196,11 +198,12 @@ library
            , cbits/raaz/hash/blake256/portable.c
            , cbits/raaz/hash/sha256/portable.c
            , cbits/raaz/hash/sha512/portable.c
-
+           , cbits/raaz/cipher/aes/common.c
   include-dirs: cbits
   includes: raaz/core/endian.h
+          , raaz/cipher/aes/common.h
   install-includes: raaz/core/endian.h
-
+                  , raaz/cipher/aes/common.h
 test-Suite spec
   type: exitcode-stdio-1.0
   hs-source-dirs: spec
