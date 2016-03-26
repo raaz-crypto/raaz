@@ -80,7 +80,7 @@ library
                  --
                  , Raaz.Hash
                  , Raaz.Hash.Internal
-                 , Raaz.Hash.Internal.HMAC
+
                  -- , Raaz.Hash.Blake256
                  -- , Raaz.Hash.Blake256.Internal
                  , Raaz.Hash.Sha1
@@ -138,6 +138,7 @@ library
                -- , Raaz.Hash.Sha384.Instance
                -- , Raaz.Hash.Sha384.CPortable
                -- , Raaz.Hash.Sha384.Type
+               , Raaz.Hash.Internal.HMAC
                , Raaz.Hash.Sha.Util
                , Raaz.Hash.Sha1.Internal
                , Raaz.Hash.Sha1.Recommendation
