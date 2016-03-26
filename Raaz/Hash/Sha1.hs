@@ -28,7 +28,7 @@ import Raaz.Hash.Sha1.Recommendation()
 -- this for computing the sha1 hash of a strict or lazy byte string.
 sha1       :: PureByteSource src => src -> SHA1
 sha1       = hash
-{-# DEPRECIATED "SHA1 is cryptographically weak. Use it only for legacy #-}
+
 {-# SPECIALIZE sha1 :: B.ByteString -> SHA1 #-}
 {-# SPECIALIZE sha1 :: L.ByteString -> SHA1 #-}
 

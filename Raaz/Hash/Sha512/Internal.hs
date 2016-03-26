@@ -15,7 +15,7 @@ import           Data.Word
 import           Foreign.Storable    ( Storable(..) )
 
 import           Raaz.Core
-import           Raaz.Hash.Sha.Util
+
 
 import           Raaz.Hash.Internal
 

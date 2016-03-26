@@ -21,12 +21,6 @@ module Raaz.Hash.Sha224.Internal
        ( SHA224(..)
        ) where
 
-
-#if !MIN_VERSION_base(4,8,0)
-import           Control.Applicative
-#endif
-
-
 import           Data.String
 import           Data.Word
 import           Foreign.Storable          ( Storable )
