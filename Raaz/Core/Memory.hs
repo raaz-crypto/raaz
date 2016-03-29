@@ -19,14 +19,15 @@ module Raaz.Core.Memory
        -- ** Memory monads
          MonadMemory(..)
        , MT, execute, getMemory, liftSubMT
-       -- , MemoryM, runMT
+       -- *** Some low level functions.
+       , getMemoryPointer, withPointer
        , allocate
        -- ** Memory elements.
        , Memory(..), copyMemory
        , Initialisable(..), Extractable(..), modify
        -- , withMemory, withSecureMemory
        -- *** Some basic memory elements.
-       , MemoryCell, withCell
+       , MemoryCell
        -- ** Memory allocation
        ,  Alloc, pointerAlloc
        ) where
@@ -98,10 +99,11 @@ class (Monad m, MonadIO m) => MonadMemory m where
 newtype MT mem a = MT { unMT :: mem -> IO a }
 
 -- | Given an memory thread
-allocate :: LengthUnit bufSize => bufSize -> (Pointer -> MT mem a) -> MT mem a
-allocate bufSize bufAction = execute $
-                             \ mem
-                             -> allocaBuffer bufSize (\ptr -> unMT (bufAction ptr) mem)
+allocate :: LengthUnit bufSize
+         => bufSize -> (Pointer -> MT mem a) -> MT mem a
+allocate bufSize bufAction
+  = execute $ \ mem ->
+  allocaBuffer bufSize (\ptr -> unMT (bufAction ptr) mem)
 
 -- | Run a given memory action in the memory thread.
 execute :: (mem -> IO a) -> MT mem a
@@ -110,6 +112,16 @@ execute = MT
 
 getMemory :: MT mem mem
 getMemory = execute return
+
+-- | Get the pointer associated with the given memory.
+getMemoryPointer :: Memory mem => MT mem Pointer
+getMemoryPointer = underlyingPtr <$> getMemory
+
+-- | Work with the underlying pointer of the memory element. Useful
+-- while working with ffi functions.
+withPointer :: Memory mem => (Pointer -> IO b) -> MT mem b
+withPointer fp  = execute $ fp . underlyingPtr
+{-# INLINE withPointer #-}
 
 -- | Compound memory elements might intern be composed of
 -- sub-elements. Often one might want to /lift/ the memory thread for
