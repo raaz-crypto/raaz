@@ -31,7 +31,6 @@ source-repository head
 library
 
   ghc-options: -Wall
-
   -- Conditional compilation using CPP
 
   -- 1. Configuring system PRG.
@@ -159,7 +158,7 @@ library
                --
                -- Internal modules from cipher
                --
-               , Raaz.Cipher.AES.Type
+               , Raaz.Cipher.AES.Internal
                -- , Raaz.Cipher.Util.GF
                -- , Raaz.Cipher.AES.Block.Type
                -- , Raaz.Cipher.AES.CBC.CPortable

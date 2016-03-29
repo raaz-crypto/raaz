@@ -30,9 +30,8 @@ void raazAESExpand128(CMatrix *eKey)
 
 void raazAESTranspose(int n, Matrix *state)
 {
-    int i;
     register Word w0,w1,w2,w3;
-
+    int i;
     for(i = 0; i < n; ++i)
     {
 	w0 = state[i][0];
