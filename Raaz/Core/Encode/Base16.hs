@@ -11,11 +11,12 @@ import Data.ByteString.Char8 as C8
 import Data.ByteString.Internal (c2w )
 
 import Data.ByteString.Unsafe(unsafeIndex)
+import Data.Monoid
 import Data.Word
 import Raaz.Core.Encode.Internal
 
 -- | The base16 type.
-newtype Base16 = Base16 {unBase16 :: ByteString} deriving Eq
+newtype Base16 = Base16 {unBase16 :: ByteString} deriving (Eq, Monoid)
 
 -- Developers note: Internally base16 just stores the bytestring as
 -- is. The conversion happens when we do an encode and decode of
