@@ -185,14 +185,17 @@ library
            , cbits/raaz/hash/blake256/portable.c
            , cbits/raaz/hash/sha256/portable.c
            , cbits/raaz/hash/sha512/portable.c
+	   -- ciphers
            , cbits/raaz/cipher/aes/common.c
            , cbits/raaz/cipher/aes/cportable.c
   include-dirs: cbits
   includes: raaz/core/endian.h
+          -- ciphers
           , raaz/cipher/aes/common.h
           , raaz/cipher/aes/cportable.h
   install-includes: raaz/core/endian.h
                   , raaz/cipher/aes/common.h
+                  , raaz/cipher/aes/cportable.h
 test-Suite spec
   type: exitcode-stdio-1.0
   hs-source-dirs: spec
