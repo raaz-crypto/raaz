@@ -98,12 +98,7 @@ library
                  , Raaz.Cipher
                  , Raaz.Cipher.Internal
                  , Raaz.Cipher.AES
-                 -- , Raaz.Cipher.AES.Type
-                 -- , Raaz.Cipher.AES.Internal
-                 -- , Raaz.Cipher.AES.CBC
                  -- , Raaz.Cipher.AES.CTR
-                 -- -- , Raaz.Cipher.AES.ECB
-                 -- , Raaz.Cipher.AES
                  -- , Raaz.Cipher.Salsa20
                  -- , Raaz.Cipher.Salsa20.Internal
 
@@ -162,20 +157,10 @@ library
                , Raaz.Cipher.AES.Internal
                , Raaz.Cipher.AES.Recommendation
                , Raaz.Cipher.AES.CBC.Implementation.CPortable
-               -- , Raaz.Cipher.Util.GF
-               -- , Raaz.Cipher.AES.Block.Type
-               -- , Raaz.Cipher.AES.CBC.CPortable
-               -- , Raaz.Cipher.AES.CBC.Instance
-               -- , Raaz.Cipher.AES.CBC.Ref
-               -- , Raaz.Cipher.AES.CBC.Type
                -- , Raaz.Cipher.AES.CTR.CPortable
                -- , Raaz.Cipher.AES.CTR.Instance
                -- , Raaz.Cipher.AES.CTR.Ref
                -- , Raaz.Cipher.AES.CTR.Type
-               -- -- , Raaz.Cipher.AES.ECB.CPortable
-               -- -- , Raaz.Cipher.AES.ECB.Instance
-               -- -- , Raaz.Cipher.AES.ECB.Ref
-               -- -- , Raaz.Cipher.AES.ECB.Type
                -- , Raaz.Cipher.Salsa20.Block.Internal
                -- , Raaz.Cipher.Salsa20.Block.Type
                -- , Raaz.Cipher.Salsa20.Instances
