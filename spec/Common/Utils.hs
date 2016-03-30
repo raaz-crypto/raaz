@@ -3,10 +3,6 @@ module Common.Utils where
 
 import Common.Imports hiding (length, replicate)
 
-#if !MIN_VERSION_base(4,8,0)
-import Data.Monoid
-#endif
-
 import Data.ByteString as B  (concat)
 
 -- | Run a spec with a give key.
@@ -28,14 +24,10 @@ shortened x | l <= 11    = paddedx
         suffix = drop (l - 4) x
         paddedx = x ++ replicate (11 - l) ' '
 
-
--- | Generate an arbitrary instance of a storable value.
-genStorable :: (Storable a, Encodable a) => Gen a
-genStorable = gen
-  where proxy    :: Gen a -> a
-        proxy _  = undefined
-        gen      = unsafeFromByteString . pack <$> vector sz
-        sz       = sizeOf $ proxy gen
+genEncodable :: (Encodable a, Storable a) => Gen a
+genEncodable = go undefined
+  where go :: (Encodable a, Storable a) => a -> Gen a
+        go x = unsafeFromByteString . pack <$> vector (sizeOf x)
 
 -- | Generate bytestrings that are multiples of block size of a
 -- primitive.
