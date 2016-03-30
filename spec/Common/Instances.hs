@@ -56,5 +56,11 @@ instance Arbitrary Base16 where
 instance Arbitrary AES.KEY128 where
   arbitrary = genEncodable
 
+instance Arbitrary AES.KEY192 where
+  arbitrary = genEncodable
+
+instance Arbitrary AES.KEY256 where
+  arbitrary = genEncodable
+
 instance Arbitrary AES.IV where
   arbitrary = genEncodable
