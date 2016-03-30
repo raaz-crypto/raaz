@@ -18,3 +18,9 @@ import qualified Raaz.Cipher.AES.CBC.Implementation.CPortable as CPCBC
 
 instance Recommendation (AES 128 CBC) where
          recommended _ = CPCBC.aes128cbcI
+
+instance Recommendation (AES 192 CBC) where
+         recommended _ = CPCBC.aes192cbcI
+
+instance Recommendation (AES 256 CBC) where
+         recommended _ = CPCBC.aes256cbcI
