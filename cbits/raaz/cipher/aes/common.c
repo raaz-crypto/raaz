@@ -8,23 +8,34 @@ static const Column rcon[] =
     0xd8000000, 0xab000000
 };
 
-
-/* Don't ask Don't tell Endianess policy: See header files for details  */
-void raazAESExpand128(CMatrix *eKey)
+/* Don't ask Don't tell Endianess policy: See header files for
+ * details.
+ */
+void raazAESExpand(int Nk, Column *eKey)
 {
     Column temp;
-    int r;
-
-    for(r=1; r < 11; ++r)
+    int Nr;
+    int i;
+    switch (Nk)
     {
-	temp  = eKey[r-1][3];
-	temp  = SBoxWord(temp);
-	temp  = RotateL(temp,8);
-	temp ^= rcon[r];
-	eKey[r][0] = temp       ^ eKey[r-1][0];
-	eKey[r][1] = eKey[r][0] ^ eKey[r-1][1];
-	eKey[r][2] = eKey[r][1] ^ eKey[r-1][2];
-	eKey[r][3] = eKey[r][2] ^ eKey[r-1][3];
+	case 4: /* AES 128 */
+	    Nr = 10; break;
+	case 6: /* AES 192 */
+	    Nr = 12; break;
+	case 8: /* AES 256 */
+	    Nr = 14; break;
+    }
+    for(i = Nk; i < (Nr + 1) * 4; ++i)
+    {
+	temp = eKey[i-1];
+	if (i % Nk == 0)
+	{
+	    temp  = SBoxWord(temp);
+	    temp  = RotateL(temp,8);
+	    temp ^= rcon[i/Nk];
+	} else if ( Nk > 6 && (i % Nk == 4) ) { temp = SBoxWord(temp);}
+
+	eKey[i] = eKey[i - Nk ] ^ temp;
     }
 }
 

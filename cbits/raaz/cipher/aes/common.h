@@ -57,7 +57,7 @@ compensate.
 */
 
 extern void raazAESTranspose(int n, Matrix *state); /* Transpose all matrices */
-extern void raazAESExpand128C(CMatrix *eKey);       /* AES 128 key expansion  */
+extern void raazAESExpand(int Nk, Column *eKey); /* Key expansion */
 
 
 

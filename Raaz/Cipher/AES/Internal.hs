@@ -96,11 +96,11 @@ instance Show EKEY128 where
   show = showBase16
 
 instance Initialisable (MemoryCell EKEY128) KEY128 where
-  initialise k = withPointer $ pokeAndExpand k c_expand128
+  initialise k = withPointer $ pokeAndExpand k (c_expand 4)
 
 foreign import ccall unsafe
-  "raaz/cipher/aes/common.h raazAESExpand128"
-  c_expand128 :: Pointer -> IO ()
+  "raaz/cipher/aes/common.h raazAESExpand"
+  c_expand :: Int -> Pointer -> IO ()
 
 -- | Poke a key and expand it with the given routine.
 pokeAndExpand :: Storable k
