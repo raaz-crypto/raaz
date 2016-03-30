@@ -12,8 +12,10 @@ module Raaz.Cipher.Internal
        ( Cipher, CipherMode(..)
        -- * Implementation of ciphers
        , CipherI(..), SomeCipherI(..)
+       --
        -- ** Unsafe encryption and decryption.
        -- $unsafecipher$
+       --
        , unsafeEncrypt, unsafeDecrypt, unsafeEncrypt', unsafeDecrypt'
        ) where
 
@@ -71,15 +73,16 @@ class (Symmetric cipher, Implementation cipher ~ SomeCipherI cipher)
 -- These function works correctly only if the input byte string has a
 -- length which is a multiple of the block size of the cipher and
 -- hence are unsafe to use as general methods of encryption and
--- decryption of data. There are multiple ways to handle arbitrary
--- sized strings like padding, cipher block stealing etc. They are not
--- exposed here thought.
+-- decryption of data.  Use these functions for testing and
+-- benchmarking and nothing else.
 --
--- These functions are exposed here for testing and benchmarking and
--- nothing else
+-- There are multiple ways to handle arbitrary sized strings like
+-- padding, cipher block stealing etc. They are not exposed here
+-- though.
 
-
--- | Encrypt the given bytestring.
+-- | Encrypt the given `ByteString`. This function is unsafe because
+-- it only works correctly when the input `ByteString` is of length
+-- which is a multiple of the block length of the cipher.
 unsafeEncrypt' :: Cipher c
                => c                -- ^ The cipher to use
                -> Implementation c -- ^ The implementation to use
@@ -91,7 +94,9 @@ unsafeEncrypt' c (SomeCipherI imp) key = makeCopyRun c encryptAction
           = insecurely $ do initialise key
                             encryptBlocks imp ptr blks
 
--- | Encrypt using the recommended implementation.
+-- | Encrypt using the recommended implementation. This function is
+-- unsafe because it only works correctly when the input `ByteString`
+-- is of length which is a multiple of the block length of the cipher.
 unsafeEncrypt :: (Cipher c, Recommendation c)
               => c            -- ^ The cipher
               -> Key c        -- ^ The key to use
@@ -107,11 +112,14 @@ makeCopyRun :: Cipher c
             -> ByteString
 makeCopyRun c action bs
   = IB.unsafeCreate bytes
-    $ \ptr -> action (castPtr ptr) len
+    $ \ptr -> do unsafeNCopyToPointer len bs (castPtr ptr)
+                 action (castPtr ptr) len
   where len         = atMost (B.length bs) `asTypeOf` blocksOf 1 c
         BYTES bytes = inBytes len
 
--- | Decrypts the given bytestring.
+-- | Decrypts the given `ByteString`. This function is unsafe because
+-- it only works correctly when the input `ByteString` is of length
+-- which is a multiple of the block length of the cipher.
 unsafeDecrypt' :: Cipher c
                => c                -- ^ The cipher to use
                -> Implementation c -- ^ The implementation to use
@@ -123,7 +131,9 @@ unsafeDecrypt' c (SomeCipherI imp) key = makeCopyRun c decryptAction
           = insecurely $ do initialise key
                             decryptBlocks imp ptr blks
 
--- | Decrypt using the recommended implementation.
+-- | Decrypt using the recommended implementation. This function is
+-- unsafe because it only works correctly when the input `ByteString`
+-- is of length which is a multiple of the block length of the cipher.
 unsafeDecrypt :: (Cipher c, Recommendation c)
               => c            -- ^ The cipher
               -> Key c        -- ^ The key to use

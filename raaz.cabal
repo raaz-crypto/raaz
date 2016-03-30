@@ -92,11 +92,11 @@ library
                  , Raaz.Hash.Sha384.Implementation.CPortable
                  , Raaz.Hash.Sha512
                  , Raaz.Hash.Sha512.Implementation.CPortable
-
-
                  --
                  -- Ciphers
                  --
+                 , Raaz.Cipher
+                 , Raaz.Cipher.Internal
                  , Raaz.Cipher.AES
                  -- , Raaz.Cipher.AES.Type
                  -- , Raaz.Cipher.AES.Internal
@@ -158,7 +158,10 @@ library
                --
                -- Internal modules from cipher
                --
+
                , Raaz.Cipher.AES.Internal
+               , Raaz.Cipher.AES.Recommendation
+               , Raaz.Cipher.AES.CBC.Implementation.CPortable
                -- , Raaz.Cipher.Util.GF
                -- , Raaz.Cipher.AES.Block.Type
                -- , Raaz.Cipher.AES.CBC.CPortable
@@ -198,9 +201,11 @@ library
            , cbits/raaz/hash/sha256/portable.c
            , cbits/raaz/hash/sha512/portable.c
            , cbits/raaz/cipher/aes/common.c
+           , cbits/raaz/cipher/aes/cportable.c
   include-dirs: cbits
   includes: raaz/core/endian.h
           , raaz/cipher/aes/common.h
+          , raaz/cipher/aes/cportable.h
   install-includes: raaz/core/endian.h
                   , raaz/cipher/aes/common.h
 test-Suite spec
@@ -209,9 +214,11 @@ test-Suite spec
   main-is: Spec.hs
   ghc-options: -Wall
   other-modules: Common
+               , Common.Cipher
                , Common.Hash
                , Common.Instances
                , Common.Utils
+               , Raaz.Cipher.AESSpec
                , Raaz.Core.Encode.Base16Spec
                , Raaz.Core.MemorySpec
                , Raaz.Core.Types.WordSpec

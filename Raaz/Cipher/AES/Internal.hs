@@ -7,7 +7,7 @@
 {-# LANGUAGE TypeFamilies                     #-}
 
 module Raaz.Cipher.AES.Internal
-       ( AES(..), WORD, TUPLE, KEY128, IV
+       ( AES(..), WORD, TUPLE, KEY128, EKEY128, IV
        , aes128cbc, aes128ctr
        ) where
 
@@ -52,7 +52,7 @@ aes128cbc :: AES 128 CBC
 aes128cbc = AES
 
 -- | The IV used by the CBC mode.
-newtype IV      = IV (TUPLE 4) deriving (Storable, EndianStore)
+newtype IV  = IV (TUPLE 4) deriving (Storable, EndianStore)
 
 instance Encodable IV
 
@@ -73,6 +73,8 @@ instance Primitive (AES 128 CBC) where
 instance Symmetric (AES 128 CBC) where
   type Key (AES 128 CBC) = (KEY128,IV)
 
+instance Cipher (AES 128 CBC)
+
 ------------------- AES CTR mode ---------------------------
 
 -- | Smart constructors for AES 128 ctr.
@@ -81,7 +83,17 @@ aes128ctr = AES
 
 --------------  Memory for storing extended keys ---------
 
-newtype EKEY128 = EKEY128 (TUPLE 44) deriving Storable
+newtype EKEY128 = EKEY128 (TUPLE 44) deriving (Storable, EndianStore)
+
+instance Encodable EKEY128
+
+-- | Read as a base16 string.
+instance IsString EKEY128 where
+  fromString = fromBase16
+
+-- | Shown as a its base16 encoding.
+instance Show EKEY128 where
+  show = showBase16
 
 instance Initialisable (MemoryCell EKEY128) KEY128 where
   initialise k = withPointer $ pokeAndExpand k c_expand128
