@@ -1,11 +1,15 @@
 {-# LANGUAGE CPP                  #-}
 {-# LANGUAGE DataKinds            #-}
+{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances    #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 -- | Some common instances that are required by the test cases.
 module Common.Instances where
 
 import Common.Imports
+import Common.Utils
+import Raaz.Cipher.AES as AES
 
 instance Arbitrary w => Arbitrary (LE w) where
   arbitrary = littleEndian <$> arbitrary
@@ -26,10 +30,6 @@ instance Arbitrary ALIGN where
 instance Arbitrary ByteString where
   arbitrary = pack <$> arbitrary
 
-genEncodable :: (Encodable a, Storable a) => Gen a
-genEncodable = go undefined
-  where go :: (Encodable a, Storable a) => a -> Gen a
-        go x = unsafeFromByteString . pack <$> vector (sizeOf x)
 
 ---------------   Arbitrary instances for Hashes ----------------
 
@@ -50,3 +50,17 @@ instance Arbitrary SHA384 where
 
 instance Arbitrary Base16 where
   arbitrary =  (encodeByteString . pack) <$> listOf arbitrary
+
+------------------ Arbitrary instances for Keys ---------------
+
+instance Arbitrary AES.KEY128 where
+  arbitrary = genEncodable
+
+instance Arbitrary AES.KEY192 where
+  arbitrary = genEncodable
+
+instance Arbitrary AES.KEY256 where
+  arbitrary = genEncodable
+
+instance Arbitrary AES.IV where
+  arbitrary = genEncodable

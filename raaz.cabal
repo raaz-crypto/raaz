@@ -31,7 +31,6 @@ source-repository head
 library
 
   ghc-options: -Wall
-
   -- Conditional compilation using CPP
 
   -- 1. Configuring system PRG.
@@ -93,17 +92,13 @@ library
                  , Raaz.Hash.Sha384.Implementation.CPortable
                  , Raaz.Hash.Sha512
                  , Raaz.Hash.Sha512.Implementation.CPortable
-
-
                  --
                  -- Ciphers
                  --
-                 -- , Raaz.Cipher.AES.Type
-                 -- , Raaz.Cipher.AES.Internal
-                 -- , Raaz.Cipher.AES.CBC
+                 , Raaz.Cipher
+                 , Raaz.Cipher.Internal
+                 , Raaz.Cipher.AES
                  -- , Raaz.Cipher.AES.CTR
-                 -- -- , Raaz.Cipher.AES.ECB
-                 -- , Raaz.Cipher.AES
                  -- , Raaz.Cipher.Salsa20
                  -- , Raaz.Cipher.Salsa20.Internal
 
@@ -158,20 +153,14 @@ library
                --
                -- Internal modules from cipher
                --
-               -- , Raaz.Cipher.Util.GF
-               -- , Raaz.Cipher.AES.Block.Type
-               -- , Raaz.Cipher.AES.CBC.CPortable
-               -- , Raaz.Cipher.AES.CBC.Instance
-               -- , Raaz.Cipher.AES.CBC.Ref
-               -- , Raaz.Cipher.AES.CBC.Type
+
+               , Raaz.Cipher.AES.Internal
+               , Raaz.Cipher.AES.Recommendation
+               , Raaz.Cipher.AES.CBC.Implementation.CPortable
                -- , Raaz.Cipher.AES.CTR.CPortable
                -- , Raaz.Cipher.AES.CTR.Instance
                -- , Raaz.Cipher.AES.CTR.Ref
                -- , Raaz.Cipher.AES.CTR.Type
-               -- -- , Raaz.Cipher.AES.ECB.CPortable
-               -- -- , Raaz.Cipher.AES.ECB.Instance
-               -- -- , Raaz.Cipher.AES.ECB.Ref
-               -- -- , Raaz.Cipher.AES.ECB.Type
                -- , Raaz.Cipher.Salsa20.Block.Internal
                -- , Raaz.Cipher.Salsa20.Block.Type
                -- , Raaz.Cipher.Salsa20.Instances
@@ -196,20 +185,28 @@ library
            , cbits/raaz/hash/blake256/portable.c
            , cbits/raaz/hash/sha256/portable.c
            , cbits/raaz/hash/sha512/portable.c
-
+	   -- ciphers
+           , cbits/raaz/cipher/aes/common.c
+           , cbits/raaz/cipher/aes/cportable.c
   include-dirs: cbits
   includes: raaz/core/endian.h
+          -- ciphers
+          , raaz/cipher/aes/common.h
+          , raaz/cipher/aes/cportable.h
   install-includes: raaz/core/endian.h
-
+                  , raaz/cipher/aes/common.h
+                  , raaz/cipher/aes/cportable.h
 test-Suite spec
   type: exitcode-stdio-1.0
   hs-source-dirs: spec
   main-is: Spec.hs
   ghc-options: -Wall
   other-modules: Common
+               , Common.Cipher
                , Common.Hash
                , Common.Instances
                , Common.Utils
+               , Raaz.Cipher.AESSpec
                , Raaz.Core.Encode.Base16Spec
                , Raaz.Core.MemorySpec
                , Raaz.Core.Types.WordSpec
