@@ -97,7 +97,7 @@ library
                  -- , Raaz.Cipher.AES.CTR
                  -- , Raaz.Cipher.Salsa20
                  -- , Raaz.Cipher.Salsa20.Internal
-
+                 , Raaz.Version
   other-modules: Raaz.Core.Constants
                , Raaz.Core.Encode.Internal
                , Raaz.Core.Encode.Base16
@@ -142,7 +142,7 @@ library
                -- , Raaz.Cipher.Salsa20.Block.Type
                -- , Raaz.Cipher.Salsa20.Instances
                -- , Raaz.Cipher.AES.Block.Internal
-
+               , Paths_raaz
   build-depends: base                           >= 4.5  && < 5.0
                , bytestring                     >= 0.9
                , deepseq
