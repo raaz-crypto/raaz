@@ -148,7 +148,7 @@
    Uses variables state, temp, eKey, r and nRounds
 
    If state contained the block that needs to be encrypted then by the
-   end of DECRYPT the variable temp will contain the decrypted block.
+   end of DECRYPT the variable state will contain the decrypted block.
 
  */
 
@@ -242,7 +242,7 @@ void raazAESCBCDecryptCPortable(
        blocks. So keep track of it.
     */
 
-    Copy(endIV, state)
+    Copy(endIV, state);
 
     /*
       The invariant kept track of is that the variable state contains
@@ -264,10 +264,7 @@ void raazAESCBCDecryptCPortable(
 	Store(state, inp[cursor]);
 
 	/* Maintain the invariant by moving stuff in temp to state */
-	state0 = temp0;
-	state1 = temp1;
-	state2 = temp2;
-	state3 = temp3;
+	Copy(state, temp);
 
     }
 
