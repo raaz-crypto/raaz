@@ -167,6 +167,12 @@ library
   install-includes: raaz/core/endian.h
                   , raaz/cipher/aes/common.h
                   , raaz/cipher/aes/cportable.h
+executable checksum
+  hs-source-dirs: bin
+  main-is: checksum.lhs
+  build-depends: base
+               , raaz
+
 test-Suite spec
   type: exitcode-stdio-1.0
   hs-source-dirs: spec
