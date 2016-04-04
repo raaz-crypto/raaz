@@ -66,10 +66,6 @@ library
                  , Raaz.Core.MonoidalAction
                  , Raaz.Core.Parse.Applicative
                  , Raaz.Core.Primitives
-                 -- , Raaz.Core.Primitives.Asymmetric
-                 -- , Raaz.Core.Primitives.Cipher
-                 -- , Raaz.Core.Primitives.Hash
-                 -- , Raaz.Core.Primitives.Symmetric
                  , Raaz.Core.Random
                  , Raaz.Core.Types
                  , Raaz.Core.Util
@@ -101,38 +97,19 @@ library
                  -- , Raaz.Cipher.AES.CTR
                  -- , Raaz.Cipher.Salsa20
                  -- , Raaz.Cipher.Salsa20.Internal
-
+                 , Raaz.Version
   other-modules: Raaz.Core.Constants
                , Raaz.Core.Encode.Internal
                , Raaz.Core.Encode.Base16
                , Raaz.Core.Util.ByteString
---               , Raaz.Core.Util.Gadget
                , Raaz.Core.Types.Pointer
                , Raaz.Core.Types.Tuple
                , Raaz.Core.Types.Equality
                , Raaz.Core.Types.Endian
                , Raaz.Core.Types.Describe
-               --
-               -- Internal modules from Hash
-               --
-               -- , Raaz.Hash.Sha1.Instance
-               -- , Raaz.Hash.Sha1.Ref
-               -- , Raaz.Hash.Sha1.CPortable
-               -- , Raaz.Hash.Sha1.Type
-               -- , Raaz.Hash.Sha256.Instance
-               -- , Raaz.Hash.Sha256.Ref
-               -- , Raaz.Hash.Sha256.CPortable
-               -- , Raaz.Hash.Sha256.Type
-               -- , Raaz.Hash.Sha224.Instance
-               -- , Raaz.Hash.Sha224.CPortable
-               -- , Raaz.Hash.Sha224.Type
-               -- , Raaz.Hash.Sha512.Instance
-               -- , Raaz.Hash.Sha512.Ref
-               -- , Raaz.Hash.Sha512.CPortable
-               -- , Raaz.Hash.Sha512.Type
-               -- , Raaz.Hash.Sha384.Instance
-               -- , Raaz.Hash.Sha384.CPortable
-               -- , Raaz.Hash.Sha384.Type
+	       --
+	       -- Hashes
+	       --
                , Raaz.Hash.Internal.HMAC
                , Raaz.Hash.Sha.Util
                , Raaz.Hash.Sha1.Internal
@@ -150,10 +127,10 @@ library
                -- , Raaz.Hash.Blake256.CPortable
                -- , Raaz.Hash.Blake256.Type
                -- , Raaz.Hash.Blake.Util
+
                --
                -- Internal modules from cipher
                --
-
                , Raaz.Cipher.AES.Internal
                , Raaz.Cipher.AES.Recommendation
                , Raaz.Cipher.AES.CBC.Implementation.CPortable
@@ -165,17 +142,11 @@ library
                -- , Raaz.Cipher.Salsa20.Block.Type
                -- , Raaz.Cipher.Salsa20.Instances
                -- , Raaz.Cipher.AES.Block.Internal
-
-  -- other-modules: Raaz.Core.Memory.Internal
+               , Paths_raaz
   build-depends: base                           >= 4.5  && < 5.0
                , bytestring                     >= 0.9
                , deepseq
                , mtl                            >= 2.1
-               -- , QuickCheck                     >= 2.4 && < 2.8
-               -- , HUnit                          >= 1.2 && < 1.3
-               -- , test-framework                 >= 0.6 && < 0.9
-               -- , test-framework-hunit           >= 0.2 && < 0.4
-               -- , test-framework-quickcheck2     >= 0.2 && < 0.4
                , transformers
                , vector
 
@@ -196,6 +167,12 @@ library
   install-includes: raaz/core/endian.h
                   , raaz/cipher/aes/common.h
                   , raaz/cipher/aes/cportable.h
+executable checksum
+  hs-source-dirs: bin
+  main-is: checksum.lhs
+  build-depends: base
+               , raaz
+
 test-Suite spec
   type: exitcode-stdio-1.0
   hs-source-dirs: spec
@@ -218,25 +195,12 @@ test-Suite spec
                , Raaz.Hash.Sha512Spec
                , Raaz.Hash.Blake256Spec
 
-  -- if os(linux)
-  --    cc-options: -Wall -Werror -O3 -DRAAZ_HAVE_GCC
-  -- else
-  --    cc-options:
-
-  -- c-sources: cbits/raaz/tests/load_test.c
-
-  -- other-modules: Modules.C.Load
-  --              , Modules.Types
-  --              , Modules.Util.ByteString
 
   build-depends: base                           >= 4.5 && < 5.0
                , bytestring                     >= 0.9
                , HUnit                          >= 1.2
                , QuickCheck                     >= 2.4
                , hspec
-               -- , test-framework                 >= 0.6 && < 0.9
-               -- , test-framework-hunit           >= 0.2 && < 0.4
-               -- , test-framework-quickcheck2     >= 0.2 && < 0.4
                , transformers
                , raaz                           >= 0.0.0.1 && < 0.0.0.2
                , vector
