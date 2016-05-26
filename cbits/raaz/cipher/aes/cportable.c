@@ -206,23 +206,6 @@ void raazAESCBCEncryptCPortable(
 
 }
 
-void raazAESECBEncryptCPortable(
-    Block *inp, int nBlocks,
-    int nRounds, RMatrix *eKey)
-{
-    int r;
-    DECL_MATRIX_REGISTER(state);
-    DECL_MATRIX_REGISTER(temp);
-
-    while(nBlocks){
-	Load(state, *inp);
-	ENCRYPT;
-	Store(state, *inp);
-	--nBlocks;
-	++inp;
-    }
-
-}
 
 void raazAESCBCDecryptCPortable(
     Block *inp, int nBlocks,
