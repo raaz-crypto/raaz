@@ -20,42 +20,37 @@ matrix:
     #
     # Linux builds
     #
-    # Stackage LTS-2
+    # Most recent LTS for 7.8.4 series.
+    # Stackage LTS-2, with 7.8.4 and cabal version-1.18
+    #
     - os: linux
       env: STACKVER=lts-2   GHCVER=7.8.4 CABALVER=1.18
       addons:
         apt:
           packages: [ghc-7.8.4, cabal-install-1.18]
           sources: [hvr-ghc]
+
     #
-    # Stackage LTS-3
-    #
-    - os: linux
-      env: STACKVER=lts-3   GHCVER=7.10.2 CABALVER=1.22
-      addons:
-        apt:
-          packages: [ghc-7.10.2, cabal-install-1.22]
-          sources:  [hvr-ghc]
-    #
-    # Stackage LTS-4
+    # Latest Stackage LTS
     #
     - os: linux
-      env: STACKVER=lts-4   GHCVER=7.10.3 CABALVER=1.22
+      env: STACKVER=lts   GHCVER=7.10.3 CABALVER=1.22
       addons:
         apt:
           packages: [ghc-7.10.3, cabal-install-1.22]
           sources:  [hvr-ghc]
     #
-    # Stackage LTS-5
+    # Stackage nightly
     #
     - os: linux
-      env: STACKVER=lts-5   GHCVER=7.10.3 CABALVER=1.22
+      env: STACKVER=nightly   GHCVER=8.0.1 CABALVER=1.24
       addons:
         apt:
-          packages: [ghc-7.10.3, cabal-install-1.22]
+          packages: [ghc-8.0.1, cabal-install-1.24]
           sources:  [hvr-ghc]
+
     #
-    # Stackage GHC-Head
+    # Build against GHC-Head
     #
     - os: linux
       env: GHCVER=head CABALVER=head
@@ -72,6 +67,7 @@ matrix:
   allow_failures:
     - env: HLINT="yes"
     - env: GHCVER=head CABALVER=head
+    - env: STACKVER=nightly GHCVER=8.0.1 CABALVER=1.24
     - os: osx
 before_install:
  - if [ "$HLINT" == "yes" ]; then
