@@ -19,6 +19,7 @@ module Raaz.Core.Memory
        -- ** Memory monads
          MonadMemory(..)
        , MT, execute, getMemory, liftSubMT
+       , MemoryM, runMT
        -- *** Some low level functions.
        , getMemoryPointer, withPointer
        , allocate
@@ -155,7 +156,6 @@ instance Memory mem => MonadMemory (MT mem) where
   securely   = withSecureMemory . unMT
   insecurely = withMemory       . unMT
 
-{-
 -- | A runner of a memory state thread.
 type    Runner mem b = MT mem b -> IO b
 
@@ -190,7 +190,6 @@ instance MonadMemory MemoryM  where
 runMT :: Memory mem => MT mem a -> MemoryM a
 runMT mem = MemoryM $ \ runner -> runner mem
 
--}
 ------------------------ A memory allocator -----------------------
 
 type ALIGNMonoid = Sum ALIGN
