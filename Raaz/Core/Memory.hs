@@ -25,7 +25,6 @@ module Raaz.Core.Memory
        -- ** Memory elements.
        , Memory(..), copyMemory
        , Initialisable(..), Extractable(..), modify
-       -- , withMemory, withSecureMemory
        -- *** Some basic memory elements.
        , MemoryCell
        -- ** Memory allocation
