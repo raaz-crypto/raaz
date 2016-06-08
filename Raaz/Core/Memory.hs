@@ -58,9 +58,9 @@ import           Raaz.Core.Types
 --
 -- Systems often put tight restriction on the amount of memory a
 -- process can lock.  Therefore, secure memory is often to be used
--- judiciously. Instances of this class /should/ implement the the
--- combinator `insecurely` which allocates all memory from an unlocked
--- memory pool.
+-- judiciously. Instances of this class /should/ also implement the
+-- the combinator `insecurely` which allocates all memory from an
+-- unlocked memory pool.
 --
 -- This library exposes two instances of `MonadMemory`
 --
@@ -69,9 +69,32 @@ import           Raaz.Core.Types
 --
 -- 2. /Memory actions/ captured by the type `MemoryM`.
 --
-
+-- /WARNING:/ Be careful with `liftIO`.
+--
+-- The rule of thumb to follow is that the action being lifted should
+-- itself never unlock any memory. In particular, the following code
+-- is bad because the `securely` action unlocks some portion of the
+-- memory after @foo@ is executed.
+--
+-- >
+-- >  liftIO $ securely $ foo
+-- >
+--
+-- On the other hand the following code is fine
+--
+-- >
+-- > liftIO $ insecurely $ someMemoryAction
+-- >
+--
+-- Whether an @IO@ action unlocks memory is difficult to keep track
+-- of; for all you know, it might be a FFI call that does an
+-- @memunlock@.
+--
+-- As to why this is dangerous, it has got to do with the fact that
+-- @mlock@ and @munlock@ do not nest correctly. A single @munlock@ can
+-- unlock multiple calls of @mlock@ on the same page.
+--
 class (Monad m, MonadIO m) => MonadMemory m where
-
   -- | Perform the memory action where all memory elements are allocated
   -- locked memory. All memory allocated will be locked and hence will
   -- never be swapped out by the operating system. It will also be wiped
