@@ -107,4 +107,4 @@ after_failure:
 branches:
   only:
     - master
-    - x-merge-packages
+    - release-0.0.1
