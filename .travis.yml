@@ -24,7 +24,7 @@ matrix:
     # Stackage LTS-2, with 7.8.4 and cabal version-1.18
     #
     - os: linux
-      env: STACKVER=lts-2   GHCVER=7.8.4 CABALVER=1.18
+      env: STACKVER=lts-2 GHCVER=7.8.4 CABALVER=1.18
       addons:
         apt:
           packages: [ghc-7.8.4, cabal-install-1.18]
@@ -34,7 +34,7 @@ matrix:
     # Latest Stackage LTS
     #
     - os: linux
-      env: STACKVER=lts   GHCVER=7.10.3 CABALVER=1.22
+      env: STACKVER=lts GHCVER=7.10.3 CABALVER=1.22
       addons:
         apt:
           packages: [ghc-7.10.3, cabal-install-1.22]
@@ -43,7 +43,7 @@ matrix:
     # Stackage nightly
     #
     - os: linux
-      env: STACKVER=nightly   GHCVER=8.0.1 CABALVER=1.24
+      env: STACKVER=nightly GHCVER=8.0.1 CABALVER=1.24
       addons:
         apt:
           packages: [ghc-8.0.1, cabal-install-1.24]
@@ -68,6 +68,7 @@ matrix:
     - env: HLINT="yes"
     - env: GHCVER=head CABALVER=head
     - env: STACKVER=nightly GHCVER=8.0.1 CABALVER=1.24
+    - env: STACKVER=lts-2 GHCVER=7.8.4 CABALVER=1.18
     - os: osx
 before_install:
  - if [ "$HLINT" == "yes" ]; then
