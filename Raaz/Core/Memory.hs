@@ -193,6 +193,9 @@ instance Functor MemoryM where
 
 instance Applicative MemoryM where
   pure  x       = MemoryM $ \ _ -> return x
+  -- Beware: do not follow the hlint suggestion. The ugly definition
+  -- is to avoid usage of impredicative polymorphism.
+
   memF <*> memA = MemoryM $ \ runner ->  unMemoryM memF runner <*> unMemoryM memA runner
 
 instance Monad MemoryM where
@@ -202,6 +205,8 @@ instance Monad MemoryM where
 
 instance MonadIO MemoryM where
   liftIO io = MemoryM $ \ _ -> io
+  -- Beware: do not follow the hlint suggestion. The ugly definition
+  -- is to avoid usage of impredicative polymorphism.
 
 instance MonadMemory MemoryM  where
 
