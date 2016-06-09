@@ -58,7 +58,8 @@ library
      cc-options: -DPLATFORM_OPENBSD
 
 
-  exposed-modules: Raaz.Core
+  exposed-modules: Raaz
+                 , Raaz.Core
                  , Raaz.Core.ByteSource
                  , Raaz.Core.DH
                  , Raaz.Core.Encode
