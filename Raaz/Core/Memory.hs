@@ -192,7 +192,7 @@ instance Functor MemoryM where
   fmap f mem = MemoryM $ \ runner -> fmap f $ unMemoryM mem runner
 
 instance Applicative MemoryM where
-  pure          = MemoryM . const . return
+  pure  x       = MemoryM $ \ _ -> return x
   memF <*> memA = MemoryM $ \ runner ->  unMemoryM memF runner <*> unMemoryM memA runner
 
 instance Monad MemoryM where
@@ -201,7 +201,7 @@ instance Monad MemoryM where
                                            unMemoryM (f a) runner
 
 instance MonadIO MemoryM where
-  liftIO = MemoryM . const
+  liftIO io = MemoryM $ \ _ -> io
 
 instance MonadMemory MemoryM  where
 
