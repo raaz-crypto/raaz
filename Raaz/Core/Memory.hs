@@ -189,7 +189,7 @@ newtype MemoryM a = MemoryM
 
 
 instance Functor MemoryM where
-  fmap f mem = MemoryM $ \ runner -> fmap f $ unMemoryM mem runner
+  fmap f mem = MemoryM $ \ runner -> f <$> unMemoryM mem runner
 
 instance Applicative MemoryM where
   pure  x       = MemoryM $ \ _ -> return x
@@ -210,8 +210,8 @@ instance MonadIO MemoryM where
 
 instance MonadMemory MemoryM  where
 
-  securely   mem = unMemoryM mem $ securely
-  insecurely mem = unMemoryM mem $ insecurely
+  securely   mem = unMemoryM mem securely
+  insecurely mem = unMemoryM mem insecurely
 
 
 -- | Run the memory thread to obtain a memory action.
