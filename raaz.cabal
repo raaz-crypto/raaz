@@ -98,7 +98,6 @@ library
                  -- , Raaz.Cipher.AES.CTR
                  -- , Raaz.Cipher.Salsa20
                  -- , Raaz.Cipher.Salsa20.Internal
-                 , Raaz.Version
   other-modules: Raaz.Core.Constants
                , Raaz.Core.Encode.Internal
                , Raaz.Core.Encode.Base16

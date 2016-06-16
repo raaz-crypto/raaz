@@ -10,8 +10,8 @@ is the following.
 1. To give an example of of a non-trivial program written to use the
    raaz library.
 
-2. To make sure that the implementations in this library are not too
-   off in terms of performance of the hashing implementation s
+2. To make sure that the implementations of hashes in this library are
+   not too off in terms of performance.
 
 The command line options of this program is similar to that of sha1sum
 and hence can be used as a replacement.
@@ -32,16 +32,13 @@ be ignored.
 > import Control.Monad
 > import Data.List             (intercalate)
 > import Data.String
-> import Data.Version
+> import Data.Version          (showVersion)
 > import System.Environment
 > import System.Exit
 > import System.IO             (stdin, stderr, hPutStrLn)
 > import System.Console.GetOpt
 
-
-> import Raaz.Core     hiding (Result)
-> import Raaz.Hash
-> import Raaz.Version
+> import Raaz     hiding (Result)
 
 
 Verification Tokens
