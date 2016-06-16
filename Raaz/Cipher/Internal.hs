@@ -7,9 +7,15 @@
 {-# LANGUAGE ScopedTypeVariables       #-}
 {-# LANGUAGE ConstraintKinds           #-}
 
+-- | This module exposes the low-level internal details of ciphers. Do
+-- not import this module unless you want to implement a new cipher or
+-- give a new implementation of an existing cipher.
 module Raaz.Cipher.Internal
-       ( Cipher, CipherMode(..)
-       -- * Implementation of ciphers
+       (
+         -- * Internals of a cipher.
+         -- $cipherdoc$
+         Cipher, CipherMode(..)
+         -- ** Cipher implementation
        , CipherI(..), SomeCipherI(..)
        --
        -- ** Unsafe encryption and decryption.
@@ -24,6 +30,41 @@ import Foreign.Ptr (castPtr)
 
 import Raaz.Core
 import Raaz.Core.Util.ByteString as B
+
+-- $cipherdoc$
+--
+-- Ciphers provide symmetric encryption in the raaz library and are
+-- captured by the type class `Cipher`. Instances of `Cipher` are full
+-- encryption/decryption algorithms. For a block cipher this means
+-- that one also needs to specify the `CipherMode` to make it an
+-- instance of the class `Cipher`. They are instances of the class
+-- `Symmetric` and the associated type `Key` captures the encryption
+-- key for the cipher.
+--
+-- Implementations of ciphers are captured by two types.
+--
+-- [`CipherI`:] Values of this type that captures implementations of a
+-- cipher.  This type is parameterised over the memory element that is
+-- used internally by the implementation.
+--
+-- [`SomeCipherI`:] The existentially quantified version of `CipherI`
+-- over its memory element. By wrapping the memory element inside the
+-- existential quantifier, values of this type exposes only the
+-- interface and not the internals of the implementation. The
+-- `Implementation` associated type of a cipher is the type
+-- `SomeCipherI`
+--
+-- To support a new cipher, a developer needs to:
+--
+-- 1. Define a new type which captures the cipher. This type should be
+--    an instance of the class `Cipher`.
+--
+-- 2. Define an implementation, i.e. a value of the type `SomeCipherI`.
+--
+-- 3. Define a recommended implementation, i.e. an instance of the
+--    type class `Raaz.Core.Primitives.Recommendation`
+--
+
 
 
 -- | Block cipher modes.
