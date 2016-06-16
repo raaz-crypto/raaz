@@ -1,3 +1,5 @@
+-- | This module exposes ways to attach descriptions to types of the
+-- library.
 module Raaz.Core.Types.Describe
        ( Describable(..)
        ) where

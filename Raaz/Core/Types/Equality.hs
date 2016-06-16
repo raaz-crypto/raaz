@@ -41,7 +41,9 @@ instance Monoid Result where
   {-# INLINE mempty  #-}
   {-# INLINE mappend #-}
 
+-- | MVector for Results.
 newtype instance MVector s Result = MV_Result (MVector s Word)
+-- | Vector of Results.
 newtype instance Vector    Result = V_Result  (Vector Word)
 
 instance Unbox Result
