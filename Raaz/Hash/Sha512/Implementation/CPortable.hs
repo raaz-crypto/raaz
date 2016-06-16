@@ -9,7 +9,7 @@ import Raaz.Hash.Internal
 import Raaz.Hash.Sha.Util
 import Raaz.Hash.Sha512.Internal
 
--- | The portable C implementation of SHA1.
+-- | The portable C implementation of SHA512.
 implementation :: Implementation SHA512
 implementation =  SomeHashI cPortable
 
