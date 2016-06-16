@@ -7,8 +7,14 @@
 {-# LANGUAGE MultiParamTypeClasses     #-}
 {-# LANGUAGE ScopedTypeVariables       #-}
 {-# LANGUAGE ConstraintKinds           #-}
+
+-- | This module exposes the low-level internal details of
+-- cryptographic hashes. Do not import this module unless you want to
+-- implement a new hash or give a new implementation of an existing
+-- hash.
 module Raaz.Hash.Internal
-       ( -- * Combinators for computing hashes
+       ( -- * Cryptographic hashes and their implementations.
+         -- $hashdoc$
          Hash(..)
        , hash, hashFile, hashSource
          -- ** Computing hashes using non-standard implementations.
@@ -36,6 +42,31 @@ import           System.IO
 import           System.IO.Unsafe     (unsafePerformIO)
 
 import Raaz.Core
+
+-- $hashdoc$
+--
+-- Each cryptographic hash is a distinct type and are instances of a
+-- the type class `Hash`. The standard idiom that we follow for hash
+-- implementations are the following:
+--
+-- [`HashI`:] This type captures implementations of a the hash. This
+-- type is parameterised over the memory element used by the
+-- implementation.
+--
+-- [`SomeHashI`:] This type is the existentially quantified version of
+-- `HashI` over its memory element. Thus it exposes only the interface
+-- and not the internals of the implementation. The `Implementation`
+-- associated type of a hash is the type `SomeHashI`
+--
+-- To support a new hash, a developer needs to:
+--
+-- 1. Define a new type which captures the result of hashing. This
+--    type should be an instance of the class `Hash`.
+--
+-- 2. Define an implementation, i.e. a value of the type `SomeHashI`.
+--
+-- 3. Define a recommended implementation, i.e. an instance of the
+--    type class `Raaz.Core.Primitives.Recommendation`
 
 -------------------- Hash Implementations --------------------------
 

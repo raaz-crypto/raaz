@@ -7,14 +7,13 @@ under the raaz library.
 
 module Raaz.Hash
        (
-         -- * Cryptographic hashes
+         -- * Cryptographic hashes and hmacs.
          -- $computingHash$
 
-         -- ** Encoding hash values
+         -- ** Encoding and displaying.
          -- $encoding$
          --
          Hash, hash, hashFile, hashSource
-         -- ** HMAC computation
        , HMAC, hmac, hmacFile, hmacSource
          -- * Exposing individual hashes.
          -- $individualHashes$
@@ -40,33 +39,39 @@ import Raaz.Hash.Internal.HMAC ( HMAC, hmac, hmacFile, hmacSource )
 
 -- $computingHash$
 --
--- As opposed to other cryptographic libraries, we capture each
--- cryptographic hash by a separate type. These types are instances of
--- the type class `Raaz.Hash.Internal.Hash`. Each of the hash types
--- are to be treated as /opaque types/ as their constructors are not
--- exposed from this module. This is to take advantage of the type
--- checking.
+-- The cryptographic hashes provided by raaz give the following
+-- guarantees:
 --
--- We expose three functions for computing the hash of a message:
--- `hash`, `hashFile` and `hashSource`.
-
+-- 1. Distinct hashes are distinct types and hence it is a compiler
+--    error to compare two different hashes.
+--
+-- 2. A hash and its associated hmac are distinct types and hence
+--    it is an compile time error to compare a hash with its  hmac.
+--
+-- 3. The `Eq` instance for hashes and the corresponding hmacs use
+--    a constant time equality test and hence it is safe to check
+--    equality using the operator `==`.
+--
+-- The functions `hash`, `hashFile`, and `hashSource` provide a rather
+-- high level interface for computing hashes. For hmacs the associated
+-- functions are `hmac`, `hmacFile`, and `hmacSource`
 
 -- $encoding$
 --
 -- When interfacing with other applications or when printing output to
--- users, it is often necessary to encode hash values as strings.
--- Applications usually present hashes encoded in base16. The `Show`
--- and `Data.String.IsString` instances for the hashes exposed here
--- follow this convention.
+-- users, it is often necessary to encode hash, hmac or their keys as
+-- strings. Applications usually present hashes encoded in base16. The
+-- `Show` and `Data.String.IsString` instances for the hashes exposed
+-- here follow this convention.
 --
--- More generaly, hashes exposed here are instances of type class
--- `Raaz.Core.Encode.Encodable` and can hence can be encoded in any of
--- the supported formats.
+-- More generaly, hashes, hmacs and their key are instances of type
+-- class `Raaz.Core.Encode.Encodable` and can hence can be encoded in
+-- any of the formats supported in raaz.
 
 -- $individualHashes$
 --
--- Individual hash are exposed via their respective modules.  These
--- module also export the specialized variants for `hashSource`,
+-- Individual hash and hmacs are exposed via their respective modules.
+-- These module also export the specialized variants for `hashSource`,
 -- `hash` and `hashFile` for specific hashes.  For example, if you are
 -- interested only in say `SHA512` you can import the module
 -- "Raaz.Hash.Sha512". This will expose the functions `sha512Source`,
@@ -78,6 +83,5 @@ import Raaz.Hash.Internal.HMAC ( HMAC, hmac, hmacFile, hmacSource )
 -- > sha512Checksum :: FilePath -> IO ()
 -- >            -- print the sha512 checksum of a given file.
 -- > sha512Checksum fname =  sha512File fname >>= print
-
 
 {-# ANN module "HLint: ignore Use import/export shortcut" #-}
