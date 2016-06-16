@@ -1,4 +1,4 @@
-# Change log for Raaz.
+# Change log for [raaz].
 
 ## [0.0.1] - Pending
 
@@ -8,3 +8,4 @@
 * Encoding formats: base16
 
 [0.0.1]: <http://github.com/raaz-crypto/raaz/releases/tag/v0.0.1>
+[raaz]:  <http://github.com/raaz-crypto/raaz/>
