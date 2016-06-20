@@ -7,7 +7,9 @@
 {-# LANGUAGE TypeFamilies                     #-}
 
 module Raaz.Cipher.AES.Internal
-       ( AES(..), WORD, TUPLE
+       (-- * AES cipher.
+         AES(..)
+       -- ** AES key types.
        , KEY128, KEY192, KEY256
        , EKEY128, EKEY192, EKEY256, IV
        , aes128cbc, aes192cbc, aes256cbc
@@ -27,7 +29,10 @@ import Raaz.Cipher.Internal
 
 --------------- Basic types associated with AES -------------
 
--- | The AES cipher.
+-- | The type associated with AES ciphers. Raaz provides AES variants
+-- with key lengths 128, 192 and 256. The key types for the above
+-- ciphers in cbc mode are given by the types @(`KEY128`, IV)@,
+-- @(`KEY192`, IV)@ @(`KEY256`, IV)@ respectively.
 data AES (n :: Nat) (mode :: CipherMode) = AES
 
 -- | The basic word used in AES.
@@ -96,7 +101,7 @@ instance Show IV where
 
 ----------------- AES 128 CBC ------------------------------
 
--- | Smart constructors for AES 128 cbc.
+-- | 128-bit aes cipher in `CBC` mode.
 aes128cbc :: AES 128 CBC
 aes128cbc = AES
 
@@ -113,7 +118,7 @@ instance Cipher (AES 128 CBC)
 
 ----------------- AES 192 CBC --------------------------------
 
--- | Smart  constructor for AES 192 cbc.
+-- | 128-bit aes cipher in `CBC` mode.
 aes192cbc :: AES 192 CBC
 aes192cbc = AES
 
@@ -130,7 +135,7 @@ instance Cipher (AES 192 CBC)
 
 ------------------- AES 256 CBC -----------------------------
 
--- | Smart constructor for AES 256 cbc.
+-- | 128-bit aes cipher in `CBC` mode.
 aes256cbc :: AES 256 CBC
 aes256cbc = AES
 
