@@ -84,6 +84,8 @@ instance (Hash h, Recommendation h, Encodable h) => EndianStore (HMACKey h) wher
   store = poke . castPtr
   load  = peek . castPtr
 
+instance (Hash h, Recommendation h, Encodable h) => Random (HMACKey h)
+
 instance (Hash h, Recommendation h, Encodable h) => Encodable (HMACKey h)
 
 -- | Base16 representation of the string.
