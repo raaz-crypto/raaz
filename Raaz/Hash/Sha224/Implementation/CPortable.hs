@@ -36,7 +36,7 @@ instance Extractable SHA224Memory SHA224 where
   extract = trunc <$> liftSubMT unSHA224Mem extract
     where trunc (SHA256 tup) = SHA224 $ initial tup
 
--- | The portable C implementation of SHA1.
+-- | The portable C implementation of SHA224.
 implementation :: Implementation SHA224
 implementation =  SomeHashI cPortable
 

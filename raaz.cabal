@@ -1,5 +1,5 @@
 name:    raaz
-version: 0.0.0.1
+version: 0.0.1
 
 synopsis: The raaz cryptographic library.
 
@@ -58,7 +58,8 @@ library
      cc-options: -DPLATFORM_OPENBSD
 
 
-  exposed-modules: Raaz.Core
+  exposed-modules: Raaz
+                 , Raaz.Core
                  , Raaz.Core.ByteSource
                  , Raaz.Core.DH
                  , Raaz.Core.Encode
@@ -94,10 +95,11 @@ library
                  , Raaz.Cipher
                  , Raaz.Cipher.Internal
                  , Raaz.Cipher.AES
+                 -- Exposed Implementations of AES.
+                 , Raaz.Cipher.AES.CBC.Implementation.CPortable
                  -- , Raaz.Cipher.AES.CTR
                  -- , Raaz.Cipher.Salsa20
                  -- , Raaz.Cipher.Salsa20.Internal
-                 , Raaz.Version
   other-modules: Raaz.Core.Constants
                , Raaz.Core.Encode.Internal
                , Raaz.Core.Encode.Base16
@@ -133,7 +135,7 @@ library
                --
                , Raaz.Cipher.AES.Internal
                , Raaz.Cipher.AES.Recommendation
-               , Raaz.Cipher.AES.CBC.Implementation.CPortable
+
                -- , Raaz.Cipher.AES.CTR.CPortable
                -- , Raaz.Cipher.AES.CTR.Instance
                -- , Raaz.Cipher.AES.CTR.Ref
@@ -170,8 +172,8 @@ library
 executable checksum
   hs-source-dirs: bin
   main-is: checksum.lhs
-  build-depends: base
-               , raaz
+  build-depends: base     >= 4.5 && < 5.0
+               , raaz     == 0.0.1
 
 test-Suite spec
   type: exitcode-stdio-1.0
@@ -202,7 +204,7 @@ test-Suite spec
                , QuickCheck                     >= 2.4
                , hspec
                , transformers
-               , raaz                           >= 0.0.0.1 && < 0.0.0.2
+               , raaz                           == 0.0.1
                , vector
 
 benchmark blaze-vs-write

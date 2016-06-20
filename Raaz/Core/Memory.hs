@@ -189,10 +189,13 @@ newtype MemoryM a = MemoryM
 
 
 instance Functor MemoryM where
-  fmap f mem = MemoryM $ \ runner -> fmap f $ unMemoryM mem runner
+  fmap f mem = MemoryM $ \ runner -> f <$> unMemoryM mem runner
 
 instance Applicative MemoryM where
-  pure          = MemoryM . const . return
+  pure  x       = MemoryM $ \ _ -> return x
+  -- Beware: do not follow the hlint suggestion. The ugly definition
+  -- is to avoid usage of impredicative polymorphism.
+
   memF <*> memA = MemoryM $ \ runner ->  unMemoryM memF runner <*> unMemoryM memA runner
 
 instance Monad MemoryM where
@@ -201,12 +204,14 @@ instance Monad MemoryM where
                                            unMemoryM (f a) runner
 
 instance MonadIO MemoryM where
-  liftIO = MemoryM . const
+  liftIO io = MemoryM $ \ _ -> io
+  -- Beware: do not follow the hlint suggestion. The ugly definition
+  -- is to avoid usage of impredicative polymorphism.
 
 instance MonadMemory MemoryM  where
 
-  securely   mem = unMemoryM mem $ securely
-  insecurely mem = unMemoryM mem $ insecurely
+  securely   mem = unMemoryM mem securely
+  insecurely mem = unMemoryM mem insecurely
 
 
 -- | Run the memory thread to obtain a memory action.

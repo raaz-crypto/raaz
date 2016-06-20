@@ -12,6 +12,7 @@ module Raaz.Core.Random
 
   ) where
 
+import Control.Applicative
 import Control.Monad   (void)
 import Data.Word
 import Foreign.Ptr     (castPtr)
@@ -61,6 +62,12 @@ instance Random w => Random (LE w) where
 
 instance Random w => Random (BE w) where
   random = fmap bigEndian . random
+
+instance (Random a, Random b) => Random (a,b) where
+  random prg = (,) <$> random prg <*> random prg
+
+instance (Random a, Random b, Random c) => Random (a,b,c) where
+  random prg = (,,) <$> random prg <*> random prg <*> random prg
 
 #ifdef HAVE_SYSTEM_PRG
 -- | The system wide pseudo-random generator. The source is expected

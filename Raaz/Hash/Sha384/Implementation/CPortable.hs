@@ -38,7 +38,7 @@ instance Extractable SHA384Memory SHA384 where
   extract = trunc <$> liftSubMT unSHA384Mem extract
     where trunc (SHA512 v) = SHA384 $ initial v
 
--- | The portable C implementation of SHA1.
+-- | The portable C implementation of SHA384.
 implementation :: Implementation SHA384
 implementation =  SomeHashI cPortable
 
