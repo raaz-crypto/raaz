@@ -1,6 +1,6 @@
 # Change log for [raaz].
 
-## [0.0.1] - Pending
+## [0.0.1] - June 20, 2016.
 
 * Basic cryptographic types.
 * Hashes: sha1, sha256, sha512, sha224, sha384 and their HMACs
