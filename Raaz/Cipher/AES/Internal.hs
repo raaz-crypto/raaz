@@ -39,6 +39,7 @@ type TUPLE n = Tuple n WORD
 -- | Key used for AES-128
 newtype KEY128  = KEY128  (TUPLE 4)  deriving (Storable, EndianStore)
 
+
 -- | Key used for AES-128
 newtype KEY192  = KEY192  (TUPLE 6)  deriving (Storable, EndianStore)
 
@@ -46,10 +47,12 @@ newtype KEY192  = KEY192  (TUPLE 6)  deriving (Storable, EndianStore)
 newtype KEY256  = KEY256  (TUPLE 8)  deriving (Storable, EndianStore)
 
 instance Encodable KEY128
-
 instance Encodable KEY192
-
 instance Encodable KEY256
+
+instance Random KEY128
+instance Random KEY192
+instance Random KEY256
 
 -- | Expects in base 16
 instance IsString KEY128 where
@@ -81,6 +84,7 @@ instance Show KEY256 where
 newtype IV  = IV (TUPLE 4) deriving (Storable, EndianStore)
 
 instance Encodable IV
+instance Random IV
 
 -- | Expects in base16.
 instance IsString IV where
