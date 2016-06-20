@@ -31,6 +31,10 @@ import           Raaz.Hash.Internal
 newtype SHA1 = SHA1 (Tuple 5 (BE Word32))
              deriving (Storable, EndianStore, Equality, Eq)
 
+
+{-# DEPRECATED SHA1
+    "SHA1 is almost broken, avoid it in modern applications." #-}
+
 instance Encodable SHA1
 
 instance IsString SHA1 where
