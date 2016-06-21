@@ -1,5 +1,11 @@
 # Change log for [raaz].
 
+## [0.0.2] - Pending
+
+* Hashes: Blake2
+* Cipher: AES-CTR with key-sizes 128, 192, 256
+* Encoding formats: base64
+
 ## [0.0.1] - June 21, 2016.
 
 * Basic cryptographic types.
