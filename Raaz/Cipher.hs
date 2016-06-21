@@ -5,13 +5,10 @@ module Raaz.Cipher
        ( -- * Ciphers
          -- $cipherdoc$
          aes128cbc, aes192cbc, aes256cbc
-         -- ** Unsafe encryption and decryption
-       , unsafeEncrypt, unsafeDecrypt
        ) where
 
 
 import Raaz.Cipher.AES      ( aes128cbc, aes192cbc, aes256cbc)
-import Raaz.Cipher.Internal ( unsafeEncrypt, unsafeDecrypt  )
 
 -- $cipherdoc$
 --

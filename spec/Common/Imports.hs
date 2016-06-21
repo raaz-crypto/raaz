@@ -16,4 +16,4 @@ import Test.QuickCheck.Monadic as E
 import Raaz.Core               as E hiding ((===), Result)
 import Raaz.Hash               as E
 import Raaz.Cipher             as E
-import Raaz.Cipher.Internal    as E ( Cipher )
+import Raaz.Cipher.Internal    as E ( Cipher, unsafeEncrypt, unsafeDecrypt )
