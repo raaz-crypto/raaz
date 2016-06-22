@@ -77,6 +77,7 @@ fill :: ( LengthUnit len
 fill = fillBytes . inBytes
 {-# INLINE fill #-}
 
+-- | A version of slurp that takes type safe lengths as input.
 slurp :: ( LengthUnit len
          , InfiniteSource src
          )
