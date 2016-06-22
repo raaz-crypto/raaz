@@ -2,10 +2,12 @@
 {-# LANGUAGE DefaultSignatures #-}
 -- | Module define byte sources.
 module Raaz.Core.ByteSource
-       ( ByteSource(..), fill, processChunks
-       , InfiniteSource(..), slurp
-       , PureByteSource
+       ( -- * Byte sources.
+         -- $bytesource$
+         InfiniteSource(..)
+       , ByteSource(..), PureByteSource
        , FillResult(..)
+       , fill, slurp, processChunks
        , withFillResult
        ) where
 
@@ -26,6 +28,23 @@ import           Raaz.Core.Util.ByteString( unsafeCopyToPointer
                                           )
 import           Raaz.Core.Types.Pointer  (hFillBuf)
 
+-- $bytesource$
+--
+-- Cryptographic input come from various sources; they can come from
+-- network sockets or might be just a string in the Haskell. To give a
+-- uniform interfaces for all such inputs, we define the abstract
+-- concept of a /byte source/. Essentially a byte source is one from
+-- which we can fill a buffer with bytes. Depending on the nature of
+-- the source we have two classes: `ByteSource` which captures bounded
+-- sources and `InfiniteSource` that captures never ending source of
+-- bytes.
+--
+-- Among instances of `ByteSource`, some like for example
+-- `B.ByteString` are /pure/ in the sense filling a buffer with bytes
+-- from such a source has no other side-effects. This is in contrast
+-- to a source like a sockets. The type class `PureByteSource`
+-- captures such byte sources.
+--
 
 -- | This type captures the result of a fill operation.
 data FillResult a = Remaining a           -- ^ the buffer is filled completely
