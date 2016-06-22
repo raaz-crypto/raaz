@@ -66,8 +66,9 @@ bot4 :: Word8 -> Word8; bot4 x  = x  .&. 0x0F
 
 
 unsafeFromHex :: ByteString -> ByteString
-unsafeFromHex bs | odd (B.length bs) = error "base16 encoding is always of even size"
-                 | otherwise         = fst $ B.unfoldrN len gen 0
+unsafeFromHex bs
+  | odd (B.length bs) = error "base16 encoding is always of even size"
+  | otherwise         = fst $ B.unfoldrN len gen 0
   where len   = B.length bs `quot` 2
         gen i = Just (shiftL w0 4 .|. w1, i + 1)
           where w0 = fromHexWord $ unsafeIndex bs (2 * i)
