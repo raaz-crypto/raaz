@@ -29,7 +29,7 @@ instance Encodable Base16 where
     | odd (B.length bs) = Nothing
     | badCharacter bs   = Nothing
     | otherwise         = Just $ Base16 $ unsafeFromHex bs
-    where badCharacter  = C8.all (not . isHexDigit)
+    where badCharacter  = C8.any (not . isHexDigit)
 
   unsafeFromByteString  = Base16 . unsafeFromHex
 
