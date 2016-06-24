@@ -7,12 +7,15 @@ module Raaz.Core.Encode
        -- $encodingformat$
        , Format(..)
        , encode, decode, unsafeDecode
-       -- ** The base 16 encoding fromat
-       , Base16, fromBase16, showBase16
+       -- ** Supported encoding formats.
+       , Base16, Base64
+       -- ** Helper function for base16
+       , fromBase16, showBase16
        ) where
 
 import Raaz.Core.Encode.Internal
 import Raaz.Core.Encode.Base16
+import Raaz.Core.Encode.Base64
 
 -- $encodable$
 --
