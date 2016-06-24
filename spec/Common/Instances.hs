@@ -51,6 +51,9 @@ instance Arbitrary SHA384 where
 instance Arbitrary Base16 where
   arbitrary =  (encodeByteString . pack) <$> listOf arbitrary
 
+instance Arbitrary Base64 where
+  arbitrary =  (encodeByteString . pack) <$> listOf arbitrary
+
 ------------------ Arbitrary instances for Keys ---------------
 
 instance Arbitrary AES.KEY128 where
