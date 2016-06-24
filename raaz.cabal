@@ -187,7 +187,7 @@ test-Suite spec
                , Common.Instances
                , Common.Utils
                , Raaz.Cipher.AESSpec
-               , Raaz.Core.Encode.Base16Spec
+               , Raaz.Core.EncodeSpec
                , Raaz.Core.MemorySpec
                , Raaz.Core.Types.WordSpec
                , Raaz.Core.Util.ByteStringSpec
