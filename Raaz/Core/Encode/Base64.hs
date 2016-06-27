@@ -142,8 +142,8 @@ toB64 bs = fst (B.unfoldrN (4*n) gen 0) <> padding
 merg0 :: Word8 -> Word8 -> Word8
 merg1 :: Word8 -> Word8 -> Word8
 merg2 :: Word8 -> Word8 -> Word8
-merg0 a b = (unB64 a `shiftL` 2) .|. (top4 $ unB64 b)
-merg1 a b = (unB64 a `shiftL` 4) .|. (top6 $ unB64 b)
+merg0 a b = (unB64 a `shiftL` 2) .|. top4 (unB64 b)
+merg1 a b = (unB64 a `shiftL` 4) .|. top6 (unB64 b)
 merg2 a b = (unB64 a `shiftL` 6) .|. unB64 b
 
 unsafeFromB64 :: ByteString -> ByteString
