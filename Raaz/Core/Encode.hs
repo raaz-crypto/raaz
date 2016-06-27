@@ -1,10 +1,7 @@
---
 module Raaz.Core.Encode
-       ( -- * The encodable type
+       ( -- * Encoding of binary data.
          -- $encodable$
          Encodable(..)
-       -- * Encoding formats
-       -- $encodingformat$
        , Format(..)
        , encode, decode, unsafeDecode
        -- ** Supported encoding formats.
@@ -19,25 +16,22 @@ import Raaz.Core.Encode.Base64
 
 -- $encodable$
 --
--- Many types like cryptographic hashes, secret keys etc can be
--- encoded into bytes. This module gives an interface to such objects
--- using the `Encodable` type class. To ease their printing most types
--- of this class have a `Show` instances. Similarly, to make it easy
--- to defines constants of these types in source code, they often are
--- instances of `Data.String.IsString`. Typically for cryptographic
--- types like hashes, secret keys etc the `Show` and
--- `Data.String.IsString` instances correspond to the base-16 encoding
--- of these types.
-
-
-
-
--- $encodingformat$
+-- Often one wants to represent cryptographic hashes, secret keys or
+-- just binary data into various enocoding formats like base64,
+-- hexadecimal etc. This module gives a generic interface for all such
+-- operations. There are two main classes that capture the essence of
+-- encoding.
 --
--- We also give facilities to encode any instance of `Encodable` into
--- multiple formats. For type safety, encoding formats are
--- distinguished by their types. All such formats have to be members
--- of the `Format` type class and this allows encoding and decoding
--- any type that is an instance of `Encodable` into any of the desired
--- format.
+-- [`Format`] Each encoding supported by this module is an instance of
+--     this class. For printing and for easy inclusion in source code
+--     appropriate instances of `Show` and `Data.String.IsString` is
+--     provided for these types.
+--
+-- [`Encodable`] Instances of this class are those that can be encoded
+--    into any of the available formats. Actual encoding and decoding
+--    of elements of this class can be done by the combinators
+--    `encode` and `decode`
+--
+-- The raaz library exposes many instances of `Format` which are all
+-- some form of encoding of binary data.
 --

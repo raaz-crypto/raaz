@@ -25,7 +25,21 @@ import Raaz.Core.Types.Pointer
 import Raaz.Core.Util.ByteString(length, withByteString)
 
 
--- | The type class `Encodable` captures all the types can be encoding into `ByteString`.
+-- | The type class `Encodable` captures all the types that can be
+-- encoded into a stream of bytes. By making a type say @Foo@ an
+-- instance of the `Encodable` class, we get for free methods to
+-- encode it in any of the supported formats (i.e. instances of the
+-- class `Format`).
+--
+-- Minimum complete definition for this class is `toByteString` and
+-- `fromByteString`. Instances of `EndianStore` have default
+-- definitions for both these functions and hence a trivial instance
+-- declaration is sufficient for such types.
+--
+-- >
+-- > instance Encodable Foo
+-- >
+--
 class Encodable a where
   -- | Convert stuff to bytestring
   toByteString          :: a           -> ByteString
@@ -75,12 +89,39 @@ instance Encodable a => Encodable (BYTES a) where
   unsafeFromByteString  = BYTES      . unsafeFromByteString
 
 
--- | A binary encoding format is something for which there is a 1:1
--- correspondence with bytestrings. We also insist that it is an
--- instance of `IsString`, so that it can be easily included in source
--- code, and `Show`, so that it can be easily printed out.
+
+-- | A binary format is a representation of binary data often in
+-- printable form. We distinguish between various binary formats at
+-- the type level and each supported format corresponds to an instance
+-- of the the class `Format`. The `encodeByteString` and
+-- `decodeFormat` are required to satisfy the laws
+--
+-- > decodeFormat . encodeByteString = id
+--
+-- For type safety, the formats themselves are opaque types and hence
+-- it is not possible to obtain the underlying binary data directly.
+-- We require binary formats to be instances of the class `Encodable`,
+-- with the combinators `toByteString` and `fromByteString` of the
+-- `Encodable` class performing the actual encoding and decoding.
+--
+-- Instances of `Format` are required to be instances of `Show` and so
+-- that the encoded format can be easily printed. They are also
+-- required to be instances of `IsString` so that they can be easily
+-- represented in Haskell source using the @OverloadedStrings@
+-- extension.  However, be careful when using this due to the fact
+-- that invalid encodings can lead to runtime errors.
+--
 class (IsString fmt, Show fmt, Encodable fmt) => Format fmt where
+
+  -- | Encode binary data into the format. The return type gurantees
+  -- that any binary data can indeed be encoded into a format.
   encodeByteString :: ByteString -> fmt
+
+  -- | Decode the format to its associated binary
+  -- representation. Notice that this function always succeeds: we
+  -- assume that elements of the type `fmt` are valid encodings and
+  -- hence the return type is `ByteString` instead of @`Maybe`
+  -- ByteString@.
   decodeFormat     :: fmt        -> ByteString
 
 -- | Bytestring itself is an encoding format (namely binary format).
