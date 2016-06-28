@@ -5,9 +5,7 @@
 -- | Internal module that has the encode class and some utility functions.
 module Raaz.Core.Encode.Internal
        ( Encodable(..), Format(..)
-       , encode, decode, unsafeDecode
        ) where
-
 
 import Data.Maybe
 
@@ -130,17 +128,3 @@ instance Format ByteString where
   {-# INLINE encodeByteString #-}
   decodeFormat     = id
   {-# INLINE decodeFormat     #-}
-
-
--- | Encode in a given format.
-encode :: (Encodable a, Format fmt) => a -> fmt
-encode = encodeByteString . toByteString
-
--- | Decode from a given format. It results in Nothing if there is a
--- parse error.
-decode :: (Format fmt, Encodable a) => fmt -> Maybe a
-decode = fromByteString . decodeFormat
-
--- | The unsafe version of `decode`.
-unsafeDecode :: (Format fmt, Encodable a) => fmt -> a
-unsafeDecode = unsafeFromByteString . decodeFormat

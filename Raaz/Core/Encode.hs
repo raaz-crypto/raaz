@@ -3,7 +3,7 @@ module Raaz.Core.Encode
          -- $encodable$
          Encodable(..)
        , Format(..)
-       , encode, decode, unsafeDecode
+       , encode, decode, translate, unsafeDecode
        -- ** Supported encoding formats.
        , Base16, Base64
        -- ** Helper function for base16
@@ -35,3 +35,20 @@ import Raaz.Core.Encode.Base64
 -- The raaz library exposes many instances of `Format` which are all
 -- some form of encoding of binary data.
 --
+
+-- | Encode in a given format.
+encode :: (Encodable a, Format fmt) => a -> fmt
+encode = encodeByteString . toByteString
+
+-- | Decode from a given format. It results in Nothing if there is a
+-- parse error.
+decode :: (Format fmt, Encodable a) => fmt -> Maybe a
+decode = fromByteString . decodeFormat
+
+-- | The unsafe version of `decode`.
+unsafeDecode :: (Format fmt, Encodable a) => fmt -> a
+unsafeDecode = unsafeFromByteString . decodeFormat
+
+-- | Translate from one format to another.
+translate :: (Format fmt1, Format fmt2) => fmt1 -> fmt2
+translate = encodeByteString . decodeFormat

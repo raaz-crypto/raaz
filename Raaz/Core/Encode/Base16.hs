@@ -1,6 +1,9 @@
 -- | Base 16 or hexadecimal encoding of objects.
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-module Raaz.Core.Encode.Base16( Base16, fromBase16, showBase16 ) where
+module Raaz.Core.Encode.Base16
+       ( Base16
+       , fromBase16, showBase16
+       ) where
 
 import Data.Char
 import Data.Bits
@@ -84,8 +87,8 @@ unsafeFromHex bs
 -- `IsString` instances as well as in cases where the default
 -- `IsString` instance does not parse from a base16 encoding.
 fromBase16 :: Encodable a => String -> a
-fromBase16 str = unsafeDecode (fromString str :: Base16)
+fromBase16 = unsafeFromByteString . unBase16 . fromString
 
 -- | Base16 variant of `show`.
 showBase16 :: Encodable a => a -> String
-showBase16 a = show (encode a :: Base16)
+showBase16 = show . Base16 . toByteString
