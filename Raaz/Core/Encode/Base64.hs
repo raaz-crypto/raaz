@@ -16,7 +16,8 @@ import Data.Word
 import Raaz.Core.Encode.Internal
 
 
--- | The base16 type.
+-- | The type corresponding to the standard padded base-64 binary
+-- encoding.
 newtype Base64 = Base64 {unBase64 :: ByteString} deriving (Eq, Monoid)
 
 -- Developers note: Internally base16 just stores the bytestring as

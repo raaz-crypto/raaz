@@ -18,7 +18,12 @@ import Data.Monoid
 import Data.Word
 import Raaz.Core.Encode.Internal
 
--- | The base16 type.
+-- | The type corresponding to base-16 or hexadecimal encoding. The
+-- `Base16` encoding has a special place in this library: most
+-- cryptographic types use `Base16` encoding for their `Show` and
+-- `IsString` instance. The combinators `fromBase16` and `showBase16`
+-- are exposed mainly to make these definitions easy.
+--
 newtype Base16 = Base16 {unBase16 :: ByteString} deriving (Eq, Monoid)
 
 -- Developers note: Internally base16 just stores the bytestring as

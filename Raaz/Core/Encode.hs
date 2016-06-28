@@ -4,10 +4,11 @@ module Raaz.Core.Encode
          Encodable(..)
        , Format(..)
        , encode, decode, translate, unsafeDecode
-       -- ** Supported encoding formats.
-       , Base16, Base64
-       -- ** Helper function for base16
+       -- ** The base 16 encoding format
+       , Base16
        , fromBase16, showBase16
+       -- ** Other binary formats.
+       , Base64
        ) where
 
 import Raaz.Core.Encode.Internal
