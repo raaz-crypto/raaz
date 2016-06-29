@@ -156,6 +156,76 @@ instance Equality Word64 where
   eq w1 w2 = Result $ fromIntegral $ xor w1 w2
 #endif
 
+-- Now comes the boring instances for tuples.
+
+instance ( Equality a
+         , Equality b
+         ) => Equality (a , b) where
+  eq (a1,a2) (b1,b2) = eq a1 b1 `mappend` eq a2 b2
+
+
+instance ( Equality a
+         , Equality b
+         , Equality c
+         ) => Equality (a , b, c) where
+  eq (a1,a2,a3) (b1,b2,b3) = eq a1 b1 `mappend`
+                             eq a2 b2 `mappend`
+                             eq a3 b3
+
+
+instance ( Equality a
+         , Equality b
+         , Equality c
+         , Equality d
+         ) => Equality (a , b, c, d) where
+  eq (a1,a2,a3,a4) (b1,b2,b3,b4) = eq a1 b1 `mappend`
+                                   eq a2 b2 `mappend`
+                                   eq a3 b3 `mappend`
+                                   eq a4 b4
+
+instance ( Equality a
+         , Equality b
+         , Equality c
+         , Equality d
+         , Equality e
+         ) => Equality (a , b, c, d, e) where
+  eq (a1,a2,a3,a4,a5) (b1,b2,b3,b4,b5) = eq a1 b1 `mappend`
+                                         eq a2 b2 `mappend`
+                                         eq a3 b3 `mappend`
+                                         eq a4 b4 `mappend`
+                                         eq a5 b5
+
+
+instance ( Equality a
+         , Equality b
+         , Equality c
+         , Equality d
+         , Equality e
+         , Equality f
+         ) => Equality (a , b, c, d, e, f) where
+  eq (a1,a2,a3,a4,a5,a6) (b1,b2,b3,b4,b5,b6) = eq a1 b1 `mappend`
+                                               eq a2 b2 `mappend`
+                                               eq a3 b3 `mappend`
+                                               eq a4 b4 `mappend`
+                                               eq a5 b5 `mappend`
+                                               eq a6 b6
+
+instance ( Equality a
+         , Equality b
+         , Equality c
+         , Equality d
+         , Equality e
+         , Equality f
+         , Equality g
+         ) => Equality (a , b, c, d, e, f, g) where
+  eq (a1,a2,a3,a4,a5,a6,a7) (b1,b2,b3,b4,b5,b6,b7) = eq a1 b1 `mappend`
+                                                     eq a2 b2 `mappend`
+                                                     eq a3 b3 `mappend`
+                                                     eq a4 b4 `mappend`
+                                                     eq a5 b5 `mappend`
+                                                     eq a6 b6 `mappend`
+                                                     eq a7 b7
+
 
 -- | Timing independent equality checks for vector of values. /Do not/
 -- use this to check the equality of two general vectors in a timing
