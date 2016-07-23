@@ -184,11 +184,13 @@ test-Suite spec
   other-modules: Common
                , Common.Cipher
                , Common.Hash
+               , Common.Imports
                , Common.Instances
                , Common.Utils
                , Raaz.Cipher.AESSpec
                , Raaz.Core.EncodeSpec
                , Raaz.Core.MemorySpec
+               , Raaz.Core.SystemPRGSpec
                , Raaz.Core.Types.WordSpec
                , Raaz.Core.Util.ByteStringSpec
                , Raaz.Hash.Sha1Spec
