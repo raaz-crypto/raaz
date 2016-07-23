@@ -5,3 +5,5 @@ tags
 TAGS
 .cabal-sandbox
 *test
+.hpc
+cabal.sandbox.config
