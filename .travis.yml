@@ -108,4 +108,4 @@ after_failure:
 branches:
   only:
     - master
-    - release-0.0.1
+    - release-0.0.2
