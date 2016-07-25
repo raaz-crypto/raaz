@@ -1,6 +1,6 @@
 # Change log for [raaz].
 
-## [0.0.2] - Pending
+## [0.0.2] - July 25, 2016.
 
 * Encoding: translation between formats using the `translate`
   combinator
