@@ -102,59 +102,59 @@ instance Show IV where
 ----------------- AES 128 CBC ------------------------------
 
 -- | 128-bit aes cipher in `CBC` mode.
-aes128cbc :: AES 128 CBC
+aes128cbc :: AES 128 'CBC
 aes128cbc = AES
 
 -- | The 128-bit aes cipher in cbc mode.
-instance Primitive (AES 128 CBC) where
+instance Primitive (AES 128 'CBC) where
   blockSize _ = BYTES 16
-  type Implementation (AES 128 CBC) = SomeCipherI (AES 128 CBC)
+  type Implementation (AES 128 'CBC) = SomeCipherI (AES 128 'CBC)
 
 -- | Key is @(`KEY128`,`IV`)@ pair.
-instance Symmetric (AES 128 CBC) where
-  type Key (AES 128 CBC) = (KEY128,IV)
+instance Symmetric (AES 128 'CBC) where
+  type Key (AES 128 'CBC) = (KEY128,IV)
 
-instance Cipher (AES 128 CBC)
+instance Cipher (AES 128 'CBC)
 
 ----------------- AES 192 CBC --------------------------------
 
 -- | 128-bit aes cipher in `CBC` mode.
-aes192cbc :: AES 192 CBC
+aes192cbc :: AES 192 'CBC
 aes192cbc = AES
 
 -- | The 192-bit aes cipher in cbc mode.
-instance Primitive (AES 192 CBC) where
+instance Primitive (AES 192 'CBC) where
   blockSize _ = BYTES 16
-  type Implementation (AES 192 CBC) = SomeCipherI (AES 192 CBC)
+  type Implementation (AES 192 'CBC) = SomeCipherI (AES 192 'CBC)
 
 -- | Key is @(`KEY192`,`IV`)@ pair.
-instance Symmetric (AES 192 CBC) where
-  type Key (AES 192 CBC) = (KEY192,IV)
+instance Symmetric (AES 192 'CBC) where
+  type Key (AES 192 'CBC) = (KEY192,IV)
 
-instance Cipher (AES 192 CBC)
+instance Cipher (AES 192 'CBC)
 
 ------------------- AES 256 CBC -----------------------------
 
 -- | 128-bit aes cipher in `CBC` mode.
-aes256cbc :: AES 256 CBC
+aes256cbc :: AES 256 'CBC
 aes256cbc = AES
 
 -- | The 256-bit aes cipher in cbc mode.
-instance Primitive (AES 256 CBC) where
+instance Primitive (AES 256 'CBC) where
   blockSize _ = BYTES 16
-  type Implementation (AES 256 CBC) = SomeCipherI (AES 256 CBC)
+  type Implementation (AES 256 'CBC) = SomeCipherI (AES 256 'CBC)
 
 -- | Key is @(`KEY256`,`IV`)@ pair.
-instance Symmetric (AES 256 CBC) where
-  type Key (AES 256 CBC) = (KEY256,IV)
+instance Symmetric (AES 256 'CBC) where
+  type Key (AES 256 'CBC) = (KEY256,IV)
 
-instance Cipher (AES 256 CBC)
+instance Cipher (AES 256 'CBC)
 
 
 ------------------- AES CTR mode ---------------------------
 
 -- | Smart constructors for AES 128 ctr.
-aes128ctr :: AES 128 CTR
+aes128ctr :: AES 128 'CTR
 aes128ctr = AES
 
 --------------  Memory for storing extended keys ---------

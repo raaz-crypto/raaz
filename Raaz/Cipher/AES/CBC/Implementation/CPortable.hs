@@ -70,11 +70,11 @@ instance Initialisable M256 (KEY256, IV) where
 ------------------- 128-bit CBC Implementation ----------------
 
 -- | Implementation of 128-bit AES in CBC mode using Portable C.
-aes128cbcI :: Implementation (AES 128 CBC)
+aes128cbcI :: Implementation (AES 128 'CBC)
 aes128cbcI = SomeCipherI cbc128CPortable
 
 -- | 128-bit AES in CBC mode using Portable C.
-cbc128CPortable :: CipherI (AES 128 CBC) M128 M128
+cbc128CPortable :: CipherI (AES 128 'CBC) M128 M128
 cbc128CPortable =
   CipherI { cipherIName = "aes128cbc-cportable"
           , cipherIDescription =
@@ -84,14 +84,14 @@ cbc128CPortable =
           }
 
 -- | The encryption action.
-cbc128Encrypt :: Pointer -> BLOCKS (AES 128 CBC) -> MT M128 ()
+cbc128Encrypt :: Pointer -> BLOCKS (AES 128 'CBC) -> MT M128 ()
 cbc128Encrypt buf nBlocks =
   do eKeyPtr <- liftSubMT m128ekey getMemoryPointer
      ivPtr   <- liftSubMT m128iv   getMemoryPointer
      liftIO $ c_aes_cbc_e buf (fromEnum nBlocks) 10 eKeyPtr ivPtr
 
 -- | The decryption action.
-cbc128Decrypt :: Pointer -> BLOCKS (AES 128 CBC) -> MT M128 ()
+cbc128Decrypt :: Pointer -> BLOCKS (AES 128 'CBC) -> MT M128 ()
 cbc128Decrypt buf nBlocks =
   do eKeyPtr <- liftSubMT m128ekey getMemoryPointer
      ivPtr   <- liftSubMT m128iv   getMemoryPointer
@@ -102,11 +102,11 @@ cbc128Decrypt buf nBlocks =
 ------------------- 192-bit CBC Implementation ----------------
 
 -- | Implementation of 192-bit AES in CBC mode using Portable C.
-aes192cbcI :: Implementation (AES 192 CBC)
+aes192cbcI :: Implementation (AES 192 'CBC)
 aes192cbcI = SomeCipherI cbc192CPortable
 
 -- | 192-bit AES in CBC mode using Portable C.
-cbc192CPortable :: CipherI (AES 192 CBC) M192 M192
+cbc192CPortable :: CipherI (AES 192 'CBC) M192 M192
 cbc192CPortable =
   CipherI { cipherIName = "aes192cbc-cportable"
           , cipherIDescription =
@@ -116,14 +116,14 @@ cbc192CPortable =
           }
 
 -- | The encryption action.
-cbc192Encrypt :: Pointer -> BLOCKS (AES 192 CBC) -> MT M192 ()
+cbc192Encrypt :: Pointer -> BLOCKS (AES 192 'CBC) -> MT M192 ()
 cbc192Encrypt buf nBlocks =
   do eKeyPtr <- liftSubMT m192ekey getMemoryPointer
      ivPtr   <- liftSubMT m192iv   getMemoryPointer
      liftIO $ c_aes_cbc_e buf (fromEnum nBlocks) 12 eKeyPtr ivPtr
 
 -- | The decryption action.
-cbc192Decrypt :: Pointer -> BLOCKS (AES 192 CBC) -> MT M192 ()
+cbc192Decrypt :: Pointer -> BLOCKS (AES 192 'CBC) -> MT M192 ()
 cbc192Decrypt buf nBlocks =
   do eKeyPtr <- liftSubMT m192ekey getMemoryPointer
      ivPtr   <- liftSubMT m192iv   getMemoryPointer
@@ -132,11 +132,11 @@ cbc192Decrypt buf nBlocks =
 ------------------- 256-bit CBC Implementation ----------------
 
 -- | Implementation of 256-bit AES in CBC mode using Portable C.
-aes256cbcI :: Implementation (AES 256 CBC)
+aes256cbcI :: Implementation (AES 256 'CBC)
 aes256cbcI = SomeCipherI cbc256CPortable
 
 -- | 256-bit AES in CBC mode using Portable C.
-cbc256CPortable :: CipherI (AES 256 CBC) M256 M256
+cbc256CPortable :: CipherI (AES 256 'CBC) M256 M256
 cbc256CPortable =
   CipherI { cipherIName = "aes256cbc-cportable"
           , cipherIDescription =
@@ -146,14 +146,14 @@ cbc256CPortable =
           }
 
 -- | The encryption action.
-cbc256Encrypt :: Pointer -> BLOCKS (AES 256 CBC) -> MT M256 ()
+cbc256Encrypt :: Pointer -> BLOCKS (AES 256 'CBC) -> MT M256 ()
 cbc256Encrypt buf nBlocks =
   do eKeyPtr <- liftSubMT m256ekey getMemoryPointer
      ivPtr   <- liftSubMT m256iv   getMemoryPointer
      liftIO $ c_aes_cbc_e buf (fromEnum nBlocks) 14 eKeyPtr ivPtr
 
 -- | The decryption action.
-cbc256Decrypt :: Pointer -> BLOCKS (AES 256 CBC) -> MT M256 ()
+cbc256Decrypt :: Pointer -> BLOCKS (AES 256 'CBC) -> MT M256 ()
 cbc256Decrypt buf nBlocks =
   do eKeyPtr <- liftSubMT m256ekey getMemoryPointer
      ivPtr   <- liftSubMT m256iv   getMemoryPointer
