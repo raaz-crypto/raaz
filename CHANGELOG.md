@@ -2,8 +2,6 @@
 
 ## [0.0.2] - Pending
 
-* Hashes: Blake2  [TODO]
-* Cipher: AES-CTR with key-sizes 128, 192, 256 [TODO]
 * Encoding: translation between formats using the `translate`
   combinator
 * Encoding formats: base64
