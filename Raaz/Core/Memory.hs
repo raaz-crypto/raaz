@@ -338,7 +338,7 @@ withMemory   = withM memoryAlloc
 -- essentially a limitation of the bracket which is used internally.
 withSecureMemory :: Memory m => (m -> IO a) -> IO a
 withSecureMemory = withSM memoryAlloc
-  where withSM :: Memory m => Alloc m -> (m -> IO a) -> IO a
+  where -- withSM :: Memory m => Alloc m -> (m -> IO a) -> IO a
         withSM alctr action = allocaSecure sz $ action . getM
           where sz     = getSum $ twistMonoidValue alctr
                 getM   = computeField $ twistFunctorValue alctr
