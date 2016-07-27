@@ -22,12 +22,8 @@ import qualified Data.Vector.Generic.Mutable as GM
 import           Data.Vector.Unboxed         ( MVector(..), Vector, Unbox )
 import           Data.Word
 
--- | An opaque type that captures the result of a comparison. The monoid
--- instances allows us to combine the results of two equality comparisons
--- in a timing independent manner. We have the following properties.
---
--- > isSuccessful mempty            = True
--- > isSuccessful (r `mappend` s)   = isSuccessful r && isSuccessful s
+-- | The result of a comparison. This is an opaque type and the only way to check if the
+-- comparison is successful is to use the combinator `isSuccessful`l s
 --
 newtype Result =  Result { unResult :: Word }
 
@@ -99,7 +95,7 @@ instance G.Vector Vector Result where
 
 
 
--- | In a cryptographic setting, naive equality checking
+-- | In a cryptographic setting, naive equality checking is
 -- dangerous. This class is the timing safe way of doing equality
 -- checking. The recommended method of defining equality checking for
 -- cryptographically sensitive data is as follows.
