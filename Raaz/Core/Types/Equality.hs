@@ -28,6 +28,7 @@ newtype Result =  Result { unResult :: Word }
 
 -- | Checks whether a given equality comparison is successful.
 isSuccessful :: Result -> Bool
+{-# INLINE isSuccessful #-}
 isSuccessful = (==0) . unResult
 
 instance Monoid Result where
