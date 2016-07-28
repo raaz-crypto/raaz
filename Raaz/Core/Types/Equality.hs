@@ -5,7 +5,7 @@
 module Raaz.Core.Types.Equality
        ( Equality(..), (===)
        -- ** The result of comparion.
-       , Result, isSuccessful
+       , Result
        -- ** Comparing vectors.
        , oftenCorrectEqVector, eqVector
        ) where
@@ -22,9 +22,8 @@ import qualified Data.Vector.Generic.Mutable as GM
 import           Data.Vector.Unboxed         ( MVector(..), Vector, Unbox )
 import           Data.Word
 
--- | The result of a comparison. This is an opaque type and the only way to check if the
--- comparison is successful is to use the combinator `isSuccessful`l s
---
+-- | The result of a comparison. This is an opaque type and the monoid instance essentially takes
+-- AND of two comparisons in a timing safe way.
 newtype Result =  Result { unResult :: Word }
 
 -- | Checks whether a given equality comparison is successful.

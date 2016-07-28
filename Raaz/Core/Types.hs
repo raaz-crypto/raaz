@@ -38,11 +38,8 @@ import Raaz.Core.Types.Tuple
 -- combine the results of two comparisons one can use the monoid
 -- instance of `Result`, i.e. if @r1@ and @r2@ are the results of two
 -- comparisons then @r1 `mappend` r2@ essentially takes the AND of
--- these results. Finally, result can be converted into a `Bool` using
--- the `isSuccessful` combinator. It satisfies the following laws.
---
--- > isSuccessful mempty            = True
--- > isSuccessful (r `mappend` s)   = isSuccessful r && isSuccessful s
+-- these results but this and is not short-circuited and is timing
+-- independent.
 --
 -- Instance for basic word types are provided by the library and users
 -- are expected to build the `Equality` instances of compound types by
