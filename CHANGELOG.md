@@ -1,11 +1,13 @@
 # Change log for [raaz].
 
-## [0.0.2] - Pending
+## [0.0.2] - July 25, 2016.
+
+This release comes with very little changes.
 
 * Encoding: translation between formats using the `translate`
   combinator
 * Encoding formats: base64
-
+* Bug fix in base16 character verification (Commit: d6eca4c37b0b)
 
 ## [0.0.1] - June 21, 2016.
 

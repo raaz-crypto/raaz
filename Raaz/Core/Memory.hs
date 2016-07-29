@@ -13,21 +13,22 @@ The memory subsystem associated with raaz.
 
 module Raaz.Core.Memory
        (
-       -- * The Memory subsystem
+       -- * The Memory subsystem.
        -- $memorysubsystem$
-
-       -- ** Memory monads
-         MonadMemory(..)
-       , MT, execute, getMemory, liftSubMT
-       , MemoryM, runMT
-       -- *** Some low level functions.
+       -- ** Memory elements
+         Memory(..), copyMemory
+       -- *** A basic memory cell.
+       , MemoryCell
+       -- *** Initialising and extracting.
+       , Initialisable(..), Extractable(..)
+       -- *** Actions on memory elements.
+       , MT,  execute, getMemory, liftSubMT, modify
+       -- **** Some low level `MT` actions.
        , getMemoryPointer, withPointer
        , allocate
-       -- ** Memory elements.
-       , Memory(..), copyMemory
-       , Initialisable(..), Extractable(..), modify
-       -- *** Some basic memory elements.
-       , MemoryCell
+       -- ** Generic memory monads.
+       , MonadMemory(..)
+       , MemoryM, runMT
        -- ** Memory allocation
        ,  Alloc, pointerAlloc
        ) where
@@ -44,9 +45,32 @@ import           Raaz.Core.Types
 --
 -- The memory subsystem consists of two main components.
 --
--- 1. Abstract elements captured by the `Memory` type class.
+-- [The `Memory` type class] A memory element is some type that holds
+-- an internal buffer inside it. The operations that are allowed on
+-- the element is controlled by the associated type. Certain memory
+-- element have a default way in which it can be initialised by values
+-- of type @a@. An instance declaration @`Initialisable` mem a@ for
+-- the memory type @mem@ is done in such case. Similary, if values of
+-- type @b@ can be extracted out of a memory element @mem@, we can
+-- indicate it with an instance of @`Extractable` mem a@.
 --
--- 2. Abstract memory actions captured by the type class `MonadMemory`.
+-- [The `Alloc` type and memory allocation] The most important and
+-- often error prone operation while using low level memory buffers is
+-- its allocation. The `Alloc` types gives the allocation strategy for
+-- a memory element keeping track of the necessary book keeping
+-- involved in it.  The `Alloc` type is an instance of `Applicative`
+-- which helps build the allocation strategy for a compound memory
+-- type from its components in a modular fashion without any explicit
+-- size calculation or offset computation.
+--
+-- [The `MonadMemory` class] Instances of these classes are actions
+-- that use some kind of memory elements, i.e. instances of the class
+-- `Memory`, inside it. Any such monad can either be run using the
+-- combinator `securely` or the combinator `insecurely`. If one use
+-- the combinator `securely`, then all allocations done during the run
+-- is from a locked memory pool which is wiped clean before
+-- de-allocation. The types `MT` and `MemoryM` are two instances that
+-- we expose from this library.
 --
 
 -- | A class that captures monads that use an internal memory element.
@@ -338,7 +362,7 @@ withMemory   = withM memoryAlloc
 -- essentially a limitation of the bracket which is used internally.
 withSecureMemory :: Memory m => (m -> IO a) -> IO a
 withSecureMemory = withSM memoryAlloc
-  where withSM :: Memory m => Alloc m -> (m -> IO a) -> IO a
+  where -- withSM :: Memory m => Alloc m -> (m -> IO a) -> IO a
         withSM alctr action = allocaSecure sz $ action . getM
           where sz     = getSum $ twistMonoidValue alctr
                 getM   = computeField $ twistFunctorValue alctr
@@ -356,7 +380,14 @@ withCell :: (Pointer -> IO b) -> MT (MemoryCell a) b
 withCell fp  = execute $ fp . unMemoryCell
 {-# INLINE withCell #-}
 
--- | Apply the given function to the value in the cell.
+-- | Apply the given function to the value in the cell. For a function @f :: b -> a@,
+-- the action @modify f@ first extracts a value of type @b@ from the
+-- memory element, applies @f@ to it and puts the result back into the
+-- memory.
+--
+-- > modify f = do b          <- extract
+-- >               initialise $  f b
+--
 modify :: (Initialisable m a, Extractable m b) =>  (b -> a) -> MT m ()
 modify f = extract >>= initialise . f
 

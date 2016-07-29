@@ -91,5 +91,5 @@ instance Primitive p => LengthUnit (BLOCKS p) where
 -- | The expression @n `blocksOf` p@ specifies the message lengths in
 -- units of the block length of the primitive @p@. This expression is
 -- sometimes required to make the type checker happy.
-blocksOf :: Primitive p =>  Int -> p -> BLOCKS p
+blocksOf :: Int -> p -> BLOCKS p
 blocksOf n _ = BLOCKS n

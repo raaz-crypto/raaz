@@ -1,5 +1,5 @@
 name:    raaz
-version: 0.0.1
+version: 0.0.2
 
 synopsis: The raaz cryptographic library.
 
@@ -174,7 +174,7 @@ executable checksum
   hs-source-dirs: bin
   main-is: checksum.lhs
   build-depends: base     >= 4.5 && < 5.0
-               , raaz     == 0.0.1
+               , raaz     == 0.0.2
 
 test-Suite spec
   type: exitcode-stdio-1.0
@@ -207,7 +207,7 @@ test-Suite spec
                , QuickCheck                     >= 2.4
                , hspec
                , transformers
-               , raaz                           == 0.0.1
+               , raaz                           == 0.0.2
                , vector
 
 benchmark blaze-vs-write

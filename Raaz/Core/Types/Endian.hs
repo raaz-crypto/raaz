@@ -86,7 +86,7 @@ loadFromIndex :: EndianStore w
               -> IO w
 {-# INLINE loadFromIndex #-}
 loadFromIndex cptr index = loadP undefined
-   where loadP ::  (EndianStore w, Storable w) => w -> IO w
+   where loadP ::  EndianStore w => w -> IO w
          loadP w = loadFrom cptr offset
            where offset = toEnum index * byteSize w
 

@@ -15,6 +15,8 @@ branch which we will call release-A.B.C.
 
 * Create a fresh branch titled release-A.B.C.
 
+* Bump up the version in the cabal file.
+
 * Go over the bug-tracker for bugs to be addressed for this release.
   mark them.
 

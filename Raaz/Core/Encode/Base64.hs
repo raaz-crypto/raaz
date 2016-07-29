@@ -37,7 +37,7 @@ instance Encodable Base64 where
     where pl           = C8.last bs
           pf           = C8.last $ C8.init bs
           bs'          = C8.init $ C8.init bs
-          badCharacter = C8.all (not . isB64Char)
+          badCharacter = C8.any (not . isB64Char)
           isB64Char c  = isAlpha c || isDigit c || c == '+' || c == '/'
           isB64OrPad c = isB64Char c || c == '='
 

@@ -80,13 +80,13 @@ hmacAdjustKey key = padIt trimedKey
         theHash     :: HMACKey h -> h
         theHash  _  = undefined
 
-instance (Hash h, Recommendation h, Encodable h) => EndianStore (HMACKey h) where
+instance (Hash h, Recommendation h) => EndianStore (HMACKey h) where
   store = poke . castPtr
   load  = peek . castPtr
 
-instance (Hash h, Recommendation h, Encodable h) => Random (HMACKey h)
+instance (Hash h, Recommendation h) => Random (HMACKey h)
 
-instance (Hash h, Recommendation h, Encodable h) => Encodable (HMACKey h)
+instance (Hash h, Recommendation h) => Encodable (HMACKey h)
 
 -- | Base16 representation of the string.
 instance IsString (HMACKey h) where
