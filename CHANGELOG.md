@@ -8,6 +8,7 @@ This release comes with very little changes.
   combinator
 * Encoding formats: base64
 * Bug fix in base16 character verification (Commit: d6eca4c37b0b)
+* Dropped `isSuccessful` from export list of Equality.
 
 ## [0.0.1] - June 21, 2016.
 
@@ -17,4 +18,5 @@ This release comes with very little changes.
 * Encoding formats: base16
 
 [0.0.1]: <http://github.com/raaz-crypto/raaz/releases/tag/v0.0.1>
+[0.0.2]: <http://github.com/raaz-crypto/raaz/releases/tag/v0.0.2>
 [raaz]:  <http://github.com/raaz-crypto/raaz/>
