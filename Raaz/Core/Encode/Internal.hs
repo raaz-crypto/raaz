@@ -69,7 +69,7 @@ instance Encodable (BE Word64)
 instance Encodable ByteString where
   toByteString         = id
   {-# INLINE toByteString #-}
-  fromByteString       = Just . id
+  fromByteString       = Just
   {-# INLINE fromByteString #-}
   unsafeFromByteString = id
   {-# INLINE unsafeFromByteString #-}
