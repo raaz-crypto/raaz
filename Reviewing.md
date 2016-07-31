@@ -23,7 +23,7 @@ instance Eq GoodSensitiveType where
 
 ```
 
-Here is another example of a good definition.
+Here are some other example of a good definition.
 
 ```haskell
 
@@ -32,6 +32,10 @@ newtype AnotherGoodType = AGT (Foo,Bar) deriving Equality
 
 instance Eq AnotherGoodType where
 	(==) = (===)
+
+-- | Makes use of the Equality and Eq instances of tuple types.
+newtype Foo = Foo (Tuple n Word32) deriving (Equality, Eq)
+
 
 ```
 
