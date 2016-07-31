@@ -17,6 +17,16 @@ Hacking and Discussion
 
 For details please refer to [our wiki][wiki].
 
+## Releasing and reviewing.
+
+The repository also contains the file Releasing.md which contains
+checklist for releasing a new version of the library. Any crypto
+library should undergo through review by multiple people. In the file
+Reviewing.md, we collect some common pitfalls to look for while
+reviewing the code. It is good to actively look for some of the
+problems suggested there but of course one should also look for other
+problems.
+
 
 [![Build Staus][travis-status]][travis-raaz]
 
