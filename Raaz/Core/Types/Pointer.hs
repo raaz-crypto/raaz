@@ -55,7 +55,7 @@ type Pointer = Ptr Align
 -- conversions, we distinguish between different length units at the
 -- type level. This type class capturing such types, i.e. types that
 -- stand of length units.
-class (Num u, Enum u) => LengthUnit u where
+class (Enum u, Monoid u) => LengthUnit u where
   -- | Express the length units in bytes.
   inBytes :: u -> BYTES Int
 
@@ -71,10 +71,18 @@ newtype BITS  a  = BITS  a
                  , Real, Num, Storable
                  )
 
-newtype ALIGN    = ALIGN Int
+newtype ALIGN    = ALIGN { unALIGN :: Int }
                  deriving ( Show, Eq,Ord, Enum, Integral
                           , Real, Num, Storable
                           )
+
+instance Num a => Monoid (BYTES a) where
+  mempty  = 0
+  mappend = (+)
+
+instance Monoid ALIGN where
+  mempty  = ALIGN 0
+  mappend x y = ALIGN $ unALIGN x + unALIGN y
 
 instance LengthUnit ALIGN where
   inBytes (ALIGN x) = BYTES $ x * alignment (undefined :: Align)
@@ -97,7 +105,7 @@ atLeast :: ( LengthUnit src
         => src
         -> dest
 atLeast src | r == 0    = u
-            | otherwise = u + 1
+            | otherwise = succ u
     where (u , r) = bytesQuotRem $ inBytes src
 
 -- | Express length unit @src@ in terms of length unit @dest@ rounding
@@ -117,7 +125,7 @@ bytesQuotRem :: LengthUnit u
              => BYTES Int
              -> (u , BYTES Int)
 bytesQuotRem bytes = (u , r)
-  where divisor = inBytes (1 `asTypeOf` u)
+  where divisor = inBytes (toEnum 1 `asTypeOf` u)
         (q, r)  = bytes `quotRem` divisor
         u       = toEnum $ fromEnum q
 
@@ -126,7 +134,7 @@ bytesQuot :: LengthUnit u
           => BYTES Int
           -> u
 bytesQuot bytes = u
-  where divisor = inBytes (1 `asTypeOf` u)
+  where divisor = inBytes (toEnum 1 `asTypeOf` u)
         q       = bytes `quot` divisor
         u       = toEnum $ fromEnum q
 
@@ -136,7 +144,7 @@ bitsQuotRem :: LengthUnit u
             => BITS Word64
             -> (u , BITS Word64)
 bitsQuotRem bits = (u , r)
-  where divisor = inBits (1 `asTypeOf` u)
+  where divisor = inBits (toEnum 1 `asTypeOf` u)
         (q, r)  = bits `quotRem` divisor
         u       = toEnum $ fromEnum q
 
@@ -145,18 +153,18 @@ bitsQuot :: LengthUnit u
          => BITS Word64
          -> u
 bitsQuot bits = u
-  where divisor = inBits (1 `asTypeOf` u)
+  where divisor = inBits (toEnum 1 `asTypeOf` u)
         q       = bits `quot` divisor
         u       = toEnum $ fromEnum q
 
 -- | The most interesting monoidal action for us.
-instance LengthUnit u => LAction (Sum u) Pointer where
+instance LengthUnit u => LAction u Pointer where
   a <.> ptr  = plusPtr ptr offset
-    where BYTES offset = inBytes $ getSum a
+    where BYTES offset = inBytes a
   {-# INLINE (<.>) #-}
 
 movePtr :: LengthUnit u => Pointer -> u -> Pointer
-movePtr ptr u = Sum u <.> ptr
+movePtr ptr u = u <.> ptr
 {-# INLINE movePtr #-}
 
 -------------------------------------------------------------------
