@@ -35,11 +35,10 @@ import Raaz.Core.Types
 -- for a given primitive. The associated type `Implementation`
 -- captures implementations of the primitive.
 --
--- There is a /reference implementation/ where the emphasis is on
--- correctness rather than speed or security. They are used to verify
--- the correctness of the other implementations for the same
--- primitive. Apart from this, for production use, we have a
--- recommended implementation.
+-- For use in production code, the library recommends a particular
+-- implementation using the `Recommendation` class. By default this is
+-- the implementation used when no explicit implementation is
+-- specified.
 class (Describable (Implementation p)) => Primitive p where
 
   -- | The block size.
