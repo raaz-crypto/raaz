@@ -16,7 +16,6 @@ import           Control.Monad        (liftM)
 import           Control.Monad.IO.Class
 import qualified Data.ByteString      as B
 import qualified Data.ByteString.Lazy as L
-import           Data.Monoid
 import           Prelude hiding(length)
 import           System.IO            (Handle)
 
