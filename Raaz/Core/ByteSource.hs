@@ -16,7 +16,6 @@ import           Control.Monad        (liftM)
 import           Control.Monad.IO.Class
 import qualified Data.ByteString      as B
 import qualified Data.ByteString.Lazy as L
-import           Data.Monoid
 import           Prelude hiding(length)
 import           System.IO            (Handle)
 
@@ -166,7 +165,7 @@ instance ByteSource src => ByteSource [src] where
   fillBytes sz (x:xs) cptr = do
     result <- fillBytes sz x cptr
     case result of
-      Exhausted rbytes -> let nptr = Sum rbytes <.> cptr
+      Exhausted rbytes -> let nptr = rbytes <.> cptr
                           in  fillBytes (sz - rbytes) xs nptr
       Remaining nx     -> return $ Remaining $ nx:xs
 

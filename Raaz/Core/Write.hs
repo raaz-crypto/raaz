@@ -46,13 +46,11 @@ instance Monoid WriteM where
 -- input a pointer.
 type WriteAction = Pointer -> WriteM
 
-type BytesMonoid = Sum (BYTES Int)
-
-instance LAction BytesMonoid WriteAction where
+instance LAction (BYTES Int) WriteAction where
   m <.> action = action . (m<.>)
   {-# INLINE (<.>) #-}
 
-instance Distributive BytesMonoid WriteAction
+instance Distributive (BYTES Int) WriteAction
 
 -- | A write is an action which when executed using `runWrite` writes
 -- bytes to the input buffer. It is similar to the `WU.Write` type
@@ -61,16 +59,16 @@ instance Distributive BytesMonoid WriteAction
 -- action is run. The `runWrite` action will raise an error if the
 -- buffer it is provided with is of size smaller. `Write`s are monoid
 -- and hence can be concatnated using the `<>` operator.
-type Write = SemiR WriteAction BytesMonoid
+type Write = SemiR WriteAction (BYTES Int)
 
 -- | Create a write action.
 makeWrite :: LengthUnit u => u -> (Pointer -> IO ()) -> Write
 {-# INLINE makeWrite #-}
-makeWrite sz action = SemiR (WriteM . action) $ Sum (inBytes sz)
+makeWrite sz action = SemiR (WriteM . action) $ inBytes sz
 
 -- | Returns the bytes that will be written when the write action is performed.
 bytesToWrite :: Write -> BYTES Int
-bytesToWrite = getSum . semiRMonoid
+bytesToWrite = semiRMonoid
 
 -- | Perform the write action without any checks.
 unsafeWrite :: Write -> Pointer -> IO ()

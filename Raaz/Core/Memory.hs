@@ -35,7 +35,6 @@ module Raaz.Core.Memory
 
 import           Control.Applicative
 import           Control.Monad.IO.Class
-import           Data.Monoid (Sum (..))
 import           Foreign.Storable(Storable(..))
 import           Foreign.Ptr (castPtr)
 import           Raaz.Core.MonoidalAction
@@ -244,18 +243,17 @@ runMT mem = MemoryM $ \ runner -> runner mem
 
 ------------------------ A memory allocator -----------------------
 
-type ALIGNMonoid = Sum ALIGN
 
 type AllocField = Field Pointer
 
 -- | A memory allocator for the memory type @mem@. The `Applicative`
 -- instance of @Alloc@ can be used to build allocations for
 -- complicated memory elements from simpler ones.
-type Alloc mem = TwistRF AllocField ALIGNMonoid mem
+type Alloc mem = TwistRF AllocField ALIGN mem
 
 -- | Make an allocator for a given memory type.
 makeAlloc :: LengthUnit l => l -> (Pointer -> mem) -> Alloc mem
-makeAlloc l memCreate = TwistRF (WrapArrow memCreate) (Sum $ atLeast l)
+makeAlloc l memCreate = TwistRF (WrapArrow memCreate) $ atLeast l
 
 -- | Allocates a buffer of size @l@ and returns the pointer to it pointer.
 pointerAlloc :: LengthUnit l => l -> Alloc Pointer
@@ -335,7 +333,7 @@ copyMemory :: Memory m => m -- ^ Destination
                        -> m -- ^ Source
                        -> IO ()
 copyMemory dest src = memcpy (underlyingPtr dest) (underlyingPtr src) sz
-  where sz = getSum $ twistMonoidValue $ getAlloc src
+  where sz       = twistMonoidValue $ getAlloc src
         getAlloc :: Memory m => m -> Alloc m
         getAlloc _ = memoryAlloc
 
@@ -349,7 +347,7 @@ withMemory   :: Memory m => (m -> IO a) -> IO a
 withMemory   = withM memoryAlloc
   where withM :: Memory m => Alloc m -> (m -> IO a) -> IO a
         withM alctr action = allocaBuffer sz $ action . getM
-          where sz     = getSum $ twistMonoidValue alctr
+          where sz     = twistMonoidValue alctr
                 getM   = computeField $ twistFunctorValue alctr
 
 
@@ -364,7 +362,7 @@ withSecureMemory :: Memory m => (m -> IO a) -> IO a
 withSecureMemory = withSM memoryAlloc
   where -- withSM :: Memory m => Alloc m -> (m -> IO a) -> IO a
         withSM alctr action = allocaSecure sz $ action . getM
-          where sz     = getSum $ twistMonoidValue alctr
+          where sz     = twistMonoidValue alctr
                 getM   = computeField $ twistFunctorValue alctr
 
 --------------------- Some instances of Memory --------------------
