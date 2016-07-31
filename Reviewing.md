@@ -34,7 +34,7 @@ instance Eq AnotherGoodType where
 	(==) = (===)
 
 -- | Makes use of the Equality and Eq instances of tuple types.
-newtype Foo = Foo (Tuple n Word32) deriving (Equality, Eq)
+newtype Foo = Foo (Tuple 42 Word32) deriving (Equality, Eq)
 
 
 ```
