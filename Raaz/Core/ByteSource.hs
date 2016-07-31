@@ -166,7 +166,7 @@ instance ByteSource src => ByteSource [src] where
   fillBytes sz (x:xs) cptr = do
     result <- fillBytes sz x cptr
     case result of
-      Exhausted rbytes -> let nptr = Sum rbytes <.> cptr
+      Exhausted rbytes -> let nptr = rbytes <.> cptr
                           in  fillBytes (sz - rbytes) xs nptr
       Remaining nx     -> return $ Remaining $ nx:xs
 

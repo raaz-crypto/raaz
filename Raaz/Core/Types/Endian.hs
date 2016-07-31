@@ -18,7 +18,6 @@ module Raaz.Core.Types.Endian
 import           Control.DeepSeq             ( NFData)
 import           Control.Monad               ( liftM )
 import           Data.Bits
-import           Data.Monoid
 import           Data.Typeable
 import           Data.Vector.Unboxed         ( MVector(..), Vector, Unbox )
 import           Data.Word                   ( Word32, Word64, Word8      )
@@ -76,7 +75,7 @@ storeAt :: ( EndianStore w
         -> w           -- ^ value to store
         -> IO ()
 {-# INLINE storeAt #-}
-storeAt cptr offset = store (Sum offset <.> cptr)
+storeAt cptr offset = store $ offset <.> cptr
 
 -- | Load the @n@-th value of an array pointed by the crypto pointer.
 loadFromIndex :: EndianStore w
@@ -98,7 +97,7 @@ loadFrom :: ( EndianStore w
          -> offset    -- ^ the offset
          -> IO w
 {-# INLINE loadFrom #-}
-loadFrom cptr offset = load (Sum offset <.> cptr)
+loadFrom cptr offset = load $ offset <.> cptr
 
 --}
 

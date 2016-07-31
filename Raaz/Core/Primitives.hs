@@ -22,6 +22,8 @@ module Raaz.Core.Primitives
        , BLOCKS, blocksOf
        ) where
 
+import Data.Monoid
+
 import Raaz.Core.Types
 ----------------------- A primitive ------------------------------------
 
@@ -78,8 +80,12 @@ class Asymmetric prim where
 -- package that take lengths usually allow any type safe length as
 -- long as they can be converted to bytes. This can avoid a lot of
 -- tedious and error prone length calculations.
-newtype BLOCKS p = BLOCKS Int
+newtype BLOCKS p = BLOCKS {unBLOCKS :: Int}
                  deriving (Show, Eq, Ord, Enum, Real, Num, Integral)
+
+instance Monoid (BLOCKS p) where
+  mempty      = BLOCKS 0
+  mappend x y = BLOCKS $ unBLOCKS x + unBLOCKS y
 
 instance Primitive p => LengthUnit (BLOCKS p) where
   inBytes p@(BLOCKS x) = scale * blockSize (getPrimitiveType p)
