@@ -8,7 +8,7 @@ module Raaz.Core.Types.Pointer
        ( -- ** The pointer type.
          Pointer
          -- ** Type safe length units.
-       , LengthUnit(..), movePtr
+       , LengthUnit(..)
        , BYTES(..), BITS(..),  ALIGN, Align, inBits
          -- ** Some length arithmetic
        , bitsQuotRem, bytesQuotRem
@@ -125,9 +125,9 @@ bytesQuotRem :: LengthUnit u
              => BYTES Int
              -> (u , BYTES Int)
 bytesQuotRem bytes = (u , r)
-  where divisor = inBytes (toEnum 1 `asTypeOf` u)
-        (q, r)  = bytes `quotRem` divisor
-        u       = toEnum $ fromEnum q
+  where divisor       = inBytes (toEnum 1 `asTypeOf` u)
+        (BYTES q, r)  = bytes `quotRem` divisor
+        u             = toEnum q
 
 -- | Function similar to `bytesQuotRem` but returns only the quotient.
 bytesQuot :: LengthUnit u
@@ -162,10 +162,6 @@ instance LengthUnit u => LAction u Pointer where
   a <.> ptr  = plusPtr ptr offset
     where BYTES offset = inBytes a
   {-# INLINE (<.>) #-}
-
-movePtr :: LengthUnit u => Pointer -> u -> Pointer
-movePtr ptr u = u <.> ptr
-{-# INLINE movePtr #-}
 
 -------------------------------------------------------------------
 
