@@ -7,3 +7,4 @@ TAGS
 *test
 .hpc
 cabal.sandbox.config
+.stack-work
