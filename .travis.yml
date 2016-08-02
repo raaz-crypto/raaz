@@ -70,10 +70,10 @@ matrix:
     # Other builds
     - os: osx
   allow_failures:
-    - env: HLINT="yes"
+    - os: osx
     - env: GHCVER=head CABALVER=head
     - env: STACKVER=nightly GHCVER=8.0.1 CABALVER=1.24
-    - os: osx
+    - env: HLINT="yes"
 before_install:
  - if [ "$HLINT" == "yes" ]; then
       hlint "--ignore=Parse error" Raaz;
