@@ -23,6 +23,13 @@ matrix:
     # Most recent LTS for 7.8.4 series.
     # Stackage LTS-2, with 7.8.4 and cabal version-1.18
     #
+    # Build for Debian-8
+
+    - os: linux
+      env: HVR_COLLECTION=debian-8 GHCVER=7.6.3 CABALVER=1.20
+      addons:
+        apt: {packages: [ghc-7.6.3, cabal-install-1.20], sources:  [hvr-ghc] }
+
     - os: linux
       env: STACKVER=lts-2 GHCVER=7.8.4 CABALVER=1.18
       addons:
@@ -79,6 +86,10 @@ before_install:
  - if [ "$STACKVER" != "" ]; then
       echo getting the stackage cabal.config;
       wget "https://www.stackage.org/$STACKVER/cabal.config";
+   fi
+ - if [ "$HVR_COLLECTION" != ""]; then
+      echo geting cabal.config from the collection of hvr.
+      wget https://raw.githubusercontent.com/hvr/multi-ghc-travis/master/collections/cabal.project."$HVR_COLLECTION";
    fi
  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew update; fi
  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install ghc cabal-install; fi
