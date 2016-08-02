@@ -31,11 +31,9 @@ matrix:
         apt: {packages: [ghc-7.6.3, cabal-install-1.20], sources:  [hvr-ghc] }
 
     - os: linux
-      env: STACKVER=lts-2 GHCVER=7.8.4 CABALVER=1.18
+      env: STACKVER=lts-2 GHCVER=7.8.4 CABALVER=1.20
       addons:
-        apt:
-          packages: [ghc-7.8.4, cabal-install-1.18]
-          sources: [hvr-ghc]
+        apt: { packages: [ghc-7.8.4, cabal-install-1.20], sources: [hvr-ghc] }
 
     #
     # Latest Stackage LTS
@@ -75,7 +73,6 @@ matrix:
     - env: HLINT="yes"
     - env: GHCVER=head CABALVER=head
     - env: STACKVER=nightly GHCVER=8.0.1 CABALVER=1.24
-    - env: STACKVER=lts-2 GHCVER=7.8.4 CABALVER=1.18
     - os: osx
 before_install:
  - if [ "$HLINT" == "yes" ]; then
