@@ -219,6 +219,7 @@ test-Suite spec
 
 benchmark blaze-vs-write
   hs-source-dirs: benchmarks
+  default-language: Haskell2010
   main-is: BlazeVsWrite.hs
   type: exitcode-stdio-1.0
   build-depends: base
