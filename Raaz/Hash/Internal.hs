@@ -185,6 +185,17 @@ hash' :: ( PureByteSource src
 hash' imp = unsafePerformIO . hashSource' imp
 {-# INLINEABLE hash' #-}
 
+-- TODO: For bytestrings (strict and lazy) we can do better. We can
+-- avoid copying as the bytestring exposes the underlying
+-- pointer. However, there is a huge cost if the underlying pointer
+-- does not start at the machine alignment boundary. The idea
+-- therefore is to process strict bytestring is multiples of blocks
+-- directly if the starting pointer is aligned.
+--
+-- More details in the bug report #256.
+--
+-- https://github.com/raaz-crypto/raaz/issues/256
+--
 
 -- | Similar to hashFile' but the user can specify the implementation
 -- to use.
