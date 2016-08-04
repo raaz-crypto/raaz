@@ -1,5 +1,6 @@
 Introduction
-============
+------------
+
 
 This is the generalised version of sha1sum/sha256sum/sha512sum
 programs that are available on a standard linux system. It supports
@@ -31,6 +32,7 @@ be ignored.
 > import Control.Applicative
 > import Control.Monad
 > import Data.List             (intercalate)
+> import Data.Monoid
 > import Data.String
 > import Data.Version          (showVersion)
 > import System.Environment
@@ -39,6 +41,7 @@ be ignored.
 > import System.Console.GetOpt
 
 > import Raaz     hiding (Result)
+
 
 
 Verification Tokens
@@ -72,41 +75,51 @@ existentially quantify over the underlying digest.
 >                      }
 >
 
-The verification is quite simple and works opaquely.
 
-> verify :: Token -> IO Bool
-> verify (Token{..}) = (==tokenDigest) <$> hashFile tokenFile
+A token can be verified easily. First we define the result type
+
+> type Result = Either FilePath FilePath
+>
+> verify :: Token -> IO Result
+> verify (Token{..}) = do c <- (==tokenDigest) <$> hashFile tokenFile
+>                         return $ if c then Right tokenFile else Left tokenFile
 
 
-
-Computing Tokens.
+Computing tokens.
 -----------------
 
-For computing we need to somehow get access to the underlying hash
-algorithm. We should be able to specify the algorithm
-to use as an argument for the computing functions.
+To compute the verification token, we need a way to specify the
+algorithm.  The following proxy helps us in this.
+
+> data Algorithm h   = Algorithm
+
+Here `h` varies over all the hashes supported by the library. We now
+need an easy way to tabulate all the hash algorithm that we
+support. Existential types comes to the rescue once more.
+
+> data SomeAlgorithm = forall h . TokenHash h => SomeAlgorithm (Algorithm h)
+
+Here is the table of algorithms that we support currently.
+
+> algorithms :: [(String, SomeAlgorithm)]
+> algorithms =  [ ("sha1"  , SomeAlgorithm (Algorithm :: Algorithm SHA1)   )
+>               , ("sha256", SomeAlgorithm (Algorithm :: Algorithm SHA256) )
+>               , ("sha512", SomeAlgorithm (Algorithm :: Algorithm SHA512) )
+>               -- Add new algorithms here.
+>               ]
+
+We now define the computation function. There are two variants, one for arbitrary files
+and the other for standard input.
 
 > -- | Compute the token using a given algorithm.
 > token :: TokenHash h
 >       => Algorithm h  -- ^ The hashing algorithm to use.
 >       -> FilePath     -- ^ The file to compute the token for.
 >       -> IO Token
-
-
-The algorithm data type is just a proxy which we define as follows.
-
-> data Algorithm h   = Algorithm
-
-Using the above proxy type we can define the token computation
-function.
-
 > token algo fp = Token fp <$> hashIt algo
 >   where hashIt :: TokenHash h => Algorithm h -> IO h
 >         hashIt _ = hashFile fp
 >
-
-This function computes the verification token for the standard input.
-
 > tokenStdin :: TokenHash h => Algorithm h -> IO Token
 > tokenStdin algo = Token "-" <$> hashIt algo
 >   where hashIt :: TokenHash h => Algorithm h -> IO h
@@ -117,10 +130,11 @@ This function computes the verification token for the standard input.
 Printed form of tokens
 ----------------------
 
-
 To inter-operate with programs like sha1sum, we follow the same
 printed notation. The appropriate show instances for token is the
-following.
+following. The format is `line := digest space mode filename`. The mode
+has something to do with whether it is binary or text (we always put
+a space for it).
 
 > instance Show Token where
 >   show (Token{..}) = show tokenDigest ++ "  " ++ tokenFile
@@ -129,94 +143,88 @@ We also define the associated parsing function which has to take the
 the underlying algorithm as a parameter.
 
 > parse :: TokenHash h => Algorithm h -> String -> Token
-> parse algo str      = Token { tokenFile   = drop 2 rest
->                             , tokenDigest = parseDigest algo digest
->                             }
+> parse algo str = Token { tokenFile   = drop 2 rest
+>                        , tokenDigest = parseDigest algo digest
+>                        }
 >   where parseDigest    :: TokenHash h => Algorithm h -> String -> h
 >         parseDigest _  = fromString
->         (digest, rest) = break (==' ') str
-
-
-
-We now need an easy way to tabulate all the hash algorithm that we
-support. Existential types comes to the rescue once more.
-
-> data SomeAlgorithm = forall h . TokenHash h =>
->                      SomeAlgorithm (Algorithm h)
-
-This is the table of algorithms that we support.  are given below.
-
-> algorithms :: [(String, SomeAlgorithm)]
-> algorithms =  [ ("sha1"  , SomeAlgorithm (Algorithm :: Algorithm SHA1)   )
->               , ("sha256", SomeAlgorithm (Algorithm :: Algorithm SHA256) )
->               , ("sha512", SomeAlgorithm (Algorithm :: Algorithm SHA512) )
->               ]
-
-The main function.
-------------------
-
-There are two important modes of operation for this program. In the
-first mode the
-
-> computeMode :: SomeAlgorithm
->             -> [FilePath]
->             -> IO ()
-> computeMode (SomeAlgorithm algo) files
->   | null files = tokenStdin algo >>= print
->   | otherwise  = mapM_ printToken files
->   where printToken = token algo >=> print
-
-
-The verification mode of the algorithm.
-
-> verifyMode :: ( FilePath -> IO () ) -- ^ What to do for success.
->            -> ( FilePath -> IO () ) -- ^ What to do for failure
->            -> ( Int      -> IO () ) -- ^ Do something with the number.
->            -> SomeAlgorithm
->            -> [FilePath]
->            -> IO ()
->
-> verifyMode okey failed printCount (SomeAlgorithm algo) files
->   | null files = getContents >>= verifyInput 0 >>= result
->   | otherwise  = verifyManyFiles files >>= result
->   where
->     parseTokens       = map (parse algo) . lines
->     result n          = do printCount n
->                            if (n > 0) then exitFailure
->                              else exitSuccess
->     -- Verify a list of files
->     verifyManyFiles   = foldM verifyFile 0
->     -- Verify a single file.
->     verifyFile  n fp  = readFile fp          >>= verifyInput n
->     -- verify all the digests listed in the given argument string.
->     verifyInput n     = return . parseTokens >=> foldM verifyOne n
->     -- Verify a single token and keep track of the total number of
->     -- failures.
->     verifyOne  n tok  = do
->       status <- verify tok
->       if status then do okey   $ tokenFile tok; return n
->                 else do failed $ tokenFile tok; return (n+1)
->
+>         (digest, rest) = break (==' ') str -- break at the space.
 
 
 The main function.
 ------------------
+
+The overall structure of the code is clear the details follow.
 
 > main :: IO ()
 > main =  parseOpts >>= handleArgs
->
+
 > handleArgs :: (Options, [FilePath])
 >            -> IO ()
-> handleArgs (Options{..}, files) = do
->   when optHelp printHelp
->   when optVersion printVersion
->   flip (either badAlgo) optAlgo $ \ algo ->
->     if optCheck
->     then verifyMode optOkey optFailed optPrintCount algo files
->     else computeMode algo files
->   where badAlgo name = errorBailout ["Bad hash algorithm " ++ name]
+> handleArgs (opts@Options{..}, files) = do
+>   when optHelp printHelp       -- When the help option is given print it and exit
+>   when optVersion printVersion -- when the version is asked print it and exit
+>   -- Either the algorithm option is bad, in which case report it and exit
+>   -- or do the necessary action.
+>   flip (either badAlgorithm) optAlgo $ \ algo -> do
+>     if optCheck  -- if asked to check.
+>       then verifyMode opts  algo files >>= optPrintCount
+>       else computeMode      algo files
 
 
+> badAlgorithm :: String -> IO ()
+> badAlgorithm name = errorBailout ["Bad hash algorithm " ++ name]
+
+
+The compute mode.
+-----------------
+
+There are two important modes of operation for this program, _the
+compute mode_ and the _verify mode_. In the compute mode, we are given
+an a set of files and we need to print out the verification tokes for
+those files.
+
+> computeMode :: SomeAlgorithm  -- The algorithm to use
+>             -> [FilePath]     -- files for which tokes need to be
+>                               -- computed.
+>             -> IO ()
+> computeMode (SomeAlgorithm algo) files
+>   | null files = tokenStdin algo >>= print  -- No files means compute it for stdin.
+>   | otherwise  = mapM_ printToken files     -- Print the token for each file.
+>   where printToken = token algo >=> print
+
+
+The verification mode of the algorithm is a bit more complicated than
+the compute mode. Given a list of tokens let us first read
+them. Recall the tokens are listed, one per line with the digest
+followed by a space followed by the filename.
+
+
+> verifyMode :: Options
+>            -> SomeAlgorithm
+>            -> [FilePath]
+>            -> IO Int
+> verifyMode (Options{..}) algo files = verifyFiles algo files >>= foldM fldr (0 :: Int)
+>   where fldr n = either whenFailed whenOkey
+>           where whenOkey    :: FilePath -> IO Int
+>                 whenOkey    = optOkey   >=> const (return n)     -- when okey do the okey action and keep the count
+>                 whenFailed  = optFailed >=> const (return (n+1)) -- when failed do the failed action and increment
+
+This function verify the token list given in a list of files. Each
+file contains a list of tokens and each of these tokens have to be
+verified.
+
+> verifyFiles :: SomeAlgorithm
+>             -> [FilePath]
+>             -> IO [Result]
+>
+> verifyFiles (SomeAlgorithm algo) files
+>   | null files = getContents >>= verifyTokenList
+>   | otherwise  = concat <$> mapM verifyFile files
+>   where
+>     verifyFile      = readFile >=> verifyTokenList
+>     verifyTokenList = mapM mapper . lines
+>     mapper          = verify . parse algo
 
 
 This function prints the help for the program.
@@ -236,38 +244,8 @@ and this prints the version information.
 Command line parsing
 --------------------
 
-We use the getOpts library to parse the command lines.  The options
-are summarised in the following list.
-
-> options :: [OptDescr (Options -> Options)]
-> options =
->   [ Option ['v'] ["version"] (NoArg setVersion) "print the version"
->   , Option ['h'] ["help"]    (NoArg setHelp)    "print the help"
->   , Option ['c'] ["check"]   (NoArg setCheck)   "check instead of compute"
->   , Option ['q'] ["quiet"]   (NoArg setQuiet)   "print failure only"
->   , Option ['s'] ["status"]  (NoArg setStatusOnly)
->     "no output only return status"
->   , Option ['a'] ["algo"]    (ReqArg setAlgo "HASH")
->     $ "hash algorithm to use " ++ "(" ++ algOpts ++ ")"
->   ]
->   where setVersion opt   = opt { optVersion = True }
->         setHelp    opt   = opt { optHelp    = True }
->         setCheck   opt   = opt { optCheck   = True }
->         setAlgo  str opt = opt { optAlgo    = a    }
->                  where a = maybe (Left str) Right $ lookup str algorithms
->         algOpts          = intercalate "|" $ map fst algorithms
->         setQuiet      opt = opt          { optOkey   = noPrint }
->         setStatusOnly opt = setQuiet opt { optFailed = noPrint
->                                          , optPrintCount  = returnStatus
->                                          }
->         noPrint           = const $ return ()
->         returnStatus n
->           | n > 0         = exitFailure
->           | otherwise     = exitSuccess
->
-
-
-The options data type. Fields should be self explanatory.
+The options supported by the program is given by the following data
+type. Fields should be self explanatory.
 
 > data Options =
 >   Options { optVersion :: Bool
@@ -279,9 +257,10 @@ The options data type. Fields should be self explanatory.
 >           , optPrintCount   :: Int -> IO () -- ^ print failure counts.
 >           }
 
+
 The default options for the command is as follows.
 
-> defOpts =
+> defaultOpts =
 >   Options { optVersion    = False
 >           , optHelp       = False
 >           , optCheck      = False
@@ -293,6 +272,42 @@ The default options for the command is as follows.
 >   where sha1Algorithm = SomeAlgorithm (Algorithm :: Algorithm SHA1)
 >         printCount n  = when (n > 0) $ do
 >           putStrLn $ show n ++ " failures."
+>           exitFailure
+>
+
+We use the getOpts library to parse the command lines.  The options
+are summarised in the following list. The `Endo` monoid helps in
+summarising the changes to the option set.
+
+> options :: [OptDescr (Endo Options)]
+> options =
+>   [ Option ['v'] ["version"] (NoArg setVersion) "print the version"
+>   , Option ['h'] ["help"]    (NoArg setHelp)    "print the help"
+>   , Option ['c'] ["check"]   (NoArg setCheck)   "check instead of compute"
+>   , Option ['q'] ["quiet"]   (NoArg setQuiet)   "print failure only"
+>   , Option ['s'] ["status"]  (NoArg setStatusOnly)
+>     "no output only return status"
+>   , Option ['a'] ["algo"]    (ReqArg setAlgo "HASH")
+>     $ "hash algorithm to use " ++ "(" ++ algOpts ++ ")"
+>   ]
+>   where setVersion   = Endo $ \ opt -> opt { optVersion = True }
+>         setHelp      = Endo $ \ opt -> opt { optHelp    = True }
+>         setCheck     = Endo $ \ opt -> opt { optCheck   = True }
+>         setAlgo  str = Endo $ \ opt -> opt { optAlgo    = a    }
+>                  where a = maybe (Left str) Right $ lookup str algorithms
+>         algOpts          = intercalate "|" $ map fst algorithms
+>         setQuiet      = Endo $ \ opt ->  opt { optOkey   = noPrint }
+>         setStatusOnly = Endo $ \ opt ->  opt { optFailed      = noPrint
+>                                              , optOkey        = noPrint
+>                                              , optPrintCount  = returnStatus
+>                                              }
+>         noPrint           = const $ return ()
+>         returnStatus n
+>           | n > 0         = exitFailure
+>           | otherwise     = exitSuccess
+>
+
+
 
 The usage message for the program.
 
@@ -300,12 +315,13 @@ The usage message for the program.
 > usage errs = "checksum: " ++ unlines errs ++ usageInfo header options
 >   where header ="Usage: checksum [OPTIONS] FILE1 FILE2"
 
+
 Parsing the options.
 
 > parseOpts :: IO (Options, [FilePath])
 > parseOpts = do args  <- getArgs
 >                case getOpt Permute options args of
->                  (o,n,[])   -> return (foldl (flip id) defOpts o, n)
+>                  (o,n,[])   -> return (appEndo (mconcat o) defaultOpts, n)
 >                  (_,_,errs) -> errorBailout errs
 
 Bail out with an error message.
