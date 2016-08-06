@@ -8,22 +8,22 @@ Build-Depends: debhelper (>= 9),
  ghc,
  ghc-prof,
  libghc-mtl-dev (>= 2.1),
+ libghc-mtl-dev (<< 2.3),
  libghc-mtl-prof,
- libghc-transformers-dev,
- libghc-transformers-prof,
- libghc-vector-dev,
+ libghc-vector-dev (>= 0.7.1),
+ libghc-vector-dev (<< 0.12),
  libghc-vector-prof,
  libghc-hunit-dev (>= 1.2),
  libghc-quickcheck2-dev (>= 2.4),
  libghc-hspec-dev,
+ libghc-vector-dev,
 Build-Depends-Indep: ghc-doc,
  libghc-mtl-doc,
- libghc-transformers-doc,
  libghc-vector-doc,
 Standards-Version: 3.9.6
 Homepage: http://github.com/raaz-crypto/raaz
-Vcs-Browser: https://anonscm.debian.org/cgit/pkg-haskell/DHG_packages.git/tree/p/haskell-raaz
-Vcs-Git: https://anonscm.debian.org/cgit/pkg-haskell/DHG_packages.git
+Vcs-Browser: http://darcs.debian.org/cgi-bin/darcsweb.cgi?r=pkg-haskell/haskell-raaz
+Vcs-Darcs: http://darcs.debian.org/pkg-haskell/haskell-raaz
 X-Description: The raaz cryptographic library.
  Raaz is a cryptographic network library for Haskell
  designed to use strong typing to eliminate some common errors that
