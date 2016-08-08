@@ -42,7 +42,7 @@ class Storable w => EndianStore w where
 
   -- | Store the given value at the locating pointed by the pointer
   store :: Pointer   -- ^ the location.
-        -> w           -- ^ value to store
+        -> w         -- ^ value to store
         -> IO ()
 
   -- | Load the value from the location pointed by the pointer.
