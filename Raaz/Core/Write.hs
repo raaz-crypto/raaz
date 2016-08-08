@@ -1,7 +1,4 @@
--- | Module to write stuff to buffers. As opposed to similar functions
--- exposed in "Raaz.Core.Write.Unsafe", the writes exposed here are
--- safe as necessary range checks are done on the buffer before
--- writing stuff to it.
+-- | Module to write stuff to buffers.
 
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE TypeSynonymInstances       #-}
