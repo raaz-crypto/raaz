@@ -17,7 +17,7 @@ module Raaz.Core.Types
          -- * Tuples with length encoded in their types.
        , module Raaz.Core.Types.Tuple
          -- * Types to distinguish between source and target of a copy instruction.
-       , module Raaz.Core.Types.Copying
+       , Src, Dest, source, destination
        , Describable(..)
        ) where
 

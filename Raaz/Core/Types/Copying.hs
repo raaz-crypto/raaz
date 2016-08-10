@@ -3,17 +3,23 @@
 -- this can lead to bugs. The types here are to avoid such bugs.
 
 module Raaz.Core.Types.Copying
-       ( Src, Dest, src, dest
+       ( Src(..), Dest(..), source, destination
        ) where
 
 -- | The source of a copy operation.
-newtype Src  a = Src a
+newtype Src  a = Src { unSrc :: a }
 -- | smart constructor for source
-src :: a -> Src a
-src = Src
+source :: a -> Src a
+source = Src
+
+instance Functor Src where
+  fmap f = Src . f . unSrc
 
 -- | The destination of a copy operation.
-newtype Dest a = Dest a
+newtype Dest a = Dest { unDest :: a }
 -- | smart constructor for destionation.
-dest :: a -> Dest a
-dest = Dest
+destination :: a -> Dest a
+destination = Dest
+
+instance Functor Dest where
+  fmap f = Dest . f . unDest
