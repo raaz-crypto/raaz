@@ -28,6 +28,7 @@ import           Foreign.Storable   (peek, Storable)
 import           System.IO.Unsafe   (unsafePerformIO)
 
 import           Raaz.Core.Types.Pointer
+import           Raaz.Core.Types.Copying
 
 -- | A typesafe length for Bytestring
 length :: ByteString -> BYTES Int
@@ -42,12 +43,12 @@ replicate l = B.replicate sz
 -- undefined behaviour if the crypto pointer points to an area smaller
 -- than the size of the byte string.
 unsafeCopyToPointer :: ByteString   -- ^ The source.
-                      -> Pointer    -- ^ The destination.
-                      -> IO ()
+                    -> Pointer      -- ^ The destination.
+                    -> IO ()
 unsafeCopyToPointer bs cptr =  withForeignPtr fptr $
-           \ p -> memcpy dest (p `plusPtr` offset) (BYTES n)
+           \ p -> memcpy dptr (source $ p `plusPtr` offset) (BYTES n)
     where (fptr, offset,n) = toForeignPtr bs
-          dest = castPtr cptr
+          dptr = destination $ castPtr cptr
 
 
 -- | Similar to `unsafeCopyToPointer` but takes an additional input
@@ -58,12 +59,12 @@ unsafeCopyToPointer bs cptr =  withForeignPtr fptr $
 unsafeNCopyToPointer :: LengthUnit n
                        => n              -- ^ length of data to be copied
                        -> ByteString     -- ^ The source byte string
-                       -> Pointer      -- ^ The buffer
+                       -> Pointer        -- ^ The buffer
                        -> IO ()
 unsafeNCopyToPointer n bs cptr = withForeignPtr fptr $
-           \ p -> memcpy dest (p `plusPtr` offset) n
+           \ p -> memcpy dptr (source $ p `plusPtr` offset) n
     where (fptr, offset,_) = toForeignPtr bs
-          dest    = castPtr cptr
+          dptr             = destination $ castPtr cptr
 
 -- | Works directly on the pointer associated with the
 -- `ByteString`. This function should only read and not modify the
@@ -74,13 +75,13 @@ withByteString bs f = withForeignPtr fptr (f . flip plusPtr off . castPtr)
 
 -- | Get the value from the bytestring using `peek`.
 fromByteStringStorable :: Storable k => ByteString -> k
-fromByteStringStorable src = unsafePerformIO $ withByteString src (peek . castPtr)
+fromByteStringStorable str = unsafePerformIO $ withByteString str (peek . castPtr)
 
 -- | The IO action @createFrom n cptr@ creates a bytestring by copying
 -- @n@ bytes from the pointer @cptr@.
 createFrom :: LengthUnit l => l -> Pointer -> IO ByteString
 createFrom l cptr = create bytes filler
-  where filler dest = memcpy (castPtr dest) cptr l
+  where filler dptr = memcpy (destination $ castPtr dptr) (source cptr) l
         BYTES bytes = inBytes l
 
 ----------------------  Hexadecimal encoding. -----------------------------------

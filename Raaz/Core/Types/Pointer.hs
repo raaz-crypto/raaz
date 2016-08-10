@@ -36,6 +36,7 @@ import System.IO             (hGetBuf, Handle)
 
 import Raaz.Core.MonoidalAction
 import Raaz.Core.Types.Equality
+import Raaz.Core.Types.Copying
 
 -- Developers notes: I assumes that word alignment is alignment
 -- safe. If this is not the case one needs to fix this to avoid
@@ -262,29 +263,29 @@ hFillBuf handle cptr bufSize = BYTES <$> hGetBuf handle cptr bytes
 
 -- | Some common PTR functions abstracted over type safe length.
 foreign import ccall unsafe "string.h memcpy" c_memcpy
-    :: Pointer -> Pointer -> BYTES Int -> IO Pointer
+    :: Dest Pointer -> Src Pointer -> BYTES Int -> IO Pointer
 
 -- | Copy between pointers.
 memcpy :: LengthUnit l
-       => Pointer -- ^ Dest
-       -> Pointer -- ^ Src
-       -> l         -- ^ Number of Bytes to copy
+       => Dest Pointer -- ^ destination
+       -> Src  Pointer -- ^ src
+       -> l            -- ^ Number of Bytes to copy
        -> IO ()
-memcpy p q = void . c_memcpy p q . inBytes
+memcpy dest src = void . c_memcpy dest src . inBytes
 
-{-# SPECIALIZE memcpy :: Pointer -> Pointer -> BYTES Int -> IO () #-}
+{-# SPECIALIZE memcpy :: Dest Pointer -> Src Pointer -> BYTES Int -> IO () #-}
 
 foreign import ccall unsafe "string.h memmove" c_memmove
-    :: Pointer -> Pointer -> BYTES Int -> IO Pointer
+    :: Dest Pointer -> Src Pointer -> BYTES Int -> IO Pointer
 
 -- | Move between pointers.
 memmove :: LengthUnit l
-        => Pointer -- ^ Dest
-        -> Pointer -- ^ Src
-        -> l         -- ^ Number of Bytes to copy
+        => Dest Pointer -- ^ destination
+        -> Src Pointer  -- ^ source
+        -> l            -- ^ Number of Bytes to copy
         -> IO ()
-memmove p q = void . c_memmove p q . inBytes
-{-# SPECIALIZE memmove :: Pointer -> Pointer -> BYTES Int -> IO () #-}
+memmove dest src = void . c_memmove dest src . inBytes
+{-# SPECIALIZE memmove :: Dest Pointer -> Src Pointer -> BYTES Int -> IO () #-}
 
 foreign import ccall unsafe "string.h memset" c_memset
     :: Pointer -> Word8 -> BYTES Int -> IO Pointer
