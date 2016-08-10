@@ -1,19 +1,33 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
--- | Consider a copy operation that involves copying data between two
--- entities of the same type. If the source and target is confused
--- this can lead to bugs. The types here are to avoid such bugs.
-
+-- | Types to avoid source destination confusion while copying.
 module Raaz.Core.Types.Copying
-       ( Src(..), Dest(..), source, destination
+       (
+         -- * Copying.
+         -- $copyconvention$
+         Src(..), Dest(..), source, destination
        ) where
 
 import Foreign.Storable ( Storable )
 
--- | The source of a copy operation.
+-- $copyconvention$
 --
--- Note to Developers of Raaz: Since the `Src` type inherits the
--- Storable instance of the base type, one can use this type in
--- foreign functions.
+-- Consider a copy operation that involves copying data between two
+-- entities of the same type. If the source and target is confused
+-- this can lead to bugs. The types `Src` and `Dest` helps in avoiding
+-- this confusion. The convention that we follow is that copy function
+-- mark its destination and source explicitly at the type level. The
+-- actual constructors for the type `Src` and `Dest` are not available
+-- to users of the library. Instead they use the smart constructors
+-- `source` and `destination` when passing arguments to these
+-- functions.
+--
+-- The developers of the raaz library do have access to the
+-- constructors. However, it is unlikely one would need it. Since both
+-- `Src` and `Desc` derive the underlying `Storable` instance, one can
+-- mark `Src` and `Dest` in calls to `FFI` functions as well.
+
+
+-- | The source of a copy operation.
 newtype Src  a = Src { unSrc :: a } deriving Storable
 
 -- | smart constructor for source

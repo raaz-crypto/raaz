@@ -14,10 +14,9 @@ module Raaz.Core.Types
          -- * The pointer type and Length offsets.
          -- $typesafeLength$
        , module Raaz.Core.Types.Pointer
-         -- * Tuples with length encoded in their types.
        , module Raaz.Core.Types.Tuple
-         -- * Types to distinguish between source and target of a copy instruction.
-       , Src, Dest, source, destination
+       , module Raaz.Core.Types.Copying
+     --  , Src, Dest, source, destination
        , Describable(..)
        ) where
 
@@ -27,7 +26,7 @@ import Raaz.Core.Types.Equality
 import Raaz.Core.Types.Endian
 import Raaz.Core.Types.Pointer
 import Raaz.Core.Types.Tuple
-import Raaz.Core.Types.Copying
+import Raaz.Core.Types.Copying( Src, Dest, source, destination)
 
 -- $timingSafeEquality$
 --
@@ -76,6 +75,5 @@ import Raaz.Core.Types.Copying
 -- We have the generic pointer type `Pointer` and distinguish between
 -- different length units at the type level. This helps in to avoid a
 -- lot of length conversion errors.
-
 
 {-# ANN module "HLint: ignore Use import/export shortcut" #-}
