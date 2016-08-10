@@ -5,7 +5,11 @@
 {-# LANGUAGE CPP                        #-}
 
 module Raaz.Core.Types.Pointer
-       ( -- ** The pointer type.
+       (
+         -- * The pointer type and Length offsets.
+         -- $typesafeLength$
+
+         -- ** The pointer type.
          Pointer
          -- ** Type safe length units.
        , LengthUnit(..)
@@ -37,6 +41,14 @@ import System.IO             (hGetBuf, Handle)
 import Raaz.Core.MonoidalAction
 import Raaz.Core.Types.Equality
 import Raaz.Core.Types.Copying
+
+-- $typesafeLength$
+--
+-- We have the generic pointer type `Pointer` and distinguish between
+-- different length units at the type level. This helps in to avoid a
+-- lot of length conversion errors.
+
+
 
 -- Developers notes: I assumes that word alignment is alignment
 -- safe. If this is not the case one needs to fix this to avoid

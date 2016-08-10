@@ -3,7 +3,9 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FlexibleContexts      #-}
 module Raaz.Core.Types.Equality
-       ( Equality(..), (===)
+       ( -- * Timing safe equality checking.
+         -- $timingSafeEquality$
+         Equality(..), (===)
        -- ** The result of comparion.
        , Result
        -- ** Comparing vectors.
@@ -21,6 +23,35 @@ import qualified Data.Vector.Generic         as G
 import qualified Data.Vector.Generic.Mutable as GM
 import           Data.Vector.Unboxed         ( MVector(..), Vector, Unbox )
 import           Data.Word
+
+
+
+-- $timingSafeEquality$
+--
+-- We need a consistent way to build timing safe equality
+-- comparisons. The type class `Equality` plays the role of `Eq` for
+-- us. The comparison result is of type `Result` and not `Bool` so as
+-- to avoid timing attacks due to short-circuting of the
+-- AND-operation.
+--
+-- The `Result` type is an opaque type to avoid the user from
+-- compromising the equality comparisons by pattern matching on it. To
+-- combine the results of two comparisons one can use the monoid
+-- instance of `Result`, i.e. if @r1@ and @r2@ are the results of two
+-- comparisons then @r1 `mappend` r2@ essentially takes the AND of
+-- these results but this and is not short-circuited and is timing
+-- independent.
+--
+-- Instance for basic word types are provided by the library and users
+-- are expected to build the `Equality` instances of compound types by
+-- combine the results of comparisons using the monoid instance of
+-- `Result`. We also give timing safe equality comparisons for
+-- `Vector` types using the `eqVector` and `oftenCorrectEqVector`
+-- functions.  Once an instance for `Equality` is defined for a
+-- cryptographically sensitive data type, we define the `Eq` for it
+-- indirectly using the `Equality` instance and the operation `===`.
+
+
 
 -- | The result of a comparison. This is an opaque type and the monoid instance essentially takes
 -- AND of two comparisons in a timing safe way.
