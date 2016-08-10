@@ -16,14 +16,18 @@ module Raaz.Core.Types
        , module Raaz.Core.Types.Pointer
          -- * Tuples with length encoded in their types.
        , module Raaz.Core.Types.Tuple
+         -- * Types to distinguish between source and target of a copy instruction.
+       , module Raaz.Core.Types.Copying
        , Describable(..)
        ) where
+
 
 import Raaz.Core.Types.Describe
 import Raaz.Core.Types.Equality
 import Raaz.Core.Types.Endian
 import Raaz.Core.Types.Pointer
 import Raaz.Core.Types.Tuple
+import Raaz.Core.Types.Copying
 
 -- $timingSafeEquality$
 --
