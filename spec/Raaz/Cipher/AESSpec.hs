@@ -82,7 +82,7 @@ aes128cbcSpec = do
        ( "3ff1caa1681fac09120eca307586e1a7"  :: Base16 )
 
   where encryptsTo :: (Format fmt1, Format fmt2)
-                   => fmt1 -> fmt2 -> Key (AES 128 CBC) -> Spec
+                   => fmt1 -> fmt2 -> Key (AES 128 'CBC) -> Spec
         encryptsTo = C.encryptsTo aes128cbc
 
 ------------------ AES 192 CBC ---------------------------
@@ -116,7 +116,7 @@ aes192cbcSpec = do
        ( "08b0e27988598881d920a9e64f5615cd" :: Base16 )
 
   where encryptsTo :: (Format fmt1, Format fmt2)
-                   => fmt1 -> fmt2 -> Key (AES 192 CBC) -> Spec
+                   => fmt1 -> fmt2 -> Key (AES 192 'CBC) -> Spec
         encryptsTo = C.encryptsTo aes192cbc
 
 ------------------ AES 192 CBC ---------------------------
@@ -150,5 +150,5 @@ aes256cbcSpec = do
        ( "b2eb05e2c39be9fcda6c19078c6a9d1b" :: Base16 )
 
   where encryptsTo :: (Format fmt1, Format fmt2)
-                   => fmt1 -> fmt2 -> Key (AES 256 CBC) -> Spec
+                   => fmt1 -> fmt2 -> Key (AES 256 'CBC) -> Spec
         encryptsTo = C.encryptsTo aes256cbc
