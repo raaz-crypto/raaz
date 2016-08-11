@@ -7,7 +7,9 @@
 {-# LANGUAGE TypeFamilies               #-}
 
 module Raaz.Core.Types.Endian
-       ( EndianStore(..)
+       ( -- * Endianess aware types.
+         -- $endianness$
+         EndianStore(..)
        -- ** Endian explicit word types.
        , LE, BE, littleEndian, bigEndian
        -- ** Helper functions for endian aware storing and loading.
@@ -31,6 +33,23 @@ import qualified Data.Vector.Generic.Mutable as GVM
 import           Raaz.Core.MonoidalAction
 import           Raaz.Core.Types.Pointer
 import           Raaz.Core.Types.Equality
+
+
+-- $endianness$
+--
+-- Cryptographic primitives often consider their input as an array of
+-- words of a particular endianness. Endianness is only relevant when
+-- the data is being read or written to. It makes sense therefore to
+-- keep track of the endianness in the type and perform necessary
+-- transformations depending on the endianness of the
+-- machine. Such types are captured by the type class `EndianStore`. They
+-- support the `load` and `store` combinators that automatically compensates
+-- for the endianness of the machine.
+--
+-- This libraray exposes endian aware variants of `Word32` and
+-- `Word64` here and expect other cryptographic types to use such
+-- endian explicit types in their definition.
+
 
 -- | This class is the starting point of an endian agnostic interface
 -- to basic cryptographic data types. Endianness only matters when we

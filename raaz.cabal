@@ -111,6 +111,7 @@ library
                , Raaz.Core.Types.Equality
                , Raaz.Core.Types.Endian
                , Raaz.Core.Types.Describe
+               , Raaz.Core.Types.Copying
 	       --
 	       -- Hashes
 	       --

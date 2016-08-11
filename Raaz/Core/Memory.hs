@@ -329,12 +329,12 @@ instance ( Memory ma
 -- | Copy data from a given memory location to the other. The first
 -- argument is destionation and the second argument is source to match
 -- with the convention followed in memcpy.
-copyMemory :: Memory m => m -- ^ Destination
-                       -> m -- ^ Source
+copyMemory :: Memory m => Dest m -- ^ Destination
+                       -> Src  m -- ^ Source
                        -> IO ()
-copyMemory dest src = memcpy (underlyingPtr dest) (underlyingPtr src) sz
-  where sz       = twistMonoidValue $ getAlloc src
-        getAlloc :: Memory m => m -> Alloc m
+copyMemory dmem smem = memcpy (underlyingPtr <$> dmem) (underlyingPtr <$> smem) sz
+  where sz       = twistMonoidValue $ getAlloc smem
+        getAlloc :: Memory m => Src m -> Alloc m
         getAlloc _ = memoryAlloc
 
 -- | Perform an action which makes use of this memory. The memory
