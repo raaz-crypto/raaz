@@ -37,5 +37,5 @@ spec = do
       "pleasure." `shouldEncodeTo` ("cGxlYXN1cmUu" :: Base64)
       "leasure."  `shouldEncodeTo` ("bGVhc3VyZS4=" :: Base64)
       "easure."   `shouldEncodeTo` ("ZWFzdXJlLg==" :: Base64)
-      "asure." 	  `shouldEncodeTo` ("YXN1cmUu"     :: Base64)
-      "sure." 	  `shouldEncodeTo` ("c3VyZS4="     :: Base64)
+      "asure."    `shouldEncodeTo` ("YXN1cmUu"     :: Base64)
+      "sure."     `shouldEncodeTo` ("c3VyZS4="     :: Base64)
