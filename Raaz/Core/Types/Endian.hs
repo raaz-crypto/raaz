@@ -17,6 +17,7 @@ module Raaz.Core.Types.Endian
        , loadFrom, loadFromIndex
        ) where
 
+import           Control.Applicative
 import           Control.DeepSeq             ( NFData)
 import           Control.Monad               ( liftM )
 import           Data.Bits
@@ -192,8 +193,8 @@ foreign import ccall unsafe "raaz/core/endian.h raazLoadLE32"
 foreign import ccall unsafe "raaz/core/endian.h raazStoreLE32"
   c_storeLE32 :: Pointer -> Word32 -> IO ()
 
-foreign import ccall unsafe "raaz/core/endian.h raazCopyLE32"
-  c_copyFromLE32 :: Int -> Dest (Ptr (LE Word32)) -> Src Pointer -> Int -> IO ()
+foreign import ccall unsafe "raaz/core/endian.h raazCopyFromLE32"
+  c_copyFromLE32 ::  Dest (Ptr (LE Word32)) -> Src Pointer -> Int -> IO ()
 
 instance EndianStore (LE Word32) where
   load             = fmap LE .  c_loadLE32
@@ -208,7 +209,7 @@ foreign import ccall unsafe "raaz/core/endian.h raazLoadBE32"
 foreign import ccall unsafe "raaz/core/endian.h raazStoreBE32"
   c_storeBE32 :: Pointer -> Word32 -> IO ()
 
-foreign import ccall unsafe "raaz/core/endian.h raazCopyBE32"
+foreign import ccall unsafe "raaz/core/endian.h raazCopyFromBE32"
   c_copyFromBE32 :: Dest (Ptr (BE Word32)) -> Src Pointer -> Int -> IO ()
 
 instance EndianStore (BE Word32) where
@@ -224,7 +225,7 @@ foreign import ccall unsafe "raaz/core/endian.h raazLoadLE64"
 foreign import ccall unsafe "raaz/core/endian.h raazStoreLE64"
   c_storeLE64 :: Pointer -> Word64 -> IO ()
 
-foreign import ccall unsafe "raaz/core/endian.h raazCopyLE64"
+foreign import ccall unsafe "raaz/core/endian.h raazCopyFromLE64"
   c_copyFromLE64 :: Dest (Ptr (LE Word64)) -> Src Pointer -> Int -> IO ()
 
 instance EndianStore (LE Word64) where
@@ -240,7 +241,7 @@ foreign import ccall unsafe "raaz/core/endian.h raazLoadBE64"
 foreign import ccall unsafe "raaz/core/endian.h raazStoreBE64"
   c_storeBE64 :: Pointer -> Word64 -> IO ()
 
-foreign import ccall unsafe "raaz/core/endian.h raazCopyBE64"
+foreign import ccall unsafe "raaz/core/endian.h raazCopyFromBE64"
   c_copyFromBE64 :: Dest (Ptr (BE Word64)) -> Src Pointer -> Int -> IO ()
 
 instance EndianStore (BE Word64) where

@@ -106,7 +106,7 @@
 #endif
 
 
-void raazCopyLE32(uint32_t *dest, uint32_t *src, int n){
+void raazCopyFromLE32(uint32_t *dest, uint32_t *src, int n){
     while ( n > 0){
         *dest = raazLoadLE32(src);
         ++src; ++dest; --n; /* Move on to the next element. */
@@ -114,7 +114,7 @@ void raazCopyLE32(uint32_t *dest, uint32_t *src, int n){
 }
 
 
-void raazCopyBE32(uint32_t *dest, uint32_t *src, int n){
+void raazCopyFromBE32(uint32_t *dest, uint32_t *src, int n){
     while (n > 0){
         *dest = raazLoadBE32(src);
         ++src; ++dest; --n; /* Move on to the next element. */
@@ -123,7 +123,7 @@ void raazCopyBE32(uint32_t *dest, uint32_t *src, int n){
 }
 
 
-void raazCopyLE64(uint64_t *dest, uint64_t *src, int n){
+void raazCopyFromLE64(uint64_t *dest, uint64_t *src, int n){
     while (n > 0){
         *dest =  raazLoadLE64(src);
         ++src; ++dest; --n;
@@ -132,7 +132,7 @@ void raazCopyLE64(uint64_t *dest, uint64_t *src, int n){
 }
 
 
-void raazCopyBE64(uint64_t *dest, uint64_t *src, int n){
+void raazCopyFromBE64(uint64_t *dest, uint64_t *src, int n){
     while (n > 0){
         *dest = raazLoadBE64(src);
         ++src; ++dest; --n;
