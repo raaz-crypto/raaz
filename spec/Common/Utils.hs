@@ -3,17 +3,55 @@ module Common.Utils where
 
 import Common.Imports hiding (length, replicate)
 
+import Foreign.Ptr           ( castPtr, Ptr    )
 import Data.ByteString as B  (concat)
 
 -- | Run a spec with a give key.
 with :: key -> (key -> Spec) -> Spec
 with key hmsto = hmsto key
 
+
 -- | Store and the load the given value.
 storeAndThenLoad :: EndianStore a
                  => a -> IO a
 storeAndThenLoad a = allocaBuffer (byteSize a) runStoreLoad
   where runStoreLoad ptr = store ptr a >> load ptr
+
+
+alloc2 :: BYTES Int -> (Ptr a -> Ptr b -> IO c) -> IO c
+alloc2 sz f = allocaBuffer sz $ \ buf -> allocaBuffer sz (fp buf)
+  where fp ptr = f (castPtr ptr) . castPtr
+
+
+storeCopyAndPeek :: EndianStore a
+                 => a
+                 -> IO a
+storeCopyAndPeek a = alloc2 (byteSize a) $ \ dest src ->  do
+  store src a
+  copyFromBytes (destination dest) (source src) 1
+  peek dest
+
+pokeCopyAndLoad :: EndianStore a
+                 => a
+                 -> IO a
+pokeCopyAndLoad a = alloc2 (byteSize a) $ \ dest src ->  do
+  poke src a
+  copyToBytes (destination dest) (source src) 1
+  load dest
+
+basicEndianSpecs :: ( EndianStore a, Show a, Eq a, Arbitrary a)
+                  => a -> Spec
+basicEndianSpecs a = do
+  prop "store followed by load returns original value" $ \ x ->
+    storeAndThenLoad (x `asTypeOf` a) `shouldReturn` x
+
+  prop "store, copy followed by peek should return the original value" $ \ x ->
+    storeCopyAndPeek (x `asTypeOf` a) `shouldReturn` x
+
+  prop "poke, copy followed by load should return the original value" $ \ x ->
+    pokeCopyAndLoad (x `asTypeOf` a) `shouldReturn` x
+
+
 
 -- | Shorten a string to make it readable in tests.
 shortened :: String -> String

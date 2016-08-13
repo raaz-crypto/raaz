@@ -20,8 +20,8 @@ hmacsTo  = CH.hmacsTo
 spec :: Spec
 spec =  do
 
-  prop "store followed by load returns original value" $ \ (x :: SHA512) ->
-    storeAndThenLoad x `shouldReturn` x
+  basicEndianSpecs (undefined :: SHA512)
+
   --
   -- Some unit tests
   --

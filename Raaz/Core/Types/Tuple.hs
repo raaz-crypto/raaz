@@ -25,11 +25,12 @@ import           Data.Proxy
 
 import qualified Data.Vector.Unboxed as V
 import           GHC.TypeLits
-import           Foreign.Ptr                 ( castPtr      )
+import           Foreign.Ptr                 ( castPtr, Ptr )
 import           Foreign.Storable            ( Storable(..) )
 import           Prelude hiding              ( length       )
 
 
+import Raaz.Core.Types.Copying
 import Raaz.Core.Types.Equality
 import Raaz.Core.Types.Endian
 import Raaz.Core.Write
@@ -122,6 +123,18 @@ instance (V.Unbox a, EndianStore a, KnownNat dim)
 
   store cptr tup = unsafeWrite writeTup cptr
     where writeTup = writeVector $ unTuple tup
+
+  copyFromBytes dest src n = copyFromBytes (destPtr dest) src $ nos dest undefined
+       where destPtr :: Dest (Ptr (Tuple dim a)) -> Dest (Ptr a)
+             nos     :: Dest (Ptr (Tuple dim a)) -> Tuple dim a -> Int
+             destPtr = fmap castPtr
+             nos _ w = dimension w * n
+
+  copyToBytes dest src n = copyToBytes dest (srcPtr src) $ nos src undefined
+       where srcPtr    :: Src (Ptr (Tuple dim a)) -> Src (Ptr a)
+             nos       :: Src (Ptr (Tuple dim a)) -> Tuple dim a -> Int
+             srcPtr    = fmap castPtr
+             nos _ w   = dimension w * n
 
 -- | Construct a tuple out of the list. This function is unsafe and
 -- will result in run time error if the list is not of the correct

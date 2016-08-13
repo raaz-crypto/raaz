@@ -14,8 +14,7 @@ hashesTo = CH.hashesTo
 spec :: Spec
 spec =  do
 
-  prop "store followed by load returns original value" $ \ (x :: SHA224) ->
-    storeAndThenLoad x `shouldReturn` x
+  basicEndianSpecs (undefined :: SHA224)
 
   --
   -- Some unit tests
