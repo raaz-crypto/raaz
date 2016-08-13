@@ -32,6 +32,17 @@ storeCopyAndPeek a = alloc2 (byteSize a) $ \ dest src ->  do
   peek dest
 
 
+basicEndianSpecs :: ( EndianStore a, Show a, Eq a, Arbitrary a)
+                  => a -> Spec
+basicEndianSpecs a = do
+  prop "store followed by load returns original value" $ \ x ->
+    storeAndThenLoad (x `asTypeOf` a) `shouldReturn` x
+
+  prop "store, copy followed by peek should return the original value" $ \ x ->
+    storeCopyAndPeek (x `asTypeOf` a) `shouldReturn` x
+
+
+
 -- | Shorten a string to make it readable in tests.
 shortened :: String -> String
 shortened x | l <= 11    = paddedx
