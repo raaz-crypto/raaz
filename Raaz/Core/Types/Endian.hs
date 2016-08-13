@@ -70,14 +70,14 @@ class Storable w => EndianStore w where
   -- | Load the value from the location pointed by the pointer.
   load  :: Pointer -> IO w
 
-  -- | Copy a value for a pointer to another. The first argument is not
-  -- inspected and is only present for the type checker. This function
+  -- | Copy values of this type for a pointer to another. This function
   -- should take care of performing appropriate endian conversion. For
   -- example, if the type `w` was LE Word32, irrespective of what the
   -- underlying architecture is, if the source pointer contains data
   -- `0x01 0x00 0x00 0x00', it should store in the destination pointer
   -- the value `0x01 :: Word32`. In other words, the following law
-  -- should essentially be true (the code fails because it is not able to infer the t.
+  -- should essentially be true (the code fails because it is not able
+  -- to infer the t.
   --
   -- >
   -- > copy u (Dest dptr) (Src sptr) = loadIt u >>= poke dptr
