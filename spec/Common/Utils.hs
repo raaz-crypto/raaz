@@ -31,6 +31,13 @@ storeCopyAndPeek a = alloc2 (byteSize a) $ \ dest src ->  do
   copyFromBytes (destination dest) (source src) 1
   peek dest
 
+pokeCopyAndLoad :: EndianStore a
+                 => a
+                 -> IO a
+pokeCopyAndLoad a = alloc2 (byteSize a) $ \ dest src ->  do
+  poke src a
+  copyToBytes (destination dest) (source src) 1
+  load dest
 
 basicEndianSpecs :: ( EndianStore a, Show a, Eq a, Arbitrary a)
                   => a -> Spec
@@ -40,6 +47,9 @@ basicEndianSpecs a = do
 
   prop "store, copy followed by peek should return the original value" $ \ x ->
     storeCopyAndPeek (x `asTypeOf` a) `shouldReturn` x
+
+  prop "poke, copy followed by load should return the original value" $ \ x ->
+    pokeCopyAndLoad (x `asTypeOf` a) `shouldReturn` x
 
 
 
