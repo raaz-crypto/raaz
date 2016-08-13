@@ -7,9 +7,9 @@
 # define TOW32(a)               ((uint32_t) a)
 # define TOW64(a)               ((uint64_t) a)
 # define MKW32(a,b,c,d)         (TOW32(a) << 24 | TOW32(b) << 16 | TOW32(c) << 8 | TOW32(d))
-# define MK64(a,b,c,d,e,f,g,h) (                                      \
-   TOW64(a) << 56 | TOW64(b) << 48 | TOW64(c) << 40 | TOW64(d) << 32  \
-   TOW64(e) << 24 | TOW64(f) << 16 | TOW64(g) << 8 | TOW64(h)         )
+# define MKW64(a,b,c,d,e,f,g,h) (                                      \
+   TOW64(a) << 56 | TOW64(b) << 48 | TOW64(c) << 40 | TOW64(d) << 32 | \
+   TOW64(e) << 24 | TOW64(f) << 16 | TOW64(g) << 8  | TOW64(h)         )
 
 # define LoadB(ptr,i)           (((unsigned char *)ptr)[i])
 /* Load from a memory location with proper endian conversion */
@@ -47,7 +47,7 @@
 #endif
 
 /* STORE to a memory location with proper endian conversion */
-# define GetByte(w, i)          ((unsigned char) (w >> (8*(i))))
+# define GetByte(w,j)          ((unsigned char) (w >> (8*(j))))
 # define StoreByte(ptr,i,w,j)   {((unsigned char *)(ptr))[i] = GetByte(w,j); }
 
 # if defined(PLATFORM_LINUX) || defined (PLATFORM_OPENBSD)
@@ -98,7 +98,7 @@
 	StoreByte(ptr,5,w,2);
 	StoreByte(ptr,4,w,3);
 	StoreByte(ptr,3,w,4);
-	StoreByte(ptr,3,w,5);
+	StoreByte(ptr,2,w,5);
 	StoreByte(ptr,1,w,6);
 	StoreByte(ptr,0,w,7);
     }
