@@ -26,11 +26,7 @@ spec = do
 
   describe "32-bit little endian" $ do
 
-    prop "store followed by load returns original value" $ \ (x :: LE Word32) ->
-      storeAndThenLoad x `shouldReturn` x
-
-    prop "store, copy followed by peek should return the original value" $ \ (x :: LE Word32) ->
-      storeCopyAndPeek x `shouldReturn` x
+    basicEndianSpecs (undefined :: LE Word32)
 
     prop "size of encodings of is 4 bytes" $ \ (w :: LE Word32) ->
       B.length (toByteString w) `shouldBe` 4
@@ -43,12 +39,7 @@ spec = do
 
   describe "64-bit little endian" $ do
 
-    prop "store followed by load returns original value" $ \ (x :: LE Word64) ->
-      storeAndThenLoad x `shouldReturn` x
-
-
-    prop "store, copy followed by peek should return the original value" $ \ (x :: LE Word64) ->
-      storeCopyAndPeek x `shouldReturn` x
+    basicEndianSpecs (undefined :: LE Word64)
 
     prop "size of encodings of is 8 bytes" $ \ (w :: LE Word64) ->
       B.length (toByteString w) `shouldBe` 8
@@ -61,12 +52,7 @@ spec = do
 
   describe "32-bit big endian" $ do
 
-    prop "store followed by load returns original value" $ \ (x :: BE Word32) ->
-      storeAndThenLoad x `shouldReturn` x
-
-    prop "store, copy followed by peek should return the original value" $ \ (x :: BE Word32) ->
-      storeCopyAndPeek x `shouldReturn` x
-
+    basicEndianSpecs (undefined :: BE Word32)
 
     prop "size of encodings of is 4 bytes" $ \ (w :: BE Word32) ->
       B.length (toByteString w) `shouldBe` 4
@@ -79,11 +65,7 @@ spec = do
 
   describe "64-bit big endian" $ do
 
-    prop "store followed by load returns original value" $ \ (x :: BE Word64) ->
-      storeAndThenLoad x `shouldReturn` x
-
-    prop "store, copy followed by peek should return the original value" $ \ (x :: BE Word64) ->
-      storeCopyAndPeek x `shouldReturn` x
+    basicEndianSpecs (undefined :: BE Word64)
 
     prop "size of encodings of is 8 bytes" $ \ (w :: BE Word64) ->
       B.length (toByteString w) `shouldBe` 8
