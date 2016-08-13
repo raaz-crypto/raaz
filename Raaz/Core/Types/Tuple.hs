@@ -129,6 +129,13 @@ instance (V.Unbox a, EndianStore a, KnownNat dim)
              nos     :: Dest (Ptr (Tuple dim a)) -> Tuple dim a -> Int
              destPtr = fmap castPtr
              nos _ w = dimension w * n
+
+  copyToBytes dest src n = copyToBytes dest (srcPtr src) $ nos src undefined
+       where srcPtr    :: Src (Ptr (Tuple dim a)) -> Src (Ptr a)
+             nos       :: Src (Ptr (Tuple dim a)) -> Tuple dim a -> Int
+             srcPtr    = fmap castPtr
+             nos _ w   = dimension w * n
+
 -- | Construct a tuple out of the list. This function is unsafe and
 -- will result in run time error if the list is not of the correct
 -- dimension.
