@@ -29,6 +29,9 @@ spec = do
     prop "store followed by load returns original value" $ \ (x :: LE Word32) ->
       storeAndThenLoad x `shouldReturn` x
 
+    prop "store, copy followed by peek should return the original value" $ \ (x :: LE Word32) ->
+      storeCopyAndPeek x `shouldReturn` x
+
     prop "size of encodings of is 4 bytes" $ \ (w :: LE Word32) ->
       B.length (toByteString w) `shouldBe` 4
 
@@ -42,6 +45,10 @@ spec = do
 
     prop "store followed by load returns original value" $ \ (x :: LE Word64) ->
       storeAndThenLoad x `shouldReturn` x
+
+
+    prop "store, copy followed by peek should return the original value" $ \ (x :: LE Word64) ->
+      storeCopyAndPeek x `shouldReturn` x
 
     prop "size of encodings of is 8 bytes" $ \ (w :: LE Word64) ->
       B.length (toByteString w) `shouldBe` 8
@@ -57,6 +64,10 @@ spec = do
     prop "store followed by load returns original value" $ \ (x :: BE Word32) ->
       storeAndThenLoad x `shouldReturn` x
 
+    prop "store, copy followed by peek should return the original value" $ \ (x :: BE Word32) ->
+      storeCopyAndPeek x `shouldReturn` x
+
+
     prop "size of encodings of is 4 bytes" $ \ (w :: BE Word32) ->
       B.length (toByteString w) `shouldBe` 4
 
@@ -70,6 +81,9 @@ spec = do
 
     prop "store followed by load returns original value" $ \ (x :: BE Word64) ->
       storeAndThenLoad x `shouldReturn` x
+
+    prop "store, copy followed by peek should return the original value" $ \ (x :: BE Word64) ->
+      storeCopyAndPeek x `shouldReturn` x
 
     prop "size of encodings of is 8 bytes" $ \ (w :: BE Word64) ->
       B.length (toByteString w) `shouldBe` 8

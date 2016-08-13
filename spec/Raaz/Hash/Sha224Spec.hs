@@ -17,6 +17,9 @@ spec =  do
   prop "store followed by load returns original value" $ \ (x :: SHA224) ->
     storeAndThenLoad x `shouldReturn` x
 
+  prop "store, copy followed by peek should return the original value" $ \ (x :: SHA224) ->
+    storeCopyAndPeek x `shouldReturn` x
+
   --
   -- Some unit tests
   --
