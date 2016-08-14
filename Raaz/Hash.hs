@@ -4,6 +4,7 @@ This module exposes all the cryptographic hash functions available
 under the raaz library.
 
 -}
+{-# OPTIONS_GHC -fno-warn-warnings-deprecations #-}
 
 module Raaz.Hash
        (
