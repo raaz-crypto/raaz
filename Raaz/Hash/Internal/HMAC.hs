@@ -84,6 +84,10 @@ instance (Hash h, Recommendation h) => EndianStore (HMACKey h) where
   store = poke . castPtr
   load  = peek . castPtr
 
+  copyFromBytes dest src n = memcpy (castPtr <$> dest) src  (blockSize (undefined :: h) * toEnum n)
+  copyToBytes   dest src n = memcpy dest  (castPtr <$> src) (blockSize (undefined :: h) * toEnum n)
+
+
 instance (Hash h, Recommendation h) => Random (HMACKey h)
 
 instance (Hash h, Recommendation h) => Encodable (HMACKey h)
