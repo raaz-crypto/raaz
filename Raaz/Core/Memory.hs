@@ -291,12 +291,6 @@ class Memory m where
   -- | Returns the pointer to the underlying buffer.
   underlyingPtr  :: m -> Pointer
 
-class Memory m => Initialisable m v where
-  initialise :: v -> MT m ()
-
-class Memory m => Extractable m v where
-  extract  :: MT m v
-
 instance ( Memory ma, Memory mb ) => Memory (ma, mb) where
     memoryAlloc           = (,) <$> memoryAlloc <*> memoryAlloc
     underlyingPtr (ma, _) =  underlyingPtr ma
@@ -370,7 +364,15 @@ withSecureMemory = withSM memoryAlloc
 -- | A memory location to store a value of type having `Storable`
 -- instance.
 newtype MemoryCell a = MemoryCell { unMemoryCell :: Pointer }
+----------------------- Initialising and Extracting stuff ----------------------
 
+-- | Memories that can be initialised with a value.
+class Memory m => Initialisable m v where
+  initialise :: v -> MT m ()
+
+-- | Memories from which stuff can be extracted.
+class Memory m => Extractable m v where
+  extract  :: MT m v
 
 -- | Perform some pointer action on MemoryCell. Useful while working
 -- with ffi functions.
