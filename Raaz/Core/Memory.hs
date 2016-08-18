@@ -340,9 +340,11 @@ copyMemory dmem smem = memcpy (underlyingPtr <$> dmem) (underlyingPtr <$> smem) 
 withMemory   :: Memory m => (m -> IO a) -> IO a
 withMemory   = withM memoryAlloc
   where withM :: Memory m => Alloc m -> (m -> IO a) -> IO a
-        withM alctr action = allocaBuffer sz $ action . getM
-          where sz     = twistMonoidValue alctr
-                getM   = computeField $ twistFunctorValue alctr
+        withM alctr action = allocaBuffer sz actualAction
+          where sz                 = twistMonoidValue alctr
+                getM               = computeField $ twistFunctorValue alctr
+                wipeIt cptr        = memset cptr 0 sz
+                actualAction  cptr = action (getM cptr) <* wipeIt cptr
 
 
 -- | Similar to `withMemory` but allocates a secure memory for the
