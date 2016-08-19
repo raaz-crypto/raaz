@@ -7,7 +7,10 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 module Raaz.Core.Transfer
-       ( Write, bytesToWrite, unsafeWrite
+       ( -- * Transfer actions.
+         -- $transfer$
+         -- ** Write action.
+         WriteM, WriteIO, bytesToWrite, unsafeWrite
        , write, writeStorable, writeVector, writeStorableVector
        , writeBytes, writeByteString, skipWrite
        ) where
