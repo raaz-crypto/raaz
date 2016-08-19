@@ -1,4 +1,4 @@
--- | Module to write stuff to buffers.
+-- | Module to reading from and writing into buffers.
 
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE TypeSynonymInstances       #-}
@@ -6,13 +6,18 @@
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
+
 module Raaz.Core.Transfer
        ( -- * Transfer actions.
          -- $transfer$
          -- ** Write action.
          WriteM, WriteIO, bytesToWrite, unsafeWrite
        , write, writeStorable, writeVector, writeStorableVector
-       , writeBytes, writeByteString, skipWrite
+       , writeFrom, writeBytes, writeByteString, skipWrite
+         -- ** Read action
+       , ReadM, ReadIO, bytesToRead, unsafeRead
+       , readBytes, readInto
+
        ) where
 
 import           Control.Monad.IO.Class
@@ -22,16 +27,47 @@ import           Data.ByteString.Internal  (unsafeCreate)
 import           Data.Monoid
 import qualified Data.Vector.Generic       as G
 import           Data.Word                 (Word8)
-import           Foreign.Ptr               (castPtr)
+import           Foreign.Ptr               (castPtr, Ptr)
 import           Foreign.Storable
 
 import           Raaz.Core.MonoidalAction
+import           Raaz.Core.Types.Copying
 import           Raaz.Core.Types.Endian
 import           Raaz.Core.Types.Pointer
 import           Raaz.Core.Util.ByteString as BU
 import           Raaz.Core.Encode
 
--- | The monoid for transfering.
+-- $transfer$
+--
+-- Low level buffer operations are problematic portions of any
+-- crypto-library. Buffers are usually represented by the starting
+-- pointer and one needs to keep track of the buffer sizes
+-- carefully. An operation that writes into a buffer, if it writes
+-- beyond the actual size of the buffer, can lead to a possible remote
+-- code execution. On the other hand, when reading from a buffer, if
+-- we read beyond the buffer it can leak private data to the attacker
+-- (as in the case of Heart bleed bug). This module is indented to
+-- give a relatively high level interface to this problem. We expose
+-- two types, the `Read` and the `Write` type which deals with these
+-- to aspects which are essentially functions from a pointer to an
+-- `IO` action. A `Read` action transfers bytes from the buffer where
+-- as a `Write` action transfers data into a buffer. Both these
+-- actions keep track of the number of bytes that they transfer,
+-- either from the buffer as in the case of a `Read` action, or into
+-- the buffer as in the case of a `Write` action.
+--
+-- Complex reads and writes can be constructed using the monoid
+-- instance of these types. For example, the `mempty` for the type
+-- `Read` is a read action that reads nothing from the input
+-- buffer. If @r1@ and @r2@ are two read actions then @r1 <> r2@
+-- performs the read @r1@ followed by the read @r2@.  The necessary
+-- pointer arithmetic involved in these actions are automatically
+-- taken care of by the monoid instance. Similarly, for the type
+-- `Write`, the unit element `mempty` writes nothing into the buffer
+-- and the @w1 <> w2@ performs the action @w1@ followed by @w2@.
+
+
+-- | This monoid captures a transfer action.
 newtype TransferM m = TransferM { unTransferM :: m () }
 
 instance Monad m => Monoid (TransferM m) where
@@ -44,8 +80,8 @@ instance Monad m => Monoid (TransferM m) where
   mconcat = TransferM . mapM_ unTransferM
   {-# INLINE mconcat #-}
 
--- | A action that transfers some stuff. It is nothing but an action that returns () on
--- input a pointer.
+-- | A action that transfers bytes from its input pointer. Transfer
+-- could either be writing or reading.
 type TransferAction m = Pointer -> TransferM m
 
 instance Monad m => LAction (BYTES Int) (TransferAction m) where
@@ -54,9 +90,11 @@ instance Monad m => LAction (BYTES Int) (TransferAction m) where
 
 instance Monad m => Distributive (BYTES Int) (TransferAction m)
 
+-- | Byte transfers that keep track of the number of bytes that were
+-- transferred (from/into) its input buffer.
 type Transfer m = SemiR (TransferAction m) (BYTES Int)
 
-
+-- | Make an explicit transfer action given.
 makeTransfer :: LengthUnit u => u -> (Pointer -> m ()) -> Transfer m
 {-# INLINE makeTransfer #-}
 makeTransfer sz action = SemiR (TransferM . action) $ inBytes sz
@@ -64,36 +102,24 @@ makeTransfer sz action = SemiR (TransferM . action) $ inBytes sz
 
 -------------------------- Monoid for writing stuff --------------------------------------
 
--- | A write is an action which when executed using writes
--- bytes to its input buffer. `Write`s are monoid and hence can be
+-- | A write is an action that transfers bytes /into/ its input buffer.  `Write`s are monoid and hence can be
 -- concatnated using the `<>` operator.
 newtype WriteM m = WriteM { unWriteM :: Transfer m } deriving Monoid
 
--- | The default write action.
-type Write = WriteM IO
+-- | A write io-action.
+type WriteIO = WriteM IO
 
 -- | Returns the bytes that will be written when the write action is performed.
 bytesToWrite :: WriteM m -> BYTES Int
 bytesToWrite = semiRMonoid . unWriteM
 
--- | Perform the write action without any checks.
-unsafeWrite :: WriteM m -> Pointer -> m ()
+-- | Perform the write action without any checks of the buffer
+unsafeWrite :: WriteM m
+            -> Pointer   -- ^ The pointer for the buffer to be written into.
+            -> m ()
 unsafeWrite wr =  unTransferM . semiRSpace (unWriteM wr)
 
-{-
--- | The function tries to write the given `Write` action on the
--- buffer and returns `True` if successful.
-tryWriting :: WriteM         -- ^ The write action.
-           -> CryptoBuffer  -- ^ The buffer to which the bytes are to
-                            -- be written.
-           -> IO Bool
-tryWriting wr cbuf = withCryptoBuffer cbuf $ \ sz cptr ->
-  if sz < bytesToWriteM wr then return False
-  else do unsafeWrite wr cptr; return True
-
--}
-
-
+-- | Function that explicitly constructs a write action.
 makeWrite     :: LengthUnit u => u -> (Pointer -> m ()) -> WriteM m
 makeWrite sz  = WriteM . makeTransfer sz
 
@@ -114,6 +140,13 @@ writeStorable a = WriteM $ makeTransfer (byteSize a) pokeIt
 -- serialize data for the consumption of the outside world.
 write :: (MonadIO m, EndianStore a) => a -> WriteM m
 write a = makeWrite (byteSize a) $ liftIO . flip store a
+
+-- | Write many elements from the given buffer
+writeFrom :: (MonadIO m, EndianStore a) => Int -> Src (Ptr a) -> WriteM m
+writeFrom n src = makeWrite (sz undefined src)
+                  $ \ ptr -> liftIO  $ copyToBytes (destination ptr) src n
+  where sz :: Storable a => a -> Src (Ptr a) -> BYTES Int
+        sz a ptr = toEnum n * byteSize a
 
 -- | The vector version of `writeStorable`.
 writeStorableVector :: (Storable a, G.Vector v a, MonadIO m) => v a -> WriteM m
@@ -165,3 +198,47 @@ instance Encodable (WriteM IO) where
 
   {-# INLINE fromByteString #-}
   fromByteString       = Just . writeByteString
+
+------------------------  Read action ----------------------------
+
+-- | A read action is an action that transfers bytes out of its
+-- argument buffer. Read actions form a monoid and hence two read
+-- actions @r1@ and @r2@ can be combined using `<>`.
+newtype ReadM m = ReadM { unReadM :: Transfer m} deriving Monoid
+
+-- | A read io-action.
+type ReadIO = ReadM IO
+
+-- | Function that explicitly constructs a write action.
+makeRead     :: LengthUnit u => u -> (Pointer -> m ()) -> ReadM m
+makeRead sz  = ReadM . makeTransfer sz
+
+
+-- | Returns the bytes that will be written when the write action is
+-- performed.
+bytesToRead :: ReadM m -> BYTES Int
+bytesToRead = semiRMonoid . unReadM
+
+-- | Perform the write action without any checks of the buffer
+unsafeRead :: ReadM m
+           -> Pointer   -- ^ The pointer for the buffer to be written into.
+           -> m ()
+unsafeRead rd =  unTransferM . semiRSpace (unReadM rd)
+
+-- | Read bytes into a given buffer.
+readBytes :: ( LengthUnit sz, MonadIO m)
+          => sz             -- ^ how much to read.
+          -> Dest Pointer   -- ^ buffer to read the bytes into
+          -> ReadM m
+readBytes sz dest = makeRead sz
+                    $ \ ptr -> liftIO  $ memcpy dest (source ptr) sz
+
+-- | Read elements of endian store type into the given buffer.
+readInto :: (EndianStore a, MonadIO m)
+         => Int             -- ^ how many elements to read.
+         -> Dest (Ptr a)    -- ^ buffer to read the elements into
+         -> ReadM m
+readInto n dest = makeRead (sz undefined dest)
+                  $ \ ptr -> liftIO $ copyFromBytes dest (source ptr) n
+  where sz :: Storable a => a -> Dest (Ptr a) -> BYTES Int
+        sz a ptr = toEnum n * byteSize a
