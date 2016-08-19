@@ -33,7 +33,7 @@ import           Prelude hiding              ( length       )
 import Raaz.Core.Types.Copying
 import Raaz.Core.Types.Equality
 import Raaz.Core.Types.Endian
-import Raaz.Core.Write
+import Raaz.Core.Transfer
 import Raaz.Core.Parse.Applicative
 
 -- | Tuples that encode their length in their types. For tuples, we call

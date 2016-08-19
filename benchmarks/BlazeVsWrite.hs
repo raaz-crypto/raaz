@@ -14,7 +14,7 @@ import           Data.Word
 import           Foreign.Ptr (castPtr)
 
 import           Raaz.Core.Types
-import qualified Raaz.Core.Write  as RW
+import qualified Raaz.Core.Transfer  as RW
 import qualified Raaz.Core.Encode as E
 
 -- Why 4000 entries. The result size is roughly 32k which is the L1 cache

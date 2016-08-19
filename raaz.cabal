@@ -71,7 +71,7 @@ library
                  , Raaz.Core.Random
                  , Raaz.Core.Types
                  , Raaz.Core.Util
-                 , Raaz.Core.Write
+                 , Raaz.Core.Transfer
                  --
                  -- Cryptographic hashes
                  --

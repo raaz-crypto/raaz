@@ -13,7 +13,7 @@ import Data.Word
 import Foreign.Storable
 
 import Raaz.Core
-import Raaz.Core.Write
+import Raaz.Core.Transfer
 import Raaz.Hash.Internal
 
 
