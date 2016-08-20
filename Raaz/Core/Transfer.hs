@@ -146,7 +146,7 @@ writeFrom :: (MonadIO m, EndianStore a) => Int -> Src (Ptr a) -> WriteM m
 writeFrom n src = makeWrite (sz undefined src)
                   $ \ ptr -> liftIO  $ copyToBytes (destination ptr) src n
   where sz :: Storable a => a -> Src (Ptr a) -> BYTES Int
-        sz a ptr = toEnum n * byteSize a
+        sz a _ = toEnum n * byteSize a
 
 -- | The vector version of `writeStorable`.
 writeStorableVector :: (Storable a, G.Vector v a, MonadIO m) => v a -> WriteM m
@@ -165,7 +165,8 @@ lifted.
 -- | The vector version of `write`.
 writeVector :: (EndianStore a, G.Vector v a, MonadIO m) => v a -> WriteM m
 {-# INLINE writeVector #-}
-{-# TODO: improve this using the fact that the size is known #-}
+{- TODO: improve this using the fact that the size is known -}
+
 writeVector = G.foldl' foldFunc mempty
   where foldFunc w a =  w <> write a
 {- TODO: Same as in writeStorableVector -}
@@ -241,4 +242,4 @@ readInto :: (EndianStore a, MonadIO m)
 readInto n dest = makeRead (sz undefined dest)
                   $ \ ptr -> liftIO $ copyFromBytes dest (source ptr) n
   where sz :: Storable a => a -> Dest (Ptr a) -> BYTES Int
-        sz a ptr = toEnum n * byteSize a
+        sz a _ = toEnum n * byteSize a
