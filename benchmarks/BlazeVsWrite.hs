@@ -58,5 +58,5 @@ main = defaultMain
 blazeWrite :: (a -> BB.Write)   -> [a] -> ByteString
 blazeWrite fn = BB.writeToByteString . mconcat . map fn
 
-raazWrite  :: (a -> RW.Write) -> [a] -> ByteString
+raazWrite  :: (a -> RW.WriteIO) -> [a] -> ByteString
 raazWrite fn = E.toByteString . mconcat . map fn
