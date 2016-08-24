@@ -85,7 +85,7 @@ before_install:
    fi
  - if [ "$HVR_COLLECTION" != "" ]; then
       echo geting cabal.config from the collection of hvr;
-      wget https://raw.githubusercontent.com/hvr/multi-ghc-travis/master/collections/cabal.project."$HVR_COLLECTION" -o cabal.config ;
+      wget https://raw.githubusercontent.com/hvr/multi-ghc-travis/master/collections/cabal.project."$HVR_COLLECTION" -O cabal.config ;
    fi
  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew update; fi
  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install ghc cabal-install; fi
