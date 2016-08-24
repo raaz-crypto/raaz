@@ -84,7 +84,7 @@ before_install:
       wget "https://www.stackage.org/$STACKVER/cabal.config";
    fi
  - if [ "$HVR_COLLECTION" != "" ]; then
-      echo geting cabal.config from the collection of hvr.
+      echo geting cabal.config from the collection of hvr;
       wget https://raw.githubusercontent.com/hvr/multi-ghc-travis/master/collections/cabal.project."$HVR_COLLECTION" -o cabal.config ;
    fi
  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew update; fi
