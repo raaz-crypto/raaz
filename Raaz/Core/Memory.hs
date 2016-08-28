@@ -460,3 +460,9 @@ instance Storable a => Initialisable (MemoryCell a) a where
 instance Storable a => Extractable (MemoryCell a) a where
   extract = execute $ peek . unMemoryCell
   {-# INLINE extract #-}
+
+instance EndianStore a => InitialisableFromBuffer (MemoryCell a) where
+  initialiser  = readInto 1 . destination . unMemoryCell
+
+instance EndianStore a => ExtractableToBuffer (MemoryCell a) where
+  extractor  = writeFrom 1 . source . unMemoryCell
