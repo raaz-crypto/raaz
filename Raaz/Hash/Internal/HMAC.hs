@@ -34,7 +34,7 @@ import           System.IO.Unsafe     (unsafePerformIO)
 
 import           Raaz.Core
 import           Raaz.Core.Parse.Applicative
-import           Raaz.Core.Write
+import           Raaz.Core.Transfer
 
 import           Raaz.Hash.Internal
 

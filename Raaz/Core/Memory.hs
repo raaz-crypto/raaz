@@ -2,6 +2,11 @@
 
 The memory subsystem associated with raaz.
 
+
+__Warning:__ This module is pretty low level and should not be needed in typical
+use cases. Only developers of protocols and primitives might have a
+reason to look into this module.
+
 -}
 
 {-# LANGUAGE DefaultSignatures          #-}
@@ -15,12 +20,15 @@ module Raaz.Core.Memory
        (
        -- * The Memory subsystem.
        -- $memorysubsystem$
-       -- ** Memory elements
+
+       -- ** Initialisation and Extraction.
+       -- $init-extract$
          Memory(..), copyMemory
+       , Initialisable(..), Extractable(..)
+       , InitialisableFromBuffer(..), ExtractableToBuffer(..)
        -- *** A basic memory cell.
        , MemoryCell
-       -- *** Initialising and extracting.
-       , Initialisable(..), Extractable(..)
+
        -- *** Actions on memory elements.
        , MT,  execute, getMemory, liftSubMT, modify
        -- **** Some low level `MT` actions.
@@ -35,34 +43,37 @@ module Raaz.Core.Memory
 
 import           Control.Applicative
 import           Control.Monad.IO.Class
-import           Foreign.Storable(Storable(..))
-import           Foreign.Ptr (castPtr)
+import           Foreign.Storable            ( Storable(..) )
+import           Foreign.Ptr                 ( castPtr, Ptr )
 import           Raaz.Core.MonoidalAction
+import           Raaz.Core.Transfer
 import           Raaz.Core.Types
 
 -- $memorysubsystem$
 --
--- The memory subsystem consists of two main components.
+-- Cryptographic operations often need to keep sensitive information
+-- in its memory space. If this memory is swapped out to the disk,
+-- this can be dangerous. The primary purpose of the memory subsystem
+-- in raaz provides a way to allocate and manage _secure memory_,
+-- i.e. memory that will not be swapped out during the execution of
+-- the process and will be wiped clean after use. There are there
+-- important parts to the memory subsystem:
 --
--- [The `Memory` type class] A memory element is some type that holds
--- an internal buffer inside it. The operations that are allowed on
--- the element is controlled by the associated type. Certain memory
--- element have a default way in which it can be initialised by values
--- of type @a@. An instance declaration @`Initialisable` mem a@ for
--- the memory type @mem@ is done in such case. Similary, if values of
--- type @b@ can be extracted out of a memory element @mem@, we can
--- indicate it with an instance of @`Extractable` mem a@.
+-- [The `Memory` type class:] A memory element is some type that holds
+-- an internal buffer inside it.
 --
--- [The `Alloc` type and memory allocation] The most important and
--- often error prone operation while using low level memory buffers is
--- its allocation. The `Alloc` types gives the allocation strategy for
--- a memory element keeping track of the necessary book keeping
--- involved in it.  The `Alloc` type is an instance of `Applicative`
+-- [The `Alloc` type:] Memory elements need to be allocated and this
+-- is involves a lot of low lever pointer arithmetic. The `Alloc`
+-- types gives a high level interface for memory allocation. For a
+-- memory type `mem`, the type `Alloc mem` can be seen as the
+-- _allocation strategy_ for mem. For example, one of the things that
+-- it keeps track of the space required to create an memory element of
+-- type `mem`. There is a natural applicative instance for `Alloc`
 -- which helps build the allocation strategy for a compound memory
--- type from its components in a modular fashion without any explicit
+-- type from its components in a modular fashion _without_ explicit
 -- size calculation or offset computation.
 --
--- [The `MonadMemory` class] Instances of these classes are actions
+-- [The `MonadMemory` class:] Instances of these classes are actions
 -- that use some kind of memory elements, i.e. instances of the class
 -- `Memory`, inside it. Any such monad can either be run using the
 -- combinator `securely` or the combinator `insecurely`. If one use
@@ -71,6 +82,29 @@ import           Raaz.Core.Types
 -- de-allocation. The types `MT` and `MemoryM` are two instances that
 -- we expose from this library.
 --
+
+-- $init-extract$
+--
+-- Memory elements often needs to be initialised. Similarly data needs
+-- to be extracted out of memory. An instance declaration
+-- @`Initialisable` mem a@ for the memory type @mem@ indicates that it
+-- can be initialised with the pure value @a@. Similary, if values of
+-- type @b@ can be extracted out of a memory element @mem@, we can
+-- indicate it with an instance of @`Extractable` mem a@.
+--
+-- There is an inherent danger in initialising and extracting pure
+-- values out of memory. Pure values are stored on the Haskell stack
+-- and hence can be swapped out. Consider a memory element @mem@ that
+-- stores some sensitive information, say for example the unencrypted
+-- private key. Now suppose that we need to extracting out the key as
+-- a pure value before its encryption and storage into the key file,
+-- it is likely that the key is swapped out to the disk as part of the
+-- haskell heap.
+--
+-- The `InitialiseFromBuffer` (`ExtractableToBuffer`) class gives an
+-- interface for reading from (writing to) buffers directly minimising
+-- the chances of inadvertent exposure of sensitive information from
+-- the Haskell heap due to swapping.
 
 -- | A class that captures monads that use an internal memory element.
 --
@@ -291,12 +325,6 @@ class Memory m where
   -- | Returns the pointer to the underlying buffer.
   underlyingPtr  :: m -> Pointer
 
-class Memory m => Initialisable m v where
-  initialise :: v -> MT m ()
-
-class Memory m => Extractable m v where
-  extract  :: MT m v
-
 instance ( Memory ma, Memory mb ) => Memory (ma, mb) where
     memoryAlloc           = (,) <$> memoryAlloc <*> memoryAlloc
     underlyingPtr (ma, _) =  underlyingPtr ma
@@ -346,9 +374,11 @@ copyMemory dmem smem = memcpy (underlyingPtr <$> dmem) (underlyingPtr <$> smem) 
 withMemory   :: Memory m => (m -> IO a) -> IO a
 withMemory   = withM memoryAlloc
   where withM :: Memory m => Alloc m -> (m -> IO a) -> IO a
-        withM alctr action = allocaBuffer sz $ action . getM
-          where sz     = twistMonoidValue alctr
-                getM   = computeField $ twistFunctorValue alctr
+        withM alctr action = allocaBuffer sz actualAction
+          where sz                 = twistMonoidValue alctr
+                getM               = computeField $ twistFunctorValue alctr
+                wipeIt cptr        = memset cptr 0 sz
+                actualAction  cptr = action (getM cptr) <* wipeIt cptr
 
 
 -- | Similar to `withMemory` but allocates a secure memory for the
@@ -365,18 +395,24 @@ withSecureMemory = withSM memoryAlloc
           where sz     = twistMonoidValue alctr
                 getM   = computeField $ twistFunctorValue alctr
 
---------------------- Some instances of Memory --------------------
 
--- | A memory location to store a value of type having `Storable`
--- instance.
-newtype MemoryCell a = MemoryCell { unMemoryCell :: Pointer }
+----------------------- Initialising and Extracting stuff ----------------------
 
+-- | Memories that can be initialised with a pure value. The pure
+-- value resides in the Haskell heap and hence can potentially be
+-- swapped. Therefore, this class should be avoided if compromising
+-- the initialisation value can be dangerous. Consider using
+-- `InitialiseableFromBuffer`
+--
 
--- | Perform some pointer action on MemoryCell. Useful while working
--- with ffi functions.
-withCell :: (Pointer -> IO b) -> MT (MemoryCell a) b
-withCell fp  = execute $ fp . unMemoryCell
-{-# INLINE withCell #-}
+class Memory m => Initialisable m v where
+  initialise :: v -> MT m ()
+
+-- | Memories from which pure values can be extracted. Once a pure value is
+-- extracted,
+class Memory m => Extractable m v where
+  extract  :: MT m v
+
 
 -- | Apply the given function to the value in the cell. For a function @f :: b -> a@,
 -- the action @modify f@ first extracts a value of type @b@ from the
@@ -389,18 +425,44 @@ withCell fp  = execute $ fp . unMemoryCell
 modify :: (Initialisable m a, Extractable m b) =>  (b -> a) -> MT m ()
 modify f = extract >>= initialise . f
 
+-- | A memory type that can be initialised from a pointer buffer. The initialisation performs
+-- a direct copy from the input buffer and hence the chances of the
+-- initialisation value ending up in the swap is minimised.
+class Memory m => InitialisableFromBuffer m where
+  initialiser :: m -> ReadM (MT m)
+
+-- | A memory type that can extract bytes into a buffer. The extraction will perform
+-- a direct copy and hence the chances of the extracted value ending
+-- up in the swap space is minimised.
+class Memory m => ExtractableToBuffer m where
+  extractor :: m -> WriteM (MT m)
+
+
+--------------------- Some instances of Memory --------------------
+
+-- | A memory location to store a value of type having `Storable`
+-- instance.
+newtype MemoryCell a = MemoryCell { unMemoryCell :: Ptr a }
+
+
 instance Storable a => Memory (MemoryCell a) where
 
   memoryAlloc = allocator undefined
     where allocator :: Storable b => b -> Alloc (MemoryCell b)
-          allocator b = makeAlloc (byteSize b) MemoryCell
+          allocator b = makeAlloc (byteSize b) $ MemoryCell . castPtr
 
-  underlyingPtr (MemoryCell cptr) = cptr
+  underlyingPtr  = castPtr . unMemoryCell
 
 instance Storable a => Initialisable (MemoryCell a) a where
-  initialise a = withCell (flip poke a . castPtr)
+  initialise a = execute $ flip poke a . unMemoryCell
   {-# INLINE initialise #-}
 
 instance Storable a => Extractable (MemoryCell a) a where
-  extract = withCell (peek . castPtr)
+  extract = execute $ peek . unMemoryCell
   {-# INLINE extract #-}
+
+instance EndianStore a => InitialisableFromBuffer (MemoryCell a) where
+  initialiser  = readInto 1 . destination . unMemoryCell
+
+instance EndianStore a => ExtractableToBuffer (MemoryCell a) where
+  extractor  = writeFrom 1 . source . unMemoryCell

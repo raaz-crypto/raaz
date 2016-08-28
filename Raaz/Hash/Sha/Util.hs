@@ -13,7 +13,7 @@ import Data.Word
 import Foreign.Storable
 
 import Raaz.Core
-import Raaz.Core.Write
+import Raaz.Core.Transfer
 import Raaz.Hash.Internal
 
 
@@ -32,7 +32,7 @@ shaImplementation :: ( Primitive h
                   => String                   -- ^ Name
                   -> String                   -- ^ Description
                   -> Compressor
-                  -> (BITS Word64 -> Write)
+                  -> (BITS Word64 -> WriteIO)
                   -> HashI h (HashMemory h)
 shaImplementation nam des comp lenW
   = HashI { hashIName        = nam
@@ -48,7 +48,7 @@ portableC :: ( Primitive h
              , Initialisable (HashMemory h) ()
              )
           => Compressor
-          -> (BITS Word64 -> Write)
+          -> (BITS Word64 -> WriteIO)
           -> HashI h (HashMemory h)
 portableC = shaImplementation "portable-c-ffi"
             "Implementation using portable C and Haskell FFI"
@@ -68,7 +68,7 @@ shaCompress comp ptr nblocks = do
 -- | The compressor for the last function.
 shaCompressFinal :: (Primitive h, Storable h)
                   => h
-                  -> (BITS Word64 -> Write) -- ^ the length writer
+                  -> (BITS Word64 -> WriteIO) -- ^ the length writer
                   -> Compressor             -- ^ the raw compressor
                   -> Pointer                -- ^ the buffer
                   -> BYTES Int              -- ^ the message length
@@ -82,19 +82,19 @@ shaCompressFinal h lenW comp ptr nbytes = do
           liftSubMT hashCell $ withPointer $ comp ptr $ fromEnum blocks
 
 -- | The length encoding that uses 64-bits.
-length64Write :: BITS Word64 ->  Write
+length64Write :: BITS Word64 ->  WriteIO
 length64Write (BITS w) = write $ bigEndian w
 
 -- | The length encoding that uses 128-bits.
-length128Write :: BITS Word64 -> Write
+length128Write :: BITS Word64 -> WriteIO
 length128Write w = writeStorable (0 :: Word64) <> length64Write w
 
 -- | The padding to be used
 paddedMesg :: Primitive h
-           => Write        -- ^ The length encoding
+           => WriteIO      -- ^ The length encoding
            -> h            -- ^ The hash
            -> BYTES Int    -- ^ The message length
-           -> Write
+           -> WriteIO
 paddedMesg lenW h msgLen = start <> zeros <> lenW
    where start      = skipWrite msgLen <> writeStorable (0x80 :: Word8)
          zeros      = writeBytes    0    sz
