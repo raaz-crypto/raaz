@@ -1,6 +1,9 @@
 Raaz: A secure networking library in Haskell
 --------------------------------------------
 
+[![Build Staus][travis-status]][travis-raaz]
+[![In Progress][waffle-inprogress]][waffle-raaz]
+
 Raaz is a library for secure network programming. The word `Raaz`
 (&#x0930;&#x093E;&#x095B;) stands for secret in Hindi. The aim of this library
 is to provide a haskell interface to existing protocols like ssh and
@@ -28,13 +31,13 @@ problems suggested there but of course one should also look for other
 problems.
 
 
-[![Build Staus][travis-status]][travis-raaz]
+
 
 [wiki]: <https://github.com/raaz-crypto/raaz/wiki> "Raaz Wiki"
 [repo]: <https://github.com/raaz-crypto/raaz> "Raaz on github"
 
 [emailgroups]: <https://groups.google.com/forum/#!forum/hraaz> "Raaz on Google groups"
-
+[waffle-raaz]:   <http://waffle.io/raaz-crypto/raaz>
+[waffle-inprogress]: <https://badge.waffle.io/raaz-crypto/raaz.svg?label=waffle%3Ain%20progress&title=In%20Progress>
 [travis-status]: <https://secure.travis-ci.org/raaz-crypto/raaz.png> "Build status"
-
 [travis-raaz]: <https://travis-ci.org/raaz-crypto/raaz>
