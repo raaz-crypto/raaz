@@ -16,6 +16,9 @@ import Data.ByteString.Internal (c2w )
 import Data.ByteString.Unsafe(unsafeIndex)
 import Data.Monoid
 import Data.Word
+
+import Prelude
+
 import Raaz.Core.Encode.Internal
 
 -- | The type corresponding to base-16 or hexadecimal encoding. The

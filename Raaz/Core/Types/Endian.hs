@@ -28,6 +28,8 @@ import           Foreign.Ptr                 ( castPtr, Ptr )
 import           Foreign.Storable            ( Storable(..) )
 
 
+import           Prelude
+
 import qualified Data.Vector.Generic         as GV
 import qualified Data.Vector.Generic.Mutable as GVM
 

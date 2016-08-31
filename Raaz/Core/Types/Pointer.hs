@@ -25,10 +25,8 @@ module Raaz.Core.Types.Pointer
        ) where
 
 
-#if !MIN_VERSION_base(4,8,0)
-import Control.Applicative   ( (<$>)   )
-#endif
 
+import Control.Applicative
 import Control.Exception     ( bracket_)
 import Control.Monad         ( void, when )
 import Data.Monoid
@@ -37,6 +35,8 @@ import Foreign.Marshal.Alloc
 import Foreign.Ptr           ( Ptr, plusPtr)
 import Foreign.Storable      (Storable, sizeOf, alignment)
 import System.IO             (hGetBuf, Handle)
+
+import Prelude -- To stop the annoying warnings of Applicatives and Monoids.
 
 import Raaz.Core.MonoidalAction
 import Raaz.Core.Types.Equality

@@ -23,6 +23,7 @@ module Raaz.Core.Primitives
        ) where
 
 import Data.Monoid
+import Prelude
 
 import Raaz.Core.Types
 ----------------------- A primitive ------------------------------------

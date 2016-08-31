@@ -8,6 +8,8 @@ module Raaz.Cipher.AES.CBC.Implementation.CPortable
 
 import Control.Applicative
 import Control.Monad.IO.Class   ( liftIO )
+import Prelude
+
 import Raaz.Core
 import Raaz.Cipher.Internal
 import Raaz.Cipher.AES.Internal

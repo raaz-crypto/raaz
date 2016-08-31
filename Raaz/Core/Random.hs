@@ -23,6 +23,9 @@ import System.IO ( openBinaryFile, Handle, IOMode(ReadMode)
                  , BufferMode(NoBuffering), hSetBuffering
                  )
 
+
+import Prelude
+
 import Raaz.Core.ByteSource(InfiniteSource, slurpBytes)
 import Raaz.Core.Types
 

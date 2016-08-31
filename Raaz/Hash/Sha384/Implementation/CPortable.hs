@@ -6,6 +6,8 @@ module Raaz.Hash.Sha384.Implementation.CPortable
        ) where
 
 import Control.Applicative
+import Prelude
+
 import Raaz.Core
 import Raaz.Hash.Internal
 import Raaz.Hash.Sha384.Internal
