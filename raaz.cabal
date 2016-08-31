@@ -95,6 +95,7 @@ library
                  --
                  , Raaz.Hash
                  , Raaz.Hash.Internal
+                 , Raaz.Hash.Blake2
                  , Raaz.Hash.Sha1
                  , Raaz.Hash.Sha1.Implementation.CPortable
                  , Raaz.Hash.Sha224
@@ -134,6 +135,7 @@ library
                -- Hashes
                --
                , Raaz.Hash.Internal.HMAC
+               , Raaz.Hash.Blake2.Internal
                , Raaz.Hash.Sha.Util
                , Raaz.Hash.Sha1.Internal
                , Raaz.Hash.Sha1.Recommendation
@@ -300,7 +302,7 @@ test-Suite spec
                , Raaz.Hash.Sha256Spec
                , Raaz.Hash.Sha384Spec
                , Raaz.Hash.Sha512Spec
-               , Raaz.Hash.Blake256Spec
+               , Raaz.Hash.Blake2bSpec
 
 
   build-depends: base

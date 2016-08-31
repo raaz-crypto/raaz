@@ -50,6 +50,11 @@ instance Arbitrary SHA512 where
 instance Arbitrary SHA384 where
   arbitrary = genEncodable
 
+instance Arbitrary BLAKE2b where
+  arbitrary = genEncodable
+
+---------------- Arbitrary instaces of encoded data --------------
+
 instance Arbitrary Base16 where
   arbitrary =  (encodeByteString . pack) <$> listOf arbitrary
 
