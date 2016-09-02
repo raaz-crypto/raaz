@@ -80,13 +80,11 @@ hmacAdjustKey key = padIt trimedKey
         theHash     :: HMACKey h -> h
         theHash  _  = undefined
 
+-- The HMACKey is just stored as a binary data.
 instance (Hash h, Recommendation h) => EndianStore (HMACKey h) where
-  store = poke . castPtr
-  load  = peek . castPtr
-
-  copyFromBytes dest src n = memcpy (castPtr <$> dest) src  (blockSize (undefined :: h) * toEnum n)
-  copyToBytes   dest src n = memcpy dest  (castPtr <$> src) (blockSize (undefined :: h) * toEnum n)
-
+  store            = poke
+  load             = peek
+  adjustEndian _ _ = return ()
 
 instance (Hash h, Recommendation h) => Random (HMACKey h)
 
