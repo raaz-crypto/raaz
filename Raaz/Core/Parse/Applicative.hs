@@ -75,7 +75,7 @@ parseStorable = pa
 -- function in a complicated `EndianStore` instance.
 parse :: EndianStore a => Parser a
 parse = pa
-  where pa = makeParser (byteSize $ undefParse pa) load
+  where pa = makeParser (byteSize $ undefParse pa) (load . castPtr)
 
 -- | Parses a strict bytestring of a given length.
 parseByteString :: LengthUnit l => l -> Parser ByteString
@@ -99,7 +99,7 @@ unsafeParseStorableVector n = pvec
 -- the length parameter is non-negative.
 unsafeParseVector :: (EndianStore a, Vector v a) => Int -> Parser (v a)
 unsafeParseVector n = pvec
-  where pvec     = makeParser  width $ \ cptr -> generateM n (loadFromIndex cptr)
+  where pvec     = makeParser  width $ \ cptr -> generateM n (loadFromIndex (castPtr cptr))
         width    = fromIntegral n * byteSize (undefA pvec)
         undefA   :: (EndianStore a, Vector v a)=> Parser (v a) -> a
         undefA _ = undefined

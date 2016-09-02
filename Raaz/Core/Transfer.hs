@@ -139,12 +139,12 @@ writeStorable a = WriteM $ makeTransfer (byteSize a) pokeIt
 -- what the machine endianness is. The man use of this write is to
 -- serialize data for the consumption of the outside world.
 write :: (MonadIO m, EndianStore a) => a -> WriteM m
-write a = makeWrite (byteSize a) $ liftIO . flip store a
+write a = makeWrite (byteSize a) $ liftIO . flip (store . castPtr) a
 
 -- | Write many elements from the given buffer
 writeFrom :: (MonadIO m, EndianStore a) => Int -> Src (Ptr a) -> WriteM m
 writeFrom n src = makeWrite (sz undefined src)
-                  $ \ ptr -> liftIO  $ copyToBytes (destination ptr) src n
+                  $ \ ptr -> do liftIO  $ copyToBytes (destination ptr) src n
   where sz :: Storable a => a -> Src (Ptr a) -> BYTES Int
         sz a _ = toEnum n * byteSize a
 
