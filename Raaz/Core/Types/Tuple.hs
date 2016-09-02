@@ -1,5 +1,6 @@
 {-# LANGUAGE CPP                   #-}
 {-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE ConstraintKinds      #-}
 {-# LANGUAGE KindSignatures        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FlexibleInstances     #-}
@@ -56,50 +57,50 @@ getA _ = undefined
 -- | Function that returns the dimension of the tuple. The dimension
 -- is calculated without inspecting the tuple and hence the term
 -- @`dimension` (undefined :: Tuple 5 Int)@ will evaluate to 5.
-#if !MIN_VERSION_base(4,7,0)
-dimension  :: (V.Unbox a, SingI dim) => Tuple dim a -> Int
-dimensionP :: (SingI dim, V.Unbox a)
-           => Sing dim
-           -> Tuple dim a
-           -> Int
-dimension       = withSing dimensionP
-dimensionP sz _ = fromEnum $ fromSing sz
-#else
-dimension  :: (V.Unbox a, KnownNat dim) => Tuple dim a -> Int
-dimensionP :: (KnownNat dim, V.Unbox a)
+#if MIN_VERSION_base(4,7,0)
+
+-- | The constaint on the dimension of the tuple (since base 4.7.0)
+type DimConstr (dim :: Nat) = KnownNat dim
+
+-- | This combinator returns the dimension of the tuple.
+dimension  :: (V.Unbox a, DimConstr dim) => Tuple dim a -> Int
+dimensionP :: (DimConstr dim, V.Unbox a)
            => Proxy dim
            -> Tuple dim a
            -> Int
 dimensionP sz _ = fromEnum $ natVal sz
 dimension = dimensionP Proxy
+
+#else
+
+-- | The constaint on the dimension of the tuple (pre base 4.7.0)
+type DimConstr (dim :: Nat) = SingI dim
+
+-- | This combinator returns the dimension of the tuple.
+dimension  :: (V.Unbox a, DimConstr  dim) => Tuple dim a -> Int
+dimensionP :: (DimConstr dim, V.Unbox a)
+           => Sing dim
+           -> Tuple dim a
+           -> Int
+dimension       = withSing dimensionP
+dimensionP sz _ = fromEnum $ fromSing sz
+
 #endif
 
 -- | Get the dimension to parser
-#if !MIN_VERSION_base(4,7,0)
-getParseDimension :: (V.Unbox a, SingI dim)
+getParseDimension :: (V.Unbox a, DimConstr dim)
                   => Parser (Tuple dim a) -> Int
-getTupFromP       :: (V.Unbox a, SingI dim)
+getTupFromP       :: (V.Unbox a, DimConstr dim)
                   => Parser (Tuple dim a) -> Tuple dim a
-#else
-getParseDimension :: (V.Unbox a, KnownNat dim)
-                  => Parser (Tuple dim a)
-                  -> Int
-getTupFromP   :: (V.Unbox a, KnownNat dim)
-              => Parser (Tuple dim a)
-              -> Tuple dim a
-#endif
 
 getParseDimension = dimension . getTupFromP
 getTupFromP _     = undefined
 
 
-#if !MIN_VERSION_base(4,7,0)
-instance (V.Unbox a, Storable a, SingI dim)
+
+instance (V.Unbox a, Storable a, DimConstr dim)
          => Storable (Tuple dim a) where
-#else
-instance (V.Unbox a, Storable a, KnownNat dim)
-         => Storable (Tuple dim a) where
-#endif
+
   sizeOf tup = dimension tup * sizeOf (getA tup)
   alignment  = alignment . getA
 
@@ -110,13 +111,10 @@ instance (V.Unbox a, Storable a, KnownNat dim)
   poke ptr tup = unsafeWrite writeTup cptr
     where writeTup = writeStorableVector $ unTuple tup
           cptr     = castPtr ptr
-#if !MIN_VERSION_base(4,7,0)
-instance (V.Unbox a, EndianStore a, SingI dim)
+
+
+instance (V.Unbox a, EndianStore a, DimConstr dim)
          => EndianStore (Tuple dim a) where
-#else
-instance (V.Unbox a, EndianStore a, KnownNat dim)
-         => EndianStore (Tuple dim a) where
-#endif
   load = unsafeRunParser $ tupParser
     where tupParser = Tuple <$> unsafeParseVector len
           len       = getParseDimension tupParser
