@@ -10,13 +10,15 @@
 module Raaz.Core.Transfer
        ( -- * Transfer actions.
          -- $transfer$
+
+         -- ** Read action
+         ReadM, ReadIO, bytesToRead, unsafeRead
+       , readBytes, readInto
+
          -- ** Write action.
-         WriteM, WriteIO, bytesToWrite, unsafeWrite
+       ,  WriteM, WriteIO, bytesToWrite, unsafeWrite
        , write, writeStorable, writeVector, writeStorableVector
        , writeFrom, writeBytes, writeByteString, skipWrite
-         -- ** Read action
-       , ReadM, ReadIO, bytesToRead, unsafeRead
-       , readBytes, readInto
 
        ) where
 
@@ -48,23 +50,13 @@ import           Raaz.Core.Encode
 -- we read beyond the buffer it can leak private data to the attacker
 -- (as in the case of Heart bleed bug). This module is indented to
 -- give a relatively high level interface to this problem. We expose
--- two types, the `Read` and the `Write` type which deals with these
--- to aspects which are essentially functions from a pointer to an
--- `IO` action. A `Read` action transfers bytes from the buffer where
--- as a `Write` action transfers data into a buffer. Both these
--- actions keep track of the number of bytes that they transfer,
--- either from the buffer as in the case of a `Read` action, or into
--- the buffer as in the case of a `Write` action.
---
+-- two types, the `ReadM` and the `WriteM` type which deals with these
+-- two aspects. Both these actions keep track of the number of bytes
+-- that they transfer.
+
 -- Complex reads and writes can be constructed using the monoid
--- instance of these types. For example, the `mempty` for the type
--- `Read` is a read action that reads nothing from the input
--- buffer. If @r1@ and @r2@ are two read actions then @r1 <> r2@
--- performs the read @r1@ followed by the read @r2@.  The necessary
--- pointer arithmetic involved in these actions are automatically
--- taken care of by the monoid instance. Similarly, for the type
--- `Write`, the unit element `mempty` writes nothing into the buffer
--- and the @w1 <> w2@ performs the action @w1@ followed by @w2@.
+-- instance of these types.
+
 
 
 -- | This monoid captures a transfer action.
@@ -102,8 +94,9 @@ makeTransfer sz action = SemiR (TransferM . action) $ inBytes sz
 
 -------------------------- Monoid for writing stuff --------------------------------------
 
--- | A write is an action that transfers bytes /into/ its input buffer.  `Write`s are monoid and hence can be
--- concatnated using the `<>` operator.
+-- | An element of type `WriteM m` is an action which when executed transfers bytes
+-- /into/ its input buffer.  The type @`WriteM` m@ forms a monoid and
+-- hence can be concatnated using the `<>` operator.
 newtype WriteM m = WriteM { unWriteM :: Transfer m } deriving Monoid
 
 -- | A write io-action.
@@ -202,9 +195,17 @@ instance Encodable (WriteM IO) where
 
 ------------------------  Read action ----------------------------
 
--- | A read action is an action that transfers bytes out of its
--- argument buffer. Read actions form a monoid and hence two read
--- actions @r1@ and @r2@ can be combined using `<>`.
+-- | The `ReadM` is the type that captures the act of reading from a buffer
+-- and possibly doing some action on the bytes read. Although
+-- inaccurate, it is helpful to think of elements of `ReadM` as action
+-- that on an input buffer transfers data from it to some unspecified
+-- source.
+--
+-- Read actions form a monoid with the following semantics: if @r1@
+-- and @r2@ are two read actions then @r1 `<>` r2@ first reads the
+-- data associated from @r1@ and then the read associated with the
+-- data @r2@.
+
 newtype ReadM m = ReadM { unReadM :: Transfer m} deriving Monoid
 
 -- | A read io-action.
@@ -215,18 +216,25 @@ makeRead     :: LengthUnit u => u -> (Pointer -> m ()) -> ReadM m
 makeRead sz  = ReadM . makeTransfer sz
 
 
--- | Returns the bytes that will be written when the write action is
--- performed.
+-- | The expression @bytesToRead r@ gives the total number of bytes that
+-- would be read from the input buffer if the action @r@ is performed.
 bytesToRead :: ReadM m -> BYTES Int
 bytesToRead = semiRMonoid . unReadM
 
--- | Perform the write action without any checks of the buffer
+-- | The action @unsafeRead r ptr@ results in reading @bytesToRead r@
+-- bytes from the buffer pointed by @ptr@. This action is unsafe as it
+-- will not (and cannot) check if the action reads beyond what is
+-- legally stored at @ptr@.
 unsafeRead :: ReadM m
            -> Pointer   -- ^ The pointer for the buffer to be written into.
            -> m ()
 unsafeRead rd =  unTransferM . semiRSpace (unReadM rd)
 
--- | Read bytes into a given buffer.
+-- | The action @readBytes sz dptr@ gives a read action, which if run on
+-- an input buffer, will transfers @sz@ to the destination buffer
+-- pointed by @dptr@. Note that it is the responsibility of the user
+-- to make sure that @dptr@ has enough space to receive @sz@ units of
+-- data if and when the read action is executed.
 readBytes :: ( LengthUnit sz, MonadIO m)
           => sz             -- ^ how much to read.
           -> Dest Pointer   -- ^ buffer to read the bytes into
@@ -234,7 +242,11 @@ readBytes :: ( LengthUnit sz, MonadIO m)
 readBytes sz dest = makeRead sz
                     $ \ ptr -> liftIO  $ memcpy dest (source ptr) sz
 
--- | Read elements of endian store type into the given buffer.
+-- | The action @readInt n dptr@ gives a read action which if run on an
+-- input buffer, will transfers @n@ elements of type @a@ into the
+-- buffer pointed by @dptr@. In particular, the read action @readInt n
+-- dptr@ is the same as @readBytes (fromIntegral n :: BYTES Int) dptr@
+-- when the type @a@ is `Word8`.
 readInto :: (EndianStore a, MonadIO m)
          => Int             -- ^ how many elements to read.
          -> Dest (Ptr a)    -- ^ buffer to read the elements into
