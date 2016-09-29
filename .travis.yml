@@ -78,7 +78,7 @@ before_install:
 
  - if [ "$STACK" != "" ]; then
       export BUILDCMD="stack $RESOLVER";
-   else;
+   else
       export BUILDCMD="cabal";
    fi
 
@@ -94,7 +94,7 @@ install:
  - if [ "$BUILDCMD" == "cabal" ]; then
       travis_retry cabal update;
       cabal install --only-dependencies --enable-tests --enable-benchmarks;
-   else;
+   else
       $BUILDCMD --dependencies-only --test --bench;
    fi
 script:
