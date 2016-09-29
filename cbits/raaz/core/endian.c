@@ -1,18 +1,25 @@
 # include <raaz/core/endian.h>
 
-/*
- * 32-bit Little endian  load and store
- */
+/* Include the right header file based on the platform */
 
-# define TOW32(a)               ((uint32_t) a)
-# define TOW64(a)               ((uint64_t) a)
-# define MKW32(a,b,c,d)         (TOW32(a) << 24 | TOW32(b) << 16 | TOW32(c) << 8 | TOW32(d))
-# define MKW64(a,b,c,d,e,f,g,h) (                                      \
-   TOW64(a) << 56 | TOW64(b) << 48 | TOW64(c) << 40 | TOW64(d) << 32 | \
-   TOW64(e) << 24 | TOW64(f) << 16 | TOW64(g) << 8  | TOW64(h)         )
+#ifdef PLATFORM_LINUX
+#include <endian.h>
+#elif defined(PLATFORM_BSD) || defined(PLATFORM_OPENBSD)
+#include <sys/endian.h>
+#endif
 
-# define LoadB(ptr,i)           (((unsigned char *)ptr)[i])
-/* Load from a memory location with proper endian conversion */
+# define TO32(w)        ((uint32_t)(w))
+# define TO64(w)        ((uint64_t)(w))
+# define B32(ptr,i)     TO32(((uint8_t *)(ptr))[i])
+# define B64(ptr,i)     TO64(((uint8_t *)(ptr))[i])
+
+# define B(ptr,i) (((unsigned char)(ptr))[(i)])
+# define MK32(a,b,c,d)          ( (a) << 24 | (b) << 16 | (c) << 8 | (d) )
+# define MK64(a,b,c,d,e,f,g,h)  \
+    ((a)   <<  56  | (b) << 48   | (c) << 40 | (d) << 32 \
+     | (e) << 24   | (f) << 16   | (g) << 8  | (h))
+
+
 #if defined(PLATFORM_LINUX) || defined (PLATFORM_BSD) || defined(PLATFORM_OPENBSD)
 
     uint32_t raazLoadLE32(uint32_t *wPtr)               { return htole32(*wPtr); }
@@ -20,159 +27,73 @@
     uint64_t raazLoadLE64(uint64_t *wPtr)               { return htole64(*wPtr); }
     uint64_t raazLoadBE64(uint64_t *wPtr)               { return htobe64(*wPtr); }
 
-#else   /* portable defineition */
+# else /* portable implementation */
 
-    uint32_t raazLoadLE32(uint32_t *ptr)
-    {
-	return MKW32( LoadB(ptr,3), LoadB(ptr,2), LoadB(ptr,1), LoadB(ptr, 0) );
-    }
+uint32_t raazLoadBE32(uint32_t  *ptr)
+{
+    return MK32(B32(ptr,0), B32(ptr,1), B32(ptr,2), B32(ptr,3));
+}
 
-    uint32_t raazLoadBE32(uint32_t *ptr)
-    {
-	return MKW32( LoadB(ptr,0), LoadB(ptr,1), LoadB(ptr,2), LoadB(ptr, 3) );
-    }
 
-    uint64_t raazLoadLE64(uint64_t *ptr)
-    {
-	return MKW64( LoadB(ptr,7), LoadB(ptr,6), LoadB(ptr,5), LoadB(ptr, 4),
-		      LoadB(ptr,3), LoadB(ptr,2), LoadB(ptr,1), LoadB(ptr, 0));
-    }
+uint32_t raazLoadLE32(uint32_t *ptr)
+{
+    return MK32(B32(ptr,3), B32(ptr,2), B32(ptr,1), B32(ptr,0));
 
-    uint64_t raazLoadBE64(uint64_t *ptr)
-    {
-	return  MKW64( LoadB(ptr,0), LoadB(ptr,1), LoadB(ptr,2), LoadB(ptr, 3),
-		       LoadB(ptr,4), LoadB(ptr,5), LoadB(ptr,6), LoadB(ptr, 7));
-    }
+}
 
-#endif
+uint64_t raazLoadBE64(uint64_t *ptr)
+{
+    return MK64(B64(ptr,0), B64(ptr,1), B64(ptr,2), B64(ptr,3),
+		B64(ptr,4), B64(ptr,5), B64(ptr,6), B64(ptr,7));
+}
 
-/* STORE to a memory location with proper endian conversion */
-# define GetByte(w,j)          ((unsigned char) (w >> (8*(j))))
-# define StoreByte(ptr,i,w,j)   {((unsigned char *)(ptr))[i] = GetByte(w,j); }
 
-# if defined(PLATFORM_LINUX) || defined (PLATFORM_OPENBSD)
-    void raazStoreLE32(uint32_t *wPtr, uint32_t w) { *wPtr = le32toh(w); }
-    void raazStoreBE32(uint32_t *wPtr, uint32_t w) { *wPtr = be32toh(w); }
-    void raazStoreLE64(uint64_t *wPtr, uint64_t w) { *wPtr = le64toh(w); }
-    void raazStoreBE64(uint64_t *wPtr, uint64_t w) { *wPtr = be64toh(w); }
-
-# elif defined(PLATFORM_BSD)
-    void raazStoreLE32(uint32_t *wPtr, uint32_t w) { *wPtr = letoh32(w); }
-    void raazStoreBE32(uint32_t *wPtr, uint32_t w) { *wPtr = betoh32(w); }
-    void raazStoreLE64(uint64_t *wPtr, uint64_t w) { *wPtr = letoh64(w); }
-    void raazStoreBE64(uint64_t *wPtr, uint64_t w) { *wPtr = betoh64(w); }
-# else
-
-    void raazStoreLE32(uint32_t *ptr, uint32_t w)
-    {
-	StoreByte(ptr,0,w,0);
-	StoreByte(ptr,1,w,1);
-	StoreByte(ptr,2,w,2);
-	StoreByte(ptr,3,w,3);
-    }
-
-    void raazStoreBE32(uint32_t *ptr, uint32_t w)
-    {
-	StoreByte(ptr,3,w,0);
-	StoreByte(ptr,2,w,1);
-	StoreByte(ptr,1,w,2);
-	StoreByte(ptr,0,w,3);
-    }
-
-    void raazStoreLE64(uint64_t *ptr, uint64_t w)
-    {
-	StoreByte(ptr,0,w,0);
-	StoreByte(ptr,1,w,1);
-	StoreByte(ptr,2,w,2);
-	StoreByte(ptr,3,w,3);
-	StoreByte(ptr,4,w,4);
-	StoreByte(ptr,5,w,5);
-	StoreByte(ptr,6,w,6);
-	StoreByte(ptr,7,w,7);
-    }
-
-    void raazStoreBE64(uint64_t *ptr, uint64_t w)
-    {
-	StoreByte(ptr,7,w,0);
-	StoreByte(ptr,6,w,1);
-	StoreByte(ptr,5,w,2);
-	StoreByte(ptr,4,w,3);
-	StoreByte(ptr,3,w,4);
-	StoreByte(ptr,2,w,5);
-	StoreByte(ptr,1,w,6);
-	StoreByte(ptr,0,w,7);
-    }
+uint64_t raazLoadLE64(uint64_t *ptr)
+{
+    return MK64(B64(ptr,7), B64(ptr,6), B64(ptr,5), B64(ptr,4),
+		B64(ptr,3), B64(ptr,2), B64(ptr,1), B64(ptr,0));
+}
 
 #endif
 
 
-void raazCopyFromLE32(uint32_t *dest, uint32_t *src, int n){
-    while ( n > 0){
-        *dest = raazLoadLE32(src);
-        ++src; ++dest; --n; /* Move on to the next element. */
-    }
-    return;
+# define MASK(i)       (0xFFULL << (8*(i)))
+# define SEL(a,i)      ((a) & MASK(i))
+# define MOVL(a,i)      ((a) << (8*(i)))
+# define MOVR(a,i)      ((a) >> (8*(i)))
+
+/* Assuming i < j */
+# define SWAP(a,i,j)   (MOVL(SEL(a,i),(j-i)) | MOVR(SEL(a,j), (j - i)))
+
+/*
+# define SEL(a,i)      ((a) >> (8 * (i)) &  0xFF)
+# define MOV(a,i)      ((a) << ((i)*8))
+# define SWAP(a,i,j)   (MOV(SEL(a,i),j) | MOV(SEL(a,j),i)) */
+
+uint32_t raazSwap32(uint32_t a)
+{
+    return (SWAP(a,0,3) | SWAP(a,1,2));
 }
 
-void raazCopyToLE32(uint32_t *dest, uint32_t *src, int n){
-    while( n > 0) {
-	raazStoreLE32(dest, *src);
-	++src; ++dest; --n; /* Move on to the next element. */
-    }
-    return;
+uint64_t raazSwap64(uint64_t a)
+{
+    return (SWAP(a,0,7) | SWAP(a,1,6)  | SWAP(a,2,5) | SWAP(a,3,4));
 }
 
-
-
-void raazCopyFromBE32(uint32_t *dest, uint32_t *src, int n){
-    while (n > 0){
-        *dest = raazLoadBE32(src);
-        ++src; ++dest; --n; /* Move on to the next element. */
+void raazSwap32Array(uint32_t *ptr, int n)
+{
+    while(n > 0)
+    {
+	*ptr = raazSwap32(*ptr);
+	++ptr; --n;
     }
-    return;
 }
 
-
-
-void raazCopyToBE32(uint32_t *dest, uint32_t *src, int n){
-    while (n > 0){
-        raazStoreBE32(dest, *src);
-        ++src; ++dest; --n; /* Move on to the next element. */
+void raazSwap64Array(uint64_t *ptr, int n)
+{
+    while( n > 0)
+    {
+	*ptr = raazSwap64(*ptr);
+	++ptr; --n;
     }
-    return;
-}
-
-
-void raazCopyFromLE64(uint64_t *dest, uint64_t *src, int n){
-    while (n > 0){
-        *dest =  raazLoadLE64(src);
-        ++src; ++dest; --n;
-    }
-    return;
-}
-
-
-void raazCopyToLE64(uint64_t *dest, uint64_t *src, int n){
-    while (n > 0){
-        raazStoreLE64(dest, *src);
-        ++src; ++dest; --n;
-    }
-    return;
-}
-
-
-void raazCopyFromBE64(uint64_t *dest, uint64_t *src, int n){
-    while (n > 0){
-        *dest = raazLoadBE64(src);
-        ++src; ++dest; --n;
-    }
-    return;
-}
-
-void raazCopyToBE64(uint64_t *dest, uint64_t *src, int n){
-    while (n > 0){
-        raazStoreBE64(dest, *src);
-        ++src; ++dest; --n;
-    }
-    return;
 }

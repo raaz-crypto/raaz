@@ -31,14 +31,13 @@ import           Foreign.Storable            ( Storable(..) )
 import           Prelude hiding              ( length       )
 
 
-import Raaz.Core.Types.Copying
 import Raaz.Core.Types.Equality
 import Raaz.Core.Types.Endian
 import Raaz.Core.Transfer
 import Raaz.Core.Parse.Applicative
 
 -- | Tuples that encode their length in their types. For tuples, we call
--- the length its dimension
+-- the length its dimension.
 newtype Tuple (dim :: Nat) a = Tuple { unTuple :: V.Vector a }
                              deriving Show
 
@@ -115,33 +114,26 @@ instance (V.Unbox a, Storable a, DimConstr dim)
 
 instance (V.Unbox a, EndianStore a, DimConstr dim)
          => EndianStore (Tuple dim a) where
-  load = unsafeRunParser $ tupParser
-    where tupParser = Tuple <$> unsafeParseVector len
-          len       = getParseDimension tupParser
 
-  store cptr tup = unsafeWrite writeTup cptr
-    where writeTup = writeVector $ unTuple tup
+  load = unsafeRunParser tupParser . castPtr
+     where tupParser = Tuple <$> unsafeParseVector len
+           len       = getParseDimension tupParser
 
-  copyFromBytes dest src n = copyFromBytes (destPtr dest) src $ nos dest undefined
-       where destPtr :: Dest (Ptr (Tuple dim a)) -> Dest (Ptr a)
-             nos     :: Dest (Ptr (Tuple dim a)) -> Tuple dim a -> Int
-             destPtr = fmap castPtr
+  store ptr tup = unsafeWrite writeTup cptr
+     where writeTup = writeVector $ unTuple tup
+           cptr     = castPtr ptr
+
+  adjustEndian ptr n = adjustEndian (unTupPtr ptr) $ nos ptr undefined
+       where nos     :: Ptr (Tuple dim a) -> Tuple dim a -> Int
              nos _ w = dimension w * n
-
-  copyToBytes dest src n = copyToBytes dest (srcPtr src) $ nos src undefined
-       where srcPtr    :: Src (Ptr (Tuple dim a)) -> Src (Ptr a)
-             nos       :: Src (Ptr (Tuple dim a)) -> Tuple dim a -> Int
-             srcPtr    = fmap castPtr
-             nos _ w   = dimension w * n
+             unTupPtr   :: Ptr (Tuple dim a) -> Ptr a
+             unTupPtr   = castPtr
 
 -- | Construct a tuple out of the list. This function is unsafe and
 -- will result in run time error if the list is not of the correct
 -- dimension.
-#if !MIN_VERSION_base(4,7,0)
-unsafeFromList :: (V.Unbox a, SingI dim) => [a] -> Tuple dim a
-#else
-unsafeFromList :: (V.Unbox a, KnownNat dim) => [a] -> Tuple dim a
-#endif
+
+unsafeFromList :: (V.Unbox a, DimConstr dim) => [a] -> Tuple dim a
 unsafeFromList xs
   | dimension tup == L.length xs = tup
   | otherwise                    = wrongLengthMesg
@@ -150,14 +142,8 @@ unsafeFromList xs
 
 -- | Computes the initial fragment of a tuple. No length needs to be given
 -- as it is infered from the types.
-#if !MIN_VERSION_base(4,7,0)
-initial :: (V.Unbox a, SingI dim0, SingI dim1)
+initial :: (V.Unbox a, DimConstr dim0, DimConstr dim1)
          => Tuple dim1 a
          -> Tuple dim0 a
-#else
-initial :: (V.Unbox a, KnownNat dim0, KnownNat dim1)
-         => Tuple dim1 a
-         -> Tuple dim0 a
-#endif
 initial tup = tup0
   where tup0 = Tuple $ V.take (dimension tup0) $ unTuple tup

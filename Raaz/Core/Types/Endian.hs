@@ -9,7 +9,7 @@
 module Raaz.Core.Types.Endian
        ( -- * Endianess aware types.
          -- $endianness$
-         EndianStore(..)
+         EndianStore(..), copyFromBytes, copyToBytes
        -- ** Endian explicit word types.
        , LE, BE, littleEndian, bigEndian
        -- ** Helper functions for endian aware storing and loading.
@@ -23,7 +23,7 @@ import           Control.Monad               ( liftM )
 import           Data.Bits
 import           Data.Typeable
 import           Data.Vector.Unboxed         ( MVector(..), Vector, Unbox )
-import           Data.Word                   ( Word32, Word64, Word8      )
+import           Data.Word
 import           Foreign.Ptr                 ( castPtr, Ptr )
 import           Foreign.Storable            ( Storable(..) )
 
@@ -34,10 +34,11 @@ import qualified Data.Vector.Generic         as GV
 import qualified Data.Vector.Generic.Mutable as GVM
 
 import           Raaz.Core.MonoidalAction
+import           Raaz.Core.Types.Copying
 import           Raaz.Core.Types.Pointer
 import           Raaz.Core.Types.Equality
-import           Raaz.Core.Types.Copying
 
+#include "MachDeps.h"
 
 -- $endianness$
 --
@@ -60,60 +61,91 @@ import           Raaz.Core.Types.Copying
 -- first load the data from the buffer or when we finally write the
 -- data out. Any multi-byte type that are meant to be serialised
 -- should define and instance of this class. The `load`, `store`,
--- `copy` and  should takes care of the appropriate endian
+-- `adjustEndian` should takes care of the appropriate endian
 -- conversion.
+--
+-- Besides these three functions, the helper functions `copyFromBytes`
+-- and `copyToBytes` help in copying between buffers, adjusting for
+-- endianness in each case.
 --
 class Storable w => EndianStore w where
 
-  -- | Store the given value at the locating pointed by the pointer
-  store :: Pointer   -- ^ the location.
-        -> w         -- ^ value to store
+  -- | The action @store ptr w@ stores @w@ at the location pointed by @ptr@.
+  -- Endianness of the type @w@ is taken care of when storing: for
+  -- example, irrespective of the endianness of the machine @store ptr
+  -- (0x01020304 :: BE Word32)@ will store the bytes @0x01@, @0x02@,
+  -- @0x03@, @0x04@ respectively at locations @ptr@, @ptr +1@, @ptr+2@
+  -- and @ptr+3@. On the other hand @store ptr (0x01020304 :: LE
+  -- Word32)@ would store @0x04@, @0x03@, @0x02@, @0x01@ at the above
+  -- locations.
+
+  store :: Ptr w   -- ^ the location.
+        -> w       -- ^ value to store
         -> IO ()
 
-  -- | Load the value from the location pointed by the pointer.
-  load  :: Pointer -> IO w
+  -- | The action @load ptr@ loads the value stored at the @ptr@. Like store,
+  -- it takes care of the endianness of the data type.  For example,
+  -- if @ptr@ points to a buffer containing the bytes @0x01@, @0x02@,
+  -- @0x03@, @0x04@, irrespective of the endianness of the machine
+  -- @load ptr :: IO (BE Word32)@ will load the @0x01020304 :: BE
+  -- Word32@ and @load ptr :: IO (LE Word32)@ will load @0x04030201 ::
+  -- LE Word32@.
+  load  :: Ptr w -> IO w
 
-  -- | Copy from buffer of bytes to a buffer of the given element type.
-  -- This function should take care of performing appropriate endian
-  -- conversion. For example, if the type `w` was LE Word32,
-  -- irrespective of what the underlying architecture is, if the
-  -- source pointer contains data `0x01 0x00 0x00 0x00', it should
-  -- store in the destination pointer the value `0x01 :: Word32`. In
-  -- other words, the following law should essentially be true (the
-  -- code fails because it is not able to infer the t.
+  -- | The action @adjustEndian ptr n@ adjusts the encoding of bytes
+  -- stored at the location @ptr@ to conform with the endianness of
+  -- the underlying data typec. For example, if the type @w@ was LE
+  -- Word32, and one is one a big endian machine then, if pointer
+  -- contain bytes @0x01 0x00 0x00 0x00@, @adjustEndian ptr 1@ should
+  -- result in the byte sequence value @0x00 0x00 0x00 0x01@. On the
+  -- other hand if we are on a little endian machine, the sequence
+  -- should remain the same.  In particular, the following equalities
+  -- should hold.
   --
   -- >
-  -- > copy u (Dest dptr) (Src sptr) = loadIt u >>= poke dptr
-  -- >      where loadIt :: EndianStore u => u -> u
-  --              loadIt x = load
+  -- > store ptr w          = poke ptr w >> adjustEndian ptr 1
+  -- >
   --
-  -- However, we /do not/ have a default definition for this function
-  -- precisely because we want the date to be transfered directly from
-  -- the source to destination without the pure value being read into
-  -- the Haskell heap. Values in heap cannot be protected from being
-  -- swapped to the disk.
-  copyFromBytes :: Dest (Ptr w)
-                -> Src  Pointer
-                -> Int          -- ^ How many items.
-                -> IO ()
-
-  copyToBytes :: Dest Pointer
-              -> Src (Ptr w)
-              -> Int
-              -> IO ()
+  -- Similarly the value loaded by @load ptr@ should be same as the
+  -- value returned by @adjustEndian ptr 1 >> peak ptr@, although the
+  -- former does not change the contents stored at @ptr@ where as the
+  -- latter might does modify the contents pointed by @ptr@ if the
+  -- endianness of the machine and the time do not agree.
+  --
+  -- The action @adjustEndian ptr n >> adjustEndian ptr n @ should be
+  -- equivalent to @return ()@.
+  --
+  adjustEndian :: Ptr w  -- ^ buffer pointers,
+               -> Int    -- ^ how many w's are present,
+               -> IO ()
 
 
+
+
+movePtr :: LengthUnit offset => Ptr a -> offset -> Ptr a
+movePtr ptr offset = castPtr $ offset <.> (castPtr ptr :: Pointer)
 
 instance EndianStore Word8 where
-  store                  = poke . castPtr
-  load                   = peek . castPtr
-  copyFromBytes dest src = memcpy (castPtr <$> dest) src . (toEnum :: Int -> BYTES Int)
-  copyToBytes dest src   = memcpy dest (castPtr <$> src) . (toEnum :: Int -> BYTES Int)
+  store                  = poke
+  load                   = peek
+  adjustEndian  _ _      = return ()
+
+-- | Store the given value at an offset from the crypto pointer. The
+-- offset is given in type safe units.
+storeAt :: ( EndianStore w
+           , LengthUnit offset
+           )
+        => Ptr w     -- ^ the pointer
+        -> offset    -- ^ the absolute offset in type safe length units.
+        -> w         -- ^ value to store
+        -> IO ()
+{-# INLINE storeAt #-}
+storeAt ptr = store . movePtr ptr
 
 -- | Store the given value as the @n@-th element of the array
 -- pointed by the crypto pointer.
 storeAtIndex :: EndianStore w
-             => Pointer        -- ^ the pointer to the first element of the
+             => Ptr w          -- ^ the pointer to the first element of the
                                -- array
              -> Int            -- ^ the index of the array
              -> w              -- ^ the value to store
@@ -122,42 +154,59 @@ storeAtIndex :: EndianStore w
 storeAtIndex cptr index w = storeAt cptr offset w
   where offset = toEnum index * byteSize w
 
--- | Store the given value at an offset from the crypto pointer. The
--- offset is given in type safe units.
-storeAt :: ( EndianStore w
-           , LengthUnit offset
-           )
-        => Pointer   -- ^ the pointer
-        -> offset      -- ^ the absolute offset in type safe length units.
-        -> w           -- ^ value to store
-        -> IO ()
-{-# INLINE storeAt #-}
-storeAt cptr offset = store $ offset <.> cptr
 
 -- | Load the @n@-th value of an array pointed by the crypto pointer.
 loadFromIndex :: EndianStore w
-              => Pointer -- ^ the pointer to the first element of
+              => Ptr w   -- ^ the pointer to the first element of
                          -- the array
               -> Int     -- ^ the index of the array
               -> IO w
 {-# INLINE loadFromIndex #-}
-
-loadFromIndex cptr index = loadP undefined
-  where loadP ::  EndianStore w => w -> IO w
-        loadP w = loadFrom cptr offset
-          where offset = toEnum index * byteSize w
+loadFromIndex cptr index = load (shiftPtr cptr undefined)
+  where shiftPtr :: Storable w => Ptr w -> w -> Ptr w
+        shiftPtr ptr w = movePtr ptr (toEnum index * byteSize w)
 
 -- | Load from a given offset. The offset is given in type safe units.
 loadFrom :: ( EndianStore w
             , LengthUnit offset
             )
-         => Pointer  -- ^ the pointer
+         => Ptr w    -- ^ the pointer
          -> offset   -- ^ the offset
          -> IO w
 {-# INLINE loadFrom #-}
-loadFrom cptr offset = load $ offset <.> cptr
+loadFrom ptr = load . movePtr ptr
 
---}
+-- | For the type @w@, the action @copyFromBytes dest src n@ copies @n@-elements from
+-- @src@ to @dest@. Copy performed by this combinator accounts for the
+-- endianness of the data in @dest@ and is therefore /not/ a mere copy
+-- of @n * sizeOf(w)@ bytes. This action does not modify the @src@
+-- pointer in any way.
+
+copyFromBytes :: EndianStore w
+              => Dest (Ptr w)
+              -> Src  Pointer
+              -> Int          -- ^ How many items.
+              -> IO ()
+copyFromBytes dest@(Dest ptr) src n =  memcpy (castPtr <$> dest) src (sz dest undefined)
+                                       >> adjustEndian ptr n
+  where sz     :: Storable w => Dest (Ptr w) -> w -> BYTES Int
+        sz _ w =  byteSize w * toEnum n
+
+-- | Similar to @copyFromBytes@ but the transfer is done in the other direction. The copy takes
+-- care of performing the appropriate endian encoding.
+copyToBytes :: EndianStore w
+            => Dest Pointer
+            -> Src (Ptr w)
+            -> Int
+            -> IO ()
+copyToBytes dest@(Dest dptr) src n =  memcpy dest  (castPtr <$> src) (sz src undefined)
+                                     >> adjust src (castPtr dptr)
+  where adjust :: EndianStore w => Src (Ptr w) -> Ptr w -> IO ()
+        adjust _ ptr = adjustEndian ptr n
+
+        sz     :: Storable w => Src (Ptr w) -> w -> BYTES Int
+        sz _ w =  byteSize w * toEnum n
+
 
 {-
 Developers notes:
@@ -170,18 +219,24 @@ by ghc.
 -}
 
 -- | Little endian version of the word type @w@
-newtype LE w = LE w
+newtype LE w = LE { unLE :: w }
     deriving ( Bounded, Enum, Read, Show
              , Integral, Num, Real, Eq, Equality, Ord
              , Bits, Storable, Typeable, NFData
              )
 
+instance Functor LE where
+  fmap f = LE . f . unLE
+
 -- | Big endian version of the word type @w@
-newtype BE w = BE w
+newtype BE w = BE { unBE :: w }
     deriving ( Bounded, Enum, Read, Show
              , Integral, Num, Real, Eq, Equality, Ord
              , Bits, Storable, Typeable, NFData
              )
+
+instance Functor BE where
+  fmap f = BE . f . unBE
 
 -- | Convert to the little endian variant.
 littleEndian :: w -> LE w
@@ -190,87 +245,84 @@ littleEndian = LE
 
 -- | Convert to the big endian variants.
 bigEndian :: w -> BE w
+{-# INLINE bigEndian #-}
 bigEndian = BE
 
-------------------- Endian store for LE 32 ------------------------
+---------------- The foreign function calls ----------------------
 
-foreign import ccall unsafe "raaz/core/endian.h raazLoadLE32"
-  c_loadLE32 :: Pointer  -> IO Word32
+foreign import ccall unsafe "raaz/core/endian.h raazSwap32Array"
+  c_Swap32Array :: Ptr Word32 -> Int -> IO ()
+foreign import ccall unsafe "raaz/core/endian.h raazSwap64Array"
+  c_Swap64Array :: Ptr Word64 -> Int -> IO ()
 
-foreign import ccall unsafe "raaz/core/endian.h raazStoreLE32"
-  c_storeLE32 :: Pointer -> Word32 -> IO ()
+# if !MIN_VERSION_base(4,7,0)
 
-foreign import ccall unsafe "raaz/core/endian.h raazCopyFromLE32"
-  c_copyFromLE32 ::  Dest (Ptr (LE Word32)) -> Src Pointer -> Int -> IO ()
+foreign import ccall unsafe "raaz/core/endian.h raazSwap32"
+  byteSwap32  :: Word32 -> Word32
+foreign import ccall unsafe "raaz/core/endian.h raazSwap64"
+  byteSwap64  :: Word64 -> Word64
 
-foreign import ccall unsafe "raaz/core/endian.h raazCopyToLE32"
-  c_copyToLE32   ::  Dest Pointer -> Src (Ptr (LE Word32)) -> Int -> IO ()
+# endif
+
+#ifdef WORDS_BIGENDIAN
+
+unLEPtr :: Ptr (LE w) -> Ptr w
+unLEPtr = castPtr
 
 instance EndianStore (LE Word32) where
-  load             = fmap LE .  c_loadLE32
-  store ptr (LE w) = c_storeLE32 ptr w
-  copyFromBytes    = c_copyFromLE32
-  copyToBytes      = c_copyToLE32
+  load  ptr    = fmap byteSwap32 <$>  peek ptr
+  store ptr    = poke ptr  . fmap byteSwap32
+  adjustEndian = c_Swap32Array . unLEPtr
 
-------------------- Endian store for BE 32 ------------------------
-
-foreign import ccall unsafe "raaz/core/endian.h raazLoadBE32"
-  c_loadBE32 :: Pointer -> IO Word32
-
-foreign import ccall unsafe "raaz/core/endian.h raazStoreBE32"
-  c_storeBE32 :: Pointer -> Word32 -> IO ()
-
-foreign import ccall unsafe "raaz/core/endian.h raazCopyFromBE32"
-  c_copyFromBE32 :: Dest (Ptr (BE Word32)) -> Src Pointer -> Int -> IO ()
-
-foreign import ccall unsafe "raaz/core/endian.h raazCopyFromBE32"
-  c_copyToBE32 :: Dest Pointer -> Src (Ptr (BE Word32))  -> Int -> IO ()
-
-instance EndianStore (BE Word32) where
-  load             = fmap BE .  c_loadBE32
-  store ptr (BE w) = c_storeBE32 ptr w
-  copyFromBytes    = c_copyFromBE32
-  copyToBytes      = c_copyToBE32
-
-------------------- Endian store for LE 64 ------------------------
-
-foreign import ccall unsafe "raaz/core/endian.h raazLoadLE64"
-  c_loadLE64 :: Pointer -> IO Word64
-
-foreign import ccall unsafe "raaz/core/endian.h raazStoreLE64"
-  c_storeLE64 :: Pointer -> Word64 -> IO ()
-
-
-foreign import ccall unsafe "raaz/core/endian.h raazCopyFromLE64"
-  c_copyFromLE64 :: Dest (Ptr (LE Word64)) -> Src Pointer -> Int -> IO ()
-
-foreign import ccall unsafe "raaz/core/endian.h raazCopyFromLE64"
-  c_copyToLE64 :: Dest Pointer -> Src (Ptr (LE Word64)) -> Int -> IO ()
 
 instance EndianStore (LE Word64) where
-  load             = fmap LE .  c_loadLE64
-  store ptr (LE w) = c_storeLE64 ptr w
-  copyFromBytes    = c_copyFromLE64
-  copyToBytes      = c_copyToLE64
-------------------- Endian store for BE 64 ------------------------
+  load          = fmap byteSwap64    <$> peek
+  store ptr     = poke ptr  . fmap byteSwap64
+  adjustEndian  = c_Swap64Array . unLEPtr
 
-foreign import ccall unsafe "raaz/core/endian.h raazLoadBE64"
-  c_loadBE64 :: Pointer -> IO Word64
 
-foreign import ccall unsafe "raaz/core/endian.h raazStoreBE64"
-  c_storeBE64 :: Pointer -> Word64 -> IO ()
-
-foreign import ccall unsafe "raaz/core/endian.h raazCopyFromBE64"
-  c_copyFromBE64 :: Dest (Ptr (BE Word64)) -> Src Pointer -> Int -> IO ()
-
-foreign import ccall unsafe "raaz/core/endian.h raazCopyFromBE64"
-  c_copyToBE64 :: Dest Pointer -> Src (Ptr (BE Word64)) -> Int -> IO ()
+instance EndianStore (BE Word32) where
+  load             = peek
+  store ptr        = poke
+  adjustEndian _ _ = return ()
 
 instance EndianStore (BE Word64) where
-  load             = fmap BE .  c_loadBE64
-  store ptr (BE w) = c_storeBE64 ptr w
-  copyFromBytes    = c_copyFromBE64
-  copyToBytes      = c_copyToBE64
+  load             = peek
+  store ptr        = poke
+  adjustEndian _ _ = return ()
+
+# else
+
+unBEPtr :: Ptr (BE w) -> Ptr w
+unBEPtr = castPtr
+
+--- We are in a little endian machine.
+
+instance EndianStore (BE Word32) where
+  load  ptr    = fmap byteSwap32 <$> peek ptr
+  store ptr    = poke ptr . fmap byteSwap32
+  adjustEndian = c_Swap32Array . unBEPtr
+
+
+instance EndianStore (BE Word64) where
+  load  ptr    = fmap byteSwap64 <$> peek ptr
+  store ptr    = poke ptr . fmap byteSwap64
+  adjustEndian = c_Swap64Array . unBEPtr
+
+
+instance EndianStore (LE Word32) where
+  load             = peek
+  store            = poke
+  adjustEndian _ _ = return ()
+
+instance EndianStore (LE Word64) where
+  load              = peek
+  store             = poke
+  adjustEndian _ _  = return ()
+
+
+#endif
+
 ------------------- Unboxed vector of Endian word types ---------------
 
 instance Unbox w => Unbox (LE w)

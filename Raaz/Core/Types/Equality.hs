@@ -28,11 +28,15 @@ import           Data.Word
 
 -- $timingSafeEquality$
 --
--- We need a consistent way to build timing safe equality
--- comparisons. The type class `Equality` plays the role of `Eq` for
--- us. The comparison result is of type `Result` and not `Bool` so as
--- to avoid timing attacks due to short-circuting of the
--- AND-operation.
+-- Cryptographic secrets should be compared using a constant time
+-- equality function, i.e. the success or failure of comparing two
+-- values @u@ and @v@ should /not/ depend on the actual values of @u@
+-- and @v@. All cryptographically sensitive data exposed by this
+-- library are instances of the class `Equality` which plays the role
+-- analogues to `Eq`. The `eq` function which a member of the
+-- `Equality` class returns the result of the comparison as the type
+-- `Result` and not `Bool` so as to avoid timing attacks due to
+-- short-circuting of the AND-operation.
 --
 -- The `Result` type is an opaque type to avoid the user from
 -- compromising the equality comparisons by pattern matching on it. To
@@ -50,8 +54,29 @@ import           Data.Word
 -- functions.  Once an instance for `Equality` is defined for a
 -- cryptographically sensitive data type, we define the `Eq` for it
 -- indirectly using the `Equality` instance and the operation `===`.
+--
+-- Ensure that you define the `Equality` instance first and then get
+-- an `Eq` instance out of it. Also be careful when using the @deriving@
+-- clause. For example the following deriving clause is safe.
+--
+-- > newtype Foo = Foo Bar deriving (Equality, Eq)
+--
+-- The deriving clause given below
+--
+-- > newtype Foo = Foo Bar deriving Eq
+--
+-- is also safe for @Foo@ if it is safe for @Bar@. However, not having
+-- an instance of `Equality` for Foo makes it difficult for defining
+-- timing safe equality for say a type like @(Foo, Foo)@.
+--
+-- The following definition is bad and the equality of Foo is not
+-- constant time even if that of Bar and Biz are.
+--
+-- > data Foo = Foo Bar Biz deriving Eq
 
 
+-- > -- instead do the
+-- > instance Equality Foo where
 
 -- | The result of a comparison. This is an opaque type and the monoid instance essentially takes
 -- AND of two comparisons in a timing safe way.

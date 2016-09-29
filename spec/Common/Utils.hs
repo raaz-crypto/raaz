@@ -14,30 +14,32 @@ with key hmsto = hmsto key
 -- | Store and the load the given value.
 storeAndThenLoad :: EndianStore a
                  => a -> IO a
-storeAndThenLoad a = allocaBuffer (byteSize a) runStoreLoad
+storeAndThenLoad a = allocaBuffer (byteSize a) (runStoreLoad . castPtr)
   where runStoreLoad ptr = store ptr a >> load ptr
 
 
-alloc2 :: BYTES Int -> (Ptr a -> Ptr b -> IO c) -> IO c
-alloc2 sz f = allocaBuffer sz $ \ buf -> allocaBuffer sz (fp buf)
-  where fp ptr = f (castPtr ptr) . castPtr
+allocCast      :: BYTES Int -> (Ptr a -> IO c) -> IO c
+allocCast sz f = allocaBuffer sz $ f . castPtr
+
+storeAdjustAndPeek :: EndianStore a
+                   => a
+                   -> IO a
+storeAdjustAndPeek a
+  = allocCast sz $ \ ptr -> do store ptr a
+                               adjustEndian ptr 1
+                               peek ptr
+  where sz = byteSize a
+
+pokeAdjustAndLoad :: EndianStore a
+                   => a
+                   -> IO a
+pokeAdjustAndLoad a
+  = allocCast sz $ \ ptr -> do poke ptr a
+                               adjustEndian ptr 1
+                               load ptr
+  where sz = byteSize a
 
 
-storeCopyAndPeek :: EndianStore a
-                 => a
-                 -> IO a
-storeCopyAndPeek a = alloc2 (byteSize a) $ \ dest src ->  do
-  store src a
-  copyFromBytes (destination dest) (source src) 1
-  peek dest
-
-pokeCopyAndLoad :: EndianStore a
-                 => a
-                 -> IO a
-pokeCopyAndLoad a = alloc2 (byteSize a) $ \ dest src ->  do
-  poke src a
-  copyToBytes (destination dest) (source src) 1
-  load dest
 
 basicEndianSpecs :: ( EndianStore a, Show a, Eq a, Arbitrary a)
                   => a -> Spec
@@ -45,11 +47,11 @@ basicEndianSpecs a = do
   prop "store followed by load returns original value" $ \ x ->
     storeAndThenLoad (x `asTypeOf` a) `shouldReturn` x
 
-  prop "store, copy followed by peek should return the original value" $ \ x ->
-    storeCopyAndPeek (x `asTypeOf` a) `shouldReturn` x
+  prop "store, adjust followed by peek should return the original value" $ \ x ->
+    storeAdjustAndPeek (x `asTypeOf` a) `shouldReturn` x
 
-  prop "poke, copy followed by load should return the original value" $ \ x ->
-    pokeCopyAndLoad (x `asTypeOf` a) `shouldReturn` x
+  prop "poke, adjust followed by load should return the original value" $ \ x ->
+    pokeAdjustAndLoad (x `asTypeOf` a) `shouldReturn` x
 
 
 
