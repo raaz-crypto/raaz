@@ -61,35 +61,56 @@ import           Raaz.Core.Types.Equality
 -- first load the data from the buffer or when we finally write the
 -- data out. Any multi-byte type that are meant to be serialised
 -- should define and instance of this class. The `load`, `store`,
--- `copy` and  should takes care of the appropriate endian
+-- `adjustEndian` should takes care of the appropriate endian
 -- conversion.
+--
+-- Besides these three functions, the helper functions `copyFromBytes`
+-- and `copyToBytes` help in copying between buffers, adjusting for
+-- endianness in each case.
 --
 class Storable w => EndianStore w where
 
-  -- | Store the given value at the locating pointed by the pointer
+  -- | The action @store ptr w@ stores @w@ at the location pointed by @ptr@.
+  -- Endianness of the type @w@ is taken care of when storing: for
+  -- example, irrespective of the endianness of the machine @store ptr
+  -- (0x01020304 :: BE Word32)@ will store the bytes @0x01@, @0x02@,
+  -- @0x03@, @0x04@ respectively at locations @ptr@, @ptr +1@, @ptr+2@
+  -- and @ptr+3@. On the other hand @store ptr (0x01020304 :: LE
+  -- Word32)@ would store @0x04@, @0x03@, @0x02@, @0x01@ at the above
+  -- locations.
+
   store :: Ptr w   -- ^ the location.
-        -> w         -- ^ value to store
+        -> w       -- ^ value to store
         -> IO ()
 
-  -- | Load the value from the location pointed by the pointer.
+  -- | The action @load ptr@ loads the value stored at the @ptr@. Like store,
+  -- it takes care of the endianness of the data type.  For example,
+  -- if @ptr@ points to a buffer containing the bytes @0x01@, @0x02@,
+  -- @0x03@, @0x04@, irrespective of the endianness of the machine
+  -- @load ptr :: IO (BE Word32)@ will load the @0x01020304 :: BE
+  -- Word32@ and @load ptr :: IO (LE Word32)@ will load @0x04030201 ::
+  -- LE Word32@.
   load  :: Ptr w -> IO w
 
-  -- | The action @adjustEndian ptr n@ adjusts the encoding of bytes stored at the location
-  -- into according to the endianness constraint of the data type. For
-  -- example, if the type @w@ was LE Word32, and one is one a big
-  -- endian machine then, if pointer contain bytes @0x01 0x00 0x00
-  -- 0x00@, @adjustEndian ptr 1@ should result in the byte sequence
-  -- value @0x00 0x00 0x00 0x01@. On the other hand if we are on a
-  -- little endian machine, the sequence should remain the same.  In
-  -- particular, the following equalities should hold.
+  -- | The action @adjustEndian ptr n@ adjusts the encoding of bytes
+  -- stored at the location @ptr@ to conform with the endianness of
+  -- the underlying data typec. For example, if the type @w@ was LE
+  -- Word32, and one is one a big endian machine then, if pointer
+  -- contain bytes @0x01 0x00 0x00 0x00@, @adjustEndian ptr 1@ should
+  -- result in the byte sequence value @0x00 0x00 0x00 0x01@. On the
+  -- other hand if we are on a little endian machine, the sequence
+  -- should remain the same.  In particular, the following equalities
+  -- should hold.
   --
   -- >
   -- > store ptr w          = poke ptr w >> adjustEndian ptr 1
   -- >
   --
-  -- Similarly the value returned by @load ptr@ should be same as the
+  -- Similarly the value loaded by @load ptr@ should be same as the
   -- value returned by @adjustEndian ptr 1 >> peak ptr@, although the
-  -- former does not change the contents stored at ptr.
+  -- former does not change the contents stored at @ptr@ where as the
+  -- latter might does modify the contents pointed by @ptr@ if the
+  -- endianness of the machine and the time do not agree.
   --
   -- The action @adjustEndian ptr n >> adjustEndian ptr n @ should be
   -- equivalent to @return ()@.
@@ -99,12 +120,6 @@ class Storable w => EndianStore w where
                -> IO ()
 
 
-{-
-
-
-
-
--}
 
 
 movePtr :: LengthUnit offset => Ptr a -> offset -> Ptr a
@@ -161,8 +176,12 @@ loadFrom :: ( EndianStore w
 {-# INLINE loadFrom #-}
 loadFrom ptr = load . movePtr ptr
 
--- | Copies from the source to the destination with the endianness
--- adjusted.
+-- | For the type @w@, the action @copyFromBytes dest src n@ copies @n@-elements from
+-- @src@ to @dest@. Copy performed by this combinator accounts for the
+-- endianness of the data in @dest@ and is therefore /not/ a mere copy
+-- of @n * sizeOf(w)@ bytes. This action does not modify the @src@
+-- pointer in any way.
+
 copyFromBytes :: EndianStore w
               => Dest (Ptr w)
               -> Src  Pointer
@@ -173,8 +192,8 @@ copyFromBytes dest@(Dest ptr) src n =  memcpy (castPtr <$> dest) src (sz dest un
   where sz     :: Storable w => Dest (Ptr w) -> w -> BYTES Int
         sz _ w =  byteSize w * toEnum n
 
--- | Copies from the source to the destination with the byte order
--- adjusted.
+-- | Similar to @copyFromBytes@ but the transfer is done in the other direction. The copy takes
+-- care of performing the appropriate endian encoding.
 copyToBytes :: EndianStore w
             => Dest Pointer
             -> Src (Ptr w)

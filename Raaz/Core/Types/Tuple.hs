@@ -37,7 +37,7 @@ import Raaz.Core.Transfer
 import Raaz.Core.Parse.Applicative
 
 -- | Tuples that encode their length in their types. For tuples, we call
--- the length its dimension
+-- the length its dimension.
 newtype Tuple (dim :: Nat) a = Tuple { unTuple :: V.Vector a }
                              deriving Show
 

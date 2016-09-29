@@ -1,8 +1,12 @@
 -- | This module exposes some core types used through out the Raaz
 -- library. One of the major goals of the raaz cryptographic library
 -- use the type safety of Haskell to catch some common bugs at compile
--- time. As of now we address three kinds of errors
+-- time.
 --
+-- [WARNING:] If you are just a user of this library, it is unlikely
+-- that you will need to import this module. It is only required if
+-- you are a developer and want to define a new cryptographic data
+-- type.
 
 module Raaz.Core.Types
        ( module Raaz.Core.Types.Equality
