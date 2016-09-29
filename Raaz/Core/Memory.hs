@@ -9,7 +9,6 @@ reason to look into this module.
 
 -}
 
-{-# LANGUAGE DefaultSignatures          #-}
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE GADTs                      #-}
 {-# LANGUAGE RankNTypes                 #-}

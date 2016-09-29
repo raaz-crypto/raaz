@@ -1,4 +1,3 @@
-{-# LANGUAGE ForeignFunctionInterface   #-}
 {-# LANGUAGE MultiParamTypeClasses       #-}
 -- | The portable C-implementation of SHA384
 module Raaz.Hash.Sha384.Implementation.CPortable

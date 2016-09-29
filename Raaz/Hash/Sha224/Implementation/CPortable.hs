@@ -1,4 +1,3 @@
-{-# LANGUAGE ForeignFunctionInterface   #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
 -- | The portable C-implementation of SHA224
 module Raaz.Hash.Sha224.Implementation.CPortable

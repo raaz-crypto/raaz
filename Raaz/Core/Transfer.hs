@@ -137,7 +137,7 @@ write a = makeWrite (byteSize a) $ liftIO . flip (store . castPtr) a
 -- | Write many elements from the given buffer
 writeFrom :: (MonadIO m, EndianStore a) => Int -> Src (Ptr a) -> WriteM m
 writeFrom n src = makeWrite (sz undefined src)
-                  $ \ ptr -> do liftIO  $ copyToBytes (destination ptr) src n
+                  $ \ ptr -> liftIO  $ copyToBytes (destination ptr) src n
   where sz :: Storable a => a -> Src (Ptr a) -> BYTES Int
         sz a _ = toEnum n * byteSize a
 
