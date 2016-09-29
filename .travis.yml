@@ -79,7 +79,8 @@ before_install:
  - if [ "$STACK" != "" ]; then
       export BUILDCMD="stack $RESOLVER";
    else;
-      export BUILDCMD="cabal"
+      export BUILDCMD="cabal";
+   fi
 
  - if [ "$HVR_COLLECTION" != "" ]; then
       wget https://raw.githubusercontent.com/hvr/multi-ghc-travis/master/collections/cabal.project."$HVR_COLLECTION" -O cabal.config ;
