@@ -76,7 +76,7 @@ instance Monad m => Monoid (TransferM m) where
 -- could either be writing or reading.
 type TransferAction m = Pointer -> TransferM m
 
-instance Monad m => LAction (BYTES Int) (TransferAction m) where
+instance LAction (BYTES Int) (TransferAction m) where
   offset <.> action = action . (offset<.>)
   {-# INLINE (<.>) #-}
 

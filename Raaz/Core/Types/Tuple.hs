@@ -62,8 +62,8 @@ getA _ = undefined
 type DimConstr (dim :: Nat) = KnownNat dim
 
 -- | This combinator returns the dimension of the tuple.
-dimension  :: (V.Unbox a, DimConstr dim) => Tuple dim a -> Int
-dimensionP :: (DimConstr dim, V.Unbox a)
+dimension  :: DimConstr dim => Tuple dim a -> Int
+dimensionP :: DimConstr dim
            => Proxy dim
            -> Tuple dim a
            -> Int
@@ -147,3 +147,5 @@ initial :: (V.Unbox a, DimConstr dim0, DimConstr dim1)
          -> Tuple dim0 a
 initial tup = tup0
   where tup0 = Tuple $ V.take (dimension tup0) $ unTuple tup
+
+-- TODO: Put a constraint that dim0 <= dim1

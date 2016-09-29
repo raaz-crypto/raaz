@@ -373,7 +373,7 @@ copyMemory dmem smem = memcpy (underlyingPtr <$> dmem) (underlyingPtr <$> smem) 
 -- overhead.
 withMemory   :: Memory m => (m -> IO a) -> IO a
 withMemory   = withM memoryAlloc
-  where withM :: Memory m => Alloc m -> (m -> IO a) -> IO a
+  where withM :: Alloc m -> (m -> IO a) -> IO a
         withM alctr action = allocaBuffer sz actualAction
           where sz                 = twistMonoidValue alctr
                 getM               = computeField $ twistFunctorValue alctr
