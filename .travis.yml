@@ -12,6 +12,8 @@ cache:
   directories:
     - $HOME/.cabsnap
     - $HOME/.cabal/packages
+    - $HOME/.stack
+    - .stack-work
 
 fast_finish: true
 
