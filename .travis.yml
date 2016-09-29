@@ -110,7 +110,7 @@ install:
       travis_retry cabal update;
       cabal install --only-dependencies --enable-tests --enable-benchmarks;
    else
-      $BUILDCMD --dependencies-only --test --bench;
+      $BUILDCMD --only-dependencies --test --bench;
    fi
 script:
   - if [ "$BUILDCMD" == "cabal" ]; then
