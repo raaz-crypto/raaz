@@ -12,79 +12,74 @@ cache:
   directories:
     - $HOME/.cabsnap
     - $HOME/.cabal/packages
+    - $HOME/.stack
+    - .stack-work
 
 fast_finish: true
 
+addons:
+  apt:
+    packages:
+      - libgmp-dev
+      - ghc-7.6.3           # For debian8
+      - ghc-head
+      - cabal-install-head
+      - cabal-install-1.20  # For debain8
+      - hlint
+    sources: [hvr-ghc, fpcomplete-precise]
+
 matrix:
   include:
-    #
-    # Linux builds
-    #
-    # Most recent LTS for 7.8.4 series.
-    # Stackage LTS-2, with 7.8.4 and cabal version-1.18
-    #
-    # Build for Debian-8
 
+    - os: osx
+
+    # Build for debian
     - os: linux
       env: HVR_COLLECTION=debian-8 GHCVER=7.6.3 CABALVER=1.20
-      addons:
-        apt: {packages: [ghc-7.6.3, cabal-install-1.20], sources:  [hvr-ghc] }
 
+    # Build for the stack version that comes with the repository.
     - os: linux
-      env: STACKVER=lts-2 GHCVER=7.8.4 CABALVER=1.20
-      addons:
-        apt: { packages: [ghc-7.8.4, cabal-install-1.20], sources: [hvr-ghc] }
+      env: STACK="yes"
 
-    #
-    # Latest Stackage LTS
-    #
+    # Build for the latest stack lts
     - os: linux
-      env: STACKVER=lts GHCVER=7.10.3 CABALVER=1.22
-      addons:
-        apt:
-          packages: [ghc-7.10.3, cabal-install-1.22]
-          sources:  [hvr-ghc]
-    #
-    # Stackage nightly
-    #
-    - os: linux
-      env: STACKVER=nightly GHCVER=8.0.1 CABALVER=1.24
-      addons:
-        apt:
-          packages: [ghc-8.0.1, cabal-install-1.24]
-          sources:  [hvr-ghc]
+      env: STACK="yes" RESOLVER="--resolver=lts"
 
-    #
-    # Build against GHC-Head
-    #
+    # Build for the nighty stack build
+    - os: linux
+      env: STACK="yes" RESOLVER="--resolver=nightly"
+
+    # Build for the GHC head and cabal-install-head
     - os: linux
       env: GHCVER=head CABALVER=head
-      addons:
-        apt:
-          packages: [ghc-head, cabal-install-head]
-          sources:  [hvr-ghc]
+
+    # Lint the code.
     - os: linux
       env: HLINT="yes"
-      addons:
-        apt: { packages: [hlint] }
-    # Other builds
-    - os: osx
+
   allow_failures:
     - env: GHCVER=head CABALVER=head
-    - env: STACKVER=nightly GHCVER=8.0.1 CABALVER=1.24
+    - env: STACK="yes" RESOLVER="--resolver=nightly"
     - env: HLINT="yes"
+
 before_install:
  - if [ "$HLINT" == "yes" ]; then
       hlint "--ignore=Parse error" Raaz;
       exit $?;
    fi
- - export PATH=/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:$PATH
- - if [ "$STACKVER" != "" ]; then
-      echo getting the stackage cabal.config;
-      wget "https://www.stackage.org/$STACKVER/cabal.config";
+
+
+ - if [ "$STACK" == "yes" ]; then
+      export BUILDCMD="stack $RESOLVER";
+      mkdir -p $HOME/.local/bin;
+      curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack';
+      $BUILDCMD setup;
+   else
+      export PATH=/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:$PATH;
+      export BUILDCMD="cabal";
    fi
+
  - if [ "$HVR_COLLECTION" != "" ]; then
-      echo geting cabal.config from the collection of hvr;
       wget https://raw.githubusercontent.com/hvr/multi-ghc-travis/master/collections/cabal.project."$HVR_COLLECTION" -O cabal.config ;
    fi
  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew update; fi
@@ -92,21 +87,19 @@ before_install:
  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew info ghc cabal-install; fi
 
 install:
- - cabal --version
- - echo "$(ghc --version) [$(ghc --print-project-git-commit-id 2> /dev/null || echo '?')]"
- - travis_retry cabal update
- - cabal install --only-dependencies --enable-tests --enable-benchmarks
+ - $BUILDCMD --version
+ - if [ "$BUILDCMD" == "cabal" ]; then
+      travis_retry cabal update;
+      cabal install --only-dependencies --enable-tests --enable-benchmarks;
+    fi
 
 script:
-  - cabal configure --enable-tests --enable-benchmarks -v2
-  - cabal build
-  - cabal test
-  - cabal check
-  - cabal sdist   # tests that a source-distribution can be generated
-  - cabal install --force-reinstalls dist/*-*.tar.gz
-
-  # - SRC_TGZ=$(cabal info . | awk '{print $2;exit}').tar.gz &&
-  #  (cd dist && cabal install --force-reinstalls "$SRC_TGZ")
+  - if [ "$BUILDCMD" == "cabal" ]; then cabal configure --enable-tests --enable-benchmarks; fi
+  - $BUILDCMD build
+  - $BUILDCMD test
+  - if [ "$BUILDCMD" == "cabal" ]; then cabal check; fi
+  - if [ "$BUILDCMD" == "cabal" ]; then cabal sdist; fi
+  - if [ "$BUILDCMD" == "cabal" ]; then cabal install --force-reinstalls dist/*-*.tar.gz; fi
 
 after_success:
   - echo "All is well."
