@@ -47,7 +47,7 @@ matrix:
 
     # Build for the nighty stack build
     - os: linux
-      env: STACK="yes" RESOLVER="--resolver=nighty"
+      env: STACK="yes" RESOLVER="--resolver=nightly"
 
     # Build for the GHC head and cabal-install-head
     - os: linux
