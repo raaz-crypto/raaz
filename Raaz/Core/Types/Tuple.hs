@@ -11,7 +11,7 @@
 
 module Raaz.Core.Types.Tuple
        ( -- * Length encoded tuples
-         Tuple, dimension, initial
+         Tuple, dimension, initial, diagonal
          -- ** Unsafe operations
        , unsafeFromList
        ) where
@@ -149,3 +149,8 @@ initial tup = tup0
   where tup0 = Tuple $ V.take (dimension tup0) $ unTuple tup
 
 -- TODO: Put a constraint that dim0 <= dim1
+
+-- | The @diagonal a@ gives a tuple, all of whose entries is @a@.
+diagonal :: (V.Unbox a, DimConstr dim) => a -> Tuple dim a
+diagonal a = tup
+  where tup = Tuple $ V.replicate (dimension tup) a
