@@ -18,7 +18,8 @@ module Raaz.Core.Transfer
          -- ** Write action.
        ,  WriteM, WriteIO, bytesToWrite, unsafeWrite
        , write, writeStorable, writeVector, writeStorableVector
-       , writeFrom, writeBytes, writeByteString, skipWrite
+       , writeFrom, writeBytes, padWriteTo, alignWriteTo
+       , writeByteString, skipWrite
 
        ) where
 
@@ -171,6 +172,28 @@ writeBytes :: (LengthUnit n, MonadIO m) => Word8 -> n -> WriteM m
 writeBytes w8 n = makeWrite n memsetIt
   where memsetIt cptr = liftIO $ memset cptr w8 n
 
+-- | The write action @padWriteTo w n wr@ is wr padded with the byte @w@ so that the total length
+-- is n. If the total bytes written by @wr@ is greater than @n@ then this throws an error.
+padWriteTo :: ( LengthUnit n, MonadIO m)
+              => Word8     -- ^ the padding byte to use
+              -> n         -- ^ the total length to pad to
+              -> WriteM m  -- ^ the write that needs padding
+              -> WriteM m
+padWriteTo w8 n wrm | pl < 0    = error "padToLength: padding length smaller than total length"
+                    | otherwise = wrm <> writeBytes w8 n
+  where pl = inBytes n - bytesToWrite wrm
+
+
+-- | The write action @alignWriteTo w n wr@ is wr padded with the byte @w@ so that the total length
+-- ends at a multiple of @n@.
+alignWriteTo :: ( LengthUnit n, MonadIO m)
+                => Word8     -- ^ the padding byte to use
+                -> n         -- ^ the total length to pad to
+                -> WriteM m  -- ^ the write that needs padding
+                -> WriteM m
+alignWriteTo w8 n wrm = wrm <> writeBytes w8 al
+  where al     =  nBytes - bytesToWrite wrm `rem` nBytes
+        nBytes = inBytes n
 -- | Writes a strict bytestring.
 writeByteString :: MonadIO m => ByteString -> WriteM m
 writeByteString bs = makeWrite (BU.length bs) $ liftIO  . BU.unsafeCopyToPointer bs
