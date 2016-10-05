@@ -6,7 +6,7 @@ spec :: Spec
 spec = it "system prg should return different words on distinct calls"
        $ compareWords `shouldReturn` False
   where randomWord :: SystemPRG -> IO Word
-        randomWord  = random
-        compareWords = do systemPRG <- newPRG ()
+        randomWord  = getRandom
+        compareWords = do systemPRG <- newSystemPRG
                           (==) <$> randomWord systemPRG
                                <*> randomWord systemPRG
