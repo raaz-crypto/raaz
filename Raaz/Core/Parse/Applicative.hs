@@ -2,7 +2,7 @@
 -- parser which has only an applicative instance.
 
 module Raaz.Core.Parse.Applicative
-       ( Parser, parseWidth, parseError
+       ( Parser, parseWidth, parseError, runParser
        , unsafeRunParser
        , parse, parseStorable
        , parseVector, parseStorableVector
@@ -14,12 +14,13 @@ import           Data.ByteString           (ByteString)
 import           Data.Vector.Generic       (Vector, generateM)
 import           Foreign.Ptr               (castPtr)
 import           Foreign.Storable          (Storable, peek, peekElemOff)
-
+import           Prelude          hiding   ( length )
+import           System.IO.Unsafe          (unsafePerformIO)
 
 import           Raaz.Core.MonoidalAction
 import           Raaz.Core.Types.Endian
 import           Raaz.Core.Types.Pointer
-import           Raaz.Core.Util.ByteString (createFrom)
+import           Raaz.Core.Util.ByteString (createFrom, length, withByteString)
 
 
 type BytesMonoid   = BYTES Int
@@ -38,6 +39,13 @@ parseError msg = makeParser (0 :: BYTES Int) $ \ _ -> fail msg
 -- | Return the bytes that this parser will read.
 parseWidth :: Parser a -> BYTES Int
 parseWidth =  twistMonoidValue
+
+
+
+runParser :: Parser a -> ByteString -> Maybe a
+runParser pr bs
+  | length bs < parseWidth pr = Nothing
+  | otherwise                 = Just $ unsafePerformIO $ withByteString bs $ unsafeRunParser pr
 
 {-
 -- | Run the given parser.
