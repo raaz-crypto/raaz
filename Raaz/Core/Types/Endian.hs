@@ -130,6 +130,13 @@ instance EndianStore Word8 where
   load                   = peek
   adjustEndian  _ _      = return ()
 
+instance EndianStore w => EndianStore (BYTES w) where
+  store ptr (BYTES w)  = store (castPtr ptr) w
+  load                 = fmap BYTES . load . castPtr
+  adjustEndian         = adjustEndian . castToPtrW
+    where castToPtrW :: Ptr (BYTES w) -> Ptr w
+          castToPtrW = castPtr
+
 -- | Store the given value at an offset from the crypto pointer. The
 -- offset is given in type safe units.
 storeAt :: ( EndianStore w
