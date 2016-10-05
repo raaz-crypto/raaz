@@ -11,7 +11,7 @@
 
 module Raaz.Core.Types.Tuple
        ( -- * Length encoded tuples
-         Tuple, dimension, initial, diagonal
+         Tuple, Dimension, dimension, initial, diagonal
          -- ** Unsafe operations
        , unsafeFromList
        ) where
@@ -59,11 +59,11 @@ getA _ = undefined
 #if MIN_VERSION_base(4,7,0)
 
 -- | The constaint on the dimension of the tuple (since base 4.7.0)
-type DimConstr (dim :: Nat) = KnownNat dim
+type Dimension (dim :: Nat) = KnownNat dim
 
 -- | This combinator returns the dimension of the tuple.
-dimension  :: DimConstr dim => Tuple dim a -> Int
-dimensionP :: DimConstr dim
+dimension  :: Dimension dim => Tuple dim a -> Int
+dimensionP :: Dimension dim
            => Proxy dim
            -> Tuple dim a
            -> Int
@@ -73,11 +73,11 @@ dimension = dimensionP Proxy
 #else
 
 -- | The constaint on the dimension of the tuple (pre base 4.7.0)
-type DimConstr (dim :: Nat) = SingI dim
+type Dimension (dim :: Nat) = SingI dim
 
 -- | This combinator returns the dimension of the tuple.
-dimension  :: (V.Unbox a, DimConstr  dim) => Tuple dim a -> Int
-dimensionP :: (DimConstr dim, V.Unbox a)
+dimension  :: (V.Unbox a, Dimension  dim) => Tuple dim a -> Int
+dimensionP :: (Dimension dim, V.Unbox a)
            => Sing dim
            -> Tuple dim a
            -> Int
@@ -87,9 +87,9 @@ dimensionP sz _ = fromEnum $ fromSing sz
 #endif
 
 -- | Get the dimension to parser
-getParseDimension :: (V.Unbox a, DimConstr dim)
+getParseDimension :: (V.Unbox a, Dimension dim)
                   => Parser (Tuple dim a) -> Int
-getTupFromP       :: (V.Unbox a, DimConstr dim)
+getTupFromP       :: (V.Unbox a, Dimension dim)
                   => Parser (Tuple dim a) -> Tuple dim a
 
 getParseDimension = dimension . getTupFromP
@@ -97,7 +97,7 @@ getTupFromP _     = undefined
 
 
 
-instance (V.Unbox a, Storable a, DimConstr dim)
+instance (V.Unbox a, Storable a, Dimension dim)
          => Storable (Tuple dim a) where
 
   sizeOf tup = dimension tup * sizeOf (getA tup)
@@ -112,7 +112,7 @@ instance (V.Unbox a, Storable a, DimConstr dim)
           cptr     = castPtr ptr
 
 
-instance (V.Unbox a, EndianStore a, DimConstr dim)
+instance (V.Unbox a, EndianStore a, Dimension dim)
          => EndianStore (Tuple dim a) where
 
   load = unsafeRunParser tupParser . castPtr
@@ -133,7 +133,7 @@ instance (V.Unbox a, EndianStore a, DimConstr dim)
 -- will result in run time error if the list is not of the correct
 -- dimension.
 
-unsafeFromList :: (V.Unbox a, DimConstr dim) => [a] -> Tuple dim a
+unsafeFromList :: (V.Unbox a, Dimension dim) => [a] -> Tuple dim a
 unsafeFromList xs
   | dimension tup == L.length xs = tup
   | otherwise                    = wrongLengthMesg
@@ -142,7 +142,7 @@ unsafeFromList xs
 
 -- | Computes the initial fragment of a tuple. No length needs to be given
 -- as it is infered from the types.
-initial :: (V.Unbox a, DimConstr dim0, DimConstr dim1)
+initial :: (V.Unbox a, Dimension dim0, Dimension dim1)
          => Tuple dim1 a
          -> Tuple dim0 a
 initial tup = tup0
@@ -151,6 +151,6 @@ initial tup = tup0
 -- TODO: Put a constraint that dim0 <= dim1
 
 -- | The @diagonal a@ gives a tuple, all of whose entries is @a@.
-diagonal :: (V.Unbox a, DimConstr dim) => a -> Tuple dim a
+diagonal :: (V.Unbox a, Dimension dim) => a -> Tuple dim a
 diagonal a = tup
   where tup = Tuple $ V.replicate (dimension tup) a
