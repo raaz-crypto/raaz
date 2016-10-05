@@ -4,10 +4,11 @@
 module Raaz.Core.ByteSource
        ( -- * Byte sources.
          -- $bytesource$
-         InfiniteSource(..)
-       , ByteSource(..), PureByteSource
+
+         ByteSource(..), PureByteSource
+       --    InfiniteSource(..)
        , FillResult(..)
-       , fill, slurp, processChunks
+       , fill, processChunks
        , withFillResult
        ) where
 
@@ -72,17 +73,9 @@ class ByteSource src where
             -> src        -- ^ The source to fill.
             -> Pointer  -- ^ Buffer pointer
             -> IO (FillResult src)
-  default fillBytes :: InfiniteSource src => BYTES Int ->  src -> Pointer -> IO (FillResult src)
-  fillBytes sz src pointer = Remaining <$> slurp sz src pointer
 
--- | Never ending stream of bytes. The reads to the stream might get
--- delayed but it will always return the number of bytes that were
--- asked for.
-class InfiniteSource src where
-  slurpBytes :: BYTES Int -- ^ bytes to read,
-             -> src       -- ^ the source to fill from,
-             -> Pointer   -- ^ the buffer source to fill.
-             -> IO src
+--  default fillBytes :: InfiniteSource src => BYTES Int ->  src -> Pointer -> IO (FillResult src)
+--  fillBytes sz src pointer = Remaining <$> slurp sz src pointer
 
 -- | A version of fillBytes that takes type safe lengths as input.
 fill :: ( LengthUnit len
@@ -95,6 +88,18 @@ fill :: ( LengthUnit len
 fill = fillBytes . inBytes
 {-# INLINE fill #-}
 
+{--
+
+-- | Never ending stream of bytes. The reads to the stream might get
+-- delayed but it will always return the number of bytes that were
+-- asked for.
+class InfiniteSource src where
+  slurpBytes :: BYTES Int -- ^ bytes to read,
+             -> src       -- ^ the source to fill from,
+             -> Pointer   -- ^ the buffer source to fill.
+             -> IO src
+
+
 -- | A version of slurp that takes type safe lengths as input.
 slurp :: ( LengthUnit len
          , InfiniteSource src
@@ -104,6 +109,8 @@ slurp :: ( LengthUnit len
        -> Pointer
        -> IO src
 slurp = slurpBytes . inBytes
+
+--}
 
 -- | Process data from a source in chunks of a particular size.
 processChunks :: ( MonadIO m, LengthUnit chunkSize, ByteSource src)
