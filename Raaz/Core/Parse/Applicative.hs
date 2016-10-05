@@ -11,7 +11,6 @@ module Raaz.Core.Parse.Applicative
        ) where
 
 import           Data.ByteString           (ByteString)
-import           Data.Monoid               (Sum(..))
 import           Data.Vector.Generic       (Vector, generateM)
 import           Foreign.Ptr               (castPtr)
 import           Foreign.Storable          (Storable, peek, peekElemOff)
@@ -23,14 +22,14 @@ import           Raaz.Core.Types.Pointer
 import           Raaz.Core.Util.ByteString (createFrom)
 
 
-type BytesMonoid   = Sum (BYTES Int)
+type BytesMonoid   = BYTES Int
 type ParseAction   = FieldM IO Pointer
 
 -- | An applicative parser type for reading data from a pointer.
 type Parser = TwistRF ParseAction BytesMonoid
 
 makeParser :: LengthUnit l => l -> (Pointer -> IO a) -> Parser a
-makeParser l action = TwistRF (liftToFieldM action) (Sum $ inBytes l)
+makeParser l action = TwistRF (liftToFieldM action) $ inBytes l
 
 -- | A parser that fails with a given error message.
 parseError  :: String -> Parser a
@@ -38,7 +37,7 @@ parseError msg = makeParser (0 :: BYTES Int) $ \ _ -> fail msg
 
 -- | Return the bytes that this parser will read.
 parseWidth :: Parser a -> BYTES Int
-parseWidth =  getSum . twistMonoidValue
+parseWidth =  twistMonoidValue
 
 {-
 -- | Run the given parser.
