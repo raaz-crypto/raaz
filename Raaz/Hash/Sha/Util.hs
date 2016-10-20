@@ -73,13 +73,27 @@ shaCompressFinal :: (Primitive h, Storable h)
                   -> Pointer                -- ^ the buffer
                   -> BYTES Int              -- ^ the message length
                   -> MT (HashMemory h) ()
-shaCompressFinal h lenW comp ptr nbytes = do
-  updateLength nbytes
+shaCompressFinal h lenW comp ptr msgLen = do
+  updateLength msgLen
   totalBits <- extractLength
-  let pad       = paddedMesg (lenW totalBits) h nbytes
-      blocks    = atMost (bytesToWrite pad) `asTypeOf` blocksOf 1 h
-    in do liftIO $ unsafeWrite pad ptr
-          onSubMemory hashCell $ withPointer $ comp ptr $ fromEnum blocks
+  let boundary = blocksOf 1 h
+      pad    = shaPad msgLen boundary $ lenW totalBits
+      blocks = atMost (bytesToWrite pad) `asTypeOf` boundary
+      in do liftIO $ unsafeWrite pad ptr
+            onSubMemory hashCell $ withPointer $ comp ptr $ fromEnum blocks
+
+-- | Padding is message followed by a single bit 1 and a glue of zeros
+-- followed by the length so that the message is aligned to the block boundary.
+shaPad :: LengthUnit boundary
+       => BYTES Int -- Message length
+       -> boundary
+       -> WriteIO   -- length write
+       -> WriteIO
+shaPad msgLen boundary lenW = glueWrites 0 boundary hdr lenW
+  where skipMessage = skipWrite msgLen
+        oneBit      = writeStorable (0x80 :: Word8)
+        hdr         = skipMessage <> oneBit
+
 
 -- | The length encoding that uses 64-bits.
 length64Write :: BITS Word64 ->  WriteIO
@@ -88,16 +102,3 @@ length64Write (BITS w) = write $ bigEndian w
 -- | The length encoding that uses 128-bits.
 length128Write :: BITS Word64 -> WriteIO
 length128Write w = writeStorable (0 :: Word64) <> length64Write w
-
--- | The padding to be used
-paddedMesg :: Primitive h
-           => WriteIO      -- ^ The length encoding
-           -> h            -- ^ The hash
-           -> BYTES Int    -- ^ The message length
-           -> WriteIO
-paddedMesg lenW h msgLen = start <> zeros <> lenW
-   where start      = skipWrite msgLen <> writeStorable (0x80 :: Word8)
-         zeros      = writeBytes    0    sz
-         totalBytes = bytesToWrite start + bytesToWrite lenW
-         sz         = inBytes (atLeast totalBytes `asTypeOf` blocksOf 1 h)
-                    - totalBytes
