@@ -27,10 +27,10 @@ instance Memory M128  where
 
 instance Initialisable M128 (KEY128, IV) where
   initialise (k,iv) = do
-    liftSubMT m128ekey $ do initialise k
-                            withPointer $ c_transpose 11
-    liftSubMT m128iv   $ do initialise iv
-                            withPointer $ c_transpose 1
+    onSubMemory m128ekey $ do initialise k
+                              withPointer $ c_transpose 11
+    onSubMemory m128iv   $ do initialise iv
+                              withPointer $ c_transpose 1
 
 ------------- Memory for 192-bit cbc --------------
 
@@ -45,10 +45,10 @@ instance Memory M192  where
 
 instance Initialisable M192 (KEY192, IV) where
   initialise (k,iv) = do
-    liftSubMT m192ekey $ do initialise k
-                            withPointer $ c_transpose 13
-    liftSubMT m192iv   $ do initialise iv
-                            withPointer $ c_transpose 1
+    onSubMemory m192ekey $ do initialise k
+                              withPointer $ c_transpose 13
+    onSubMemory m192iv   $ do initialise iv
+                              withPointer $ c_transpose 1
 
 
 ------------- Memory for 256-bit cbc --------------
@@ -64,10 +64,10 @@ instance Memory M256  where
 
 instance Initialisable M256 (KEY256, IV) where
   initialise (k,iv) = do
-    liftSubMT m256ekey $ do initialise k
-                            withPointer $ c_transpose 15
-    liftSubMT m256iv   $ do initialise iv
-                            withPointer $ c_transpose 1
+    onSubMemory m256ekey $ do initialise k
+                              withPointer $ c_transpose 15
+    onSubMemory m256iv   $ do initialise iv
+                              withPointer $ c_transpose 1
 
 ------------------- 128-bit CBC Implementation ----------------
 
@@ -88,15 +88,15 @@ cbc128CPortable =
 -- | The encryption action.
 cbc128Encrypt :: Pointer -> BLOCKS (AES 128 'CBC) -> MT M128 ()
 cbc128Encrypt buf nBlocks =
-  do eKeyPtr <- liftSubMT m128ekey getMemoryPointer
-     ivPtr   <- liftSubMT m128iv   getMemoryPointer
+  do eKeyPtr <- onSubMemory m128ekey getMemoryPointer
+     ivPtr   <- onSubMemory m128iv   getMemoryPointer
      liftIO $ c_aes_cbc_e buf (fromEnum nBlocks) 10 eKeyPtr ivPtr
 
 -- | The decryption action.
 cbc128Decrypt :: Pointer -> BLOCKS (AES 128 'CBC) -> MT M128 ()
 cbc128Decrypt buf nBlocks =
-  do eKeyPtr <- liftSubMT m128ekey getMemoryPointer
-     ivPtr   <- liftSubMT m128iv   getMemoryPointer
+  do eKeyPtr <- onSubMemory m128ekey getMemoryPointer
+     ivPtr   <- onSubMemory m128iv   getMemoryPointer
      liftIO $ c_aes_cbc_d buf (fromEnum nBlocks) 10 eKeyPtr ivPtr
 
 
@@ -120,15 +120,15 @@ cbc192CPortable =
 -- | The encryption action.
 cbc192Encrypt :: Pointer -> BLOCKS (AES 192 'CBC) -> MT M192 ()
 cbc192Encrypt buf nBlocks =
-  do eKeyPtr <- liftSubMT m192ekey getMemoryPointer
-     ivPtr   <- liftSubMT m192iv   getMemoryPointer
+  do eKeyPtr <- onSubMemory m192ekey getMemoryPointer
+     ivPtr   <- onSubMemory m192iv   getMemoryPointer
      liftIO $ c_aes_cbc_e buf (fromEnum nBlocks) 12 eKeyPtr ivPtr
 
 -- | The decryption action.
 cbc192Decrypt :: Pointer -> BLOCKS (AES 192 'CBC) -> MT M192 ()
 cbc192Decrypt buf nBlocks =
-  do eKeyPtr <- liftSubMT m192ekey getMemoryPointer
-     ivPtr   <- liftSubMT m192iv   getMemoryPointer
+  do eKeyPtr <- onSubMemory m192ekey getMemoryPointer
+     ivPtr   <- onSubMemory m192iv   getMemoryPointer
      liftIO $ c_aes_cbc_d buf (fromEnum nBlocks) 12 eKeyPtr ivPtr
 
 ------------------- 256-bit CBC Implementation ----------------
@@ -150,15 +150,15 @@ cbc256CPortable =
 -- | The encryption action.
 cbc256Encrypt :: Pointer -> BLOCKS (AES 256 'CBC) -> MT M256 ()
 cbc256Encrypt buf nBlocks =
-  do eKeyPtr <- liftSubMT m256ekey getMemoryPointer
-     ivPtr   <- liftSubMT m256iv   getMemoryPointer
+  do eKeyPtr <- onSubMemory m256ekey getMemoryPointer
+     ivPtr   <- onSubMemory m256iv   getMemoryPointer
      liftIO $ c_aes_cbc_e buf (fromEnum nBlocks) 14 eKeyPtr ivPtr
 
 -- | The decryption action.
 cbc256Decrypt :: Pointer -> BLOCKS (AES 256 'CBC) -> MT M256 ()
 cbc256Decrypt buf nBlocks =
-  do eKeyPtr <- liftSubMT m256ekey getMemoryPointer
-     ivPtr   <- liftSubMT m256iv   getMemoryPointer
+  do eKeyPtr <- onSubMemory m256ekey getMemoryPointer
+     ivPtr   <- onSubMemory m256iv   getMemoryPointer
      liftIO $ c_aes_cbc_d buf (fromEnum nBlocks) 14 eKeyPtr ivPtr
 
 --------------------- Foreign functions ------------------------

@@ -22,7 +22,7 @@ instance Memory SHA224Memory where
   underlyingPtr = underlyingPtr . unSHA224Mem
 
 instance Initialisable SHA224Memory () where
-  initialise _ = liftSubMT unSHA224Mem $
+  initialise _ = onSubMemory unSHA224Mem $
                  initialise $ SHA256 $ unsafeFromList [ 0xc1059ed8
                                                       , 0x367cd507
                                                       , 0x3070dd17
@@ -34,7 +34,7 @@ instance Initialisable SHA224Memory () where
                                                       ]
 
 instance Extractable SHA224Memory SHA224 where
-  extract = trunc <$> liftSubMT unSHA224Mem extract
+  extract = trunc <$> onSubMemory unSHA224Mem extract
     where trunc (SHA256 tup) = SHA224 $ initial tup
 
 -- | The portable C implementation of SHA224.

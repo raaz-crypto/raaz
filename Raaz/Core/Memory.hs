@@ -29,7 +29,7 @@ module Raaz.Core.Memory
        , MemoryCell
 
        -- *** Actions on memory elements.
-       , MT,  execute, getMemory, liftSubMT, modify
+       , MT,  execute, getMemory, onSubMemory, liftSubMT,  modify
        -- **** Some low level `MT` actions.
        , getMemoryPointer, withPointer
        , allocate
@@ -202,18 +202,26 @@ withPointer :: Memory mem => (Pointer -> IO b) -> MT mem b
 withPointer fp  = execute $ fp . underlyingPtr
 {-# INLINE withPointer #-}
 
--- | Compound memory elements might intern be composed of
--- sub-elements. Often one might want to /lift/ the memory thread for
--- a sub-element to the compound element. Given a sub-element of type
--- @mem'@ which can be obtained from the compound memory element of
--- type @mem@ using the projection @proj@, @liftSubMT proj@ lifts the
--- a memory thread of the sub element to the compound element.
+-- | The combinator @onSubMemory@ allows us to run a memory action on a
+-- sub-memory element. Given a memory element of type @mem@ and a
+-- sub-element of type @submem@ which can be obtained from the
+-- compound memory element of type @mem@ using the projection @proj@,
+-- then @onSubMemory proj@ lifts the a memory thread of the sub
+-- element to the compound element.
 --
-liftSubMT :: (mem -> mem') -- ^ Projection from the compound element
-                           -- to sub-element
-          -> MT mem' a     -- ^ Memory thread of the sub-element.
-          -> MT mem  a
-liftSubMT proj mt' = execute $ unMT mt' . proj
+onSubMemory :: (mem -> submem) -- ^ Projection from the compound element
+                               -- to sub memory element.
+            -> MT submem a     -- ^ Memory thread of the sub-element.
+            -> MT mem    a
+onSubMemory proj mt' = execute $ unMT mt' . proj
+
+{-# DEPRECATED liftSubMT "use onSubMemory instead" #-}
+-- | Alternate name for onSubMemory.
+liftSubMT :: (mem -> submem)
+          -> MT submem a
+          -> MT mem    a
+liftSubMT = onSubMemory
+
 
 instance Functor (MT mem) where
   fmap f mst = MT $ \ m -> f <$> unMT mst m

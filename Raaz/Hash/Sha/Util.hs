@@ -62,7 +62,7 @@ shaCompress :: (Primitive h, Storable h)
             -> BLOCKS h   -- ^ number of blocks
             -> MT (HashMemory h) ()
 shaCompress comp ptr nblocks = do
-  liftSubMT  hashCell $ withPointer $ comp ptr $ fromEnum nblocks
+  onSubMemory  hashCell $ withPointer $ comp ptr $ fromEnum nblocks
   updateLength nblocks
 
 -- | The compressor for the last function.
@@ -79,7 +79,7 @@ shaCompressFinal h lenW comp ptr nbytes = do
   let pad       = paddedMesg (lenW totalBits) h nbytes
       blocks    = atMost (bytesToWrite pad) `asTypeOf` blocksOf 1 h
     in do liftIO $ unsafeWrite pad ptr
-          liftSubMT hashCell $ withPointer $ comp ptr $ fromEnum blocks
+          onSubMemory hashCell $ withPointer $ comp ptr $ fromEnum blocks
 
 -- | The length encoding that uses 64-bits.
 length64Write :: BITS Word64 ->  WriteIO

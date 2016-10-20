@@ -22,7 +22,7 @@ instance Memory SHA384Memory where
   underlyingPtr = underlyingPtr . unSHA384Mem
 
 instance Initialisable SHA384Memory () where
-  initialise _ = liftSubMT unSHA384Mem
+  initialise _ = onSubMemory unSHA384Mem
                  $ initialise
                  $ SHA512
                  $ unsafeFromList [ 0xcbbb9d5dc1059ed8
@@ -36,7 +36,7 @@ instance Initialisable SHA384Memory () where
                                   ]
 
 instance Extractable SHA384Memory SHA384 where
-  extract = trunc <$> liftSubMT unSHA384Mem extract
+  extract = trunc <$> onSubMemory unSHA384Mem extract
     where trunc (SHA512 v) = SHA384 $ initial v
 
 -- | The portable C implementation of SHA384.
