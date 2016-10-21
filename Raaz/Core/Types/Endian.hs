@@ -6,6 +6,7 @@
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE TypeFamilies               #-}
 
+-- | Endian safe types.
 module Raaz.Core.Types.Endian
        ( -- * Endianess aware types.
          -- $endianness$

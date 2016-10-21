@@ -2,6 +2,9 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FlexibleContexts      #-}
+
+-- | This module defines combinators, types and instances for defining
+-- timing safe equality checks.
 module Raaz.Core.Types.Equality
        ( -- * Timing safe equality checking.
          -- $timingSafeEquality$

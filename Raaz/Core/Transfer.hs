@@ -199,7 +199,7 @@ glueWrites :: ( LengthUnit n, MonadIO m)
 glueWrites w8 n hdr ftr = hdr <> writeBytes w8 lglue <> ftr
   where lhead   = bytesToWrite hdr
         lfoot   = bytesToWrite ftr
-        lexceed = (lhead + lfoot) `rem` nBytes  -- ^ bytes exceeding the boundary.
+        lexceed = (lhead + lfoot) `rem` nBytes  -- bytes exceeding the boundary.
         lglue   = nBytes - lexceed
         nBytes  = inBytes n
 

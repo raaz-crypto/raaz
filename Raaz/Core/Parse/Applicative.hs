@@ -1,6 +1,5 @@
 -- | An applicative version of parser. This provides a restricted
 -- parser which has only an applicative instance.
-
 module Raaz.Core.Parse.Applicative
        ( Parser, parseWidth, parseError, runParser
        , unsafeRunParser
@@ -41,24 +40,12 @@ parseWidth :: Parser a -> BYTES Int
 parseWidth =  twistMonoidValue
 
 
-
+-- | Runs a parser on a byte string. It returns `Nothing` if the byte string is smaller than
+-- what the parser would consume.
 runParser :: Parser a -> ByteString -> Maybe a
 runParser pr bs
   | length bs < parseWidth pr = Nothing
   | otherwise                 = Just $ unsafePerformIO $ withByteString bs $ unsafeRunParser pr
-
-{-
--- | Run the given parser.
-runParser :: Parser a -> CryptoBuffer -> IO (Maybe a)
-runParser pr cbuf = withCryptoBuffer cbuf $ \ sz cptr ->
-  if sz < parseWidth pr then return Nothing
-  else Just <$> unsafeRunParser pr cptr
-
--- | Run the parser given the
-runParser' :: Parser a -> CryptoBuffer -> IO a
-runParser' pr = fmap fromJust . runParser pr
-
--}
 
 -- | Run the parser without checking the length constraints.
 unsafeRunParser :: Parser a -> Pointer -> IO a

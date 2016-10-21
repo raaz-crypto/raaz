@@ -4,6 +4,7 @@
 {-# LANGUAGE ForeignFunctionInterface   #-}
 {-# LANGUAGE CPP                        #-}
 
+-- | Basic pointer task.
 module Raaz.Core.Types.Pointer
        (
          -- * The pointer type and Length offsets.
@@ -83,7 +84,9 @@ newtype BITS  a  = BITS  a
         deriving ( Show, Eq, Equality, Ord, Enum, Integral
                  , Real, Num, Storable
                  )
-
+-- | Type safe length unit that measures offsets in multiples of word
+-- length. This length unit can be used if one wants to make sure that
+-- all offsets are word aligned.
 newtype ALIGN    = ALIGN { unALIGN :: Int }
                  deriving ( Show, Eq,Ord, Enum, Integral
                           , Real, Num, Storable
