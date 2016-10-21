@@ -1,5 +1,4 @@
 {-# LANGUAGE TypeFamilies      #-}
-{-# LANGUAGE KindSignatures    #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE DefaultSignatures #-}
 {-# LANGUAGE CPP               #-}
