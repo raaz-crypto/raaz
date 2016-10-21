@@ -2,7 +2,7 @@
 -- parser which has only an applicative instance.
 
 module Raaz.Core.Parse.Applicative
-       ( Parser, parseWidth, parseError
+       ( Parser, parseWidth, parseError, runParser
        , unsafeRunParser
        , parse, parseStorable
        , parseVector, parseStorableVector
@@ -11,26 +11,26 @@ module Raaz.Core.Parse.Applicative
        ) where
 
 import           Data.ByteString           (ByteString)
-import           Data.Monoid               (Sum(..))
 import           Data.Vector.Generic       (Vector, generateM)
 import           Foreign.Ptr               (castPtr)
 import           Foreign.Storable          (Storable, peek, peekElemOff)
-
+import           Prelude          hiding   ( length )
+import           System.IO.Unsafe          (unsafePerformIO)
 
 import           Raaz.Core.MonoidalAction
 import           Raaz.Core.Types.Endian
 import           Raaz.Core.Types.Pointer
-import           Raaz.Core.Util.ByteString (createFrom)
+import           Raaz.Core.Util.ByteString (createFrom, length, withByteString)
 
 
-type BytesMonoid   = Sum (BYTES Int)
+type BytesMonoid   = BYTES Int
 type ParseAction   = FieldM IO Pointer
 
 -- | An applicative parser type for reading data from a pointer.
 type Parser = TwistRF ParseAction BytesMonoid
 
 makeParser :: LengthUnit l => l -> (Pointer -> IO a) -> Parser a
-makeParser l action = TwistRF (liftToFieldM action) (Sum $ inBytes l)
+makeParser l action = TwistRF (liftToFieldM action) $ inBytes l
 
 -- | A parser that fails with a given error message.
 parseError  :: String -> Parser a
@@ -38,7 +38,14 @@ parseError msg = makeParser (0 :: BYTES Int) $ \ _ -> fail msg
 
 -- | Return the bytes that this parser will read.
 parseWidth :: Parser a -> BYTES Int
-parseWidth =  getSum . twistMonoidValue
+parseWidth =  twistMonoidValue
+
+
+
+runParser :: Parser a -> ByteString -> Maybe a
+runParser pr bs
+  | length bs < parseWidth pr = Nothing
+  | otherwise                 = Just $ unsafePerformIO $ withByteString bs $ unsafeRunParser pr
 
 {-
 -- | Run the given parser.

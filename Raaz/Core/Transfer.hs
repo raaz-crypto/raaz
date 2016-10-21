@@ -18,7 +18,9 @@ module Raaz.Core.Transfer
          -- ** Write action.
        ,  WriteM, WriteIO, bytesToWrite, unsafeWrite
        , write, writeStorable, writeVector, writeStorableVector
-       , writeFrom, writeBytes, writeByteString, skipWrite
+       , writeFrom, writeBytes
+       , padWrite, prependWrite, glueWrites
+       , writeByteString, skipWrite
 
        ) where
 
@@ -170,6 +172,56 @@ writeVector = G.foldl' foldFunc mempty
 writeBytes :: (LengthUnit n, MonadIO m) => Word8 -> n -> WriteM m
 writeBytes w8 n = makeWrite n memsetIt
   where memsetIt cptr = liftIO $ memset cptr w8 n
+
+{-
+-- | The write action @padWriteTo w n wr@ is wr padded with the byte @w@ so that the total length
+-- is n. If the total bytes written by @wr@ is greater than @n@ then this throws an error.
+padWriteTo :: ( LengthUnit n, MonadIO m)
+              => Word8     -- ^ the padding byte to use
+              -> n         -- ^ the total length to pad to
+              -> WriteM m  -- ^ the write that needs padding
+              -> WriteM m
+padWriteTo w8 n wrm | pl < 0    = error "padToLength: padding length smaller than total length"
+                    | otherwise = wrm <> writeBytes w8 n
+  where pl = inBytes n - bytesToWrite wrm
+
+-}
+
+-- | The combinator @glueWrites w n hdr ftr@ is equivalent to
+-- @hdr <> glue <> ftr@ where the write @glue@ writes as many bytes
+-- @w@ so that the total length is aligned to the boundary @n@.
+glueWrites :: ( LengthUnit n, MonadIO m)
+           =>  Word8    -- ^ The bytes to use in the glue
+           -> n        -- ^ The length boundary to align to.
+           -> WriteM m -- ^ The header write
+           -> WriteM m -- ^ The footer write
+           -> WriteM m
+glueWrites w8 n hdr ftr = hdr <> writeBytes w8 lglue <> ftr
+  where lhead   = bytesToWrite hdr
+        lfoot   = bytesToWrite ftr
+        lexceed = (lhead + lfoot) `rem` nBytes  -- ^ bytes exceeding the boundary.
+        lglue   = nBytes - lexceed
+        nBytes  = inBytes n
+
+
+
+-- | The write action @prependWrite w n wr@ is wr pre-pended with the byte @w@ so that the total length
+-- ends at a multiple of @n@.
+prependWrite  :: ( LengthUnit n, MonadIO m)
+              => Word8     -- ^ the byte to pre-pend with.
+              -> n         -- ^ the length to align the message to
+              -> WriteM m  -- ^ the message that needs pre-pending
+              -> WriteM m
+prependWrite w8 n = glueWrites w8 n mempty
+
+-- | The write action @padWrite w n wr@ is wr padded with the byte @w@ so that the total length
+-- ends at a multiple of @n@.
+padWrite :: ( LengthUnit n, MonadIO m)
+         => Word8     -- ^ the padding byte to use
+         -> n         -- ^ the length to align message to
+         -> WriteM m  -- ^ the message that needs padding
+         -> WriteM m
+padWrite w8 n = flip (glueWrites w8 n) mempty
 
 -- | Writes a strict bytestring.
 writeByteString :: MonadIO m => ByteString -> WriteM m

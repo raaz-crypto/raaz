@@ -11,7 +11,6 @@ use a more high level interface.
 {-# LANGUAGE MultiParamTypeClasses       #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving  #-}
 {-# LANGUAGE FlexibleContexts            #-}
-{-# LANGUAGE DefaultSignatures           #-}
 {-# LANGUAGE CPP                         #-}
 {-# LANGUAGE ConstraintKinds             #-}
 {-# LANGUAGE ExistentialQuantification   #-}

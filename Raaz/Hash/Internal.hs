@@ -126,8 +126,8 @@ truncatedI coerce unMtrunc (HashI{..})
           , compress         = comp
           , compressFinal    = compF
           }
-  where comp  ptr = liftSubMT unMtrunc . compress ptr . coerce
-        compF ptr = liftSubMT unMtrunc . compressFinal ptr
+  where comp  ptr = onSubMemory unMtrunc . compress ptr . coerce
+        compF ptr = onSubMemory unMtrunc . compressFinal ptr
 
 ---------------------- The Hash class ---------------------------------
 
@@ -256,21 +256,21 @@ instance Storable h => Memory (HashMemory h) where
 
 instance Storable h => Initialisable (HashMemory h) h where
   initialise h = do
-    liftSubMT hashCell          $ initialise h
-    liftSubMT messageLengthCell $ initialise (0 :: BITS Word64)
+    onSubMemory hashCell          $ initialise h
+    onSubMemory messageLengthCell $ initialise (0 :: BITS Word64)
 
 instance Storable h => Extractable (HashMemory h) h where
-  extract = liftSubMT hashCell extract
+  extract = onSubMemory hashCell extract
 
 -- | Extract the length of the message hashed so far.
 extractLength :: MT (HashMemory h) (BITS Word64)
-extractLength = liftSubMT messageLengthCell extract
+extractLength = onSubMemory messageLengthCell extract
 {-# INLINE extractLength #-}
 
 
 -- | Update the message length by a given amount.
 updateLength :: LengthUnit u => u -> MT (HashMemory h) ()
 {-# INLINE updateLength #-}
-updateLength u = liftSubMT messageLengthCell $ modify (nBits +)
+updateLength u = onSubMemory messageLengthCell $ modify (nBits +)
   where nBits :: BITS Word64
         nBits =  inBits u

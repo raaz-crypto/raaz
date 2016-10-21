@@ -1,5 +1,4 @@
 {-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE DefaultSignatures #-}
 -- | Module define byte sources.
 module Raaz.Core.ByteSource
        ( -- * Byte sources.
@@ -13,7 +12,6 @@ module Raaz.Core.ByteSource
        ) where
 
 import           Control.Applicative
-import           Control.Monad        (liftM)
 import           Control.Monad.IO.Class
 import qualified Data.ByteString      as B
 import qualified Data.ByteString.Lazy as L
@@ -157,8 +155,7 @@ instance ByteSource B.ByteString where
 
 instance ByteSource L.ByteString where
   {-# INLINE fillBytes #-}
-  fillBytes sz bs = liftM (fmap L.fromChunks)
-                    . fillBytes sz (L.toChunks bs)
+  fillBytes sz bs = fmap (fmap L.fromChunks) . fillBytes sz (L.toChunks bs)
 
 
 instance ByteSource src => ByteSource (Maybe src) where
