@@ -7,6 +7,7 @@ module Raaz.Core.Parse.Applicative
        , parseVector, parseStorableVector
        , unsafeParseVector, unsafeParseStorableVector
        , parseByteString
+       , skip
        ) where
 
 import           Data.ByteString           (ByteString)
@@ -30,6 +31,10 @@ type Parser = TwistRF ParseAction BytesMonoid
 
 makeParser :: LengthUnit l => l -> (Pointer -> IO a) -> Parser a
 makeParser l action = TwistRF (liftToFieldM action) $ inBytes l
+
+-- | Skip over some data.
+skip :: LengthUnit u => u -> Parser ()
+skip = flip makeParser $ const $ return ()
 
 -- | A parser that fails with a given error message.
 parseError  :: String -> Parser a
