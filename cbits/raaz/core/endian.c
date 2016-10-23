@@ -2,7 +2,15 @@
 
 /* Include the right header file based on the platform */
 #ifdef __GNUC__
+
+#ifdef PLATFORM_OSX
+#include <libkern/OSByteOrder.h>
+#define bswap_32(a) (OSSwap32(a))
+#define bswap_64(a) (OSSwap64(a))
+#else
 #include <byteswap.h>
+#endif
+
 uint32_t raazSwap32(uint32_t a){ return bswap_32(a);}
 uint64_t raazSwap64(uint64_t a){ return bswap_64(a);}
 

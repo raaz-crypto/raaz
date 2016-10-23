@@ -51,6 +51,8 @@ library
      cpp-options: -DHAVE_MLOCK
                   -DHAVE_DEV_URANDOM
                   -DHAVE_SYSTEM_PRG
+  if os(osx)
+     cpp-options: -DPLATFORM_OSX
 
   exposed-modules: Raaz
                  , Raaz.Core
