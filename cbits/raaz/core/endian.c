@@ -5,8 +5,8 @@
 
 #ifdef PLATFORM_OSX
 #include <libkern/OSByteOrder.h>
-#define bswap_32(a) (OSSwap32(a))
-#define bswap_64(a) (OSSwap64(a))
+#define bswap_32(a) (OSSwapInt32(a))
+#define bswap_64(a) (OSSwapInt64(a))
 #else
 #include <byteswap.h>
 #endif
