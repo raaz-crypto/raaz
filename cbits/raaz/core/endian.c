@@ -70,8 +70,46 @@ uint64_t raazLoadLE64(uint64_t *ptr)
 # define MOV(a,i)      ((a) << ((i)*8))
 # define SWAP(a,i,j)   (MOV(SEL(a,i),j) | MOV(SEL(a,j),i)) */
 
+#ifdef __GNUC__
+
+#include <byteswap.h>
+
 uint32_t raazSwap32(uint32_t a)
 {
+    return  bswap_32(a);
+}
+
+uint32_t raazSwap64(uint32_t a)
+{
+    return bswap_64(a);
+}
+
+
+void raazSwap32Array(uint32_t *ptr, int n)
+{
+    while(n > 0)
+    {
+	*ptr = bswap_32(*ptr);
+	++ptr; --n;
+    }
+}
+
+void raazSwap64Array(uint64_t *ptr, int n)
+{
+    while( n > 0)
+    {
+
+	*ptr = bswap_64(*ptr);
+	++ptr; --n;
+    }
+}
+
+#else
+
+
+uint32_t raazSwap32(uint32_t a)
+{
+
     return (SWAP(a,0,3) | SWAP(a,1,2));
 }
 
@@ -97,3 +135,6 @@ void raazSwap64Array(uint64_t *ptr, int n)
 	++ptr; --n;
     }
 }
+
+
+#endif
