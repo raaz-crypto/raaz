@@ -40,14 +40,17 @@ library
   --
   --    * HAVE_DEV_URANDON: If the device /dev/urandom exists.
   --
-  if os(linux) || os(freebsd) || os(openbsd) || os(netbsd) || os(osx)
-     cpp-options: -DHAVE_SYSTEM_PRG
-                  -DHAVE_DEV_URANDOM
+  --
   -- 2. Memory Locking
   --    System supports mlock/munlock calls.
-  -- configurations for memory locking
+  --
+  -- The check below is not really accurate but should work most of
+  -- the time. What I really want is to check if the system is posix.
+  -- TODO: Fix it latter.
   if !os(windows)
      cpp-options: -DHAVE_MLOCK
+                  -DHAVE_DEV_URANDOM
+                  -DHAVE_SYSTEM_PRG
 
   -- 3. Platform macros for endian conversion functions
   --
