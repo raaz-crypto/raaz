@@ -4,7 +4,7 @@
 #ifdef __GNUC__
 #include <byteswap.h>
 uint32_t raazSwap32(uint32_t a){ return bswap_32(a);}
-uint64_t raazSwap64(uint32_t a){ return bswap_64(a);}
+uint64_t raazSwap64(uint64_t a){ return bswap_64(a);}
 
 void raazSwap32Array(uint32_t *ptr, int n)
 {
