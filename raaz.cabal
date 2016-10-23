@@ -52,16 +52,6 @@ library
                   -DHAVE_DEV_URANDOM
                   -DHAVE_SYSTEM_PRG
 
-  -- 3. Platform macros for endian conversion functions
-  --
-  if os(linux)
-     cc-options: -DPLATFORM_LINUX
-  if os(freebsd) || os(netbsd)
-     cc-options: -DPLATFORM_BSD
-  if os(openbsd)
-     cc-options: -DPLATFORM_OPENBSD
-
-
   exposed-modules: Raaz
                  , Raaz.Core
                  , Raaz.Core.ByteSource
