@@ -41,10 +41,6 @@ class PRG prg where
 class Seedable prg where
 
   -- | Seed a given prg from a valid source prg.
-#ifdef HAVE_SYSTEM_PRG
-  -- A standard source to seed from is the `SystemPRG`.
-#endif
-
   seedFrom :: PRG srcPrg => srcPrg -> prg -> IO ()
 
 -- | Generalised version of fillRandomBytes that takes an arbitrary length
