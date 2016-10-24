@@ -2,9 +2,13 @@
 
 ## [0.1.0] - Pending
 
-- Alignment optimisation for hashing bytestrings (TODO)
-- Num instance from LengthUnit removed Monoid instance added
-  (Commit: 65264e5a89874bab70d0aded3777829209ac5ce2)
+- TODO: Hashes BLAKE2s and BLAKE2p
+- better system wide prg using arc4random when available.
+- Low level changes (relevant only for raaz hackers).
+      * Num instance from LengthUnit removed Monoid instance added
+	  (Commit: 65264e5a89874bab70d0aded3777829209ac5ce2)
+      * EndianStore added an endian adjusting function
+	  * TODO: Alignment optimisation for hashing bytestrings (TODO)
 
 ## [0.0.2] - July 25, 2016.
 
