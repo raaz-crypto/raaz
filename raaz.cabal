@@ -246,3 +246,14 @@ benchmark blaze-vs-write
                , bytestring
                , criterion
                , raaz
+
+benchmark random-sources
+  hs-source-dirs: benchmarks
+  default-language: Haskell2010
+  if os(openbsd) || flag(arc4random)
+     cpp-options: -DBENCH_ARC4RANDOM
+  main-is: Random.hs
+  type: exitcode-stdio-1.0
+  build-depends: base
+               , criterion
+               , raaz
