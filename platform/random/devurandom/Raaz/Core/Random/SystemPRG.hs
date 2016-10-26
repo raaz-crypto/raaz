@@ -29,7 +29,7 @@ import Raaz.Core.Random.PRG
 --
 -- For this reason, raaz prefers using other system sources like
 -- `arc4random` on OpenBSD if it is available.
-newtype SystemPRG = SystemPRG Handle
+newtype SystemPRG = SystemPRG Handle deriving Show
 
 -- | Get a new instance of the system PRG.
 newSystemPRG :: IO SystemPRG

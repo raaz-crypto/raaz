@@ -24,7 +24,7 @@ import Raaz.Core.Random.PRG
 -- `arc4random` should be read as "A replacement call for" instead of
 -- "Alleged RC4". It might be good to really check this on your
 -- platform before making it the system prg on you system.
-data SystemPRG = ARC4RandomPRG
+data SystemPRG = ARC4RandomPRG deriving Show
 
 foreign import ccall unsafe "arc4random_buf" c_arc4random_buf
     :: Pointer -> BYTES Int -> IO ()
