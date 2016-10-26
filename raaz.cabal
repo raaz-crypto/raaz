@@ -34,10 +34,6 @@ flag arc4random
   description: Enable arc4random as a source of randomness.
   default: False
 
-flag devurandom
-  description: Enable arc4random as a source of randomness.
-  default: False
-
 library
   default-language: Haskell2010
   ghc-options: -Wall
