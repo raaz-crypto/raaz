@@ -29,33 +29,34 @@ source-repository head
   type: git
   location: https://github.com/raaz-crypto/raaz
 
+-- Flags to select randomness source.
+flag arc4random
+     description: Use the arc4random family of functions for randomness.
+     default: False
+
 library
   default-language: Haskell2010
   ghc-options: -Wall
   hs-source-dirs: .
-  -- Setting up system prg.
-  if !os(windows)
-     hs-source-dirs: platform/random/devurandom/
-     cpp-options: -DHAVE_MLOCK
-  -- Conditional compilation using CPP
 
-  -- 1. Configuring system PRG.
-  --
-  --    * HAVE_SYSTEM_PRG: If a system prg is exposed.
-  --
-  --    * HAVE_DEV_URANDON: If the device /dev/urandom exists.
-  --
-  --
-  -- 2. Memory Locking
-  --    System supports mlock/munlock calls.
-  --
-  -- The check below is not really accurate but should work most of
-  -- the time. What I really want is to check if the system is posix.
-  -- TODO: Fix it latter.
+  -- Setting up system prg.
+
+  if os(openbsd) || flag(arc4random)
+     hs-source-dirs: platform/random/arc4random
+
+     if os(openbsd)
+        cpp-options: -DNO_ARC4RANDOM_STIR
+     if os(linux)
+        extra-libraries: bsd
+
+  else
+     hs-source-dirs: platform/random/devurandom/
+
+  -- End of setting up PRG.
+
   if !os(windows)
      cpp-options: -DHAVE_MLOCK
-                  -DHAVE_DEV_URANDOM
-                  -DHAVE_SYSTEM_PRG
+
   if os(osx)
      cc-options: -DPLATFORM_OSX
 
