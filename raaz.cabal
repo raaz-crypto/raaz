@@ -47,7 +47,7 @@ library
 
   if os(openbsd) || flag(arc4random)
      hs-source-dirs: platform/random/arc4random
-     other-modules: Raaz.Core.Random.ARC4Random
+     exposed-modules: Raaz.Core.Random.ARC4Random
 
      if os(openbsd)
         cpp-options: -DNO_ARC4RANDOM_STIR
@@ -56,7 +56,7 @@ library
 
   if !os(windows)
      hs-source-dirs: platform/random/devurandom/
-     other-modules: Raaz.Core.Random.DevUrandom
+     exposed-modules: Raaz.Core.Random.DevUrandom
 
   -- Windows is currently unsupported
 
