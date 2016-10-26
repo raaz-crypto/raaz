@@ -31,8 +31,12 @@ source-repository head
 
 -- Flags to select randomness source.
 flag arc4random
-     description: Use the arc4random family of functions for randomness.
-     default: False
+  description: Enable arc4random as a source of randomness.
+  default: False
+
+flag devurandom
+  description: Enable arc4random as a source of randomness.
+  default: False
 
 library
   default-language: Haskell2010
@@ -43,23 +47,38 @@ library
 
   if os(openbsd) || flag(arc4random)
      hs-source-dirs: platform/random/arc4random
+     other-modules: Raaz.Core.Random.ARC4Random
 
      if os(openbsd)
         cpp-options: -DNO_ARC4RANDOM_STIR
      if os(linux)
         extra-libraries: bsd
 
-  else
+  if !os(windows)
      hs-source-dirs: platform/random/devurandom/
+     other-modules: Raaz.Core.Random.DevUrandom
+
+  -- Windows is currently unsupported
+
+  if os(windows)
+     -- TODO: give actual code.
+     cpp-option: -DSYSTEM_CRYPTO_GEN_RANDOM
+
+  else
+     -- Use arc4random on openbsd
+     if os(openbsd)
+        cpp-options: -DSYSTEMPRG_ARC4RANDOM
 
   -- End of setting up PRG.
 
   if !os(windows)
      cpp-options: -DHAVE_MLOCK
 
+  -- Setting up the platform specific swap instructions.
   if os(osx)
-     cc-options: -DPLATFORM_OSX
+     cc-options: -DOSX_BYTE_SWAP
 
+  -- End of BYTE_SWAP Setting.
   exposed-modules: Raaz
                  , Raaz.Core
                  , Raaz.Core.ByteSource
@@ -105,9 +124,9 @@ library
   other-modules: Raaz.Core.Constants
                , Raaz.Core.Encode.Internal
                , Raaz.Core.Random.PRG
+               , Raaz.Core.Random.System
                , Raaz.Core.Encode.Base16
                , Raaz.Core.Encode.Base64
-               , Raaz.Core.Random.SystemPRG
                , Raaz.Core.Util.ByteString
                , Raaz.Core.Types.Pointer
                , Raaz.Core.Types.Tuple

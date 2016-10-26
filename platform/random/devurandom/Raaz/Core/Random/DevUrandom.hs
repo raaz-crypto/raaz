@@ -1,13 +1,13 @@
 
 -- | This module exposes the system wide prng available through the file `/dev/urandom`.
-module Raaz.Core.Random.SystemPRG
-       ( SystemPRG, newSystemPRG
+module Raaz.Core.Random.DevUrandom
+       ( DevUrandomPRG, newDevUrandomPRG
        ) where
 
 import Control.Monad   (void)
-import System.IO ( openBinaryFile, Handle, IOMode(ReadMode)
-                 , BufferMode(NoBuffering), hSetBuffering
-                 )
+import System.IO       ( openBinaryFile, Handle, IOMode(ReadMode)
+                       , BufferMode(NoBuffering), hSetBuffering
+                       )
 
 import Raaz.Core.Types
 import Raaz.Core.Random.PRG
@@ -29,13 +29,13 @@ import Raaz.Core.Random.PRG
 --
 -- For this reason, raaz prefers using other system sources like
 -- `arc4random` on OpenBSD if it is available.
-newtype SystemPRG = SystemPRG Handle deriving Show
+newtype DevUrandomPRG = DevUrandomPRG Handle deriving Show
 
 -- | Get a new instance of the system PRG.
-newSystemPRG :: IO SystemPRG
-newSystemPRG = do h <- openBinaryFile "/dev/urandom" ReadMode
-                  hSetBuffering h NoBuffering
-                  return $ SystemPRG h
+newDevUrandomPRG :: IO DevUrandomPRG
+newDevUrandomPRG = do h <- openBinaryFile "/dev/urandom" ReadMode
+                      hSetBuffering h NoBuffering
+                      return $ DevUrandomPRG h
 
-instance PRG SystemPRG where
-  fillRandomBytes sz ptr (SystemPRG hand) = void $ hFillBuf hand ptr sz
+instance PRG DevUrandomPRG where
+  fillRandomBytes sz ptr (DevUrandomPRG hand) = void $ hFillBuf hand ptr sz
