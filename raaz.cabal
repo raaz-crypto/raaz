@@ -31,8 +31,8 @@ source-repository head
 
 -- Flags to select randomness source.
 flag arc4random
-  description: Enable arc4random as a source of randomness.
-  default: False
+  description: Enable arc4random on posix systems that support it.
+  default: True
 
 library
   default-language: Haskell2010
@@ -41,28 +41,27 @@ library
 
   -- Setting up system prg.
 
-  if os(openbsd) || flag(arc4random)
-     hs-source-dirs: platform/random/arc4random
-     exposed-modules: Raaz.Core.Random.ARC4Random
-
-     if os(openbsd)
-        cpp-options: -DNO_ARC4RANDOM_STIR
-     if os(linux)
-        extra-libraries: bsd
-
+  -- Windows is currently unsupported
   if !os(windows)
+
+     if flag(arc4random)
+        hs-source-dirs: platform/random/arc4random
+        exposed-modules: Raaz.Core.Random.ARC4Random
+        if os(openbsd)
+           cpp-options: -DNO_ARC4RANDOM_STIR
+        if os(linux)
+           extra-libraries: bsd
+
      hs-source-dirs: platform/random/devurandom/
      exposed-modules: Raaz.Core.Random.DevUrandom
-
-  -- Windows is currently unsupported
 
   if os(windows)
      -- TODO: give actual code.
      cpp-option: -DSYSTEM_CRYPTO_GEN_RANDOM
 
   else
-     -- Use arc4random on openbsd
-     if os(openbsd)
+     -- Use arc4random as the system prg if available.
+     if flag(arc4random)
         cpp-options: -DSYSTEMPRG_ARC4RANDOM
 
   -- End of setting up PRG.
