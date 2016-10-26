@@ -32,6 +32,11 @@ source-repository head
 library
   default-language: Haskell2010
   ghc-options: -Wall
+  hs-source-dirs: .
+  -- Setting up system prg.
+  if !os(windows)
+     hs-source-dirs: platform/random/devurandom/
+     cpp-options: -DHAVE_MLOCK
   -- Conditional compilation using CPP
 
   -- 1. Configuring system PRG.
@@ -101,6 +106,7 @@ library
                , Raaz.Core.Random.PRG
                , Raaz.Core.Encode.Base16
                , Raaz.Core.Encode.Base64
+               , Raaz.Core.Random.SystemPRG
                , Raaz.Core.Util.ByteString
                , Raaz.Core.Types.Pointer
                , Raaz.Core.Types.Tuple
