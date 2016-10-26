@@ -98,6 +98,7 @@ library
                  -- , Raaz.Cipher.Salsa20.Internal
   other-modules: Raaz.Core.Constants
                , Raaz.Core.Encode.Internal
+               , Raaz.Core.Random.PRG
                , Raaz.Core.Encode.Base16
                , Raaz.Core.Encode.Base64
                , Raaz.Core.Util.ByteString
