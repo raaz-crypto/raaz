@@ -45,7 +45,7 @@ extern uint64_t raaz_loadle64(uint64_t *ptr);
 #  ifdef PLATFORM_OSX
 #    include <libkern/OSByteOrder.h>
      static inline uint32_t raaz_bswap32(uint32_t x){ return OSSwapInt32(x); }
-     static inline uint64_t raaz_bswap64(uint64_t x){ return OSSwapInt32(x); }
+     static inline uint64_t raaz_bswap64(uint64_t x){ return OSSwapInt64(x); }
 #  else
 #    include <byteswap.h>
      static inline uint32_t raaz_bswap32(uint32_t x){ return bswap_32(x); }
