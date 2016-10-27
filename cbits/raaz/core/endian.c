@@ -1,108 +1,90 @@
-# include <raaz/core/endian.h>
+#include <raaz/core/endian.h>
+#if __RAAZ_REQUIRE_PORTABLE_ENDIAN__
 
-/* Include the right header file based on the platform */
-#ifdef __GNUC__
+/* We were not able to detect the optimised platform specific versions
+ * of the low level endian functions. We now proceed to define a
+ * portable variant so that the extern declarations is satisfied.
+ */
 
-#ifdef PLATFORM_OSX
-#include <libkern/OSByteOrder.h>
-#define bswap_32(a) (OSSwapInt32(a))
-#define bswap_64(a) (OSSwapInt64(a))
-#else
-#include <byteswap.h>
-#endif
 
-uint32_t raazSwap32(uint32_t a){ return bswap_32(a);}
-uint64_t raazSwap64(uint64_t a){ return bswap_64(a);}
-
-void raazSwap32Array(uint32_t *ptr, int n)
-{
-    for(;n > 0; ++ptr, --n){*ptr = bswap_32(*ptr);}
-}
-
-void raazSwap64Array(uint64_t *ptr, int n)
-{
-    for(;n > 0;++ptr, --n){*ptr = bswap_64(*ptr);}
-}
 
 /*
+ *  These are declared as macros because they will work for both
+ *  32-bit as well as 64-bit cases.
+ */
 
-Endian conversion functions. Note PDP endian architectures are not
-supported.
+# define MASK(i)       (0xFFULL << (8*(i))) /* mask to select the ith byte              */
+# define SEL(a,i)      ((a) & MASK(i))      /* select the ith byte                      */
+# define MOVL(a,i)      ((a) << (8*(i)))    /* shift the bytes i positions to the left  */
+# define MOVR(a,i)      ((a) >> (8*(i)))    /* shift the bytes i positions to the right */
+# define SWAP(a,i,j)   (MOVL(SEL(a,i),(j-i)) | MOVR(SEL(a,j), (j - i)))
+                       /* This function swaps the ith and jth bytes and sets other bytes to 0 */
 
-*/
-#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-uint32_t raazLoadBE32(uint32_t *wPtr)               { return bswap_32(*wPtr); }
-uint64_t raazLoadBE64(uint64_t *wPtr)               { return bswap_64(*wPtr); }
-uint32_t raazLoadLE32(uint32_t *wPtr)               { return *wPtr; }
-uint64_t raazLoadLE64(uint64_t *wPtr)               { return *wPtr; }
-#else
-uint32_t raazLoadLE32(uint32_t *wPtr)               { return bswap_32(*wPtr); }
-uint64_t raazLoadLE64(uint64_t *wPtr)               { return bswap_64(*wPtr); }
-uint32_t raazLoadBE32(uint32_t *wPtr)               { return *wPtr; }
-uint64_t raazLoadBE64(uint64_t *wPtr)               { return *wPtr; }
-#endif
 
-#else
+uint32_t raaz_bswap32(uint32_t a){ return (SWAP(a,0,3) | SWAP(a,1,2)); }
+uint64_t raaz_bswap64(uint64_t a){ return (SWAP(a,0,7) | SWAP(a,1,6)  | SWAP(a,2,5) | SWAP(a,3,4)); }
 
-/* Definitions for portable systems */
 
-# define TO32(w)        ((uint32_t)(w))
-# define TO64(w)        ((uint64_t)(w))
-# define B32(ptr,i)     TO32(((uint8_t *)(ptr))[i])
-# define B64(ptr,i)     TO64(((uint8_t *)(ptr))[i])
 
-# define B(ptr,i) (((unsigned char)(ptr))[(i)])
-# define MK32(a,b,c,d)          ( (a) << 24 | (b) << 16 | (c) << 8 | (d) )
+
+# define T8PTR(p)   ((uint8_t *)(p))
+# define T32(x)     ((uint32_t)(x))
+# define T64(x)     ((uint64_t)(x))
+
+# define B32(ptr,i) TO32( T8PTR(ptr)[i]  )
+# define B64(ptr,i) TO64( T8PTR(ptr)[i]  )
+
+/* Make a 32-bit quantity out of the 4 bytes given in MSB first order */
+# define MK32(a,b,c,d) ( (a) << 24 | (b) << 16 | (c) << 8 | (d) )
+
+/* Similar to MK32 but for 64-bit quantities */
 # define MK64(a,b,c,d,e,f,g,h)  \
     ((a) <<  56  | (b) << 48   | (c) << 40 | (d) << 32	| (e) << 24   | (f) << 16   | (g) << 8  | (h))
 
 
-uint32_t raazLoadBE32(uint32_t  *ptr)
+uint32_t raaz_loadbe32(uint32_t ptr)
 {
     return MK32(B32(ptr,0), B32(ptr,1), B32(ptr,2), B32(ptr,3));
 }
 
 
-uint32_t raazLoadLE32(uint32_t *ptr)
+uint32_t raaz_loadle32(uint32_t *ptr)
 {
     return MK32(B32(ptr,3), B32(ptr,2), B32(ptr,1), B32(ptr,0));
 
 }
 
-uint64_t raazLoadBE64(uint64_t *ptr)
+uint64_t raaz_loadbe64(uint64_t *ptr)
 {
     return MK64(B64(ptr,0), B64(ptr,1), B64(ptr,2), B64(ptr,3),
 		B64(ptr,4), B64(ptr,5), B64(ptr,6), B64(ptr,7));
 }
 
 
-uint64_t raazLoadLE64(uint64_t *ptr)
+uint64_t raaz_loadle64(uint64_t *ptr)
 {
     return MK64(B64(ptr,7), B64(ptr,6), B64(ptr,5), B64(ptr,4),
 		B64(ptr,3), B64(ptr,2), B64(ptr,1), B64(ptr,0));
 }
 
 
-# define MASK(i)       (0xFFULL << (8*(i)))
-# define SEL(a,i)      ((a) & MASK(i))
-# define MOVL(a,i)      ((a) << (8*(i)))
-# define MOVR(a,i)      ((a) >> (8*(i)))
 
-/* Assuming i < j */
-# define SWAP(a,i,j)   (MOVL(SEL(a,i),(j-i)) | MOVR(SEL(a,j), (j - i)))
+#endif
 
-uint32_t raazSwap32(uint32_t a){ return (SWAP(a,0,3) | SWAP(a,1,2)); }
-uint64_t raazSwap64(uint64_t a){ return (SWAP(a,0,7) | SWAP(a,1,6)  | SWAP(a,2,5) | SWAP(a,3,4)); }
+/* Finally we define the functions that are called by Haskell as FFI
+ * routines for their endian store instances. These should not be
+ * declared static inline.
+ */
 
+uint32_t raazSwap32(uint32_t a){ return raaz_bswap32(a);}
+uint64_t raazSwap64(uint64_t a){ return raaz_bswap64(a);}
 
 void raazSwap32Array(uint32_t *ptr, int n)
 {
-    for(;n > 0; ++ptr, --n){*ptr = raazSwap32(*ptr);}
+    for(;n > 0; ++ptr, --n){*ptr = raaz_bswap32(*ptr);}
 }
 
 void raazSwap64Array(uint64_t *ptr, int n)
 {
-    for(;n > 0; ++ptr, --n){*ptr = raazSwap64(*ptr);}
+    for(;n > 0; ++ptr, --n){*ptr = raaz_bswap64(*ptr);}
 }
-
-#endif

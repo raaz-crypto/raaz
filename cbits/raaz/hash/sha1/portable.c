@@ -169,22 +169,22 @@ void raazHashSha1PortableCompress(Block *mesg, int nblocks, Hash hash)
 
         */
 
-        w0  = raazLoadBE32( (Word *) mesg);
-        w1  = raazLoadBE32( (Word *) mesg + 1);
-        w2  = raazLoadBE32( (Word *) mesg + 2);
-        w3  = raazLoadBE32( (Word *) mesg + 3);
-        w4  = raazLoadBE32( (Word *) mesg + 4);
-        w5  = raazLoadBE32( (Word *) mesg + 5);
-        w6  = raazLoadBE32( (Word *) mesg + 6);
-        w7  = raazLoadBE32( (Word *) mesg + 7);
-        w8  = raazLoadBE32( (Word *) mesg + 8);
-        w9  = raazLoadBE32( (Word *) mesg + 9);
-        w10 = raazLoadBE32( (Word *) mesg + 10);
-        w11 = raazLoadBE32( (Word *) mesg + 11);
-        w12 = raazLoadBE32( (Word *) mesg + 12);
-        w13 = raazLoadBE32( (Word *) mesg + 13);
-        w14 = raazLoadBE32( (Word *) mesg + 14);
-        w15 = raazLoadBE32( (Word *) mesg + 15);
+        w0  = raaz_loadbe32( (Word *) mesg);
+        w1  = raaz_loadbe32( (Word *) mesg + 1);
+        w2  = raaz_loadbe32( (Word *) mesg + 2);
+        w3  = raaz_loadbe32( (Word *) mesg + 3);
+        w4  = raaz_loadbe32( (Word *) mesg + 4);
+        w5  = raaz_loadbe32( (Word *) mesg + 5);
+        w6  = raaz_loadbe32( (Word *) mesg + 6);
+        w7  = raaz_loadbe32( (Word *) mesg + 7);
+        w8  = raaz_loadbe32( (Word *) mesg + 8);
+        w9  = raaz_loadbe32( (Word *) mesg + 9);
+        w10 = raaz_loadbe32( (Word *) mesg + 10);
+        w11 = raaz_loadbe32( (Word *) mesg + 11);
+        w12 = raaz_loadbe32( (Word *) mesg + 12);
+        w13 = raaz_loadbe32( (Word *) mesg + 13);
+        w14 = raaz_loadbe32( (Word *) mesg + 14);
+        w15 = raaz_loadbe32( (Word *) mesg + 15);
 
         /* End of reading the message */
 
