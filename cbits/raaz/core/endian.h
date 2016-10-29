@@ -31,10 +31,10 @@ extern void     raazSwap64Array (uint64_t *ptr, int n);
 extern uint32_t raaz_bswap32(uint32_t x);
 extern uint64_t raaz_bswap64(uint64_t x);
 
-extern uint32_t raaz_loadbe32(uint32_t *ptr);
-extern uint64_t raaz_loadbe64(uint64_t *ptr);
-extern uint32_t raaz_loadle32(uint32_t *ptr);
-extern uint64_t raaz_loadle64(uint64_t *ptr);
+extern uint32_t raaz_tobe32(uint32_t x);
+extern uint64_t raaz_tobe64(uint64_t x);
+extern uint32_t raaz_tole32(uint32_t x);
+extern uint64_t raaz_tole64(uint64_t x);
 
 #else
 
@@ -43,29 +43,31 @@ extern uint64_t raaz_loadle64(uint64_t *ptr);
  */
 
 #  ifdef PLATFORM_OSX
-#    include <libkern/OSByteOrder.h>
+#    include <libkern/OSByteOrder.h> /* For PLATFORM OSX */
+
      static inline uint32_t raaz_bswap32(uint32_t x){ return OSSwapInt32(x); }
      static inline uint64_t raaz_bswap64(uint64_t x){ return OSSwapInt64(x); }
-#  else
+
+#  else /* For other systems */
 #    include <byteswap.h>
      static inline uint32_t raaz_bswap32(uint32_t x){ return bswap_32(x); }
      static inline uint64_t raaz_bswap64(uint64_t x){ return bswap_64(x); }
-#  endif /* PLATFORM OSX */
+#  endif
 
 #  if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 
-   static inline uint32_t raaz_loadbe32(uint32_t *ptr){ return raaz_bswap32(*ptr); }
-   static inline uint64_t raaz_loadbe64(uint64_t *ptr){ return raaz_bswap64(*ptr); }
+   static inline uint32_t raaz_tobe32(uint32_t x){ return raaz_bswap32(x); }
+   static inline uint64_t raaz_tobe64(uint64_t x){ return raaz_bswap64(x); }
 
-   static inline uint32_t raaz_loadle32(uint32_t *ptr){ return *ptr; }
-   static inline uint64_t raaz_loadle64(uint64_t *ptr){ return *ptr; }
+   static inline uint32_t raaz_tole32(uint32_t x){ return x; }
+   static inline uint64_t raaz_tole64(uint64_t x){ return x; }
 
 #  else
-   static inline uint32_t raaz_loadbe32(uint32_t *ptr){ return *ptr; }
-   static inline uint64_t raaz_loadbe64(uint64_t *ptr){ return *ptr; }
+   static inline uint32_t raaz_tobe32(uint32_t x){ return x; }
+   static inline uint64_t raaz_tobe64(uint64_t x){ return x; }
 
-   static inline uint32_t raaz_loadle32(uint32_t *ptr){ return raaz_bswap32(*ptr); }
-   static inline uint64_t raaz_loadle64(uint64_t *ptr){ return raaz_bswap64(*ptr); }
+   static inline uint32_t raaz_tole32(uint32_t x){ return raaz_bswap32(x); }
+   static inline uint64_t raaz_tole64(uint64_t x){ return raaz_bswap64(x); }
 
 #  endif /* Byte order */
 
