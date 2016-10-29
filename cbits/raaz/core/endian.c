@@ -1,5 +1,5 @@
 #include <raaz/core/endian.h>
-#if __RAAZ_REQUIRE_PORTABLE_ENDIAN__
+#ifdef __RAAZ_REQUIRE_PORTABLE_ENDIAN__
 
 /* We were not able to detect the optimised platform specific versions
  * of the low level endian functions. We now proceed to define a
@@ -27,12 +27,12 @@ uint64_t raaz_bswap64(uint64_t a){ return (SWAP(a,0,7) | SWAP(a,1,6)  | SWAP(a,2
 
 
 
-# define T8PTR(p)   ((uint8_t *)(p))
-# define T32(x)     ((uint32_t)(x))
-# define T64(x)     ((uint64_t)(x))
 
-# define B32(ptr,i) TO32( T8PTR(ptr)[i]  )
-# define B64(ptr,i) TO64( T8PTR(ptr)[i]  )
+# define TO32(x)     ((uint32_t)(x))
+# define TO64(x)     ((uint64_t)(x))
+
+# define B32(ptr,i) (TO32(ptr[i]))
+# define B64(ptr,i) (TO64(ptr[i]))
 
 /* Make a 32-bit quantity out of the 4 bytes given in MSB first order */
 # define MK32(a,b,c,d) ( (a) << 24 | (b) << 16 | (c) << 8 | (d) )
@@ -42,27 +42,31 @@ uint64_t raaz_bswap64(uint64_t a){ return (SWAP(a,0,7) | SWAP(a,1,6)  | SWAP(a,2
     ((a) <<  56  | (b) << 48   | (c) << 40 | (d) << 32	| (e) << 24   | (f) << 16   | (g) << 8  | (h))
 
 
-uint32_t raaz_loadbe32(uint32_t ptr)
+uint32_t raaz_tobe32(uint32_t x)
 {
+    uint8_t *ptr = (uint8_t *) &x;
     return MK32(B32(ptr,0), B32(ptr,1), B32(ptr,2), B32(ptr,3));
 }
 
 
-uint32_t raaz_loadle32(uint32_t *ptr)
+uint32_t raaz_tole32(uint32_t x)
 {
+    uint8_t *ptr = (uint8_t *) &x;
     return MK32(B32(ptr,3), B32(ptr,2), B32(ptr,1), B32(ptr,0));
 
 }
 
-uint64_t raaz_loadbe64(uint64_t *ptr)
+uint64_t raaz_tobe64(uint64_t x)
 {
+    uint8_t *ptr = (uint8_t *) &x;
     return MK64(B64(ptr,0), B64(ptr,1), B64(ptr,2), B64(ptr,3),
 		B64(ptr,4), B64(ptr,5), B64(ptr,6), B64(ptr,7));
 }
 
 
-uint64_t raaz_loadle64(uint64_t *ptr)
+uint64_t raaz_tole64(uint64_t x)
 {
+    uint8_t *ptr = (uint8_t *) &x;
     return MK64(B64(ptr,7), B64(ptr,6), B64(ptr,5), B64(ptr,4),
 		B64(ptr,3), B64(ptr,2), B64(ptr,1), B64(ptr,0));
 }
