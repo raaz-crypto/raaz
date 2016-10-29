@@ -168,24 +168,25 @@ void raazHashSha1PortableCompress(Block *mesg, int nblocks, Hash hash)
              (insert (format "w%d = raazLoad32BE( (Word *) mesg, %d);\n" i i)))
 
         */
+# define      LOAD(i) raaz_tobe32((*mesg)[i])
+        w0  = LOAD(0);
+        w1  = LOAD(1);
+        w2  = LOAD(2);
+        w3  = LOAD(3);
+        w4  = LOAD(4);
+        w5  = LOAD(5);
+        w6  = LOAD(6);
+        w7  = LOAD(7);
+        w8  = LOAD(8);
+        w9  = LOAD(9);
+        w10 = LOAD(10);
+        w11 = LOAD(11);
+        w12 = LOAD(12);
+        w13 = LOAD(13);
+        w14 = LOAD(14);
+        w15 = LOAD(15);
 
-        w0  = raaz_loadbe32( (Word *) mesg);
-        w1  = raaz_loadbe32( (Word *) mesg + 1);
-        w2  = raaz_loadbe32( (Word *) mesg + 2);
-        w3  = raaz_loadbe32( (Word *) mesg + 3);
-        w4  = raaz_loadbe32( (Word *) mesg + 4);
-        w5  = raaz_loadbe32( (Word *) mesg + 5);
-        w6  = raaz_loadbe32( (Word *) mesg + 6);
-        w7  = raaz_loadbe32( (Word *) mesg + 7);
-        w8  = raaz_loadbe32( (Word *) mesg + 8);
-        w9  = raaz_loadbe32( (Word *) mesg + 9);
-        w10 = raaz_loadbe32( (Word *) mesg + 10);
-        w11 = raaz_loadbe32( (Word *) mesg + 11);
-        w12 = raaz_loadbe32( (Word *) mesg + 12);
-        w13 = raaz_loadbe32( (Word *) mesg + 13);
-        w14 = raaz_loadbe32( (Word *) mesg + 14);
-        w15 = raaz_loadbe32( (Word *) mesg + 15);
-
+#undef LOAD
         /* End of reading the message */
 
 #undef K
