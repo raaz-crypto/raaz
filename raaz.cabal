@@ -93,6 +93,7 @@ library
                  , Raaz.Cipher.AES
                  -- Exposed Implementations of AES.
                  , Raaz.Cipher.AES.CBC.Implementation.CPortable
+                 , Raaz.Cipher.ChaCha20.Implementation.CPortable
                  -- , Raaz.Cipher.AES.CTR
                  -- , Raaz.Cipher.Salsa20
                  -- , Raaz.Cipher.Salsa20.Internal
