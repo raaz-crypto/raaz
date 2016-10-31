@@ -133,7 +133,7 @@ library
                --
                , Raaz.Cipher.AES.Internal
                , Raaz.Cipher.AES.Recommendation
-
+               , Raaz.Cipher.ChaCha20.Internal
                -- , Raaz.Cipher.AES.CTR.CPortable
                -- , Raaz.Cipher.AES.CTR.Instance
                -- , Raaz.Cipher.AES.CTR.Ref
