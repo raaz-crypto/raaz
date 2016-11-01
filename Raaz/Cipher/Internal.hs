@@ -21,16 +21,18 @@ module Raaz.Cipher.Internal
          -- ** Stream ciphers.
          -- $streamcipher$
        , StreamCipher, makeCipherI
-       --
+       , transform, transform'
        -- ** Unsafe encryption and decryption.
        -- $unsafecipher$
        --
        , unsafeEncrypt, unsafeDecrypt, unsafeEncrypt', unsafeDecrypt'
+
        ) where
 
-
+import Control.Monad.IO.Class          (liftIO)
 import Data.ByteString.Internal as IB
-import Foreign.Ptr (castPtr)
+import Foreign.Ptr                     (castPtr)
+import System.IO.Unsafe                (unsafePerformIO)
 
 import Raaz.Core
 import Raaz.Core.Util.ByteString as B
@@ -183,6 +185,35 @@ unsafeEncrypt' c (SomeCipherI imp) key = makeCopyRun c encryptAction
   where encryptAction ptr blks
           = insecurely $ do initialise key
                             encryptBlocks imp ptr blks
+
+-- | Transforms a given bytestring using a stream cipher. We use the
+-- transform instead of encrypt/decrypt because for stream ciphers
+-- these operations are same.
+
+transform' :: StreamCipher c
+           => c
+           -> Implementation c
+           -> Key c
+           -> ByteString
+           -> ByteString
+transform' c (SomeCipherI imp) key bs = unsafePerformIO $ IB.createAndTrim (fromEnum $ inBytes blks) action
+   where blks          = atLeast len `asTypeOf` blocksOf 1 c
+         len           = B.length bs
+         action ptr    = insecurely $ do liftIO $ unsafeCopyToPointer bs (castPtr ptr)
+                                         initialise key
+                                         encryptBlocks imp (castPtr ptr) blks
+                                         return $ fromIntegral len
+
+-- | Transform a given bytestring using the recommended implementation
+-- of a stream cipher.
+transform :: (StreamCipher c, Recommendation c)
+           => c
+           -> Key c
+           -> ByteString
+           -> ByteString
+transform c = transform' c $ recommended c
+
+
 
 -- | Encrypt using the recommended implementation. This function is
 -- unsafe because it only works correctly when the input `ByteString`
