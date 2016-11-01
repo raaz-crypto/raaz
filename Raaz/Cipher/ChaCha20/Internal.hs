@@ -56,7 +56,7 @@ instance Primitive ChaCha20 where
   type Implementation ChaCha20 = SomeCipherI ChaCha20
 
 instance Symmetric ChaCha20 where
-  type Key ChaCha20 = (KEY, IV)
+  type Key ChaCha20 = (KEY, IV, Counter)
 
 instance Cipher ChaCha20
 

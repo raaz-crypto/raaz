@@ -28,10 +28,14 @@ instance Memory ChaCha20Mem where
   memoryAlloc   = ChaCha20Mem <$> memoryAlloc <*> memoryAlloc <*> memoryAlloc
   underlyingPtr = underlyingPtr . keyCell
 
+instance Initialisable ChaCha20Mem (KEY, IV, Counter) where
+  initialise (k,iv,ctr) = do onSubMemory keyCell     $ initialise k
+                             onSubMemory ivCell      $ initialise iv
+                             onSubMemory counterCell $ initialise ctr
+
+
 instance Initialisable ChaCha20Mem (KEY, IV) where
-  initialise (k,iv) = do onSubMemory keyCell     $ initialise k
-                         onSubMemory ivCell      $ initialise iv
-                         onSubMemory counterCell $ initialise (0 :: Counter)
+  initialise (k, iv) = initialise (k, iv, 0 :: Counter)
 
 -- | Chacha20 block transformation.
 foreign import ccall unsafe
