@@ -91,6 +91,7 @@ library
                  , Raaz.Cipher
                  , Raaz.Cipher.Internal
                  , Raaz.Cipher.AES
+                 , Raaz.Cipher.ChaCha20
                  -- Exposed Implementations of AES.
                  , Raaz.Cipher.AES.CBC.Implementation.CPortable
                  , Raaz.Cipher.ChaCha20.Implementation.CPortable
@@ -135,6 +136,7 @@ library
                , Raaz.Cipher.AES.Internal
                , Raaz.Cipher.AES.Recommendation
                , Raaz.Cipher.ChaCha20.Internal
+               , Raaz.Cipher.ChaCha20.Recommendation
                -- , Raaz.Cipher.AES.CTR.CPortable
                -- , Raaz.Cipher.AES.CTR.Instance
                -- , Raaz.Cipher.AES.CTR.Ref
