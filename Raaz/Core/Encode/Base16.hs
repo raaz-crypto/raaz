@@ -27,6 +27,10 @@ import Raaz.Core.Encode.Internal
 -- `IsString` instance. The combinators `fromBase16` and `showBase16`
 -- are exposed mainly to make these definitions easy.
 --
+-- The base16 encoding only produces valid hex characters. However, to
+-- aid easy presentation of long hexadecimal strings, a user can add
+-- add arbitrary amount of spaces, newlines and the character ':'. The
+-- decoding ignores these characters.
 newtype Base16 = Base16 {unBase16 :: ByteString} deriving (Eq, Monoid)
 
 -- Developers note: Internally base16 just stores the bytestring as
@@ -77,7 +81,11 @@ bot4 :: Word8 -> Word8; bot4 x  = x  .&. 0x0F
 
 
 unsafeFromHex :: ByteString -> ByteString
-unsafeFromHex bs
+unsafeFromHex  = unsafeFromHexP . C8.filter (not . useless)
+  where useless c = isSpace c || c == ':'
+
+unsafeFromHexP :: ByteString -> ByteString
+unsafeFromHexP bs
   | odd (B.length bs) = error "base16 encoding is always of even size"
   | otherwise         = fst $ B.unfoldrN len gen 0
   where len   = B.length bs `quot` 2
