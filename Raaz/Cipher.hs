@@ -4,11 +4,16 @@
 module Raaz.Cipher
        ( -- * Ciphers
          -- $cipherdoc$
-         aes128cbc, aes192cbc, aes256cbc
+         Cipher
+       , aes128cbc, aes192cbc, aes256cbc
+       , StreamCipher
+       , chacha20, transform
        ) where
 
 
 import Raaz.Cipher.AES      ( aes128cbc, aes192cbc, aes256cbc)
+import Raaz.Cipher.ChaCha20
+import Raaz.Cipher.Internal (transform, Cipher, StreamCipher)
 
 -- $cipherdoc$
 --
