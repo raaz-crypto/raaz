@@ -10,6 +10,8 @@ module Common.Instances where
 import Common.Imports
 import Common.Utils
 import Raaz.Cipher.AES as AES
+import Raaz.Cipher.ChaCha20 as ChaCha20
+
 
 instance Arbitrary w => Arbitrary (LE w) where
   arbitrary = littleEndian <$> arbitrary
@@ -67,3 +69,14 @@ instance Arbitrary AES.KEY256 where
 
 instance Arbitrary AES.IV where
   arbitrary = genEncodable
+
+instance Arbitrary ChaCha20.KEY where
+  arbitrary = genEncodable
+
+instance Arbitrary ChaCha20.IV where
+  arbitrary = genEncodable
+
+instance Arbitrary ChaCha20.Counter where
+  arbitrary = le32ToCtr <$> arbitrary
+    where le32ToCtr :: LE Word32 -> Counter
+          le32ToCtr = fromIntegral

@@ -46,3 +46,51 @@ even if `Foo` and `Bar` have timing safe equality.
 data BadSensitiveType = BadSensitiveType Foo Bar deriving Eq
 
 ```
+
+## Reviewing C code.
+
+For speed, the block primitives are written in C. Most primitives have
+a default word type (64-bit unsigned int for `sha512` for
+example). They also have a block that is essentially an array of such
+words (for `sha512` it is 16. So it will be common to see declarations
+of the following kind.
+
+```C
+
+typedef uint64_t   Word;  /* basic unit of sha512 hash  */
+#define HASH_SIZE  8      /* Number of words in a Hash  */
+#define BLOCK_SIZE 16     /* Number of words in a block */
+
+typedef Word Hash [ HASH_SIZE  ];
+typedef Word Block[ BLOCK_SIZE ];
+
+```
+
+In such a setting, we often have a loop that goes over all the
+blocks. This would typically look like the following.
+
+```C
+
+void foo(Block *ptr, int nblocks, ...)
+{
+	/* Other stuff here */
+
+	while(nblocks > 0) /* looping over all blocks */
+	{
+
+       doSomethingOn((*ptr)[i]); /* do something on the ith word in the current block */
+
+       -- nblocks; ++ ptr; /* move to the next block ensure these are
+                            * on the same line
+	                        */
+
+	}
+}
+
+```
+
+We would like to follow the above convention be cause it reduces the
+chance of incorrect pointer arithmetic. The bugs are concentrated on
+the definition of the block and word types. So if one is reviewing
+such low level code, it is better to get familiarised with this
+programming pattern.
