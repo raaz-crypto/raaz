@@ -31,3 +31,18 @@ encryptsTo c inp expected key
                         , "to"
                         , shortened $ show expected
                         ]
+
+transformsTo :: (StreamCipher c, Recommendation c, Format fmt1, Format fmt2)
+              => c
+              -> fmt1
+              -> fmt2
+              -> Key c
+              -> Spec
+transformsTo c inp expected key
+  = it msg $ result `shouldBe` (decodeFormat expected)
+  where result = transform c key $ decodeFormat inp
+        msg   = unwords [ "encrypts"
+                        , shortened $ show inp
+                        , "to"
+                        , shortened $ show expected
+                        ]
