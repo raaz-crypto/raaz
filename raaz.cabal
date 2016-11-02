@@ -29,31 +29,51 @@ source-repository head
   type: git
   location: https://github.com/raaz-crypto/raaz
 
+-- Flags to select randomness source.
+flag arc4random
+  description: Enable arc4random on posix systems that support it.
+  default: True
+
 library
   default-language: Haskell2010
   ghc-options: -Wall
-  -- Conditional compilation using CPP
+  hs-source-dirs: .
 
-  -- 1. Configuring system PRG.
-  --
-  --    * HAVE_SYSTEM_PRG: If a system prg is exposed.
-  --
-  --    * HAVE_DEV_URANDON: If the device /dev/urandom exists.
-  --
-  --
-  -- 2. Memory Locking
-  --    System supports mlock/munlock calls.
-  --
-  -- The check below is not really accurate but should work most of
-  -- the time. What I really want is to check if the system is posix.
-  -- TODO: Fix it latter.
+  -- Setting up system prg.
+
+  -- Windows is currently unsupported
+  if !os(windows)
+
+     if flag(arc4random)
+        hs-source-dirs: platform/random/arc4random
+        exposed-modules: Raaz.Core.Random.ARC4Random
+        if os(openbsd)
+           cpp-options: -DNO_ARC4RANDOM_STIR
+        if os(linux)
+           extra-libraries: bsd
+
+     hs-source-dirs: platform/random/devurandom/
+     exposed-modules: Raaz.Core.Random.DevUrandom
+
+  if os(windows)
+     -- TODO: give actual code.
+     cpp-option: -DSYSTEM_CRYPTO_GEN_RANDOM
+
+  else
+     -- Use arc4random as the system prg if available.
+     if flag(arc4random)
+        cpp-options: -DSYSTEMPRG_ARC4RANDOM
+
+  -- End of setting up PRG.
+
   if !os(windows)
      cpp-options: -DHAVE_MLOCK
-                  -DHAVE_DEV_URANDOM
-                  -DHAVE_SYSTEM_PRG
-  if os(osx)
-     cc-options: -DPLATFORM_OSX
 
+  -- Setting up the platform specific swap instructions.
+  if os(osx)
+     cc-options: -DOSX_BYTE_SWAP
+
+  -- End of BYTE_SWAP Setting.
   exposed-modules: Raaz
                  , Raaz.Core
                  , Raaz.Core.ByteSource
@@ -98,6 +118,8 @@ library
                  -- , Raaz.Cipher.Salsa20.Internal
   other-modules: Raaz.Core.Constants
                , Raaz.Core.Encode.Internal
+               , Raaz.Core.Random.PRG
+               , Raaz.Core.Random.System
                , Raaz.Core.Encode.Base16
                , Raaz.Core.Encode.Base64
                , Raaz.Core.Util.ByteString
@@ -220,5 +242,16 @@ benchmark blaze-vs-write
   build-depends: base
                , blaze-builder
                , bytestring
+               , criterion
+               , raaz
+
+benchmark random-sources
+  hs-source-dirs: benchmarks
+  default-language: Haskell2010
+  if os(openbsd) || flag(arc4random)
+     cpp-options: -DBENCH_ARC4RANDOM
+  main-is: Random.hs
+  type: exitcode-stdio-1.0
+  build-depends: base
                , criterion
                , raaz
