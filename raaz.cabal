@@ -195,6 +195,7 @@ test-Suite spec
                , Common.Instances
                , Common.Utils
                , Raaz.Cipher.AESSpec
+               , Raaz.Cipher.ChaCha20Spec
                , Raaz.Core.EncodeSpec
                , Raaz.Core.MemorySpec
                , Raaz.Core.SystemPRGSpec
