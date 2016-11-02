@@ -1,7 +1,5 @@
 {-# LANGUAGE DataKinds                        #-}
-{-# LANGUAGE KindSignatures                   #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving       #-}
-{-# LANGUAGE ForeignFunctionInterface         #-}
 {-# LANGUAGE FlexibleInstances                #-}
 {-# LANGUAGE MultiParamTypeClasses            #-}
 {-# LANGUAGE TypeFamilies                     #-}

@@ -48,9 +48,9 @@ foreign import ccall unsafe
                    -> IO ()
 
 chacha20Block :: Pointer -> BLOCKS ChaCha20 -> MT ChaCha20Mem ()
-chacha20Block msgPtr nblocks = do keyPtr <- onSubMemory keyCell     $ getMemoryPointer
-                                  ivPtr  <- onSubMemory ivCell      $ getMemoryPointer
-                                  ctrPtr <- onSubMemory counterCell $ getMemoryPointer
+chacha20Block msgPtr nblocks = do keyPtr <- onSubMemory keyCell     getMemoryPointer
+                                  ivPtr  <- onSubMemory ivCell      getMemoryPointer
+                                  ctrPtr <- onSubMemory counterCell getMemoryPointer
                                   liftIO $ c_chacha20_block msgPtr (fromEnum nblocks) keyPtr ivPtr ctrPtr
 
 chacha20Portable :: CipherI ChaCha20 ChaCha20Mem ChaCha20Mem
