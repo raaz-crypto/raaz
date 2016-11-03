@@ -126,7 +126,7 @@ instance Describable (SomeCipherI cipher) where
 -- which is a multiple of the block size.  Needless to say, the
 -- encryption and decryption should be inverses of each other for such
 -- messages.
-class (Symmetric cipher, Implementation cipher ~ SomeCipherI cipher)
+class (Symmetric cipher, Implementation cipher ~ SomeCipherI cipher, Describable cipher)
       => Cipher cipher
 
 -- | Class that captures stream ciphers. An instance of `StreamCipher`
