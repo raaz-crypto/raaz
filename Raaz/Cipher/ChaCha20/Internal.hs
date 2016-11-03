@@ -56,6 +56,10 @@ instance Primitive ChaCha20 where
 instance Symmetric ChaCha20 where
   type Key ChaCha20 = (KEY, IV, Counter)
 
+instance Describable ChaCha20 where
+  name        _ = "chacha20"
+  description _ = "The ChaCha20 cipher"
+
 instance Cipher ChaCha20
 
 instance StreamCipher ChaCha20
