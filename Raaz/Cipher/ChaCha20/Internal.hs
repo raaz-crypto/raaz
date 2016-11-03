@@ -5,7 +5,7 @@
 {-# LANGUAGE TypeFamilies                     #-}
 
 module Raaz.Cipher.ChaCha20.Internal
-       ( ChaCha20(..), Counter(..), IV(..), KEY(..)
+       ( ChaCha20(..), Counter(..), IV(..), KEY(..), ChaCha20Mem(..)
        ) where
 
 import Data.Word
@@ -63,3 +63,26 @@ instance Describable ChaCha20 where
 instance Cipher ChaCha20
 
 instance StreamCipher ChaCha20
+
+
+
+---------- Memory for ChaCha20 implementations  ------------------
+-- | chacha20 memory
+data ChaCha20Mem = ChaCha20Mem { keyCell      :: MemoryCell KEY
+                               , ivCell       :: MemoryCell IV
+                               , counterCell  :: MemoryCell Counter
+                               }
+
+
+instance Memory ChaCha20Mem where
+  memoryAlloc   = ChaCha20Mem <$> memoryAlloc <*> memoryAlloc <*> memoryAlloc
+  underlyingPtr = underlyingPtr . keyCell
+
+instance Initialisable ChaCha20Mem (KEY, IV, Counter) where
+  initialise (k,iv,ctr) = do onSubMemory keyCell     $ initialise k
+                             onSubMemory ivCell      $ initialise iv
+                             onSubMemory counterCell $ initialise ctr
+
+
+instance Initialisable ChaCha20Mem (KEY, IV) where
+  initialise (k, iv) = initialise (k, iv, 0 :: Counter)
