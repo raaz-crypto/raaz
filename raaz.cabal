@@ -29,6 +29,19 @@ source-repository head
   type: git
   location: https://github.com/raaz-crypto/raaz
 
+flag gccvector128
+     Description: Make use of gcc vector instructions with size being 128
+     Default: False
+
+flag gccvector256
+     Description: Make use of gcc vector instructions with size being 128
+     Default: False
+
+flag gccvector512
+     Description: Make use of gcc vector instructions with size being 128
+     Default: False
+
+
 library
   default-language: Haskell2010
   ghc-options: -Wall
@@ -53,6 +66,23 @@ library
                   -DHAVE_SYSTEM_PRG
   if os(osx)
      cc-options: -DPLATFORM_OSX
+
+  -- Vector instructions
+  if flag(gccvector128)
+     cpp-options: -DHAVE_VECTOR_128
+     cc-options:  -DHAVE_VECTOR_128
+
+
+  if flag(gccvector256)
+     cpp-options: -DHAVE_VECTOR_256
+     cc-options:  -DHAVE_VECTOR_256
+
+
+  if flag(gccvector512)
+     cpp-options: -DHAVE_VECTOR_512
+     cc-options:  -DHAVE_VECTOR_512
+
+
 
   exposed-modules: Raaz
                  , Raaz.Core
