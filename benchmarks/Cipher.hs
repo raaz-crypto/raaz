@@ -3,6 +3,7 @@
 import           Control.Monad
 import           Criterion
 import           Criterion.Main
+import           Criterion.Types
 import           Foreign.Marshal.Alloc
 
 import           Raaz.Core
@@ -13,23 +14,42 @@ main :: IO ()
 main = allocaBytes (fromIntegral bufSize) $ \ ptr -> do
   defaultMain
     [ bgroup "ciphers"
-      [ bench "aes128cbc encrypt"   $ nfIO $ aes128cbcEncrypt ptr
-      , bench "aes128cbc decrypt"   $ nfIO $ aes128cbcDecrypt ptr
-      , bench "chacha20 transform"  $ nfIO $ chacha20Transform ptr
+      [ benchCipher chacha20  ptr
+      , benchCipher aes128cbc ptr
+      , benchCipher aes192cbc ptr
+      , benchCipher aes256cbc ptr
       ]
     ]
 
 bufSize :: BYTES Int
 bufSize = 32 * 1024
 
-aes128cbcEncrypt :: Pointer  ->  IO ()
-aes128cbcEncrypt buf =  (\ (SomeCipherI imp) -> insecurely $ encryptBlocks imp buf (atMost bufSize))
-                        $ recommended aes128cbc
 
-aes128cbcDecrypt :: Pointer  ->  IO ()
-aes128cbcDecrypt buf =  (\ (SomeCipherI imp) -> insecurely $ decryptBlocks imp buf (atMost bufSize))
-                        $ recommended aes128cbc
+benchCipher :: (Cipher c, Recommendation c)
+                => c -> Pointer -> Benchmark
+benchCipher c ptr = bgroup (name c) [benchEncrypt c ptr, benchDecrypt c ptr]
 
-chacha20Transform :: Pointer -> IO ()
-chacha20Transform buf = (\ (SomeCipherI imp) -> insecurely $ encryptBlocks imp buf (atMost bufSize))
-                        $ recommended chacha20
+
+benchEncrypt :: (Cipher c, Recommendation c)
+              => c -> Pointer  -> Benchmark
+benchEncrypt c = benchEncrypt' c $ recommended c
+
+
+benchEncrypt' :: Cipher c
+               => c
+               -> Implementation c
+               -> Pointer -> Benchmark
+benchEncrypt' c si@(SomeCipherI imp) ptr = bench nm $ nfIO $ insecurely $ encryptBlocks imp ptr (atMost bufSize)
+  where nm = "encrypt" ++ name si
+
+
+benchDecrypt  :: (Cipher c, Recommendation c)
+              => c -> Pointer  -> Benchmark
+benchDecrypt c = benchDecrypt' c $ recommended c
+
+benchDecrypt' :: Cipher c
+               => c
+               -> Implementation c
+               -> Pointer -> Benchmark
+benchDecrypt' c si@(SomeCipherI imp) ptr = bench nm $ nfIO $ insecurely $ decryptBlocks imp ptr (atMost bufSize)
+  where nm = "decrypt" ++ name si
