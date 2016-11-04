@@ -206,7 +206,6 @@ library
                   , cbits/raaz/cipher/aes/common.h
                   , cbits/raaz/cipher/aes/cportable.h
                   , cbits/raaz/cipher/chacha20/common.h
-                  , cbits/raaz/cipher/chacha20/cportable.h
                   , cbits/raaz/cipher/chacha20/vector.h
 executable checksum
   default-language: Haskell2010

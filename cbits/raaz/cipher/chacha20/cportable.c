@@ -1,5 +1,4 @@
-#include "cportable.h"
-#include <stdio.h>
+#include "common.h"
 
 /* The main chacha20 block transform for a complete block of data.
  *
@@ -65,20 +64,22 @@ Some function for debugging.
 */
 
 
-void raazChaCha20Block(Block *msg, int nblocks, Key key, IV iv, Counter *ctr)
+void raazChaCha20Block(Block *msg, int nblocks, const Key key, const IV iv, Counter *ctr)
 {
     register Word x0,  x1,  x2, x3;
     register Word x4,  x5,  x6, x7;
     register Word x8,  x9,  x10, x11;
     register Word x12, x13, x14, x15;
+    register Word valCtr; /* value of the ctr */
 
+    valCtr = *ctr;
     while( nblocks > 0){
 
 
 	x0  = C0     ; x1  = C1     ; x2  = C2     ; x3  = C3     ;
 	x4  = key[0] ; x5  = key[1] ; x6  = key[2] ; x7  = key[3] ;
 	x8  = key[4] ; x9  = key[5] ; x10 = key[6] ; x11 = key[7] ;
-	x12 = *ctr   ; x13 = iv[0]  ; x14 = iv[1]  ; x15 = iv[2]  ;
+	x12 = valCtr ; x13 = iv[0]  ; x14 = iv[1]  ; x15 = iv[2]  ;
 
 
 	ROUND; /* 0,1   */
@@ -97,7 +98,7 @@ void raazChaCha20Block(Block *msg, int nblocks, Key key, IV iv, Counter *ctr)
 	x0  += C0     ; x1  += C1     ; x2  += C2     ; x3  += C3     ;
 	x4  += key[0] ; x5  += key[1] ; x6  += key[2] ; x7  += key[3] ;
 	x8  += key[4] ; x9  += key[5] ; x10 += key[6] ; x11 += key[7] ;
-	x12 += *ctr   ; x13 += iv[0]  ; x14 += iv[1]  ; x15 += iv[2]  ;
+	x12 += valCtr ; x13 += iv[0]  ; x14 += iv[1]  ; x15 += iv[2]  ;
 
 	/* The output has to take care of the fact that we have permuted
 	 * the columns. The ith column, i = 0,1,2,3 needs to be moved
@@ -111,9 +112,11 @@ void raazChaCha20Block(Block *msg, int nblocks, Key key, IV iv, Counter *ctr)
 	XOR(12,x12) ; XOR(13,x13); XOR(14, x14) ; XOR(15, x15) ;
 
 
-	++(*ctr);         /* increment counter      */
+	++ valCtr;
 	--nblocks; ++msg; /* move to the next block */
     }
+    *ctr = valCtr;         /* increment counter      */
+    return;
 }
 
 
