@@ -9,15 +9,21 @@ import           Foreign.Marshal.Alloc
 import           Raaz.Core
 import           Raaz.Cipher
 import           Raaz.Cipher.Internal
+import qualified Raaz.Cipher.ChaCha20.Implementation.CPortable as CPortable
+import qualified Raaz.Cipher.ChaCha20.Implementation.GCCVector as GCCVector
+
 
 main :: IO ()
 main = allocaBytes (fromIntegral bufSize) $ \ ptr -> do
   defaultMain
     [ bgroup "ciphers"
-      [ benchCipher chacha20  ptr
-      , benchCipher aes128cbc ptr
+      [ benchCipher aes128cbc ptr
       , benchCipher aes192cbc ptr
       , benchCipher aes256cbc ptr
+      ]
+    , bgroup "chacha20 implementations"
+      [ benchEncrypt' chacha20 CPortable.implementation ptr
+      , benchEncrypt' chacha20 GCCVector.implementation ptr
       ]
     ]
 
