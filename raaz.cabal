@@ -82,7 +82,6 @@ library
      cc-options:  -DHAVE_VECTOR_512
 
 
-
   exposed-modules: Raaz
                  , Raaz.Core
                  , Raaz.Core.ByteSource
@@ -124,9 +123,10 @@ library
                  -- Exposed Implementations of AES.
                  , Raaz.Cipher.AES.CBC.Implementation.CPortable
                  , Raaz.Cipher.ChaCha20.Implementation.CPortable
-                 -- , Raaz.Cipher.AES.CTR
-                 -- , Raaz.Cipher.Salsa20
-                 -- , Raaz.Cipher.Salsa20.Internal
+
+  if flag(gccvector128) || flag(gccvector256) || flag(gccvector512)
+     exposed-modules: Raaz.Cipher.ChaCha20.Implementation.GCCVector
+
   other-modules: Raaz.Core.Constants
                , Raaz.Core.Encode.Internal
                , Raaz.Core.Encode.Base16
@@ -186,9 +186,6 @@ library
     -- starting with base-4.9 we don't need 'transformers' anymore
     build-depends: transformers
 
-  if flag(gccvector128) || flag(gccvector256) || flag(gccvector512)
-    c-sources: cbits/raaz/cipher/chacha20/vector.c
-
   c-sources: cbits/raaz/core/endian.c
            -- hash implementations
            , cbits/raaz/hash/sha1/portable.c
@@ -199,6 +196,8 @@ library
            , cbits/raaz/cipher/aes/cportable.c
            -- chacha20
            , cbits/raaz/cipher/chacha20/cportable.c
+  if flag(gccvector128) || flag(gccvector256) || flag(gccvector512)
+    c-sources: cbits/raaz/cipher/chacha20/vector.c
 
 
   include-dirs: cbits
