@@ -219,7 +219,11 @@ test-Suite spec
   type: exitcode-stdio-1.0
   hs-source-dirs: spec
   main-is: Spec.hs
+
   ghc-options: -Wall
+  if flag(gccvector128) || flag(gccvector256) || flag(gccvector512)
+     cpp-options: -DHAVE_VECTOR
+
   other-modules: Common
                , Common.Cipher
                , Common.Hash
