@@ -29,7 +29,7 @@ typedef Word     Key[8];
 
 # define BLOCK_SIZE       (sizeof(State))
 
-const Word C0 = 0x61707865;
-const Word C1 = 0x3320646e;
-const Word C2 = 0x79622d32;
-const Word C3 = 0x6b206574;
+#define C0 ((Word) 0x61707865)
+#define C1 ((Word) 0x3320646e)
+#define C2 ((Word) 0x79622d32)
+#define C3 ((Word) 0x6b206574)

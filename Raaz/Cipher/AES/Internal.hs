@@ -114,6 +114,10 @@ instance Primitive (AES 128 'CBC) where
 instance Symmetric (AES 128 'CBC) where
   type Key (AES 128 'CBC) = (KEY128,IV)
 
+instance Describable (AES 128 'CBC) where
+  name _ = "aes-128-cbc"
+  description _ = "The AES cipher in CBC mode with 128-bit key"
+
 instance Cipher (AES 128 'CBC)
 
 ----------------- AES 192 CBC --------------------------------
@@ -131,6 +135,10 @@ instance Primitive (AES 192 'CBC) where
 instance Symmetric (AES 192 'CBC) where
   type Key (AES 192 'CBC) = (KEY192,IV)
 
+instance Describable (AES 192 'CBC) where
+  name _ = "aes-192-cbc"
+  description _ = "The AES cipher in CBC mode with 192-bit key"
+
 instance Cipher (AES 192 'CBC)
 
 ------------------- AES 256 CBC -----------------------------
@@ -147,6 +155,11 @@ instance Primitive (AES 256 'CBC) where
 -- | Key is @(`KEY256`,`IV`)@ pair.
 instance Symmetric (AES 256 'CBC) where
   type Key (AES 256 'CBC) = (KEY256,IV)
+
+
+instance Describable (AES 256 'CBC) where
+  name _ = "aes-256-cbc"
+  description _ = "The AES cipher in CBC mode with 256-bit key"
 
 instance Cipher (AES 256 'CBC)
 
