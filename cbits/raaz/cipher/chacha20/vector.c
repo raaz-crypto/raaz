@@ -74,6 +74,8 @@ static int chacha20vec128(Block *msg, int nblocks, Key key, IV iv, Counter *ctr)
     register Vec A , B, C, D;
     register Vec M1, M2, M3;
 
+    /* TODO: Optimise with vector load (take care of alignments) */
+
     M1 =  (Vec){ key[0] , key[1] , key[2] , key[3] };
     M2 =  (Vec){ key[4] , key[5] , key[6] , key[7] };
     M3 =  (Vec){ *(ctr) , iv[0]  ,  iv[1] , iv[2]  };
@@ -105,6 +107,8 @@ static int chacha20vec128(Block *msg, int nblocks, Key key, IV iv, Counter *ctr)
 	C += M2;
 	D += M3;
 
+	/* TODO: Optimise with vector load (take care of
+	 * alignments) */
 	XORA(0); XORA(1); XORA(2); XORA(3);
 	XORB(4); XORB(5); XORB(6); XORB(7);
 	XORC(8); XORC(9); XORC(10); XORC(11);
