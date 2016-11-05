@@ -8,9 +8,12 @@ module Raaz.Cipher.ChaCha20.Internal
        ( ChaCha20(..), Counter(..), IV(..), KEY(..), ChaCha20Mem(..)
        ) where
 
+import Control.Applicative
 import Data.Word
 import Data.String
 import Foreign.Storable
+import Prelude
+
 
 import Raaz.Core
 import Raaz.Cipher.Internal
