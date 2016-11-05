@@ -1,5 +1,5 @@
 module Raaz.Cipher.ChaCha20
-       ( chacha20, KEY, IV, Counter
+       ( ChaCha20, chacha20, KEY, IV, Counter
        ) where
 
 import Raaz.Cipher.ChaCha20.Internal
