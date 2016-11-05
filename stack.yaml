@@ -1,3 +1,12 @@
+# This is the stack file used to test the raaz package. Its flag
+# settings are optimisitc and you may need to disable some to install
+# on you machine.
 packages:
 - '.'
 resolver: lts-6.9
+
+flags:
+  raaz:
+    gccvector128: true
+    gccvector256: true
+    gccvector512: true
