@@ -67,14 +67,13 @@
 # define XORC(i) (*msg)[i] ^= raaz_tole32( C[i-8]  )
 # define XORD(i) (*msg)[i] ^= raaz_tole32( D[i-12] )
 
-
+# define ChaChaConstantRow  ((Vec){ C0     , C1     , C2     ,  C3    })
 static int chacha20vec128(Block *msg, int nblocks, Key key, IV iv, Counter *ctr)
 {
 
     register Vec A , B, C, D;
-    register Vec M0, M1, M2, M3;
+    register Vec M1, M2, M3;
 
-    M0 =  (Vec){ C0     , C1     , C2     ,  C3    };
     M1 =  (Vec){ key[0] , key[1] , key[2] , key[3] };
     M2 =  (Vec){ key[4] , key[5] , key[6] , key[7] };
     M3 =  (Vec){ *(ctr) , iv[0]  ,  iv[1] , iv[2]  };
@@ -84,11 +83,9 @@ static int chacha20vec128(Block *msg, int nblocks, Key key, IV iv, Counter *ctr)
 	/* Initialise the state;
 	   Except for the counter everything is the same
 	 */
-	M3[0] = *ctr;
-	A     = M0; B = M1; C = M2; D = M3;
 
-
-
+	A = ChaChaConstantRow;
+	B = M1; C = M2; D = M3;
 
 	ROUND; /* 0,1   */
 	ROUND; /* 2,3   */
@@ -101,15 +98,24 @@ static int chacha20vec128(Block *msg, int nblocks, Key key, IV iv, Counter *ctr)
 	ROUND; /* 16,17 */
 	ROUND; /* 18,19 */
 
-	A += M0; XORA(0); XORA(1); XORA(2); XORA(3);
-	B += M1; XORB(0); XORB(1); XORB(2); XORB(3);
-	C += M2; XORC(0); XORC(1); XORC(2); XORC(3);
-	D += M3; XORD(0); XORD(1); XORD(2); XORD(3);
+	A += ChaChaConstantRow;
 
-	++(*ctr);         /* increment counter      */
+
+	B += M1;
+	C += M2;
+	D += M3;
+
+	XORA(0); XORA(1); XORA(2); XORA(3);
+	XORB(4); XORB(5); XORB(6); XORB(7);
+	XORC(8); XORC(9); XORC(10); XORC(11);
+	XORD(12); XORD(13); XORD(14); XORD(15);
+
+	++M3[0];         /* increment counter      */
+
 	--nblocks; ++msg; /* move to the next block */
 
     }
+    *ctr = M3[0];
 }
 
 void raazChaCha20BlockVector(Block *msg, int nblocks, Key key, IV iv, Counter *ctr)
