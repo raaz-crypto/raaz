@@ -1,6 +1,6 @@
-# This is the stack file used to test the raaz package. Its flag
-# settings are optimisitc and you may need to disable some to install
-# on you machine.
+# This is the stack file used raaz package. Its flag settings are
+# optimisitc and you may need to disable some to install on you
+# machine.
 packages:
 - '.'
 resolver: lts-6.9

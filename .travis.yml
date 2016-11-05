@@ -70,7 +70,7 @@ before_install:
 
 
  - if [ "$STACK" == "yes" ]; then
-      export BUILDCMD="stack $RESOLVER";
+      export BUILDCMD="stack $RESOLVER --stack-yaml stack-travis.yaml";
       mkdir -p $HOME/.local/bin;
       curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack';
       $BUILDCMD setup;
