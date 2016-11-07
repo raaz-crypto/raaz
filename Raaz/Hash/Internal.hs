@@ -91,11 +91,18 @@ data HashI h m = HashI
                       -- ^ compress the blocks,
   , compressFinal  :: Pointer -> BYTES Int -> MT m ()
                       -- ^ pad and process the final bytes,
+  , compressStartAlignment :: BYTES Int
+  , compressSizeAlignment  :: BLOCKS h
   }
+
+
+instance Primitive h => BlockAlgorithm (HashI h m) where
+  bufferStartAlignment = compressStartAlignment
+  bufferSizeAlignment  = inBytes . compressSizeAlignment
 
 -- | The constraints that a memory used by a hash implementation
 -- should satisfy.
-type HashM h m = (Initialisable m (), Extractable m h)
+type HashM h m = (Initialisable m (), Extractable m h, Primitive h)
 
 -- | Some implementation of a given hash. The existentially
 -- quantification allows us freedom to choose the best memory type
@@ -112,6 +119,9 @@ instance Describable (SomeHashI h) where
   name         (SomeHashI hI) = name hI
   description  (SomeHashI hI) = description hI
 
+instance BlockAlgorithm (SomeHashI h) where
+  bufferStartAlignment (SomeHashI imp) = bufferStartAlignment imp
+  bufferSizeAlignment  (SomeHashI imp) = bufferSizeAlignment imp
 
 -- | Certain hashes are essentially bit-truncated versions of other
 -- hashes. For example, SHA224 is obtained from SHA256 by dropping the
@@ -125,6 +135,8 @@ truncatedI coerce unMtrunc (HashI{..})
           , hashIDescription = hashIDescription
           , compress         = comp
           , compressFinal    = compF
+          , compressStartAlignment = compressStartAlignment
+          , compressSizeAlignment  = toEnum $ fromEnum compressSizeAlignment
           }
   where comp  ptr = onSubMemory unMtrunc . compress ptr . coerce
         compF ptr = onSubMemory unMtrunc . compressFinal ptr
@@ -223,14 +235,14 @@ completeHashing :: (Hash h, ByteSource src, HashM h m)
                 => HashI h m
                 -> src
                 -> MT m h
-completeHashing (HashI{..}) src =
-  allocate totalSize $ \ ptr -> let
+completeHashing imp@(HashI{..}) src =
+  allocate $ \ ptr -> let
     comp                = compress ptr bufSize
     finish bytes        = compressFinal ptr bytes >> extract
     in processChunks comp finish src bufSize ptr
   where bufSize             = atLeast l1Cache + 1
         totalSize           = bufSize + additionalPadBlocks undefined
-
+        allocate            = liftAllocator $ allocBufferFor totalSize imp
 ----------------------- Hash memory ----------------------------------
 
 -- | Computing cryptographic hashes usually involves chunking the

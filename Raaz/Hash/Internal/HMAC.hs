@@ -196,12 +196,12 @@ hmacSource' :: (Hash h, Recommendation h, ByteSource src)
             -> Key (HMAC h)
             -> src
             -> IO (HMAC h)
-hmacSource' (SomeHashI hI) key src =
+hmacSource' imp@(SomeHashI hI) key src =
   insecurely $ do
 
     -- Hash the first block for the inner hash
     initialise ()
-    allocate bufSize $ \ ptr -> do
+    allocate $ \ ptr -> do
       liftIO $ unsafeCopyToPointer innerFirstBlock ptr
       compress hI ptr 1
 
@@ -211,13 +211,14 @@ hmacSource' (SomeHashI hI) key src =
 
     -- Hash the outer block.
     initialise ()
-    allocate bufSize $ \ ptr -> do
+    allocate $ \ ptr -> do
       liftIO $ unsafeCopyToPointer outerFirstBlock ptr
       compress hI ptr 1
 
     -- Finish it with hashing the  hash computed above
     HMAC <$> completeHashing hI (toByteString innerHash)
 
-  where innerFirstBlock = B.map (xor 0x36) $ hmacAdjustKey key
+  where allocate = liftAllocator $ allocBufferFor bufSize imp
+        innerFirstBlock = B.map (xor 0x36) $ hmacAdjustKey key
         outerFirstBlock = B.map (xor 0x5c) $ hmacAdjustKey key
         bufSize         = length innerFirstBlock
