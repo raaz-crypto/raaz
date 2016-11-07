@@ -18,7 +18,7 @@ module Raaz.Core.Types.Pointer
          -- ** Some length arithmetic
        , bitsQuotRem, bytesQuotRem
        , bitsQuot, bytesQuot
-       , atLeast, atMost
+       , atLeast, atMost, alignedToAtmost, alignedToAtleast
          -- * Helper function that uses generalised length units.
        , allocaBuffer, allocaSecure, mallocBuffer
        , hFillBuf, byteSize
@@ -132,6 +132,24 @@ atMost :: ( LengthUnit src
        => src
        -> dest
 atMost = fst . bytesQuotRem . inBytes
+
+-- | Express the length @l@ in multiples of the
+alignedToAtleast :: LengthUnit l
+                 => l
+                 -> BYTES Int
+                 -> BYTES Int
+alignedToAtleast l b | r == 0    = u       * b
+                     | otherwise = (u + 1) * b
+  where (u,r) = inBytes l `quotRem` b
+
+
+-- | Express the length @l@ in multiples of the
+alignedToAtmost  :: LengthUnit l
+                 => l
+                 -> BYTES Int
+                 -> BYTES Int
+alignedToAtmost l b = inBytes l `quot` b
+
 
 -- | A length unit @u@ is usually a multiple of bytes. The function
 -- `bytesQuotRem` is like `quotRem`: the value @byteQuotRem bytes@ is
