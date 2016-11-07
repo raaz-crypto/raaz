@@ -32,7 +32,7 @@ module Raaz.Core.Memory
        , MT,  execute, getMemory, onSubMemory, liftSubMT,  modify
        -- **** Some low level `MT` actions.
        , getMemoryPointer, withPointer
-       , allocate
+       , liftAllocator
        -- ** Generic memory monads.
        , MonadMemory(..)
        , MemoryM, runMT
@@ -177,12 +177,19 @@ class (Monad m, MonadIO m) => MonadMemory m where
 -- monad.
 newtype MT mem a = MT { unMT :: mem -> IO a }
 
--- | Given an memory thread
-allocate :: LengthUnit bufSize
-         => bufSize -> (Pointer -> MT mem a) -> MT mem a
-allocate bufSize bufAction
-  = execute $ \ mem ->
-  allocaBuffer bufSize (\ptr -> unMT (bufAction ptr) mem)
+-- | An allocator inside a monad m is some function that takes a pointer
+-- action and supplies it with an appropriate pointer. This type
+-- synonym captures such allocators.
+type Allocator m a = (Pointer -> m a) -> m a
+
+
+-- | An IO allocator can be lifted to the memory thread level as follows.
+liftAllocator :: Allocator IO a -> Allocator (MT mem) a
+liftAllocator allocator mtAction
+  = execute $ \ mem -> allocator (\ ptr -> unMT (mtAction ptr) mem)
+
+-- TODO: explore the liftAllocator kind of lifting for monads.
+
 
 -- | Run a given memory action in the memory thread.
 execute :: (mem -> IO a) -> MT mem a
