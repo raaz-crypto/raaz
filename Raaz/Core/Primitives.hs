@@ -17,14 +17,44 @@ use a more high level interface.
 
 module Raaz.Core.Primitives
        ( -- * Primtives and their implementations.
-         Primitive(..), Symmetric(..), Asymmetric(..), Recommendation(..)
+         Primitive(..), BlockAlgorithm(..), Symmetric(..), Asymmetric(..), Recommendation(..)
        , BLOCKS, blocksOf
+       , allocBufferFor
        ) where
 
 import Data.Monoid
+import Foreign.Marshal.Alloc
 import Prelude
 
 import Raaz.Core.Types
+
+-- | Implementation of block primitives work on buffers. Often for optimal
+-- performance, and in some case for safety, we need restrictions on
+-- the size and alignment of the buffer pointer. This type class
+-- captures such restrictions.
+class Describable a => BlockAlgorithm a where
+
+  -- | Hints on what sort of alignment is expected for the buffer
+  -- pointer.
+  bufferStartAlignment :: a -> BYTES Int
+
+  -- | The buffer should be a multiple of this size.
+  bufferSizeAlignment  :: a -> BYTES Int
+
+
+
+-- | Allocate a buffer of length at least @l@ suitable for the block
+-- algorithm @algo@. It ensures that the memory passed is aligned
+-- according to the demands of the algorithm.
+allocBufferFor :: (LengthUnit l, BlockAlgorithm algo)
+               => l
+               -> algo
+               -> (Pointer -> IO b)
+               -> IO b
+allocBufferFor l a  = allocaBytesAligned bytes align
+  where BYTES align = bufferStartAlignment a
+        BYTES bytes = alignedToAtleast l $ bufferSizeAlignment a
+
 ----------------------- A primitive ------------------------------------
 
 
@@ -41,7 +71,7 @@ import Raaz.Core.Types
 -- implementation using the `Recommendation` class. By default this is
 -- the implementation used when no explicit implementation is
 -- specified.
-class (Describable (Implementation p)) => Primitive p where
+class (BlockAlgorithm (Implementation p)) => Primitive p where
 
   -- | The block size.
   blockSize :: p -> BYTES Int
