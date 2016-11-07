@@ -17,7 +17,7 @@ use a more high level interface.
 
 module Raaz.Core.Primitives
        ( -- * Primtives and their implementations.
-         Primitive(..), BlockAlgorithm(..), Symmetric(..), Asymmetric(..), Recommendation(..)
+         Primitive(..), BlockAlgorithm(..), Key, Recommendation(..)
        , BLOCKS, blocksOf
        , allocBufferFor
        ) where
@@ -34,26 +34,9 @@ import Raaz.Core.Types
 -- captures such restrictions.
 class Describable a => BlockAlgorithm a where
 
-  -- | Hints on what sort of alignment is expected for the buffer
-  -- pointer.
+  -- | The alignment expected for the buffer pointer.
   bufferStartAlignment :: a -> BYTES Int
 
-  -- | The buffer should be a multiple of this size.
-  bufferSizeAlignment  :: a -> BYTES Int
-
-
-
--- | Allocate a buffer of length at least @l@ suitable for the block
--- algorithm @algo@. It ensures that the memory passed is aligned
--- according to the demands of the algorithm.
-allocBufferFor :: (LengthUnit l, BlockAlgorithm algo)
-               => l
-               -> algo
-               -> (Pointer -> IO b)
-               -> IO b
-allocBufferFor l a  = allocaBytesAligned bytes align
-  where BYTES align = bufferStartAlignment a
-        BYTES bytes = alignedToAtleast l $ bufferSizeAlignment a
 
 ----------------------- A primitive ------------------------------------
 
@@ -71,7 +54,7 @@ allocBufferFor l a  = allocaBytesAligned bytes align
 -- implementation using the `Recommendation` class. By default this is
 -- the implementation used when no explicit implementation is
 -- specified.
-class (BlockAlgorithm (Implementation p)) => Primitive p where
+class BlockAlgorithm (Implementation p) => Primitive p where
 
   -- | The block size.
   blockSize :: p -> BYTES Int
@@ -85,22 +68,22 @@ class Primitive p => Recommendation p where
   -- | The recommended implementation for the primitive.
   recommended :: p -> Implementation p
 
--- | A symmetric primitive. An example would be primitives like
--- Ciphers, HMACs etc.
-class Primitive prim => Symmetric prim where
+-- | Allocate a buffer a particular implementation of a primitive prim.
+-- algorithm @algo@. It ensures that the memory passed is aligned
+-- according to the demands of the implementation.
+allocBufferFor :: Primitive prim
+               => Implementation prim
+               -> BLOCKS prim
+               -> (Pointer -> IO b)
+               -> IO b
+allocBufferFor imp l  = allocaBytesAligned bytes align
+  where BYTES align = bufferStartAlignment imp
+        BYTES bytes = inBytes l
 
-  -- | The key for the primitive.
-  type Key prim
-
--- | An asymmetric primitive.
-class Asymmetric prim where
-
-  -- | The public key
-  type PublicKey prim
-
-  -- | The private key
-  type PrivateKey prim
-
+-- | Some primitives like ciphers have an encryption/decryption key. This
+-- type family captures the key associated with a primitive if it has
+-- any.
+type family  Key prim :: *
 
 ------------------- Type safe lengths in units of block ----------------
 
