@@ -116,6 +116,8 @@ shaImplementation nam des comp lenW
           , hashIDescription = des
           , compress         = shaBlocks shaComp
           , compressFinal    = shaFinal  shaComp lenW
+          , compressSizeAlignment  = toEnum 1
+          , compressStartAlignment = inBytes (1 :: ALIGN)
           }
   where shaComp = liftCompressor comp
 
