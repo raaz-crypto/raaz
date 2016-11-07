@@ -218,7 +218,7 @@ byteSize = BYTES . sizeOf
 -- scaling. This function also ensure that the allocated buffer is
 -- word aligned.
 allocaBuffer :: LengthUnit l
-             => l                    -- ^ buffer length
+             => l                  -- ^ buffer length
              -> (Pointer -> IO b)  -- ^ the action to run
              -> IO b
 {-# INLINE allocaBuffer #-}
