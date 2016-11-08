@@ -18,7 +18,7 @@ module Raaz.Core.Types.Pointer
          -- ** Some length arithmetic
        , bitsQuotRem, bytesQuotRem
        , bitsQuot, bytesQuot
-       , atLeast, atMost, alignedToAtmost, alignedToAtleast
+       , atLeast, atMost
          -- * Helper function that uses generalised length units.
        , allocaBuffer, allocaSecure, mallocBuffer
        , hFillBuf, byteSize
@@ -84,6 +84,7 @@ newtype BITS  a  = BITS  a
         deriving ( Show, Eq, Equality, Ord, Enum, Integral
                  , Real, Num, Storable
                  )
+
 -- | Type safe length unit that measures offsets in multiples of word
 -- length. This length unit can be used if one wants to make sure that
 -- all offsets are word aligned.
@@ -132,24 +133,6 @@ atMost :: ( LengthUnit src
        => src
        -> dest
 atMost = fst . bytesQuotRem . inBytes
-
--- | Express the length @l@ in multiples of the
-alignedToAtleast :: LengthUnit l
-                 => l
-                 -> BYTES Int
-                 -> BYTES Int
-alignedToAtleast l b | r == 0    = u       * b
-                     | otherwise = (u + 1) * b
-  where (u,r) = inBytes l `quotRem` b
-
-
--- | Express the length @l@ in multiples of the
-alignedToAtmost  :: LengthUnit l
-                 => l
-                 -> BYTES Int
-                 -> BYTES Int
-alignedToAtmost l b = inBytes l `quot` b
-
 
 -- | A length unit @u@ is usually a multiple of bytes. The function
 -- `bytesQuotRem` is like `quotRem`: the value @byteQuotRem bytes@ is
