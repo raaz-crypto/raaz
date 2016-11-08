@@ -98,11 +98,13 @@ data CipherI cipher encMem decMem = CipherI
      , encryptBlocks :: Pointer -> BLOCKS cipher -> MT encMem ()
        -- | The underlying block decryption function.
      , decryptBlocks :: Pointer -> BLOCKS cipher -> MT decMem ()
+     , cipherStartAlignment :: BYTES Int
      }
 
 -- | Type constraints on the memory of a block cipher implementation.
 type CipherM cipher encMem decMem = ( Initialisable encMem (Key cipher)
                                     , Initialisable decMem (Key cipher)
+                                    , Primitive cipher
                                     ) -- TODO: More need initialisable from buffer.
 
 -- | Some implementation of a block cipher. This type is existentially
@@ -110,6 +112,10 @@ type CipherM cipher encMem decMem = ( Initialisable encMem (Key cipher)
 data SomeCipherI cipher =
   forall encMem decMem . CipherM cipher encMem decMem
   => SomeCipherI (CipherI cipher encMem decMem)
+
+
+instance Primitive cipher => BlockAlgorithm (CipherI cipher encMem decMem) where
+  bufferStartAlignment = cipherStartAlignment
 
 instance Describable (CipherI cipher encMem decMem) where
   name        = cipherIName
@@ -120,13 +126,16 @@ instance Describable (SomeCipherI cipher) where
   name         (SomeCipherI cI) = name cI
   description  (SomeCipherI cI) = description cI
 
+instance Primitive cipher => BlockAlgorithm (SomeCipherI cipher) where
+  bufferStartAlignment (SomeCipherI imp) = bufferStartAlignment imp
+
 
 -- | Class capturing ciphers. The implementation of this class should
 -- give an encryption and decryption algorithm for messages of length
 -- which is a multiple of the block size.  Needless to say, the
 -- encryption and decryption should be inverses of each other for such
 -- messages.
-class (Symmetric cipher, Implementation cipher ~ SomeCipherI cipher, Describable cipher)
+class (Primitive cipher, Implementation cipher ~ SomeCipherI cipher, Describable cipher)
       => Cipher cipher
 
 -- | Class that captures stream ciphers. An instance of `StreamCipher`
@@ -154,6 +163,7 @@ makeCipherI :: Primitive prim
             => String                                -- ^ name
             -> String                                -- ^ description
             -> (Pointer -> BLOCKS prim -> MT mem ()) -- ^ stream transformer
+            -> BYTES Int                             -- ^ buffer starting alignment
             -> CipherI prim mem mem
 makeCipherI nm des trans = CipherI nm des trans trans
 
