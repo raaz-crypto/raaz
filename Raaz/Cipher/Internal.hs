@@ -191,10 +191,14 @@ unsafeEncrypt' :: Cipher c
                -> Key c            -- ^ The key to use
                -> ByteString       -- ^ The string to encrypt.
                -> ByteString
-unsafeEncrypt' c (SomeCipherI imp) key = makeCopyRun c encryptAction
-  where encryptAction ptr blks
-          = insecurely $ do initialise key
-                            encryptBlocks imp ptr blks
+unsafeEncrypt' c simp@(SomeCipherI imp) key bs = IB.unsafeCreate sbytes go
+  where sz           = atMost (B.length bs) `asTypeOf` blocksOf 1 c
+        BYTES sbytes = inBytes sz
+        go    ptr    = allocBufferFor simp sz $ \ buf -> insecurely $ do
+          initialise key
+          liftIO $ unsafeNCopyToPointer sz bs buf -- Copy the input to buffer.
+          encryptBlocks imp buf sz
+          liftIO $ Raaz.Core.memcpy (destination (castPtr ptr)) (source buf) sz
 
 -- | Transforms a given bytestring using a stream cipher. We use the
 -- transform instead of encrypt/decrypt because for stream ciphers
@@ -206,13 +210,16 @@ transform' :: StreamCipher c
            -> Key c
            -> ByteString
            -> ByteString
-transform' c (SomeCipherI imp) key bs = unsafePerformIO $ IB.createAndTrim (fromEnum $ inBytes blks) action
+transform' c simp@(SomeCipherI imp) key bs = unsafePerformIO $ IB.createAndTrim (fromEnum $ inBytes blks) action
    where blks          = atLeast len `asTypeOf` blocksOf 1 c
          len           = B.length bs
-         action ptr    = insecurely $ do liftIO $ unsafeCopyToPointer bs (castPtr ptr)
-                                         initialise key
-                                         encryptBlocks imp (castPtr ptr) blks
-                                         return $ fromIntegral len
+         action ptr    = allocBufferFor simp blks $ \ buf -> insecurely $ do
+           initialise key
+           liftIO $ unsafeCopyToPointer bs buf -- copy data into the buffer
+           encryptBlocks imp buf blks          -- encrypt it
+           liftIO $ Raaz.Core.memcpy (destination (castPtr ptr)) (source buf) len
+                                               -- copy it back to the actual pointer.
+           return $ fromIntegral len
 
 -- | Transform a given bytestring using the recommended implementation
 -- of a stream cipher.
@@ -235,19 +242,6 @@ unsafeEncrypt :: (Cipher c, Recommendation c)
               -> ByteString
 unsafeEncrypt c = unsafeEncrypt' c $ recommended c
 
--- | Make a copy and run the given action.
-makeCopyRun :: Cipher c
-            => c
-            -> (Pointer -> BLOCKS c -> IO ())
-            -> ByteString
-            -> ByteString
-makeCopyRun c action bs
-  = IB.unsafeCreate bytes
-    $ \ptr -> do unsafeNCopyToPointer len bs (castPtr ptr)
-                 action (castPtr ptr) len
-  where len         = atMost (B.length bs) `asTypeOf` blocksOf 1 c
-        BYTES bytes = inBytes len
-
 -- | Decrypts the given `ByteString`. This function is unsafe because
 -- it only works correctly when the input `ByteString` is of length
 -- which is a multiple of the block length of the cipher.
@@ -257,10 +251,14 @@ unsafeDecrypt' :: Cipher c
                -> Key c            -- ^ The key to use
                -> ByteString       -- ^ The string to encrypt.
                -> ByteString
-unsafeDecrypt' c (SomeCipherI imp) key = makeCopyRun c decryptAction
-  where decryptAction ptr blks
-          = insecurely $ do initialise key
-                            decryptBlocks imp ptr blks
+unsafeDecrypt' c simp@(SomeCipherI imp) key bs = IB.unsafeCreate sbytes go
+  where sz           = atMost (B.length bs) `asTypeOf` blocksOf 1 c
+        BYTES sbytes = inBytes sz
+        go    ptr    = allocBufferFor simp sz $ \ buf -> insecurely $ do
+          initialise key
+          liftIO $ unsafeNCopyToPointer sz bs buf -- Copy the input to buffer.
+          decryptBlocks imp buf sz
+          liftIO $ Raaz.Core.memcpy (destination (castPtr ptr)) (source buf) sz
 
 -- | Decrypt using the recommended implementation. This function is
 -- unsafe because it only works correctly when the input `ByteString`
