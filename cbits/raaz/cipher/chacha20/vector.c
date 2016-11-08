@@ -74,13 +74,12 @@
 # define WRITE(i,R) { MSG  = INP(i); MSG ^= R; INP(i) = MSG; }
 
 /* One should ensure that msg is aligned to 16 bytes. */
-static int chacha20vec128(Block *msg, int nblocks, Key key, IV iv, Counter *ctr)
+static inline void chacha20vec128(Block *msg, int nblocks, const Key key, const IV iv, Counter *ctr)
 {
 
     register Vec A , B, C, D;
     register Vec M1, M2, M3;
     register Vec MSG;
-    int i;
 
     /* TODO: Optimise with vector load (take care of alignments) */
 
@@ -88,7 +87,9 @@ static int chacha20vec128(Block *msg, int nblocks, Key key, IV iv, Counter *ctr)
     M2 =  (Vec){ key[4] , key[5] , key[6] , key[7] };
     M3 =  (Vec){ *(ctr) , iv[0]  ,  iv[1] , iv[2]  };
 
-    while(  nblocks > 0)
+    *ctr += nblocks;
+
+    for(; nblocks > 0; -- nblocks, ++msg)
     {
 	/* Initialise the state;
 	   Except for the counter everything is the same
@@ -122,13 +123,11 @@ static int chacha20vec128(Block *msg, int nblocks, Key key, IV iv, Counter *ctr)
 
 	++M3[0];         /* increment counter      */
 
-	--nblocks; ++msg; /* move to the next block */
-
     }
-    *ctr = M3[0];
+    return;
 }
 
-void raazChaCha20BlockVector(Block *msg, int nblocks, Key key, IV iv, Counter *ctr)
+void raazChaCha20BlockVector(Block *msg, int nblocks, const Key key, const IV iv, Counter *ctr)
 {
     chacha20vec128(msg, nblocks, key, iv, ctr);
 }
