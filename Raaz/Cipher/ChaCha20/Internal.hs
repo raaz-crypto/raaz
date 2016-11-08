@@ -56,8 +56,8 @@ instance Primitive ChaCha20 where
   blockSize _ = BYTES 64
   type Implementation ChaCha20 = SomeCipherI ChaCha20
 
-instance Symmetric ChaCha20 where
-  type Key ChaCha20 = (KEY, IV, Counter)
+-- | The key for ChaCha20.
+type instance Key ChaCha20 = (KEY, IV, Counter)
 
 instance Describable ChaCha20 where
   name        _ = "chacha20"
