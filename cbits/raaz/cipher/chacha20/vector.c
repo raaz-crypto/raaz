@@ -70,8 +70,30 @@
 
 # define ChaChaConstantRow  ((Vec){ C0     , C1     , C2     ,  C3    })
 
-# define INP(i) (((Vec *)msg)[i])
-# define WRITE(i,R) { MSG  = INP(i); MSG ^= R; INP(i) = MSG; }
+
+
+
+# if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+#   define INP(i) (((Vec *)msg)[i])
+#   define WR(i,R) { MSG  = INP(i); MSG ^= R; INP(i) = MSG; }
+#   define WRITE { WR(0,A); WR(1,B); WR(2,C); WR(3,D); }
+# else
+#   define XORA(i) (*msg)[i] ^= raaz_tole32( A[i]    )
+#   define XORB(i) (*msg)[i] ^= raaz_tole32( B[i-4]  )
+#   define XORC(i) (*msg)[i] ^= raaz_tole32( C[i-8]  )
+#   define XORD(i) (*msg)[i] ^= raaz_tole32( D[i-12] )
+#   define WRITE                                        \
+    {   XORA(0)  ; XORA(1)  ; XORA(2)  ; XORA(3);       \
+        XORB(4)  ; XORB(5)  ; XORB(6)  ; XORB(7);       \
+        XORC(8)  ; XORC(9)  ; XORC(10) ; XORC(11);      \
+        XORD(12) ; XORD(13) ; XORD(14) ; XORD(15);      \
+    }
+#  endif /* Byte order */
+
+
+
+
+
 
 /* One should ensure that msg is aligned to 16 bytes. */
 static inline void chacha20vec128(Block *msg, int nblocks, const Key key, const IV iv, Counter *ctr)
@@ -119,7 +141,7 @@ static inline void chacha20vec128(Block *msg, int nblocks, const Key key, const 
 	/* TODO: Optimise with vector load (take care of
 	 * alignments) */
 
-	WRITE(0,A); WRITE(1, B); WRITE(2,C); WRITE(3,D);
+	WRITE;
 
 	++M3[0];         /* increment counter      */
 
