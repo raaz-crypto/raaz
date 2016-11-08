@@ -114,6 +114,7 @@ newtype HMAC h = HMAC {unHMAC :: h} deriving ( Eq, Storable
 instance Show h => Show (HMAC h) where
   show  = show . unHMAC
 
+{-
 instance (Hash h) => Primitive (HMAC h) where
 
   blockSize _ = blockSize (undefined :: h)
@@ -125,7 +126,10 @@ instance (Hash h, Recommendation h) => Recommendation (HMAC h) where
   recommended _ =  recommended (undefined :: h)
 
 instance Hash h => Symmetric (HMAC h) where
-  type Key (HMAC h) = HMACKey h
+
+-}
+
+type instance  Key (HMAC h) = HMACKey h
 
 -- | Compute the hash of a pure byte source like, `B.ByteString`.
 hmac :: ( Hash h, Recommendation h, PureByteSource src )
@@ -218,7 +222,8 @@ hmacSource' imp@(SomeHashI hI) key src =
     -- Finish it with hashing the  hash computed above
     HMAC <$> completeHashing hI (toByteString innerHash)
 
-  where allocate = liftAllocator $ allocBufferFor bufSize imp
+  where allocate = liftAllocator $ allocBufferFor imp $ 1 `asTypeOf` (theBlock key)
         innerFirstBlock = B.map (xor 0x36) $ hmacAdjustKey key
         outerFirstBlock = B.map (xor 0x5c) $ hmacAdjustKey key
-        bufSize         = length innerFirstBlock
+        theBlock :: Key (HMAC h) -> BLOCKS h
+        theBlock _ = toEnum 1

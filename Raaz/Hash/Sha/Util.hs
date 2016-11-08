@@ -112,12 +112,11 @@ shaImplementation :: IsSha h
                   -> LengthWrite h
                   -> HashI h (HashMemory h)
 shaImplementation nam des comp lenW
-  = HashI { hashIName        = nam
-          , hashIDescription = des
-          , compress         = shaBlocks shaComp
-          , compressFinal    = shaFinal  shaComp lenW
-          , compressSizeAlignment  = toEnum 1
-          , compressStartAlignment = inBytes (1 :: ALIGN)
+  = HashI { hashIName               = nam
+          , hashIDescription        = des
+          , compress                = shaBlocks shaComp
+          , compressFinal           = shaFinal  shaComp lenW
+          , compressStartAlignment  = inBytes (1 :: ALIGN)
           }
   where shaComp = liftCompressor comp
 

@@ -92,13 +92,10 @@ data HashI h m = HashI
   , compressFinal  :: Pointer -> BYTES Int -> MT m ()
                       -- ^ pad and process the final bytes,
   , compressStartAlignment :: BYTES Int
-  , compressSizeAlignment  :: BLOCKS h
   }
-
 
 instance Primitive h => BlockAlgorithm (HashI h m) where
   bufferStartAlignment = compressStartAlignment
-  bufferSizeAlignment  = inBytes . compressSizeAlignment
 
 -- | The constraints that a memory used by a hash implementation
 -- should satisfy.
@@ -119,9 +116,8 @@ instance Describable (SomeHashI h) where
   name         (SomeHashI hI) = name hI
   description  (SomeHashI hI) = description hI
 
-instance BlockAlgorithm (SomeHashI h) where
+instance Primitive h => BlockAlgorithm (SomeHashI h) where
   bufferStartAlignment (SomeHashI imp) = bufferStartAlignment imp
-  bufferSizeAlignment  (SomeHashI imp) = bufferSizeAlignment imp
 
 -- | Certain hashes are essentially bit-truncated versions of other
 -- hashes. For example, SHA224 is obtained from SHA256 by dropping the
@@ -136,7 +132,6 @@ truncatedI coerce unMtrunc (HashI{..})
           , compress         = comp
           , compressFinal    = compF
           , compressStartAlignment = compressStartAlignment
-          , compressSizeAlignment  = toEnum $ fromEnum compressSizeAlignment
           }
   where comp  ptr = onSubMemory unMtrunc . compress ptr . coerce
         compF ptr = onSubMemory unMtrunc . compressFinal ptr
@@ -228,6 +223,7 @@ hashSource' :: (Hash h, ByteSource src)
 hashSource' (SomeHashI impl) src =
   insecurely $ initialise () >> completeHashing impl src
 
+
 -- | Gives a memory action that completes the hashing procedure with
 -- the rest of the source. Useful to compute the hash of a source with
 -- some prefix (like in the HMAC procedure).
@@ -242,7 +238,8 @@ completeHashing imp@(HashI{..}) src =
     in processChunks comp finish src bufSize ptr
   where bufSize             = atLeast l1Cache + 1
         totalSize           = bufSize + additionalPadBlocks undefined
-        allocate            = liftAllocator $ allocBufferFor totalSize imp
+        allocate            = liftAllocator $ allocBufferFor (SomeHashI imp) totalSize
+
 ----------------------- Hash memory ----------------------------------
 
 -- | Computing cryptographic hashes usually involves chunking the
