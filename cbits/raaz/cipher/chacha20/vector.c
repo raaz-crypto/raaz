@@ -1,8 +1,8 @@
 #include "vector.h"
 
 
+# define R(x,i) (  (x << ((Vec){i,i,i,i})) | (x >> ((Vec){32 - i, 32 - i, 32 - i, 32 - i})))
 
-# define R(x,i) ((x << i) | (x >> (32 - i)))
 # define QROUND(a,b,c,d)			\
     {						\
 	a += b; d ^= a; d = R(d,16);		\
@@ -27,38 +27,63 @@
 
  */
 
-
-# define SIG  ((Vec){ 1 , 2 , 3 , 0 })
-# define SIG2 ((Vec){ 2 , 3 , 0 , 1 })
-# define SIG3 ((Vec){ 3 , 0 , 1 , 2 })
-
-
-# define ISIG  ((Vec){ 3 , 0 , 1 , 2 })
-# define ISIG2 ((Vec){ 2 , 3 , 0  ,1 })
-# define ISIG3 ((Vec){ 1 , 2 , 3 , 0 })
+# ifdef __clang__
+#   define SIG  1 , 2 , 3 , 0
+#   define SIG2 2 , 3 , 0 , 1
+#   define SIG3 3 , 0 , 1 , 2
 
 
+#   define ISIG  3 , 0 , 1 , 2
+#   define ISIG2 2 , 3 , 0 , 1
+#   define ISIG3 1 , 2 , 3 , 0
 
-#define TODIAG		               \
-    {				       \
-    B = __builtin_shuffle ( B, SIG  ); \
-    C = __builtin_shuffle ( C, SIG2 ); \
-    D = __builtin_shuffle ( D, SIG3 ); \
+#   define TODIAG					\
+    {							\
+	B = __builtin_shufflevector(B, B, SIG  );	\
+	C = __builtin_shufflevector(C, C, SIG2 );	\
+	D = __builtin_shufflevector(D, D, SIG3 );	\
+    }
+
+#   define TOROW					\
+    {							\
+	B = __builtin_shufflevector(B, B, ISIG  );	\
+	C = __builtin_shufflevector(C, C, ISIG2 );	\
+	D = __builtin_shufflevector(D, D, ISIG3 );	\
+    }
+
+# else
+
+#   define SIG  ((Vec){ 1 , 2 , 3 , 0 })
+#   define SIG2 ((Vec){ 2 , 3 , 0 , 1 })
+#   define SIG3 ((Vec){ 3 , 0 , 1 , 2 })
+
+
+#   define ISIG  ((Vec){ 3 , 0 , 1 , 2 })
+#   define ISIG2 ((Vec){ 2 , 3 , 0  ,1 })
+#   define ISIG3 ((Vec){ 1 , 2 , 3 , 0 })
+
+
+
+#   define TODIAG				\
+    {						\
+	B = __builtin_shuffle ( B, SIG  );	\
+	C = __builtin_shuffle ( C, SIG2 );	\
+	D = __builtin_shuffle ( D, SIG3 );	\
     }
 
 
-#define TOROW			      \
+#   define TOROW		      \
     {				      \
-    B = __builtin_shuffle(B, ISIG  ); \
-    C = __builtin_shuffle(C, ISIG2 ); \
-    D = __builtin_shuffle(D, ISIG3 ); \
+	B = __builtin_shuffle(B, ISIG  );	\
+	C = __builtin_shuffle(C, ISIG2 );	\
+	D = __builtin_shuffle(D, ISIG3 );	\
     }
 
 
+#endif
 
 
-
-# define ROUND \
+# define ROUND							\
      { QROUND(A,B,C,D); TODIAG; QROUND(A,B,C,D); TOROW; }
 
 
@@ -91,14 +116,9 @@
 #  endif /* Byte order */
 
 
-
-
-
-
 /* One should ensure that msg is aligned to 16 bytes. */
 static inline void chacha20vec128(Block *msg, int nblocks, const Key key, const IV iv, Counter *ctr)
 {
-
     register Vec A , B, C, D;
     register Vec M1, M2, M3;
     register Vec MSG;
