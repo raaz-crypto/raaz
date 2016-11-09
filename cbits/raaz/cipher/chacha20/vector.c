@@ -67,12 +67,41 @@
 # define XORC(i) (*msg)[i] ^= raaz_tole32( C[i-8]  )
 # define XORD(i) (*msg)[i] ^= raaz_tole32( D[i-12] )
 
+
 # define ChaChaConstantRow  ((Vec){ C0     , C1     , C2     ,  C3    })
-static int chacha20vec128(Block *msg, int nblocks, Key key, IV iv, Counter *ctr)
+
+
+
+
+# if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+#   define INP(i) (((Vec *)msg)[i])
+#   define WR(i,R) { MSG  = INP(i); MSG ^= R; INP(i) = MSG; }
+#   define WRITE { WR(0,A); WR(1,B); WR(2,C); WR(3,D); }
+# else
+#   define XORA(i) (*msg)[i] ^= raaz_tole32( A[i]    )
+#   define XORB(i) (*msg)[i] ^= raaz_tole32( B[i-4]  )
+#   define XORC(i) (*msg)[i] ^= raaz_tole32( C[i-8]  )
+#   define XORD(i) (*msg)[i] ^= raaz_tole32( D[i-12] )
+#   define WRITE                                        \
+    {   XORA(0)  ; XORA(1)  ; XORA(2)  ; XORA(3);       \
+        XORB(4)  ; XORB(5)  ; XORB(6)  ; XORB(7);       \
+        XORC(8)  ; XORC(9)  ; XORC(10) ; XORC(11);      \
+        XORD(12) ; XORD(13) ; XORD(14) ; XORD(15);      \
+    }
+#  endif /* Byte order */
+
+
+
+
+
+
+/* One should ensure that msg is aligned to 16 bytes. */
+static inline void chacha20vec128(Block *msg, int nblocks, const Key key, const IV iv, Counter *ctr)
 {
 
     register Vec A , B, C, D;
     register Vec M1, M2, M3;
+    register Vec MSG;
 
     /* TODO: Optimise with vector load (take care of alignments) */
 
@@ -80,7 +109,9 @@ static int chacha20vec128(Block *msg, int nblocks, Key key, IV iv, Counter *ctr)
     M2 =  (Vec){ key[4] , key[5] , key[6] , key[7] };
     M3 =  (Vec){ *(ctr) , iv[0]  ,  iv[1] , iv[2]  };
 
-    while(  nblocks > 0)
+    *ctr += nblocks;
+
+    for(; nblocks > 0; -- nblocks, ++msg)
     {
 	/* Initialise the state;
 	   Except for the counter everything is the same
@@ -109,20 +140,16 @@ static int chacha20vec128(Block *msg, int nblocks, Key key, IV iv, Counter *ctr)
 
 	/* TODO: Optimise with vector load (take care of
 	 * alignments) */
-	XORA(0); XORA(1); XORA(2); XORA(3);
-	XORB(4); XORB(5); XORB(6); XORB(7);
-	XORC(8); XORC(9); XORC(10); XORC(11);
-	XORD(12); XORD(13); XORD(14); XORD(15);
+
+	WRITE;
 
 	++M3[0];         /* increment counter      */
 
-	--nblocks; ++msg; /* move to the next block */
-
     }
-    *ctr = M3[0];
+    return;
 }
 
-void raazChaCha20BlockVector(Block *msg, int nblocks, Key key, IV iv, Counter *ctr)
+void raazChaCha20BlockVector(Block *msg, int nblocks, const Key key, const IV iv, Counter *ctr)
 {
     chacha20vec128(msg, nblocks, key, iv, ctr);
 }

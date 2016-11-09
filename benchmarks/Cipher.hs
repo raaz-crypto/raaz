@@ -21,44 +21,52 @@ bufSize = 32 * 1024
 
 
 main :: IO ()
-main = allocaBytes (fromIntegral bufSize) $ \ ptr -> do
-  defaultMain [ chacha20Bench ptr
-              , aesBench ptr
-              ]
+main = defaultMain [ chacha20Bench, aesBench ]
 
 
 ----------------- Benchmarks of individual ciphers. ------------------------
-aesBench :: Pointer -> Benchmark
-aesBench ptr = bgroup "AES"
-               [ benchCipher aes128cbc ptr
-               , benchCipher aes192cbc ptr
-               , benchCipher aes256cbc ptr
-               ]
+aesBench :: Benchmark
+aesBench = bgroup "AES"
+           [ benchCipher aes128cbc
+           , benchCipher aes192cbc
+           , benchCipher aes256cbc
+           ]
 
-chacha20Bench :: Pointer -> Benchmark
-chacha20Bench ptr = bgroup "ChaCha20"
-                    [ benchEncrypt' chacha20 CPortable.implementation ptr
-# ifdef HAVE_VECTOR
-                    , benchEncrypt' chacha20 GCCVector.implementation ptr
-# endif
-                    ]
+chacha20Bench :: Benchmark
+chacha20Bench = bgroup "ChaCha20"
+                [ benchEncrypt' chacha20 CPortable.implementation
+#               ifdef HAVE_VECTOR
+                , benchEncrypt' chacha20 GCCVector.implementation
+#               endif
+                ]
 
 
 ------------------ Low level functions ---------------------------------------
-benchCipher :: (Cipher c, Recommendation c) => c -> Pointer -> Benchmark
-benchCipher c ptr = bgroup (name c) [benchEncrypt c ptr, benchDecrypt c ptr]
+benchCipher :: (Cipher c, Recommendation c) => c  -> Benchmark
+benchCipher c = bgroup (name c) [benchEncrypt c, benchDecrypt c]
 
-benchEncrypt :: (Cipher c, Recommendation c) => c -> Pointer  -> Benchmark
+benchEncrypt :: (Cipher c, Recommendation c) => c -> Benchmark
 benchEncrypt c = benchEncrypt' c $ recommended c
 
-benchDecrypt  :: (Cipher c, Recommendation c) => c -> Pointer  -> Benchmark
+benchDecrypt  :: (Cipher c, Recommendation c) => c -> Benchmark
 benchDecrypt c = benchDecrypt' c $ recommended c
 
 
-benchEncrypt' :: Cipher c => c -> Implementation c -> Pointer -> Benchmark
-benchEncrypt' c si@(SomeCipherI imp) ptr = bench nm $ nfIO $ insecurely $ encryptBlocks imp ptr (atMost bufSize)
-  where nm = "encrypt" ++ name si
+benchEncrypt' :: Cipher c => c -> Implementation c -> Benchmark
+benchEncrypt' c si@(SomeCipherI imp) = bench nm $ nfIO go
+  where go = allocBufferFor si sz $ \ ptr -> insecurely $ encryptBlocks imp ptr sz
+        sz = atMost bufSize
+        nm = "encrypt" ++ name si
 
-benchDecrypt' :: Cipher c => c -> Implementation c -> Pointer -> Benchmark
-benchDecrypt' c si@(SomeCipherI imp) ptr = bench nm $ nfIO $ insecurely $ decryptBlocks imp ptr (atMost bufSize)
-  where nm = "decrypt" ++ name si
+benchDecrypt' :: Cipher c => c -> Implementation c -> Benchmark
+benchDecrypt' c si@(SomeCipherI imp) = bench nm $ nfIO go
+  where go = allocBufferFor si sz $ \ ptr -> insecurely $ decryptBlocks imp ptr sz
+        sz = atMost bufSize
+        nm = "decrypt" ++ name si
+
+{--
+-- | Compare ciphers with a plain memset.
+benchMemSet :: Benchmark
+benchMemSet = bench "memset" $ nfIO go
+  where go = allocaBuffer bufSize $ \ ptr -> memset ptr 0 bufSize
+--}

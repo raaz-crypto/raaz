@@ -91,11 +91,15 @@ data HashI h m = HashI
                       -- ^ compress the blocks,
   , compressFinal  :: Pointer -> BYTES Int -> MT m ()
                       -- ^ pad and process the final bytes,
+  , compressStartAlignment :: BYTES Int
   }
+
+instance Primitive h => BlockAlgorithm (HashI h m) where
+  bufferStartAlignment = compressStartAlignment
 
 -- | The constraints that a memory used by a hash implementation
 -- should satisfy.
-type HashM h m = (Initialisable m (), Extractable m h)
+type HashM h m = (Initialisable m (), Extractable m h, Primitive h)
 
 -- | Some implementation of a given hash. The existentially
 -- quantification allows us freedom to choose the best memory type
@@ -112,6 +116,8 @@ instance Describable (SomeHashI h) where
   name         (SomeHashI hI) = name hI
   description  (SomeHashI hI) = description hI
 
+instance Primitive h => BlockAlgorithm (SomeHashI h) where
+  bufferStartAlignment (SomeHashI imp) = bufferStartAlignment imp
 
 -- | Certain hashes are essentially bit-truncated versions of other
 -- hashes. For example, SHA224 is obtained from SHA256 by dropping the
@@ -125,6 +131,7 @@ truncatedI coerce unMtrunc (HashI{..})
           , hashIDescription = hashIDescription
           , compress         = comp
           , compressFinal    = compF
+          , compressStartAlignment = compressStartAlignment
           }
   where comp  ptr = onSubMemory unMtrunc . compress ptr . coerce
         compF ptr = onSubMemory unMtrunc . compressFinal ptr
@@ -216,6 +223,7 @@ hashSource' :: (Hash h, ByteSource src)
 hashSource' (SomeHashI impl) src =
   insecurely $ initialise () >> completeHashing impl src
 
+
 -- | Gives a memory action that completes the hashing procedure with
 -- the rest of the source. Useful to compute the hash of a source with
 -- some prefix (like in the HMAC procedure).
@@ -223,13 +231,14 @@ completeHashing :: (Hash h, ByteSource src, HashM h m)
                 => HashI h m
                 -> src
                 -> MT m h
-completeHashing (HashI{..}) src =
-  allocate totalSize $ \ ptr -> let
+completeHashing imp@(HashI{..}) src =
+  allocate $ \ ptr -> let
     comp                = compress ptr bufSize
     finish bytes        = compressFinal ptr bytes >> extract
     in processChunks comp finish src bufSize ptr
   where bufSize             = atLeast l1Cache + 1
         totalSize           = bufSize + additionalPadBlocks undefined
+        allocate            = liftAllocator $ allocBufferFor (SomeHashI imp) totalSize
 
 ----------------------- Hash memory ----------------------------------
 

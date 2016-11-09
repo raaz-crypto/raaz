@@ -36,3 +36,4 @@ chacha20Vector = makeCipherI
                    "chacha20-gccvector"
                    "Implementation of the chacha20 stream cipher using the gcc's vector instructions"
                    chacha20Block
+                   16
