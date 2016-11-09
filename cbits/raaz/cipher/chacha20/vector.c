@@ -33,9 +33,9 @@
 #   define SIG3 3 , 0 , 1 , 2
 
 
-#   define ISIG  3 , 0 , 1 , 2
-#   define ISIG2 2 , 3 , 0 , 1
-#   define ISIG3 1 , 2 , 3 , 0
+#   define ISIG  SIG3
+#   define ISIG2 SIG2
+#   define ISIG3 SIG
 
 #   define TODIAG					\
     {							\
