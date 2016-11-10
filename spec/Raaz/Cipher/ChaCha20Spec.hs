@@ -14,14 +14,22 @@ import qualified Common.Cipher as C
 import Raaz.Cipher.ChaCha20
 import qualified Raaz.Cipher.ChaCha20.Implementation.CPortable as CP
 
-#ifdef HAVE_VECTOR
-import qualified Raaz.Cipher.ChaCha20.Implementation.GCCVector as GCCVector
+#ifdef HAVE_VECTOR_128
+import qualified Raaz.Cipher.ChaCha20.Implementation.Vector128 as Vector128
 #endif
+
+
+# ifdef HAVE_VECTOR_256
+import qualified Raaz.Cipher.ChaCha20.Implementation.Vector256 as Vector256
+# endif
 
 implementations :: [Implementation ChaCha20]
 implementations = [ CP.implementation
-#                   ifdef HAVE_VECTOR
-                  , GCCVector.implementation
+#                   ifdef HAVE_VECTOR_128
+                  , Vector128.implementation
+#                   endif
+#                   ifdef HAVE_VECTOR_256
+                  , Vector256.implementation
 #                   endif
                   ]
 

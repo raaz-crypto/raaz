@@ -11,8 +11,12 @@ import           Raaz.Core
 import           Raaz.Cipher
 import           Raaz.Cipher.Internal
 import qualified Raaz.Cipher.ChaCha20.Implementation.CPortable as CPortable
-# ifdef HAVE_VECTOR
-import qualified Raaz.Cipher.ChaCha20.Implementation.GCCVector as GCCVector
+# ifdef HAVE_VECTOR_128
+import qualified Raaz.Cipher.ChaCha20.Implementation.Vector128 as Vector128
+# endif
+
+# ifdef HAVE_VECTOR_256
+import qualified Raaz.Cipher.ChaCha20.Implementation.Vector256 as Vector256
 # endif
 
 -- | Buffer size used
@@ -35,8 +39,11 @@ aesBench = bgroup "AES"
 chacha20Bench :: Benchmark
 chacha20Bench = bgroup "ChaCha20"
                 [ benchEncrypt' chacha20 CPortable.implementation
-#               ifdef HAVE_VECTOR
-                , benchEncrypt' chacha20 GCCVector.implementation
+#               ifdef HAVE_VECTOR_128
+                , benchEncrypt' chacha20 Vector128.implementation
+#               endif
+#               ifdef HAVE_VECTOR_256
+                , benchEncrypt' chacha20 Vector256.implementation
 #               endif
                 ]
 
