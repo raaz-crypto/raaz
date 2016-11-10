@@ -7,6 +7,6 @@ resolver: lts-6.9
 
 flags:
   raaz:
-    gccvector128: true
-    gccvector256: true
-    gccvector512: true
+    vector128: true
+    vector256: true
+    vector512: true

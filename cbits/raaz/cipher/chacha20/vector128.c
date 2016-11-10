@@ -1,4 +1,4 @@
-#include "vector.h"
+#include "common.h"
 
 
 # define R(x,i) (  (x << ((Vec){i,i,i,i})) | (x >> ((Vec){32 - i, 32 - i, 32 - i, 32 - i})))

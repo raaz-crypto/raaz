@@ -29,15 +29,15 @@ source-repository head
   type: git
   location: https://github.com/raaz-crypto/raaz
 
-flag gccvector128
+flag vector128
      Description: Make use of gcc vector instructions with size being 128
      Default: False
 
-flag gccvector256
+flag vector256
      Description: Make use of gcc vector instructions with size being 128
      Default: False
 
-flag gccvector512
+flag vector512
      Description: Make use of gcc vector instructions with size being 128
      Default: False
 
@@ -68,16 +68,19 @@ library
      cc-options: -DPLATFORM_OSX
 
   -- Vector instructions
-  if flag(gccvector128)
+  if flag(vector128)
      cpp-options: -DHAVE_VECTOR_128
      cc-options:  -DHAVE_VECTOR_128
+     exposed-modules: Raaz.Cipher.ChaCha20.Implementation.Vector128
+     c-sources: cbits/raaz/cipher/chacha20/vector128.c
 
-
-  if flag(gccvector256)
+  if flag(vector256)
      cpp-options: -DHAVE_VECTOR_256
      cc-options:  -DHAVE_VECTOR_256
+     exposed-modules: Raaz.Cipher.ChaCha20.Implementation.Vector256
+     c-sources: cbits/raaz/cipher/chacha20/vector256.c
 
-  if flag(gccvector512)
+  if flag(vector512)
      cpp-options: -DHAVE_VECTOR_512
      cc-options:  -DHAVE_VECTOR_512
 
@@ -124,8 +127,6 @@ library
                  , Raaz.Cipher.AES.CBC.Implementation.CPortable
                  , Raaz.Cipher.ChaCha20.Implementation.CPortable
 
-  if flag(gccvector128) || flag(gccvector256) || flag(gccvector512)
-     exposed-modules: Raaz.Cipher.ChaCha20.Implementation.GCCVector
 
   other-modules: Raaz.Core.Constants
                , Raaz.Core.Encode.Internal
@@ -196,10 +197,6 @@ library
            , cbits/raaz/cipher/aes/cportable.c
            -- chacha20
            , cbits/raaz/cipher/chacha20/cportable.c
-  if flag(gccvector128)
-    c-sources: cbits/raaz/cipher/chacha20/vector.c
-  if flag(gccvector256)
-    c-sources: cbits/raaz/cipher/chacha20/vector256.c
 
   include-dirs: cbits
   includes: raaz/core/endian.h
@@ -207,7 +204,6 @@ library
                   , cbits/raaz/cipher/aes/common.h
                   , cbits/raaz/cipher/aes/cportable.h
                   , cbits/raaz/cipher/chacha20/common.h
-                  , cbits/raaz/cipher/chacha20/vector.h
 executable checksum
   default-language: Haskell2010
   hs-source-dirs: bin
@@ -222,7 +218,7 @@ test-Suite spec
   main-is: Spec.hs
 
   ghc-options: -Wall
-  if flag(gccvector128) || flag(gccvector256) || flag(gccvector512)
+  if flag(vector128) || flag(vector256) || flag(vector512)
      cpp-options: -DHAVE_VECTOR
 
   other-modules: Common
@@ -270,7 +266,7 @@ benchmark blaze-vs-write
 benchmark bench-ciphers
   hs-source-dirs: benchmarks
   default-language: Haskell2010
-  if flag(gccvector128) || flag(gccvector256) || flag(gccvector512)
+  if flag(vector128) || flag(vector256) || flag(vector512)
      cpp-options: -DHAVE_VECTOR
 
   main-is: Cipher.hs

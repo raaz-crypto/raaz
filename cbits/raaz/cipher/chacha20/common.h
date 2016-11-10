@@ -23,13 +23,6 @@ typedef Word     Block[16];
  *
  */
 
-/* Type of 128-bit SIMD instructions */
-typedef Word Vec  __attribute__ ((vector_size (16)));
-/* Type of 256-bit SIMD instructions */
-typedef Word Vec2 __attribute__ ((vector_size (32)));
-/* Type of 512-bit SIMD instructions */
-typedef Word Vec4 __attribute__ ((vector_size (64)));
-
 typedef uint32_t Counter;
 typedef Word     IV[3];
 typedef Word     Key[8];
@@ -40,3 +33,21 @@ typedef Word     Key[8];
 #define C1 ((Word) 0x3320646e)
 #define C2 ((Word) 0x79622d32)
 #define C3 ((Word) 0x6b206574)
+
+
+/* Vector types */
+
+# ifdef HAVE_VECTOR_128
+/* Type of 128-bit SIMD instructions */
+typedef Word Vec  __attribute__ ((vector_size (16)));
+# endif
+
+# ifdef HAVE_VECTOR_256
+/* Type of 256-bit SIMD instructions */
+typedef Word Vec2 __attribute__ ((vector_size (32)));
+# endif
+
+# ifdef HAVE_VECTOR_512
+/* Type of 512-bit SIMD instructions */
+typedef Word Vec4 __attribute__ ((vector_size (64)));
+# endif
