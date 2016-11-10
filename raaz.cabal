@@ -196,9 +196,10 @@ library
            , cbits/raaz/cipher/aes/cportable.c
            -- chacha20
            , cbits/raaz/cipher/chacha20/cportable.c
-  if flag(gccvector128) || flag(gccvector256) || flag(gccvector512)
+  if flag(gccvector128)
     c-sources: cbits/raaz/cipher/chacha20/vector.c
-
+  if flag(gccvector256)
+    c-sources: cbits/raaz/cipher/chacha20/vector256.c
 
   include-dirs: cbits
   includes: raaz/core/endian.h
