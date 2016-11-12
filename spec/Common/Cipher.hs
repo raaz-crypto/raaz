@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 module Common.Cipher where
 
+import Raaz.Core.Transfer
 import Common.Imports
 import Common.Utils
 
@@ -56,6 +57,25 @@ transformsTo :: (StreamCipher c, Recommendation c, Format fmt1, Format fmt2)
               -> Key c
               -> Spec
 transformsTo c = transformsTo' c $ recommended c
+
+
+keyStreamIs' :: (StreamCipher c, Format fmt)
+             => c
+             -> Implementation c
+             -> fmt
+             -> Key c
+             -> Spec
+keyStreamIs' c impl expected key = it msg $ result `shouldBe` decodeFormat expected
+  where result = transform' c impl key $ zeros $ 1 `blocksOf` c
+        msg    = unwords ["with key"
+                         , "key stream is"
+                         , shortened $ show expected
+                         ]
+
+zeros :: Primitive prim => BLOCKS prim -> ByteString
+zeros = toByteString . writeZero
+  where writeZero :: LengthUnit u => u -> WriteIO
+        writeZero = writeBytes 0
 
 transformsTo' :: (StreamCipher c, Format fmt1, Format fmt2)
               => c
