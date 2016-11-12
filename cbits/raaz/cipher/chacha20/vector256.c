@@ -18,8 +18,6 @@
     }                                           \
 
 
-# define ROUND              { QROUND(A,B,C,D); TODIAG; QROUND(A,B,C,D); TOROW; }
-# define ChaChaConstantRow  (Vec2){ C0 , C1 , C2  ,  C3, C0 , C1 , C2  , C3}
 
 /*
 
@@ -50,44 +48,38 @@
 # define ISIG3 SIG
 
 #ifdef __clang__
-#  define TODIAG                                        \
-    {                                                   \
-        B = __builtin_shufflevector(B, B, SIG  );       \
-        C = __builtin_shufflevector(C, C, SIG2 );       \
-        D = __builtin_shufflevector(D, D, SIG3 );       \
-    }
 
-#  define TOROW                                         \
-    {                                                   \
-        B = __builtin_shufflevector(B, B, ISIG  );      \
-        C = __builtin_shufflevector(C, C, ISIG2 );      \
-        D = __builtin_shufflevector(D, D, ISIG3 );      \
-    }
+#     define SIGMA(X)   (__builtin_shufflevector( X, X, SIG))
+#     define SIGMA2(X)  (__builtin_shufflevector( X, X, SIG2))
+#     define SIGMA3(X)  (__builtin_shufflevector( X, X, SIG3))
+#     define ISIGMA(X)  (__builtin_shufflevector( X, X, ISIG))
+#     define ISIGMA2(X) (__builtin_shufflevector( X, X, ISIG2))
+#     define ISIGMA3(X) (__builtin_shufflevector( X, X, ISIG3))
 
-#   define MERGE_LOW(X,Y)  (__builtin_shufflevector(X,Y, MASK_LOW))
-#   define MERGE_HIGH(X,Y) (__builtin_shufflevector(X,Y, MASK_HIGH))
+#     define MERGE_LOW(X,Y)  (__builtin_shufflevector(X,Y, MASK_LOW))
+#     define MERGE_HIGH(X,Y) (__builtin_shufflevector(X,Y, MASK_HIGH))
 
 #else
 
-#  define TODIAG					\
-    {							\
-        B = __builtin_shuffle ( B, (Vec2){SIG}  );	\
-        C = __builtin_shuffle ( C, (Vec2){SIG2} );	\
-        D = __builtin_shuffle ( D, (Vec2){SIG3} );	\
-    }
 
-#  define TOROW						\
-    {							\
-        B = __builtin_shuffle(B, (Vec2){ISIG}  );	\
-        C = __builtin_shuffle(C, (Vec2){ISIG2} );	\
-        D = __builtin_shuffle(D, (Vec2){ISIG3} );	\
-    }
+#     define SIGMA(X)   (__builtin_shuffle( X, (Vec2){SIG}))
+#     define SIGMA2(X)  (__builtin_shuffle( X, (Vec2){SIG2}))
+#     define SIGMA3(X)  (__builtin_shuffle( X, (Vec2){SIG3}))
+#     define ISIGMA(X)  (__builtin_shuffle( X, (Vec2){ISIG}))
+#     define ISIGMA2(X) (__builtin_shuffle( X, (Vec2){ISIG2}))
+#     define ISIGMA3(X) (__builtin_shuffle( X, (Vec2){ISIG3}))
 
-#   define MERGE_LOW(X,Y)  (__builtin_shuffle(X,Y, (Vec2){MASK_LOW}))
-#   define MERGE_HIGH(X,Y) (__builtin_shuffle(X,Y, (Vec2){MASK_HIGH}))
-
+#     define MERGE_LOW(X,Y)  (__builtin_shuffle(X,Y, (Vec2){MASK_LOW} ))
+#     define MERGE_HIGH(X,Y) (__builtin_shuffle(X,Y, (Vec2){MASK_HIGH}))
 
 #endif
+
+#  define TODIAG { B = SIGMA(B) ; C = SIGMA2(C) ; D = SIGMA3(D); }
+#  define TOROW	 { B = ISIGMA(B); C = ISIGMA2(C); D = ISIGMA3(D); }
+
+
+# define ROUND              { QROUND(A,B,C,D); TODIAG; QROUND(A,B,C,D); TOROW; }
+# define ChaChaConstantRow  (Vec2){ C0 , C1 , C2 , C3, C0 , C1 , C2  , C3}
 
 # define LOW(X)          ((Vec){X[0],X[1],X[2],X[3]})
 # define HIGH(X)         ((Vec){X[4],X[5],X[6],X[7]})
@@ -102,6 +94,15 @@
 # endif
 
 # define INP(i)            (((Vec*)msg)[i])
+# define INP2(i)            (((Vec2*)msg)[i])
+
+# ifdef HAVE_AVX2
+#   define WRITE_LOW { 	MSG = MERGE_LOW(A,B); INP2(0) ^= MSG; MSG = MERGE_LOW(C,D); INP2(1) ^= MSG; }
+#   define WRITE_HIGH { MSG = MERGE_HIGH(A,B); INP2(2) ^= MSG; MSG = MERGE_HIGH(C,D); INP2(3) ^= MSG; }
+# else
+#   define WRITE_LOW { INP(0) ^= LOW(A); INP(1) ^= LOW(B); INP(2) ^= LOW(C); INP(3) ^= LOW(D); }
+#   define WRITE_HIGH { INP(4) ^= HIGH(A); INP(5) ^= HIGH(B); INP(6) ^= HIGH(C); INP(7) ^= HIGH(D); }
+# endif
 
 
 static inline void chacha20vec256(Block *msg, int nblocks, const Key key, const IV iv, Counter *ctr)
@@ -109,6 +110,7 @@ static inline void chacha20vec256(Block *msg, int nblocks, const Key key, const 
 
     register Vec2 A , B, C, D;
     register Vec2 M1, M2, M3;
+    register Vec2 MSG;
 
     M1 =  (Vec2){
         key[0] , key[1] , key[2] , key[3],
@@ -155,22 +157,10 @@ static inline void chacha20vec256(Block *msg, int nblocks, const Key key, const 
 
 	ADJUST_ENDIAN(A); ADJUST_ENDIAN(B); ADJUST_ENDIAN(C); ADJUST_ENDIAN(D);
 
-	INP(0) ^= LOW(A);
-	INP(1) ^= LOW(B);
-	INP(2) ^= LOW(C);
-	INP(3) ^= LOW(D);
-	-- nblocks; ++msg;
+	WRITE_LOW;
 
-	if ( nblocks > 0) /* There are at least two blocks so bo the computed cipher stream blocks can be xord. */
-	{
-
-	    INP(0) ^= HIGH(A);
-	    INP(1) ^= HIGH(B);
-	    INP(2) ^= HIGH(C);
-	    INP(3) ^= HIGH(D);
-	    -- nblocks; ++msg;
-	}
-
+	if( nblocks > 1) { WRITE_HIGH; nblocks -= 2 ; msg += 2; }
+	else {-- nblocks ; ++ msg; }
         M3 += (Vec2){2,0,0,0,2,0,0,0};          /* increment the counter */
     }
 
