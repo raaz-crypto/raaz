@@ -182,14 +182,13 @@ static inline void chacha20vec256(Block *msg, int nblocks, const Key key, const 
 
 	WRITE_L;
 	--nblocks; ++msg; /* move to the next block */
-	M3[0]++;          /* increment the counter */
-
 	if( nblocks > 0)
 	{
 	    WRITE_H;
 	    --nblocks; ++msg; /* move to the next block */
-	    M3[0]++;          /* increment the counter */
+
 	}
+	M3 += (Vec2){1,0,0,0,1,0,0,0};          /* increment the counter */
     }
 
    return;
