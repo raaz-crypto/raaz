@@ -17,6 +17,10 @@
         c += d; b ^= c; b = R(b,7);             \
     }                                           \
 
+
+# define ROUND              { QROUND(A,B,C,D); TODIAG; QROUND(A,B,C,D); TOROW; }
+# define ChaChaConstantRow  (Vec2){ C0 , C1 , C2  ,  C3, C0 , C1 , C2  , C3}
+
 /*
 
   r0 = x0 x1 x2  x3
@@ -34,15 +38,12 @@
  */
 
 
-# ifdef __clang__
-#   define SIG  1 , 2 , 3 , 0 , 5 , 6 , 7 , 4
-#   define SIG2 2 , 3 , 0 , 1 , 6 , 7 , 4 , 5
-#   define SIG3 3 , 0 , 1 , 2 , 7 , 4 , 5 , 6
-# else
-#   define SIG   (Vec2){ 1 , 2 , 3 , 0 , 5 , 6 , 7 , 4 }
-#   define SIG2  (Vec2){ 2 , 3 , 0 , 1 , 6 , 7 , 4 , 5 }
-#   define SIG3  (Vec2){ 3 , 0 , 1 , 2 , 7 , 4 , 5 , 6 }
-#endif
+
+# define SIG       1 , 2 , 3 , 0 , 5  , 6  , 7  , 4
+# define SIG2      2 , 3 , 0 , 1 , 6  , 7  , 4  , 5
+# define SIG3      3 , 0 , 1 , 2 , 7  , 4  , 5  , 6
+# define MASK_LOW  0 , 1 , 2 , 3 , 8  , 9  , 10 , 11
+# define MASK_HIGH 4 , 5 , 6 , 7 , 12 , 13 , 14 , 15
 
 # define ISIG  SIG3
 # define ISIG2 SIG2
@@ -63,71 +64,44 @@
         D = __builtin_shufflevector(D, D, ISIG3 );      \
     }
 
+#   define MERGE_LOW(X,Y)  (__builtin_shufflevector(X,Y, MASK_LOW))
+#   define MERGE_HIGH(X,Y) (__builtin_shufflevector(X,Y, MASK_HIGH))
+
 #else
 
-#  define TODIAG                                 \
-    {                                            \
-        B = __builtin_shuffle ( B, SIG  );       \
-        C = __builtin_shuffle ( C, SIG2 );       \
-        D = __builtin_shuffle ( D, SIG3 );       \
+#  define TODIAG					\
+    {							\
+        B = __builtin_shuffle ( B, (Vec2){SIG}  );	\
+        C = __builtin_shuffle ( C, (Vec2){SIG2} );	\
+        D = __builtin_shuffle ( D, (Vec2){SIG3} );	\
     }
 
-#  define TOROW                                 \
-    {                                           \
-        B = __builtin_shuffle(B, ISIG  );       \
-        C = __builtin_shuffle(C, ISIG2 );       \
-        D = __builtin_shuffle(D, ISIG3 );       \
+#  define TOROW						\
+    {							\
+        B = __builtin_shuffle(B, (Vec2){ISIG}  );	\
+        C = __builtin_shuffle(C, (Vec2){ISIG2} );	\
+        D = __builtin_shuffle(D, (Vec2){ISIG3} );	\
     }
+
+#   define MERGE_LOW(X,Y)  (__builtin_shuffle(X,Y, (Vec2){MASK_LOW}))
+#   define MERGE_HIGH(X,Y) (__builtin_shuffle(X,Y, (Vec2){MASK_HIGH}))
+
+
 #endif
 
-
-
-# define ROUND \
-    { QROUND(A,B,C,D); TODIAG; QROUND(A,B,C,D); TOROW; }
-
-
-# define XORA(i) (*msg)[i] ^= raaz_tole32( A[i]    )
-# define XORB(i) (*msg)[i] ^= raaz_tole32( B[i-4]  )
-# define XORC(i) (*msg)[i] ^= raaz_tole32( C[i-8]  )
-# define XORD(i) (*msg)[i] ^= raaz_tole32( D[i-12] )
-
-
-#define ChaChaConstantRow  (Vec2){      \
-        C0     , C1     , C2     ,  C3, \
-        C0     , C1     , C2     ,  C3  \
-            }
-
+# define LOW(X)          ((Vec){X[0],X[1],X[2],X[3]})
+# define HIGH(X)         ((Vec){X[4],X[5],X[6],X[7]})
 
 # if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-
-#   define INP(i)            (((Vec*)msg)[i])
-#   define XOR_L(i,R)   { MSG = INP(i); MSG ^= (Vec){R[0],R[1],R[2],R[3]}; INP(i) = MSG; }
-#   define XOR_H(i,R)   { MSG = INP(i); MSG ^= (Vec){R[4],R[5],R[6],R[7]}; INP(i) = MSG; }
-
-#   define WRITE_L                                              \
-    {XOR_L(0,A); XOR_L(1,B); XOR_L(2,C); XOR_L(3,D);}
-
-#   define WRITE_H                                              \
-    {XOR_H(0,A); XOR_H(1,B); XOR_H(2,C); XOR_H(3,D);}
+#   define ADJUST_ENDIAN(A) {} /* do nothing */
 # else
+#   define SWAP(A,i) bswap_32(A[i])
+#   define ADJUST_ENDIAN(A) {					   \
+	A  = (Vec2){ SWAP(A,0), SWAP(A,1), SWAP(A,2), SWAP(A,3)	   \
+		     SWAP(A,4), SWAP(A,5), SWAP(A,6), SWAP(A,7)};}
+# endif
 
-#   define XORA(i,j) (*msg)[i] ^= raaz_tole32( A[j] )
-#   define XORB(i,j) (*msg)[i] ^= raaz_tole32( B[j] )
-#   define XORC(i,j) (*msg)[i] ^= raaz_tole32( C[j] )
-#   define XORD(i,u) (*msg)[i] ^= raaz_tole32( D[j] )
-#   define WRITE_L                                              \
-    {   XORA(0,0)  ; XORA(0,1)  ; XORA(0,2)  ; XORA(0,3);       \
-        XORB(4,0)  ; XORB(5,1)  ; XORB(6,2)  ; XORB(7,3);       \
-        XORC(8,0)  ; XORC(9,1)  ; XORC(10,2) ; XORC(11,3);      \
-        XORD(12,0) ; XORD(13,1) ; XORD(14,2) ; XORD(15,3);      \
-    }
-#   define WRITE_H                                              \
-    {   XORA(0,4)  ; XORA(0,5)  ; XORA(0,6)  ; XORA(0,7);       \
-        XORB(4,4)  ; XORB(5,5)  ; XORB(6,6)  ; XORB(7,7);       \
-        XORC(8,4)  ; XORC(9,5)  ; XORC(10,6) ; XORC(11,7);      \
-        XORD(12,4) ; XORD(13,5) ; XORD(14,6) ; XORD(15,7);      \
-    }
-#  endif /* Byte order */
+# define INP(i)            (((Vec*)msg)[i])
 
 
 static inline void chacha20vec256(Block *msg, int nblocks, const Key key, const IV iv, Counter *ctr)
@@ -135,7 +109,6 @@ static inline void chacha20vec256(Block *msg, int nblocks, const Key key, const 
 
     register Vec2 A , B, C, D;
     register Vec2 M1, M2, M3;
-    register Vec MSG;
 
     M1 =  (Vec2){
         key[0] , key[1] , key[2] , key[3],
@@ -180,14 +153,24 @@ static inline void chacha20vec256(Block *msg, int nblocks, const Key key, const 
         C += M2;
         D += M3;
 
-        WRITE_L;
-        --nblocks; ++msg; /* move to the next block */
-        if( nblocks > 0)
-        {
-            WRITE_H;
-            --nblocks; ++msg; /* move to the next block */
+	ADJUST_ENDIAN(A); ADJUST_ENDIAN(B); ADJUST_ENDIAN(C); ADJUST_ENDIAN(D);
 
-        }
+	INP(0) ^= LOW(A);
+	INP(1) ^= LOW(B);
+	INP(2) ^= LOW(C);
+	INP(3) ^= LOW(D);
+	-- nblocks; ++msg;
+
+	if ( nblocks > 0) /* There are at least two blocks so bo the computed cipher stream blocks can be xord. */
+	{
+
+	    INP(0) ^= HIGH(A);
+	    INP(1) ^= HIGH(B);
+	    INP(2) ^= HIGH(C);
+	    INP(3) ^= HIGH(D);
+	    -- nblocks; ++msg;
+	}
+
         M3 += (Vec2){2,0,0,0,2,0,0,0};          /* increment the counter */
     }
 
