@@ -10,3 +10,4 @@ flags:
     vector128: true
     vector256: true
     vector512: true
+    avx2: true
