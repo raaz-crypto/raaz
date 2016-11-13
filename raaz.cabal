@@ -42,7 +42,7 @@ flag vector512
      Default: False
 
 flag avx2
-     Description: support avx2 optimisations.
+     Description: Support avx2 optimisations. Warning: enable only if you are sure of support.
      Default: False
 
 
