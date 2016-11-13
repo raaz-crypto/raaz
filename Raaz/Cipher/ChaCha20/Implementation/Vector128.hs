@@ -2,7 +2,7 @@
 {-# LANGUAGE MultiParamTypeClasses            #-}
 {-# LANGUAGE FlexibleInstances                #-}
 
-module Raaz.Cipher.ChaCha20.Implementation.GCCVector
+module Raaz.Cipher.ChaCha20.Implementation.Vector128
        ( implementation
        ) where
 
@@ -16,8 +16,7 @@ implementation :: SomeCipherI ChaCha20
 implementation  = SomeCipherI chacha20Vector
 
 -- | Chacha20 block transformation.
-foreign import ccall unsafe
-  "raaz/cipher/chacha20/vector.h raazChaCha20BlockVector"
+foreign import ccall unsafe "raazChaCha20BlockVector"
   c_chacha20_block :: Pointer  -- Message
                    -> Int      -- number of blocks
                    -> Pointer  -- key
@@ -33,7 +32,7 @@ chacha20Block msgPtr nblocks = do keyPtr <- onSubMemory keyCell     getMemoryPoi
 
 chacha20Vector :: CipherI ChaCha20 ChaCha20Mem ChaCha20Mem
 chacha20Vector = makeCipherI
-                   "chacha20-gccvector"
+                   "chacha20-vector-128"
                    "Implementation of the chacha20 stream cipher using the gcc's vector instructions"
                    chacha20Block
                    16
