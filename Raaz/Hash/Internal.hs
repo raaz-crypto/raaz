@@ -94,7 +94,7 @@ data HashI h m = HashI
   , compressStartAlignment :: BYTES Int
   }
 
-instance Primitive h => BlockAlgorithm (HashI h m) where
+instance BlockAlgorithm (HashI h m) where
   bufferStartAlignment = compressStartAlignment
 
 -- | The constraints that a memory used by a hash implementation
@@ -116,7 +116,7 @@ instance Describable (SomeHashI h) where
   name         (SomeHashI hI) = name hI
   description  (SomeHashI hI) = description hI
 
-instance Primitive h => BlockAlgorithm (SomeHashI h) where
+instance BlockAlgorithm (SomeHashI h) where
   bufferStartAlignment (SomeHashI imp) = bufferStartAlignment imp
 
 -- | Certain hashes are essentially bit-truncated versions of other

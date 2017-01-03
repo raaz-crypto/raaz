@@ -39,11 +39,11 @@ type ShaWrite h = WriteM (ShaMonad h)
 type LengthWrite h = BITS Word64 -> ShaWrite h
 
 -- | The length encoding that uses 64-bits.
-length64Write :: IsSha h => LengthWrite h
+length64Write :: LengthWrite h
 length64Write (BITS w) = write $ bigEndian w
 
 -- | The length encoding that uses 128-bits.
-length128Write :: IsSha h => LengthWrite h
+length128Write :: LengthWrite h
 length128Write w = writeStorable (0 :: Word64) <> length64Write w
 
 
@@ -68,7 +68,7 @@ liftCompressor comp ptr = onSubMemory hashCell . withPointer . comp ptr . fromEn
 
 -- | The combinator `shaBlocks` on an input compressor @comp@ gives a buffer action
 -- that process blocks of data.
-shaBlocks :: (Primitive h, Storable h)
+shaBlocks :: Primitive h
           => ShaBufferAction (BLOCKS h) h -- ^ the compressor function
           -> ShaBufferAction (BLOCKS h) h
 shaBlocks comp ptr nblocks =
