@@ -14,7 +14,7 @@ module Raaz.Core.Types.Pointer
          Pointer
          -- ** Type safe length units.
        , LengthUnit(..)
-       , BYTES(..), BITS(..),  ALIGN, Align, inBits
+       , BYTES(..), BITS(..), Alignment, ALIGN, Align, inBits
          -- ** Some length arithmetic
        , bitsQuotRem, bytesQuotRem
        , bitsQuot, bytesQuot
@@ -192,6 +192,16 @@ byteSize = BYTES . sizeOf
 
 
 ------------------------ Allocation --------------------------------
+
+-- | Type safe lengths/offsets in units of bytes.
+newtype Alignment = Alignment Int
+        deriving ( Show, Eq, Ord, Enum, Integral
+                 , Real, Num
+                 )
+
+instance Monoid Alignment where
+  mempty  = Alignment 1
+  mappend = lcm
 
 -- | The expression @allocaBuffer l action@ allocates a local buffer
 -- of length @l@ and passes it on to the IO action @action@. No
