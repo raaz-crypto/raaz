@@ -13,7 +13,7 @@ module Raaz.Hash.Sha.Util
 
 import Data.Monoid                  ( (<>)      )
 import Data.Word
-import Foreign.Storable
+import Foreign.Storable             ( Storable  )
 
 import Raaz.Core
 import Raaz.Core.Transfer
@@ -116,7 +116,7 @@ shaImplementation nam des comp lenW
           , hashIDescription        = des
           , compress                = shaBlocks shaComp
           , compressFinal           = shaFinal  shaComp lenW
-          , compressStartAlignment  = inBytes (1 :: ALIGN)
+          , compressStartAlignment  = wordAlignment
           }
   where shaComp = liftCompressor comp
 

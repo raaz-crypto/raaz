@@ -83,7 +83,7 @@ cbc128CPortable =
             "128-bit AES in cbc mode implemented in Portable C"
           , encryptBlocks = cbc128Encrypt
           , decryptBlocks = cbc128Decrypt
-          , cipherStartAlignment = inBytes (1 :: ALIGN)
+          , cipherStartAlignment = wordAlignment
           }
 
 -- | The encryption action.
@@ -116,7 +116,7 @@ cbc192CPortable =
             "192-bit AES in cbc mode implemented in Portable C"
           , encryptBlocks = cbc192Encrypt
           , decryptBlocks = cbc192Decrypt
-          , cipherStartAlignment = inBytes (1 :: ALIGN)
+          , cipherStartAlignment = wordAlignment
           }
 
 -- | The encryption action.
@@ -147,7 +147,7 @@ cbc256CPortable =
             "256-bit AES in cbc mode implemented in Portable C"
           , encryptBlocks = cbc256Encrypt
           , decryptBlocks = cbc256Decrypt
-          , cipherStartAlignment = inBytes (1 :: ALIGN)
+          , cipherStartAlignment = wordAlignment
 
           }
 

@@ -36,4 +36,4 @@ chacha20Portable = makeCipherI
                    "chacha20-cportable"
                    "Implementation of the chacha20 stream cipher (RFC7539)"
                    chacha20Block
-                   $ inBytes (1 :: ALIGN)
+                   wordAlignment

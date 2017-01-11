@@ -91,7 +91,7 @@ data HashI h m = HashI
                       -- ^ compress the blocks,
   , compressFinal  :: Pointer -> BYTES Int -> MT m ()
                       -- ^ pad and process the final bytes,
-  , compressStartAlignment :: BYTES Int
+  , compressStartAlignment :: Alignment
   }
 
 instance BlockAlgorithm (HashI h m) where

@@ -297,7 +297,7 @@ type AllocField = Field Pointer
 -- | A memory allocator for the memory type @mem@. The `Applicative`
 -- instance of @Alloc@ can be used to build allocations for
 -- complicated memory elements from simpler ones.
-type Alloc mem = TwistRF AllocField ALIGN mem
+type Alloc mem = TwistRF AllocField (BYTES Int) mem
 
 -- | Make an allocator for a given memory type.
 makeAlloc :: LengthUnit l => l -> (Pointer -> mem) -> Alloc mem

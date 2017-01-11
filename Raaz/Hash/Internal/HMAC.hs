@@ -26,6 +26,7 @@ import qualified Data.ByteString           as B
 import qualified Data.ByteString.Lazy      as L
 import           Data.Monoid
 import           Data.String
+import           Data.Word
 import           Foreign.Ptr               ( castPtr      )
 import           Foreign.Storable          ( Storable(..) )
 import           Prelude                   hiding (length, replicate)
@@ -60,7 +61,7 @@ instance (Hash h, Recommendation h) => Storable (HMACKey h) where
 
   sizeOf    _  = fromIntegral $ blockSize (undefined :: h)
 
-  alignment _  = alignment (undefined :: Align)
+  alignment _  = alignment (undefined :: Word8)
 
   peek         = unsafeRunParser (HMACKey <$> parseByteString (blockSize (undefined :: h))) . castPtr
 
