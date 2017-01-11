@@ -20,7 +20,7 @@ module Raaz.Core.Types.Pointer
        , bitsQuot, bytesQuot
        , atLeast, atMost
          -- * Type safe versions of some common pointer functions.
-       , sizeOf, alignment
+       , sizeOf, alignment, alignPtr, peekAligned, pokeAligned
          -- * Helper function that uses generalised length units.
        , allocaAligned, allocaSecureAligned, allocaBuffer, allocaSecure, mallocBuffer
        , hFillBuf
@@ -35,8 +35,9 @@ import           Control.Monad         ( void, when )
 import           Data.Monoid
 import           Data.Word
 import           Foreign.Marshal.Alloc
-import           Foreign.Ptr           ( Ptr, plusPtr)
-import           Foreign.Storable      ( Storable    )
+import           Foreign.Ptr           ( Ptr         )
+import qualified Foreign.Ptr           as FP
+import           Foreign.Storable      ( Storable, peek, poke )
 import qualified Foreign.Storable      as FS
 import           System.IO             (hGetBuf, Handle)
 
@@ -190,7 +191,7 @@ instance LengthUnit u => LAction u Pointer where
 ------------------------ Allocation --------------------------------
 
 -- | Type safe lengths/offsets in units of bytes.
-newtype Alignment = Alignment Int
+newtype Alignment = Alignment { unAlignment :: Int }
         deriving ( Show, Eq, Ord, Enum, Integral
                  , Real, Num
                  )
@@ -213,6 +214,21 @@ sizeOf = BYTES . FS.sizeOf
 -- | Compute the alignment for a storable object.
 alignment :: Storable a => a -> Alignment
 alignment =  Alignment . FS.alignment
+
+-- | Align a pointer to the appropriate alignment.
+alignPtr :: Ptr a -> Alignment -> Ptr a
+alignPtr ptr = FP.alignPtr ptr . unAlignment
+
+-- | Peek the element from the next aligned location.
+peekAligned :: Storable a => Ptr a -> IO a
+peekAligned ptr = peekIt
+  where algnPtr :: Storable b => IO b -> Ptr b -> b -> Ptr b
+        algnPtr _ p = alignPtr p . alignment
+        peekIt      = peek $ algnPtr peekIt ptr undefined
+
+-- | Poke the element from the next aligned location.
+pokeAligned :: Storable a => Ptr a -> a -> IO ()
+pokeAligned ptr a = poke (alignPtr ptr $ alignment a) a
 
 -- | The expression @allocaAligned a l action@ allocates a local
 -- buffer of length @l@ and alignment @a@ and passes it on to the IO
