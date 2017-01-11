@@ -220,7 +220,7 @@ computeField = unwrapArrow
 type FieldM monad = FieldA (Kleisli monad)
 
 -- | Lift a monadic action to FieldM.
-liftToFieldM :: Monad m => (a -> m b) -> FieldM m a b
+liftToFieldM :: (a -> m b) -> FieldM m a b
 liftToFieldM = WrapArrow . Kleisli
 {-# INLINE liftToFieldM #-}
 -- | Runs a monadic field at a given point in the space.
