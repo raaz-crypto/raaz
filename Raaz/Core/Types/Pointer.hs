@@ -13,7 +13,7 @@ module Raaz.Core.Types.Pointer
          -- ** The pointer type.
          Pointer
          -- ** Type safe length units.
-       , LengthUnit(..), Alignment
+       , LengthUnit(..), Alignment, wordAlignment
        , BYTES(..), BITS(..), ALIGN, Align, inBits
          -- ** Some length arithmetic
        , bitsQuotRem, bytesQuotRem
@@ -22,7 +22,7 @@ module Raaz.Core.Types.Pointer
          -- * Type safe versions of some common pointer functions.
        , sizeOf, alignment
          -- * Helper function that uses generalised length units.
-       , allocaBuffer, allocaSecure, mallocBuffer
+       , allocaAligned, allocaSecureAligned, allocaBuffer, allocaSecure, mallocBuffer
        , hFillBuf
        , memset, memmove, memcpy
        ) where
@@ -195,11 +195,13 @@ newtype Alignment = Alignment Int
                  , Real, Num
                  )
 
+-- | The default alignment to use is word boundary.
+wordAlignment :: Alignment
+wordAlignment = alignment (undefined :: Align)
+
 instance Monoid Alignment where
   mempty  = Alignment 1
   mappend = lcm
-
-
 
 
 -------------------- type safe versions of some pointer. --------------------
@@ -212,25 +214,21 @@ sizeOf = BYTES . FS.sizeOf
 alignment :: Storable a => a -> Alignment
 alignment =  Alignment . FS.alignment
 
--- |
+-- | The expression @allocaAligned a l action@ allocates a local
+-- buffer of length @l@ and alignment @a@ and passes it on to the IO
+-- action @action@. No explicit freeing of the memory is required as
+-- the memory is allocated locally and freed once the action
+-- finishes. It is better to use this function than
+-- @`allocaBytesAligned`@ as it does type safe scaling and alignment.
+allocaAligned :: LengthUnit l
+              => Alignment          -- ^ the alignment of the buffer
+              -> l                  -- ^ size of the buffer
+              -> (Pointer -> IO b)  -- ^ the action to run
+              -> IO b
+allocaAligned algn l = allocaBytesAligned b a
+  where BYTES     b = inBytes l
+        Alignment a = algn
 
--- | align
-
--- | The expression @allocaBuffer l action@ allocates a local buffer
--- of length @l@ and passes it on to the IO action @action@. No
--- explicit freeing of the memory is required as the memory is
--- allocated locally and freed once the action finishes. It is better
--- to use this function than @`allocaBytes`@ as it does type safe
--- scaling. This function also ensure that the allocated buffer is
--- word aligned.
-allocaBuffer :: LengthUnit l
-             => l                  -- ^ buffer length
-             -> (Pointer -> IO b)  -- ^ the action to run
-             -> IO b
-{-# INLINE allocaBuffer #-}
-allocaBuffer l = allocaBytesAligned bytes align
-  where BYTES bytes = inBytes l
-        BYTES align = inBytes (1 :: ALIGN)
 
 -- | This function allocates a chunk of "secure" memory of a given
 -- size and runs the action. The memory (1) exists for the duration of
@@ -247,34 +245,49 @@ allocaBuffer l = allocaBytesAligned bytes align
 --
 -- TODO: File this insecurity in the wiki.
 --
-allocaSecure :: LengthUnit l
-              => l
-              -> (Pointer -> IO a)
-              -> IO a
+allocaSecureAligned :: LengthUnit l
+                    => Alignment
+                    -> l
+                    -> (Pointer -> IO a)
+                    -> IO a
 
 #ifdef HAVE_MLOCK
 
 foreign import ccall unsafe "sys/mman.h mlock"
-  c_mlock :: Pointer -> Int -> IO Int
+  c_mlock :: Pointer -> BYTES Int -> IO Int
 
 
 foreign import ccall unsafe "sys/mman.h munlock"
-  c_munlock :: Pointer -> Int -> IO ()
+  c_munlock :: Pointer -> BYTES Int -> IO ()
 
-allocaSecure l action = allocaBuffer actualSz actualAction
-  where actualSz = atLeast l :: ALIGN
-        BYTES sz = inBytes actualSz
+allocaSecureAligned a l action = allocaAligned a l actualAction
+  where sz = inBytes l
         actualAction cptr = let
           lockIt    = do c <- c_mlock cptr sz
                          when (c /= 0) $ fail "secure memory: unable to lock memory"
-          releaseIt =  memset cptr 0 actualSz >>  c_munlock cptr sz
+          releaseIt =  memset cptr 0 l >>  c_munlock cptr sz
           in bracket_ lockIt releaseIt $ action cptr
 
 #else
-
-allocaSecure _ _ = fail "memory locking not supported on this platform"
+allocaSecureAligned _ _ = fail "memory locking not supported on this platform"
 
 #endif
+-- | A less general version of `allocaAligned` where the pointer passed
+-- is aligned to word boundary.
+allocaBuffer :: LengthUnit l
+             => l                  -- ^ buffer length
+             -> (Pointer -> IO b)  -- ^ the action to run
+             -> IO b
+{-# INLINE allocaBuffer #-}
+allocaBuffer = allocaAligned wordAlignment
+
+-- | A less general version of `allocaSecureAligned` where the pointer passed
+-- is aligned to word boundary
+allocaSecure :: LengthUnit l
+             => l
+             -> (Pointer -> IO b)
+             -> IO b
+allocaSecure = allocaSecureAligned wordAlignment
 
 -- | Creates a memory of given size. It is better to use over
 -- @`mallocBytes`@ as it uses typesafe length.
