@@ -42,7 +42,7 @@ module Raaz.Core.Memory
 
 import           Control.Applicative
 import           Control.Monad.IO.Class
-import           Foreign.Storable            ( Storable, peek, poke )
+import           Foreign.Storable            ( Storable )
 import           Foreign.Ptr                 ( castPtr, Ptr )
 import           Raaz.Core.MonoidalAction
 import           Raaz.Core.Transfer
@@ -463,20 +463,25 @@ instance Storable a => Memory (MemoryCell a) where
 
   memoryAlloc = allocator undefined
     where allocator :: Storable b => b -> Alloc (MemoryCell b)
-          allocator b = makeAlloc (sizeOf b) $ MemoryCell . castPtr
+          allocator b = makeAlloc (alignedSizeOf b) $ MemoryCell . castPtr
 
   underlyingPtr  = castPtr . unMemoryCell
 
+-- | The location where the actual storing of element happens. This
+-- pointer is guaranteed to be aligned to the alignment restriction of @a@
+actualCellPtr :: Storable a => MemoryCell a -> Ptr a
+actualCellPtr = nextAlignedPtr . unMemoryCell
+
 instance Storable a => Initialisable (MemoryCell a) a where
-  initialise a = execute $ flip poke a . unMemoryCell
+  initialise a = execute $ flip pokeAligned a . unMemoryCell
   {-# INLINE initialise #-}
 
 instance Storable a => Extractable (MemoryCell a) a where
-  extract = execute $ peek . unMemoryCell
+  extract = execute $ peekAligned . unMemoryCell
   {-# INLINE extract #-}
 
 instance EndianStore a => InitialisableFromBuffer (MemoryCell a) where
-  initialiser  = readInto 1 . destination . unMemoryCell
+  initialiser  = readInto 1 . destination . actualCellPtr
 
 instance EndianStore a => ExtractableToBuffer (MemoryCell a) where
-  extractor  = writeFrom 1 . source . unMemoryCell
+  extractor  = writeFrom 1 . source . actualCellPtr

@@ -20,7 +20,7 @@ module Raaz.Core.Types.Pointer
        , bitsQuot, bytesQuot
        , atLeast, atMost
          -- * Type safe versions of some common pointer functions.
-       , sizeOf, alignment, alignPtr, peekAligned, pokeAligned
+       , sizeOf, alignedSizeOf, alignment, alignPtr, nextAlignedPtr, peekAligned, pokeAligned
          -- * Helper function that uses generalised length units.
        , allocaAligned, allocaSecureAligned, allocaBuffer, allocaSecure, mallocBuffer
        , hFillBuf
@@ -211,6 +211,19 @@ instance Monoid Alignment where
 sizeOf :: Storable a => a -> BYTES Int
 sizeOf = BYTES . FS.sizeOf
 
+-- | Size of the buffer to be allocated to store an element of type
+-- @a@ so as to guarantee that there exist enough space to store the
+-- element after aligning the pointer. If the size of the element is
+-- @s@ and its alignment is @a@ then this quantity is essentially
+-- equal to @s + a - 1@. All units measured in word alignment.
+alignedSizeOf  :: Storable a => a -> ALIGN
+alignedSizeOf a =  s + pad - 1
+  where -- The size of the element in Align units.
+        s    = atLeast $ sizeOf a
+        -- Alignment adjusted to word boundary.
+        algn = wordAlignment   <> alignment a
+        pad  = atLeast $ BYTES  $ unAlignment $ algn
+
 -- | Compute the alignment for a storable object.
 alignment :: Storable a => a -> Alignment
 alignment =  Alignment . FS.alignment
@@ -219,16 +232,21 @@ alignment =  Alignment . FS.alignment
 alignPtr :: Ptr a -> Alignment -> Ptr a
 alignPtr ptr = FP.alignPtr ptr . unAlignment
 
+
+-- | Compute the next aligned pointer starting from the given pointer
+-- location.
+nextAlignedPtr :: Storable a => Ptr a -> Ptr a
+nextAlignedPtr ptr = alignPtr ptr $ alignment $ elementOfPtr ptr
+  where elementOfPtr :: Ptr b -> b
+        elementOfPtr _ = undefined
+
 -- | Peek the element from the next aligned location.
 peekAligned :: Storable a => Ptr a -> IO a
-peekAligned ptr = peekIt
-  where algnPtr :: Storable b => IO b -> Ptr b -> b -> Ptr b
-        algnPtr _ p = alignPtr p . alignment
-        peekIt      = peek $ algnPtr peekIt ptr undefined
+peekAligned = peek . nextAlignedPtr
 
 -- | Poke the element from the next aligned location.
 pokeAligned :: Storable a => Ptr a -> a -> IO ()
-pokeAligned ptr a = poke (alignPtr ptr $ alignment a) a
+pokeAligned ptr a = poke (nextAlignedPtr ptr) a
 
 -- | The expression @allocaAligned a l action@ allocates a local
 -- buffer of length @l@ and alignment @a@ and passes it on to the IO
