@@ -13,29 +13,32 @@ module Raaz.Core.Types.Pointer
          -- ** The pointer type.
          Pointer
          -- ** Type safe length units.
-       , LengthUnit(..)
-       , BYTES(..), BITS(..), Alignment, ALIGN, Align, inBits
+       , LengthUnit(..), Alignment
+       , BYTES(..), BITS(..), ALIGN, Align, inBits
          -- ** Some length arithmetic
        , bitsQuotRem, bytesQuotRem
        , bitsQuot, bytesQuot
        , atLeast, atMost
+         -- * Type safe versions of some common pointer functions.
+       , sizeOf, alignment
          -- * Helper function that uses generalised length units.
        , allocaBuffer, allocaSecure, mallocBuffer
-       , hFillBuf, byteSize
+       , hFillBuf
        , memset, memmove, memcpy
        ) where
 
 
 
-import Control.Applicative
-import Control.Exception     ( bracket_)
-import Control.Monad         ( void, when )
-import Data.Monoid
-import Data.Word
-import Foreign.Marshal.Alloc
-import Foreign.Ptr           ( Ptr, plusPtr)
-import Foreign.Storable      (Storable, sizeOf, alignment)
-import System.IO             (hGetBuf, Handle)
+import           Control.Applicative
+import           Control.Exception     ( bracket_)
+import           Control.Monad         ( void, when )
+import           Data.Monoid
+import           Data.Word
+import           Foreign.Marshal.Alloc
+import           Foreign.Ptr           ( Ptr, plusPtr)
+import           Foreign.Storable      ( Storable    )
+import qualified Foreign.Storable      as FS
+import           System.IO             (hGetBuf, Handle)
 
 import Prelude -- To stop the annoying warnings of Applicatives and Monoids.
 
@@ -102,7 +105,7 @@ instance Monoid ALIGN where
   mappend x y = ALIGN $ unALIGN x + unALIGN y
 
 instance LengthUnit ALIGN where
-  inBytes (ALIGN x) = BYTES $ x * alignment (undefined :: Align)
+  inBytes (ALIGN x) = BYTES $ x * FS.alignment (undefined :: Align)
   {-# INLINE inBytes #-}
 
 instance LengthUnit (BYTES Int) where
@@ -176,19 +179,12 @@ bitsQuot bits = u
 
 -- | The most interesting monoidal action for us.
 instance LengthUnit u => LAction u Pointer where
-  a <.> ptr  = plusPtr ptr offset
+  a <.> ptr  = FP.plusPtr ptr offset
     where BYTES offset = inBytes a
   {-# INLINE (<.>) #-}
 
 -------------------------------------------------------------------
 
-
--------------------- Sizes, offsets and pointer arithmetic -------
-
--- | Similar to `sizeOf` but returns the length in type safe units.
-byteSize :: Storable a => a -> BYTES Int
-{-# INLINE byteSize #-}
-byteSize = BYTES . sizeOf
 
 
 ------------------------ Allocation --------------------------------
@@ -202,6 +198,23 @@ newtype Alignment = Alignment Int
 instance Monoid Alignment where
   mempty  = Alignment 1
   mappend = lcm
+
+
+
+
+-------------------- type safe versions of some pointer. --------------------
+
+-- | Compute the size of a storable element.
+sizeOf :: Storable a => a -> BYTES Int
+sizeOf = BYTES . FS.sizeOf
+
+-- | Compute the alignment for a storable object.
+alignment :: Storable a => a -> Alignment
+alignment =  Alignment . FS.alignment
+
+-- |
+
+-- | align
 
 -- | The expression @allocaBuffer l action@ allocates a local buffer
 -- of length @l@ and passes it on to the IO action @action@. No
