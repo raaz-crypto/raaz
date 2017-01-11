@@ -42,7 +42,7 @@ module Raaz.Core.Memory
 
 import           Control.Applicative
 import           Control.Monad.IO.Class
-import           Foreign.Storable            ( Storable(..) )
+import           Foreign.Storable            ( Storable, peek, poke )
 import           Foreign.Ptr                 ( castPtr, Ptr )
 import           Raaz.Core.MonoidalAction
 import           Raaz.Core.Transfer
@@ -463,7 +463,7 @@ instance Storable a => Memory (MemoryCell a) where
 
   memoryAlloc = allocator undefined
     where allocator :: Storable b => b -> Alloc (MemoryCell b)
-          allocator b = makeAlloc (byteSize b) $ MemoryCell . castPtr
+          allocator b = makeAlloc (sizeOf b) $ MemoryCell . castPtr
 
   underlyingPtr  = castPtr . unMemoryCell
 

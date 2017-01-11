@@ -32,7 +32,7 @@ import           Prelude                   hiding (length, replicate)
 import           System.IO
 import           System.IO.Unsafe     (unsafePerformIO)
 
-import           Raaz.Core
+import           Raaz.Core          hiding (alignment)
 import           Raaz.Core.Parse.Applicative
 import           Raaz.Core.Transfer
 

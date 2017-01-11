@@ -26,8 +26,7 @@ import           Data.Typeable
 import           Data.Vector.Unboxed         ( MVector(..), Vector, Unbox )
 import           Data.Word
 import           Foreign.Ptr                 ( castPtr, Ptr )
-import           Foreign.Storable            ( Storable(..) )
-
+import           Foreign.Storable            ( Storable, peek, poke )
 
 import           Prelude
 
@@ -160,7 +159,7 @@ storeAtIndex :: EndianStore w
              -> IO ()
 {-# INLINE storeAtIndex #-}
 storeAtIndex cptr index w = storeAt cptr offset w
-  where offset = toEnum index * byteSize w
+  where offset = toEnum index * sizeOf w
 
 
 -- | Load the @n@-th value of an array pointed by the crypto pointer.
@@ -172,7 +171,7 @@ loadFromIndex :: EndianStore w
 {-# INLINE loadFromIndex #-}
 loadFromIndex cptr index = load (shiftPtr cptr undefined)
   where shiftPtr :: Storable w => Ptr w -> w -> Ptr w
-        shiftPtr ptr w = movePtr ptr (toEnum index * byteSize w)
+        shiftPtr ptr w = movePtr ptr (toEnum index * sizeOf w)
 
 -- | Load from a given offset. The offset is given in type safe units.
 loadFrom :: ( EndianStore w
@@ -198,7 +197,7 @@ copyFromBytes :: EndianStore w
 copyFromBytes dest@(Dest ptr) src n =  memcpy (castPtr <$> dest) src (sz dest undefined)
                                        >> adjustEndian ptr n
   where sz     :: Storable w => Dest (Ptr w) -> w -> BYTES Int
-        sz _ w =  byteSize w * toEnum n
+        sz _ w =  sizeOf w * toEnum n
 
 -- | Similar to @copyFromBytes@ but the transfer is done in the other direction. The copy takes
 -- care of performing the appropriate endian encoding.
@@ -213,7 +212,7 @@ copyToBytes dest@(Dest dptr) src n =  memcpy dest  (castPtr <$> src) (sz src und
         adjust _ ptr = adjustEndian ptr n
 
         sz     :: Storable w => Src (Ptr w) -> w -> BYTES Int
-        sz _ w =  byteSize w * toEnum n
+        sz _ w =  sizeOf w * toEnum n
 
 
 {-

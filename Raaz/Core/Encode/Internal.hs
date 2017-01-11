@@ -9,12 +9,11 @@ module Raaz.Core.Encode.Internal
 
 import Data.Maybe
 
-import Data.ByteString              (ByteString)
-import Data.ByteString.Internal     (unsafeCreate)
-import Data.String
-import Data.Word
-import Foreign.Ptr
-import Foreign.Storable
+import           Data.ByteString              (ByteString)
+import           Data.ByteString.Internal     (unsafeCreate)
+import           Data.String
+import           Data.Word
+import           Foreign.Ptr
 import Prelude hiding               (length)
 import System.IO.Unsafe   (unsafePerformIO)
 
@@ -49,12 +48,12 @@ class Encodable a where
   unsafeFromByteString  :: ByteString  -> a
 
   default toByteString :: EndianStore a => a -> ByteString
-  toByteString w    = unsafeCreate (sizeOf w) putit
+  toByteString w    = unsafeCreate (fromEnum $ sizeOf w) putit
     where putit ptr = store (castPtr ptr) w
 
 
   default fromByteString :: EndianStore a => ByteString -> Maybe a
-  fromByteString bs  | byteSize proxy == length bs = Just w
+  fromByteString bs  | sizeOf proxy == length bs   = Just w
                      | otherwise                   = Nothing
          where w     = unsafePerformIO $ withByteString bs (load . castPtr)
                proxy = undefined `asTypeOf` w

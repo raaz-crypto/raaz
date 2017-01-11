@@ -61,7 +61,7 @@ undefParse _ = undefined
 -- `Storable` instance.
 parseStorable :: Storable a => Parser a
 parseStorable = pa
-  where pa = makeParser (byteSize $ undefParse pa) (peek . castPtr)
+  where pa = makeParser (sizeOf $ undefParse pa) (peek . castPtr)
 
 -- | Parse a crypto value. Endian safety is take into account
 -- here. This is what you would need when you parse packets from an
@@ -69,7 +69,7 @@ parseStorable = pa
 -- function in a complicated `EndianStore` instance.
 parse :: EndianStore a => Parser a
 parse = pa
-  where pa = makeParser (byteSize $ undefParse pa) (load . castPtr)
+  where pa = makeParser (sizeOf $ undefParse pa) (load . castPtr)
 
 -- | Parses a strict bytestring of a given length.
 parseByteString :: LengthUnit l => l -> Parser ByteString
@@ -82,7 +82,7 @@ parseByteString l = makeParser l $ createFrom l
 unsafeParseStorableVector :: (Storable a, Vector v a) => Int -> Parser (v a)
 unsafeParseStorableVector n = pvec
   where pvec      = makeParser  width $ \ cptr -> generateM n (getA cptr)
-        width     = fromIntegral n * byteSize (undefA pvec)
+        width     = fromIntegral n * sizeOf (undefA pvec)
         undefA    :: (Storable a, Vector v a)=> Parser (v a) -> a
         undefA _  = undefined
         getA      = peekElemOff . castPtr
@@ -94,7 +94,7 @@ unsafeParseStorableVector n = pvec
 unsafeParseVector :: (EndianStore a, Vector v a) => Int -> Parser (v a)
 unsafeParseVector n = pvec
   where pvec     = makeParser  width $ \ cptr -> generateM n (loadFromIndex (castPtr cptr))
-        width    = fromIntegral n * byteSize (undefA pvec)
+        width    = fromIntegral n * sizeOf (undefA pvec)
         undefA   :: (EndianStore a, Vector v a)=> Parser (v a) -> a
         undefA _ = undefined
 
