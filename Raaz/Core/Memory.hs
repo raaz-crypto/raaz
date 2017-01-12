@@ -26,12 +26,11 @@ module Raaz.Core.Memory
        , Initialisable(..), Extractable(..)
        , InitialisableFromBuffer(..), ExtractableToBuffer(..)
        -- *** A basic memory cell.
-       , MemoryCell
-
+       , MemoryCell, withCellPointer, getCellPointer
        -- *** Actions on memory elements.
        , MT,  execute, getMemory, onSubMemory, liftSubMT,  modify
        -- **** Some low level `MT` actions.
-       , getMemoryPointer, withPointer
+
        , liftAllocator
        -- ** Generic memory monads.
        , MonadMemory(..)
@@ -198,16 +197,6 @@ execute = MT
 
 getMemory :: MT mem mem
 getMemory = execute return
-
--- | Get the pointer associated with the given memory.
-getMemoryPointer :: Memory mem => MT mem Pointer
-getMemoryPointer = underlyingPtr <$> getMemory
-
--- | Work with the underlying pointer of the memory element. Useful
--- while working with ffi functions.
-withPointer :: Memory mem => (Pointer -> IO b) -> MT mem b
-withPointer fp  = execute $ fp . underlyingPtr
-{-# INLINE withPointer #-}
 
 -- | The combinator @onSubMemory@ allows us to run a memory action on a
 -- sub-memory element. Given a memory element of type @mem@ and a
@@ -471,6 +460,18 @@ instance Storable a => Memory (MemoryCell a) where
 -- pointer is guaranteed to be aligned to the alignment restriction of @a@
 actualCellPtr :: Storable a => MemoryCell a -> Ptr a
 actualCellPtr = nextAlignedPtr . unMemoryCell
+
+-- | Work with the underlying pointer of the memory cell. Useful while
+-- working with ffi functions.
+withCellPointer :: Storable a => (Ptr a -> IO b) -> MT (MemoryCell a) b
+{-# INLINE withCellPointer #-}
+withCellPointer action = execute $ action . actualCellPtr
+
+
+-- | Get the pointer associated with the given memory cell.
+getCellPointer :: Storable a => MT (MemoryCell a) (Ptr a)
+{-# INLINE getCellPointer #-}
+getCellPointer = actualCellPtr <$> getMemory
 
 instance Storable a => Initialisable (MemoryCell a) a where
   initialise a = execute $ flip pokeAligned a . unMemoryCell
