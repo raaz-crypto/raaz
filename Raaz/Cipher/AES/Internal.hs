@@ -19,7 +19,7 @@ module Raaz.Cipher.AES.Internal
 import Data.String
 import Data.Word
 
-import Foreign.Ptr      (castPtr )
+import Foreign.Ptr      ( castPtr, Ptr )
 import Foreign.Storable (Storable, poke)
 import GHC.TypeLits
 
@@ -174,22 +174,22 @@ newtype EKEY192 = EKEY192 (TUPLE 52) deriving (Storable, EndianStore)
 newtype EKEY256 = EKEY256 (TUPLE 60) deriving (Storable, EndianStore)
 
 instance Initialisable (MemoryCell EKEY128) KEY128 where
-  initialise k = withPointer $ pokeAndExpand k (c_expand 4)
+  initialise k = withCellPointer $ pokeAndExpand k (c_expand 4)
 
 instance Initialisable (MemoryCell EKEY192) KEY192 where
-  initialise k = withPointer $ pokeAndExpand k (c_expand 6)
+  initialise k = withCellPointer $ pokeAndExpand k (c_expand 6)
 
 instance Initialisable (MemoryCell EKEY256) KEY256 where
-  initialise k = withPointer $ pokeAndExpand k (c_expand 8)
+  initialise k = withCellPointer $ pokeAndExpand k (c_expand 8)
 
 foreign import ccall unsafe
   "raaz/cipher/aes/common.h raazAESExpand"
-  c_expand :: Int -> Pointer -> IO ()
+  c_expand :: Int -> Ptr ekey -> IO ()
 
 -- | Poke a key and expand it with the given routine.
 pokeAndExpand :: Storable k
-              => k                   -- ^ key to poke
-              -> (Pointer -> IO ())  -- ^ expansion algorithm
-              -> Pointer             -- ^ buffer pointer.
+              => k                    -- ^ key to poke
+              -> (Ptr ekey -> IO ())  -- ^ expansion algorithm
+              -> Ptr ekey             -- ^ buffer pointer.
               -> IO ()
 pokeAndExpand k expander ptr = poke (castPtr ptr) k >> expander ptr
