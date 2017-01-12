@@ -7,6 +7,7 @@ module Raaz.Cipher.ChaCha20.Implementation.CPortable
        ) where
 
 import Control.Monad.IO.Class   ( liftIO )
+import Foreign.Ptr              ( Ptr    )
 
 import Raaz.Core
 import Raaz.Cipher.Internal
@@ -18,17 +19,17 @@ implementation  = SomeCipherI chacha20Portable
 -- | Chacha20 block transformation.
 foreign import ccall unsafe
   "raaz/cipher/chacha20/cportable.h raazChaCha20Block"
-  c_chacha20_block :: Pointer  -- Message
-                   -> Int      -- number of blocks
-                   -> Pointer  -- key
-                   -> Pointer  -- iv
-                   -> Pointer  -- Counter value
+  c_chacha20_block :: Pointer      -- Message
+                   -> Int          -- number of blocks
+                   -> Ptr KEY      -- key
+                   -> Ptr IV       -- iv
+                   -> Ptr Counter  -- Counter value
                    -> IO ()
 
 chacha20Block :: Pointer -> BLOCKS ChaCha20 -> MT ChaCha20Mem ()
-chacha20Block msgPtr nblocks = do keyPtr <- onSubMemory keyCell     getMemoryPointer
-                                  ivPtr  <- onSubMemory ivCell      getMemoryPointer
-                                  ctrPtr <- onSubMemory counterCell getMemoryPointer
+chacha20Block msgPtr nblocks = do keyPtr <- onSubMemory keyCell     getCellPointer
+                                  ivPtr  <- onSubMemory ivCell      getCellPointer
+                                  ctrPtr <- onSubMemory counterCell getCellPointer
                                   liftIO $ c_chacha20_block msgPtr (fromEnum nblocks) keyPtr ivPtr ctrPtr
 
 chacha20Portable :: CipherI ChaCha20 ChaCha20Mem ChaCha20Mem
