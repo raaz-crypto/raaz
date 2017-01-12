@@ -4,6 +4,7 @@ module Raaz.Hash.Sha256.Implementation.CPortable
        ( implementation, cPortable
        ) where
 
+import Foreign.Ptr               ( Ptr )
 import Raaz.Core
 import Raaz.Hash.Internal
 import Raaz.Hash.Sha.Util
@@ -18,4 +19,4 @@ cPortable = portableC c_sha256_compress length64Write
 
 foreign import ccall unsafe
   "raaz/hash/sha256/portable.h raazHashSha256PortableCompress"
-  c_sha256_compress  :: Pointer -> Int -> Pointer -> IO ()
+  c_sha256_compress  :: Pointer -> Int -> Ptr SHA256 -> IO ()
