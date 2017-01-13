@@ -316,32 +316,32 @@ pointerAlloc l = makeAlloc l id
 --
 -- > instance (Memory ma, Memory mb) => Memory (ma, mb) where
 -- >
--- >    memoryAlloc   = (,) <$> memoryAlloc <*> memoryAlloc
+-- >    memoryAlloc             = (,) <$> memoryAlloc <*> memoryAlloc
 -- >
--- >    underlyingPtr (ma, _) =  underlyingPtr ma
+-- >    unsafeToPointer (ma, _) =  unsafeToPointer ma
 --
 class Memory m where
 
   -- | Returns an allocator for this memory.
-  memoryAlloc    :: Alloc m
+  memoryAlloc     :: Alloc m
 
   -- | Returns the pointer to the underlying buffer.
-  underlyingPtr  :: m -> Pointer
+  unsafeToPointer :: m -> Pointer
 
 instance ( Memory ma, Memory mb ) => Memory (ma, mb) where
-    memoryAlloc           = (,) <$> memoryAlloc <*> memoryAlloc
-    underlyingPtr (ma, _) =  underlyingPtr ma
+    memoryAlloc             = (,) <$> memoryAlloc <*> memoryAlloc
+    unsafeToPointer (ma, _) =  unsafeToPointer ma
 
 instance ( Memory ma
          , Memory mb
          , Memory mc
          )
          => Memory (ma, mb, mc) where
-    memoryAlloc           = (,,)
-                            <$> memoryAlloc
-                            <*> memoryAlloc
-                            <*> memoryAlloc
-    underlyingPtr (ma,_,_) =  underlyingPtr ma
+  memoryAlloc              = (,,)
+                             <$> memoryAlloc
+                             <*> memoryAlloc
+                             <*> memoryAlloc
+  unsafeToPointer (ma,_,_) =  unsafeToPointer ma
 
 instance ( Memory ma
          , Memory mb
@@ -349,13 +349,13 @@ instance ( Memory ma
          , Memory md
          )
          => Memory (ma, mb, mc, md) where
-    memoryAlloc           = (,,,)
-                            <$> memoryAlloc
-                            <*> memoryAlloc
-                            <*> memoryAlloc
-                            <*> memoryAlloc
+  memoryAlloc                = (,,,)
+                               <$> memoryAlloc
+                               <*> memoryAlloc
+                               <*> memoryAlloc
+                               <*> memoryAlloc
 
-    underlyingPtr (ma,_,_,_) =  underlyingPtr ma
+  unsafeToPointer (ma,_,_,_) =  unsafeToPointer ma
 
 -- | Copy data from a given memory location to the other. The first
 -- argument is destionation and the second argument is source to match
@@ -363,7 +363,7 @@ instance ( Memory ma
 copyMemory :: Memory m => Dest m -- ^ Destination
                        -> Src  m -- ^ Source
                        -> IO ()
-copyMemory dmem smem = memcpy (underlyingPtr <$> dmem) (underlyingPtr <$> smem) sz
+copyMemory dmem smem = memcpy (unsafeToPointer <$> dmem) (unsafeToPointer <$> smem) sz
   where sz       = twistMonoidValue $ getAlloc smem
         getAlloc :: Memory m => Src m -> Alloc m
         getAlloc _ = memoryAlloc
@@ -454,7 +454,7 @@ instance Storable a => Memory (MemoryCell a) where
     where allocator :: Storable b => b -> Alloc (MemoryCell b)
           allocator b = makeAlloc (alignedSizeOf b) $ MemoryCell . castPtr
 
-  underlyingPtr  = castPtr . unMemoryCell
+  unsafeToPointer  = castPtr . unMemoryCell
 
 -- | The location where the actual storing of element happens. This
 -- pointer is guaranteed to be aligned to the alignment restriction of @a@
