@@ -78,8 +78,7 @@ blocks prim = B.concat <$> listOf singleBlock
 
 
 -- | Run a property with a given generator.
-feed :: (Testable pr, Show a)
-     => Gen a -> (a -> IO pr) -> Property
+feed :: Show a => Gen a -> (a -> IO pr) -> Property
 feed gen pr = monadicIO $ pick gen >>= (run . pr)
 
 repeated :: Monoid m => m -> Int -> m
