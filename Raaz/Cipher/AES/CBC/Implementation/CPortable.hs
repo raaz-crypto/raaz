@@ -23,8 +23,8 @@ data M128 = M128 { m128ekey :: MemoryCell EKEY128
                  }
 
 instance Memory M128  where
-  memoryAlloc   = M128 <$> memoryAlloc <*> memoryAlloc
-  underlyingPtr = underlyingPtr . m128ekey
+  memoryAlloc     = M128 <$> memoryAlloc <*> memoryAlloc
+  unsafeToPointer = unsafeToPointer . m128ekey
 
 instance Initialisable M128 (KEY128, IV) where
   initialise (k,iv) = do
@@ -41,8 +41,8 @@ data M192 = M192 { m192ekey :: MemoryCell EKEY192
                  }
 
 instance Memory M192  where
-  memoryAlloc   = M192 <$> memoryAlloc <*> memoryAlloc
-  underlyingPtr = underlyingPtr . m192ekey
+  memoryAlloc     = M192 <$> memoryAlloc <*> memoryAlloc
+  unsafeToPointer = unsafeToPointer . m192ekey
 
 instance Initialisable M192 (KEY192, IV) where
   initialise (k,iv) = do
@@ -60,8 +60,8 @@ data M256 = M256 { m256ekey :: MemoryCell EKEY256
                  }
 
 instance Memory M256  where
-  memoryAlloc   = M256 <$> memoryAlloc <*> memoryAlloc
-  underlyingPtr = underlyingPtr . m256ekey
+  memoryAlloc     = M256 <$> memoryAlloc <*> memoryAlloc
+  unsafeToPointer = unsafeToPointer . m256ekey
 
 instance Initialisable M256 (KEY256, IV) where
   initialise (k,iv) = do

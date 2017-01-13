@@ -18,8 +18,8 @@ import qualified Raaz.Hash.Sha512.Implementation.CPortable as SHA512I
 newtype SHA384Memory = SHA384Memory { unSHA384Mem :: HashMemory SHA512 }
 
 instance Memory SHA384Memory where
-  memoryAlloc   = SHA384Memory <$> memoryAlloc
-  underlyingPtr = underlyingPtr . unSHA384Mem
+  memoryAlloc     = SHA384Memory <$> memoryAlloc
+  unsafeToPointer = unsafeToPointer . unSHA384Mem
 
 instance Initialisable SHA384Memory () where
   initialise _ = onSubMemory unSHA384Mem

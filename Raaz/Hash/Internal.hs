@@ -259,9 +259,9 @@ data HashMemory h =
 
 instance Storable h => Memory (HashMemory h) where
 
-  memoryAlloc   = HashMemory <$> memoryAlloc <*> memoryAlloc
+  memoryAlloc     = HashMemory <$> memoryAlloc <*> memoryAlloc
 
-  underlyingPtr = underlyingPtr . hashCell
+  unsafeToPointer = unsafeToPointer . hashCell
 
 instance Storable h => Initialisable (HashMemory h) h where
   initialise h = do

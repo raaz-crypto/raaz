@@ -78,8 +78,8 @@ data ChaCha20Mem = ChaCha20Mem { keyCell      :: MemoryCell KEY
 
 
 instance Memory ChaCha20Mem where
-  memoryAlloc   = ChaCha20Mem <$> memoryAlloc <*> memoryAlloc <*> memoryAlloc
-  underlyingPtr = underlyingPtr . keyCell
+  memoryAlloc     = ChaCha20Mem <$> memoryAlloc <*> memoryAlloc <*> memoryAlloc
+  unsafeToPointer = unsafeToPointer . keyCell
 
 instance Initialisable ChaCha20Mem (KEY, IV, Counter) where
   initialise (k,iv,ctr) = do onSubMemory keyCell     $ initialise k
