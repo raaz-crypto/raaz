@@ -60,7 +60,7 @@ class Random r where
   default getRandom :: (PRG prg, Storable r) => prg -> IO r
   getRandom = go undefined
     where go       :: (PRG prg, Storable a) => a -> prg -> IO a
-          go w prg = let sz = byteSize w in
+          go w prg = let sz = sizeOf w in
             allocaBuffer sz $ \ ptr -> do
               void $ fillRandomBytes sz ptr prg
               peek $ castPtr ptr

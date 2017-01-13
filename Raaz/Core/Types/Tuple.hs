@@ -142,7 +142,7 @@ unsafeFromList xs
 
 -- | Computes the initial fragment of a tuple. No length needs to be given
 -- as it is infered from the types.
-initial :: (V.Unbox a, Dimension dim0, Dimension dim1)
+initial ::  (V.Unbox a, Dimension dim0)
          => Tuple dim1 a
          -> Tuple dim0 a
 initial tup = tup0

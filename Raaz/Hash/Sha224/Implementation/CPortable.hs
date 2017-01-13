@@ -18,8 +18,8 @@ import qualified Raaz.Hash.Sha256.Implementation.CPortable as SHA256I
 newtype SHA224Memory  = SHA224Memory { unSHA224Mem :: HashMemory SHA256 }
 
 instance Memory SHA224Memory where
-  memoryAlloc   = SHA224Memory <$> memoryAlloc
-  underlyingPtr = underlyingPtr . unSHA224Mem
+  memoryAlloc     = SHA224Memory <$> memoryAlloc
+  unsafeToPointer = unsafeToPointer . unSHA224Mem
 
 instance Initialisable SHA224Memory () where
   initialise _ = onSubMemory unSHA224Mem $

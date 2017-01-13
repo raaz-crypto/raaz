@@ -23,7 +23,6 @@ module Raaz.Core.Primitives
        ) where
 
 import Data.Monoid
-import Foreign.Marshal.Alloc
 import Prelude
 
 import Raaz.Core.Types
@@ -35,7 +34,7 @@ import Raaz.Core.Types
 class Describable a => BlockAlgorithm a where
 
   -- | The alignment expected for the buffer pointer.
-  bufferStartAlignment :: a -> BYTES Int
+  bufferStartAlignment :: a -> Alignment
 
 
 ----------------------- A primitive ------------------------------------
@@ -76,9 +75,7 @@ allocBufferFor :: Primitive prim
                -> BLOCKS prim
                -> (Pointer -> IO b)
                -> IO b
-allocBufferFor imp l  = allocaBytesAligned bytes align
-  where BYTES align = bufferStartAlignment imp
-        BYTES bytes = inBytes l
+allocBufferFor imp l  = allocaAligned (bufferStartAlignment imp) l
 
 -- | Some primitives like ciphers have an encryption/decryption key. This
 -- type family captures the key associated with a primitive if it has

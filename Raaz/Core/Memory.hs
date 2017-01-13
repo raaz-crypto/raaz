@@ -26,12 +26,11 @@ module Raaz.Core.Memory
        , Initialisable(..), Extractable(..)
        , InitialisableFromBuffer(..), ExtractableToBuffer(..)
        -- *** A basic memory cell.
-       , MemoryCell
-
+       , MemoryCell, withCellPointer, getCellPointer
        -- *** Actions on memory elements.
        , MT,  execute, getMemory, onSubMemory, liftSubMT,  modify
        -- **** Some low level `MT` actions.
-       , getMemoryPointer, withPointer
+
        , liftAllocator
        -- ** Generic memory monads.
        , MonadMemory(..)
@@ -42,7 +41,7 @@ module Raaz.Core.Memory
 
 import           Control.Applicative
 import           Control.Monad.IO.Class
-import           Foreign.Storable            ( Storable(..) )
+import           Foreign.Storable            ( Storable )
 import           Foreign.Ptr                 ( castPtr, Ptr )
 import           Raaz.Core.MonoidalAction
 import           Raaz.Core.Transfer
@@ -199,16 +198,6 @@ execute = MT
 getMemory :: MT mem mem
 getMemory = execute return
 
--- | Get the pointer associated with the given memory.
-getMemoryPointer :: Memory mem => MT mem Pointer
-getMemoryPointer = underlyingPtr <$> getMemory
-
--- | Work with the underlying pointer of the memory element. Useful
--- while working with ffi functions.
-withPointer :: Memory mem => (Pointer -> IO b) -> MT mem b
-withPointer fp  = execute $ fp . underlyingPtr
-{-# INLINE withPointer #-}
-
 -- | The combinator @onSubMemory@ allows us to run a memory action on a
 -- sub-memory element. Given a memory element of type @mem@ and a
 -- sub-element of type @submem@ which can be obtained from the
@@ -297,7 +286,7 @@ type AllocField = Field Pointer
 -- | A memory allocator for the memory type @mem@. The `Applicative`
 -- instance of @Alloc@ can be used to build allocations for
 -- complicated memory elements from simpler ones.
-type Alloc mem = TwistRF AllocField ALIGN mem
+type Alloc mem = TwistRF AllocField (BYTES Int) mem
 
 -- | Make an allocator for a given memory type.
 makeAlloc :: LengthUnit l => l -> (Pointer -> mem) -> Alloc mem
@@ -327,32 +316,32 @@ pointerAlloc l = makeAlloc l id
 --
 -- > instance (Memory ma, Memory mb) => Memory (ma, mb) where
 -- >
--- >    memoryAlloc   = (,) <$> memoryAlloc <*> memoryAlloc
+-- >    memoryAlloc             = (,) <$> memoryAlloc <*> memoryAlloc
 -- >
--- >    underlyingPtr (ma, _) =  underlyingPtr ma
+-- >    unsafeToPointer (ma, _) =  unsafeToPointer ma
 --
 class Memory m where
 
   -- | Returns an allocator for this memory.
-  memoryAlloc    :: Alloc m
+  memoryAlloc     :: Alloc m
 
   -- | Returns the pointer to the underlying buffer.
-  underlyingPtr  :: m -> Pointer
+  unsafeToPointer :: m -> Pointer
 
 instance ( Memory ma, Memory mb ) => Memory (ma, mb) where
-    memoryAlloc           = (,) <$> memoryAlloc <*> memoryAlloc
-    underlyingPtr (ma, _) =  underlyingPtr ma
+    memoryAlloc             = (,) <$> memoryAlloc <*> memoryAlloc
+    unsafeToPointer (ma, _) =  unsafeToPointer ma
 
 instance ( Memory ma
          , Memory mb
          , Memory mc
          )
          => Memory (ma, mb, mc) where
-    memoryAlloc           = (,,)
-                            <$> memoryAlloc
-                            <*> memoryAlloc
-                            <*> memoryAlloc
-    underlyingPtr (ma,_,_) =  underlyingPtr ma
+  memoryAlloc              = (,,)
+                             <$> memoryAlloc
+                             <*> memoryAlloc
+                             <*> memoryAlloc
+  unsafeToPointer (ma,_,_) =  unsafeToPointer ma
 
 instance ( Memory ma
          , Memory mb
@@ -360,13 +349,13 @@ instance ( Memory ma
          , Memory md
          )
          => Memory (ma, mb, mc, md) where
-    memoryAlloc           = (,,,)
-                            <$> memoryAlloc
-                            <*> memoryAlloc
-                            <*> memoryAlloc
-                            <*> memoryAlloc
+  memoryAlloc                = (,,,)
+                               <$> memoryAlloc
+                               <*> memoryAlloc
+                               <*> memoryAlloc
+                               <*> memoryAlloc
 
-    underlyingPtr (ma,_,_,_) =  underlyingPtr ma
+  unsafeToPointer (ma,_,_,_) =  unsafeToPointer ma
 
 -- | Copy data from a given memory location to the other. The first
 -- argument is destionation and the second argument is source to match
@@ -374,7 +363,7 @@ instance ( Memory ma
 copyMemory :: Memory m => Dest m -- ^ Destination
                        -> Src  m -- ^ Source
                        -> IO ()
-copyMemory dmem smem = memcpy (underlyingPtr <$> dmem) (underlyingPtr <$> smem) sz
+copyMemory dmem smem = memcpy (unsafeToPointer <$> dmem) (unsafeToPointer <$> smem) sz
   where sz       = twistMonoidValue $ getAlloc smem
         getAlloc :: Memory m => Src m -> Alloc m
         getAlloc _ = memoryAlloc
@@ -463,20 +452,37 @@ instance Storable a => Memory (MemoryCell a) where
 
   memoryAlloc = allocator undefined
     where allocator :: Storable b => b -> Alloc (MemoryCell b)
-          allocator b = makeAlloc (byteSize b) $ MemoryCell . castPtr
+          allocator b = makeAlloc (alignedSizeOf b) $ MemoryCell . castPtr
 
-  underlyingPtr  = castPtr . unMemoryCell
+  unsafeToPointer  = castPtr . unMemoryCell
+
+-- | The location where the actual storing of element happens. This
+-- pointer is guaranteed to be aligned to the alignment restriction of @a@
+actualCellPtr :: Storable a => MemoryCell a -> Ptr a
+actualCellPtr = nextAlignedPtr . unMemoryCell
+
+-- | Work with the underlying pointer of the memory cell. Useful while
+-- working with ffi functions.
+withCellPointer :: Storable a => (Ptr a -> IO b) -> MT (MemoryCell a) b
+{-# INLINE withCellPointer #-}
+withCellPointer action = execute $ action . actualCellPtr
+
+
+-- | Get the pointer associated with the given memory cell.
+getCellPointer :: Storable a => MT (MemoryCell a) (Ptr a)
+{-# INLINE getCellPointer #-}
+getCellPointer = actualCellPtr <$> getMemory
 
 instance Storable a => Initialisable (MemoryCell a) a where
-  initialise a = execute $ flip poke a . unMemoryCell
+  initialise a = execute $ flip pokeAligned a . unMemoryCell
   {-# INLINE initialise #-}
 
 instance Storable a => Extractable (MemoryCell a) a where
-  extract = execute $ peek . unMemoryCell
+  extract = execute $ peekAligned . unMemoryCell
   {-# INLINE extract #-}
 
 instance EndianStore a => InitialisableFromBuffer (MemoryCell a) where
-  initialiser  = readInto 1 . destination . unMemoryCell
+  initialiser  = readInto 1 . destination . actualCellPtr
 
 instance EndianStore a => ExtractableToBuffer (MemoryCell a) where
-  extractor  = writeFrom 1 . source . unMemoryCell
+  extractor  = writeFrom 1 . source . actualCellPtr

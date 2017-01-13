@@ -91,7 +91,7 @@ data HashI h m = HashI
                       -- ^ compress the blocks,
   , compressFinal  :: Pointer -> BYTES Int -> MT m ()
                       -- ^ pad and process the final bytes,
-  , compressStartAlignment :: BYTES Int
+  , compressStartAlignment :: Alignment
   }
 
 instance BlockAlgorithm (HashI h m) where
@@ -259,9 +259,9 @@ data HashMemory h =
 
 instance Storable h => Memory (HashMemory h) where
 
-  memoryAlloc   = HashMemory <$> memoryAlloc <*> memoryAlloc
+  memoryAlloc     = HashMemory <$> memoryAlloc <*> memoryAlloc
 
-  underlyingPtr = underlyingPtr . hashCell
+  unsafeToPointer = unsafeToPointer . hashCell
 
 instance Storable h => Initialisable (HashMemory h) h where
   initialise h = do

@@ -13,7 +13,8 @@ module Raaz.Hash.Sha.Util
 
 import Data.Monoid                  ( (<>)      )
 import Data.Word
-import Foreign.Storable
+import Foreign.Ptr                  ( Ptr       )
+import Foreign.Storable             ( Storable  )
 
 import Raaz.Core
 import Raaz.Core.Transfer
@@ -50,10 +51,10 @@ length128Write w = writeStorable (0 :: Word64) <> length64Write w
 -- | The type alias for the raw compressor function. The compressor function
 -- does not need to know the length of the message so far and hence
 -- this is not supposed to update lengths.
-type Compressor = Pointer  -- ^ The buffer to compress
-                -> Int     -- ^ The number of blocks to compress
-                -> Pointer -- ^ The cell memory containing the hash
-                -> IO ()
+type Compressor h = Pointer -- ^ The buffer to compress
+                  -> Int    -- ^ The number of blocks to compress
+                  -> Ptr h  -- ^ The cell memory containing the hash
+                  -> IO ()
 
 -- | Action on a Buffer
 type ShaBufferAction bufSize h = Pointer       -- ^ The data buffer
@@ -62,8 +63,8 @@ type ShaBufferAction bufSize h = Pointer       -- ^ The data buffer
 
 -- | Lifts the raw compressor to a buffer action. This function does not update
 -- the lengths.
-liftCompressor          :: IsSha h => Compressor -> ShaBufferAction (BLOCKS h) h
-liftCompressor comp ptr = onSubMemory hashCell . withPointer . comp ptr . fromEnum
+liftCompressor          :: IsSha h => Compressor h -> ShaBufferAction (BLOCKS h) h
+liftCompressor comp ptr = onSubMemory hashCell . withCellPointer . comp ptr . fromEnum
 
 
 -- | The combinator `shaBlocks` on an input compressor @comp@ gives a buffer action
@@ -108,7 +109,7 @@ shaPad h msgLen = glueWrites 0 boundary hdr
 shaImplementation :: IsSha h
                   => String                   -- ^ Name
                   -> String                   -- ^ Description
-                  -> Compressor
+                  -> Compressor  h
                   -> LengthWrite h
                   -> HashI h (HashMemory h)
 shaImplementation nam des comp lenW
@@ -116,7 +117,7 @@ shaImplementation nam des comp lenW
           , hashIDescription        = des
           , compress                = shaBlocks shaComp
           , compressFinal           = shaFinal  shaComp lenW
-          , compressStartAlignment  = inBytes (1 :: ALIGN)
+          , compressStartAlignment  = wordAlignment
           }
   where shaComp = liftCompressor comp
 
@@ -126,7 +127,7 @@ portableC :: ( Primitive h
              , Storable h
              , Initialisable (HashMemory h) ()
              )
-          => Compressor
+          => Compressor  h
           -> LengthWrite h
           -> HashI h (HashMemory h)
 portableC = shaImplementation "portable-c-ffi"

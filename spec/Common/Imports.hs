@@ -7,7 +7,7 @@ import Data.ByteString.Char8        () -- import IsString instance for
 import Data.String             as E
 import Data.Monoid             as E
 import Data.Word               as E
-import Foreign.Storable        as E (Storable(..))
+import Foreign.Storable        as E (Storable, peek, poke)
 import Test.Hspec              as E
 import Test.Hspec.QuickCheck   as E
 import Test.QuickCheck         as E

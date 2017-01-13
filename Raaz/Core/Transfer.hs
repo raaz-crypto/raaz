@@ -32,7 +32,7 @@ import           Data.Monoid
 import qualified Data.Vector.Generic       as G
 import           Data.Word                 (Word8)
 import           Foreign.Ptr               (castPtr, Ptr)
-import           Foreign.Storable
+import           Foreign.Storable          ( Storable, poke )
 
 import           Raaz.Core.MonoidalAction
 import           Raaz.Core.Types.Copying
@@ -126,7 +126,7 @@ makeWrite sz  = WriteM . makeTransfer sz
 -- (otherwise this could lead to endian confusion). To take care of
 -- endianness use the `write` combinator.
 writeStorable :: (MonadIO m, Storable a) => a -> WriteM m
-writeStorable a = WriteM $ makeTransfer (byteSize a) pokeIt
+writeStorable a = WriteM $ makeTransfer (sizeOf a) pokeIt
   where pokeIt = liftIO . flip poke a . castPtr
 -- | The expression @`write` a@ gives a write action that stores a
 -- value @a@. One needs the type of the value @a@ to be an instance of
@@ -134,14 +134,14 @@ writeStorable a = WriteM $ makeTransfer (byteSize a) pokeIt
 -- what the machine endianness is. The man use of this write is to
 -- serialize data for the consumption of the outside world.
 write :: (MonadIO m, EndianStore a) => a -> WriteM m
-write a = makeWrite (byteSize a) $ liftIO . flip (store . castPtr) a
+write a = makeWrite (sizeOf a) $ liftIO . flip (store . castPtr) a
 
 -- | Write many elements from the given buffer
 writeFrom :: (MonadIO m, EndianStore a) => Int -> Src (Ptr a) -> WriteM m
 writeFrom n src = makeWrite (sz undefined src)
                   $ \ ptr -> liftIO  $ copyToBytes (destination ptr) src n
   where sz :: Storable a => a -> Src (Ptr a) -> BYTES Int
-        sz a _ = toEnum n * byteSize a
+        sz a _ = toEnum n * sizeOf a
 
 -- | The vector version of `writeStorable`.
 writeStorableVector :: (Storable a, G.Vector v a, MonadIO m) => v a -> WriteM m
@@ -306,4 +306,4 @@ readInto :: (EndianStore a, MonadIO m)
 readInto n dest = makeRead (sz undefined dest)
                   $ \ ptr -> liftIO $ copyFromBytes dest (source ptr) n
   where sz :: Storable a => a -> Dest (Ptr a) -> BYTES Int
-        sz a _ = toEnum n * byteSize a
+        sz a _ = toEnum n * sizeOf a

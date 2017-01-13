@@ -26,13 +26,14 @@ import qualified Data.ByteString           as B
 import qualified Data.ByteString.Lazy      as L
 import           Data.Monoid
 import           Data.String
+import           Data.Word
 import           Foreign.Ptr               ( castPtr      )
 import           Foreign.Storable          ( Storable(..) )
 import           Prelude                   hiding (length, replicate)
 import           System.IO
 import           System.IO.Unsafe     (unsafePerformIO)
 
-import           Raaz.Core
+import           Raaz.Core          hiding (alignment)
 import           Raaz.Core.Parse.Applicative
 import           Raaz.Core.Transfer
 
@@ -60,7 +61,7 @@ instance (Hash h, Recommendation h) => Storable (HMACKey h) where
 
   sizeOf    _  = fromIntegral $ blockSize (undefined :: h)
 
-  alignment _  = alignment (undefined :: Align)
+  alignment _  = alignment (undefined :: Word8)
 
   peek         = unsafeRunParser (HMACKey <$> parseByteString (blockSize (undefined :: h))) . castPtr
 

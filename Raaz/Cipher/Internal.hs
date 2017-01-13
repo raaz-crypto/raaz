@@ -98,7 +98,7 @@ data CipherI cipher encMem decMem = CipherI
      , encryptBlocks :: Pointer -> BLOCKS cipher -> MT encMem ()
        -- | The underlying block decryption function.
      , decryptBlocks :: Pointer -> BLOCKS cipher -> MT decMem ()
-     , cipherStartAlignment :: BYTES Int
+     , cipherStartAlignment :: Alignment
      }
 
 -- | Type constraints on the memory of a block cipher implementation.
@@ -114,7 +114,7 @@ data SomeCipherI cipher =
   => SomeCipherI (CipherI cipher encMem decMem)
 
 
-instance Primitive cipher => BlockAlgorithm (CipherI cipher encMem decMem) where
+instance BlockAlgorithm (CipherI cipher encMem decMem) where
   bufferStartAlignment = cipherStartAlignment
 
 instance Describable (CipherI cipher encMem decMem) where
@@ -126,7 +126,7 @@ instance Describable (SomeCipherI cipher) where
   name         (SomeCipherI cI) = name cI
   description  (SomeCipherI cI) = description cI
 
-instance Primitive cipher => BlockAlgorithm (SomeCipherI cipher) where
+instance BlockAlgorithm (SomeCipherI cipher) where
   bufferStartAlignment (SomeCipherI imp) = bufferStartAlignment imp
 
 
@@ -159,11 +159,10 @@ class Cipher cipher => StreamCipher cipher
 
 -- | Constructs a `CipherI`  value out of a stream transformation function. Useful in
 --   building a Cipher instance of a stream cipher.
-makeCipherI :: Primitive prim
-            => String                                -- ^ name
+makeCipherI :: String                                -- ^ name
             -> String                                -- ^ description
             -> (Pointer -> BLOCKS prim -> MT mem ()) -- ^ stream transformer
-            -> BYTES Int                             -- ^ buffer starting alignment
+            -> Alignment                             -- ^ buffer starting alignment
             -> CipherI prim mem mem
 makeCipherI nm des trans = CipherI nm des trans trans
 

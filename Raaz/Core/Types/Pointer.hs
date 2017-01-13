@@ -13,29 +13,33 @@ module Raaz.Core.Types.Pointer
          -- ** The pointer type.
          Pointer
          -- ** Type safe length units.
-       , LengthUnit(..)
-       , BYTES(..), BITS(..),  ALIGN, Align, inBits
+       , LengthUnit(..), Alignment, wordAlignment
+       , BYTES(..), BITS(..), ALIGN, Align, inBits
          -- ** Some length arithmetic
        , bitsQuotRem, bytesQuotRem
        , bitsQuot, bytesQuot
        , atLeast, atMost
+         -- * Type safe versions of some common pointer functions.
+       , sizeOf, alignedSizeOf, alignment, alignPtr, nextAlignedPtr, peekAligned, pokeAligned
          -- * Helper function that uses generalised length units.
-       , allocaBuffer, allocaSecure, mallocBuffer
-       , hFillBuf, byteSize
+       , allocaAligned, allocaSecureAligned, allocaBuffer, allocaSecure, mallocBuffer
+       , hFillBuf
        , memset, memmove, memcpy
        ) where
 
 
 
-import Control.Applicative
-import Control.Exception     ( bracket_)
-import Control.Monad         ( void, when )
-import Data.Monoid
-import Data.Word
-import Foreign.Marshal.Alloc
-import Foreign.Ptr           ( Ptr, plusPtr)
-import Foreign.Storable      (Storable, sizeOf, alignment)
-import System.IO             (hGetBuf, Handle)
+import           Control.Applicative
+import           Control.Exception     ( bracket_)
+import           Control.Monad         ( void, when )
+import           Data.Monoid
+import           Data.Word
+import           Foreign.Marshal.Alloc
+import           Foreign.Ptr           ( Ptr         )
+import qualified Foreign.Ptr           as FP
+import           Foreign.Storable      ( Storable, peek, poke )
+import qualified Foreign.Storable      as FS
+import           System.IO             (hGetBuf, Handle)
 
 import Prelude -- To stop the annoying warnings of Applicatives and Monoids.
 
@@ -102,7 +106,7 @@ instance Monoid ALIGN where
   mappend x y = ALIGN $ unALIGN x + unALIGN y
 
 instance LengthUnit ALIGN where
-  inBytes (ALIGN x) = BYTES $ x * alignment (undefined :: Align)
+  inBytes (ALIGN x) = BYTES $ x * FS.alignment (undefined :: Align)
   {-# INLINE inBytes #-}
 
 instance LengthUnit (BYTES Int) where
@@ -176,38 +180,89 @@ bitsQuot bits = u
 
 -- | The most interesting monoidal action for us.
 instance LengthUnit u => LAction u Pointer where
-  a <.> ptr  = plusPtr ptr offset
+  a <.> ptr  = FP.plusPtr ptr offset
     where BYTES offset = inBytes a
   {-# INLINE (<.>) #-}
 
 -------------------------------------------------------------------
 
 
--------------------- Sizes, offsets and pointer arithmetic -------
-
--- | Similar to `sizeOf` but returns the length in type safe units.
-byteSize :: Storable a => a -> BYTES Int
-{-# INLINE byteSize #-}
-byteSize = BYTES . sizeOf
-
 
 ------------------------ Allocation --------------------------------
 
--- | The expression @allocaBuffer l action@ allocates a local buffer
--- of length @l@ and passes it on to the IO action @action@. No
--- explicit freeing of the memory is required as the memory is
--- allocated locally and freed once the action finishes. It is better
--- to use this function than @`allocaBytes`@ as it does type safe
--- scaling. This function also ensure that the allocated buffer is
--- word aligned.
-allocaBuffer :: LengthUnit l
-             => l                  -- ^ buffer length
-             -> (Pointer -> IO b)  -- ^ the action to run
-             -> IO b
-{-# INLINE allocaBuffer #-}
-allocaBuffer l = allocaBytesAligned bytes align
-  where BYTES bytes = inBytes l
-        BYTES align = inBytes (1 :: ALIGN)
+-- | Type safe lengths/offsets in units of bytes.
+newtype Alignment = Alignment { unAlignment :: Int }
+        deriving ( Show, Eq, Ord, Enum, Integral
+                 , Real, Num
+                 )
+
+-- | The default alignment to use is word boundary.
+wordAlignment :: Alignment
+wordAlignment = alignment (undefined :: Align)
+
+instance Monoid Alignment where
+  mempty  = Alignment 1
+  mappend = lcm
+
+
+-------------------- type safe versions of some pointer. --------------------
+
+-- | Compute the size of a storable element.
+sizeOf :: Storable a => a -> BYTES Int
+sizeOf = BYTES . FS.sizeOf
+
+-- | Size of the buffer to be allocated to store an element of type
+-- @a@ so as to guarantee that there exist enough space to store the
+-- element after aligning the pointer. If the size of the element is
+-- @s@ and its alignment is @a@ then this quantity is essentially
+-- equal to @s + a - 1@. All units measured in word alignment.
+alignedSizeOf  :: Storable a => a -> ALIGN
+alignedSizeOf a =  s + pad - 1
+  where -- The size of the element in Align units.
+        s    = atLeast $ sizeOf a
+        -- Alignment adjusted to word boundary.
+        algn = wordAlignment   <> alignment a
+        pad  = atLeast $ BYTES  $ unAlignment $ algn
+
+-- | Compute the alignment for a storable object.
+alignment :: Storable a => a -> Alignment
+alignment =  Alignment . FS.alignment
+
+-- | Align a pointer to the appropriate alignment.
+alignPtr :: Ptr a -> Alignment -> Ptr a
+alignPtr ptr = FP.alignPtr ptr . unAlignment
+
+
+-- | Compute the next aligned pointer starting from the given pointer
+-- location.
+nextAlignedPtr :: Storable a => Ptr a -> Ptr a
+nextAlignedPtr ptr = alignPtr ptr $ alignment $ elementOfPtr ptr
+  where elementOfPtr :: Ptr b -> b
+        elementOfPtr _ = undefined
+
+-- | Peek the element from the next aligned location.
+peekAligned :: Storable a => Ptr a -> IO a
+peekAligned = peek . nextAlignedPtr
+
+-- | Poke the element from the next aligned location.
+pokeAligned :: Storable a => Ptr a -> a -> IO ()
+pokeAligned ptr a = poke (nextAlignedPtr ptr) a
+
+-- | The expression @allocaAligned a l action@ allocates a local
+-- buffer of length @l@ and alignment @a@ and passes it on to the IO
+-- action @action@. No explicit freeing of the memory is required as
+-- the memory is allocated locally and freed once the action
+-- finishes. It is better to use this function than
+-- @`allocaBytesAligned`@ as it does type safe scaling and alignment.
+allocaAligned :: LengthUnit l
+              => Alignment          -- ^ the alignment of the buffer
+              -> l                  -- ^ size of the buffer
+              -> (Pointer -> IO b)  -- ^ the action to run
+              -> IO b
+allocaAligned algn l = allocaBytesAligned b a
+  where BYTES     b = inBytes l
+        Alignment a = algn
+
 
 -- | This function allocates a chunk of "secure" memory of a given
 -- size and runs the action. The memory (1) exists for the duration of
@@ -224,34 +279,49 @@ allocaBuffer l = allocaBytesAligned bytes align
 --
 -- TODO: File this insecurity in the wiki.
 --
-allocaSecure :: LengthUnit l
-              => l
-              -> (Pointer -> IO a)
-              -> IO a
+allocaSecureAligned :: LengthUnit l
+                    => Alignment
+                    -> l
+                    -> (Pointer -> IO a)
+                    -> IO a
 
 #ifdef HAVE_MLOCK
 
 foreign import ccall unsafe "sys/mman.h mlock"
-  c_mlock :: Pointer -> Int -> IO Int
+  c_mlock :: Pointer -> BYTES Int -> IO Int
 
 
 foreign import ccall unsafe "sys/mman.h munlock"
-  c_munlock :: Pointer -> Int -> IO ()
+  c_munlock :: Pointer -> BYTES Int -> IO ()
 
-allocaSecure l action = allocaBuffer actualSz actualAction
-  where actualSz = atLeast l :: ALIGN
-        BYTES sz = inBytes actualSz
+allocaSecureAligned a l action = allocaAligned a l actualAction
+  where sz = inBytes l
         actualAction cptr = let
           lockIt    = do c <- c_mlock cptr sz
                          when (c /= 0) $ fail "secure memory: unable to lock memory"
-          releaseIt =  memset cptr 0 actualSz >>  c_munlock cptr sz
+          releaseIt =  memset cptr 0 l >>  c_munlock cptr sz
           in bracket_ lockIt releaseIt $ action cptr
 
 #else
-
-allocaSecure _ _ = fail "memory locking not supported on this platform"
+allocaSecureAligned _ _ = fail "memory locking not supported on this platform"
 
 #endif
+-- | A less general version of `allocaAligned` where the pointer passed
+-- is aligned to word boundary.
+allocaBuffer :: LengthUnit l
+             => l                  -- ^ buffer length
+             -> (Pointer -> IO b)  -- ^ the action to run
+             -> IO b
+{-# INLINE allocaBuffer #-}
+allocaBuffer = allocaAligned wordAlignment
+
+-- | A less general version of `allocaSecureAligned` where the pointer passed
+-- is aligned to word boundary
+allocaSecure :: LengthUnit l
+             => l
+             -> (Pointer -> IO b)
+             -> IO b
+allocaSecure = allocaSecureAligned wordAlignment
 
 -- | Creates a memory of given size. It is better to use over
 -- @`mallocBytes`@ as it uses typesafe length.
