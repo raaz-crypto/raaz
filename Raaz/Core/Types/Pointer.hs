@@ -14,7 +14,7 @@ module Raaz.Core.Types.Pointer
          Pointer
          -- ** Type safe length units.
        , LengthUnit(..), Alignment, wordAlignment
-       , BYTES(..), BITS(..), ALIGN, Align, inBits
+       , BYTES(..), BITS(..), ALIGN, inBits
          -- ** Some length arithmetic
        , bitsQuotRem, bytesQuotRem
        , bitsQuot, bytesQuot
