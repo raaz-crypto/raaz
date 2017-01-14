@@ -11,8 +11,6 @@ module Raaz.Core.Types.Equality
          Equality(..), (===)
        -- ** The result of comparion.
        , Result
-       -- ** Comparing vectors.
-       , oftenCorrectEqVector, eqVector
        ) where
 
 import           Control.Monad               ( liftM )
@@ -52,9 +50,7 @@ import           Data.Word
 -- Instance for basic word types are provided by the library and users
 -- are expected to build the `Equality` instances of compound types by
 -- combine the results of comparisons using the monoid instance of
--- `Result`. We also give timing safe equality comparisons for
--- `Vector` types using the `eqVector` and `oftenCorrectEqVector`
--- functions.  Once an instance for `Equality` is defined for a
+-- `Result`. Once an instance for `Equality` is defined for a
 -- cryptographically sensitive data type, we define the `Eq` for it
 -- indirectly using the `Equality` instance and the operation `===`.
 --
@@ -280,34 +276,3 @@ instance ( Equality a
                                                      eq a5 b5 `mappend`
                                                      eq a6 b6 `mappend`
                                                      eq a7 b7
-
-
--- | Timing independent equality checks for vector of values. /Do not/
--- use this to check the equality of two general vectors in a timing
--- independent manner (use `eqVector` instead) because:
---
--- 1. They do not work for vectors of unequal lengths,
---
--- 2. They do not work for empty vectors.
---
--- The use case is for defining equality of data types which have
--- fixed size vector quantities in it. Like for example
---
--- > import Data.Vector.Unboxed
--- > newtype Sha1 = Sha1 (Vector (BE Word32))
--- >
--- > instance Eq Sha1 where
--- >    (==) (Sha1 g) (Sha1 h) = oftenCorrectEqVector g h
--- >
---
-
-
-oftenCorrectEqVector :: (G.Vector v a, Equality a, G.Vector v Result) => v a -> v a -> Bool
-oftenCorrectEqVector v1 v2 =  isSuccessful $ G.foldl1' mappend $ G.zipWith eq v1 v2
-
--- | Timing independent equality checks for vectors. If you know that
--- the vectors are not empty and of equal length, you may use the
--- slightly faster `oftenCorrectEqVector`
-eqVector :: (G.Vector v a, Equality a, G.Vector v Result) => v a -> v a -> Bool
-eqVector v1 v2 | G.length v1 == G.length v2 = isSuccessful $ G.foldl' mappend (Result 0) $ G.zipWith eq v1 v2
-               | otherwise                  = False
