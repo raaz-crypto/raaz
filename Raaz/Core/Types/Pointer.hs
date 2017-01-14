@@ -4,27 +4,30 @@
 {-# LANGUAGE ForeignFunctionInterface   #-}
 {-# LANGUAGE CPP                        #-}
 
--- | Basic pointer task.
+-- | This module exposes types that builds in type safety into some of
+-- the low level pointer operations. The functions here are pretty low
+-- level and will be required only by developers of the library that
+-- to the core of the library.
 module Raaz.Core.Types.Pointer
-       (
-         -- * The pointer type and Length offsets.
-         -- $typesafeLength$
-
-         -- ** The pointer type.
+       ( -- * Pointers, offsets, and alignment
          Pointer
          -- ** Type safe length units.
-       , LengthUnit(..), Alignment, wordAlignment
-       , BYTES(..), BITS(..), ALIGN, inBits
-         -- ** Some length arithmetic
+       , LengthUnit(..)
+       , BYTES(..), BITS(..), inBits
+       , sizeOf
+         -- *** Some length arithmetic
        , bitsQuotRem, bytesQuotRem
        , bitsQuot, bytesQuot
        , atLeast, atMost
-         -- * Type safe versions of some common pointer functions.
-       , sizeOf, alignedSizeOf, alignment, alignPtr, nextAlignedPtr, peekAligned, pokeAligned
-         -- * Helper function that uses generalised length units.
+         -- ** Types measuring alignment
+       , Alignment, wordAlignment
+       , ALIGN
+       , alignment, alignPtr, alignedSizeOf, nextAlignedPtr, peekAligned, pokeAligned
+         -- ** Allocation functions.
        , allocaAligned, allocaSecureAligned, allocaBuffer, allocaSecure, mallocBuffer
-       , hFillBuf
+         -- ** Some buffer operations
        , memset, memmove, memcpy
+       , hFillBuf
        ) where
 
 
@@ -47,11 +50,20 @@ import Raaz.Core.MonoidalAction
 import Raaz.Core.Types.Equality
 import Raaz.Core.Types.Copying
 
--- $typesafeLength$
+-- $basics$
 --
--- We have the generic pointer type `Pointer` and distinguish between
--- different length units at the type level. This helps in to avoid a
--- lot of length conversion errors.
+-- The main concepts introduced here are the following
+--
+-- [`Pointer`:] The generic pointer type that is used through the
+-- library.
+--
+-- [`LengthUnit`:] This class captures types units of length.
+--
+-- [`Alignment`:] A dedicated type that is used to keep track of
+-- alignment constraints.  offsets in We have the generic pointer type
+-- `Pointer` and distinguish between different length units at the
+-- type level. This helps in to avoid a lot of length conversion
+-- errors.
 
 
 
@@ -69,10 +81,23 @@ type Pointer = Ptr Align
 
 
 -- | In cryptographic settings, we need to measure pointer offsets and
--- buffer sizes in different units. To avoid errors due to unit
+-- buffer sizes. The smallest of length/offset that we have is bytes
+-- measured using the type `BYTES`. In various other circumstances, it
+-- would be more natural to measure these in multiples of bytes. For
+-- example, when allocating buffer to use encrypt using a block cipher
+-- it makes sense to measure the buffer size in multiples of block of
+-- the cipher. Explicit conversion between these length units, while
+-- allocating or moving pointers, involves a lot of low level scaling
+-- that is also error prone. To avoid these errors due to unit
 -- conversions, we distinguish between different length units at the
--- type level. This type class capturing such types, i.e. types that
--- stand of length units.
+-- type level. This type class capturing all such types, i.e. types
+-- that stand of length units. Allocation functions and pointer
+-- arithmetic are generalised to these length units.
+--
+-- All instances of a `LengthUnit` are required to be instances of
+-- `Monoid` where the monoid operation gives these types the natural
+-- size/offset addition semantics: i.e. shifting a pointer by offset
+-- @a `mappend` b@ is same as shifting it by @a@ and then by @b@.
 class (Enum u, Monoid u) => LengthUnit u where
   -- | Express the length units in bytes.
   inBytes :: u -> BYTES Int
@@ -184,13 +209,9 @@ instance LengthUnit u => LAction u Pointer where
     where BYTES offset = inBytes a
   {-# INLINE (<.>) #-}
 
--------------------------------------------------------------------
+------------------------ Alignment --------------------------------
 
-
-
------------------------- Allocation --------------------------------
-
--- | Type safe lengths/offsets in units of bytes.
+-- | Types to measure alignment in units of bytes.
 newtype Alignment = Alignment { unAlignment :: Int }
         deriving ( Show, Eq, Ord, Enum, Integral
                  , Real, Num
@@ -205,7 +226,7 @@ instance Monoid Alignment where
   mappend = lcm
 
 
--------------------- type safe versions of some pointer. --------------------
+---------- Type safe versions of some pointer functions -----------------
 
 -- | Compute the size of a storable element.
 sizeOf :: Storable a => a -> BYTES Int
@@ -245,8 +266,8 @@ peekAligned :: Storable a => Ptr a -> IO a
 peekAligned = peek . nextAlignedPtr
 
 -- | Poke the element from the next aligned location.
-pokeAligned :: Storable a => Ptr a -> a -> IO ()
-pokeAligned ptr a = poke (nextAlignedPtr ptr) a
+pokeAligned     :: Storable a => Ptr a -> a -> IO ()
+pokeAligned ptr =  poke $ nextAlignedPtr ptr
 
 -- | The expression @allocaAligned a l action@ allocates a local
 -- buffer of length @l@ and alignment @a@ and passes it on to the IO
