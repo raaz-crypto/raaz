@@ -9,10 +9,7 @@ module Raaz.Core.Types.Equality
        ( -- * Timing safe equality checking.
          -- $timingSafeEquality$
          Equality(..), (===)
-       -- ** The result of comparion.
        , Result
-       -- ** Comparing vectors.
-       , oftenCorrectEqVector, eqVector
        ) where
 
 import           Control.Monad               ( liftM )
@@ -31,133 +28,35 @@ import           Data.Word
 
 -- $timingSafeEquality$
 --
--- Cryptographic secrets should be compared using a constant time
--- equality function, i.e. the success or failure of comparing two
--- values @u@ and @v@ should /not/ depend on the actual values of @u@
--- and @v@. All cryptographically sensitive data exposed by this
--- library are instances of the class `Equality` which plays the role
--- analogues to `Eq`. The `eq` function which a member of the
--- `Equality` class returns the result of the comparison as the type
--- `Result` and not `Bool` so as to avoid timing attacks due to
--- short-circuting of the AND-operation.
+-- Many cryptographic setting require comparing two secrets and such
+-- comparisons should be timing safe, i.e. the time taken to make the
+-- comparison should not depend on the actual values that are
+-- compared. Unfortunately, the equality comparison of may Haskell
+-- types like `ByteString`, provided via the class `Eq` is /not/
+-- timing safe. In raaz we take special care in defining the `Eq`
+-- instance of all cryptographically sensitive types which make them
+-- timing safe . For example, if we compare two digests @dgst1 ==
+-- dgst2@, the `Eq` instance is defined in such a way that the time
+-- taken is constant irrespective of the actual values. We also give a
+-- mechanism to build timing safe equality for more complicated types
+-- that user might need to define in her use cases as we now describe.
 --
--- The `Result` type is an opaque type to avoid the user from
--- compromising the equality comparisons by pattern matching on it. To
--- combine the results of two comparisons one can use the monoid
--- instance of `Result`, i.e. if @r1@ and @r2@ are the results of two
--- comparisons then @r1 `mappend` r2@ essentially takes the AND of
--- these results but this and is not short-circuited and is timing
--- independent.
+-- The starting point of defining such timing safe equality is the
+-- class `Equality` which plays the role `Eq`. The member function
+-- `eq` playing the role of (`==`) with an important difference.  The
+-- comparison function `eq` returns the type type `Result` instead of
+-- `Bool` and it is timing safe. The `Eq` instance is then defined by
+-- making use of the operator (`===`). Thus a user of the library can
+-- stick to the familiar `Eq` class and get the benefits of timing
+-- safe comparison
 --
--- Instance for basic word types are provided by the library and users
--- are expected to build the `Equality` instances of compound types by
--- combine the results of comparisons using the monoid instance of
--- `Result`. We also give timing safe equality comparisons for
--- `Vector` types using the `eqVector` and `oftenCorrectEqVector`
--- functions.  Once an instance for `Equality` is defined for a
--- cryptographically sensitive data type, we define the `Eq` for it
--- indirectly using the `Equality` instance and the operation `===`.
+-- == Building timing safe equality for Custom types.
 --
--- Ensure that you define the `Equality` instance first and then get
--- an `Eq` instance out of it. Also be careful when using the @deriving@
--- clause. For example the following deriving clause is safe.
---
--- > newtype Foo = Foo Bar deriving (Equality, Eq)
---
--- The deriving clause given below
---
--- > newtype Foo = Foo Bar deriving Eq
---
--- is also safe for @Foo@ if it is safe for @Bar@. However, not having
--- an instance of `Equality` for Foo makes it difficult for defining
--- timing safe equality for say a type like @(Foo, Foo)@.
---
--- The following definition is bad and the equality of Foo is not
--- constant time even if that of Bar and Biz are.
---
--- > data Foo = Foo Bar Biz deriving Eq
-
-
--- > -- instead do the
--- > instance Equality Foo where
-
--- | The result of a comparison. This is an opaque type and the monoid instance essentially takes
--- AND of two comparisons in a timing safe way.
-newtype Result =  Result { unResult :: Word }
-
--- | Checks whether a given equality comparison is successful.
-isSuccessful :: Result -> Bool
-{-# INLINE isSuccessful #-}
-isSuccessful = (==0) . unResult
-
-instance Monoid Result where
-  mempty      = Result 0
-  mappend a b = Result (unResult a .|. unResult b)
-  {-# INLINE mempty  #-}
-  {-# INLINE mappend #-}
-
--- | MVector for Results.
-newtype instance MVector s Result = MV_Result (MVector s Word)
--- | Vector of Results.
-newtype instance Vector    Result = V_Result  (Vector Word)
-
-instance Unbox Result
-
-instance GM.MVector MVector Result where
-  {-# INLINE basicLength #-}
-  {-# INLINE basicUnsafeSlice #-}
-  {-# INLINE basicOverlaps #-}
-  {-# INLINE basicUnsafeNew #-}
-  {-# INLINE basicUnsafeReplicate #-}
-  {-# INLINE basicUnsafeRead #-}
-  {-# INLINE basicUnsafeWrite #-}
-  {-# INLINE basicClear #-}
-  {-# INLINE basicSet #-}
-  {-# INLINE basicUnsafeCopy #-}
-  {-# INLINE basicUnsafeGrow #-}
-  basicLength          (MV_Result v)            = GM.basicLength v
-  basicUnsafeSlice i n (MV_Result v)            = MV_Result $ GM.basicUnsafeSlice i n v
-  basicOverlaps (MV_Result v1) (MV_Result v2)   = GM.basicOverlaps v1 v2
-
-  basicUnsafeRead  (MV_Result v) i              = Result `liftM` GM.basicUnsafeRead v i
-  basicUnsafeWrite (MV_Result v) i (Result x)   = GM.basicUnsafeWrite v i x
-
-  basicClear (MV_Result v)                      = GM.basicClear v
-  basicSet   (MV_Result v)         (Result x)   = GM.basicSet v x
-
-  basicUnsafeNew n                              = MV_Result `liftM` GM.basicUnsafeNew n
-  basicUnsafeReplicate n     (Result x)         = MV_Result `liftM` GM.basicUnsafeReplicate n x
-  basicUnsafeCopy (MV_Result v1) (MV_Result v2) = GM.basicUnsafeCopy v1 v2
-  basicUnsafeGrow (MV_Result v)   n             = MV_Result `liftM` GM.basicUnsafeGrow v n
-
-#if MIN_VERSION_vector(0,11,0)
-  basicInitialize (MV_Result v)               = GM.basicInitialize v
-#endif
-
-
-
-instance G.Vector Vector Result where
-  {-# INLINE basicUnsafeFreeze #-}
-  {-# INLINE basicUnsafeThaw #-}
-  {-# INLINE basicLength #-}
-  {-# INLINE basicUnsafeSlice #-}
-  {-# INLINE basicUnsafeIndexM #-}
-  {-# INLINE elemseq #-}
-  basicUnsafeFreeze (MV_Result v)             = V_Result  `liftM` G.basicUnsafeFreeze v
-  basicUnsafeThaw (V_Result v)                = MV_Result `liftM` G.basicUnsafeThaw v
-  basicLength (V_Result v)                    = G.basicLength v
-  basicUnsafeSlice i n (V_Result v)           = V_Result $ G.basicUnsafeSlice i n v
-  basicUnsafeIndexM (V_Result v) i            = Result   `liftM`  G.basicUnsafeIndexM v i
-
-  basicUnsafeCopy (MV_Result mv) (V_Result v) = G.basicUnsafeCopy mv v
-  elemseq _ (Result x)                        = G.elemseq (undefined :: Vector a) x
-
-
-
--- | In a cryptographic setting, naive equality checking is
--- dangerous. This class is the timing safe way of doing equality
--- checking. The recommended method of defining equality checking for
--- cryptographically sensitive data is as follows.
+-- For basic types like `Word32`, `Word64` this module defines
+-- instances of `Equality`. However, as a developer of new
+-- crypto-primitives or protocols, we often need to define timing safe
+-- equality for types other than those exported here. This is done in
+-- two stages.
 --
 -- 1. Define an instance of `Equality`.
 --
@@ -171,6 +70,67 @@ instance G.Vector Vector Result where
 -- > instance Eq SomeSensitiveType where
 -- >      (==) a b = a === b
 --
+-- === Combining multiple comparisons using Monoid operations
+--
+-- The `Result` type is an opaque type and does not allow inspection
+-- via a pattern match or conversion to `Bool`. However, while
+-- defining the `Equality` instance, we often need to perform an AND
+-- of multiple comparison (think of comparing a tuple). This is where
+-- the monoid instance of `Result` is useful. If @r1@ and @r2@ are the
+-- results of two comparisons then @r1 `mappend` r2@ essentially takes
+-- the AND of these results. However, unlike in the case of AND-ing in
+-- `Bool`, `mappend` on the `Result` type does not short-circuit.  In
+-- fact, the whole point of using `Result` type instead of `Bool` is
+-- to avoid this short circuiting.
+--
+-- To illustrate, we have the following code fragment
+--
+-- > data Foo = Foo Word32 Word64
+-- >
+-- > instance Equality Foo where
+-- >    eq (Foo a b) (Foo c d) = eq a c `mapped` eq b d
+-- >
+-- > instance Eq Foo where
+-- >    (=) = (===)
+--
+-- === Beware: deriving clause can be dangerous
+--
+-- The use of the @deriving@ clause can be dangerous. For example,
+-- consider the following definitions.
+--
+-- > data    Bad      = Bad Bar Biz deriving Eq
+-- > newtype BadAgain = BadAgain (Bar, Biz) deriving (Eq, Equality)
+-- >
+--
+-- The comparison for the elements of the type `Bad` would leak some
+-- timing information /even/ when `Bar` and `Biz` are instances of
+-- `Equality` and thus have timing safe equalities
+-- themselves. Nonetheless, some deriving clauses are okey for example
+--
+-- > newtype Okey = Okey Foo deriving Eq
+--
+-- It is still advisable to also derive an instance of `Equality` so
+-- that the type `Okey` can be used as a component of some other type
+-- which requires timing safe equality.
+--
+-- > newtype Okey = Okey Foo deriving (Eq, Equality)
+--
+-- The following definition is also fine because it derives the
+-- default instance of `Equality` for pairs and then uses it
+-- to define the `Eq` instance.
+--
+-- >
+-- > newtype Okey2 = Okey (Foo, Bar) deriving Equality
+-- >
+-- > instance Eq Okey2 where
+-- >    (=) = (===)
+-- >
+--
+--
+
+
+
+-- | All types that support timing safe equality are instances of this class.
 class Equality a where
   eq :: a -> a -> Result
 
@@ -282,32 +242,73 @@ instance ( Equality a
                                                      eq a7 b7
 
 
--- | Timing independent equality checks for vector of values. /Do not/
--- use this to check the equality of two general vectors in a timing
--- independent manner (use `eqVector` instead) because:
---
--- 1. They do not work for vectors of unequal lengths,
---
--- 2. They do not work for empty vectors.
---
--- The use case is for defining equality of data types which have
--- fixed size vector quantities in it. Like for example
---
--- > import Data.Vector.Unboxed
--- > newtype Sha1 = Sha1 (Vector (BE Word32))
--- >
--- > instance Eq Sha1 where
--- >    (==) (Sha1 g) (Sha1 h) = oftenCorrectEqVector g h
--- >
---
+-- | The result of a comparison. This is an opaque type and the monoid instance essentially takes
+-- AND of two comparisons in a timing safe way.
+newtype Result =  Result { unResult :: Word }
+
+instance Monoid Result where
+  mempty      = Result 0
+  mappend a b = Result (unResult a .|. unResult b)
+  {-# INLINE mempty  #-}
+  {-# INLINE mappend #-}
+
+-- | Checks whether a given equality comparison is successful.
+isSuccessful :: Result -> Bool
+{-# INLINE isSuccessful #-}
+isSuccessful = (==0) . unResult
+
+-- | MVector for Results.
+newtype instance MVector s Result = MV_Result (MVector s Word)
+-- | Vector of Results.
+newtype instance Vector    Result = V_Result  (Vector Word)
+
+instance Unbox Result
+
+instance GM.MVector MVector Result where
+  {-# INLINE basicLength #-}
+  {-# INLINE basicUnsafeSlice #-}
+  {-# INLINE basicOverlaps #-}
+  {-# INLINE basicUnsafeNew #-}
+  {-# INLINE basicUnsafeReplicate #-}
+  {-# INLINE basicUnsafeRead #-}
+  {-# INLINE basicUnsafeWrite #-}
+  {-# INLINE basicClear #-}
+  {-# INLINE basicSet #-}
+  {-# INLINE basicUnsafeCopy #-}
+  {-# INLINE basicUnsafeGrow #-}
+  basicLength          (MV_Result v)            = GM.basicLength v
+  basicUnsafeSlice i n (MV_Result v)            = MV_Result $ GM.basicUnsafeSlice i n v
+  basicOverlaps (MV_Result v1) (MV_Result v2)   = GM.basicOverlaps v1 v2
+
+  basicUnsafeRead  (MV_Result v) i              = Result `liftM` GM.basicUnsafeRead v i
+  basicUnsafeWrite (MV_Result v) i (Result x)   = GM.basicUnsafeWrite v i x
+
+  basicClear (MV_Result v)                      = GM.basicClear v
+  basicSet   (MV_Result v)         (Result x)   = GM.basicSet v x
+
+  basicUnsafeNew n                              = MV_Result `liftM` GM.basicUnsafeNew n
+  basicUnsafeReplicate n     (Result x)         = MV_Result `liftM` GM.basicUnsafeReplicate n x
+  basicUnsafeCopy (MV_Result v1) (MV_Result v2) = GM.basicUnsafeCopy v1 v2
+  basicUnsafeGrow (MV_Result v)   n             = MV_Result `liftM` GM.basicUnsafeGrow v n
+
+#if MIN_VERSION_vector(0,11,0)
+  basicInitialize (MV_Result v)               = GM.basicInitialize v
+#endif
 
 
-oftenCorrectEqVector :: (G.Vector v a, Equality a, G.Vector v Result) => v a -> v a -> Bool
-oftenCorrectEqVector v1 v2 =  isSuccessful $ G.foldl1' mappend $ G.zipWith eq v1 v2
 
--- | Timing independent equality checks for vectors. If you know that
--- the vectors are not empty and of equal length, you may use the
--- slightly faster `oftenCorrectEqVector`
-eqVector :: (G.Vector v a, Equality a, G.Vector v Result) => v a -> v a -> Bool
-eqVector v1 v2 | G.length v1 == G.length v2 = isSuccessful $ G.foldl' mappend (Result 0) $ G.zipWith eq v1 v2
-               | otherwise                  = False
+instance G.Vector Vector Result where
+  {-# INLINE basicUnsafeFreeze #-}
+  {-# INLINE basicUnsafeThaw #-}
+  {-# INLINE basicLength #-}
+  {-# INLINE basicUnsafeSlice #-}
+  {-# INLINE basicUnsafeIndexM #-}
+  {-# INLINE elemseq #-}
+  basicUnsafeFreeze (MV_Result v)             = V_Result  `liftM` G.basicUnsafeFreeze v
+  basicUnsafeThaw (V_Result v)                = MV_Result `liftM` G.basicUnsafeThaw v
+  basicLength (V_Result v)                    = G.basicLength v
+  basicUnsafeSlice i n (V_Result v)           = V_Result $ G.basicUnsafeSlice i n v
+  basicUnsafeIndexM (V_Result v) i            = Result   `liftM`  G.basicUnsafeIndexM v i
+
+  basicUnsafeCopy (MV_Result mv) (V_Result v) = G.basicUnsafeCopy mv v
+  elemseq _ (Result x)                        = G.elemseq (undefined :: Vector a) x
