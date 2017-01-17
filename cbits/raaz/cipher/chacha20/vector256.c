@@ -105,7 +105,7 @@
 # endif
 
 
-static inline void chacha20vec256(Block *msg, int nblocks, const Key key, const IV iv, Counter *ctr)
+void raazChaCha20BlockVector256(Block *msg, int nblocks, const Key key, const IV iv, Counter *ctr)
 {
 
     register Vec2 A , B, C, D;
@@ -165,9 +165,4 @@ static inline void chacha20vec256(Block *msg, int nblocks, const Key key, const 
     }
 
    return;
-}
-
-void raazChaCha20BlockVector256(Block *msg, int nblocks, const Key key, const IV iv, Counter *ctr)
-{
-    chacha20vec256(msg, nblocks, key, iv, ctr);
 }
