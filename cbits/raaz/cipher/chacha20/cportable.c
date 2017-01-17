@@ -100,11 +100,6 @@ void raazChaCha20Block(Block *msg, int nblocks, const Key key, const IV iv, Coun
 	x8  += key[4] ; x9  += key[5] ; x10 += key[6] ; x11 += key[7] ;
 	x12 += valCtr ; x13 += iv[0]  ; x14 += iv[1]  ; x15 += iv[2]  ;
 
-	/* The output has to take care of the fact that we have permuted
-	 * the columns. The ith column, i = 0,1,2,3 needs to be moved
-	 * downwards by i.
-	 */
-
 
 	XOR(0,x0)   ; XOR(1, x1) ; XOR(2, x2)   ; XOR(3,  x3)  ;
 	XOR(4,x4)   ; XOR(5, x5) ; XOR(6, x6)   ; XOR(7,  x7)  ;
@@ -118,8 +113,3 @@ void raazChaCha20Block(Block *msg, int nblocks, const Key key, const IV iv, Coun
     *ctr = valCtr;         /* increment counter      */
     return;
 }
-
-
-/* This function handles the last (partial) block of encryption. Use
- * this only when nbytes < BLOCK_SIZE
- */
