@@ -104,6 +104,7 @@
 #   define WRITE_HIGH { INP(4) ^= HIGH(A); INP(5) ^= HIGH(B); INP(6) ^= HIGH(C); INP(7) ^= HIGH(D); }
 # endif
 
+# define EMIT(X,i) ((Vec2 *)msg)[i] = X
 
 void raazChaCha20BlockVector256(Block *msg, int nblocks, const Key key, const IV iv, Counter *ctr)
 {
@@ -165,4 +166,62 @@ void raazChaCha20BlockVector256(Block *msg, int nblocks, const Key key, const IV
     }
 
    return;
+}
+
+
+/*
+ * This function two block of ChaCha20 Random stream. Suitable to use
+ * for PRG but _not_ suitable for encryption via xor. Reason: for the
+ * same state generates different stream depending on the endianness.
+ * This function generates 1 block of chacha20 stream in the pointer
+ * *msg.
+ */
+
+
+void raazChaCha20RandomVector256(Block *msg, const Key key, const IV iv, Counter *ctr)
+{
+
+    register Vec2 A , B, C, D;
+    register Vec2 M0, M1, M2, M3;
+
+
+    M0 = ChaChaConstantRow;
+    M1 =  (Vec2){
+        key[0] , key[1] , key[2] , key[3],
+        key[0] , key[1] , key[2] , key[3]
+    };
+    M2 =  (Vec2){
+        key[4] , key[5] , key[6] , key[7],
+        key[4] , key[5] , key[6] , key[7]
+    };
+
+    M3 =  (Vec2){
+        *(ctr)   , iv[0]  ,  iv[1] , iv[2],
+        *(ctr)+1 , iv[0]  ,  iv[1] , iv[2]
+    };
+
+    *ctr += 2;
+
+
+
+    A = M0; B = M1; C = M2; D = M3;
+
+    ROUND; /* 0,1   */
+    ROUND; /* 2,3   */
+    ROUND; /* 4,5   */
+    ROUND; /* 6,7   */
+    ROUND; /* 8,9   */
+    ROUND; /* 10,11 */
+    ROUND; /* 12,13 */
+    ROUND; /* 14,15 */
+    ROUND; /* 16,17 */
+    ROUND; /* 18,19 */
+
+    A += M0;
+    B += M1;
+    C += M2;
+    D += M3;
+
+    EMIT(A,0); EMIT(B,1); EMIT(C,2); EMIT(D,3);
+    return;
 }
