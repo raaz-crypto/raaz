@@ -163,12 +163,6 @@ library
                , Raaz.Hash.Sha384.Internal
                , Raaz.Hash.Sha512.Recommendation
                , Raaz.Hash.Sha512.Internal
-               -- , Raaz.Hash.Blake256.Instance
-               -- , Raaz.Hash.Blake256.Ref
-               -- , Raaz.Hash.Blake256.CPortable
-               -- , Raaz.Hash.Blake256.Type
-               -- , Raaz.Hash.Blake.Util
-
                --
                -- Internal modules from cipher
                --
@@ -176,14 +170,6 @@ library
                , Raaz.Cipher.AES.Recommendation
                , Raaz.Cipher.ChaCha20.Internal
                , Raaz.Cipher.ChaCha20.Recommendation
-               -- , Raaz.Cipher.AES.CTR.CPortable
-               -- , Raaz.Cipher.AES.CTR.Instance
-               -- , Raaz.Cipher.AES.CTR.Ref
-               -- , Raaz.Cipher.AES.CTR.Type
-               -- , Raaz.Cipher.Salsa20.Block.Internal
-               -- , Raaz.Cipher.Salsa20.Block.Type
-               -- , Raaz.Cipher.Salsa20.Instances
-               -- , Raaz.Cipher.AES.Block.Internal
                , Paths_raaz
   build-depends: base                           >= 4.6  && < 4.10
                , bytestring                     >= 0.9  && < 0.11
