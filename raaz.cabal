@@ -78,14 +78,15 @@ library
      exposed-modules: Raaz.Cipher.ChaCha20.Implementation.Vector128
      c-sources: cbits/raaz/cipher/chacha20/vector128.c
 
-  if flag(vector256) || flag(avx2)
+  if flag(vector256)
      cpp-options: -DHAVE_VECTOR_256
      cc-options:  -DHAVE_VECTOR_256
      exposed-modules: Raaz.Cipher.ChaCha20.Implementation.Vector256
      c-sources: cbits/raaz/cipher/chacha20/vector256.c
 
   if flag(avx2)
-     cc-options: -DHAVE_AVX2 -mavx2
+     cpp-options: -DHAVE_VECTOR_256
+     cc-options:  -DHAVE_AVX2 -mavx2 -DHAVE_VECTOR_256
 
   if flag(vector512)
      cpp-options: -DHAVE_VECTOR_512
@@ -270,7 +271,7 @@ benchmark bench-ciphers
   default-language: Haskell2010
   if flag(vector128)
      cpp-options: -DHAVE_VECTOR_128
-  if flag(vector256)
+  if flag(vector256) || flag(avx2)
      cpp-options: -DHAVE_VECTOR_256
   if flag(vector512)
      cpp-options: -DHAVE_VECTOR_512
