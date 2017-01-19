@@ -156,13 +156,23 @@ void raazChaCha20BlockVector256(Block *msg, int nblocks, const Key key, const IV
         C += M2;
         D += M3;
 
+
+
+	/* Writing the stream */
+
+
 	ADJUST_ENDIAN(A); ADJUST_ENDIAN(B); ADJUST_ENDIAN(C); ADJUST_ENDIAN(D);
 
-	WRITE_LOW;
+	WRITE_LOW; /* Write the lower block */
 
-	if( nblocks > 1) { WRITE_HIGH; nblocks -= 2 ; msg += 2; }
-	else {-- nblocks ; ++ msg; }
-        M3 += (Vec2){2,0,0,0,2,0,0,0};          /* increment the counter */
+	if( nblocks == 1) break; /* nblocks was odd and hence we are done */
+
+
+	WRITE_HIGH;
+
+	/* Move by two blocks at a time.	 */
+	nblocks -= 2;   msg += 2;
+	M3 += (Vec2){2,0,0,0,2,0,0,0};
     }
 
    return;
@@ -173,7 +183,7 @@ void raazChaCha20BlockVector256(Block *msg, int nblocks, const Key key, const IV
  * This function two block of ChaCha20 Random stream. Suitable to use
  * for PRG but _not_ suitable for encryption via xor. Reason: for the
  * same state generates different stream depending on the endianness.
- * This function generates 1 block of chacha20 stream in the pointer
+ * This function generates block of chacha20 PRG stream in the pointer
  * *msg.
  */
 
@@ -200,9 +210,7 @@ void raazChaCha20RandomVector256(Block *msg, const Key key, const IV iv, Counter
         *(ctr)+1 , iv[0]  ,  iv[1] , iv[2]
     };
 
-    *ctr += 2;
-
-
+    (*ctr) += 2;
 
     A = M0; B = M1; C = M2; D = M3;
 
