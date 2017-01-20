@@ -115,20 +115,6 @@ newtype HMAC h = HMAC {unHMAC :: h} deriving ( Eq, Storable
 instance Show h => Show (HMAC h) where
   show  = show . unHMAC
 
-{-
-instance (Hash h) => Primitive (HMAC h) where
-
-  blockSize _ = blockSize (undefined :: h)
-
-  type Implementation (HMAC h) = Implementation h
-
-instance (Hash h, Recommendation h) => Recommendation (HMAC h) where
-
-  recommended _ =  recommended (undefined :: h)
-
-instance Hash h => Symmetric (HMAC h) where
-
--}
 
 type instance  Key (HMAC h) = HMACKey h
 
