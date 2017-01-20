@@ -16,7 +16,11 @@ import System.IO
 import Raaz.Core
 import Raaz.Cipher
 import Raaz.Cipher.Internal
+import Raaz.Hash.Internal
 
+import qualified Raaz.Hash.Sha1.Implementation.CPortable      as Sha1CP
+import qualified Raaz.Hash.Sha256.Implementation.CPortable    as Sha256CP
+import qualified Raaz.Hash.Sha512.Implementation.CPortable    as Sha512CP
 import qualified Raaz.Cipher.AES.CBC.Implementation.CPortable as AesCbcCP
 import qualified Raaz.Cipher.ChaCha20.Implementation.CPortable as ChaCha20CP
 
@@ -40,7 +44,12 @@ type Result            = (String, Measured)
 type RaazBench         = (String, Benchmarkable)
 
 allBench :: [RaazBench]
-allBench = [ memsetBench ] ++ chacha20Benchs ++ aesBenchs
+allBench =    [ memsetBench ]
+           ++ chacha20Benchs
+           ++ aesBenchs
+           ++ sha1Benchs
+           ++ sha256Benchs
+           ++ sha512Benchs
 
 main :: IO ()
 main = do results <- mapM runRaazBench allBench
@@ -71,6 +80,16 @@ pprMeasured (Measured{..}) = vcat
 memsetBench :: RaazBench
 memsetBench = ("memset", Benchmarkable $ memBench . fromIntegral )
   where memBench count = allocaBuffer nBytes $ \ ptr -> replicateM_ count (memset ptr 42 nBytes)
+
+
+sha1Benchs :: [ RaazBench ]
+sha1Benchs = [ hashBench Sha1CP.implementation ]
+
+sha256Benchs :: [ RaazBench ]
+sha256Benchs = [ hashBench Sha256CP.implementation ]
+
+sha512Benchs :: [ RaazBench ]
+sha512Benchs = [ hashBench Sha512CP.implementation ]
 
 
 aesBenchs     :: [ RaazBench ]
@@ -105,6 +124,12 @@ decryptBench :: Cipher c => Implementation c -> RaazBench
 decryptBench si@(SomeCipherI impl) = (nm , Benchmarkable $ decrBench . fromIntegral)
   where decrBench count = allocBufferFor si sz $ \ ptr -> insecurely $ replicateM_ count $ decryptBlocks impl ptr sz
         nm = name si ++ "-decrypt"
+        sz = atLeast nBytes
+
+hashBench :: Hash h => Implementation h -> RaazBench
+hashBench hi@(SomeHashI impl) = (nm, Benchmarkable $ compressBench . fromIntegral )
+  where compressBench count = allocBufferFor hi sz $ \ ptr -> insecurely $ replicateM_ count $ compress impl ptr sz
+        nm = name hi ++ "-compress"
         sz = atLeast nBytes
 
 runRaazBench :: RaazBench -> IO Doc
