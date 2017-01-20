@@ -294,9 +294,9 @@ readBytes :: ( LengthUnit sz, MonadIO m)
 readBytes sz dest = makeRead sz
                     $ \ ptr -> liftIO  $ memcpy dest (source ptr) sz
 
--- | The action @readInt n dptr@ gives a read action which if run on an
+-- | The action @readInto n dptr@ gives a read action which if run on an
 -- input buffer, will transfers @n@ elements of type @a@ into the
--- buffer pointed by @dptr@. In particular, the read action @readInt n
+-- buffer pointed by @dptr@. In particular, the read action @readInto n
 -- dptr@ is the same as @readBytes (fromIntegral n :: BYTES Int) dptr@
 -- when the type @a@ is `Word8`.
 readInto :: (EndianStore a, MonadIO m)
