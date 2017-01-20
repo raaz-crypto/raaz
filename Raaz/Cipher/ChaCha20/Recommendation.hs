@@ -9,7 +9,9 @@
 -- setting the recommended instances. Therefore, we ignore the warning.
 --
 
-module Raaz.Cipher.ChaCha20.Recommendation where
+module Raaz.Cipher.ChaCha20.Recommendation
+       ( RandomBlock, chacha20Random
+       ) where
 
 import Raaz.Core
 import Raaz.Cipher.ChaCha20.Internal
