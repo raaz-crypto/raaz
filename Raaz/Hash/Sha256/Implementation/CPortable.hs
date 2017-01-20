@@ -15,7 +15,11 @@ implementation :: Implementation SHA256
 implementation =  SomeHashI cPortable
 
 cPortable :: HashI SHA256 (HashMemory SHA256)
-cPortable = portableC c_sha256_compress length64Write
+cPortable = shaImplementation
+            "sha256-cportable"
+            "Sha256 Implementation using portable C and Haskell FFI"
+            c_sha256_compress length64Write
+
 
 foreign import ccall unsafe
   "raaz/hash/sha256/portable.h raazHashSha256PortableCompress"

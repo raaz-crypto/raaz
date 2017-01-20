@@ -15,7 +15,10 @@ implementation :: Implementation SHA1
 implementation =  SomeHashI cPortable
 
 cPortable :: HashI SHA1 (HashMemory SHA1)
-cPortable = portableC c_sha1_compress length64Write
+cPortable = shaImplementation
+            "sha1-cportable"
+            "Sha1 Implementation using portable C and Haskell FFI"
+            c_sha1_compress length64Write
 
 foreign import ccall unsafe
   "raaz/hash/sha1/portable.h raazHashSha1PortableCompress"

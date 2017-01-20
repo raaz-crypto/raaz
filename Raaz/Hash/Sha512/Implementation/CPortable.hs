@@ -15,7 +15,10 @@ implementation :: Implementation SHA512
 implementation =  SomeHashI cPortable
 
 cPortable :: HashI SHA512 (HashMemory SHA512)
-cPortable = portableC c_sha512_compress length128Write
+cPortable = shaImplementation
+            "sha512-cportable"
+            "Sha512 Implementation using portable C and Haskell FFI"
+            c_sha512_compress length128Write
 
 foreign import ccall unsafe
   "raaz/hash/sha512/portable.h raazHashSha512PortableCompress"

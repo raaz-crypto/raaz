@@ -3,7 +3,7 @@
 {-# LANGUAGE ConstraintKinds            #-}
 
 module Raaz.Hash.Sha.Util
-       ( shaImplementation, portableC
+       ( shaImplementation
        -- ** Writing message lengths.
        -- $lengthwrites$
        , length64Write
@@ -122,13 +122,3 @@ shaImplementation nam des comp lenW
   where shaComp = liftCompressor comp
 
 {-# INLINE shaImplementation #-}
-{-# INLINE portableC         #-}
-portableC :: ( Primitive h
-             , Storable h
-             , Initialisable (HashMemory h) ()
-             )
-          => Compressor  h
-          -> LengthWrite h
-          -> HashI h (HashMemory h)
-portableC = shaImplementation "portable-c-ffi"
-            "Implementation using portable C and Haskell FFI"
