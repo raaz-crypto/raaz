@@ -14,12 +14,13 @@ module Raaz.Core.Types
          module Raaz.Core.Types.Equality
        , module Raaz.Core.Types.Endian
        , module Raaz.Core.Types.Pointer
+       , module Raaz.Core.Types.Aligned
        , module Raaz.Core.Types.Tuple
        , module Raaz.Core.Types.Copying
-     --  , Src, Dest, source, destination
        , Describable(..)
        ) where
 
+import Raaz.Core.Types.Aligned
 import Raaz.Core.Types.Describe
 import Raaz.Core.Types.Equality
 import Raaz.Core.Types.Endian

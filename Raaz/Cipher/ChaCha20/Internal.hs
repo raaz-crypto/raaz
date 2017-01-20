@@ -5,7 +5,7 @@
 {-# LANGUAGE TypeFamilies                     #-}
 
 module Raaz.Cipher.ChaCha20.Internal
-       ( ChaCha20(..), Counter(..), IV(..), KEY(..), ChaCha20Mem(..)
+       ( ChaCha20(..), WORD, Counter(..), IV(..), KEY(..), ChaCha20Mem(..)
        ) where
 
 import Control.Applicative
