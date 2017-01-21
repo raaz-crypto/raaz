@@ -172,10 +172,10 @@ library
                , Raaz.Cipher.ChaCha20.Internal
                , Raaz.Cipher.ChaCha20.Recommendation
                , Paths_raaz
-  build-depends: base                           >= 4.6  && < 4.10
-               , bytestring                     >= 0.9  && < 0.11
-               , deepseq                        >= 1.1  && < 1.5
-               , mtl                            >= 2.1  && < 2.3
+  build-depends: base                           >= 4.6  &&  < 4.11
+               , bytestring                     >= 0.9  &&  < 0.11
+               , deepseq                        >= 1.1  &&  < 1.5
+               , mtl                            >= 2.1  &&  < 2.3
                , vector                         >= 0.7.1 && < 0.12
 
   if impl(ghc < 8)
