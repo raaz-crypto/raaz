@@ -53,10 +53,10 @@ import           Data.Word
 -- == Building timing safe equality for Custom types.
 --
 -- For basic types like `Word32`, `Word64` this module defines
--- instances of `Equality`. However, as a developer of new
--- crypto-primitives or protocols, we often need to define timing safe
--- equality for types other than those exported here. This is done in
--- two stages.
+-- instances of `Equality`. The `Tuple` type inherits the `Equality`
+-- instance from its base type. As a developer, new crypto-primitives
+-- or protocols often need to define timing safe equality for types
+-- other than those exported here. This is done in two stages.
 --
 -- 1. Define an instance of `Equality`.
 --
@@ -93,10 +93,31 @@ import           Data.Word
 -- > instance Eq Foo where
 -- >    (=) = (===)
 --
+-- == Automatic deriving of `Equality` instances.
+--
+-- We often find ourselves wrapping existing types in new types
+-- keeping in line with the philosophy of distinguishing sematically
+-- distinct data with their types. It would be tedious to repeat the
+-- process of each such type. Often, we can get away by just deriving
+-- these instances thereby saving a lot of boilerplate. For example,
+-- consider a data type that needs to keep a 128-byte secret. A simple
+-- deriving class would work in such cases.
+--
+-- >
+-- > newtype Secret = Secret (Tuple 128 Word8) deriving (Equality, Eq)
+-- >
+--
+-- The `Eq` instance here would be timing safe because it is
+-- essentially the `Eq` instance of tuples. The deriving `Equality` is
+-- not strictly required here. However, we suggest keeping it so that
+-- on can define timing safe equality for other types that contain a
+-- component of type `Secret`.
+--
 -- === Beware: deriving clause can be dangerous
 --
--- The use of the @deriving@ clause can be dangerous. For example,
--- consider the following definitions.
+-- The deriving clause that we defined above while convenient, hides a
+-- danger when not used properly. For example, consider the following
+-- definitions.
 --
 -- > data    Bad      = Bad Bar Biz deriving Eq
 -- > newtype BadAgain = BadAgain (Bar, Biz) deriving (Eq, Equality)
@@ -104,20 +125,14 @@ import           Data.Word
 --
 -- The comparison for the elements of the type `Bad` would leak some
 -- timing information /even/ when `Bar` and `Biz` are instances of
--- `Equality` and thus have timing safe equalities
--- themselves. Nonetheless, some deriving clauses are okey for example
+-- `Equality` and thus have timing safe equalities themselves. This is
+-- because the automatic derivation of `Eq` instances in the above two
+-- cases performs a component by component comparison and combines the
+-- result using @`and`@. Due to boolean short circuiting, this
+-- will lead to timing information being leaked.
 --
--- > newtype Okey = Okey Foo deriving Eq
---
--- It is still advisable to also derive an instance of `Equality` so
--- that the type `Okey` can be used as a component of some other type
--- which requires timing safe equality.
---
--- > newtype Okey = Okey Foo deriving (Eq, Equality)
---
--- The following definition is also fine because it derives the
--- default instance of `Equality` for pairs and then uses it
--- to define the `Eq` instance.
+-- For product types, we can safely derive the `Equality` instance and use
+-- it to define the @Eq@ instance as follows
 --
 -- >
 -- > newtype Okey2 = Okey (Foo, Bar) deriving Equality
