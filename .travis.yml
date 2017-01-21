@@ -90,13 +90,14 @@ install:
  - $BUILDCMD --version
  - if [ "$BUILDCMD" == "cabal" ]; then
       travis_retry cabal update;
-      cabal install --only-dependencies --enable-tests --enable-benchmarks;
+      cabal install --only-dependencies --enable-tests;
     fi
 
 script:
-  - if [ "$BUILDCMD" == "cabal" ]; then cabal configure --enable-tests --enable-benchmarks; fi
+  - if [ "$BUILDCMD" == "cabal" ]; then cabal configure --enable-tests; fi
   - $BUILDCMD build
   - $BUILDCMD test
+  - if [ "$BUILDCMD" == "stack" ]; then stack bench --no-run-benchmarks; fi
   - if [ "$BUILDCMD" == "cabal" ]; then cabal check; fi
   - if [ "$BUILDCMD" == "cabal" ]; then cabal sdist; fi
   - if [ "$BUILDCMD" == "cabal" ]; then cabal install --force-reinstalls dist/*-*.tar.gz; fi
