@@ -98,10 +98,10 @@ import           Data.Word
 -- We often find ourselves wrapping existing types in new types
 -- keeping in line with the philosophy of distinguishing sematically
 -- distinct data with their types. It would be tedious to repeat the
--- process of each such type. Often, we can get away by just deriving
--- these instances thereby saving a lot of boilerplate. For example,
--- consider a data type that needs to keep a 128-byte secret. A simple
--- deriving class would work in such cases.
+-- above process for each such type. Often, we can get away by just
+-- deriving these instances thereby saving a lot of boilerplate. For
+-- example, consider a data type that needs to keep a 128-byte
+-- secret. A simple deriving class would work in such cases.
 --
 -- >
 -- > newtype Secret = Secret (Tuple 128 Word8) deriving (Equality, Eq)

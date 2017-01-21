@@ -39,7 +39,7 @@ import Raaz.Core.Types.Copying( Src, Dest, source, destination)
 --
 -- 1. Define distinct types for semantically different objects. For
 --    example, distinguish between buffer length/pointer offset in
---    bytes verse other units (see `LengthUnit`) or make endian aware
+--    bytes versus other units (see `LengthUnit`) or make endian aware
 --    variants of standard word types (see `BE` and `LE`) etc.
 --
 -- 2. Make sure that the low level functions are sensitive to these
