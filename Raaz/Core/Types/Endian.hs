@@ -44,63 +44,74 @@ import           Raaz.Core.Types.Equality
 --
 -- Cryptographic primitives often consider their input as an array of
 -- words of a particular endianness. Endianness is only relevant when
--- the data is being read or written to. It makes sense therefore to
--- keep track of the endianness in the type and perform necessary
--- transformations depending on the endianness of the
--- machine. Such types are captured by the type class `EndianStore`. They
--- support the `load` and `store` combinators that automatically compensates
--- for the endianness of the machine.
+-- serialising to (or de-serialising from) their encoding to the
+-- outside world. Raaz strives to use types to provide an endian
+-- agnostic interface to all data that is relevant to the outside
+-- world.
 --
--- This libraray exposes endian aware variants of `Word32` and
--- `Word64` here and expect other cryptographic types to use such
--- endian explicit types in their definition.
-
-
--- | This class is the starting point of an endian agnostic interface
--- to basic cryptographic data types. Endianness only matters when we
--- first load the data from the buffer or when we finally write the
--- data out. Any multi-byte type that are meant to be serialised
--- should define and instance of this class. The `load`, `store`,
--- `adjustEndian` should takes care of the appropriate endian
--- conversion.
+-- The starting point of an endian agnostic interface is the class
+-- `EndianStore`. Instances of this class support an endian agnostic
+-- `load` and `store`. Endian adjusted copying is also provided for
+-- these types through the helper functions `copyFromBytes` and
+-- `copyToBytes`.
 --
--- Besides these three functions, the helper functions `copyFromBytes`
--- and `copyToBytes` help in copying between buffers, adjusting for
--- endianness in each case.
+-- It is tedious to think about endianness for each new type one might
+-- encounter. As before, we have a top down approach to defining such
+-- an interface. To start with, the library exposes endian aware
+-- variants of `Word32` and `Word64` and functions @littleEndian@ and
+-- @bigEndian@ for conversions. The `Tuple` type inherits the
+-- endianness of its element type, i.e for example @Tuple 10 (LE
+-- Word32)@ when loded (or stored) will load (or store) 10 32-bit
+-- words assuming that the words are expressed in little endian. Other
+-- types are then built out of these endian aware types. For example,
+-- cryptographic type `SHA512` is defined as.
+--
+-- >
+-- > newtype SHA512 = SHA512 (Tuple 8 (BE Word64))
+-- >                      deriving (Equality, Eq, Storable, EndianStore)
+-- >
+--
+
+-- | This class captures types which provides an endian agnostic way
+-- of loading from and storing to data buffers. Any multi-byte type
+-- that is meant to be serialised to the outside world should be an
+-- instance of this class. When defining the `load`, `store`,
+-- `adjustEndian` member functions, care should be taken to ensure
+-- proper endian conversion.
 --
 class Storable w => EndianStore w where
 
-  -- | The action @store ptr w@ stores @w@ at the location pointed by @ptr@.
-  -- Endianness of the type @w@ is taken care of when storing: for
-  -- example, irrespective of the endianness of the machine @store ptr
-  -- (0x01020304 :: BE Word32)@ will store the bytes @0x01@, @0x02@,
-  -- @0x03@, @0x04@ respectively at locations @ptr@, @ptr +1@, @ptr+2@
-  -- and @ptr+3@. On the other hand @store ptr (0x01020304 :: LE
-  -- Word32)@ would store @0x04@, @0x03@, @0x02@, @0x01@ at the above
-  -- locations.
+  -- | The action @store ptr w@ stores @w@ at the location pointed by
+  -- @ptr@.  Endianness of the type @w@ is taken care of when storing.
+  -- For example, irrespective of the endianness of the machine,
+  -- @store ptr (0x01020304 :: BE Word32)@ will store the bytes
+  -- @0x01@, @0x02@, @0x03@, @0x04@ respectively at locations @ptr@,
+  -- @ptr +1@, @ptr+2@ and @ptr+3@. On the other hand @store ptr
+  -- (0x01020304 :: LE Word32)@ would store @0x04@, @0x03@, @0x02@,
+  -- @0x01@ at the above locations.
 
   store :: Ptr w   -- ^ the location.
         -> w       -- ^ value to store
         -> IO ()
 
-  -- | The action @load ptr@ loads the value stored at the @ptr@. Like store,
-  -- it takes care of the endianness of the data type.  For example,
-  -- if @ptr@ points to a buffer containing the bytes @0x01@, @0x02@,
-  -- @0x03@, @0x04@, irrespective of the endianness of the machine
-  -- @load ptr :: IO (BE Word32)@ will load the @0x01020304 :: BE
-  -- Word32@ and @load ptr :: IO (LE Word32)@ will load @0x04030201 ::
-  -- LE Word32@.
+  -- | The action @load ptr@ loads the value stored at the @ptr@. Like
+  -- store, it takes care of the endianness of the data type.  For
+  -- example, if @ptr@ points to a buffer containing the bytes @0x01@,
+  -- @0x02@, @0x03@, @0x04@, irrespective of the endianness of the
+  -- machine, @load ptr :: IO (BE Word32)@ will load the vale
+  -- @0x01020304@ of type @BE Word32@ and @load ptr :: IO (LE Word32)@
+  -- will load @0x04030201@ of type @LE Word32@.
   load  :: Ptr w -> IO w
 
   -- | The action @adjustEndian ptr n@ adjusts the encoding of bytes
   -- stored at the location @ptr@ to conform with the endianness of
-  -- the underlying data typec. For example, if the type @w@ was LE
-  -- Word32, and one is one a big endian machine then, if pointer
-  -- contain bytes @0x01 0x00 0x00 0x00@, @adjustEndian ptr 1@ should
-  -- result in the byte sequence value @0x00 0x00 0x00 0x01@. On the
-  -- other hand if we are on a little endian machine, the sequence
-  -- should remain the same.  In particular, the following equalities
-  -- should hold.
+  -- the underlying data type. For example, assume that @ptr@ points
+  -- to a buffer containing the bytes @0x01 0x02 0x03 0x04@, and we
+  -- are on a big endian machine, then @adjustEndian (ptr :: Ptr (LE
+  -- Word32)) 1@ will result in @ptr@ pointing to the sequence @0x04
+  -- 0x03 0x02 0x01@. On the other hand if we were on a little endian
+  -- machine, the sequence should remain the same.  In particular, the
+  -- following equalities should hold.
   --
   -- >
   -- > store ptr w          = poke ptr w >> adjustEndian ptr 1
