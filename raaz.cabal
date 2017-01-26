@@ -179,9 +179,22 @@ library
   ----------------------- System specific configurations ----------------------------------
 
   if !os(windows)
+
      cpp-options: -DHAVE_MLOCK
-                  -DHAVE_DEV_URANDOM
-                  -DHAVE_SYSTEM_PRG
+
+     --------------------- Entropy ----------------------------------------------
+     if os(linux)
+        -- Entropy for linux using getrandom.
+        hs-source-dirs: entropy/getrandom
+
+     if os(openbsd)
+        -- Entropy for openbsd using arc4random
+        hs-source-dirs: entropy/arc4random
+
+     if !os(linux) && !os(openbsd)
+        -- Entropy for generic posix by reading /dev/urandom
+        hs-source-dirs: entropy/urandom
+
   if os(osx)
      -- Endian coversion code is different for osx.
      cc-options: -DPLATFORM_OSX
