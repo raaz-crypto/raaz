@@ -62,7 +62,6 @@ library
                  , Raaz.Core.MonoidalAction
                  , Raaz.Core.Parse.Applicative
                  , Raaz.Core.Primitives
-                 , Raaz.Core.Random
                  , Raaz.Core.Types
                  , Raaz.Core.Util
                  , Raaz.Core.Transfer
@@ -224,7 +223,6 @@ test-Suite spec
                , Raaz.Cipher.ChaCha20Spec
                , Raaz.Core.EncodeSpec
                , Raaz.Core.MemorySpec
-               , Raaz.Core.SystemPRGSpec
                , Raaz.Core.Types.WordSpec
                , Raaz.Core.Util.ByteStringSpec
                , Raaz.Hash.Sha1Spec
