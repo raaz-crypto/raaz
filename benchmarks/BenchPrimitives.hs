@@ -17,6 +17,7 @@ import Raaz.Core
 import Raaz.Cipher
 import Raaz.Cipher.Internal
 import Raaz.Hash.Internal
+import Raaz.Random
 
 import qualified Raaz.Hash.Sha1.Implementation.CPortable      as Sha1CP
 import qualified Raaz.Hash.Sha256.Implementation.CPortable    as Sha256CP
@@ -44,7 +45,7 @@ type Result            = (String, Measured)
 type RaazBench         = (String, Benchmarkable)
 
 allBench :: [RaazBench]
-allBench =    [ memsetBench ]
+allBench =    [ memsetBench, randomnessBench ]
            ++ chacha20Benchs
            ++ aesBenchs
            ++ sha1Benchs
@@ -132,6 +133,11 @@ hashBench hi@(SomeHashI impl) = (nm, Benchmarkable $ compressBench . fromIntegra
         nm = name hi ++ "-compress"
         sz = atLeast nBytes
 
+randomnessBench :: RaazBench
+randomnessBench = ("random", Benchmarkable $ rand . fromIntegral)
+  where rand count = allocaBuffer nBytes $ insecurely . replicateM_ count . fillIt
+        fillIt :: Pointer -> RandomM ()
+        fillIt = fillRandomBytes nBytes
 runRaazBench :: RaazBench -> IO Doc
 runRaazBench (nm, bm) = do
   hPutStr  stderr $ "running " ++ nm ++ " ..."
