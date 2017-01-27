@@ -22,7 +22,7 @@ module Raaz.Core.Types.Pointer
          -- ** Types measuring alignment
        , Alignment, wordAlignment
        , ALIGN
-       , alignment, alignPtr, alignedSizeOf, nextAlignedPtr, peekAligned, pokeAligned
+       , alignment, alignPtr, movePtr, alignedSizeOf, nextAlignedPtr, peekAligned, pokeAligned
          -- ** Allocation functions.
        , allocaAligned, allocaSecureAligned, allocaBuffer, allocaSecure, mallocBuffer
          -- ** Some buffer operations
@@ -253,6 +253,10 @@ alignment =  Alignment . FS.alignment
 alignPtr :: Ptr a -> Alignment -> Ptr a
 alignPtr ptr = FP.alignPtr ptr . unAlignment
 
+-- | Move the given pointer with a specific offset.
+movePtr :: LengthUnit l => Ptr a -> l -> Ptr a
+movePtr ptr l = FP.plusPtr ptr offset
+  where BYTES offset = inBytes l
 
 -- | Compute the next aligned pointer starting from the given pointer
 -- location.

@@ -33,7 +33,7 @@ import           Prelude
 import qualified Data.Vector.Generic         as GV
 import qualified Data.Vector.Generic.Mutable as GVM
 
-import           Raaz.Core.MonoidalAction
+
 import           Raaz.Core.Types.Copying
 import           Raaz.Core.Types.Pointer
 import           Raaz.Core.Types.Equality
@@ -130,11 +130,6 @@ class Storable w => EndianStore w where
                -> Int    -- ^ how many w's are present,
                -> IO ()
 
-
-
-
-movePtr :: LengthUnit offset => Ptr a -> offset -> Ptr a
-movePtr ptr offset = castPtr $ offset <.> (castPtr ptr :: Pointer)
 
 instance EndianStore Word8 where
   store                  = poke
