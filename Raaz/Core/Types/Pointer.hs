@@ -35,6 +35,7 @@ module Raaz.Core.Types.Pointer
 import           Control.Applicative
 import           Control.Exception     ( bracket_)
 import           Control.Monad         ( void, when )
+import           Control.Monad.IO.Class
 import           Data.Monoid
 import           Data.Word
 import           Foreign.Marshal.Alloc
@@ -205,8 +206,7 @@ bitsQuot bits = u
 
 -- | The most interesting monoidal action for us.
 instance LengthUnit u => LAction u Pointer where
-  a <.> ptr  = FP.plusPtr ptr offset
-    where BYTES offset = inBytes a
+  a <.> ptr  = movePtr ptr a
   {-# INLINE (<.>) #-}
 
 ------------------------ Alignment --------------------------------
@@ -377,12 +377,12 @@ foreign import ccall unsafe "string.h memcpy" c_memcpy
     :: Dest Pointer -> Src Pointer -> BYTES Int -> IO Pointer
 
 -- | Copy between pointers.
-memcpy :: LengthUnit l
+memcpy :: (MonadIO m, LengthUnit l)
        => Dest Pointer -- ^ destination
        -> Src  Pointer -- ^ src
        -> l            -- ^ Number of Bytes to copy
-       -> IO ()
-memcpy dest src = void . c_memcpy dest src . inBytes
+       -> m ()
+memcpy dest src = liftIO . void . c_memcpy dest src . inBytes
 
 {-# SPECIALIZE memcpy :: Dest Pointer -> Src Pointer -> BYTES Int -> IO () #-}
 
@@ -390,22 +390,22 @@ foreign import ccall unsafe "string.h memmove" c_memmove
     :: Dest Pointer -> Src Pointer -> BYTES Int -> IO Pointer
 
 -- | Move between pointers.
-memmove :: LengthUnit l
+memmove :: (MonadIO m, LengthUnit l)
         => Dest Pointer -- ^ destination
         -> Src Pointer  -- ^ source
         -> l            -- ^ Number of Bytes to copy
-        -> IO ()
-memmove dest src = void . c_memmove dest src . inBytes
+        -> m ()
+memmove dest src = liftIO . void . c_memmove dest src . inBytes
 {-# SPECIALIZE memmove :: Dest Pointer -> Src Pointer -> BYTES Int -> IO () #-}
 
 foreign import ccall unsafe "string.h memset" c_memset
     :: Pointer -> Word8 -> BYTES Int -> IO Pointer
 
 -- | Sets the given number of Bytes to the specified value.
-memset :: LengthUnit l
+memset :: (MonadIO m, LengthUnit l)
        => Pointer -- ^ Target
        -> Word8     -- ^ Value byte to set
        -> l         -- ^ Number of bytes to set
-       -> IO ()
-memset p w = void . c_memset p w . inBytes
+       -> m ()
+memset p w = liftIO . void . c_memset p w . inBytes
 {-# SPECIALIZE memset :: Pointer -> Word8 -> BYTES Int -> IO () #-}
