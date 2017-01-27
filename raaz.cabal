@@ -52,7 +52,7 @@ flag avx2
 library
   default-language: Haskell2010
   ghc-options: -Wall
-
+  hs-source-dirs: .
   exposed-modules: Raaz
                  , Raaz.Core
                  , Raaz.Core.ByteSource
@@ -89,7 +89,6 @@ library
                  , Raaz.Cipher.AES.CBC.Implementation.CPortable
                  , Raaz.Cipher.ChaCha20
                  , Raaz.Cipher.ChaCha20.Implementation.CPortable
-
   other-modules: Raaz.Core.Constants
                , Raaz.Core.Encode.Internal
                , Raaz.Core.Encode.Base16
@@ -183,17 +182,18 @@ library
      cpp-options: -DHAVE_MLOCK
 
      --------------------- Entropy ----------------------------------------------
-     if os(linux)
-        -- Entropy for linux using getrandom.
-        hs-source-dirs: entropy/getrandom
 
      if os(openbsd)
         -- Entropy for openbsd using arc4random
         hs-source-dirs: entropy/arc4random
 
-     if !os(linux) && !os(openbsd)
+     if !os(openbsd)
         -- Entropy for generic posix by reading /dev/urandom
         hs-source-dirs: entropy/urandom
+
+     exposed-modules: Raaz.Random
+     other-modules: Raaz.Random.ChaCha20PRG
+                  , Raaz.Entropy
 
   if os(osx)
      -- Endian coversion code is different for osx.
@@ -238,6 +238,7 @@ test-Suite spec
                , Raaz.Core.MemorySpec
                , Raaz.Core.Types.WordSpec
                , Raaz.Core.Util.ByteStringSpec
+               , Raaz.RandomSpec
                , Raaz.Hash.Sha1Spec
                , Raaz.Hash.Sha224Spec
                , Raaz.Hash.Sha256Spec
