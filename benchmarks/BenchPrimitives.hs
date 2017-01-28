@@ -136,8 +136,9 @@ hashBench hi@(SomeHashI impl) = (nm, Benchmarkable $ compressBench . fromIntegra
 randomnessBench :: RaazBench
 randomnessBench = ("random", Benchmarkable $ rand . fromIntegral)
   where rand count = allocaBuffer nBytes $ insecurely . replicateM_ count . fillIt
-        fillIt :: Pointer -> RandomM ()
+        fillIt :: Pointer -> RandM ()
         fillIt = fillRandomBytes nBytes
+
 runRaazBench :: RaazBench -> IO Doc
 runRaazBench (nm, bm) = do
   hPutStr  stderr $ "running " ++ nm ++ " ..."
