@@ -46,18 +46,7 @@ chacha20Vector = makeCipherI
 -- | The type capturing the random block that will be generated.
 type RandomBlock = Aligned 32 (Tuple 32 WORD)
 
--- | Chacha20 prg in portable-C transformation.
-foreign import ccall unsafe
-  "raaz/cipher/chacha20/cportable.h raazChaCha20Random"
-  c_chacha20_random :: Pointer     -- Message
-                   -> Ptr KEY      -- key
-                   -> Ptr IV       -- iv
-                   -> Ptr Counter  -- Counter value
-                   -> IO ()
 
 -- | The prg based on chacha20 stream cipher.
 chacha20Random :: Pointer -> MT ChaCha20Mem ()
-chacha20Random buf = do keyPtr <- onSubMemory keyCell     getCellPointer
-                        ivPtr  <- onSubMemory ivCell      getCellPointer
-                        ctrPtr <- onSubMemory counterCell getCellPointer
-                        liftIO $ c_chacha20_random buf keyPtr ivPtr ctrPtr
+chacha20Random buf = chacha20Block buf (2 `blocksOf` ChaCha20)
