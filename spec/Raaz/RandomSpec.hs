@@ -6,7 +6,6 @@ import Raaz.Random
 spec :: Spec
 spec = it "system prg should return different words on distinct calls"
        $ compareWords `shouldReturn` False
-  where randomWord :: RandM Word64
-        randomWord  = random
-        compareWords = (==) <$> insecurely randomWord
-                            <*> insecurely randomWord
+  where r64                 :: RandM Word64
+        r64                 = random
+        compareWords        = insecurely $ (==) <$> r64 <*> r64
