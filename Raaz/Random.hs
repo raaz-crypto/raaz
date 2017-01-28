@@ -3,13 +3,12 @@
 module Raaz.Random
        ( -- * Cryptographically secure randomness.
          -- $randomness$
-         RT, RandM
-       , random, runRT
+         RT, RandM, random
+       , Random(..)
+       , MemoryRandom(..)
        -- * Low level functions
        , fillRandomBytes, reseed
        , unsafePokeManyRandom
-       , MemoryRandom(..)
-       , Random(..),
        ) where
 
 import Control.Applicative
@@ -30,52 +29,36 @@ import Raaz.Core
 --
 -- The raaz library gives a relatively high level interface to
 -- randomness. A batch of actions that generate/use cryptographically
--- secure random bytes is captured by the monad @`RT` mem@.  It is
--- parameterised by the memory type @mem@ which should be an instance
--- of the class `MemoryRandom`.
+-- secure random bytes is captured by the monad @`RT` mem@. The
+-- parameter @mem@ needs to be an instance of `MemoryRandom`, which
+-- essentially asserts @mem@, besides other things, stores the
+-- internal state of the pseudo-random generator.
 --
--- A random action @foo :: RT mem a@ can be run to obtain an @IO@
--- using the combinator `runRT`. When the action @foo@ is used to
--- generate a long term secret, say a public-key private key pair, it
--- is better to ensure that generated randomness does not end up in
--- the swap space. In such cases we can run the action securely as
--- follows
+-- == Running random action.
 --
--- >
--- > runRT securely foo
--- >
---
--- In the above command all allocated memory is locked to prevent it
--- from getting swapped.  On the other hand, if we do not care so much
--- about the secrecy of the generated random bytes, a more efficient
--- way would be to run it with unlocked memory.
---
--- >
--- > runRT insecurely foo
--- >
---
--- The monad `RandM` captures a batch of random action that uses only
--- the memory used to keep track of the prg.
+-- The @`RT` mem@ monad is an instance of @MonadMemory@ whenever @mem@
+-- is a an instance of @MonadRandom@. Therefore, one can run it either
+-- `securely` or `insecurely`
 --
 -- = Internal details
 --
 -- Generating unpredictable stream of bytes is one task that has burnt
 -- the fingers of a lot of programmers. Unfortunately, getting it
--- correct is something of a black art. As has now become standard,
--- raaz uses a stream cipher (chacha20), initialised with a starting
--- random key/iv. The starting seed is then drawn form the system
--- entropy pool.
+-- correct is something of a black art.  Raaz uses a stream cipher
+-- (chacha20), initialised with a starting random key/iv. The starting
+-- seed is then drawn from the system entropy pool.
 --
--- TODO: We do not have windows support yet. On posix systems we
--- mostly @\/dev\/urandom@. However, depending on underlying operating
--- system, there are better options. The recommended way to generate
--- randomness on an OpenBSD system is through the function
--- `arc4random` (note that arc4random does not use rc4 cipher
--- anymore).  Recent Linux kernels support the `getrandom` system call
--- which unfortunately is not yet popular. These system specific calls
--- are better because they take into consideration many edge cases
--- like for example @\/dev\/urandom@ not being accessible or
--- protection from signals. Eventually we will be supporting these calls.
+-- TODO: For system entropy we use @\/dev\/urandom@ on a posix systems
+-- (no windows support yet). Even on posix systems, depending on
+-- underlying operating system, there are better options. The
+-- recommended way to generate randomness on an OpenBSD system is
+-- through the function `arc4random` (note that arc4random does not
+-- use rc4 cipher anymore).  Recent Linux kernels support the
+-- `getrandom` system call which unfortunately is not yet
+-- popular. These system specific calls are better because they take
+-- into consideration many edge cases like for example
+-- @\/dev\/urandom@ not being accessible or protection from interrupts
+-- Eventually we will be supporting these calls.
 --
 
 -- | A batch of actions on the memory element m that uses some
@@ -124,13 +107,13 @@ fillRandomBytes l = RT . onSubMemory randomState . fillRandomBytesMT l
 --
 -- It might appear that all storables should be an instance of this,
 -- after all we know the size of the element why not write that many
--- random bytes. The reason is that for elements that are not full
--- range, i.e.  storable types of size n where not every byte pattern
--- are valid elements, for example consider 32-bit integer modulo a
--- fixed number m.
+-- random bytes. In fact this module provides an
+-- `unsafePokeManyRandom` which essentially does exactly
+-- that. However, we do not give a blanket definition for all
+-- storables because for certain refinements of a given type, like for
+-- example, Word8's modulo 10, `unsafePokeManyRandom` introduces
+-- unacceptable skews.
 --
--- If the user is convinced that the type is full range then one can
--- use `unsafePokeManyRandom` as the definition of `pokeManyRandom`
 class Storable a => Random a where
 
   -- | Poke a random element.
