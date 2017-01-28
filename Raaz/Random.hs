@@ -95,6 +95,10 @@ runRT :: MemoryRandom m
 runRT runner action = runner runIt
   where runIt = onSubMemory randomState reseedMT >> unMT action
 
+instance MemoryRandom mem => MonadMemory (RT mem) where
+  insecurely = runRT insecurely
+  securely   = runRT securely
+
 -- | A memory element which contains a sub-memory for randomness.
 class Memory mem => MemoryRandom mem where
 
