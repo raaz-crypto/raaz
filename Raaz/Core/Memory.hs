@@ -22,7 +22,7 @@ module Raaz.Core.Memory
 
        -- ** Initialisation and Extraction.
        -- $init-extract$
-         Memory(..), copyMemory
+         Memory(..), VoidMemory, copyMemory
        , Initialisable(..), Extractable(..)
        , InitialisableFromBuffer(..), ExtractableToBuffer(..)
        -- *** A basic memory cell.
