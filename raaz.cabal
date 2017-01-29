@@ -25,6 +25,10 @@ cabal-version: >=1.10
 
 bug-reports: https://github.com/raaz-crypto/raaz/issues
 
+-- List of platform specific source files.
+extra-source-files: entropy/urandom/Raaz/Entropy.hs
+                    entropy/arc4random/Raaz/Entropy.hs
+
 source-repository head
   type: git
   location: https://github.com/raaz-crypto/raaz
@@ -89,6 +93,10 @@ library
                  , Raaz.Cipher.AES.CBC.Implementation.CPortable
                  , Raaz.Cipher.ChaCha20
                  , Raaz.Cipher.ChaCha20.Implementation.CPortable
+		 --
+		 -- Randomness
+		 --
+                 , Raaz.Random
   other-modules: Raaz.Core.Constants
                , Raaz.Core.Encode.Internal
                , Raaz.Core.Encode.Base16
@@ -123,6 +131,11 @@ library
                , Raaz.Cipher.AES.Recommendation
                , Raaz.Cipher.ChaCha20.Internal
                , Raaz.Cipher.ChaCha20.Recommendation
+               --
+               -- Internal module for randomness
+               --
+               , Raaz.Random.ChaCha20PRG
+               , Raaz.Entropy
                , Paths_raaz
   build-depends: base                           >= 4.6  &&  < 4.11
                , bytestring                     >= 0.9  &&  < 0.11
@@ -191,13 +204,10 @@ library
         -- Entropy for generic posix by reading /dev/urandom
         hs-source-dirs: entropy/urandom
 
-     exposed-modules: Raaz.Random
-     other-modules: Raaz.Random.ChaCha20PRG
-                  , Raaz.Entropy
-
   if os(osx)
      -- Endian coversion code is different for osx.
      cc-options: -DPLATFORM_OSX
+
 
 ---------------------------- Executables -------------------------------------------------
 
