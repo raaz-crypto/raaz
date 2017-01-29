@@ -36,6 +36,7 @@ import           System.IO.Unsafe     (unsafePerformIO)
 import           Raaz.Core          hiding (alignment)
 import           Raaz.Core.Parse.Applicative
 import           Raaz.Core.Transfer
+import           Raaz.Random
 
 import           Raaz.Hash.Internal
 
@@ -87,7 +88,8 @@ instance (Hash h, Recommendation h) => EndianStore (HMACKey h) where
   load             = peek
   adjustEndian _ _ = return ()
 
-instance (Hash h, Recommendation h) => Random (HMACKey h)
+instance (Hash h, Recommendation h) => Random (HMACKey h) where
+  random = unsafeStorableRandom
 
 instance (Hash h, Recommendation h) => Encodable (HMACKey h)
 

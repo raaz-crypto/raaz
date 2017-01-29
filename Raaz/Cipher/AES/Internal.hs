@@ -23,8 +23,9 @@ import Foreign.Ptr      ( castPtr, Ptr )
 import Foreign.Storable (Storable, poke)
 import GHC.TypeLits
 
-
 import Raaz.Core
+import Raaz.Random
+
 import Raaz.Cipher.Internal
 
 --------------- Basic types associated with AES -------------
@@ -55,9 +56,15 @@ instance Encodable KEY128
 instance Encodable KEY192
 instance Encodable KEY256
 
-instance Random KEY128
-instance Random KEY192
-instance Random KEY256
+instance Random KEY128 where
+  random = unsafeStorableRandom
+
+
+instance Random KEY192 where
+  random = unsafeStorableRandom
+
+instance Random KEY256 where
+  random = unsafeStorableRandom
 
 -- | Expects in base 16
 instance IsString KEY128 where
@@ -89,7 +96,8 @@ instance Show KEY256 where
 newtype IV  = IV (TUPLE 4) deriving (Storable, EndianStore)
 
 instance Encodable IV
-instance Random IV
+instance Random IV where
+  random = unsafeStorableRandom
 
 -- | Expects in base16.
 instance IsString IV where

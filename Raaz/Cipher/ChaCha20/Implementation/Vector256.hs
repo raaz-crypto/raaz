@@ -1,8 +1,10 @@
 {-# LANGUAGE ForeignFunctionInterface         #-}
 {-# LANGUAGE MultiParamTypeClasses            #-}
 {-# LANGUAGE FlexibleInstances                #-}
+{-# LANGUAGE DataKinds                        #-}
+
 module Raaz.Cipher.ChaCha20.Implementation.Vector256
-       ( implementation
+       ( implementation, chacha20Block
        ) where
 
 import Control.Monad.IO.Class   ( liftIO )

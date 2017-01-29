@@ -12,6 +12,7 @@
 module Raaz.Core.Types.Tuple
        ( -- * Length encoded tuples
          Tuple, Dimension, dimension, initial, diagonal
+       , repeatM
          -- ** Unsafe operations
        , unsafeFromList
        ) where
@@ -128,6 +129,15 @@ instance (V.Unbox a, EndianStore a, Dimension dim)
              nos _ w = dimension w * n
              unTupPtr   :: Ptr (Tuple dim a) -> Ptr a
              unTupPtr   = castPtr
+
+
+-- | Construct a tuple by repeating a monadic action.
+repeatM :: (Functor m, Monad m, V.Unbox a, Dimension dim) => m a -> m (Tuple dim a)
+repeatM action = result
+  where result = Tuple <$> V.replicateM sz action
+        sz     = dimension $ getTup result
+        getTup :: (Monad m, Dimension n)=> m (Tuple n a) -> Tuple n a
+        getTup _ = undefined
 
 -- | Construct a tuple out of the list. This function is unsafe and
 -- will result in run time error if the list is not of the correct

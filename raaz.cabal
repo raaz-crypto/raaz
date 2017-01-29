@@ -25,9 +25,15 @@ cabal-version: >=1.10
 
 bug-reports: https://github.com/raaz-crypto/raaz/issues
 
+-- List of platform specific source files.
+extra-source-files: entropy/urandom/Raaz/Entropy.hs
+                    entropy/arc4random/Raaz/Entropy.hs
+
 source-repository head
   type: git
   location: https://github.com/raaz-crypto/raaz
+
+------------------------- Flags -------------------------------------------------------------
 
 flag vector128
      Description: Make use of vector instructions with size being 128.
@@ -45,55 +51,12 @@ flag avx2
      Description: Support avx2 optimisations. Warning: enable only if you are sure of support.
      Default: False
 
+----------------------------- The library -----------------------------------------------------
 
 library
   default-language: Haskell2010
   ghc-options: -Wall
-  -- Conditional compilation using CPP
-
-  -- 1. Configuring system PRG.
-  --
-  --    * HAVE_SYSTEM_PRG: If a system prg is exposed.
-  --
-  --    * HAVE_DEV_URANDON: If the device /dev/urandom exists.
-  --
-  --
-  -- 2. Memory Locking
-  --    System supports mlock/munlock calls.
-  --
-  -- The check below is not really accurate but should work most of
-  -- the time. What I really want is to check if the system is posix.
-  -- TODO: Fix it latter.
-  if !os(windows)
-     cpp-options: -DHAVE_MLOCK
-                  -DHAVE_DEV_URANDOM
-                  -DHAVE_SYSTEM_PRG
-  if os(osx)
-     cc-options: -DPLATFORM_OSX
-
-  -- Vector instructions
-  if flag(vector128)
-     cpp-options: -DHAVE_VECTOR_128
-     cc-options:  -DHAVE_VECTOR_128
-     exposed-modules: Raaz.Cipher.ChaCha20.Implementation.Vector128
-     c-sources: cbits/raaz/cipher/chacha20/vector128.c
-
-  if flag(vector256)
-     cpp-options: -DHAVE_VECTOR_256
-     cc-options:  -DHAVE_VECTOR_256
-     exposed-modules: Raaz.Cipher.ChaCha20.Implementation.Vector256
-     c-sources: cbits/raaz/cipher/chacha20/vector256.c
-
-  if flag(avx2)
-     cpp-options: -DHAVE_VECTOR_256
-     cc-options:  -DHAVE_AVX2 -mavx2 -DHAVE_VECTOR_256
-
-  if flag(vector512)
-     cpp-options: -DHAVE_VECTOR_512
-     cc-options:  -DHAVE_VECTOR_512
-
-
-
+  hs-source-dirs: .
   exposed-modules: Raaz
                  , Raaz.Core
                  , Raaz.Core.ByteSource
@@ -103,7 +66,6 @@ library
                  , Raaz.Core.MonoidalAction
                  , Raaz.Core.Parse.Applicative
                  , Raaz.Core.Primitives
-                 , Raaz.Core.Random
                  , Raaz.Core.Types
                  , Raaz.Core.Util
                  , Raaz.Core.Transfer
@@ -112,9 +74,6 @@ library
                  --
                  , Raaz.Hash
                  , Raaz.Hash.Internal
-
-                 -- , Raaz.Hash.Blake256
-                 -- , Raaz.Hash.Blake256.Internal
                  , Raaz.Hash.Sha1
                  , Raaz.Hash.Sha1.Implementation.CPortable
                  , Raaz.Hash.Sha224
@@ -131,12 +90,13 @@ library
                  , Raaz.Cipher
                  , Raaz.Cipher.Internal
                  , Raaz.Cipher.AES
-                 , Raaz.Cipher.ChaCha20
-                 -- Exposed Implementations of AES.
                  , Raaz.Cipher.AES.CBC.Implementation.CPortable
+                 , Raaz.Cipher.ChaCha20
                  , Raaz.Cipher.ChaCha20.Implementation.CPortable
-
-
+		 --
+		 -- Randomness
+		 --
+                 , Raaz.Random
   other-modules: Raaz.Core.Constants
                , Raaz.Core.Encode.Internal
                , Raaz.Core.Encode.Base16
@@ -171,13 +131,17 @@ library
                , Raaz.Cipher.AES.Recommendation
                , Raaz.Cipher.ChaCha20.Internal
                , Raaz.Cipher.ChaCha20.Recommendation
+               --
+               -- Internal module for randomness
+               --
+               , Raaz.Random.ChaCha20PRG
+               , Raaz.Entropy
                , Paths_raaz
   build-depends: base                           >= 4.6  &&  < 4.11
                , bytestring                     >= 0.9  &&  < 0.11
                , deepseq                        >= 1.1  &&  < 1.5
                , mtl                            >= 2.1  &&  < 2.3
                , vector                         >= 0.7.1 && < 0.12
-
   if impl(ghc < 8)
     -- 'transformers' needed for "Control.Monad.IO.Class" only
     -- starting with base-4.9 we don't need 'transformers' anymore
@@ -201,12 +165,71 @@ library
                   , cbits/raaz/cipher/aes/cportable.h
                   , cbits/raaz/cipher/chacha20/common.h
 
+
+  --------------------------- Options for vector instructions ---------------------------------
+
+  if flag(vector128)
+     cpp-options: -DHAVE_VECTOR_128
+     cc-options:  -DHAVE_VECTOR_128
+     exposed-modules: Raaz.Cipher.ChaCha20.Implementation.Vector128
+     c-sources: cbits/raaz/cipher/chacha20/vector128.c
+
+  if flag(vector256)
+     cpp-options: -DHAVE_VECTOR_256
+     cc-options:  -DHAVE_VECTOR_256
+     exposed-modules: Raaz.Cipher.ChaCha20.Implementation.Vector256
+     c-sources: cbits/raaz/cipher/chacha20/vector256.c
+
+  if flag(avx2)
+     cpp-options: -DHAVE_VECTOR_256
+     cc-options:  -DHAVE_AVX2 -mavx2 -DHAVE_VECTOR_256
+
+  if flag(vector512)
+     cpp-options: -DHAVE_VECTOR_512
+     cc-options:  -DHAVE_VECTOR_512
+
+  ----------------------- System specific configurations ----------------------------------
+
+  if !os(windows)
+
+     cpp-options: -DHAVE_MLOCK
+
+     --------------------- Entropy ----------------------------------------------
+
+     if os(openbsd)
+        -- Entropy for openbsd using arc4random
+        hs-source-dirs: entropy/arc4random
+
+     if !os(openbsd)
+        -- Entropy for generic posix by reading /dev/urandom
+        hs-source-dirs: entropy/urandom
+
+  if os(osx)
+     -- Endian coversion code is different for osx.
+     cc-options: -DPLATFORM_OSX
+
+
+---------------------------- Executables -------------------------------------------------
+
 executable checksum
   default-language: Haskell2010
   hs-source-dirs: bin
   main-is: checksum.lhs
   build-depends: base
                , raaz     == 0.0.2
+
+executable random
+  default-language: Haskell2010
+  hs-source-dirs: bin
+  main-is: random.lhs
+  build-depends: base
+               , raaz     == 0.0.2
+  if impl(ghc < 8)
+    -- 'transformers' needed for "Control.Monad.IO.Class" only
+    -- starting with base-4.9 we don't need 'transformers' anymore
+    build-depends: transformers
+
+---------------------------- Test suit -----------------------------------------------------
 
 test-Suite spec
   default-language: Haskell2010
@@ -234,9 +257,9 @@ test-Suite spec
                , Raaz.Cipher.ChaCha20Spec
                , Raaz.Core.EncodeSpec
                , Raaz.Core.MemorySpec
-               , Raaz.Core.SystemPRGSpec
                , Raaz.Core.Types.WordSpec
                , Raaz.Core.Util.ByteStringSpec
+               , Raaz.RandomSpec
                , Raaz.Hash.Sha1Spec
                , Raaz.Hash.Sha224Spec
                , Raaz.Hash.Sha256Spec
@@ -268,6 +291,8 @@ benchmark blaze-vs-write
                , raaz
 
 
+---------------------------------------------- Cipher implemntation benchmarks ----------------------
+
 benchmark bench-ciphers
   hs-source-dirs: benchmarks
   default-language: Haskell2010
@@ -285,6 +310,8 @@ benchmark bench-ciphers
                , bytestring
                , criterion >= 1.0
                , raaz
+
+-------------------------------- Benchmarking all primitives --------------------------------
 
 benchmark primitives
   hs-source-dirs: benchmarks

@@ -35,7 +35,7 @@ instance IsString IV where
   fromString = fromBase16
 
 -- | The counter type for chacha20
-newtype Counter  = Counter (LE Word32) deriving (Num, Storable, EndianStore, Show)
+newtype Counter  = Counter (LE Word32) deriving (Num, Storable, EndianStore, Show, Eq, Ord)
 
 
 -- | The key type.

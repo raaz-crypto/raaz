@@ -22,7 +22,7 @@ module Raaz.Core.Memory
 
        -- ** Initialisation and Extraction.
        -- $init-extract$
-         Memory(..), copyMemory
+         Memory(..), VoidMemory, copyMemory
        , Initialisable(..), Extractable(..)
        , InitialisableFromBuffer(..), ExtractableToBuffer(..)
        -- *** A basic memory cell.
@@ -327,6 +327,13 @@ class Memory m where
 
   -- | Returns the pointer to the underlying buffer.
   unsafeToPointer :: m -> Pointer
+
+-- | A memory element that holds nothing.
+data VoidMemory = VoidMemory { unVoidMemory :: Pointer  }
+
+instance Memory VoidMemory where
+  memoryAlloc      = makeAlloc (0 :: BYTES Int) $ VoidMemory
+  unsafeToPointer  = unVoidMemory
 
 instance ( Memory ma, Memory mb ) => Memory (ma, mb) where
     memoryAlloc             = (,) <$> memoryAlloc <*> memoryAlloc

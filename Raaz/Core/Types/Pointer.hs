@@ -18,11 +18,11 @@ module Raaz.Core.Types.Pointer
          -- *** Some length arithmetic
        , bitsQuotRem, bytesQuotRem
        , bitsQuot, bytesQuot
-       , atLeast, atMost
+       , atLeast, atLeastAligned, atMost
          -- ** Types measuring alignment
        , Alignment, wordAlignment
        , ALIGN
-       , alignment, alignPtr, alignedSizeOf, nextAlignedPtr, peekAligned, pokeAligned
+       , alignment, alignPtr, movePtr, alignedSizeOf, nextAlignedPtr, peekAligned, pokeAligned
          -- ** Allocation functions.
        , allocaAligned, allocaSecureAligned, allocaBuffer, allocaSecure, mallocBuffer
          -- ** Some buffer operations
@@ -35,6 +35,7 @@ module Raaz.Core.Types.Pointer
 import           Control.Applicative
 import           Control.Exception     ( bracket_)
 import           Control.Monad         ( void, when )
+import           Control.Monad.IO.Class
 import           Data.Monoid
 import           Data.Word
 import           Foreign.Marshal.Alloc
@@ -154,6 +155,23 @@ atLeast src | r == 0    = u
             | otherwise = succ u
     where (u , r) = bytesQuotRem $ inBytes src
 
+
+-- | Often we want to allocate a buffer of size @l@. We also want to
+-- make sure that the buffer starts at an alignment boundary
+-- @a@. However, the standard word allocation functions might return a
+-- pointer that is not aligned as desired. The @atLeastAligned l a@
+-- returns a length @n@ such the length @n@ is big enough to ensure
+-- that there is at least @l@ length of valid buffer starting at the
+-- next pointer aligned at boundary @a@. If the alignment required in
+-- @a@ then allocating @l + a - 1 should do the trick.
+atLeastAligned :: LengthUnit l => l -> Alignment -> ALIGN
+atLeastAligned l a = n + pad - 1
+  where n = atLeast l
+        -- Alignment adjusted to word boundary.
+        algn = wordAlignment   <> a
+        pad  = atLeast $ BYTES  $ unAlignment $ algn
+
+
 -- | Express length unit @src@ in terms of length unit @dest@ rounding
 -- downwards.
 atMost :: ( LengthUnit src
@@ -205,8 +223,7 @@ bitsQuot bits = u
 
 -- | The most interesting monoidal action for us.
 instance LengthUnit u => LAction u Pointer where
-  a <.> ptr  = FP.plusPtr ptr offset
-    where BYTES offset = inBytes a
+  a <.> ptr  = movePtr ptr a
   {-# INLINE (<.>) #-}
 
 ------------------------ Alignment --------------------------------
@@ -238,12 +255,7 @@ sizeOf = BYTES . FS.sizeOf
 -- @s@ and its alignment is @a@ then this quantity is essentially
 -- equal to @s + a - 1@. All units measured in word alignment.
 alignedSizeOf  :: Storable a => a -> ALIGN
-alignedSizeOf a =  s + pad - 1
-  where -- The size of the element in Align units.
-        s    = atLeast $ sizeOf a
-        -- Alignment adjusted to word boundary.
-        algn = wordAlignment   <> alignment a
-        pad  = atLeast $ BYTES  $ unAlignment $ algn
+alignedSizeOf a =  atLeastAligned (sizeOf a) $ alignment a
 
 -- | Compute the alignment for a storable object.
 alignment :: Storable a => a -> Alignment
@@ -253,6 +265,10 @@ alignment =  Alignment . FS.alignment
 alignPtr :: Ptr a -> Alignment -> Ptr a
 alignPtr ptr = FP.alignPtr ptr . unAlignment
 
+-- | Move the given pointer with a specific offset.
+movePtr :: LengthUnit l => Ptr a -> l -> Ptr a
+movePtr ptr l = FP.plusPtr ptr offset
+  where BYTES offset = inBytes l
 
 -- | Compute the next aligned pointer starting from the given pointer
 -- location.
@@ -373,12 +389,12 @@ foreign import ccall unsafe "string.h memcpy" c_memcpy
     :: Dest Pointer -> Src Pointer -> BYTES Int -> IO Pointer
 
 -- | Copy between pointers.
-memcpy :: LengthUnit l
+memcpy :: (MonadIO m, LengthUnit l)
        => Dest Pointer -- ^ destination
        -> Src  Pointer -- ^ src
        -> l            -- ^ Number of Bytes to copy
-       -> IO ()
-memcpy dest src = void . c_memcpy dest src . inBytes
+       -> m ()
+memcpy dest src = liftIO . void . c_memcpy dest src . inBytes
 
 {-# SPECIALIZE memcpy :: Dest Pointer -> Src Pointer -> BYTES Int -> IO () #-}
 
@@ -386,22 +402,22 @@ foreign import ccall unsafe "string.h memmove" c_memmove
     :: Dest Pointer -> Src Pointer -> BYTES Int -> IO Pointer
 
 -- | Move between pointers.
-memmove :: LengthUnit l
+memmove :: (MonadIO m, LengthUnit l)
         => Dest Pointer -- ^ destination
         -> Src Pointer  -- ^ source
         -> l            -- ^ Number of Bytes to copy
-        -> IO ()
-memmove dest src = void . c_memmove dest src . inBytes
+        -> m ()
+memmove dest src = liftIO . void . c_memmove dest src . inBytes
 {-# SPECIALIZE memmove :: Dest Pointer -> Src Pointer -> BYTES Int -> IO () #-}
 
 foreign import ccall unsafe "string.h memset" c_memset
     :: Pointer -> Word8 -> BYTES Int -> IO Pointer
 
 -- | Sets the given number of Bytes to the specified value.
-memset :: LengthUnit l
+memset :: (MonadIO m, LengthUnit l)
        => Pointer -- ^ Target
        -> Word8     -- ^ Value byte to set
        -> l         -- ^ Number of bytes to set
-       -> IO ()
-memset p w = void . c_memset p w . inBytes
+       -> m ()
+memset p w = liftIO . void . c_memset p w . inBytes
 {-# SPECIALIZE memset :: Pointer -> Word8 -> BYTES Int -> IO () #-}

@@ -5,6 +5,7 @@ module Raaz
        ( module Raaz.Cipher
        , module Raaz.Core
        , module Raaz.Hash
+       , module Raaz.Random
        , version
        ) where
 
@@ -14,7 +15,7 @@ import qualified Paths_raaz as P
 import           Raaz.Core
 import           Raaz.Hash
 import           Raaz.Cipher
-
+import           Raaz.Random
 
 -- | Raaz library version number.
 version :: Version
