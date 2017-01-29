@@ -4,8 +4,11 @@ module Raaz.Random.ChaCha20PRG
        ( reseedMT, fillRandomBytesMT, RandomState(..)
        ) where
 
+import Control.Applicative
 import Control.Monad
 import Foreign.Ptr   (Ptr, castPtr)
+import Prelude
+
 import Raaz.Core
 import Raaz.Cipher.ChaCha20.Internal
 import Raaz.Cipher.ChaCha20.Recommendation

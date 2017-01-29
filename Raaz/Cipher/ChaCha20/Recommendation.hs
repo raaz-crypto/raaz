@@ -13,6 +13,9 @@ module Raaz.Cipher.ChaCha20.Recommendation
        ( chacha20Block, RandomBuf, getBufferPointer, randomBufferSize
        ) where
 
+import Control.Applicative
+import Prelude
+
 import Raaz.Core
 import Raaz.Cipher.ChaCha20.Internal
 
