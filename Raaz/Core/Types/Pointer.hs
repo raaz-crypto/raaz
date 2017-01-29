@@ -18,7 +18,7 @@ module Raaz.Core.Types.Pointer
          -- *** Some length arithmetic
        , bitsQuotRem, bytesQuotRem
        , bitsQuot, bytesQuot
-       , atLeast, atMost
+       , atLeast, atLeastAligned, atMost
          -- ** Types measuring alignment
        , Alignment, wordAlignment
        , ALIGN
@@ -155,6 +155,23 @@ atLeast src | r == 0    = u
             | otherwise = succ u
     where (u , r) = bytesQuotRem $ inBytes src
 
+
+-- | Often we want to allocate a buffer of size @l@. We also want to
+-- make sure that the buffer starts at an alignment boundary
+-- @a@. However, the standard word allocation functions might return a
+-- pointer that is not aligned as desired. The @atLeastAligned l a@
+-- returns a length @n@ such the length @n@ is big enough to ensure
+-- that there is at least @l@ length of valid buffer starting at the
+-- next pointer aligned at boundary @a@. If the alignment required in
+-- @a@ then allocating @l + a - 1 should do the trick.
+atLeastAligned :: LengthUnit l => l -> Alignment -> ALIGN
+atLeastAligned l a = n + pad - 1
+  where n = atLeast l
+        -- Alignment adjusted to word boundary.
+        algn = wordAlignment   <> a
+        pad  = atLeast $ BYTES  $ unAlignment $ algn
+
+
 -- | Express length unit @src@ in terms of length unit @dest@ rounding
 -- downwards.
 atMost :: ( LengthUnit src
@@ -238,12 +255,7 @@ sizeOf = BYTES . FS.sizeOf
 -- @s@ and its alignment is @a@ then this quantity is essentially
 -- equal to @s + a - 1@. All units measured in word alignment.
 alignedSizeOf  :: Storable a => a -> ALIGN
-alignedSizeOf a =  s + pad - 1
-  where -- The size of the element in Align units.
-        s    = atLeast $ sizeOf a
-        -- Alignment adjusted to word boundary.
-        algn = wordAlignment   <> alignment a
-        pad  = atLeast $ BYTES  $ unAlignment $ algn
+alignedSizeOf a =  atLeastAligned (sizeOf a) $ alignment a
 
 -- | Compute the alignment for a storable object.
 alignment :: Storable a => a -> Alignment
