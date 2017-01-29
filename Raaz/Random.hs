@@ -4,23 +4,21 @@ module Raaz.Random
        ( -- * Cryptographically secure randomness.
          -- $randomness$
          RandM, RT, liftMT
-       , random, randomByteString
+       , randomByteString
        -- ** Types that can be generated randomly
        , Random(..)
          -- * Low level access to randomness.
-       , RandomState
        , fillRandomBytes
-       , unsafePokeManyRandom
+       , unsafeStorableRandom
        , reseed
-
        ) where
 
 import Control.Applicative
 import Control.Monad
 import Control.Monad.IO.Class
-import Data.ByteString            ( ByteString, pack       )
+import Data.ByteString             ( ByteString, pack       )
 import Data.Int
-import Data.Vector.Unboxed hiding ( replicateM )
+import Data.Vector.Unboxed  hiding ( replicateM )
 import Data.Word
 
 import Foreign.Ptr      ( Ptr     , castPtr)
@@ -90,7 +88,6 @@ import Raaz.Random.ChaCha20PRG
 -- Eventually we will be supporting these calls.
 
 
-
 -- | A batch of actions on the memory element @mem@ that uses some
 -- randomness.
 newtype RT mem a = RT { unMT :: MT (RandomState, mem) a }
@@ -127,34 +124,26 @@ fillRandomBytes :: LengthUnit l => l ->  Pointer -> RT mem ()
 fillRandomBytes l = RT . onSubMemory fst . fillRandomBytesMT l
 
 
--- | Instances of storables that allows poking a random element into
--- the buffer. Minimal complete definition `pokeManyRandom`.
---
--- It might appear that all storables should be an instance of this,
--- after all we know the size of the element why not write that many
--- random bytes. In fact, this module provides an
--- `unsafePokeManyRandom` which does exactly that. However, we do not
--- give a blanket definition for all storables because for certain
--- refinements of a given type, like for example, Word8's modulo 10,
--- `unsafePokeManyRandom` introduces unacceptable skews.
---
-class Storable a => Random a where
+-- | Types that can be generated at random. It might appear that all
+-- storables should be an instance of this class, after all we know
+-- the size of the element why not write that many random bytes. In
+-- fact, this module provides an `unsafeStorableRandom` which does
+-- exactly that. However, we do not give a blanket definition for all
+-- storables because for certain refinements of a given type, like for
+-- example, Word8's modulo 10, `unsafeStorableRandom` introduces
+-- unacceptable skews.
+class Random a where
 
-  -- | Poke a random element.
-  pokeRandom :: Ptr a -> MT RandomState ()
-  pokeRandom = pokeManyRandom 1
-
-  -- | Poke multiple random element.
-  pokeManyRandom :: Int -> Ptr a -> MT RandomState ()
+  random :: Memory mem => RT mem a
 
 -- | Generate a random element. The element picked is
 -- crypto-graphically pseudo-random.
-random :: (Memory mem, Random a) => RT mem a
-random = RT $ onSubMemory fst retA
+unsafeStorableRandom :: (Memory mem, Storable a) => RT mem a
+unsafeStorableRandom = RT $ onSubMemory fst retA
   where retA = liftAllocator alloc $ getIt . castPtr
 
-        getIt        :: Random a => Ptr a -> MT RandomState a
-        getIt ptr    = pokeRandom ptr >> liftIO (peek ptr)
+        getIt        :: Storable a => Ptr a -> MT RandomState a
+        getIt ptr    = unsafePokeManyRandom 1 ptr >> liftIO (peek ptr)
         getElement   :: MT RandomState a -> a
         getElement _ = undefined
 
@@ -172,66 +161,66 @@ randomByteString l = pack <$> replicateM n random
   where n = fromIntegral $ inBytes l
 
 ------------------------------- Some instances of Random ------------------------
+
 instance Random Word8 where
-  pokeManyRandom = unsafePokeManyRandom
+  random = unsafeStorableRandom
 
 instance Random Word16 where
-  pokeManyRandom = unsafePokeManyRandom
+  random = unsafeStorableRandom
 
 instance Random Word32 where
-  pokeManyRandom = unsafePokeManyRandom
+  random = unsafeStorableRandom
 
 instance Random Word64 where
-  pokeManyRandom = unsafePokeManyRandom
+  random = unsafeStorableRandom
 
 instance Random Word where
-  pokeManyRandom = unsafePokeManyRandom
+  random = unsafeStorableRandom
 
 instance Random Int8 where
-  pokeManyRandom = unsafePokeManyRandom
+  random = unsafeStorableRandom
 
 instance Random Int16 where
-  pokeManyRandom = unsafePokeManyRandom
+  random = unsafeStorableRandom
 
 instance Random Int32 where
-  pokeManyRandom = unsafePokeManyRandom
+  random = unsafeStorableRandom
 
 instance Random Int64 where
-  pokeManyRandom = unsafePokeManyRandom
+  random = unsafeStorableRandom
 
 instance Random Int where
-  pokeManyRandom = unsafePokeManyRandom
+  random = unsafeStorableRandom
 
 instance Random KEY where
-  pokeManyRandom = unsafePokeManyRandom
+  random = unsafeStorableRandom
 
 instance Random IV where
-  pokeManyRandom = unsafePokeManyRandom
+  random = unsafeStorableRandom
 
 
 instance Random w => Random (LE w) where
-  pokeManyRandom n = pokeManyRandom n . castLEPtr
-    where castLEPtr :: Ptr (LE a) -> Ptr a
-          castLEPtr = castPtr
+  random = littleEndian <$> random
 
 instance Random w => Random (BE w) where
-  pokeManyRandom n  = pokeManyRandom n . castBEPtr
-    where castBEPtr :: Ptr (BE w) -> Ptr w
-          castBEPtr = castPtr
-
+  random = bigEndian <$> random
 
 instance (Dimension d, Unbox w, Random w) => Random (Tuple d w) where
-  pokeManyRandom m ptr = pokeManyRandom (m * dimTup ptr) $ castTupPtr ptr
-    where castTupPtr :: Ptr (Tuple m a) -> Ptr a
-          castTupPtr = castPtr
+  random = repeatM random
 
-          getElement :: Ptr (Tuple m a) -> Tuple m a
-          getElement _ = undefined
-          dimTup :: Dimension m => Ptr (Tuple m a) -> Int
-          dimTup = dimension . getElement
+-------------------------- Now comes the boring tuples -----------------
 
+instance (Random a, Random b) => Random (a,b) where
+  random = (,) <$> random <*> random
 
+instance (Random a, Random b, Random c) => Random (a,b,c) where
+  random = (,,) <$> random <*> random <*> random
 
+instance (Random a, Random b, Random c, Random d) => Random (a,b,c,d) where
+  random = (,,,) <$> random <*> random <*> random <*> random
+
+instance (Random a, Random b, Random c, Random d, Random e) => Random (a,b,c,d,e) where
+  random = (,,,,) <$> random <*> random <*> random <*> random <*> random
 
 -- | The action @unsafePokeManyRandom n ptr@ pokes @n@ random elements
 -- at the location starting at ptr.  If the underlying type does not

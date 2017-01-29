@@ -89,7 +89,7 @@ instance (Hash h, Recommendation h) => EndianStore (HMACKey h) where
   adjustEndian _ _ = return ()
 
 instance (Hash h, Recommendation h) => Random (HMACKey h) where
-  pokeManyRandom = unsafePokeManyRandom
+  random = unsafeStorableRandom
 
 instance (Hash h, Recommendation h) => Encodable (HMACKey h)
 

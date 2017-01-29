@@ -57,13 +57,14 @@ instance Encodable KEY192
 instance Encodable KEY256
 
 instance Random KEY128 where
-  pokeManyRandom = unsafePokeManyRandom
+  random = unsafeStorableRandom
+
 
 instance Random KEY192 where
-  pokeManyRandom = unsafePokeManyRandom
+  random = unsafeStorableRandom
 
 instance Random KEY256 where
-  pokeManyRandom = unsafePokeManyRandom
+  random = unsafeStorableRandom
 
 -- | Expects in base 16
 instance IsString KEY128 where
@@ -96,7 +97,7 @@ newtype IV  = IV (TUPLE 4) deriving (Storable, EndianStore)
 
 instance Encodable IV
 instance Random IV where
-  pokeManyRandom = unsafePokeManyRandom
+  random = unsafeStorableRandom
 
 -- | Expects in base16.
 instance IsString IV where
