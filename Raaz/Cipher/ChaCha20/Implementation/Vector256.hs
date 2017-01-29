@@ -4,7 +4,7 @@
 {-# LANGUAGE DataKinds                        #-}
 
 module Raaz.Cipher.ChaCha20.Implementation.Vector256
-       ( implementation, RandomBlock, chacha20Random
+       ( implementation, chacha20Block
        ) where
 
 import Control.Monad.IO.Class   ( liftIO )
@@ -40,13 +40,3 @@ chacha20Vector = makeCipherI
                  "Implementation of the chacha20 stream cipher using the gcc's 256-bit vector instructions"
                  chacha20Block
                  32
-
--------------------------------- Chacha20 PRG that used vector implementation ------------
-
--- | The type capturing the random block that will be generated.
-type RandomBlock = Aligned 32 (Tuple 32 WORD)
-
-
--- | The prg based on chacha20 stream cipher.
-chacha20Random :: Pointer -> MT ChaCha20Mem ()
-chacha20Random buf = chacha20Block buf (2 `blocksOf` ChaCha20)

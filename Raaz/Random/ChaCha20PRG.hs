@@ -17,10 +17,9 @@ import Raaz.Entropy
 maxCounterVal :: Counter
 maxCounterVal = 1024 * 1024 * 1024
 
-
 -- | Memory for strong the internal memory state.
 data RandomState = RandomState { chacha20State  :: ChaCha20Mem
-                               , auxBuffer      :: MemoryCell RandomBlock
+                               , auxBuffer      :: RandomBuf
                                , remainingBytes :: MemoryCell (BYTES Int)
                                }
 
@@ -28,7 +27,7 @@ data RandomState = RandomState { chacha20State  :: ChaCha20Mem
 
 -- | Run an action on the auxilary buffer.
 withAuxBuffer :: (Ptr something -> MT RandomState a) -> MT RandomState a
-withAuxBuffer action = onSubMemory auxBuffer getCellPointer >>= action . castPtr
+withAuxBuffer action = onSubMemory auxBuffer getBufferPointer >>= action . castPtr
 
 -- | Get the number of bytes in the buffer.
 getRemainingBytes :: MT RandomState (BYTES Int)
@@ -42,14 +41,11 @@ instance Memory RandomState where
   memoryAlloc     = RandomState <$> memoryAlloc <*> memoryAlloc <*> memoryAlloc
   unsafeToPointer = unsafeToPointer  . chacha20State
 
-
-
 -- | This fills in the random block with some new randomness
 newSample :: MT RandomState ()
-newSample = do setRemainingBytes sampleSize
+newSample = do setRemainingBytes $ inBytes randomBufferSize
                onSubMemory chacha20State seedIfReq
-               withAuxBuffer     $ onSubMemory chacha20State . chacha20Random
-  where sampleSize = sizeOf (undefined :: RandomBlock)
+               withAuxBuffer $ onSubMemory chacha20State . flip chacha20Block randomBufferSize
 
 -- | See the PRG from system entropy.
 seed :: MT ChaCha20Mem ()

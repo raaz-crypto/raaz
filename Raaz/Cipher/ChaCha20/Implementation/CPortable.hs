@@ -4,7 +4,7 @@
 {-# LANGUAGE DataKinds                        #-}
 
 module Raaz.Cipher.ChaCha20.Implementation.CPortable
-       ( implementation, RandomBlock, chacha20Random
+       ( implementation, chacha20Block
        ) where
 
 import Control.Monad.IO.Class   ( liftIO )
@@ -43,12 +43,3 @@ chacha20Portable = makeCipherI
                    "Implementation of the chacha20 stream cipher (RFC7539)"
                    chacha20Block
                    wordAlignment
-
------------------------------- ChaCha20 prg ----------------------------------------
-
--- | The type capturing the random block that will be generated.
-type RandomBlock = Tuple 16 WORD
-
--- | The prg based on chacha20 stream cipher.
-chacha20Random :: Pointer -> MT ChaCha20Mem ()
-chacha20Random buf = chacha20Block buf (1 `blocksOf` ChaCha20)
