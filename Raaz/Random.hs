@@ -3,42 +3,71 @@
 module Raaz.Random
        ( -- * Cryptographically secure randomness.
          -- $randomness$
-         RT, RandM, random
+         RandM, RT, liftMT
+       , random, randomByteString
+       -- ** Types that can be generated randomly
        , Random(..)
-       , MemoryRandom(..)
-       -- * Low level functions
-       , fillRandomBytes, reseed
+         -- * Low level access to randomness.
+       , RandomState
+       , fillRandomBytes
        , unsafePokeManyRandom
+       , reseed
+
        ) where
 
 import Control.Applicative
 import Control.Monad
 import Control.Monad.IO.Class
+import Data.ByteString            ( ByteString, pack       )
 import Data.Int
-import Data.Vector.Unboxed
+import Data.Vector.Unboxed hiding ( replicateM )
 import Data.Word
 
 import Foreign.Ptr      ( Ptr     , castPtr)
 import Foreign.Storable ( Storable, peek   )
 import Prelude
 
-import Raaz.Random.ChaCha20PRG
 import Raaz.Core
+import Raaz.Cipher.ChaCha20.Internal(KEY, IV)
+import Raaz.Random.ChaCha20PRG
+
 
 -- $randomness$
 --
 -- The raaz library gives a relatively high level interface to
--- randomness. A batch of actions that generate/use cryptographically
--- secure random bytes is captured by the monad @`RT` mem@. The
--- parameter @mem@ needs to be an instance of `MemoryRandom`, which
--- essentially asserts @mem@, besides other things, stores the
--- internal state of the pseudo-random generator.
+-- randomness. The monad `RandM` captures a batch of actions that
+-- generate/use cryptographically secure random bytes. In particular,
+-- you can use the functions `random` and `randomByteString` to
+-- actually generate random elements.
 --
--- == Running random action.
+-- The monad `RandM` is an an instance of `MonadMemory` and hence can
+-- be run either `securely` or `insecurely`. Here are some examples.
 --
--- The @`RT` mem@ monad is an instance of @MonadMemory@ whenever @mem@
--- is a an instance of @MonadRandom@. Therefore, one can run it either
--- `securely` or `insecurely`
+-- > -- Generate a pair of random Word8's
+-- > import Raaz
+-- > import Data.Word
+-- >
+-- > main :: IO ()
+-- > main = insecurely rPair >>= print
+-- >    where rPair :: RandM (Word8, Word8)
+-- >          rPair = (,) <$> random <$> random
+-- >
+--
+--
+-- > -- A version of hello world that has gone nuts. Printed in base16
+-- > -- to save some terminal grief.
+-- >
+-- > main = insecurely who >>= \ w -> putStrLn $ "hello " ++ showBase16 w
+-- >   where who :: RandM ByteString
+-- >         who = randomByteString 10
+-- >
+--
+-- Some times you need additional memory to keep track of other
+-- stuff. The monad @`RT` mem@ is meant for such uses. It should be
+-- seen as the analogue of the monad @`MT` mem@ which in addition
+-- allows you to pick cryptographically secure random data. In fact,
+-- the combinator `liftMT` allows you to lift an `MT` action to the
+-- corresponding `RT` action.
 --
 -- = Internal details
 --
@@ -59,47 +88,43 @@ import Raaz.Core
 -- into consideration many edge cases like for example
 -- @\/dev\/urandom@ not being accessible or protection from interrupts
 -- Eventually we will be supporting these calls.
---
 
--- | A batch of actions on the memory element m that uses some
+
+
+-- | A batch of actions on the memory element @mem@ that uses some
 -- randomness.
-newtype RT m a = RT { unMT :: MT m a } deriving (Functor, Applicative, Monad, MonadIO)
+newtype RT mem a = RT { unMT :: MT (RandomState, mem) a }
+                 deriving (Functor, Applicative, Monad, MonadIO)
 
 -- | The monad for generating cryptographically secure random data.
-type RandM = RT RandomState
+type RandM = RT VoidMemory
 
--- | Run a randomness thread. This combinator takes care of seeding
--- the internal prg before running it and as such is not required to
--- be seeded.
-runRT :: MemoryRandom m
-     => (MT m a -> IO a) -- ^ How to run it (securely/insecurely)
-     -> RT m a
-     -> IO a
-runRT runner action = runner runIt
-  where runIt = onSubMemory randomState reseedMT >> unMT action
+-- | Lift a memory action to the corresponding RT action.
+liftMT :: MT mem a -> RT mem a
+liftMT = RT . onSubMemory snd
 
-instance MemoryRandom mem => MonadMemory (RT mem) where
-  insecurely = runRT insecurely
-  securely   = runRT securely
-
--- | A memory element which contains a sub-memory for randomness.
-class Memory mem => MemoryRandom mem where
-
-  -- | Recover the internal random state.
-  randomState :: mem -> RandomState
+-- | Run a randomness thread. In particular, this combinator takes
+-- care of seeding the internal prg at the start.
+runRT :: RT m a
+      -> MT (RandomState, m) a
+runRT action = onSubMemory fst reseedMT >> unMT action
 
 
-instance MemoryRandom RandomState where
-  randomState = id
 
--- | Reseed from the system entropy pool. Usually this is slow and
--- hence it is better /not/ reseed often.
-reseed :: MemoryRandom mem => RT mem ()
-reseed = RT $ onSubMemory randomState reseedMT
+instance Memory mem => MonadMemory (RT mem) where
+  insecurely = insecurely . runRT
+  securely   = securely   . runRT
+
+-- | Reseed from the system entropy pool. There is never a need to
+-- explicitly seed your generator. The insecurely and securely calls
+-- makes sure that your generator is seed before starting. Reseeding
+-- often can slow your program considerably.
+reseed :: RT mem ()
+reseed = RT $ onSubMemory fst reseedMT
 
 -- | Fill the given input pointer with random bytes.
-fillRandomBytes :: (MemoryRandom mem, LengthUnit l) => l ->  Pointer -> RT mem ()
-fillRandomBytes l = RT . onSubMemory randomState . fillRandomBytesMT l
+fillRandomBytes :: LengthUnit l => l ->  Pointer -> RT mem ()
+fillRandomBytes l = RT . onSubMemory fst . fillRandomBytesMT l
 
 
 -- | Instances of storables that allows poking a random element into
@@ -107,12 +132,11 @@ fillRandomBytes l = RT . onSubMemory randomState . fillRandomBytesMT l
 --
 -- It might appear that all storables should be an instance of this,
 -- after all we know the size of the element why not write that many
--- random bytes. In fact this module provides an
--- `unsafePokeManyRandom` which essentially does exactly
--- that. However, we do not give a blanket definition for all
--- storables because for certain refinements of a given type, like for
--- example, Word8's modulo 10, `unsafePokeManyRandom` introduces
--- unacceptable skews.
+-- random bytes. In fact, this module provides an
+-- `unsafePokeManyRandom` which does exactly that. However, we do not
+-- give a blanket definition for all storables because for certain
+-- refinements of a given type, like for example, Word8's modulo 10,
+-- `unsafePokeManyRandom` introduces unacceptable skews.
 --
 class Storable a => Random a where
 
@@ -123,10 +147,10 @@ class Storable a => Random a where
   -- | Poke multiple random element.
   pokeManyRandom :: Int -> Ptr a -> MT RandomState ()
 
--- | Pick an element. The element picked is crypto-graphically
--- pseudo-random.
-random :: (MemoryRandom mem, Random a) => RT mem a
-random = RT $ onSubMemory randomState retA
+-- | Generate a random element. The element picked is
+-- crypto-graphically pseudo-random.
+random :: (Memory mem, Random a) => RT mem a
+random = RT $ onSubMemory fst retA
   where retA = liftAllocator alloc $ getIt . castPtr
 
         getIt        :: Random a => Ptr a -> MT RandomState a
@@ -140,6 +164,13 @@ random = RT $ onSubMemory randomState retA
         alloc        = allocaAligned algn sz
 
 
+-- | Generate a random byteString.
+randomByteString :: (Memory mem, LengthUnit l)
+                 => l
+                 -> RT mem ByteString
+randomByteString l = pack <$> replicateM n random
+  where n = fromIntegral $ inBytes l
+
 ------------------------------- Some instances of Random ------------------------
 instance Random Word8 where
   pokeManyRandom = unsafePokeManyRandom
@@ -147,11 +178,13 @@ instance Random Word8 where
 instance Random Word16 where
   pokeManyRandom = unsafePokeManyRandom
 
-
 instance Random Word32 where
   pokeManyRandom = unsafePokeManyRandom
 
 instance Random Word64 where
+  pokeManyRandom = unsafePokeManyRandom
+
+instance Random Word where
   pokeManyRandom = unsafePokeManyRandom
 
 instance Random Int8 where
@@ -165,6 +198,16 @@ instance Random Int32 where
 
 instance Random Int64 where
   pokeManyRandom = unsafePokeManyRandom
+
+instance Random Int where
+  pokeManyRandom = unsafePokeManyRandom
+
+instance Random KEY where
+  pokeManyRandom = unsafePokeManyRandom
+
+instance Random IV where
+  pokeManyRandom = unsafePokeManyRandom
+
 
 instance Random w => Random (LE w) where
   pokeManyRandom n = pokeManyRandom n . castLEPtr
