@@ -23,7 +23,7 @@ import Foreign.Storable ( Storable )
 --
 -- The developers of the raaz library do have access to the
 -- constructors. However, it is unlikely one would need it. Since both
--- `Src` and `Desc` derive the underlying `Storable` instance, one can
+-- `Src` and `Dest` derive the underlying `Storable` instance, one can
 -- mark `Src` and `Dest` in calls to `FFI` functions as well.
 
 
