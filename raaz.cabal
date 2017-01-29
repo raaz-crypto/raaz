@@ -214,6 +214,10 @@ executable random
   main-is: random.lhs
   build-depends: base
                , raaz     == 0.0.2
+  if impl(ghc < 8)
+    -- 'transformers' needed for "Control.Monad.IO.Class" only
+    -- starting with base-4.9 we don't need 'transformers' anymore
+    build-depends: transformers
 
 ---------------------------- Test suit -----------------------------------------------------
 
