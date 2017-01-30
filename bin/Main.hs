@@ -15,11 +15,14 @@ import System.IO
 
 
 import Command.Checksum
+import Command.Rand
 
 
 -- The commands know to raaz executable.
 commands :: [(String, [String] -> IO ())]
-commands = [("checksum", checksum)]
+commands = [ ("checksum", checksum)
+           , ("rand"    , rand    )
+           ]
 
 
 

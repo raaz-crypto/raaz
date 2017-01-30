@@ -216,6 +216,7 @@ executable raaz
   hs-source-dirs: bin
   main-is: Main.hs
   other-modules: Command.Checksum
+               , Command.Rand
   build-depends: base
                , raaz     == 0.0.2
   if impl(ghc < 8)
