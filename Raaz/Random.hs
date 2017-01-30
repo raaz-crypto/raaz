@@ -114,8 +114,13 @@ instance Memory mem => MonadMemory (RT mem) where
 
 -- | Reseed from the system entropy pool. There is never a need to
 -- explicitly seed your generator. The insecurely and securely calls
--- makes sure that your generator is seed before starting. Reseeding
--- often can slow your program considerably.
+-- makes sure that your generator is seed before
+-- starting. Furthermore, the generator also reseeds after every few
+-- GB of random bytes generates. Generating random data from the
+-- system entropy is usually an order of magnitude slower than using a
+-- fast stream cipher. Reseeding often can slow your program
+-- considerably without any additional security advantage.
+--
 reseed :: RT mem ()
 reseed = RT $ onSubMemory fst reseedMT
 
@@ -138,6 +143,19 @@ class Random a where
 
 -- | Generate a random element. The element picked is
 -- crypto-graphically pseudo-random.
+--
+-- This is a helper function that has been exported to simplify the
+-- definition of a `Random` instance for `Storable` types. However,
+-- there is a reason why we do not give a blanket instance for all
+-- instances `Storable` and why this function is unsafe? This function
+-- generates a random element of type @a@ by generating @n@ random
+-- bytes where @n@ is the size of the elements of @a@. For instances
+-- that range the entire @n@ byte space this is fine. However, if the
+-- type is actually a refinement of such a type --- consider for
+-- example, @`Word8`@ modulo @10@ -- this function generates an
+-- unacceptable skew in the distribution. Hence this function is
+-- prefixed unsafe.
+--
 unsafeStorableRandom :: (Memory mem, Storable a) => RT mem a
 unsafeStorableRandom = RT $ onSubMemory fst retA
   where retA = liftAllocator alloc $ getIt . castPtr
