@@ -29,6 +29,8 @@ be ignored.
 > {-# LANGUAGE RecordWildCards #-}
 > {-# LANGUAGE ConstraintKinds #-}
 
+> module Command.Checksum ( checksum ) where
+>
 > import Control.Applicative
 > import Control.Monad
 > import Data.List             (intercalate)
@@ -156,16 +158,13 @@ The main function.
 
 The overall structure of the code is clear the details follow.
 
-> main :: IO ()
-> main =  parseOpts >>= handleArgs
+> checksum :: [String] -> IO ()
+> checksum =  parseOpts >=> handleArgs
 
 > handleArgs :: (Options, [FilePath])
 >            -> IO ()
 > handleArgs (opts@Options{..}, files) = do
 >   when optHelp printHelp       -- When the help option is given print it and exit
->   when optVersion printVersion -- when the version is asked print it and exit
->   -- Either the algorithm option is bad, in which case report it and exit
->   -- or do the necessary action.
 >   flip (either badAlgorithm) optAlgo $ \ algo -> do
 >     if optCheck  -- if asked to check.
 >       then verifyMode opts  algo files >>= optPrintCount
@@ -233,13 +232,6 @@ This function prints the help for the program.
 > printHelp = do putStrLn $ usage []
 >                exitSuccess
 
-and this prints the version information.
-
-> printVersion :: IO ()
-> printVersion = do putStrLn $ "checksum: raaz-" ++ showVersion version
->                   exitSuccess
->
-
 
 Command line parsing
 --------------------
@@ -248,8 +240,7 @@ The options supported by the program is given by the following data
 type. Fields should be self explanatory.
 
 > data Options =
->   Options { optVersion :: Bool
->           , optHelp    :: Bool
+>   Options { optHelp    :: Bool
 >           , optCheck   :: Bool
 >           , optAlgo    :: Either String SomeAlgorithm
 >           , optOkey    :: FilePath -> IO () -- ^ handle successful tokens
@@ -261,8 +252,7 @@ type. Fields should be self explanatory.
 The default options for the command is as follows.
 
 > defaultOpts =
->   Options { optVersion    = False
->           , optHelp       = False
+>   Options { optHelp       = False
 >           , optCheck      = False
 >           , optAlgo       = Right sha1Algorithm
 >           , optOkey       = \ fp -> putStrLn (fp ++ ": OK")
@@ -281,8 +271,7 @@ summarising the changes to the option set.
 
 > options :: [OptDescr (Endo Options)]
 > options =
->   [ Option ['v'] ["version"] (NoArg setVersion) "print the version"
->   , Option ['h'] ["help"]    (NoArg setHelp)    "print the help"
+>   [ Option ['h'] ["help"]    (NoArg setHelp)    "print the help"
 >   , Option ['c'] ["check"]   (NoArg setCheck)   "check instead of compute"
 >   , Option ['q'] ["quiet"]   (NoArg setQuiet)   "print failure only"
 >   , Option ['s'] ["status"]  (NoArg setStatusOnly)
@@ -290,8 +279,7 @@ summarising the changes to the option set.
 >   , Option ['a'] ["algo"]    (ReqArg setAlgo "HASH")
 >     $ "hash algorithm to use " ++ "(" ++ algOpts ++ ")"
 >   ]
->   where setVersion   = Endo $ \ opt -> opt { optVersion = True }
->         setHelp      = Endo $ \ opt -> opt { optHelp    = True }
+>   where setHelp      = Endo $ \ opt -> opt { optHelp    = True }
 >         setCheck     = Endo $ \ opt -> opt { optCheck   = True }
 >         setAlgo  str = Endo $ \ opt -> opt { optAlgo    = a    }
 >                  where a = maybe (Left str) Right $ lookup str algorithms
@@ -312,17 +300,18 @@ summarising the changes to the option set.
 The usage message for the program.
 
 > usage :: [String] -> String
-> usage errs = "checksum: " ++ unlines errs ++ usageInfo header options
->   where header ="Usage: checksum [OPTIONS] FILE1 FILE2"
+> usage errs
+>       | null errs = usageInfo header options
+>       | otherwise = "raaz checksum: " ++ unlines errs ++ usageInfo header options
+>   where header ="Usage: raaz checksum [OPTIONS] FILE1 FILE2"
 
 
 Parsing the options.
 
-> parseOpts :: IO (Options, [FilePath])
-> parseOpts = do args  <- getArgs
->                case getOpt Permute options args of
->                  (o,n,[])   -> return (appEndo (mconcat o) defaultOpts, n)
->                  (_,_,errs) -> errorBailout errs
+> parseOpts :: [String] -> IO (Options, [FilePath])
+> parseOpts args = case getOpt Permute options args of
+>                    (o,n,[])   -> return (appEndo (mconcat o) defaultOpts, n)
+>                    (_,_,errs) -> errorBailout errs
 
 Bail out with an error message.
 
