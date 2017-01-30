@@ -17,6 +17,10 @@ import Raaz.Entropy
 -- | The maximum value of counter before reseeding from entropy
 -- source. Currently set to 1024 * 1024 * 1024. Which will generate
 -- 64GB before reseeding.
+--
+-- The counter is a 32-bit quantity. Which means that one can generate
+-- 2^32 blocks of data before the counter roles over and starts
+-- repeating. We have choosen a conservative 2^30 blocks here.
 maxCounterVal :: Counter
 maxCounterVal = 1024 * 1024 * 1024
 
