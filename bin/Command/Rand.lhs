@@ -6,10 +6,12 @@ quality of the randomnes produced.
 
 > module Command.Rand ( rand ) where
 
+> import Control.Applicative
 > import Control.Monad.IO.Class(liftIO)
 > import System.Exit
 > import System.IO
 > import Text.Read
+> import Prelude
 > import Raaz
 
 So much bytes generated in one go before writing to stdout.
