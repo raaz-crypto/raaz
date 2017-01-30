@@ -211,17 +211,11 @@ library
 
 ---------------------------- Executables -------------------------------------------------
 
-executable checksum
+executable raaz
   default-language: Haskell2010
   hs-source-dirs: bin
-  main-is: checksum.lhs
-  build-depends: base
-               , raaz     == 0.0.2
-
-executable random
-  default-language: Haskell2010
-  hs-source-dirs: bin
-  main-is: random.lhs
+  main-is: Main.hs
+  other-modules: Command.Checksum
   build-depends: base
                , raaz     == 0.0.2
   if impl(ghc < 8)
