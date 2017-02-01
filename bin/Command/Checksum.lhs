@@ -1,12 +1,11 @@
 Introduction
 ------------
 
-
-This is the generalised version of sha1sum/sha256sum/sha512sum
-programs that are available on a standard linux system. It supports
-generating checksum files and verifying them for all the hashes
-exposed by the raaz library. The purpose of writing this application
-is the following.
+This command supports a generalised version of
+sha1sum/sha256sum/sha512sum programs that are available on a standard
+linux system. It supports generating checksum files and verifying them
+for all the hashes exposed by the raaz library. The purpose of writing
+this application is the following.
 
 1. To give an example of of a non-trivial program written to use the
    raaz library.
@@ -14,7 +13,7 @@ is the following.
 2. To make sure that the implementations of hashes in this library are
    not too off in terms of performance.
 
-The command line options of this program is similar to that of sha1sum
+The command line options of this command is similar to that of sha1sum
 and hence can be used as a replacement.
 
 This file is a literate haskell file and hence can be compiled

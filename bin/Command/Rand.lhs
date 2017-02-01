@@ -1,4 +1,4 @@
-This is a program that spits out never ending stream of
+This command that spits out never ending stream of
 cryptographically secure bytes. Other than being a replacement to
 Yo-Yo Honey Singh (random > /dev/audio), it is used to test the
 quality of the randomnes produced.
