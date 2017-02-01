@@ -1,5 +1,5 @@
 name:    raaz
-version: 0.0.2
+version: 0.1.0
 
 synopsis: The raaz cryptographic library.
 
@@ -218,7 +218,7 @@ executable raaz
   other-modules: Command.Checksum
                , Command.Rand
   build-depends: base
-               , raaz     == 0.0.2
+               , raaz     == 0.1.0
   if impl(ghc < 8)
     -- 'transformers' needed for "Control.Monad.IO.Class" only
     -- starting with base-4.9 we don't need 'transformers' anymore
@@ -269,7 +269,7 @@ test-Suite spec
                , QuickCheck                     >= 2.4
                , hspec
                , transformers
-               , raaz                           == 0.0.2
+               , raaz                           == 0.1.0
                , vector
 
 ---------------------------------------------- Bench marks -----------------------------------------
