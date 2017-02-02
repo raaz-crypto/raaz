@@ -1,10 +1,26 @@
 # Change log for [raaz].
 
-## [0.1.0] - Pending
+## [0.1.0] - 28th February, 2017
 
-- Alignment optimisation for hashing bytestrings (TODO)
-- Num instance from LengthUnit removed Monoid instance added
-  (Commit: 65264e5a89874bab70d0aded3777829209ac5ce2)
+* Stream cipher chacha20 added.
+* Added a PRG that uses chacha20, seeded with system entropy
+* We now have supper command `raaz` with subcommands
+  - `checksum`: as a replacement for the old checksum executable
+  - `rand`: for generating random bytes.
+
+Low level changes
+
+* Reworked alignment considerations.
+
+  - New Alignment type
+
+  - Ways for implementations to demand that the input buffer be aligned
+	(mainly to facilitate more efficient SIMD implementations).
+
+
+* Num instance from LengthUnit removed, Monoid instance added (See
+  issue:#247)
+
 
 ## [0.0.2] - July 25, 2016.
 
