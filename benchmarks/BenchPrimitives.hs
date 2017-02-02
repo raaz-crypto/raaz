@@ -63,16 +63,16 @@ pprMeasured :: Measured -> Doc
 pprMeasured (Measured{..}) = vcat
   [ text "time       " <+> eq <+> text (secs tm)
   , text "cycles     " <+> eq <+> double cy
-  , text "rate       " <+> eq <+> double rt  <+> text "(bytes/sec)"
-  , text "secs/byte  " <+> eq <+> double secB
+  , text "rate       " <+> eq <+> text rt   <> text "B/sec"
+  , text "secs/byte  " <+> eq <+> text secB <> text "sec/byte"
   , text "cycles/byte" <+> eq <+> double cycB
   ]
   where tm    = measTime   / fromIntegral nRuns
         cy    = fromIntegral measCycles / fromIntegral nRuns
         bytes = fromIntegral nBytes
-        secB  = tm    / bytes
+        secB  = humaniseTime (tm    / bytes)
         cycB  = cy    / bytes
-        rt    = bytes / tm
+        rt    = humaniseBytes (bytes / tm)
         eq    = text "="
 
 
@@ -145,3 +145,34 @@ runRaazBench (nm, bm) = do
   (memt,x) <- measure bm nRuns
   hPutStrLn stderr $ "done."
   return $ text nm $+$ nest 8 (pprMeasured memt)
+
+-------------------------- Humanise output -----------------------------------
+
+-- | Humanise the name of a byte based unit like G bps etc.
+humaniseBytes :: Double -> String
+humaniseBytes = go 0
+  where  go e x  | x < 102.4 || e  == 5 = show x ++ " " ++ unitPrefix e
+                 | otherwise            = go (e+1) $ x / 1024
+
+-- | Humanise time unit in factions of second.
+humaniseTime :: Double -> String
+humaniseTime  = go 0
+  where go e x | x > 1 || e == -3 = show x ++ " " ++ unitPrefix e
+               | otherwise        = go (e  - 1) (x * 1000)
+
+
+
+-- | @prefix n@ gives proper prefix every 10^{3n} exponent
+unitPrefix :: Int -> String
+unitPrefix ex
+  | ex <  -3   = error "exponent too small name"
+  | ex == -3   = "n"
+  | ex == -2   = "μ"
+  | ex == -1   = "m"
+  | ex == 0    = ""
+  | ex == 1    = "K"
+  | ex == 2    = "M"
+  | ex == 3    = "G"
+  | ex == 4    = "T"
+  | ex == 5    = "P"
+  | otherwise  = error "exponent to large to name"
