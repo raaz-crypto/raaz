@@ -38,19 +38,21 @@ source-repository head
 flag vector128
      Description: Make use of vector instructions with size being 128.
      Default: False
+     Manual: True
 
 flag vector256
      Description: Make use of gcc vector instructions with size being 256
      Default: False
+     Manual: True
 
 flag vector512
      Description: Make use of gcc vector instructions with size being 512.
      Default: False
-
+     Manual: True
 flag avx2
      Description: Support avx2 optimisations. Warning: enable only if you are sure of support.
      Default: False
-
+     Manual: True
 ----------------------------- The library -----------------------------------------------------
 
 library
