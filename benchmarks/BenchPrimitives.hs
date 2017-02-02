@@ -10,6 +10,7 @@ import Criterion
 import Criterion.Types hiding (measure)
 import Criterion.Measurement
 import Data.Int
+import Data.List              (span)
 import Text.PrettyPrint
 import System.IO
 
@@ -63,16 +64,16 @@ pprMeasured :: Measured -> Doc
 pprMeasured (Measured{..}) = vcat
   [ text "time       " <+> eq <+> text (secs tm)
   , text "cycles     " <+> eq <+> double cy
-  , text "rate       " <+> eq <+> text rt   <> text "B/sec"
+  , text "rate       " <+> eq <+> text rt   <> text "bps"
   , text "secs/byte  " <+> eq <+> text secB <> text "sec/byte"
   , text "cycles/byte" <+> eq <+> double cycB
   ]
   where tm    = measTime   / fromIntegral nRuns
         cy    = fromIntegral measCycles / fromIntegral nRuns
         bytes = fromIntegral nBytes
-        secB  = humaniseTime (tm    / bytes)
+        secB  = humanise $ tm / bytes
         cycB  = cy    / bytes
-        rt    = humaniseBytes (bytes / tm)
+        rt    = humanise $ 8 * bytes / tm
         eq    = text "="
 
 
@@ -148,18 +149,20 @@ runRaazBench (nm, bm) = do
 
 -------------------------- Humanise output -----------------------------------
 
--- | Humanise the name of a byte based unit like G bps etc.
-humaniseBytes :: Double -> String
-humaniseBytes = go 0
-  where  go e x  | x < 102.4 || e  == 5 = show x ++ " " ++ unitPrefix e
-                 | otherwise            = go (e+1) $ x / 1024
+humanise :: Double -> String
+humanise u | u < 1     = goL 0 u
+           | otherwise = goU 0 u
+  where goL e x | x > 1 || e == -3  = restrictDecimals 2  x ++ unitPrefix e
+                | otherwise         = goL (e  - 1) (x * 1000)
 
--- | Humanise time unit in factions of second.
-humaniseTime :: Double -> String
-humaniseTime  = go 0
-  where go e x | x > 1 || e == -3 = show x ++ " " ++ unitPrefix e
-               | otherwise        = go (e  - 1) (x * 1000)
+        goU e x | x < 100 || e == 5 = restrictDecimals 2 x  ++ unitPrefix e
+                | otherwise         = goU (e  + 1) (x / 1000)
 
+
+
+restrictDecimals :: Int -> Double -> String
+restrictDecimals n x = u ++ take (n+1) v
+  where (u,v) = span (/= '.') $ show x
 
 
 -- | @prefix n@ gives proper prefix every 10^{3n} exponent
