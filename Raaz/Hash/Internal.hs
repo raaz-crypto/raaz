@@ -238,7 +238,7 @@ completeHashing imp@(HashI{..}) src =
     in processChunks comp finish src bufSize ptr
   where bufSize             = atLeast l1Cache + 1
         totalSize           = bufSize + additionalPadBlocks undefined
-        allocate            = liftAllocator $ allocBufferFor (SomeHashI imp) totalSize
+        allocate            = liftPointerAction $ allocBufferFor (SomeHashI imp) totalSize
 
 ----------------------- Hash memory ----------------------------------
 
