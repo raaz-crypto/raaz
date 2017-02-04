@@ -25,6 +25,11 @@ import Raaz.Cipher.ChaCha20.Implementation.Vector256
 import Raaz.Cipher.ChaCha20.Implementation.CPortable
 #endif
 
+------------ Setting the recommended implementation -------------------
+
+instance Recommendation ChaCha20 where
+         recommended _ = implementation
+
 
 --------------- Some information used by Raaz/Random/ChaCha20PRG.hs -------------
 
@@ -36,14 +41,6 @@ import Raaz.Cipher.ChaCha20.Implementation.CPortable
 
 newtype RandomBuf = RandomBuf { unBuf :: Pointer }
 
-
--- | The size of the buffer in blocks of ChaCha20. While the
--- implementations should handly any multiple of blocks, often
--- implementations naturally handle some multiple of blocks, for
--- example the Vector256 implementation handles 2-chacha blocks. Set
--- this quantity to the maximum supported by all implementations.
-randomBufferSize :: BLOCKS ChaCha20
-randomBufferSize = 2  `blocksOf` ChaCha20
 
 
 -- | Implementations are also designed to work with a specific
@@ -69,7 +66,19 @@ getBufferPointer = actualPtr <$> getMemory
   where actualPtr = flip alignPtr randomBufferAlignment . unBuf
 
 
------------- Setting the recommended implementation -------------------
+--------------------- DANGEROUS CODE --------------------------------
 
-instance Recommendation ChaCha20 where
-         recommended _ = implementation
+-- Things to take care in this module
+-- ==================================
+--
+-- ENSURE randomBufferSize IS THE MAXIMUM FOR ALL IMPLEMENTATIONS of
+-- chacha20 random stream. OTHERWISE BUFFER OVERFLOW.
+
+
+-- | The size of the buffer in blocks of ChaCha20. While the
+-- implementations should handle any multiple of blocks, often
+-- implementations naturally handle some multiple of blocks, for
+-- example the Vector256 implementation handles 2-chacha blocks. Set
+-- this quantity to the maximum supported by all implementations.
+randomBufferSize :: BLOCKS ChaCha20
+randomBufferSize = 2  `blocksOf` ChaCha20
