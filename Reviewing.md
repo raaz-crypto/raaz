@@ -94,3 +94,14 @@ chance of incorrect pointer arithmetic. The bugs are concentrated on
 the definition of the block and word types. So if one is reviewing
 such low level code, it is better to get familiarised with this
 programming pattern.
+
+
+Dangerous modules
+=================
+
+We document here some of the Haskell modules that do dangerous stuff
+so that they can be audited more carefully. The exact dangers are
+documented in the module.
+
+
+1. Raaz.Cipher.ChaCha20.Recommendation.
