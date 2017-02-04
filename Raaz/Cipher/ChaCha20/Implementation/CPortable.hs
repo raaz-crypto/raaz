@@ -4,7 +4,7 @@
 {-# LANGUAGE DataKinds                        #-}
 
 module Raaz.Cipher.ChaCha20.Implementation.CPortable
-       ( implementation, chacha20Block
+       ( implementation, chacha20Random
        ) where
 
 import Control.Monad.IO.Class   ( liftIO )
@@ -36,6 +36,10 @@ chacha20Block msgPtr nblocks = do keyPtr <- onSubMemory keyCell     getCellPoint
                                   ivPtr  <- onSubMemory ivCell      getCellPointer
                                   ctrPtr <- onSubMemory counterCell getCellPointer
                                   liftIO $ c_chacha20_block msgPtr (fromEnum nblocks) keyPtr ivPtr ctrPtr
+
+-- | The chacha20 randomness generator.
+chacha20Random :: Pointer -> BLOCKS ChaCha20 -> MT ChaCha20Mem ()
+chacha20Random = chacha20Block
 
 chacha20Portable :: CipherI ChaCha20 ChaCha20Mem ChaCha20Mem
 chacha20Portable = makeCipherI

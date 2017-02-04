@@ -52,7 +52,7 @@ instance Memory RandomState where
 newSample :: MT RandomState ()
 newSample = do setRemainingBytes $ inBytes randomBufferSize
                onSubMemory chacha20State seedIfReq
-               withAuxBuffer $ onSubMemory chacha20State . flip chacha20Block randomBufferSize
+               withAuxBuffer $ onSubMemory chacha20State . flip chacha20Random randomBufferSize
 
 -- | See the PRG from system entropy.
 seed :: MT ChaCha20Mem ()

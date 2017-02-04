@@ -10,7 +10,7 @@
 --
 
 module Raaz.Cipher.ChaCha20.Recommendation
-       ( chacha20Block, RandomBuf, getBufferPointer, randomBufferSize
+       ( chacha20Random, RandomBuf, getBufferPointer, randomBufferSize
        ) where
 
 import Control.Applicative
