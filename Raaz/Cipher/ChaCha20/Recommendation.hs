@@ -81,4 +81,4 @@ getBufferPointer = actualPtr <$> getMemory
 -- example the Vector256 implementation handles 2-chacha blocks. Set
 -- this quantity to the maximum supported by all implementations.
 randomBufferSize :: BLOCKS ChaCha20
-randomBufferSize = 2  `blocksOf` ChaCha20
+randomBufferSize = 4  `blocksOf` ChaCha20
