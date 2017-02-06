@@ -43,14 +43,6 @@ newtype RandomBuf = RandomBuf { unBuf :: Pointer }
 
 
 
--- | Implementations are also designed to work with a specific
--- alignment boundary. Unaligned access can slow down the primitives
--- quite a bit. Set this to the maximum of alignment supported by all
--- implementations
-randomBufferAlignment :: Alignment
-randomBufferAlignment = 32 -- For 256-bit vector instructions.
-
-
 instance Memory RandomBuf where
 
   memoryAlloc     = RandomBuf <$> pointerAlloc sz
@@ -71,8 +63,13 @@ getBufferPointer = actualPtr <$> getMemory
 -- Things to take care in this module
 -- ==================================
 --
--- ENSURE randomBufferSize IS THE MAXIMUM FOR ALL IMPLEMENTATIONS of
--- chacha20 random stream. OTHERWISE BUFFER OVERFLOW.
+-- 1. ENSURE randomBufferSize IS THE MAXIMUM FOR ALL IMPLEMENTATIONS of
+--    chacha20 random stream. OTHERWISE BUFFER OVERFLOW.
+--
+-- 2. Ensure that the alignment requirement is the maximum so that any
+--    implementation can use the same memory.
+
+
 
 
 -- | The size of the buffer in blocks of ChaCha20. While the
@@ -82,3 +79,10 @@ getBufferPointer = actualPtr <$> getMemory
 -- this quantity to the maximum supported by all implementations.
 randomBufferSize :: BLOCKS ChaCha20
 randomBufferSize = 4  `blocksOf` ChaCha20
+
+-- | Implementations are also designed to work with a specific
+-- alignment boundary. Unaligned access can slow down the primitives
+-- quite a bit. Set this to the maximum of alignment supported by all
+-- implementations
+randomBufferAlignment :: Alignment
+randomBufferAlignment = 32 -- For 256-bit vector instructions.

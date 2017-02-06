@@ -1,6 +1,8 @@
 # Checklist for reviewing code.
 
-## Timing safe equality.
+## Reviewing Haskell code
+
+### Timing safe equality.
 
 All cryptographically sensitive data types should have timing safe
 equality comparison. The class `Equality` is the timing safe
@@ -46,6 +48,19 @@ even if `Foo` and `Bar` have timing safe equality.
 data BadSensitiveType = BadSensitiveType Foo Bar deriving Eq
 
 ```
+
+
+### Dangerous modules
+
+We document here some of the Haskell modules that do dangerous stuff
+so that they can be audited more carefully. The exact dangers are
+documented in the module.
+
+
+1. Raaz.Cipher.ChaCha20.Recommendation.
+
+2. Raaz.Cipher.ChaCha20.Implementation.CPortable
+
 
 ## Reviewing C code.
 
@@ -96,12 +111,22 @@ such low level code, it is better to get familiarised with this
 programming pattern.
 
 
-Dangerous modules
-=================
+## Stuff that effects both C and Haskell.
 
-We document here some of the Haskell modules that do dangerous stuff
-so that they can be audited more carefully. The exact dangers are
-documented in the module.
+## Alignment and restrict for block primitives
 
+GCC can perform brutal optimisations even to Portable C
+implementations if the right argument is qualified with restrict and
+the alignment is matched to the associated vector operations. But these
+features are Dangerous
 
-1. Raaz.Cipher.ChaCha20.Recommendation.
+1. Make sure that the alignment that you provide at the Haskell end
+   when you define the Implementation is the same as (or a multiple
+   of) that at the C side.
+
+2. Since we expect to call these functions as an ffi it is relatively
+   safe to assume that the buffer is not aliased. So restrict can also
+   be given.
+
+Be careful with ChaCha20 implementation where the alignment is also
+used for the PRG buffer (See the dangerous modules subsection).
