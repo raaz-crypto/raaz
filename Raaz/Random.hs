@@ -16,9 +16,9 @@ module Raaz.Random
 import Control.Applicative
 import Control.Monad
 import Control.Monad.IO.Class
-import Data.ByteString             ( ByteString, pack       )
+import Data.ByteString             ( ByteString             )
 import Data.Int
-import Data.Vector.Unboxed  hiding ( replicateM )
+import Data.Vector.Unboxed  hiding ( replicateM, create     )
 import Data.Word
 
 import Foreign.Ptr      ( Ptr     , castPtr)
@@ -158,7 +158,7 @@ class Random a where
 --
 unsafeStorableRandom :: (Memory mem, Storable a) => RT mem a
 unsafeStorableRandom = RT $ onSubMemory fst retA
-  where retA = liftAllocator alloc $ getIt . castPtr
+  where retA = liftPointerAction alloc $ getIt . castPtr
 
         getIt        :: Storable a => Ptr a -> MT RandomState a
         getIt ptr    = unsafePokeManyRandom 1 ptr >> liftIO (peek ptr)
@@ -172,11 +172,11 @@ unsafeStorableRandom = RT $ onSubMemory fst retA
 
 
 -- | Generate a random byteString.
-randomByteString :: (Memory mem, LengthUnit l)
+
+randomByteString :: LengthUnit l
                  => l
                  -> RT mem ByteString
-randomByteString l = pack <$> replicateM n random
-  where n = fromIntegral $ inBytes l
+randomByteString l = RT $ onSubMemory fst  $ liftPointerAction (create l) $ fillRandomBytesMT l
 
 ------------------------------- Some instances of Random ------------------------
 

@@ -211,7 +211,7 @@ hmacSource' imp@(SomeHashI hI) key src =
     -- Finish it with hashing the  hash computed above
     HMAC <$> completeHashing hI (toByteString innerHash)
 
-  where allocate = liftAllocator $ allocBufferFor imp $ 1 `asTypeOf` (theBlock key)
+  where allocate = liftPointerAction $ allocBufferFor imp $ 1 `asTypeOf` (theBlock key)
         innerFirstBlock = B.map (xor 0x36) $ hmacAdjustKey key
         outerFirstBlock = B.map (xor 0x5c) $ hmacAdjustKey key
         theBlock :: Key (HMAC h) -> BLOCKS h

@@ -1,12 +1,12 @@
 module Raaz.Core.Util.ByteStringSpec where
 
-import Common
-import Prelude hiding (length, take)
-import Data.ByteString.Internal(create, createAndTrim)
-import Data.ByteString as B
-import Foreign.Ptr
+import           Common
+import           Prelude hiding (length, take)
+import           Data.ByteString.Internal(createAndTrim)
+import qualified Data.ByteString as B
+import           Foreign.Ptr
 
-import Raaz.Core as RC
+import           Raaz.Core as RC
 
 
 spec :: Spec
@@ -19,15 +19,14 @@ spec = do context "unsafeCopyToPointer" $
                        return (bs, l)
               in context "unsafeNCopyToPointer"
                  $ it "creates the same prefix of at the input pointer"
-                 $ feed gen $ \ (bs,n) -> (==) (take n bs)
+                 $ feed gen $ \ (bs,n) -> (==) (B.take n bs)
                                           <$> clonePrefix (bs,n)
 
           context "createFrom"
             $ it "reads exactly the same bytes from the byte string pointer"
             $ feed arbitrary $ \ bs -> (==bs) <$> readFrom bs
 
-    where clone bs  = create (B.length bs)
-                      $ RC.unsafeCopyToPointer bs . castPtr
+    where clone bs  = create (length bs) $ RC.unsafeCopyToPointer bs . castPtr
           clonePrefix (bs,n)
             = createAndTrim (B.length bs)
               $ \ cptr -> do RC.unsafeNCopyToPointer (BYTES n) bs

@@ -10,6 +10,7 @@ import Criterion
 import Criterion.Types hiding (measure)
 import Criterion.Measurement
 import Data.Int
+import Data.List              (span)
 import Text.PrettyPrint
 import System.IO
 
@@ -63,16 +64,16 @@ pprMeasured :: Measured -> Doc
 pprMeasured (Measured{..}) = vcat
   [ text "time       " <+> eq <+> text (secs tm)
   , text "cycles     " <+> eq <+> double cy
-  , text "rate       " <+> eq <+> double rt  <+> text "(bytes/sec)"
-  , text "secs/byte  " <+> eq <+> double secB
+  , text "rate       " <+> eq <+> text rt   <> text "bps"
+  , text "secs/byte  " <+> eq <+> text secB <> text "sec/byte"
   , text "cycles/byte" <+> eq <+> double cycB
   ]
   where tm    = measTime   / fromIntegral nRuns
         cy    = fromIntegral measCycles / fromIntegral nRuns
         bytes = fromIntegral nBytes
-        secB  = tm    / bytes
+        secB  = humanise $ tm / bytes
         cycB  = cy    / bytes
-        rt    = bytes / tm
+        rt    = humanise $ 8 * bytes / tm
         eq    = text "="
 
 
@@ -145,3 +146,36 @@ runRaazBench (nm, bm) = do
   (memt,x) <- measure bm nRuns
   hPutStrLn stderr $ "done."
   return $ text nm $+$ nest 8 (pprMeasured memt)
+
+-------------------------- Humanise output -----------------------------------
+
+humanise :: Double -> String
+humanise u | u < 1     = goL 0 u
+           | otherwise = goU 0 u
+  where goL e x | x > 1 || e == -3  = restrictDecimals 2  x ++ unitPrefix e
+                | otherwise         = goL (e  - 1) (x * 1000)
+
+        goU e x | x < 100 || e == 5 = restrictDecimals 2 x  ++ unitPrefix e
+                | otherwise         = goU (e  + 1) (x / 1000)
+
+
+
+restrictDecimals :: Int -> Double -> String
+restrictDecimals n x = u ++ take (n+1) v
+  where (u,v) = span (/= '.') $ show x
+
+
+-- | @prefix n@ gives proper prefix every 10^{3n} exponent
+unitPrefix :: Int -> String
+unitPrefix ex
+  | ex <  -3   = error "exponent too small name"
+  | ex == -3   = "n"
+  | ex == -2   = "μ"
+  | ex == -1   = "m"
+  | ex == 0    = ""
+  | ex == 1    = "K"
+  | ex == 2    = "M"
+  | ex == 3    = "G"
+  | ex == 4    = "T"
+  | ex == 5    = "P"
+  | otherwise  = error "exponent to large to name"

@@ -10,7 +10,7 @@
 --
 
 module Raaz.Cipher.ChaCha20.Recommendation
-       ( chacha20Block, RandomBuf, getBufferPointer, randomBufferSize
+       ( chacha20Random, RandomBuf, getBufferPointer, randomBufferSize
        ) where
 
 import Control.Applicative
@@ -25,6 +25,11 @@ import Raaz.Cipher.ChaCha20.Implementation.Vector256
 import Raaz.Cipher.ChaCha20.Implementation.CPortable
 #endif
 
+------------ Setting the recommended implementation -------------------
+
+instance Recommendation ChaCha20 where
+         recommended _ = implementation
+
 
 --------------- Some information used by Raaz/Random/ChaCha20PRG.hs -------------
 
@@ -36,22 +41,6 @@ import Raaz.Cipher.ChaCha20.Implementation.CPortable
 
 newtype RandomBuf = RandomBuf { unBuf :: Pointer }
 
-
--- | The size of the buffer in blocks of ChaCha20. While the
--- implementations should handly any multiple of blocks, often
--- implementations naturally handle some multiple of blocks, for
--- example the Vector256 implementation handles 2-chacha blocks. Set
--- this quantity to the maximum supported by all implementations.
-randomBufferSize :: BLOCKS ChaCha20
-randomBufferSize = 2  `blocksOf` ChaCha20
-
-
--- | Implementations are also designed to work with a specific
--- alignment boundary. Unaligned access can slow down the primitives
--- quite a bit. Set this to the maximum of alignment supported by all
--- implementations
-randomBufferAlignment :: Alignment
-randomBufferAlignment = 32 -- For 256-bit vector instructions.
 
 
 instance Memory RandomBuf where
@@ -69,7 +58,31 @@ getBufferPointer = actualPtr <$> getMemory
   where actualPtr = flip alignPtr randomBufferAlignment . unBuf
 
 
------------- Setting the recommended implementation -------------------
+--------------------- DANGEROUS CODE --------------------------------
 
-instance Recommendation ChaCha20 where
-         recommended _ = implementation
+-- Things to take care in this module
+-- ==================================
+--
+-- 1. ENSURE randomBufferSize IS THE MAXIMUM FOR ALL IMPLEMENTATIONS of
+--    chacha20 random stream. OTHERWISE BUFFER OVERFLOW.
+--
+-- 2. Ensure that the alignment requirement is the maximum so that any
+--    implementation can use the same memory.
+
+
+
+
+-- | The size of the buffer in blocks of ChaCha20. While the
+-- implementations should handle any multiple of blocks, often
+-- implementations naturally handle some multiple of blocks, for
+-- example the Vector256 implementation handles 2-chacha blocks. Set
+-- this quantity to the maximum supported by all implementations.
+randomBufferSize :: BLOCKS ChaCha20
+randomBufferSize = 4  `blocksOf` ChaCha20
+
+-- | Implementations are also designed to work with a specific
+-- alignment boundary. Unaligned access can slow down the primitives
+-- quite a bit. Set this to the maximum of alignment supported by all
+-- implementations
+randomBufferAlignment :: Alignment
+randomBufferAlignment = 32 -- For 256-bit vector instructions.

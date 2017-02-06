@@ -8,7 +8,7 @@ Some utility function for byte strings.
 module Raaz.Core.Util.ByteString
        ( length, replicate
        , fromByteStringStorable
-       , createFrom
+       , create, createFrom
        , withByteString
        , unsafeCopyToPointer
        , unsafeNCopyToPointer
@@ -17,9 +17,7 @@ module Raaz.Core.Util.ByteString
 import           Prelude            hiding (length, replicate)
 import qualified Data.ByteString    as B
 import           Data.ByteString    (ByteString)
-import           Data.ByteString.Internal( toForeignPtr
-                                         , create
-                                         )
+import qualified Data.ByteString.Internal as BI
 import           Data.Word
 import           Foreign.ForeignPtr (withForeignPtr)
 import           Foreign.Ptr        (castPtr, plusPtr)
@@ -47,7 +45,7 @@ unsafeCopyToPointer :: ByteString   -- ^ The source.
                     -> IO ()
 unsafeCopyToPointer bs cptr =  withForeignPtr fptr $
            \ p -> memcpy dptr (source $ p `plusPtr` offset) (BYTES n)
-    where (fptr, offset,n) = toForeignPtr bs
+    where (fptr, offset,n) = BI.toForeignPtr bs
           dptr = destination $ castPtr cptr
 
 
@@ -63,7 +61,7 @@ unsafeNCopyToPointer :: LengthUnit n
                        -> IO ()
 unsafeNCopyToPointer n bs cptr = withForeignPtr fptr $
            \ p -> memcpy dptr (source $ p `plusPtr` offset) n
-    where (fptr, offset,_) = toForeignPtr bs
+    where (fptr, offset,_) = BI.toForeignPtr bs
           dptr             = destination $ castPtr cptr
 
 -- | Works directly on the pointer associated with the
@@ -71,17 +69,23 @@ unsafeNCopyToPointer n bs cptr = withForeignPtr fptr $
 -- contents of the pointer.
 withByteString :: ByteString -> (Pointer -> IO a) -> IO a
 withByteString bs f = withForeignPtr fptr (f . flip plusPtr off . castPtr)
-  where (fptr, off, _) = toForeignPtr bs
+  where (fptr, off, _) = BI.toForeignPtr bs
 
 -- | Get the value from the bytestring using `peek`.
 fromByteStringStorable :: Storable k => ByteString -> k
 fromByteStringStorable str = unsafePerformIO $ withByteString str (peek . castPtr)
 
+
+-- | The action @create l act@ creates a length @l@ bytestring where
+-- the contents are filled using the the @act@ to fill the buffer.
+create :: LengthUnit l => l -> (Pointer -> IO ()) -> IO ByteString
+create l act = myCreate (act . castPtr)
+  where myCreate =  BI.create $ fromIntegral $ inBytes l
+
 -- | The IO action @createFrom n cptr@ creates a bytestring by copying
 -- @n@ bytes from the pointer @cptr@.
 createFrom :: LengthUnit l => l -> Pointer -> IO ByteString
-createFrom l cptr = create bytes filler
+createFrom l cptr = create l filler
   where filler dptr = memcpy (destination $ castPtr dptr) (source cptr) l
-        BYTES bytes = inBytes l
 
 ----------------------  Hexadecimal encoding. -----------------------------------
