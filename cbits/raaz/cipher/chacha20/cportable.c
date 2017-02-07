@@ -64,8 +64,18 @@ Some function for debugging.
 
 */
 
+# ifdef __GNUC__
 
-void raazChaCha20Block(Block *msg, int nblocks, const Key key, const IV iv, Counter *ctr)
+typedef Block MyBlock __attribute__ ((aligned (32)));
+
+void raazChaCha20Block(MyBlock * msg, int nblocks, const Key key, const IV iv, Counter  *ctr)
+
+# else
+
+void raazChaCha20Block(Block * msg, int nblocks, const Key key, const IV iv, Counter  *ctr)
+
+#endif
+
 {
     register Word x0,  x1,  x2, x3;
     register Word x4,  x5,  x6, x7;

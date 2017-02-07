@@ -41,9 +41,13 @@ chacha20Block msgPtr nblocks = do keyPtr <- onSubMemory keyCell     getCellPoint
 chacha20Random :: Pointer -> BLOCKS ChaCha20 -> MT ChaCha20Mem ()
 chacha20Random = chacha20Block
 
+---------------------- DANGEROUS CODE --------------------------------------
+
+-- | The chacha20 randomness generator. We have set the alignment to
+-- 32 because this allows gcc to further optimise the implementation.
 chacha20Portable :: CipherI ChaCha20 ChaCha20Mem ChaCha20Mem
 chacha20Portable = makeCipherI
                    "chacha20-cportable"
                    "Implementation of the chacha20 stream cipher (RFC7539)"
                    chacha20Block
-                   wordAlignment
+                   32
