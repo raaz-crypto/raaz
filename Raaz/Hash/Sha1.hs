@@ -3,11 +3,13 @@
 This module exposes combinators to compute the SHA1 hash and the
 associated HMAC for some common types.
 
+
 -}
 module Raaz.Hash.Sha1
-{-# DEPRECATED "sha1 and its hmac is mostly broken. Avoid if possible" #-}
+{-# DEPRECATED "SHA1 is broken. This module is here only for transition." #-}
        (
-         -- * The SHA1 cryptographic hash
+         -- * The broken SHA1 cryptographic hash.
+         -- $sha1$
          SHA1
        , sha1, sha1File, sha1Source
          -- * HMAC computation using SHA1
@@ -24,8 +26,23 @@ import Raaz.Hash.Internal.HMAC ( hmacSource, hmac, hmacFile, HMAC )
 import Raaz.Hash.Sha1.Internal ( SHA1 )
 import Raaz.Hash.Sha1.Recommendation()
 
+-- $sha1$
+--
+-- We already have a collision for SHA1:
+-- <https://security.googleblog.com/2017/02/announcing-first-sha1-collision.html>
+--
+-- While it does not yet rule out SHA1 for some specific tasks, there
+-- is no reason for its continual usage. This module is present only
+-- to facilitate the transition to a better hash. Use it assuming no
+-- security guarantees. Raaz will not try to optimise the
+-- implementations given here and will remove this module at some
+-- point of time. So do not rely on this for your software.
+--
+--
+--
+
 {-# DEPRECATED sha1, sha1File, sha1Source
-               "SHA1 is almost broken, avoid it as much as possible" #-}
+               "SHA1 is broken. This functions are here only for transition." #-}
 -- | Compute the sha1 hash of an instance of `PureByteSource`. Use
 -- this for computing the sha1 hash of a strict or lazy byte string.
 sha1       :: PureByteSource src => src -> SHA1
@@ -46,7 +63,7 @@ sha1Source = hashSource
 
 
 {-# DEPRECATED hmacSha1, hmacSha1File, hmacSha1Source
-               "SHA1 is almost broken, avoid it for hmac-ing" #-}
+               "SHA1 is broken. This functions are here only for transition." #-}
 
 -- | Compute the message authentication code using hmac-sha1.
 hmacSha1 :: PureByteSource src  => Key (HMAC SHA1) -> src -> HMAC SHA1

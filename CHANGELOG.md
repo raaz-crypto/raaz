@@ -4,6 +4,7 @@
 
 * Stream cipher chacha20 added.
 * Added a PRG that uses chacha20, seeded with system entropy
+* Sha1 highly depreciated in view of reported collision.
 * We now have supper command `raaz` with subcommands
   - `checksum`: as a replacement for the old checksum executable
   - `rand`: for generating random bytes.

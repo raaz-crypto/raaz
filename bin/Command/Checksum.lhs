@@ -42,7 +42,7 @@ be ignored.
 > import System.Console.GetOpt
 
 > import Raaz     hiding (Result)
-
+> import Raaz.Hash.Sha1
 
 
 Verification Tokens
@@ -103,7 +103,7 @@ support. Existential types comes to the rescue once more.
 Here is the table of algorithms that we support currently.
 
 > algorithms :: [(String, SomeAlgorithm)]
-> algorithms =  [ ("sha1"  , SomeAlgorithm (Algorithm :: Algorithm SHA1)   )
+> algorithms =  [ ("broken-sha1"  , SomeAlgorithm (Algorithm :: Algorithm SHA1)   )
 >               , ("sha256", SomeAlgorithm (Algorithm :: Algorithm SHA256) )
 >               , ("sha512", SomeAlgorithm (Algorithm :: Algorithm SHA512) )
 >               -- Add new algorithms here.
@@ -253,12 +253,12 @@ The default options for the command is as follows.
 > defaultOpts =
 >   Options { optHelp       = False
 >           , optCheck      = False
->           , optAlgo       = Right sha1Algorithm
+>           , optAlgo       = Right sha512Algorithm
 >           , optOkey       = \ fp -> putStrLn (fp ++ ": OK")
 >           , optFailed     = \ fp -> putStrLn (fp ++ ": FAILED")
 >           , optPrintCount = printCount
 >           }
->   where sha1Algorithm = SomeAlgorithm (Algorithm :: Algorithm SHA1)
+>   where sha512Algorithm = SomeAlgorithm (Algorithm :: Algorithm SHA512)
 >         printCount n  = when (n > 0) $ do
 >           putStrLn $ show n ++ " failures."
 >           exitFailure
@@ -276,7 +276,7 @@ summarising the changes to the option set.
 >   , Option ['s'] ["status"]  (NoArg setStatusOnly)
 >     "no output only return status"
 >   , Option ['a'] ["algo"]    (ReqArg setAlgo "HASH")
->     $ "hash algorithm to use " ++ "(" ++ algOpts ++ ")"
+>     $ "hash algorithm to use " ++ "[" ++ algOpts ++ "]. Default sha512"
 >   ]
 >   where setHelp      = Endo $ \ opt -> opt { optHelp    = True }
 >         setCheck     = Endo $ \ opt -> opt { optCheck   = True }
@@ -302,7 +302,7 @@ The usage message for the program.
 > usage errs
 >       | null errs = usageInfo header options
 >       | otherwise = "raaz checksum: " ++ unlines errs ++ usageInfo header options
->   where header ="Usage: raaz checksum [OPTIONS] FILE1 FILE2"
+>   where header ="Usage: raaz checksum [OPTIONS] FILE1 FILE2 ..."
 
 
 Parsing the options.

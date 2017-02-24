@@ -19,7 +19,6 @@ module Raaz.Hash
          -- * Exposing individual hashes.
          -- $individualHashes$
 
-       , module Raaz.Hash.Sha1
        , module Raaz.Hash.Sha224
        , module Raaz.Hash.Sha256
        , module Raaz.Hash.Sha384
@@ -29,7 +28,6 @@ module Raaz.Hash
        ) where
 
 -- import Raaz.Hash.Blake256
-import Raaz.Hash.Sha1
 import Raaz.Hash.Sha224
 import Raaz.Hash.Sha256
 import Raaz.Hash.Sha384
@@ -40,6 +38,12 @@ import Raaz.Hash.Internal.HMAC ( HMAC, hmac, hmacFile, hmacSource )
 
 -- $computingHash$
 --
+-- === NOTE: SHA1 is broken.
+--
+-- SHA1 is no more available form this module, its use is highly
+-- depreciated. If you want to use it for transition please import
+-- Raaz.Hash.Sha1 specifically
+
 -- The cryptographic hashes provided by raaz give the following
 -- guarantees:
 --
