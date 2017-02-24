@@ -38,6 +38,12 @@ import Raaz.Hash.Internal.HMAC ( HMAC, hmac, hmacFile, hmacSource )
 
 -- $computingHash$
 --
+-- === NOTE: SHA1 is broken.
+--
+-- SHA1 is no more available form this module, its use is highly
+-- depreciated. If you want to use it for transition please import
+-- Raaz.Hash.Sha1 specifically
+
 -- The cryptographic hashes provided by raaz give the following
 -- guarantees:
 --
