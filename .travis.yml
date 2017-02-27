@@ -59,7 +59,6 @@ matrix:
 
   allow_failures:
     - env: GHCVER=head CABALVER=head
-    - env: STACK="yes" RESOLVER="--resolver=nightly"
     - env: HLINT="yes"
 
 before_install:
