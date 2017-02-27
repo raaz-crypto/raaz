@@ -26,7 +26,9 @@ import           Prelude hiding              ( length       )
 
 
 -- | A type @w@ forced to be aligned to the alignment boundary @alg@
-newtype Aligned (alg :: Nat) w = Aligned { unAligned :: w }
+newtype Aligned (align :: Nat) w
+  = Aligned { unAligned :: w -- ^ The underlying unAligned value.
+            }
 
 -- | Align the value to 16-byte boundary
 aligned16Bytes :: w -> Aligned 16 w
