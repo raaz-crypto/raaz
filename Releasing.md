@@ -9,13 +9,11 @@ branch which we will call release-A.B.C.
 
 * The first step is to update travis.yml to start building on the
   release-A.B.C This should be done before actually creating the
-  release branch because we what all the release specific changes that
+  release branch because we want all the release specific changes that
   are pushed to be built by travis. This is done on the master branch.
   push this change to the main repository
 
 * Create a fresh branch titled release-A.B.C.
-
-* Bump up the version in the cabal file.
 
 * Go over the bug-tracker for bugs to be addressed for this release.
   mark them.
@@ -33,5 +31,7 @@ branch which we will call release-A.B.C.
 * Upload the release on hackage.
 
 * Tag the release branch. Put the change log in the tag message.
+
+* Bump up the release version.
 
 * Create a pending entry for the next release in the Change log.
