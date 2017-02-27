@@ -42,4 +42,5 @@ This release comes with very little changes.
 
 [0.0.1]: <http://github.com/raaz-crypto/raaz/releases/tag/v0.0.1>
 [0.0.2]: <http://github.com/raaz-crypto/raaz/releases/tag/v0.0.2>
+[0.1.0]: <http://github.com/raaz-crypto/raaz/releases/tag/v0.1.0>
 [raaz]:  <http://github.com/raaz-crypto/raaz/>
