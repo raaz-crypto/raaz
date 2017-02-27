@@ -38,8 +38,18 @@ import Raaz.Random.ChaCha20PRG
 -- you can use the functions `random` and `randomByteString` to
 -- actually generate random elements.
 --
--- The monad `RandM` is an an instance of `MonadMemory` and hence can
--- be run either `securely` or `insecurely`. Here are some examples.
+--
+-- = Running a random action
+--
+-- Depending on whether the random bytes generated are sensitive or
+-- not, you can use either of the combinators `securely` or
+-- `insecurely`.  The combinator `securely` ensures that the seed of
+-- the PRG is stored in a locked memory and hence will not be swapped
+-- out to the disk. A use case for this is when you use the random
+-- bytes to generate say a long term public key. On the other hand
+-- locked memory is limited on most systems. So for cases where the
+-- secrecy of the bytes are not important, we would recommend using
+-- `insecurely`.
 --
 -- > -- Generate a pair of random Word8's
 -- > import Raaz
