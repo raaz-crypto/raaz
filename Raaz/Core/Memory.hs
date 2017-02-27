@@ -52,7 +52,7 @@ import           Raaz.Core.Types
 -- Cryptographic operations often need to keep sensitive information
 -- in its memory space. If this memory is swapped out to the disk,
 -- this can be dangerous. The primary purpose of the memory subsystem
--- in raaz provides a way to allocate and manage _secure memory_,
+-- is to provide a way to allocate and manage /secure memory/,
 -- i.e. memory that will not be swapped out during the execution of
 -- the process and will be wiped clean after use. There are there
 -- important parts to the memory subsystem:
