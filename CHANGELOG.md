@@ -1,5 +1,9 @@
 # Change log for [raaz].
 
+## [0.1.1] - 2nd  March, 2017
+
+* Failing build on big endian machines (#306) fixed.
+
 ## [0.1.0] - 28th February, 2017
 
 * Stream cipher chacha20 added.
