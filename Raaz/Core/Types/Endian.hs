@@ -289,19 +289,19 @@ instance EndianStore (LE Word32) where
 
 
 instance EndianStore (LE Word64) where
-  load          = fmap byteSwap64    <$> peek
+  load  ptr     = fmap byteSwap64    <$> peek ptr
   store ptr     = poke ptr  . fmap byteSwap64
   adjustEndian  = c_Swap64Array . unLEPtr
 
 
 instance EndianStore (BE Word32) where
   load             = peek
-  store ptr        = poke
+  store            = poke
   adjustEndian _ _ = return ()
 
 instance EndianStore (BE Word64) where
   load             = peek
-  store ptr        = poke
+  store            = poke
   adjustEndian _ _ = return ()
 
 # else
