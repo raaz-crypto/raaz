@@ -222,7 +222,7 @@ library
         -- Entropy for openbsd using arc4random
         hs-source-dirs: entropy/arc4random
 
-     if !os(openbsd)
+     else
         -- Entropy for generic posix by reading /dev/urandom
         hs-source-dirs: entropy/urandom
 
