@@ -28,7 +28,7 @@ bug-reports: https://github.com/raaz-crypto/raaz/issues
 -- List of platform specific source files.
 extra-source-files: entropy/urandom/Raaz/Entropy.hs
                     entropy/arc4random/Raaz/Entropy.hs
-
+                    entropy/getrandom/Raaz/Entropy.hs
 source-repository head
   type: git
   location: https://github.com/raaz-crypto/raaz
@@ -68,6 +68,12 @@ flag avx2
      Description: Support avx2 optimisations. Warning: enable only if you are sure of support.
      Default: False
      Manual: True
+
+flag linux-getrandom
+     Description: Use the getrandom for system entropy instead of /dev/urandom. Available only on linux kernel > 3.17.
+     Default: False
+     Manual: True
+
 ----------------------------- The library -----------------------------------------------------
 
 library
@@ -221,10 +227,13 @@ library
      if os(openbsd)
         -- Entropy for openbsd using arc4random
         hs-source-dirs: entropy/arc4random
-
      else
-        -- Entropy for generic posix by reading /dev/urandom
-        hs-source-dirs: entropy/urandom
+        if os(linux) && flag(linux-getrandom)
+           -- Use getentropy on linux
+           hs-source-dirs: entropy/getrandom
+        else
+           -- Entropy for generic posix by reading /dev/urandom
+           hs-source-dirs: entropy/urandom
 
   if os(osx)
      -- Endian coversion code is different for osx.
