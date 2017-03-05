@@ -53,9 +53,9 @@ import           Raaz.Core.Types
 -- in its memory space. If this memory is swapped out to the disk,
 -- this can be dangerous. The primary purpose of the memory subsystem
 -- is to provide a way to allocate and manage /secure memory/,
--- i.e. memory that will not be swapped out during the execution of
--- the process and will be wiped clean after use. There are there
--- important parts to the memory subsystem:
+-- i.e. memory that will not be swapped out as long as the memory is
+-- used and will be wiped clean after use. There are there important
+-- parts to the memory subsystem:
 --
 -- [The `Memory` type class:] A memory element is some type that holds
 -- an internal buffer inside it.
@@ -65,18 +65,18 @@ import           Raaz.Core.Types
 -- types gives a high level interface for memory allocation. For a
 -- memory type `mem`, the type `Alloc mem` can be seen as the
 -- _allocation strategy_ for mem. For example, one of the things that
--- it keeps track of the space required to create an memory element of
--- type `mem`. There is a natural applicative instance for `Alloc`
+-- it keeps track of is the space required to create an memory element
+-- of type `mem`. There is a natural applicative instance for `Alloc`
 -- which helps build the allocation strategy for a compound memory
 -- type from its components in a modular fashion _without_ explicit
 -- size calculation or offset computation.
 --
--- [The `MonadMemory` class:] Instances of these classes are actions
--- that use some kind of memory elements, i.e. instances of the class
--- `Memory`, inside it. Any such monad can either be run using the
--- combinator `securely` or the combinator `insecurely`. If one use
--- the combinator `securely`, then all allocations done during the run
--- is from a locked memory pool which is wiped clean before
+-- [The `MonadMemory` class:] Instances of this class are actions that
+-- use some kind of memory elements inside it. Any such monad can
+-- either be run using the combinator `securely` or the combinator
+-- `insecurely`. If one use the combinator `securely`, then the
+-- allocation of the memory element to be used by the action is done
+-- using a locked memory pool which is wiped clean before
 -- de-allocation. The types `MT` and `MemoryM` are two instances that
 -- we expose from this library.
 --
@@ -91,13 +91,13 @@ import           Raaz.Core.Types
 -- indicate it with an instance of @`Extractable` mem a@.
 --
 -- There is an inherent danger in initialising and extracting pure
--- values out of memory. Pure values are stored on the Haskell stack
+-- values out of memory. Pure values are stored on the Haskell heap
 -- and hence can be swapped out. Consider a memory element @mem@ that
 -- stores some sensitive information, say for example the unencrypted
--- private key. Now suppose that we need to extracting out the key as
--- a pure value before its encryption and storage into the key file,
--- it is likely that the key is swapped out to the disk as part of the
--- haskell heap.
+-- private key. Suppose we extract this key out of the memory element
+-- as a pure value before its encryption and storage into the key
+-- file. It is likely that the key is swapped out to the disk as the
+-- extracted key is part of the the haskell heap.
 --
 -- The `InitialiseFromBuffer` (`ExtractableToBuffer`) class gives an
 -- interface for reading from (writing to) buffers directly minimising
@@ -107,15 +107,14 @@ import           Raaz.Core.Types
 -- | A class that captures monads that use an internal memory element.
 --
 -- Any instance of `MonadMemory` can be executed `securely` in which
--- case all allocations are performed from a locked pool of
--- memory. which at the end of the operation is also wiped clean
--- before deallocation.
+-- case the allocations for the internal memory is done from a locked
+-- pool of memory.  This memory is wiped clean before deallocation.
 --
 -- Systems often put tight restriction on the amount of memory a
 -- process can lock.  Therefore, secure memory is often to be used
 -- judiciously. Instances of this class /should/ also implement the
--- the combinator `insecurely` which allocates all memory from an
--- unlocked memory pool.
+-- the combinator `insecurely` which allocates the internal memory
+-- from an unlocked pool.
 --
 -- This library exposes two instances of `MonadMemory`
 --
@@ -124,7 +123,7 @@ import           Raaz.Core.Types
 --
 -- 2. /Memory actions/ captured by the type `MemoryM`.
 --
--- /WARNING:/ Be careful with `liftIO`.
+-- __WARNING:__ Be careful with `liftIO`.
 --
 -- The rule of thumb to follow is that the action being lifted should
 -- itself never unlock any memory. In particular, the following code
@@ -150,10 +149,10 @@ import           Raaz.Core.Types
 -- unlock multiple calls of @mlock@ on the same page.
 --
 class (Monad m, MonadIO m) => MonadMemory m where
-  -- | Perform the memory action where all memory elements are allocated
-  -- locked memory. All memory allocated will be locked and hence will
-  -- never be swapped out by the operating system. It will also be wiped
-  -- clean before releasing.
+  -- | Run a memory action with the internal memory allocated from a
+  -- locked memory buffer. This memory buffer will never be swapped
+  -- out by the operating system and will be wiped clean before
+  -- releasing.
   --
   -- Memory locking is an expensive operation and usually there would be
   -- a limit to how much locked memory can be allocated. Nonetheless,
@@ -162,10 +161,10 @@ class (Monad m, MonadIO m) => MonadMemory m where
   securely   :: m a -> IO a
 
 
-  -- | Perform the memory action where all memory elements are
-  -- allocated unlocked memory. Use this function when you work with
-  -- data that is not sensitive to security considerations (for example,
-  -- when you want to verify checksums of files).
+  -- | Run a memory action with the internal memory used by the action
+  -- being allocated from unlocked memory. Use this function when you
+  -- work with data that is not sensitive to security considerations
+  -- (for example, when you want to verify checksums of files).
   insecurely :: m a -> IO a
 
 
