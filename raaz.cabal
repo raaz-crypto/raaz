@@ -3,13 +3,11 @@ version: 0.1.1
 
 synopsis: The raaz cryptographic library.
 
-description: Raaz is a cryptographic network library for Haskell
-  designed to use strong typing to eliminate some common errors that
-  occur in cryptographic settings like side channel attacks. This
-  package implements basic types and cryptographic primitives like
-  hashes, macs etc. Actual network protocols are expected to use this
-  library. Common abstractions like for example packet parsing should
-  be part of this library.
+description: Raaz is a cryptographic library for Haskell. The library
+  is designed with a special emphasis on using the of the strong type
+  system of Haskell to eliminate a large set of vulnerabilities like
+  buffer overflows, timing attacks etc. It also strives to achieve
+  this safety with no compromise on performance.
 
 homepage: http://github.com/raaz-crypto/raaz
 
