@@ -39,13 +39,6 @@ flag opt-native
      Default: False
      Manual: True
 
-
-flag opt-vectorise
-     Description: Enable vectorisation for gcc. This is not always an optimisation and needs to be benchmarked.
-       Also gains are fairly minimal if you do not use opt-natvive.
-     Default: False
-     Manual: True
-
 flag vector128
      Description: Make use of vector instructions with size being 128. Do not enable this unless you have reasons
        to. It is better to use opt-native and opt-vectorise and let gcc have a go at the portable implementation
@@ -189,9 +182,6 @@ library
   --------------------------- Options for vector instructions ---------------------------------
   if flag(opt-native)
     cc-options: -march=native
-
-  if flag(opt-vectorise)
-    cc-options: -ftree-vectorize
 
   if flag(vector128)
      cpp-options: -DHAVE_VECTOR_128
