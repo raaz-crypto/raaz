@@ -11,7 +11,6 @@ flags:
   # to be carefully verified. Bad things can happen if the machine
   # does not support the features that you enable here.
   raaz:
-    opt-vectorise: true
     opt-native: true
     vector128: true  # set if machine has 128-bit vector instructions
     vector256: true  # set if machine has 256-bit vector instructions
