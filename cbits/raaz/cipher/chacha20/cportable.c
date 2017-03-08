@@ -68,6 +68,8 @@ Some function for debugging.
 
 typedef Block MyBlock __attribute__ ((aligned (32)));
 
+void raazChaCha20Block(MyBlock * msg, int nblocks, const Key key, const IV iv, Counter  *ctr) __attribute__((optimize("tree-vectorize")));
+
 void raazChaCha20Block(MyBlock * msg, int nblocks, const Key key, const IV iv, Counter  *ctr)
 
 # else
