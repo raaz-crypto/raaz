@@ -3,6 +3,9 @@ Raaz: A secure networking library in Haskell
 
 [![Build Staus][travis-status]][travis-raaz]
 [![In Progress][waffle-inprogress]][waffle-raaz]
+[![Stackage LTS][stackage-lts-raaz-badge]][stackage-lts-raaz]
+[![Stackage Nightly][stackage-nightly-raaz-badge]][stackage-nightly-raaz]
+
 
 Raaz is a library for secure network programming. The word `Raaz`
 (&#x0930;&#x093E;&#x095B;) stands for secret in Hindi. The aim of this library
@@ -41,3 +44,8 @@ problems.
 [waffle-inprogress]: <https://badge.waffle.io/raaz-crypto/raaz.svg?label=waffle%3Ain%20progress&title=In%20Progress>
 [travis-status]: <https://secure.travis-ci.org/raaz-crypto/raaz.png> "Build status"
 [travis-raaz]: <https://travis-ci.org/raaz-crypto/raaz>
+[stackage-lts-raaz]: <http://stackage.org/lts/package/raaz>
+[stackage-nightly-raaz]: <http://stackage.org/nightly/package/raaz>
+
+[stackage-lts-raaz-badge]: <http://stackage.org/package/raaz/badge/lts>
+[stackage-nightly-raaz-badge]: <http://stackage.org/package/raaz/badge/nightly>
