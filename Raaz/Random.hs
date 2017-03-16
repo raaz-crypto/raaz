@@ -77,6 +77,38 @@ import Raaz.Random.ChaCha20PRG
 -- the combinator `liftMT` allows you to lift an `MT` action to the
 -- corresponding `RT` action.
 --
+-- == Note of caution on secure random source.
+--
+-- Running a random action `securely` only guarantees the security of
+-- the seed and not the generated Haskell value. For example, in the
+-- following code
+--
+-- > genWord64 :: IO Word64
+-- > genWord64 = securely random
+--
+-- the generated 64-bit word is in no way secure. There is no
+-- additional security gained by using `securely` over `insecurely` as
+-- the generated 64-bit random word is stored in the Haskell heap
+-- which is not locked. It is not feasible to ensure that the value is
+-- stored in locked memory as the garbage collector often moves values
+-- around.
+--
+-- The solution is to use an auxiliary memory element of type `mem` to
+-- keep such private information and use the monad`RT mem`. Random
+-- data can be filled into the memory by using the low level routine
+-- `fillRandomBytes` to fill the memory. Given below is a skeleton for
+-- it.
+--
+-- > type FooMem = MemoryCell Word64
+-- >
+-- > genSecureWord64 :: RT FooMem ()
+-- > genSecureWord64 = do ptr <- liftMT getCellPointer
+-- >                      fillRandomBytes (sizeOf (undefined :: Word64)) ptr
+-- >
+-- > doSomething :: IO ()
+-- > doSomething = securely $ genSecureWord64 >> useRandomWord64
+--
+--
 -- = Internal details
 --
 -- Generating unpredictable stream of bytes is one task that has burnt
