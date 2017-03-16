@@ -113,21 +113,26 @@ import Raaz.Random.ChaCha20PRG
 --
 -- Generating unpredictable stream of bytes is one task that has burnt
 -- the fingers of a lot of programmers. Unfortunately, getting it
--- correct is something of a black art.  Raaz uses a stream cipher
--- (chacha20), initialised with a starting random key/iv. The starting
--- seed is then drawn from the system entropy pool.
+-- correct is something of a black art. The pseudo-random generator in
+-- Raaz uses the chacha20 stream cipher. The internal state of is
+-- initialised from the system entropy source in the beginning and
+-- after every few GB's of random bytes generated. The security of the
+-- PRG thus crucially depends on the system entropy source.  Raaz
+-- currently hides the details of the system entropy source from the
+-- user and exposes a uniform interface across platforms. It strives
+-- to use the best source for the given platform. For example, on
+-- posix systems, raaz uses the @\/dev\/urandom@ for system entropy.
 --
--- TODO: For system entropy we use @\/dev\/urandom@ on a posix systems
--- (no windows support yet). Even on posix systems, depending on
--- underlying operating system, there are better options. The
--- recommended way to generate randomness on an OpenBSD system is
+-- TODO: We do not have Windows support yet. Certain posix systems
+-- offer better sources of entropy than @\/dev\/urandom@. For example,
+-- the recommended way to generate randomness on an OpenBSD system is
 -- through the function `arc4random` (note that arc4random does not
 -- use rc4 cipher anymore).  Recent Linux kernels support the
 -- `getrandom` system call which unfortunately is not yet
 -- popular. These system specific calls are better because they take
 -- into consideration many edge cases like for example
--- @\/dev\/urandom@ not being accessible or protection from interrupts
--- Eventually we will be supporting these calls.
+-- @\/dev\/urandom@ not being accessible or protection from
+-- interrupts. Eventually we will be supporting these calls.
 
 
 -- | A batch of actions on the memory element @mem@ that uses some
