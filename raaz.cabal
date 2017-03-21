@@ -236,6 +236,7 @@ executable raaz
   main-is: Main.hs
   other-modules: Command.Checksum
                , Command.Rand
+               , Usage
   build-depends: base
                , raaz     == 0.1.2
   if impl(ghc < 8)

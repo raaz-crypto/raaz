@@ -43,6 +43,8 @@ be ignored.
 
 > import Raaz     hiding (Result)
 > import Raaz.Hash.Sha1
+> 
+> import qualified Usage as U
 
 
 Verification Tokens
@@ -296,14 +298,6 @@ summarising the changes to the option set.
 
 
 
-The usage message for the program.
-
-> usage :: [String] -> String
-> usage errs
->       | null errs = usageInfo header options
->       | otherwise = "raaz checksum: " ++ unlines errs ++ usageInfo header options
->   where header ="Usage: raaz checksum [OPTIONS] FILE1 FILE2 ..."
-
 
 Parsing the options.
 
@@ -312,9 +306,18 @@ Parsing the options.
 >                    (o,n,[])   -> return (appEndo (mconcat o) defaultOpts, n)
 >                    (_,_,errs) -> errorBailout errs
 
-Bail out with an error message.
 
+
+
+The usage message for the program.
+
+> usageHeader :: String
+> usageHeader = "Usage: raaz checksum [OPTIONS] FILE1 FILE2 ..."
+> 
+> -- | Usage message
+> usage :: [String] -> String
+> usage = U.usage options usageHeader
+>
+> -- | Bail out on error
 > errorBailout :: [String]-> IO a
-> errorBailout errs = do
->   hPutStrLn stderr $ usage errs
->   exitFailure
+> errorBailout = U.errorBailout options usageHeader

@@ -9,13 +9,12 @@ import Data.Monoid
 import Raaz                  (version)
 import System.Console.GetOpt
 import System.Environment
-import System.Exit
-import System.IO
 
 
 
-import Command.Checksum
-import Command.Rand
+import qualified Usage  as U
+import           Command.Checksum
+import           Command.Rand
 
 
 -- The commands know to raaz executable.
@@ -49,16 +48,7 @@ parseOpts args = case getOpt Permute options args of
   (o,[],[])  -> return $ appEndo (mconcat o) defaultOpts
   (_,_,errs) -> errorBailout errs
 
--- The usage message for the program.
-usage :: [String] -> String
-usage errs | null errs = usageInfo header options
-           | otherwise = "raaz: " ++ unlines errs ++ usageInfo header options
-  where header = unlines $ [ "Usage: raaz [COMMAND] [OPTIONS]"
-                           , "       raaz [OPTIONS]"
-                           , ""
-                           , "Supported Commands: "
-                           ] ++ cmds
-        cmds     = map (("\t"++) . fst) commands
+
 
 
 ---------------------- The main function and stuff ------------------------------
@@ -78,9 +68,23 @@ run (Options{..}) = do
   where printHelp    = putStrLn $ usage []
         printVersion = putStrLn $ "raaz: " ++ showVersion version
 
+------------------------------ Usage and error bail out -----------------------------
+
+-- The usage message for the program.
+
+usage :: [String] -> String
+usage = U.usage options usageHeader
+
 
 -- | Bail out on error
 errorBailout :: [String]-> IO a
-errorBailout errs = do
-  hPutStrLn stderr $ usage errs
-  exitFailure
+errorBailout = U.errorBailout options usageHeader
+
+-- | The usage header to print.
+usageHeader :: String
+usageHeader = unlines $ [ "Usage: raaz [COMMAND] [OPTIONS]"
+                        , "       raaz [OPTIONS]"
+                        , ""
+                        , "Supported Commands: "
+                        ] ++ cmds
+  where cmds     = map (("\t"++) . fst) commands

@@ -13,6 +13,8 @@ quality of the randomnes produced.
 > import Text.Read
 > import Prelude
 > import Raaz
+> 
+> import qualified Usage as U
 
 So much bytes generated in one go before writing to stdout.
 
@@ -20,18 +22,6 @@ So much bytes generated in one go before writing to stdout.
 > bufSize = 32 * 1024
 
 
-The usage message for the program.
-
-> usage :: [String] -> String
-> usage errs | null errs = body
->            | otherwise = "raaz: " ++ unlines errs ++ body
->   where body = unlines $ [ "Usage: raaz random [N]"
->                          , "       raaz random [-h|--help]"
->                          , ""
->                          , "Generates never ending stream of cryptographically secure random bytes."
->                          , "With the option integral argument N, stops after generating N bytes."
->                          , "   -h\t--help\tprint this help"
->                          ]
 
 
 The main stuff.
@@ -72,15 +62,34 @@ Generate so many bytes.
 >              | otherwise    =    emitRand m ptr
 
 
-Bail out of errors
-
-> errorBailout errs = do hPutStrLn stderr $ usage errs
->                        exitFailure
-
-
 -- Emit so may random bytes.
 
 > emitRand :: BYTES Int -> Pointer-> RandM ()
 > emitRand m ptr = do
 >   fillRandomBytes m ptr
 >   liftIO $ hPutBuf stdout ptr $ fromIntegral m
+
+
+
+
+
+The usage message for the program.
+
+> usageHeader :: String
+> usageHeader = unlines $ [ "Usage: raaz random [N]"
+>                         , "       raaz random [-h|--help]"
+>                         , ""
+>                         , "Generates never ending stream of cryptographically secure random bytes."
+>                         , "With the option integral argument N, stops after generating N bytes."
+>                         , "   -h\t--help\tprint this help"
+>                         ]
+
+
+> -- | Usage message
+> usage :: [String] -> String
+> usage = U.usage [] usageHeader
+>
+> -- | Bail out on error
+> errorBailout :: [String]-> IO a
+> errorBailout = U.errorBailout [] usageHeader
+
