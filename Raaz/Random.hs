@@ -123,7 +123,7 @@ import Raaz.Random.ChaCha20PRG
 -- to use the best source for the given platform. For example, on
 -- posix systems, raaz uses the @\/dev\/urandom@ for system entropy.
 --
--- TODO: We do not have Windows support yet. Certain posix systems
+-- TODO 1: We do not have Windows support yet. Certain posix systems
 -- offer better sources of entropy than @\/dev\/urandom@. For example,
 -- the recommended way to generate randomness on an OpenBSD system is
 -- through the function `arc4random` (note that arc4random does not
@@ -133,7 +133,10 @@ import Raaz.Random.ChaCha20PRG
 -- into consideration many edge cases like for example
 -- @\/dev\/urandom@ not being accessible or protection from
 -- interrupts. Eventually we will be supporting these calls.
-
+--
+-- TODO 2: Currently the random interface is not thread safe as bytes
+-- maybe repeated across threads. We leave this open till we have a
+-- clear cut use case to build the most efficient api.
 
 -- | A batch of actions on the memory element @mem@ that uses some
 -- randomness.
