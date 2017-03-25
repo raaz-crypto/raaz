@@ -12,7 +12,7 @@
 module Raaz.Core.Types.Tuple
        ( -- * Length encoded tuples
          Tuple, Dimension, dimension, initial, diagonal
-       , repeatM
+       , repeatM, zipWith
          -- ** Unsafe operations
        , unsafeFromList
        ) where
@@ -29,7 +29,7 @@ import qualified Data.Vector.Unboxed as V
 import           GHC.TypeLits
 import           Foreign.Ptr                 ( castPtr, Ptr )
 import           Foreign.Storable            ( Storable(..) )
-import           Prelude hiding              ( length       )
+import           Prelude hiding              ( length, zipWith )
 
 
 import Raaz.Core.Types.Equality
@@ -164,3 +164,13 @@ initial tup = tup0
 diagonal :: (V.Unbox a, Dimension dim) => a -> Tuple dim a
 diagonal a = tup
   where tup = Tuple $ V.replicate (dimension tup) a
+
+
+-- | A zipwith function for tuples
+
+zipWith :: (V.Unbox a, V.Unbox b, V.Unbox c)
+        => (a -> b -> c)
+        -> Tuple dim a
+        -> Tuple dim b
+        -> Tuple dim c
+zipWith f (Tuple at) (Tuple bt)= Tuple $ V.zipWith f at bt
