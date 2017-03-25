@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Raaz.Hash.Blake2bSpec where
+module Raaz.Hash.Blake2Spec where
 
 import           Prelude hiding (replicate)
 
@@ -19,8 +19,8 @@ hmacsTo  = CH.hmacsTo
 
 spec :: Spec
 spec =  do
-
-  basicEndianSpecs (undefined :: BLAKE2b)
+  describe "blake2b" $ basicEndianSpecs (undefined :: BLAKE2b)
+  describe "blake2s" $ basicEndianSpecs (undefined :: BLAKE2s)
 
   {-
   --

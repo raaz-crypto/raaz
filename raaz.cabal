@@ -302,7 +302,7 @@ test-Suite spec
                , Raaz.Hash.Sha256Spec
                , Raaz.Hash.Sha384Spec
                , Raaz.Hash.Sha512Spec
-               , Raaz.Hash.Blake2bSpec
+               , Raaz.Hash.Blake2Spec
 
 
   build-depends: base

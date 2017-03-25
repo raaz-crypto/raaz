@@ -53,6 +53,11 @@ instance Arbitrary SHA384 where
 instance Arbitrary BLAKE2b where
   arbitrary = genEncodable
 
+instance Arbitrary BLAKE2s where
+  arbitrary = genEncodable
+
+---------------- Parameter block for Blake          -------------
+
 ---------------- Arbitrary instaces of encoded data --------------
 
 instance Arbitrary Base16 where
