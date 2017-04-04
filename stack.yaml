@@ -3,7 +3,7 @@
 # machine.
 packages:
 - '.'
-resolver: lts-7.12
+resolver: lts-8.6
 
 flags:
   # Update these flags to best match with your machine for optimal
