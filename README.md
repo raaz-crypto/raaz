@@ -5,6 +5,8 @@ Raaz: A secure networking library in Haskell
 [![In Progress][waffle-inprogress]][waffle-raaz]
 [![Stackage LTS][stackage-lts-raaz-badge]][stackage-lts-raaz]
 [![Stackage Nightly][stackage-nightly-raaz-badge]][stackage-nightly-raaz]
+[![Hackage][hackage-badge]][hackage]
+[![Hackage Dependencies][hackage-deps-badge]][hackage-deps]
 
 
 Raaz is a library for secure network programming. The word `Raaz`
@@ -49,3 +51,8 @@ problems.
 
 [stackage-lts-raaz-badge]: <http://stackage.org/package/raaz/badge/lts>
 [stackage-nightly-raaz-badge]: <http://stackage.org/package/raaz/badge/nightly>
+
+[hackage]:       <https://hackage.haskell.org/package/raaz>
+[hackage-badge]: <https://img.shields.io/hackage/v/raaz.svg>
+[hackage-deps-badge]: <https://img.shields.io/hackage-deps/v/raaz.svg>
+[hackage-deps]: <http://packdeps.haskellers.com/feed?needle=raaz>
