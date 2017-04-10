@@ -66,18 +66,16 @@ Some function for debugging.
 
 # ifdef __GNUC__
 
-typedef Block MyBlock __attribute__ ((aligned (32)));
-
-void raazChaCha20Block(MyBlock * msg, int nblocks, const Key key, const IV iv, Counter  *ctr) __attribute__((optimize("tree-vectorize")));
-
-void raazChaCha20Block(MyBlock * msg, int nblocks, const Key key, const IV iv, Counter  *ctr)
+typedef Block AlignedBlock __attribute__ ((aligned (32)));
+void raazChaCha20Block(AlignedBlock * msg, int nblocks, const Key key, const IV iv, Counter  *ctr) __attribute__((optimize("tree-vectorize")));
 
 # else
 
-void raazChaCha20Block(Block * msg, int nblocks, const Key key, const IV iv, Counter  *ctr)
+typedef Block AlignedBlock;
 
 #endif
 
+void raazChaCha20Block(AlignedBlock * msg, int nblocks, const Key key, const IV iv, Counter  *ctr)
 {
     register Word x0,  x1,  x2, x3;
     register Word x4,  x5,  x6, x7;
