@@ -1,5 +1,5 @@
-Raaz: A secure networking library in Haskell
---------------------------------------------
+Raaz: A secure cryptographic library
+------------------------------------
 
 [![Build Staus][travis-status]][travis-raaz]
 [![In Progress][waffle-inprogress]][waffle-raaz]
@@ -9,10 +9,20 @@ Raaz: A secure networking library in Haskell
 [![Hackage Dependencies][hackage-deps-badge]][hackage-deps]
 
 
-Raaz is a library for secure network programming. The word `Raaz`
-(&#x0930;&#x093E;&#x095B;) stands for secret in Hindi. The aim of this library
-is to provide a haskell interface to existing protocols like ssh and
-tls together with fast implementation of primitives.
+This is the repository of `raaz`, a Haskell library that implements
+some standard cryptographic primitives. This library is the basis on
+which we plan to build a cryptographic framework in Haskell. For
+example, there are plans to implement some common cryptographic
+protocols like `ssh`. Thus applications that require cryptographic
+security, in particular secure networking applications can be built
+out of this.
+
+Raaz is also an attempt to provide better security guarantees by
+making use of Haskell's strong typing. Besides, we put a lot of
+emphasis on better API design and good documentation which, we
+believe, makes the usage of the library secure.
+
+The word `Raaz` (&#x0930;&#x093E;&#x095B;) stands for secret in Hindi.
 
 Hacking and Discussion
 ----------------------
