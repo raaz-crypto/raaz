@@ -1,5 +1,9 @@
 # Change log for [raaz].
 
+## [0.2.0] - Pending
+
+* system entropy: Experimental support for linux getrandom call
+
 ## [0.1.1] - 2nd  March, 2017
 
 * Failing build on big endian machines (#306) fixed.
@@ -9,7 +13,7 @@
 * Stream cipher chacha20 added.
 * Added a PRG that uses chacha20, seeded with system entropy
 * Sha1 highly depreciated in view of reported collision.
-* We now have supper command `raaz` with subcommands
+* We now have super command `raaz` with subcommands
   - `checksum`: as a replacement for the old checksum executable
   - `rand`: for generating random bytes.
 
@@ -47,4 +51,5 @@ This release comes with very little changes.
 [0.0.1]: <http://github.com/raaz-crypto/raaz/releases/tag/v0.0.1>
 [0.0.2]: <http://github.com/raaz-crypto/raaz/releases/tag/v0.0.2>
 [0.1.0]: <http://github.com/raaz-crypto/raaz/releases/tag/v0.1.0>
+[0.1.1]: <http://github.com/raaz-crypto/raaz/releases/tag/v0.1.1>
 [raaz]:  <http://github.com/raaz-crypto/raaz/>
