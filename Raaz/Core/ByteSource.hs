@@ -16,7 +16,7 @@ import           Control.Monad.IO.Class
 import qualified Data.ByteString      as B
 import qualified Data.ByteString.Lazy as L
 import           Prelude hiding(length)
-import           System.IO            (Handle)
+import           System.IO            (Handle, hIsEOF)
 
 import           Raaz.Core.MonoidalAction
 import           Raaz.Core.Types      (BYTES, Pointer, LengthUnit (..))
@@ -45,9 +45,10 @@ import           Raaz.Core.Types.Pointer  (hFillBuf)
 --
 
 -- | This type captures the result of a fill operation.
-data FillResult a = Remaining a           -- ^ the buffer is filled completely
+data FillResult a = Remaining a           -- ^ There is still bytes left.
                   | Exhausted (BYTES Int) -- ^ source exhausted with so much
                                           -- bytes read.
+                    deriving (Show, Eq)
 
 instance Functor FillResult where
   fmap f (Remaining a ) = Remaining $ f a
@@ -65,15 +66,20 @@ withFillResult _            endBy (Exhausted sz) = endBy sz
 
 -- | Abstract byte sources. A bytesource is something that you can use
 -- to fill a buffer.
+--
+--  __WARNING:__ The source is required to return `Exhausted` in the
+-- boundary case where it has exactly the number of bytes
+-- requested. In other words, if the source returns @Remaining@ on any
+-- particular request, there should be at least 1 additional byte left
+-- on the source for the next request. Cryptographic block primitives
+-- have do certain special processing for the last block and it is
+-- required to know whether the last block has been read or not.
 class ByteSource src where
   -- | Fills a buffer from the source.
   fillBytes :: BYTES Int  -- ^ Buffer size
             -> src        -- ^ The source to fill.
             -> Pointer  -- ^ Buffer pointer
             -> IO (FillResult src)
-
---  default fillBytes :: InfiniteSource src => BYTES Int ->  src -> Pointer -> IO (FillResult src)
---  fillBytes sz src pointer = Remaining <$> slurp sz src pointer
 
 -- | A version of fillBytes that takes type safe lengths as input.
 fill :: ( LengthUnit len
@@ -139,15 +145,15 @@ class ByteSource src => PureByteSource src where
 instance ByteSource Handle where
   {-# INLINE fillBytes #-}
   fillBytes sz hand cptr = do
-            count <- hFillBuf hand cptr sz
-            return
-              (if count < sz then Exhausted count
-                             else Remaining hand)
+    count <- hFillBuf hand cptr sz
+    eof   <- hIsEOF hand
+    if eof then return $ Exhausted count
+      else return $ Remaining hand
 
 instance ByteSource B.ByteString where
   {-# INLINE fillBytes #-}
-  fillBytes sz bs cptr | l < sz    = do unsafeCopyToPointer bs cptr
-                                        return $ Exhausted l
+  fillBytes sz bs cptr | l <= sz    = do unsafeCopyToPointer bs cptr
+                                         return $ Exhausted l
                        | otherwise = do unsafeNCopyToPointer sz bs cptr
                                         return $ Remaining rest
        where l    = length bs
@@ -156,7 +162,6 @@ instance ByteSource B.ByteString where
 instance ByteSource L.ByteString where
   {-# INLINE fillBytes #-}
   fillBytes sz bs = fmap (fmap L.fromChunks) . fillBytes sz (L.toChunks bs)
-
 
 instance ByteSource src => ByteSource (Maybe src) where
   {-# INLINE fillBytes #-}
@@ -169,9 +174,13 @@ instance ByteSource src => ByteSource [src] where
   fillBytes sz (x:xs) cptr = do
     result <- fillBytes sz x cptr
     case result of
-      Exhausted rbytes -> let nptr = rbytes <.> cptr
-                          in  fillBytes (sz - rbytes) xs nptr
       Remaining nx     -> return $ Remaining $ nx:xs
+      Exhausted bytesX -> let nptr              = bytesX <.> cptr
+                              whenXSExhausted bytesXS = return $ Exhausted $ bytesX + bytesXS
+                              whenXSRemains           = return . Remaining
+                           in fillBytes (sz - bytesX) xs nptr
+                              >>= withFillResult whenXSRemains whenXSExhausted
+
 
 --------------------- Instances of pure byte source --------------------
 
