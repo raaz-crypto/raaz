@@ -32,10 +32,7 @@ import           Raaz.Core.Types.Pointer  (hFillBuf)
 -- network sockets or might be just a string in the Haskell. To give a
 -- uniform interfaces for all such inputs, we define the abstract
 -- concept of a /byte source/. Essentially a byte source is one from
--- which we can fill a buffer with bytes. Depending on the nature of
--- the source we have two classes: `ByteSource` which captures bounded
--- sources and `InfiniteSource` that captures never ending source of
--- bytes.
+-- which we can fill a buffer with bytes.
 --
 -- Among instances of `ByteSource`, some like for example
 -- `B.ByteString` are /pure/ in the sense filling a buffer with bytes
@@ -91,30 +88,6 @@ fill :: ( LengthUnit len
      -> IO (FillResult src)
 fill = fillBytes . inBytes
 {-# INLINE fill #-}
-
-{--
-
--- | Never ending stream of bytes. The reads to the stream might get
--- delayed but it will always return the number of bytes that were
--- asked for.
-class InfiniteSource src where
-  slurpBytes :: BYTES Int -- ^ bytes to read,
-             -> src       -- ^ the source to fill from,
-             -> Pointer   -- ^ the buffer source to fill.
-             -> IO src
-
-
--- | A version of slurp that takes type safe lengths as input.
-slurp :: ( LengthUnit len
-         , InfiniteSource src
-         )
-       => len
-       -> src
-       -> Pointer
-       -> IO src
-slurp = slurpBytes . inBytes
-
---}
 
 -- | Process data from a source in chunks of a particular size.
 processChunks :: ( MonadIO m, LengthUnit chunkSize, ByteSource src)
