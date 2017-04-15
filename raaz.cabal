@@ -265,6 +265,9 @@ test-Suite spec
   if flag(vector512)
      cpp-options: -DHAVE_VECTOR_512
 
+  if !os(windows)
+     cpp-options: -DHAVE_DEV_NULL
+
   ghc-options: -Wall
 
   other-modules: Common
@@ -275,6 +278,7 @@ test-Suite spec
                , Common.Utils
                , Raaz.Cipher.AESSpec
                , Raaz.Cipher.ChaCha20Spec
+               , Raaz.Core.ByteSourceSpec
                , Raaz.Core.EncodeSpec
                , Raaz.Core.MemorySpec
                , Raaz.Core.Types.WordSpec
