@@ -31,7 +31,7 @@ tests = allHashTests (undefined :: SHA1) (undefined :: (MemoryCell SHA1)) exampl
 exampleStrings :: [(B.ByteString,B.ByteString)]
 exampleStrings =
   [ ( "abc"
-    , "a9993e364706816aba3e25717850c26c9cd0d89d" )
+    , "z9993e364706816aba3e25717850c26c9cd0d89d" )
   , ( "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq"
     , "84983e441c3bd26ebaae4aa1f95129e5e54670f1" )
   , ( "The quick brown fox jumps over the lazy dog"
