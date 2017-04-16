@@ -2,6 +2,10 @@ language: c
 sudo: false
 notifications:
   irc: "irc.freenode.net#haskell-raaz"
+  on_success: always
+  on_failure: always
+  use_notice: false
+  skip_join: false
 
 # Setting up caches
 before-cache:
