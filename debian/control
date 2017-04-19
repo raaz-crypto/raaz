@@ -1,0 +1,88 @@
+Source: haskell-raaz
+Maintainer: Debian Haskell Group <pkg-haskell-maintainers@lists.alioth.debian.org>
+Priority: extra
+Section: haskell
+Build-Depends: debhelper (>= 9),
+ haskell-devscripts (>= 0.9),
+ cdbs,
+ ghc,
+ ghc-prof,
+ libghc-mtl-dev (>= 2.1),
+ libghc-mtl-dev (<< 2.3),
+ libghc-mtl-prof,
+ libghc-vector-dev (>= 0.7.1),
+ libghc-vector-dev (<< 0.12),
+ libghc-vector-prof,
+ libghc-hunit-dev (>= 1.2),
+ libghc-quickcheck2-dev (>= 2.4),
+ libghc-hspec-dev,
+ libghc-vector-dev,
+Build-Depends-Indep: ghc-doc,
+ libghc-mtl-doc,
+ libghc-vector-doc,
+Standards-Version: 3.9.6
+Homepage: http://github.com/raaz-crypto/raaz
+Vcs-Browser: http://darcs.debian.org/cgi-bin/darcsweb.cgi?r=pkg-haskell/haskell-raaz
+Vcs-Darcs: http://darcs.debian.org/pkg-haskell/haskell-raaz
+X-Description: The raaz cryptographic library.
+ Raaz is a cryptographic network library for Haskell
+ designed to use strong typing to eliminate some common errors that
+ occur in cryptographic settings like side channel attacks. This
+ package implements basic types and cryptographic primitives like
+ hashes, macs etc. Actual network protocols are expected to use this
+ library. Common abstractions like for example packet parsing should
+ be part of this library.
+
+Package: libghc-raaz-dev
+Architecture: any
+Depends: ${haskell:Depends},
+ ${misc:Depends},
+ ${shlibs:Depends},
+Recommends: ${haskell:Recommends},
+Suggests: ${haskell:Suggests},
+Conflicts: ${haskell:Conflicts},
+Provides: ${haskell:Provides},
+Description: ${haskell:ShortDescription}${haskell:ShortBlurb}
+ ${haskell:LongDescription}
+ .
+ ${haskell:Blurb}
+
+Package: libghc-raaz-prof
+Architecture: any
+Depends: ${haskell:Depends},
+ ${misc:Depends},
+Recommends: ${haskell:Recommends},
+Suggests: ${haskell:Suggests},
+Conflicts: ${haskell:Conflicts},
+Provides: ${haskell:Provides},
+Description: ${haskell:ShortDescription}${haskell:ShortBlurb}
+ ${haskell:LongDescription}
+ .
+ ${haskell:Blurb}
+
+Package: libghc-raaz-doc
+Architecture: all
+Section: doc
+Depends: ${haskell:Depends},
+ ${misc:Depends},
+Recommends: ${haskell:Recommends},
+Suggests: ${haskell:Suggests},
+Conflicts: ${haskell:Conflicts},
+Description: ${haskell:ShortDescription}${haskell:ShortBlurb}
+ ${haskell:LongDescription}
+ .
+ ${haskell:Blurb}
+
+Package: haskell-raaz-utils
+Architecture: any
+Section: misc
+Depends: ${haskell:Depends},
+ ${misc:Depends},
+Recommends: ${haskell:Recommends},
+Suggests: ${haskell:Suggests},
+Conflicts: ${haskell:Conflicts},
+Provides: ${haskell:Provides},
+Description: ${haskell:ShortDescription}${haskell:ShortBlurb}
+ ${haskell:LongDescription}
+ .
+ ${haskell:Blurb}
