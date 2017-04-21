@@ -20,6 +20,7 @@ category:      Codec, Raaz
 build-type:    Simple
 cabal-version: >=1.10
 
+extra-source-files: CHANGELOG.md
 
 bug-reports: https://github.com/raaz-crypto/raaz/issues
 
