@@ -206,6 +206,16 @@ library
 
   ----------------------- System specific configurations ----------------------------------
 
+
+  if os(linux)
+     cc-options: -DPLATFORM_LINUX
+  if os(osx)
+     cc-options: -DPLATFORM_OSX
+  if os(openbsd)
+     cc-options: -DPLATFORM_OPENBSD
+
+  ---------------- Stuff for posix systems. ------------------------------------
+
   if !os(windows)
 
      cpp-options: -DHAVE_MLOCK
@@ -222,10 +232,6 @@ library
         else
            -- Entropy for generic posix by reading /dev/urandom
            hs-source-dirs: entropy/urandom
-
-  if os(osx)
-     -- Endian coversion code is different for osx.
-     cc-options: -DPLATFORM_OSX
 
 
 ---------------------------- Executables -------------------------------------------------
