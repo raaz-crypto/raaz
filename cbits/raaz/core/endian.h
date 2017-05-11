@@ -48,10 +48,15 @@ extern uint64_t raaz_tole64(uint64_t x);
      static inline uint32_t raaz_bswap32(uint32_t x){ return OSSwapInt32(x); }
      static inline uint64_t raaz_bswap64(uint64_t x){ return OSSwapInt64(x); }
 
-#  else /* For other systems */
+#  elif PLATFORM_LINUX
 #    include <byteswap.h>
      static inline uint32_t raaz_bswap32(uint32_t x){ return bswap_32(x); }
      static inline uint64_t raaz_bswap64(uint64_t x){ return bswap_64(x); }
+
+#  else  /* All platforms */
+#    include <endian.h>
+     static inline uint32_t raaz_bswap32(uint32_t x){ return swap32(x); }
+     static inline uint64_t raaz_bswap64(uint64_t x){ return swap64(x); }
 #  endif
 
 #  if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
