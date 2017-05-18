@@ -65,6 +65,11 @@ flag linux-getrandom
      Default: False
      Manual: True
 
+flag liquidhaskell
+     Description: Use liquid haskell form verifying properties. Only for developers.
+     Default: False
+     Manual: True
+
 ----------------------------- The library -----------------------------------------------------
 
 library
@@ -300,6 +305,24 @@ test-Suite spec
                , transformers
                , raaz                           == 0.1.2
                , vector
+
+-------------------------- Liquid haskell verification -------------------------------------
+
+test-Suite liquidspec
+  hs-source-dirs: liquid
+  default-language: Haskell2010
+  main-is: LiquidSpec.hs
+  type: exitcode-stdio-1.0
+  build-depends: base
+
+
+  if flag(liquidhaskell)
+    build-depends: liquidhaskell                >=0.8
+                 , directory
+                 , filepath
+    buildable: True
+  else
+    buildable: False
 
 ---------------------------------------------- Bench marks -----------------------------------------
 
