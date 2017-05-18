@@ -1,0 +1,23 @@
+resolver: nightly-2017-05-18
+compiler-check: newer-minor
+packages:
+
+explicit-setup-deps:
+  "*": true
+extra-deps:
+  - liquidhaskell-0.8.0.0
+  - liquid-fixpoint-0.6.0.1
+  - located-base-0.1.1.0
+  - dotgen-0.4.2
+  - fgl-visualize-0.1.0.1
+  - intern-0.9.1.4
+  - aeson-0.11.3.0
+
+flags:
+  # Update these flags to best match with your machine for optimal
+  # performance. Can lead to dramatic improvement of speed but needs
+  # to be carefully verified. Bad things can happen if the machine
+  # does not support the features that you enable here.
+  raaz:
+    opt-native: true
+    liquidhaskell: true
