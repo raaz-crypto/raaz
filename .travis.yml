@@ -77,10 +77,6 @@ before_install:
       exit $?;
    fi
 
- - if [ "$LIQUID" == "yes"] ; then
-      stack test  raaz:liquidspec --stack-yaml stack-liquidhaskell.yaml;
-      exit $?;
-   fi
 
  - if [ "$STACK" == "yes" ]; then
       export BUILDCMD="stack $RESOLVER --stack-yaml stack-travis.yaml";
@@ -107,6 +103,10 @@ install:
     fi
 
 script:
+  - if [ "$LIQUID" == "yes"] ; then
+      stack test  raaz:liquidspec --stack-yaml stack-liquidhaskell.yaml;
+      exit $?;
+     fi
   - if [ "$BUILDCMD" == "cabal" ]; then cabal configure --enable-tests; fi
   - $BUILDCMD build
   - $BUILDCMD test
