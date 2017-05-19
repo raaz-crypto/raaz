@@ -30,6 +30,7 @@ addons:
       - cabal-install-head
       - cabal-install-1.20  # For debain8
       - hlint
+      - z3
     sources: [hvr-ghc, fpcomplete-precise]
 
 matrix:
