@@ -30,7 +30,6 @@ addons:
       - cabal-install-head
       - cabal-install-1.20  # For debain8
       - hlint
-      - z3
     sources: [hvr-ghc, fpcomplete-precise]
 
 matrix:
@@ -63,7 +62,7 @@ matrix:
       env: HLINT="yes"
 
     # Run liquid haskell checks.
-    - os: linux
+    - os: osx  # Because linux version on travis does not have z3 yet.
       env: STACK="yes" LIQUID="yes"
 
   allow_failures:
@@ -92,8 +91,8 @@ before_install:
       wget https://raw.githubusercontent.com/hvr/multi-ghc-travis/master/collections/cabal.project."$HVR_COLLECTION" -O cabal.config ;
    fi
  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew update; fi
- - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install ghc cabal-install; fi
- - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew info ghc cabal-install; fi
+ - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install ghc cabal-install z3; fi
+ - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew info ghc cabal-install z3 ; fi
 
 install:
  - $BUILDCMD --version
