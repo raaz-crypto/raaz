@@ -61,9 +61,14 @@ matrix:
     - os: linux
       env: HLINT="yes"
 
+    # Run liquid haskell checks.
+    - os: linux
+      env: LIQUID="yes"
+
   allow_failures:
     - env: GHCVER=head CABALVER=head
     - env: HLINT="yes"
+    - env: LIQUID="yes"
 
 before_install:
  - if [ "$HLINT" == "yes" ]; then
@@ -71,6 +76,10 @@ before_install:
       exit $?;
    fi
 
+ - if [ "$LIQUID" == "yes"] ; then
+      stack test  raaz:liquidspec --stack-yaml stack-liquidhaskell.yaml;
+      exit $?;
+   fi
 
  - if [ "$STACK" == "yes" ]; then
       export BUILDCMD="stack $RESOLVER --stack-yaml stack-travis.yaml";
