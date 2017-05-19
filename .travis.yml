@@ -64,12 +64,12 @@ matrix:
 
     # Run liquid haskell checks.
     - os: linux
-      env: LIQUID="yes"
+      env: STACK="yes" LIQUID="yes"
 
   allow_failures:
     - env: GHCVER=head CABALVER=head
     - env: HLINT="yes"
-    - env: LIQUID="yes"
+    - env: STACK="yes" LIQUID="yes"
 
 before_install:
  - if [ "$HLINT" == "yes" ]; then
