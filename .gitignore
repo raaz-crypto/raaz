@@ -8,3 +8,5 @@ TAGS
 .hpc
 cabal.sandbox.config
 .stack-work
+.liquid
+*.s

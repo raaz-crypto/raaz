@@ -11,7 +11,7 @@ import Data.String
 
 import Data.ByteString as B
 import Data.ByteString.Char8 as C8
-import Data.ByteString.Internal (c2w )
+import Data.ByteString.Internal (c2w)
 
 import Data.ByteString.Unsafe(unsafeIndex)
 import Data.Monoid
@@ -63,8 +63,13 @@ instance Format Base16 where
   decodeFormat     = unBase16
   {-# INLINE decodeFormat #-}
 
--- TODO: Since the encoding to base16 is usually used for user interaction
+-- Since the encoding to base16 is usually used for user interaction
 -- we can afford to be slower here.
+--
+-- TODO (Liquid Haskell)
+--
+{--@ hex :: inp:ByteString -> { bs : ByteString | bslen bs = 2 * bslen inp } @-}
+--
 hex :: ByteString -> ByteString
 hex  bs = fst $ B.unfoldrN (2 * B.length bs) gen 0
     where gen i | rm == 0   = Just (hexDigit $ top4 w, i+1)

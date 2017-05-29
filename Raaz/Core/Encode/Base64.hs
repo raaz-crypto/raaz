@@ -33,16 +33,11 @@ instance Encodable Base64 where
   fromByteString bs
     | B.null bs                = Just $ Base64 B.empty
     | B.length bs `rem` 4 /= 0 = Nothing
-    | badCharacter bs'         = Nothing
-    | not (isB64OrPad pl)      = Nothing
-    | not (isB64OrPad pf)      = Nothing
-    | otherwise                = Just $ Base64 $ unsafeFromB64 bs
-    where pl           = C8.last bs
-          pf           = C8.last $ C8.init bs
-          bs'          = C8.init $ C8.init bs
-          badCharacter = C8.any (not . isB64Char)
-          isB64Char c  = isAlpha c || isDigit c || c == '+' || c == '/'
-          isB64OrPad c = isB64Char c || c == '='
+    | okeyPad                  = Just $ Base64 $ unsafeFromB64 bs
+    | otherwise                = Nothing
+    where padPart     = C8.dropWhile isB64Char bs
+          okeyPad     = padPart == C8.empty || padPart == C8.singleton '=' || padPart == C8.pack "=="
+          isB64Char c = isAlpha c || isDigit c || c == '+' || c == '/'
 
   unsafeFromByteString bs | B.null bs = Base64 B.empty
                           | otherwise = Base64 $ unsafeFromB64 bs
@@ -111,8 +106,15 @@ unB64 w | c2w 'A' <= w && w <= c2w 'Z' = w - c2w 'A'
         | otherwise                    = error $ "oops unB64:" ++ [w2c w]
 
 
--- TODO: Since the encoding to base16 is usually used for user interaction
+
+
+-- Since the encoding to base16 is usually used for user interaction
 -- we can afford to be slower here.
+
+-- TODO (Liquid Haskell)
+--
+{--@ toB64 :: ByteString -> { bs : ByteString | (bslen bs) mod 4 == 0 @-}
+--
 toB64 :: ByteString -> ByteString
 toB64 bs = fst (B.unfoldrN (4*n) gen 0) <> padding
     where gen i    = Just (byte i, i + 1)
