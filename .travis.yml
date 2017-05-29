@@ -63,12 +63,12 @@ matrix:
 
     # Run liquid haskell checks.
     - os: osx  # Because linux version on travis does not have z3 yet.
-      env: STACK="yes" LIQUID="yes"
+      env: LIQUID="yes" GHCVER=8.0.2 CABALVER=1.24
 
   allow_failures:
     - env: GHCVER=head CABALVER=head
     - env: HLINT="yes"
-    - env: STACK="yes" LIQUID="yes"
+    - env: LIQUID="yes" GHCVER=8.0.2 CABALVER=1.24
 
 before_install:
  - if [ "$HLINT" == "yes" ]; then
@@ -87,6 +87,10 @@ before_install:
       export BUILDCMD="cabal";
    fi
 
+ - if [ "$LIQUID" == "yes" ]; then
+      export LIQUIDFLAGS=--flags=liquidhaskell;
+   fi
+
  - if [ "$HVR_COLLECTION" != "" ]; then
       wget https://raw.githubusercontent.com/hvr/multi-ghc-travis/master/collections/cabal.project."$HVR_COLLECTION" -O cabal.config ;
    fi
@@ -98,12 +102,12 @@ install:
  - $BUILDCMD --version
  - if [ "$BUILDCMD" == "cabal" ]; then
       travis_retry cabal update;
-      cabal install --only-dependencies --enable-tests;
+      cabal install --only-dependencies --enable-tests $LIQUIDFLAGS;
     fi
 
 script:
   - if [ "$LIQUID" == "yes"] ; then
-      stack test  raaz:liquidspec --stack-yaml stack-liquidhaskell.yaml;
+      cabal raaz:liquidspec --stack-yaml stack-liquidhaskell.yaml;
       exit $?;
      fi
   - if [ "$BUILDCMD" == "cabal" ]; then cabal configure --enable-tests; fi
