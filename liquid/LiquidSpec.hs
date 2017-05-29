@@ -7,7 +7,7 @@ import System.FilePath
 -- | Liquid haskell is run on these files/directors. If the given name
 -- is a directory we recurse on all .hs/.lhs files in that directory.
 toCheck :: [FilePath]
-toCheck = [ "Raaz/Core"
+toCheck = [ "Raaz/Core/Encode"
           ]
 
 main :: IO ()
