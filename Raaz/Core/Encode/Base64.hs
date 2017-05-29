@@ -106,8 +106,15 @@ unB64 w | c2w 'A' <= w && w <= c2w 'Z' = w - c2w 'A'
         | otherwise                    = error $ "oops unB64:" ++ [w2c w]
 
 
--- TODO: Since the encoding to base16 is usually used for user interaction
+
+
+-- Since the encoding to base16 is usually used for user interaction
 -- we can afford to be slower here.
+
+-- TODO (Liquid Haskell)
+--
+{--@ toB64 :: ByteString -> { bs : ByteString | (bslen bs) mod 4 == 0 @-}
+--
 toB64 :: ByteString -> ByteString
 toB64 bs = fst (B.unfoldrN (4*n) gen 0) <> padding
     where gen i    = Just (byte i, i + 1)
