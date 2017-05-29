@@ -39,9 +39,11 @@ newtype Base16 = Base16 {unBase16 :: ByteString} deriving (Eq, Monoid)
 
 instance Encodable Base16 where
   toByteString          = hex . unBase16
-  fromByteString        = fromByteStringStrict   . ignoreChars
-  unsafeFromByteString  = Base16 . unsafeFromHex . ignoreChars
-
+  fromByteString        = fromByteStringStrict . ignoreChars
+  unsafeFromByteString bs
+    | B.length bsP `mod` 2 /= 0 = error "base16 encoding is always of even size"
+    | otherwise                 = Base16 $ unsafeFromHex bsP
+    where bsP = ignoreChars bs
 
 instance Show Base16 where
   show = C8.unpack . toByteString
@@ -79,9 +81,9 @@ ignoreChars = C8.filter (not . useless)
 
 fromByteStringStrict :: ByteString -> Maybe Base16
 fromByteStringStrict bs
-  | odd (B.length bs) = Nothing
-  | validInput bs     = Just $ Base16 $ unsafeFromHex bs
-  | otherwise         = Nothing
+  | B.length bs `mod` 2 /= 0 = Nothing
+  | validInput bs            = Just $ Base16 $ unsafeFromHex bs
+  | otherwise                = Nothing
   where validInput  = C8.all isHexDigit
 
 hexDigit :: Word8 -> Word8
@@ -91,11 +93,9 @@ hexDigit x | x < 10    = c2w '0' + x
 top4 :: Word8 -> Word8; top4 x  = x `shiftR` 4
 bot4 :: Word8 -> Word8; bot4 x  = x  .&. 0x0F
 
-
+{-@ unsafeFromHex :: {bs : ByteString | (bslen bs) mod 2 == 0 } -> ByteString @-}
 unsafeFromHex :: ByteString -> ByteString
-unsafeFromHex bs
-  | odd (B.length bs) = error "base16 encoding is always of even size"
-  | otherwise         = fst $ B.unfoldrN len gen 0
+unsafeFromHex bs = fst $ B.unfoldrN len gen 0
   where len   = B.length bs `quot` 2
         gen i = Just (shiftL w0 4 .|. w1, i + 1)
           where w0 = fromHexWord $ unsafeIndex bs (2 * i)
