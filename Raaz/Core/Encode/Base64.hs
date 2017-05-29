@@ -33,16 +33,11 @@ instance Encodable Base64 where
   fromByteString bs
     | B.null bs                = Just $ Base64 B.empty
     | B.length bs `rem` 4 /= 0 = Nothing
-    | badCharacter bs'         = Nothing
-    | not (isB64OrPad pl)      = Nothing
-    | not (isB64OrPad pf)      = Nothing
-    | otherwise                = Just $ Base64 $ unsafeFromB64 bs
-    where pl           = C8.last bs
-          pf           = C8.last $ C8.init bs
-          bs'          = C8.init $ C8.init bs
-          badCharacter = C8.any (not . isB64Char)
-          isB64Char c  = isAlpha c || isDigit c || c == '+' || c == '/'
-          isB64OrPad c = isB64Char c || c == '='
+    | okeyPad                  = Just $ Base64 $ unsafeFromB64 bs
+    | otherwise                = Nothing
+    where padPart     = C8.dropWhile isB64Char bs
+          okeyPad     = padPart == C8.empty || padPart == C8.singleton '=' || padPart == C8.pack "=="
+          isB64Char c = isAlpha c || isDigit c || c == '+' || c == '/'
 
   unsafeFromByteString bs | B.null bs = Base64 B.empty
                           | otherwise = Base64 $ unsafeFromB64 bs
