@@ -39,14 +39,8 @@ newtype Base16 = Base16 {unBase16 :: ByteString} deriving (Eq, Monoid)
 
 instance Encodable Base16 where
   toByteString          = hex . unBase16
-
-  fromByteString bs
-    | odd (B.length bs) = Nothing
-    | badCharacter bs   = Nothing
-    | otherwise         = Just $ Base16 $ unsafeFromHex bs
-    where badCharacter  = C8.any (not . isHexDigit)
-
-  unsafeFromByteString  = Base16 . unsafeFromHex
+  fromByteString        = fromByteStringStrict   . ignoreChars
+  unsafeFromByteString  = Base16 . unsafeFromHex . ignoreChars
 
 
 instance Show Base16 where
@@ -77,6 +71,19 @@ hex  bs = fst $ B.unfoldrN (2 * B.length bs) gen 0
             where (idx, rm) = quotRem i 2
                   w         = unsafeIndex bs idx
 
+
+
+ignoreChars :: ByteString -> ByteString
+ignoreChars = C8.filter (not . useless)
+  where useless c = isSpace c || c == ':'
+
+fromByteStringStrict :: ByteString -> Maybe Base16
+fromByteStringStrict bs
+  | odd (B.length bs) = Nothing
+  | validInput bs     = Just $ Base16 $ unsafeFromHex bs
+  | otherwise         = Nothing
+  where validInput  = C8.all isHexDigit
+
 hexDigit :: Word8 -> Word8
 hexDigit x | x < 10    = c2w '0' + x
            | otherwise = c2w 'a' + (x - 10)
@@ -86,11 +93,7 @@ bot4 :: Word8 -> Word8; bot4 x  = x  .&. 0x0F
 
 
 unsafeFromHex :: ByteString -> ByteString
-unsafeFromHex  = unsafeFromHexP . C8.filter (not . useless)
-  where useless c = isSpace c || c == ':'
-
-unsafeFromHexP :: ByteString -> ByteString
-unsafeFromHexP bs
+unsafeFromHex bs
   | odd (B.length bs) = error "base16 encoding is always of even size"
   | otherwise         = fst $ B.unfoldrN len gen 0
   where len   = B.length bs `quot` 2
