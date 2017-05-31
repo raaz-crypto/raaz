@@ -94,7 +94,7 @@ import Raaz.Random.ChaCha20PRG
 -- around.
 --
 -- The solution is to use an auxiliary memory element of type `mem` to
--- keep such private information and use the monad`RT mem`. Random
+-- keep such private information and use the monad @`RT` mem@. Random
 -- data can be filled into the memory by using the low level routine
 -- `fillRandomBytes` to fill the memory. Given below is a skeleton for
 -- it.
