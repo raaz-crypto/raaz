@@ -212,13 +212,6 @@ onSubMemory :: (mem -> submem) -- ^ Projection from the compound element
             -> MT mem    a
 onSubMemory proj mt' = execute $ unMT mt' . proj
 
-{-# DEPRECATED liftSubMT "use onSubMemory instead" #-}
--- | Alternate name for onSubMemory.
-liftSubMT :: (mem -> submem)
-          -> MT submem a
-          -> MT mem    a
-liftSubMT = onSubMemory
-
 
 instance Functor (MT mem) where
   fmap f mst = MT $ \ m -> f <$> unMT mst m

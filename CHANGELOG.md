@@ -3,6 +3,7 @@
 ## [0.2.0] - Pending
 
 * system entropy: Experimental support for linux getrandom call
+* removed depreciated `liftSubMT` from Memory.
 
 ## [0.1.1] - 2nd  March, 2017
 
