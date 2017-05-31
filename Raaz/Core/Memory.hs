@@ -34,7 +34,6 @@ module Raaz.Core.Memory
        , liftPointerAction
        -- ** Generic memory monads.
        , MonadMemory(..)
-       , MemoryM, runMT
        -- ** Memory allocation
        ,  Alloc, pointerAlloc
        ) where
@@ -232,45 +231,6 @@ instance Memory mem => MonadMemory (MT mem) where
 
   securely   = withSecureMemory . unMT
   insecurely = withMemory       . unMT
-
--- | A runner of a memory state thread.
-type    Runner mem b = MT mem b -> IO b
-
--- | A memory action that uses some sort of memory element
--- internally.
-newtype MemoryM a = MemoryM
-   { unMemoryM :: (forall mem b. Memory mem => Runner mem b) -> IO a }
-
-
-instance Functor MemoryM where
-  fmap f mem = MemoryM $ \ runner -> f <$> unMemoryM mem runner
-
-instance Applicative MemoryM where
-  pure  x       = MemoryM $ \ _ -> return x
-  -- Beware: do not follow the hlint suggestion. The ugly definition
-  -- is to avoid usage of impredicative polymorphism.
-
-  memF <*> memA = MemoryM $ \ runner ->  unMemoryM memF runner <*> unMemoryM memA runner
-
-instance Monad MemoryM where
-  return = pure
-  memA >>= f    = MemoryM $ \ runner -> do a <- unMemoryM memA runner
-                                           unMemoryM (f a) runner
-
-instance MonadIO MemoryM where
-  liftIO io = MemoryM $ \ _ -> io
-  -- Beware: do not follow the hlint suggestion. The ugly definition
-  -- is to avoid usage of impredicative polymorphism.
-
-instance MonadMemory MemoryM  where
-
-  securely   mem = unMemoryM mem securely
-  insecurely mem = unMemoryM mem insecurely
-
-
--- | Run the memory thread to obtain a memory action.
-runMT :: Memory mem => MT mem a -> MemoryM a
-runMT mem = MemoryM $ \ runner -> runner mem
 
 ------------------------ A memory allocator -----------------------
 
