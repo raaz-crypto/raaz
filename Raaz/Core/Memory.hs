@@ -28,7 +28,7 @@ module Raaz.Core.Memory
        -- *** A basic memory cell.
        , MemoryCell, withCellPointer, getCellPointer
        -- *** Actions on memory elements.
-       , MT,  execute, getMemory, onSubMemory, liftSubMT,  modify
+       , MT,  execute, getMemory, onSubMemory, modify
        -- **** Some low level `MT` actions.
 
        , liftPointerAction
