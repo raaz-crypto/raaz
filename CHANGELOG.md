@@ -4,6 +4,9 @@
 
 * system entropy: Experimental support for linux getrandom call
 * removed depreciated `liftSubMT` from Memory.
+* Got rid of the class `MemoryMonad`, instead introduced a more specific
+  `MemoryThread`. This allows to treat monads like `RT mem` much like
+  `MT mem`, including possibility of running an action on a sub-memory.
 
 ## [0.1.1] - 2nd  March, 2017
 
