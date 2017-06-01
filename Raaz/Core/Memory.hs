@@ -271,7 +271,7 @@ class Memory m where
 data VoidMemory = VoidMemory { unVoidMemory :: Pointer  }
 
 instance Memory VoidMemory where
-  memoryAlloc      = makeAlloc (0 :: BYTES Int) $ VoidMemory
+  memoryAlloc      = makeAlloc (0 :: BYTES Int) VoidMemory
   unsafeToPointer  = unVoidMemory
 
 

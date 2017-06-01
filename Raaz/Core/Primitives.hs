@@ -75,7 +75,7 @@ allocBufferFor :: Primitive prim
                -> BLOCKS prim
                -> (Pointer -> IO b)
                -> IO b
-allocBufferFor imp l  = allocaAligned (bufferStartAlignment imp) l
+allocBufferFor imp  = allocaAligned $ bufferStartAlignment imp
 
 -- | Some primitives like ciphers have an encryption/decryption key. This
 -- type family captures the key associated with a primitive if it has

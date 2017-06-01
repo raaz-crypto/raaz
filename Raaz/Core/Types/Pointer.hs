@@ -169,7 +169,7 @@ atLeastAligned l a = n + pad - 1
   where n = atLeast l
         -- Alignment adjusted to word boundary.
         algn = wordAlignment   <> a
-        pad  = atLeast $ BYTES  $ unAlignment $ algn
+        pad  = atLeast $ BYTES  $ unAlignment algn
 
 
 -- | Express length unit @src@ in terms of length unit @dest@ rounding

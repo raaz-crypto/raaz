@@ -66,7 +66,7 @@ seed = do onSubMemory counterCell $ initialise (0 :: Counter)
 -- bytes.
 seedIfReq :: MT ChaCha20Mem ()
 seedIfReq = do c <- onSubMemory counterCell extract
-               when (c > maxCounterVal) $ seed
+               when (c > maxCounterVal) seed
 
 
 --------------------------- DANGEROUS CODE ---------------------------------------
@@ -102,7 +102,7 @@ fillRandomBytesMT l = go (inBytes l)
 fillExistingBytes :: BYTES Int -> Pointer -> MT RandomState (BYTES Int)
 fillExistingBytes m ptr = do
   r <- getRemainingBytes
-  withAuxBuffer $ \ sptr -> do
+  withAuxBuffer $ \ sptr ->
     if r <= m then do memcpy (destination ptr) (source sptr) r -- read the entire stuff.
                       newSample
                       return r
