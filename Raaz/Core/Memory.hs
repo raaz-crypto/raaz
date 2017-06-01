@@ -20,21 +20,22 @@ module Raaz.Core.Memory
        -- * The Memory subsystem.
        -- $memorysubsystem$
 
-       -- ** Initialisation and Extraction.
-       -- $init-extract$
+       -- ** Memory elements.
          Memory(..), VoidMemory, copyMemory
+       -- *** Initialisation and Extraction.
+       -- $init-extract$
        , Initialisable(..), Extractable(..)
        , InitialisableFromBuffer(..), ExtractableToBuffer(..)
        -- *** A basic memory cell.
        , MemoryCell, withCellPointer, getCellPointer
-       -- *** Actions on memory elements.
-       , MT,  execute, getMemory, onSubMemory, modify
+
+       -- ** Memory threads.
+       , MemoryThread(..), doIO , getMemory, modify, execute
+       , MT
        -- **** Some low level `MT` actions.
 
        , liftPointerAction
-       -- ** Generic memory monads.
-       , MonadMemory(..)
-       , MemoryM, runMT
+
        -- ** Memory allocation
        ,  Alloc, pointerAlloc
        ) where
@@ -50,12 +51,16 @@ import           Raaz.Core.Types
 -- $memorysubsystem$
 --
 -- Cryptographic operations often need to keep sensitive information
--- in its memory space. If this memory is swapped out to the disk,
--- this can be dangerous. The primary purpose of the memory subsystem
--- is to provide a way to allocate and manage /secure memory/,
--- i.e. memory that will not be swapped out as long as the memory is
--- used and will be wiped clean after use. There are there important
--- parts to the memory subsystem:
+-- like private keys in its memory space. Such sensitive information
+-- can leak to the external would if the memory where the data is
+-- stored is swapped out to a disk. What makes this particularly
+-- dangerous is that the data can reside on the disk almost
+-- permanently and might even survive when the hardware is
+-- scrapped. The primary purpose of the memory subsystem is to provide
+-- a way to allocate and manage /secure memory/, i.e. memory that will
+-- not be swapped out as long as the memory is used and will be wiped
+-- clean after use. There are there important parts to the memory
+-- subsystem:
 --
 -- [The `Memory` type class:] A memory element is some type that holds
 -- an internal buffer inside it.
@@ -71,15 +76,12 @@ import           Raaz.Core.Types
 -- type from its components in a modular fashion _without_ explicit
 -- size calculation or offset computation.
 --
--- [The `MonadMemory` class:] Instances of this class are actions that
--- use some kind of memory elements inside it. Any such monad can
--- either be run using the combinator `securely` or the combinator
--- `insecurely`. If one use the combinator `securely`, then the
--- allocation of the memory element to be used by the action is done
--- using a locked memory pool which is wiped clean before
--- de-allocation. The types `MT` and `MemoryM` are two instances that
--- we expose from this library.
---
+-- [`MemoryThread`s:] Instances of this class are actions that use
+-- some kind of memory elements inside it. Such a thread can be run
+-- using the combinator `securely` or the combinator `insecurely`. If
+-- one use the combinator `securely`, then the allocation of the
+-- memory element to be used by the action is done using a locked
+-- memory pool which is wiped clean before de-allocation.
 
 -- $init-extract$
 --
@@ -104,113 +106,12 @@ import           Raaz.Core.Types
 -- the chances of inadvertent exposure of sensitive information from
 -- the Haskell heap due to swapping.
 
--- | A class that captures monads that use an internal memory element.
---
--- Any instance of `MonadMemory` can be executed `securely` in which
--- case the allocations for the internal memory is done from a locked
--- pool of memory.  This memory is wiped clean before deallocation.
---
--- Systems often put tight restriction on the amount of memory a
--- process can lock.  Therefore, secure memory is often to be used
--- judiciously. Instances of this class /should/ also implement the
--- the combinator `insecurely` which allocates the internal memory
--- from an unlocked pool.
---
--- This library exposes two instances of `MonadMemory`
---
--- 1. /Memory threads/ captured by the type `MT`, which are a sequence
--- of actions that use the same memory element and
---
--- 2. /Memory actions/ captured by the type `MemoryM`.
---
--- __WARNING:__ Be careful with `liftIO`.
---
--- The rule of thumb to follow is that the action being lifted should
--- itself never unlock any memory. In particular, the following code
--- is bad because the `securely` action unlocks some portion of the
--- memory after @foo@ is executed.
---
--- >
--- >  liftIO $ securely $ foo
--- >
---
--- On the other hand the following code is fine
---
--- >
--- > liftIO $ insecurely $ someMemoryAction
--- >
---
--- Whether an @IO@ action unlocks memory is difficult to keep track
--- of; for all you know, it might be a FFI call that does an
--- @memunlock@.
---
--- As to why this is dangerous, it has got to do with the fact that
--- @mlock@ and @munlock@ do not nest correctly. A single @munlock@ can
--- unlock multiple calls of @mlock@ on the same page.
---
-class (Monad m, MonadIO m) => MonadMemory m where
-  -- | Run a memory action with the internal memory allocated from a
-  -- locked memory buffer. This memory buffer will never be swapped
-  -- out by the operating system and will be wiped clean before
-  -- releasing.
-  --
-  -- Memory locking is an expensive operation and usually there would be
-  -- a limit to how much locked memory can be allocated. Nonetheless,
-  -- actions that work with sensitive information like passwords should
-  -- use this to run an memory action.
-  securely   :: m a -> IO a
-
-
-  -- | Run a memory action with the internal memory used by the action
-  -- being allocated from unlocked memory. Use this function when you
-  -- work with data that is not sensitive to security considerations
-  -- (for example, when you want to verify checksums of files).
-  insecurely :: m a -> IO a
-
 
 -- | An action of type @`MT` mem a@ is an action that uses internally
--- a a single memory object of type @mem@ and returns a result of type
+-- a single memory object of type @mem@ and returns a result of type
 -- @a@. All the actions are performed on a single memory element and
--- hence the side effects persist. It is analogues to the @ST@
--- monad.
+-- hence the side effects persist. It is analogues to the @ST@ monad.
 newtype MT mem a = MT { unMT :: mem -> IO a }
-
-------------- Lifting pointer actions -----------------------------
-
--- | A pointer action inside a monad @m@ is some function that takes a
--- pointer action of type @Pointer -> m a@ and supplies it with an
--- appropriate pointer. In particular, memory allocators are pointer
--- actions.
-type PointerAction m a b = (Pointer -> m a) -> m b
-
--- | An IO allocator can be lifted to the memory thread level as follows.
-liftPointerAction :: PointerAction IO a b -> PointerAction (MT mem) a b
-liftPointerAction allocator mtAction
-  = execute $ \ mem -> allocator (\ ptr -> unMT (mtAction ptr) mem)
-
--- TODO: This is a very general pattern needs more exploration.
-
-
--- | Run a given memory action in the memory thread.
-execute :: (mem -> IO a) -> MT mem a
-{-# INLINE execute #-}
-execute = MT
-
-getMemory :: MT mem mem
-getMemory = execute return
-
--- | The combinator @onSubMemory@ allows us to run a memory action on a
--- sub-memory element. Given a memory element of type @mem@ and a
--- sub-element of type @submem@ which can be obtained from the
--- compound memory element of type @mem@ using the projection @proj@,
--- then @onSubMemory proj@ lifts the a memory thread of the sub
--- element to the compound element.
---
-onSubMemory :: (mem -> submem) -- ^ Projection from the compound element
-                               -- to sub memory element.
-            -> MT submem a     -- ^ Memory thread of the sub-element.
-            -> MT mem    a
-onSubMemory proj mt' = execute $ unMT mt' . proj
 
 
 instance Functor (MT mem) where
@@ -225,52 +126,96 @@ instance Monad (MT mem) where
   ma >>= f  =  MT runIt
     where runIt mem = unMT ma mem >>= \ a -> unMT (f a) mem
 
+-- | __WARNING:__ do not lift a secure memory action.
 instance MonadIO (MT mem) where
   liftIO = MT . const
 
-instance Memory mem => MonadMemory (MT mem) where
+-- | A class that captures abstract "memory threads". A memory thread
+-- can either be run `securely` or `insecurely`. Pure IO actions can
+-- be run inside a memory thread using the @runIO@.  However, the IO
+-- action that is being run /must not/ directly or indirectly run a
+-- `secure` action ever. In particular, the following code is bad.
+--
+-- > -- BAD EXAMPLE: DO NOT USE.
+-- > runIO $ securely $ foo
+-- >
+--
+-- On the other hand the following code is fine
+--
+-- >
+-- > runIO $ insecurely $ someMemoryAction
+-- >
+--
+-- As to why this is dangerous, it has got to do with the fact that
+-- @mlock@ and @munlock@ do not nest correctly. A single @munlock@ can
+-- unlock multiple calls of @mlock@ on the same page.  Whether a given
+-- @IO@ action unlocks memory is difficult to keep track of; for all
+-- you know, it might be a FFI call that does an @memunlock@. Hence,
+-- currently there is no easy way to enforce this.
+--
 
-  securely   = withSecureMemory . unMT
-  insecurely = withMemory       . unMT
+class MemoryThread (mT :: * -> * -> *) where
+  -- | Run a memory action with the internal memory allocated from a
+  -- locked memory buffer. This memory buffer will never be swapped
+  -- out by the operating system and will be wiped clean before
+  -- releasing.
+  --
+  -- Memory locking is an expensive operation and usually there would be
+  -- a limit to how much locked memory can be allocated. Nonetheless,
+  -- actions that work with sensitive information like passwords should
+  -- use this to run an memory action.
+  securely   :: (MemoryThread mT, Memory mem ) => mT mem a -> IO a
 
--- | A runner of a memory state thread.
-type    Runner mem b = MT mem b -> IO b
+  -- | Run a memory action with the internal memory used by the action
+  -- being allocated from unlocked memory. Use this function when you
+  -- work with data that is not sensitive to security considerations
+  -- (for example, when you want to verify checksums of files).
+  insecurely :: (MemoryThread mT, Memory mem ) => mT mem a -> IO a
 
--- | A memory action that uses some sort of memory element
--- internally.
-newtype MemoryM a = MemoryM
-   { unMemoryM :: (forall mem b. Memory mem => Runner mem b) -> IO a }
-
-
-instance Functor MemoryM where
-  fmap f mem = MemoryM $ \ runner -> f <$> unMemoryM mem runner
-
-instance Applicative MemoryM where
-  pure  x       = MemoryM $ \ _ -> return x
-  -- Beware: do not follow the hlint suggestion. The ugly definition
-  -- is to avoid usage of impredicative polymorphism.
-
-  memF <*> memA = MemoryM $ \ runner ->  unMemoryM memF runner <*> unMemoryM memA runner
-
-instance Monad MemoryM where
-  return = pure
-  memA >>= f    = MemoryM $ \ runner -> do a <- unMemoryM memA runner
-                                           unMemoryM (f a) runner
-
-instance MonadIO MemoryM where
-  liftIO io = MemoryM $ \ _ -> io
-  -- Beware: do not follow the hlint suggestion. The ugly definition
-  -- is to avoid usage of impredicative polymorphism.
-
-instance MonadMemory MemoryM  where
-
-  securely   mem = unMemoryM mem securely
-  insecurely mem = unMemoryM mem insecurely
+  -- | Lift an actual memory thread.
+  liftMT :: MT mem a -> mT mem a
 
 
--- | Run the memory thread to obtain a memory action.
-runMT :: Memory mem => MT mem a -> MemoryM a
-runMT mem = MemoryM $ \ runner -> runner mem
+  -- | Combinator that allows us to run a memory action on a
+  -- sub-memory element. A sub-memory of @submem@ of a memory element
+  -- @mem@ is given by a projection @proj : mem -> submem@. The action
+  -- @onSubMemory proj@ lifts the a memory thread on the sub element
+  -- to the compound element.
+  --
+  onSubMemory :: (mem -> submem) -> mT submem a -> mT mem a
+
+
+instance MemoryThread MT where
+  securely               = withSecureMemory . unMT
+  insecurely             = withMemory . unMT
+  liftMT                 = id
+  onSubMemory proj mtsub = MT $ unMT mtsub . proj
+
+------------- Lifting pointer actions -----------------------------
+
+-- | Run a given memory action in the memory thread.
+execute :: MemoryThread mT => (mem -> IO a) -> mT mem a
+execute = liftMT . MT
+
+
+doIO :: MemoryThread mT => IO a -> mT mem a
+doIO = execute . const
+
+-- | A pointer action inside a monad @m@ is some function that takes a
+-- pointer action of type @Pointer -> m a@ and supplies it with an
+-- appropriate pointer. In particular, memory allocators are pointer
+-- actions.
+type PointerAction m a b = (Pointer -> m a) -> m b
+
+-- | An IO allocator can be lifted to the memory thread level as follows.
+liftPointerAction :: PointerAction IO a b -> PointerAction (MT mem) a b
+liftPointerAction allocator mtAction
+  = execute $ \ mem -> allocator (\ ptr -> unMT (mtAction ptr) mem)
+
+-- TODO: This is a very general pattern needs more exploration.
+
+getMemory :: MemoryThread mT => mT mem mem
+getMemory = execute return
 
 ------------------------ A memory allocator -----------------------
 
@@ -328,6 +273,7 @@ data VoidMemory = VoidMemory { unVoidMemory :: Pointer  }
 instance Memory VoidMemory where
   memoryAlloc      = makeAlloc (0 :: BYTES Int) $ VoidMemory
   unsafeToPointer  = unVoidMemory
+
 
 instance ( Memory ma, Memory mb ) => Memory (ma, mb) where
     memoryAlloc             = (,) <$> memoryAlloc <*> memoryAlloc
@@ -426,8 +372,8 @@ class Memory m => Extractable m v where
 -- > modify f = do b          <- extract
 -- >               initialise $  f b
 --
-modify :: (Initialisable m a, Extractable m b) =>  (b -> a) -> MT m ()
-modify f = extract >>= initialise . f
+modify :: (Initialisable mem a, Extractable mem b, MemoryThread mT ) =>  (b -> a) -> mT mem ()
+modify f = liftMT $ extract >>= initialise . f
 
 -- | A memory type that can be initialised from a pointer buffer. The initialisation performs
 -- a direct copy from the input buffer and hence the chances of the
@@ -440,7 +386,6 @@ class Memory m => InitialisableFromBuffer m where
 -- up in the swap space is minimised.
 class Memory m => ExtractableToBuffer m where
   extractor :: m -> WriteM (MT m)
-
 
 --------------------- Some instances of Memory --------------------
 
@@ -464,15 +409,15 @@ actualCellPtr = nextAlignedPtr . unMemoryCell
 
 -- | Work with the underlying pointer of the memory cell. Useful while
 -- working with ffi functions.
-withCellPointer :: Storable a => (Ptr a -> IO b) -> MT (MemoryCell a) b
+withCellPointer :: (MemoryThread mT, Storable a) => (Ptr a -> IO b) -> mT (MemoryCell a) b
 {-# INLINE withCellPointer #-}
 withCellPointer action = execute $ action . actualCellPtr
 
 
 -- | Get the pointer associated with the given memory cell.
-getCellPointer :: Storable a => MT (MemoryCell a) (Ptr a)
+getCellPointer :: (MemoryThread mT, Storable a) => mT (MemoryCell a) (Ptr a)
 {-# INLINE getCellPointer #-}
-getCellPointer = actualCellPtr <$> getMemory
+getCellPointer = liftMT $ actualCellPtr <$> getMemory
 
 instance Storable a => Initialisable (MemoryCell a) a where
   initialise a = execute $ flip pokeAligned a . unMemoryCell
