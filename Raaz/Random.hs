@@ -3,7 +3,7 @@
 module Raaz.Random
        ( -- * Cryptographically secure randomness.
          -- $randomness$
-         RandM, RT, liftMT
+         RandM, RT
        , randomByteString
        -- ** Types that can be generated randomly
        , RandomStorable(..), unsafeFillRandomElements, random
@@ -148,27 +148,25 @@ import Raaz.Random.ChaCha20PRG
 
 -- | A batch of actions on the memory element @mem@ that uses some
 -- randomness.
-newtype RT mem a = RT { unMT :: MT (RandomState, mem) a }
+newtype RT mem a = RT { unRT :: MT (RandomState, mem) a }
                  deriving (Functor, Applicative, Monad, MonadIO)
-
--- | The monad for generating cryptographically secure random data.
-type RandM = RT VoidMemory
-
--- | Lift a memory action to the corresponding RT action.
-liftMT :: MT mem a -> RT mem a
-liftMT = RT . onSubMemory snd
 
 -- | Run a randomness thread. In particular, this combinator takes
 -- care of seeding the internal prg at the start.
 runRT :: RT m a
       -> MT (RandomState, m) a
-runRT action = onSubMemory fst reseedMT >> unMT action
+runRT action = onSubMemory fst reseedMT >> unRT action
 
+-- | The monad for generating cryptographically secure random data.
+type RandM = RT VoidMemory
 
-
-instance Memory mem => MonadMemory (RT mem) where
-  insecurely = insecurely . runRT
-  securely   = securely   . runRT
+instance MemoryThread RT where
+  insecurely        = insecurely . runRT
+  securely          = securely   . runRT
+  liftMT            = RT . onSubMemory snd
+  onSubMemory proj  = RT . onSubMemory projP . runRT
+    where projP (rstate, mem) = (rstate, proj mem)
+          -- No (misguided) use of functor instance for (,) here.
 
 -- | Reseed from the system entropy pool. There is never a need to
 -- explicitly seed your generator. The insecurely and securely calls
@@ -226,7 +224,7 @@ unsafeFillRandomElements n ptr = fillRandomBytes totalSz $ castPtr ptr
 -- element.
 random :: (RandomStorable a, Memory mem) => RT mem a
 random = RT $ liftPointerAction alloc (getIt . castPtr)
-  where getIt ptr    = unMT $ fillRandomElements 1 ptr >> liftIO (peek ptr)
+  where getIt ptr    = unRT $ fillRandomElements 1 ptr >> liftIO (peek ptr)
         alloc        :: Storable a => (Pointer -> IO a) -> IO a
         alloc action = allocaAligned algn sz action
           where getElement   :: (Pointer -> IO b) -> b
