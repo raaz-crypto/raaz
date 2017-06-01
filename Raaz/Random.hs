@@ -6,7 +6,7 @@ module Raaz.Random
          RandM, RT
        , randomByteString
        -- ** Types that can be generated randomly
-       , RandomStorable(..), unsafeFillRandomElements, random
+       , RandomStorable(..), unsafeFillRandomElements, random, randomiseCell
          -- * Low level access to randomness.
        , fillRandomBytes
        , reseed
@@ -87,35 +87,43 @@ import Raaz.Random.ChaCha20PRG
 --
 -- == Note of caution on secure random source.
 --
--- Running a random action `securely` only guarantees the security of
--- the seed and not the generated Haskell value. For example, in the
--- following code
+-- Running a random action `securely` only guarantees the seed is kept
+-- in locked memory and not the generated Haskell value. For example,
+-- in the following code
 --
 -- > genWord64 :: IO Word64
 -- > genWord64 = securely random
---
--- the generated 64-bit word is in no way secure. There is no
--- additional security gained by using `securely` over `insecurely` as
--- the generated 64-bit random word is stored in the Haskell heap
--- which is not locked. It is not feasible to ensure that the value is
--- stored in locked memory as the garbage collector often moves values
--- around.
---
--- The solution is to use an auxiliary memory element of type `mem` to
--- keep such private information and use the monad @`RT` mem@. Random
--- data can be filled into the memory by using the low level routine
--- `fillRandomBytes` to fill the memory. Given below is a skeleton for
--- it.
---
--- > type FooMem = MemoryCell Word64
 -- >
--- > genSecureWord64 :: RT FooMem ()
--- > genSecureWord64 = do ptr <- liftMT getCellPointer
--- >                      fillRandomBytes (sizeOf (undefined :: Word64)) ptr
--- >
--- > doSomething :: IO ()
--- > doSomething = securely $ genSecureWord64 >> useRandomWord64
+-- > genRandomPassword :: IO ByteString
+-- > genRandomPassword = securely $ randomByteString 42
 --
+-- the generated 64-bit word number or the password is not stored in a
+-- locked memory. There is /no/ additional security gained by using
+-- `securely` over `insecurely` as these values are stored in the
+-- (unlocked) Haskell heap. It is not feasible to ensure that the
+-- value is stored in locked memory as the garbage collector often
+-- moves values around. In general, it is not good to generate sensitive values
+-- as a pure Haskell values.
+--
+-- The main idea is to generate the random data directly inside a
+-- buffer which hopefully is locked. A situation that often occur in
+-- practice is to randomise the contents of a memory cell, which is
+-- then used for further processing. This can be achieved by using
+-- `randomiseCell` which, together with appropriate uses of
+-- `onSubMemory`, should take care of most use cases. As an example,
+-- consider the following fragment of code where we need to have both
+-- the key and IV generated randomly and securely.
+--
+-- > type SensitiveInfo = (MemoryCell Key, Memory IV)
+-- >
+-- > genKeyAndIV = RT SenistiveInfo ()
+-- > genKeyAndIV = onSubMemory fst randomiseCell
+-- >               >> onSubMemory snd randomise Cell
+-- >
+--
+-- More complicated interactions might require direct use of
+-- `fillRandomBytes` but that is too low level and we do not encourage
+-- its use.
 --
 -- = Internal details
 --
@@ -232,6 +240,12 @@ random = RT $ liftPointerAction alloc (getIt . castPtr)
                 thisElement  = getElement action
                 algn         = alignment thisElement
                 sz           = sizeOf    thisElement
+
+-- | Randomise the contents of a memory cell. Equivalent to @`random`
+-- >>= liftMT . initialise@ but ensures that no data is transferred to
+-- unlocked memory.
+randomiseCell :: RandomStorable a => RT (MemoryCell a) ()
+randomiseCell = getCellPointer >>= fillRandomElements 1
 
 -- | Generate a random byteString.
 
