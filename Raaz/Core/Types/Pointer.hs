@@ -106,13 +106,13 @@ class (Enum u, Monoid u) => LengthUnit u where
 -- | Type safe lengths/offsets in units of bytes.
 newtype BYTES a  = BYTES a
         deriving ( Show, Eq, Equality, Ord, Enum, Integral
-                 , Real, Num, Storable
+                 , Real, Num, Storable, Bounded
                  )
 
 -- | Type safe lengths/offsets in units of bits.
 newtype BITS  a  = BITS  a
         deriving ( Show, Eq, Equality, Ord, Enum, Integral
-                 , Real, Num, Storable
+                 , Real, Num, Storable, Bounded
                  )
 
 -- | Type safe length unit that measures offsets in multiples of word
