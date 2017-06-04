@@ -101,6 +101,10 @@ instance Initialisable Blake2bMem () where
                     onSubMemory uLengthCell  $ initialise (0 :: BYTES Word64)
                     onSubMemory lLengthCell  $ initialise (0 :: BYTES Word64)
 
+instance Extractable Blake2bMem BLAKE2b where
+  extract = onSubMemory blake2bCell extract
+
+---------------------------------- Memory element for BLAKE2b -----------------------
 
 data Blake2sMem = Blake2sMem { blake2sCell :: MemoryCell BLAKE2s
                              , lengthCell  :: MemoryCell (BYTES Word64)
@@ -113,3 +117,6 @@ instance Memory Blake2sMem where
 instance Initialisable Blake2sMem () where
   initialise _ = do onSubMemory blake2sCell $ initialise hash2s0
                     onSubMemory lengthCell  $ initialise (0 :: BYTES Word64)
+
+instance Extractable Blake2sMem BLAKE2s where
+  extract = onSubMemory blake2sCell extract
