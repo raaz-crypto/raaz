@@ -48,36 +48,55 @@ instance Memory RandomState where
   memoryAlloc     = RandomState <$> memoryAlloc <*> memoryAlloc <*> memoryAlloc
   unsafeToPointer = unsafeToPointer  . chacha20State
 
+-------------------------------- The PRG operations ---------------------------------------------
+
+-- | The overall idea is to generate a key stream into the auxilary
+-- buffer using chacha20 and giving out bytes from this buffer. This
+-- operation we call sampling. A portion of the sample is used for
+-- resetting the key and iv to make the prg safe against backward
+-- prediction, i.e. even if one knows the current seed (i.e. key iv
+-- pair) one cannot predict the random values generated before.
+
+
+
 -- | This fills in the random block with some new randomness
 newSample :: MT RandomState ()
-newSample = do setRemainingBytes $ inBytes randomBufferSize
-               onSubMemory chacha20State seedIfReq
-               withAuxBuffer $ onSubMemory chacha20State . flip chacha20Random randomBufferSize
+newSample = do
+  seedIfReq
+  withAuxBuffer $ onSubMemory chacha20State . flip chacha20Random randomBufferSize -- keystream
+  setRemainingBytes $ inBytes randomBufferSize -- Total bytes generated in one go
+  fillKeyIVWith fillExistingBytes
+
 
 -- | See the PRG from system entropy.
-seed :: MT ChaCha20Mem ()
-seed = do onSubMemory counterCell $ initialise (0 :: Counter)
-          onSubMemory keyCell getCellPointer >>= void . getEntropy keySize . castPtr
-          onSubMemory ivCell  getCellPointer >>= void . getEntropy ivSize  . castPtr
-  where keySize = sizeOf (undefined :: KEY)
-        ivSize  = sizeOf (undefined :: IV)
+seed :: MT RandomState ()
+seed = do onSubMemory (counterCell . chacha20State) $ initialise (0 :: Counter)
+          fillKeyIVWith getEntropy
 
 -- | Seed if we have already generated maxCounterVal blocks of random
 -- bytes.
-seedIfReq :: MT ChaCha20Mem ()
-seedIfReq = do c <- onSubMemory counterCell extract
+seedIfReq :: MT RandomState ()
+seedIfReq = do c <- onSubMemory (counterCell . chacha20State) extract
                when (c > maxCounterVal) seed
+
+-- | Fill the iv and key from a filling function.
+fillKeyIVWith :: (BYTES Int -> Pointer -> MT RandomState a) -- ^ The function used to fill the buffer
+              -> MT RandomState ()
+fillKeyIVWith filler = let
+  keySize = sizeOf (undefined :: KEY)
+  ivSize  = sizeOf (undefined :: IV)
+  in do onSubMemory (keyCell . chacha20State) getCellPointer >>= void . filler keySize . castPtr
+        onSubMemory (ivCell  . chacha20State) getCellPointer >>= void . filler ivSize  . castPtr
+
+
+
 
 
 --------------------------- DANGEROUS CODE ---------------------------------------
 
-
-
--- remaining bytes, this can produce a lot of nonsense.
-
 -- | Reseed the prg.
 reseedMT :: MT RandomState ()
-reseedMT = onSubMemory chacha20State seed >> newSample
+reseedMT = seed >> newSample
 
 -- NONTRIVIALITY: Picking up the newSample is important when we first
 -- reseed.
@@ -87,12 +106,10 @@ reseedMT = onSubMemory chacha20State seed >> newSample
 fillRandomBytesMT :: LengthUnit l => l -> Pointer -> MT RandomState ()
 fillRandomBytesMT l = go (inBytes l)
   where go m ptr
-          | m  <= 0    = return ()   -- Nothing to do
-          | otherwise  = do
-              mGot <- fillExistingBytes m ptr   -- Fill some
-              go
-                (m - mGot)          -- bytes yet to get.
-                $ movePtr ptr mGot  -- Shift by what is already got.
+            | m > 0  = do mGot <- fillExistingBytes m ptr   -- Fill from the already generated buffer.
+                          when (mGot <= 0) newSample        -- We did not get any so sample.
+                          go (m - mGot) $ movePtr ptr mGot  -- Get the remaining.
+            | otherwise = return ()   -- Nothing to do
 
 
 -- | Fill from already existing bytes. Returns the number of bytes
@@ -100,24 +117,20 @@ fillRandomBytesMT l = go (inBytes l)
 -- min(r,m) bytes into the buffer, and return the number of bytes
 -- filled.
 fillExistingBytes :: BYTES Int -> Pointer -> MT RandomState (BYTES Int)
-fillExistingBytes m ptr = do
+fillExistingBytes req ptr = withAuxBuffer $ \ sptr -> do
   r <- getRemainingBytes
-  withAuxBuffer $ \ sptr ->
-    if r <= m then do memcpy (destination ptr) (source sptr) r -- read the entire stuff.
-                      newSample
-                      return r
-      else let leftOver = r - m                 -- Bytes leftover
-               tailPtr  = movePtr sptr leftOver -- We read the last m bytes.
-           in do memcpy (destination ptr) (source tailPtr) m
-                 setRemainingBytes leftOver
-                 return m
-
-
--- The function fillExisting bytes reads from the end. See the picture
--- below
---
---
---    ---------------------------------------------------------------------
---    |   (r - m) remaining bytes        |     m bytes consumed           |
---    ---------------------------------------------------------------------
---
+  let m  = min r req            -- actual bytes filled.
+      l  = r - m                -- leftover
+      tailPtr = movePtr sptr l
+    in do
+    -- Fills the source ptr from the end.
+    --  sptr                tailPtr
+    --   |                  |
+    --   V                  V
+    --   -----------------------------------------------------
+    --   |   l              |    m                           |
+    --   -----------------------------------------------------
+    memcpy (destination ptr) (source tailPtr) m -- transfer the bytes to destination
+    memset tailPtr 0 m                          -- wipe the bytes already transfered.
+    setRemainingBytes l                         -- set leftover bytes.
+    return m

@@ -8,6 +8,8 @@
   `MemoryThread`. This allows to treat monads like `RT mem` much like
   `MT mem`, including possibility of running an action on a sub-memory.
 * combinator to randomise memory cells.
+* hardened the prg so that a compromise on the current prg state will
+  not expose previously generated data.
 
 ## [0.1.1] - 2nd  March, 2017
 
