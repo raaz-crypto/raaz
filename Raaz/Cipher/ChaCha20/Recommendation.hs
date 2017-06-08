@@ -78,7 +78,7 @@ getBufferPointer = actualPtr <$> getMemory
 -- example the Vector256 implementation handles 2-chacha blocks. Set
 -- this quantity to the maximum supported by all implementations.
 randomBufferSize :: BLOCKS ChaCha20
-randomBufferSize = 4  `blocksOf` ChaCha20
+randomBufferSize = 16  `blocksOf` ChaCha20
 
 -- | Implementations are also designed to work with a specific
 -- alignment boundary. Unaligned access can slow down the primitives
