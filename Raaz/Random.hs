@@ -125,34 +125,63 @@ import Raaz.Random.ChaCha20PRG
 -- `fillRandomBytes` but that is too low level and we do not encourage
 -- its use.
 --
--- = Internal details
+-- = Internal details.
 --
 -- Generating unpredictable stream of bytes is one task that has burnt
 -- the fingers of a lot of programmers. Unfortunately, getting it
 -- correct is something of a black art. The pseudo-random generator in
--- Raaz uses the chacha20 stream cipher. The internal state of is
--- initialised from the system entropy source in the beginning and
--- after every few GB's of random bytes generated. The security of the
--- PRG thus crucially depends on the system entropy source.  Raaz
--- currently hides the details of the system entropy source from the
--- user and exposes a uniform interface across platforms. It strives
--- to use the best source for the given platform. For example, on
--- posix systems, raaz uses the @\/dev\/urandom@ for system entropy.
+-- Raaz uses the chacha20 stream cipher. There are two main steps in
+-- the generation of random data:
 --
--- TODO 1: We do not have Windows support yet. Certain posix systems
--- offer better sources of entropy than @\/dev\/urandom@. For example,
--- the recommended way to generate randomness on an OpenBSD system is
--- through the function `arc4random` (note that arc4random does not
--- use rc4 cipher anymore).  Recent Linux kernels support the
--- `getrandom` system call which unfortunately is not yet
--- popular. These system specific calls are better because they take
--- into consideration many edge cases like for example
--- @\/dev\/urandom@ not being accessible or protection from
--- interrupts. Eventually we will be supporting these calls.
+-- [Seeding] The internal state of of the chacha20 cipher is set using the
+--   system entropy.
 --
--- TODO 2: Currently the random interface is not thread safe as bytes
--- maybe repeated across threads. We leave this open till we have a
--- clear cut use case to build the most efficient api.
+-- [Sampling] An auxilary buffer is used to generate data. We called
+--   this step sampling.  Requested bytes are given out from this
+--   buffer. When the buffer gets empty more of the key stream is
+--   generated.
+--
+-- The auxilary buffer and the internal chacha20 state is part of the
+-- memory used in the `RT` monad and hence using this `securely` will
+-- ensure that all these are allocated from locked memory.
+--
+-- == Seeding.
+--
+-- Reading the system entropy source is a costly affair because often
+-- it involves a system call. Therefore, seeding is done only
+-- infrequently. The security of PRG however crucially depends on the
+-- system entropy source because if the seeded value is predictable
+-- then till the next seeding (an infrequent event as explained above)
+-- everything is deterministic and hence compromised. Raaz currently
+-- hides the details of the system entropy source from the user and
+-- exposes a uniform interface across platforms. It strives to use the
+-- best source for the given platform. For example, we have the
+-- following platform support:
+--
+-- [OpenBSD:] Uses the arc4random call (needs testing)
+--
+-- [Linux:] Defaults to @\/dev\/urandom@ but has experimental support for
+-- `getrandom` (needs testing)
+--
+-- [Other Posix:] Uses @\/dev\/urandom@
+--
+-- [Windows:] No support yet. If you are windows user please consider
+--    contributing.
+--
+-- == Sampling.
+--
+-- Sampling is the stage where we generate the chacha20 keystream in
+-- the auxilary buffer (currenlty 16 blocks of ChaCha20). We first
+-- fill the auxilary buffer with the key stream and use a total of
+-- `key size + iv size` bytes to reinitialise the key iv pair. This is
+-- for backward unpredictability.
+--
+-- On a request, we give out bytes from this auxilary buffer. The
+-- portion of the auxilary buffer that is already sent out is
+-- wiped. If there is not enough in the auxilary buffer, we sample
+-- again and continue the process till the necessary number of bytes
+-- are given out.
+
 
 -- | A batch of actions on the memory element @mem@ that uses some
 -- randomness.
