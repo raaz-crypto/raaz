@@ -8,12 +8,11 @@ quality of the randomnes produced.
 
 > import Control.Applicative
 > import Control.Monad.IO.Class(liftIO)
-> import System.Exit
-> import System.IO
-> import Text.Read
-> import Prelude
+> import Data.Monoid
+> import Options.Applicative
 > import Raaz
-> 
+> import System.IO
+
 > import qualified Usage as U
 
 So much bytes generated in one go before writing to stdout.
@@ -22,31 +21,20 @@ So much bytes generated in one go before writing to stdout.
 > bufSize = 32 * 1024
 
 
-
-
-The main stuff.
-
-> rand :: [String] -> IO ()
-> rand args = case args of
->               ["-h"]     -> printHelp
->               ["--help"] -> printHelp
->               [n]        -> maybe (badArgs n) gen $ readNBytes n
->               []         -> withBuffer $ insecurely . genInfiniteBytes
->               _          -> tooManyArgs
->   where readNBytes     :: String -> Maybe (BYTES Int)
->         readNBytes   x = (toEnum <$> readMaybe x) >>= onlyPositive
->         onlyPositive x
->           | x >= 0     = Just x
->           | otherwise  = Nothing
->         badArgs n      = errorBailout ["Bar argument " ++ n ++ " expected integer (no of bytes)"]
->         tooManyArgs    = errorBailout ["too many args"]
->         gen n          = withBuffer $ insecurely . genBytes n
+> opts :: Parser (IO ())
+> opts =   nRandomBytes . fromIntegral  <$> argument auto (metavar "NUMBER_OF_BYTES")
+>      <|> pure infinteBytes
+>   where nRandomBytes n = withBuffer $ insecurely  . genBytes n
+>         infinteBytes = withBuffer $ insecurely  . genInfiniteBytes
 >         withBuffer = allocaBuffer bufSize
 
 
-> printHelp :: IO ()
-> printHelp = do putStrLn $ usage []
->                exitSuccess
+> rand :: ParserInfo (IO ())
+> rand = info (helper <*> opts) $
+>        fullDesc
+>        <> header "raaz rand - Cryptographically secure pseudo random bytes."
+>        <> progDesc "Generate cryptographically secure pseudo random bytes onto the stdout."
+
 
 
 > genInfiniteBytes :: Pointer -> RandM ()
@@ -68,28 +56,3 @@ Generate so many bytes.
 > emitRand m ptr = do
 >   fillRandomBytes m ptr
 >   liftIO $ hPutBuf stdout ptr $ fromIntegral m
-
-
-
-
-
-The usage message for the program.
-
-> usageHeader :: String
-> usageHeader = unlines $ [ "Usage: raaz random [N]"
->                         , "       raaz random [-h|--help]"
->                         , ""
->                         , "Generates never ending stream of cryptographically secure random bytes."
->                         , "With the option integral argument N, stops after generating N bytes."
->                         , "   -h\t--help\tprint this help"
->                         ]
-
-
-> -- | Usage message
-> usage :: [String] -> String
-> usage = U.usage [] usageHeader
->
-> -- | Bail out on error
-> errorBailout :: [String]-> IO a
-> errorBailout = U.errorBailout [] usageHeader
-

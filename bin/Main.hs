@@ -16,8 +16,13 @@ data Option = ShowVersion
              | RunCommand (IO ())
 
 progOption  :: Parser Option
-progOption = flag ShowVersion ShowVersion $ short 'v' <> long "version" <> help "print the version of the raaz library used"
+progOption = flag ShowVersion ShowVersion versionMods
+             <|> RunCommand <$> subparser cmds
 
+  where versionMods = short 'v'
+                      <> long "version"
+                      <> help "Print the version of the raaz library used"
+        cmds = command "rand" rand
 
 ---------------------- The main function and stuff ------------------------------
 run :: Option -> IO ()
@@ -29,4 +34,5 @@ main :: IO ()
 main = execParser opts >>= run
   where opts = info (helper <*> progOption) $
                fullDesc
-               <> header "raaz - a interface to various cryptographic operations using the raaz library."
+               <> header "raaz - A command line interface to the raaz cryptographic library."
+               <> footer "Homepage: http://github.com/raaz-crypto"
