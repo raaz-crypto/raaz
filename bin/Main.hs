@@ -17,12 +17,12 @@ data Option = ShowVersion
 
 progOption  :: Parser Option
 progOption = flag ShowVersion ShowVersion versionMods
-             <|> RunCommand <$> subparser cmds
+             <|> RunCommand <$> rand
+             <|> RunCommand <$> checksum
 
   where versionMods = short 'v'
                       <> long "version"
                       <> help "Print the version of the raaz library used"
-        cmds = command "rand" rand
 
 ---------------------- The main function and stuff ------------------------------
 run :: Option -> IO ()
