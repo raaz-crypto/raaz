@@ -3,6 +3,7 @@
 {-# LANGUAGE RecordWildCards    #-}
 {-# LANGUAGE ConstraintKinds    #-}
 {-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE CPP                #-}
 
 module Command.Checksum ( checksum )  where
 
@@ -24,7 +25,11 @@ import System.IO
 
 
 checksum :: Parser (IO ())
+#if MIN_VERSION_optparse_applicative(0,14,0)
 checksum = subparser $ commandGroup "Checksum Computation"
+#else
+checksum = subparser $ mempty
+#endif
            <> mkCmd Sha1
            <> mkCmd Sha512
            <> mkCmd Sha256

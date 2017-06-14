@@ -3,7 +3,7 @@ cryptographically secure bytes. Other than being a replacement to
 Yo-Yo Honey Singh (random > /dev/audio), it is used to test the
 quality of the randomnes produced.
 
-
+> {-# LANGUAGE CPP #-}
 > module Command.Rand ( rand ) where
 
 > import Control.Applicative
@@ -27,8 +27,15 @@ So much bytes generated in one go before writing to stdout.
 >         withBuffer = allocaBuffer bufSize
 
 
+
+
 > rand :: Parser (IO ())
+
+#if MIN_VERSION_optparse_applicative(0,14,0)
 > rand = subparser $ commandGroup "Randomness" <> randCmd <> metavar "rand"
+#else
+> rand = subparser $ randCmd <> metavar "rand"
+#endif
 
 >   where randCmd = command "rand" $ info (helper <*> opts) $ fullDesc
 >           <> header "raaz rand - Cryptographically secure pseudo random bytes."
