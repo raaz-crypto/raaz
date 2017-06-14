@@ -13,8 +13,6 @@ quality of the randomnes produced.
 > import Raaz
 > import System.IO
 
-> import qualified Usage as U
-
 So much bytes generated in one go before writing to stdout.
 
 > bufSize :: BYTES Int
