@@ -3,88 +3,36 @@
 -- The main function that drives other commands.
 --
 
-import Control.Monad
+
 import Data.Version          (showVersion)
 import Data.Monoid
+import Options.Applicative
 import Raaz                  (version)
-import System.Console.GetOpt
-import System.Environment
 
-
-
-import qualified Usage  as U
 import           Command.Checksum
 import           Command.Rand
 
+data Option = ShowVersion
+             | RunCommand (IO ())
 
--- The commands know to raaz executable.
-commands :: [(String, [String] -> IO ())]
-commands = [ ("checksum", checksum)
-           , ("rand"    , rand    )
-           ]
+progOption  :: Parser Option
+progOption = flag ShowVersion ShowVersion versionMods
+             <|> RunCommand <$> rand
+             <|> RunCommand <$> checksum
 
-
-
------------------ Command line parsing -------------------------------------
-
-data Options = Options { optVersion :: Bool
-                       , optHelp    :: Bool
-                       }
-
-defaultOpts :: Options
-defaultOpts = Options { optVersion    = False, optHelp  = False }
-
-options :: [OptDescr (Endo Options)]
-options = [ Option ['v'] ["version"] (NoArg setVersion) "print the version"
-          , Option ['h'] ["help"]    (NoArg setHelp)    "print the help"
-          ]
-  where setVersion   = Endo $ \ opt -> opt { optVersion = True }
-        setHelp      = Endo $ \ opt -> opt { optHelp    = True }
-
-
--- | parse options
-parseOpts :: [String] -> IO Options
-parseOpts args = case getOpt Permute options args of
-  (o,[],[])  -> return $ appEndo (mconcat o) defaultOpts
-  (_,_,errs) -> errorBailout errs
-
-
-
+  where versionMods = short 'v'
+                      <> long "version"
+                      <> help "Print the version of the raaz library used"
 
 ---------------------- The main function and stuff ------------------------------
+run :: Option -> IO ()
+run ShowVersion      = putStrLn $ "raaz version " ++ showVersion version
+run (RunCommand cmd) = cmd
+
 
 main :: IO ()
-main = do args <- getArgs
-          case args of
-            (c:restArgs) -> maybe (noCommand args) (runCmd restArgs) $ lookup c commands
-            _ -> errorBailout ["empty command line"]
-     where runCmd    = flip ($)
-           noCommand = parseOpts >=> run
-
-run :: Options -> IO ()
-run (Options{..}) = do
-  when optVersion $ printVersion
-  when optHelp    $ printHelp
-  where printHelp    = putStrLn $ usage []
-        printVersion = putStrLn $ "raaz: " ++ showVersion version
-
------------------------------- Usage and error bail out -----------------------------
-
--- The usage message for the program.
-
-usage :: [String] -> String
-usage = U.usage options usageHeader
-
-
--- | Bail out on error
-errorBailout :: [String]-> IO a
-errorBailout = U.errorBailout options usageHeader
-
--- | The usage header to print.
-usageHeader :: String
-usageHeader = unlines $ [ "Usage: raaz [COMMAND] [OPTIONS]"
-                        , "       raaz [OPTIONS]"
-                        , ""
-                        , "Supported Commands: "
-                        ] ++ cmds
-  where cmds     = map (("\t"++) . fst) commands
+main = execParser opts >>= run
+  where opts = info (helper <*> progOption) $
+               fullDesc
+               <> header "raaz - A command line interface to the raaz cryptographic library."
+               <> footer "Homepage: http://github.com/raaz-crypto"

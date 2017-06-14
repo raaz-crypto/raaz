@@ -249,6 +249,7 @@ executable raaz
                , Command.Rand
                , Usage
   build-depends: base
+               , optparse-applicative >= 0.10.0
                , raaz
   if impl(ghc < 8)
     -- 'transformers' needed for "Control.Monad.IO.Class" only
