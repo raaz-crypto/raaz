@@ -20,18 +20,20 @@ So much bytes generated in one go before writing to stdout.
 
 
 > opts :: Parser (IO ())
-> opts =   nRandomBytes . fromIntegral  <$> argument auto (metavar "NUMBER_OF_BYTES")
+> opts =   nRandomBytes . toEnum <$> argument auto (metavar "NUMBER_OF_BYTES")
 >      <|> pure infinteBytes
 >   where nRandomBytes n = withBuffer $ insecurely  . genBytes n
 >         infinteBytes = withBuffer $ insecurely  . genInfiniteBytes
 >         withBuffer = allocaBuffer bufSize
 
 
-> rand :: ParserInfo (IO ())
-> rand = info (helper <*> opts) $
->        fullDesc
->        <> header "raaz rand - Cryptographically secure pseudo random bytes."
->        <> progDesc "Generate cryptographically secure pseudo random bytes onto the stdout."
+> rand :: Parser (IO ())
+> rand = subparser $ commandGroup "Randomness" <> randCmd <> metavar "rand"
+
+>   where randCmd = command "rand" $ info (helper <*> opts) $ fullDesc
+>           <> header "raaz rand - Cryptographically secure pseudo random bytes."
+>           <> progDesc "Generate cryptographically secure pseudo random bytes onto the stdout."
+
 
 
 
