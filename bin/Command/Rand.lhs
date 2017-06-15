@@ -1,7 +1,7 @@
-This command that spits out never ending stream of
-cryptographically secure bytes. Other than being a replacement to
-Yo-Yo Honey Singh (random > /dev/audio), it is used to test the
-quality of the randomnes produced.
+This command spits out never ending stream of cryptographically secure
+bytes. Apart from replacing Yo-Yo Honey Singh (`raaz rand >
+/dev/audio), it is used to test the quality of the randomnes produced.
+
 
 > {-# LANGUAGE CPP #-}
 > module Command.Rand ( rand ) where
