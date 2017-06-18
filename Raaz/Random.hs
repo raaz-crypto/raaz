@@ -201,7 +201,7 @@ instance MemoryThread RT where
   insecurely        = insecurely . runRT
   securely          = securely   . runRT
   liftMT            = RT . onSubMemory snd
-  onSubMemory proj  = RT . onSubMemory projP . runRT
+  onSubMemory proj  = RT . onSubMemory projP . unRT
     where projP (rstate, mem) = (rstate, proj mem)
           -- No (misguided) use of functor instance for (,) here.
 
