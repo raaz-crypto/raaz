@@ -190,16 +190,16 @@ newtype RT mem a = RT { unRT :: MT (RandomState, mem) a }
 
 -- | Run a randomness thread. In particular, this combinator takes
 -- care of seeding the internal prg at the start.
-runRT :: RT m a
+seedAndRunRT :: RT m a
       -> MT (RandomState, m) a
-runRT action = onSubMemory fst reseedMT >> unRT action
+seedAndRunRT action = onSubMemory fst reseedMT >> unRT action
 
 -- | The monad for generating cryptographically secure random data.
 type RandM = RT VoidMemory
 
 instance MemoryThread RT where
-  insecurely        = insecurely . runRT
-  securely          = securely   . runRT
+  insecurely        = insecurely . seedAndRunRT
+  securely          = securely   . seedAndRunRT
   liftMT            = RT . onSubMemory snd
   onSubMemory proj  = RT . onSubMemory projP . unRT
     where projP (rstate, mem) = (rstate, proj mem)
