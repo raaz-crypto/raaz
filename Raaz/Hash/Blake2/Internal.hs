@@ -57,6 +57,14 @@ instance Show BLAKE2b where
 instance Show BLAKE2s where
   show =  showBase16
 
+instance Primitive BLAKE2b where
+  blockSize _ = BYTES 128
+  type Implementation BLAKE2b = SomeHashI BLAKE2b
+
+instance Primitive BLAKE2s where
+  blockSize _ = BYTES 64
+  type Implementation BLAKE2s = SomeHashI BLAKE2s
+
 
 -- | The initial value to start the blake2b hashing. This is equal to
 -- the iv `xor` the parameter block.
