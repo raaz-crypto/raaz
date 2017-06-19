@@ -25,7 +25,7 @@ import System.IO
 
 
 checksum :: Parser (IO ())
-#if MIN_VERSION_optparse_applicative(0,14,0)
+#if MIN_VERSION_optparse_applicative(0,13,0)
 checksum = subparser $ commandGroup "Checksum Computation"
 #else
 checksum = subparser $ mempty

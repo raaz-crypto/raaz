@@ -31,7 +31,7 @@ So much bytes generated in one go before writing to stdout.
 
 > rand :: Parser (IO ())
 
-#if MIN_VERSION_optparse_applicative(0,14,0)
+#if MIN_VERSION_optparse_applicative(0,13,0)
 > rand = subparser $ commandGroup "Randomness" <> randCmd <> metavar "rand"
 #else
 > rand = subparser $ randCmd <> metavar "rand"
