@@ -12,9 +12,11 @@ module Raaz.Hash.Blake2.Internal
        ( -- * The blake2 types
          BLAKE2, BLAKE2b, BLAKE2s
        , Blake2bMem, Blake2sMem
+       , blake2Pad
        ) where
 
 import           Control.Applicative
+import           Control.Monad.IO.Class
 import           Data.Bits           ( xor          )
 import           Data.String
 import           Data.Word
@@ -22,6 +24,8 @@ import           Foreign.Storable    ( Storable(..) )
 import           Prelude      hiding ( zipWith      )
 
 import           Raaz.Core
+import           Raaz.Core.Transfer
+import           Raaz.Hash.Internal
 
 ----------------------------- The blake2 type ---------------------------------
 
@@ -128,3 +132,12 @@ instance Initialisable Blake2sMem () where
 
 instance Extractable Blake2sMem BLAKE2s where
   extract = onSubMemory blake2sCell extract
+
+----------------------- Padding for Blake code ------------------------------
+
+
+blake2Pad :: (Primitive prim, Monad m, MonadIO m)
+          => prim
+          -> BYTES Int
+          -> WriteM m
+blake2Pad prim = padWrite 0 (blocksOf 1 prim) . skipWrite
