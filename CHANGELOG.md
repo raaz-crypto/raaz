@@ -10,6 +10,7 @@
 * combinator to randomise memory cells.
 * hardened the prg so that a compromise on the current prg state will
   not expose previously generated data.
+* OpenBSD/NetBSD: fix incorrect arc4random call.
 
 ## [0.1.1] - 2nd  March, 2017
 
