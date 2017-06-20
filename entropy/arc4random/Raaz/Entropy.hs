@@ -7,7 +7,7 @@ import Raaz.Core.Types
 
 -- | The getrandom system call.
 foreign import ccall unsafe
-  "arc4random"
+  "arc4random_buf"
   c_arc4random :: Pointer      -- Message
                -> BYTES Int    -- number of bytes
                -> IO (BYTES Int)

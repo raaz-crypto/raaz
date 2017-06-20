@@ -227,7 +227,7 @@ library
 
      --------------------- Entropy ----------------------------------------------
 
-     if os(openbsd)
+     if os(openbsd) || os(netbsd)
         -- Entropy for openbsd using arc4random
         hs-source-dirs: entropy/arc4random
      else
