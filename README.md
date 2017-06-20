@@ -2,6 +2,7 @@ Raaz: A secure cryptographic library
 ------------------------------------
 
 [![Build Staus][travis-status]][travis-raaz]
+[![Build Windows][appveyor-status]][appveyor-raaz]
 [![In Progress][waffle-inprogress]][waffle-raaz]
 [![Stackage LTS][stackage-lts-raaz-badge]][stackage-lts-raaz]
 [![Stackage Nightly][stackage-nightly-raaz-badge]][stackage-nightly-raaz]
@@ -66,3 +67,5 @@ problems.
 [hackage-badge]: <https://img.shields.io/hackage/v/raaz.svg>
 [hackage-deps-badge]: <https://img.shields.io/hackage-deps/v/raaz.svg>
 [hackage-deps]: <http://packdeps.haskellers.com/feed?needle=raaz>
+[appveyor-status]: <https://ci.appveyor.com/api/projects/status/github/raaz-crypto/raaz?branch=master&svg=true>
+[appveyor-raaz]: <https://ci.appveyor.com/project/raaz-crypto/raaz>
