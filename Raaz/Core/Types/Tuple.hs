@@ -77,8 +77,8 @@ dimension = dimensionP Proxy
 type Dimension (dim :: Nat) = SingI dim
 
 -- | This combinator returns the dimension of the tuple.
-dimension  :: (V.Unbox a, Dimension  dim) => Tuple dim a -> Int
-dimensionP :: (Dimension dim, V.Unbox a)
+dimension  :: Dimension dim => Tuple dim a -> Int
+dimensionP :: Dimension dim
            => Sing dim
            -> Tuple dim a
            -> Int
