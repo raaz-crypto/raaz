@@ -219,6 +219,9 @@ library
   if os(openbsd)
      cc-options: -DPLATFORM_OPENBSD
 
+  if os(windows)
+     cc-options: -DPLATFORM_WINDOWS
+
   ---------------- Stuff for posix systems. ------------------------------------
 
   if !os(windows)

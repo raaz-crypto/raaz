@@ -53,6 +53,11 @@ extern uint64_t raaz_tole64(uint64_t x);
      static inline uint32_t raaz_bswap32(uint32_t x){ return bswap_32(x); }
      static inline uint64_t raaz_bswap64(uint64_t x){ return bswap_64(x); }
 
+#  elif PLATFORM_WINDOWS
+#    include<stdlib.h>
+     static inline uint32_t raaz_bswap32(uint32_t x){ return _byteswap_ulong(x); }
+     static inline uint64_t raaz_bswap64(uint64_t x){ return _byteswap_uint64(x); }
+
 #  else  /* All platforms */
 #    include <endian.h>
      static inline uint32_t raaz_bswap32(uint32_t x){ return swap32(x); }
