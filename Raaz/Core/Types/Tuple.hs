@@ -87,6 +87,9 @@ dimensionP sz _ = fromEnum $ fromSing sz
 
 #endif
 
+{--@ dimension :: KnownNat dim  => Tuple dim a -> {n: Int | n == dim } @-}
+{-@ dimension :: Dimension dim  => Tuple dim a -> {n: Int | n == dim } @-}
+
 -- | Get the dimension to parser
 getParseDimension :: (V.Unbox a, Dimension dim)
                   => Parser (Tuple dim a) -> Int
