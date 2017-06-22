@@ -49,7 +49,6 @@ instance (V.Unbox a, Equality a) => Equality (Tuple dim a) where
 instance (V.Unbox a, Equality a) => Eq (Tuple dim a) where
   (==) = (===)
 
-
 -- | Function to make the type checker happy
 getA :: Tuple dim a -> a
 getA _ = undefined
@@ -62,13 +61,18 @@ getA _ = undefined
 -- | The constaint on the dimension of the tuple (since base 4.7.0)
 type Dimension (dim :: Nat) = KnownNat dim
 
+{-@ assume natValInt :: Dimension dim => proxy dim -> { v : Int | v == dim } @-}
+natValInt :: Dimension dim => proxy dim -> Int
+natValInt = fromEnum . natVal
+
 -- | This combinator returns the dimension of the tuple.
+{-@ dimension :: Dimension dim  => Raaz.Core.Types.Tuple.Tuple dim a -> {n: Int | n == dim } @-}
 dimension  :: Dimension dim => Tuple dim a -> Int
 dimensionP :: Dimension dim
            => Proxy dim
            -> Tuple dim a
            -> Int
-dimensionP sz _ = fromEnum $ natVal sz
+dimensionP sz _ = natValInt sz
 dimension = dimensionP Proxy
 
 #else
@@ -77,8 +81,8 @@ dimension = dimensionP Proxy
 type Dimension (dim :: Nat) = SingI dim
 
 -- | This combinator returns the dimension of the tuple.
-dimension  :: (V.Unbox a, Dimension  dim) => Tuple dim a -> Int
-dimensionP :: (Dimension dim, V.Unbox a)
+dimension  :: Dimension dim => Tuple dim a -> Int
+dimensionP :: Dimension dim
            => Sing dim
            -> Tuple dim a
            -> Int
@@ -133,16 +137,19 @@ instance (V.Unbox a, EndianStore a, Dimension dim)
 
 -- | Construct a tuple by repeating a monadic action.
 repeatM :: (Functor m, Monad m, V.Unbox a, Dimension dim) => m a -> m (Tuple dim a)
-repeatM action = result
-  where result = Tuple <$> V.replicateM sz action
-        sz     = dimension $ getTup result
-        getTup :: (Monad m, Dimension n)=> m (Tuple n a) -> Tuple n a
-        getTup _ = undefined
+repeatM = mkTupM undefined
+  where mkTupM :: (Functor m, V.Unbox a, Monad m, Dimension dim) => Tuple dim a -> m a -> m (Tuple dim a)
+        mkTupM uTup action = Tuple <$> V.replicateM (dimension uTup) action
+
 
 -- | Construct a tuple out of the list. This function is unsafe and
 -- will result in run time error if the list is not of the correct
 -- dimension.
+{-@ unsafeFromList :: (V.Unbox a, Dimension dim)
+                   => { xs:[a] | len xs = dim }
+                   -> Raaz.Core.Types.Tuple.Tuple dim a
 
+@-}
 unsafeFromList :: (V.Unbox a, Dimension dim) => [a] -> Tuple dim a
 unsafeFromList xs
   | dimension tup == L.length xs = tup
@@ -152,18 +159,21 @@ unsafeFromList xs
 
 -- | Computes the initial fragment of a tuple. No length needs to be given
 -- as it is infered from the types.
+{-@ lazy initial @-}
 initial ::  (V.Unbox a, Dimension dim0)
          => Tuple dim1 a
          -> Tuple dim0 a
-initial tup = tup0
-  where tup0 = Tuple $ V.take (dimension tup0) $ unTuple tup
+initial = mkTuple undefined
+  where mkTuple :: (V.Unbox a, Dimension dim0) => Tuple dim0 a -> Tuple dim1 a  -> Tuple dim0 a
+        mkTuple uTup tup = Tuple $ V.take (dimension uTup) $ unTuple tup
 
 -- TODO: Put a constraint that dim0 <= dim1
 
 -- | The @diagonal a@ gives a tuple, all of whose entries is @a@.
 diagonal :: (V.Unbox a, Dimension dim) => a -> Tuple dim a
-diagonal a = tup
-  where tup = Tuple $ V.replicate (dimension tup) a
+diagonal = mkTup undefined
+  where mkTup :: (V.Unbox a, Dimension dim) => Tuple dim a -> a -> Tuple dim a
+        mkTup uTup a = Tuple $ V.replicate (dimension uTup) a
 
 
 -- | A zipwith function for tuples

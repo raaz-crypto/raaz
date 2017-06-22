@@ -8,6 +8,12 @@ import System.FilePath
 -- is a directory we recurse on all .hs/.lhs files in that directory.
 toCheck :: [FilePath]
 toCheck = [ "Raaz/Core/Encode"
+          , "Raaz/Core/Types/Tuple.hs"
+          , "Raaz/Hash/Sha1"
+          , "Raaz/Hash/Sha224"
+          , "Raaz/Hash/Sha256"
+          , "Raaz/Hash/Sha384"
+          , "Raaz/Hash/Sha512"
           ]
 
 main :: IO ()
