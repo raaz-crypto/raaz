@@ -49,7 +49,6 @@ instance (V.Unbox a, Equality a) => Equality (Tuple dim a) where
 instance (V.Unbox a, Equality a) => Eq (Tuple dim a) where
   (==) = (===)
 
-
 -- | Function to make the type checker happy
 getA :: Tuple dim a -> a
 getA _ = undefined
@@ -62,13 +61,18 @@ getA _ = undefined
 -- | The constaint on the dimension of the tuple (since base 4.7.0)
 type Dimension (dim :: Nat) = KnownNat dim
 
+{-@ assume natValInt :: Dimension dim => proxy dim -> { v : Int | v == dim } @-}
+natValInt :: Dimension dim => proxy dim -> Int
+natValInt = fromEnum . natVal
+
 -- | This combinator returns the dimension of the tuple.
+{-@ dimension :: Dimension dim  => Raaz.Core.Types.Tuple.Tuple dim a -> {n: Int | n == dim } @-}
 dimension  :: Dimension dim => Tuple dim a -> Int
 dimensionP :: Dimension dim
            => Proxy dim
            -> Tuple dim a
            -> Int
-dimensionP sz _ = fromEnum $ natVal sz
+dimensionP sz _ = natValInt sz
 dimension = dimensionP Proxy
 
 #else
@@ -86,9 +90,6 @@ dimension       = withSing dimensionP
 dimensionP sz _ = fromEnum $ fromSing sz
 
 #endif
-
-{--@ dimension :: KnownNat dim  => Tuple dim a -> {n: Int | n == dim } @-}
-{-@ dimension :: Dimension dim  => Tuple dim a -> {n: Int | n == dim } @-}
 
 -- | Get the dimension to parser
 getParseDimension :: (V.Unbox a, Dimension dim)
@@ -145,7 +146,11 @@ repeatM action = result
 -- | Construct a tuple out of the list. This function is unsafe and
 -- will result in run time error if the list is not of the correct
 -- dimension.
+{-@ unsafeFromList :: (V.Unbox a, Dimension dim)
+                   => { xs:[a] | len xs = dim }
+                   -> Raaz.Core.Types.Tuple.Tuple dim a
 
+@-}
 unsafeFromList :: (V.Unbox a, Dimension dim) => [a] -> Tuple dim a
 unsafeFromList xs
   | dimension tup == L.length xs = tup
