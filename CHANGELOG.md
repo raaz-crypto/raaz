@@ -11,6 +11,7 @@
 * hardened the prg so that a compromise on the current prg state will
   not expose previously generated data.
 * OpenBSD/NetBSD: fix incorrect arc4random call.
+* Basic Unix man-page for the raaz command.
 
 ## [0.1.1] - 2nd  March, 2017
 
