@@ -221,7 +221,8 @@ library
      cc-options: -DPLATFORM_OPENBSD
   if os(windows)
      cc-options: -DPLATFORM_WINDOWS -DUNICODE
-     extra-libraries: Advapi32
+     cpp-options: -DPLATFORM_WINDOWS
+     extra-libraries: Advapi32, Kernel32
      build-tools: hsc2hs
 
   ---------------- Stuff for posix systems. ------------------------------------

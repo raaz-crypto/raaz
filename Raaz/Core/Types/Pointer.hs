@@ -322,23 +322,37 @@ allocaSecureAligned :: LengthUnit l
                     -> (Pointer -> IO a)
                     -> IO a
 
+#if defined(HAVE_MLOCK) || defined(PLATFORM_WINDOWS)
+
 #ifdef HAVE_MLOCK
 
 foreign import ccall unsafe "sys/mman.h mlock"
   c_mlock :: Pointer -> BYTES Int -> IO Int
 
-
 foreign import ccall unsafe "sys/mman.h munlock"
   c_munlock :: Pointer -> BYTES Int -> IO ()
+
+#else
+
+foreign import ccall unsafe "Windows.h VirtualLock"
+  c_mlock :: Pointer -> BYTES Int -> IO Int
+
+foreign import ccall unsafe "Windows.h VirtualUnlock"
+  c_munlock :: Pointer -> BYTES Int -> IO ()
+
+#endif
 
 allocaSecureAligned a l action = allocaAligned a l actualAction
   where sz = inBytes l
         actualAction cptr = let
           lockIt    = do c <- c_mlock cptr sz
+#ifdef HAVE_MLOCK
                          when (c /= 0) $ fail "secure memory: unable to lock memory"
+#else
+                         when (c == 0) $ fail "secure memory: unable to lock memory"
+#endif
           releaseIt =  memset cptr 0 l >>  c_munlock cptr sz
           in bracket_ lockIt releaseIt $ action cptr
-
 #else
 allocaSecureAligned _ _ = fail "memory locking not supported on this platform"
 
