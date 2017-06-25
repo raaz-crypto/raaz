@@ -96,6 +96,7 @@ library
                  , Raaz.Hash
                  , Raaz.Hash.Internal
                  , Raaz.Hash.Blake2
+                 , Raaz.Hash.Blake2.Implementation.CPortable
                  , Raaz.Hash.Sha1
                  , Raaz.Hash.Sha1.Implementation.CPortable
                  , Raaz.Hash.Sha224
@@ -171,6 +172,7 @@ library
 
   c-sources: cbits/raaz/core/endian.c
            -- hash implementations
+           , cbits/raaz/hash/blake2/cportable.c
            , cbits/raaz/hash/sha1/portable.c
            , cbits/raaz/hash/sha256/portable.c
            , cbits/raaz/hash/sha512/portable.c
