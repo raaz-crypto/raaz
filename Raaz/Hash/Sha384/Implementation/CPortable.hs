@@ -44,4 +44,4 @@ implementation :: Implementation SHA384
 implementation =  SomeHashI cPortable
 
 cPortable :: HashI SHA384 SHA384Memory
-cPortable = truncatedI fromIntegral unSHA384Mem SHA512I.cPortable
+cPortable = truncatedI (toEnum . fromEnum) unSHA384Mem SHA512I.cPortable

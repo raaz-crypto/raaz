@@ -49,4 +49,4 @@ instance Initialisable (HashMemory SHA512) () where
                                   ]
 
 instance Hash SHA512 where
-  additionalPadBlocks _ = 1
+  additionalPadBlocks _ = toEnum 1

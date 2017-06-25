@@ -49,4 +49,4 @@ instance Primitive SHA256 where
   type Implementation SHA256 = SomeHashI SHA256
 
 instance Hash SHA256 where
-  additionalPadBlocks _ = 1
+  additionalPadBlocks _ = toEnum 1
