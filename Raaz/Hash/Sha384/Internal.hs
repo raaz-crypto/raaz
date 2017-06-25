@@ -36,4 +36,4 @@ instance Primitive SHA384 where
   type Implementation SHA384 = SomeHashI SHA384
 
 instance Hash SHA384 where
-  additionalPadBlocks _ = 1
+  additionalPadBlocks _ = toEnum 1

@@ -196,7 +196,7 @@ hmacSource' imp@(SomeHashI hI) key src =
     initialise ()
     allocate $ \ ptr -> do
       liftIO $ unsafeCopyToPointer innerFirstBlock ptr
-      compress hI ptr 1
+      compress hI ptr $ toEnum 1
 
     -- Finish it by hashing the source.
     innerHash <- completeHashing hI src
@@ -206,12 +206,12 @@ hmacSource' imp@(SomeHashI hI) key src =
     initialise ()
     allocate $ \ ptr -> do
       liftIO $ unsafeCopyToPointer outerFirstBlock ptr
-      compress hI ptr 1
+      compress hI ptr $ toEnum 1
 
     -- Finish it with hashing the  hash computed above
     HMAC <$> completeHashing hI (toByteString innerHash)
 
-  where allocate = liftPointerAction $ allocBufferFor imp $ 1 `asTypeOf` (theBlock key)
+  where allocate = liftPointerAction $ allocBufferFor imp $ (toEnum 1) `asTypeOf` (theBlock key)
         innerFirstBlock = B.map (xor 0x36) $ hmacAdjustKey key
         outerFirstBlock = B.map (xor 0x5c) $ hmacAdjustKey key
         theBlock :: Key (HMAC h) -> BLOCKS h

@@ -53,4 +53,4 @@ instance Primitive SHA1 where
   type Implementation SHA1 = SomeHashI SHA1
 
 instance Hash SHA1 where
-  additionalPadBlocks _ = 1
+  additionalPadBlocks _ = toEnum 1

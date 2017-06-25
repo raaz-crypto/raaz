@@ -42,4 +42,4 @@ implementation :: Implementation SHA224
 implementation =  SomeHashI cPortable
 
 cPortable :: HashI SHA224 SHA224Memory
-cPortable = truncatedI fromIntegral unSHA224Mem SHA256I.cPortable
+cPortable = truncatedI (toEnum . fromEnum) unSHA224Mem SHA256I.cPortable

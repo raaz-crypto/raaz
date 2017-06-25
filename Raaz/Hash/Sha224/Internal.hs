@@ -46,4 +46,4 @@ instance Primitive SHA224 where
   type Implementation SHA224 = SomeHashI SHA224
 
 instance Hash SHA224 where
-  additionalPadBlocks _ = 1
+  additionalPadBlocks _ = toEnum 1
