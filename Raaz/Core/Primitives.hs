@@ -91,7 +91,7 @@ type family  Key prim :: *
 -- long as they can be converted to bytes. This can avoid a lot of
 -- tedious and error prone length calculations.
 newtype BLOCKS p = BLOCKS {unBLOCKS :: Int}
-                 deriving (Show, Eq, Ord, Enum, Real, Num, Integral)
+                 deriving (Show, Eq, Ord, Enum)
 
 instance Monoid (BLOCKS p) where
   mempty      = BLOCKS 0
