@@ -49,7 +49,8 @@ getEntropy l ptr = liftIO $
        ctx'    <- peek addr
        success <- c_CryptGenRandom ctx' (fromIntegral bytes) (castPtr ptr)
        free addr
-       _ <- c_CryptReleaseContext ctx 0
+       free ctx
+       _ <- c_CryptReleaseContext ctx' 0
        if success
           then return $ BYTES bytes
           else fail "Unable to generate entropy. Call to CryptGenRandom failed."
