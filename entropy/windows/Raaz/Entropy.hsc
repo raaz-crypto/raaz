@@ -13,17 +13,14 @@ module Raaz.Entropy( getEntropy ) where
 ##endif
 
 import Control.Monad.IO.Class( MonadIO, liftIO)
+import Control.Monad (when)
 import Data.Bits ((.|.))
 import Data.Word (Word8(), Word32())
 import Foreign.Ptr (Ptr(), nullPtr, castPtr)
-import Foreign.Marshal.Array (mallocArray, peekArray)
+import Foreign.Storable (peek)
 import Foreign.Marshal.Alloc (mallocBytes, free)
 import Foreign.Marshal.Utils (new)
-import Foreign.Storable (peek)
-import Foreign.ForeignPtr (ForeignPtr(), withForeignPtr)
-import Foreign.Concurrent (newForeignPtr)
 import Foreign.C.String (CWString())
-import System.IO.Unsafe (unsafePerformIO)
 import Raaz.Core
 
 type HCRYPTPROV = Ptr ()
@@ -38,28 +35,22 @@ foreign import WINDOWS_CCONV unsafe "Wincrypt.h CryptAcquireContextW"
 foreign import WINDOWS_CCONV unsafe "Wincrypt.h CryptReleaseContext"
     c_CryptReleaseContext :: HCRYPTPROV -> Word32 -> IO Bool
 
--- | Cache the crypto context so we don't have to create it on each call.
-cryptoContext :: ForeignPtr HCRYPTPROV
-cryptoContext = unsafePerformIO $
-  do buffer <- mallocBytes (#size HCRYPTPROV)
-     addr   <- new buffer
-     ctx    <- newForeignPtr addr (freeContext buffer >> free addr)
-     ctx_ok <- withForeignPtr ctx $ \ptr ->
-                    c_CryptAcquireContext ptr nullPtr nullPtr
-                        (#const PROV_RSA_FULL)
-                        ((#const CRYPT_VERIFYCONTEXT) .|. (#const CRYPT_SILENT))
-     if ctx_ok
-        then return ctx
-        else error "Call to CryptAcquireContext failed."
-
--- | Release the crytographical context handle.
-freeContext :: HCRYPTPROV -> IO ()
-freeContext ctx = c_CryptReleaseContext ctx 0 >> return ()
-
 -- | Get cryptographically random bytes from the system.
 getEntropy :: (MonadIO m, LengthUnit l) => l -> Pointer -> m (BYTES Int)
-getEntropy l ptr = liftIO $ withForeignPtr cryptoContext $ \ctx ->
-    do ctx' <- peek ctx
+getEntropy l ptr = liftIO $
+    -- You can't get an address of a pointer in haskell, so making out
+    -- parameters are messy. We do this by boxing the type.
+    do ctx    <- mallocBytes (#size HCRYPTPROV)
+       addr   <- new ctx
+       ctx_ok <- c_CryptAcquireContext addr nullPtr nullPtr
+                        (#const PROV_RSA_FULL)
+                        ((#const CRYPT_VERIFYCONTEXT) .|. (#const CRYPT_SILENT))
+       when (not ctx_ok) $ fail "Call to CryptAcquireContext failed."
+       ctx'    <- peek addr
        success <- c_CryptGenRandom ctx' (fromIntegral bytes) (castPtr ptr)
-       return $ if success then BYTES bytes else BYTES 0
+       free addr
+       _ <- c_CryptReleaseContext ctx 0
+       if success
+          then return $ BYTES bytes
+          else fail "Unable to generate entropy. Call to CryptGenRandom failed."
   where BYTES bytes = inBytes l
