@@ -36,6 +36,7 @@ import           Control.Applicative
 
 import qualified Data.ByteString      as B
 import qualified Data.ByteString.Lazy as L
+import           Data.Monoid
 import           Data.Word
 import           Foreign.Storable
 import           System.IO
@@ -236,8 +237,8 @@ completeHashing imp@(HashI{..}) src =
     comp                = compress ptr bufSize
     finish bytes        = compressFinal ptr bytes >> extract
     in processChunks comp finish src bufSize ptr
-  where bufSize             = atLeast l1Cache + 1
-        totalSize           = bufSize + additionalPadBlocks undefined
+  where bufSize             = atLeast l1Cache <> toEnum 1
+        totalSize           = bufSize <> additionalPadBlocks undefined
         allocate            = liftPointerAction $ allocBufferFor (SomeHashI imp) totalSize
 
 ----------------------- Hash memory ----------------------------------
