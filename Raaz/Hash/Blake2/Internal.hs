@@ -12,14 +12,16 @@ module Raaz.Hash.Blake2.Internal
        ( -- * The blake2 types
          BLAKE2, BLAKE2b, BLAKE2s
        , Blake2bMem, Blake2sMem
-       , blake2Pad
+       , blake2Pad, blake2bImplementation
        ) where
 
 import           Control.Applicative
 import           Control.Monad.IO.Class
-import           Data.Bits           ( xor          )
+import           Data.Bits           ( xor, complement )
+import           Data.Monoid
 import           Data.String
 import           Data.Word
+import           Foreign.Ptr         ( Ptr          )
 import           Foreign.Storable    ( Storable(..) )
 import           Prelude      hiding ( zipWith      )
 
@@ -146,3 +148,58 @@ blake2Pad :: (Primitive prim, Monad m, MonadIO m)
           -> BYTES Int
           -> WriteM m
 blake2Pad prim = padWrite 0 (blocksOf 1 prim) . skipWrite
+
+
+
+----------------------- Create a blake2b implementation ---------------------
+type Compress2b =  Pointer            -- ^ Buffer
+                -> BLOCKS BLAKE2b     -- ^ number of blocks
+                -> Ptr (BYTES Word64) -- ^ Upper count
+                -> Ptr (BYTES Word64) -- ^ Lower
+                -> Ptr BLAKE2b
+                -> IO ()
+
+type Last2b =  Pointer
+            -> BYTES Int
+            -> BYTES Word64 -- Upper
+            -> BYTES Word64 -- Lower
+            -> Word64       -- f0
+            -> Word64       -- f1
+            -> Ptr BLAKE2b
+            -> IO ()
+
+blake2bImplementation :: String  -- ^ Name
+                      -> String  -- ^ Description
+                      -> Compress2b
+                      -> Last2b
+                      -> HashI BLAKE2b Blake2bMem
+blake2bImplementation nm descr compress2b last2b = HashI { hashIName              = nm
+                                                         , hashIDescription       = descr
+                                                         , compress               = comp
+                                                         , compressFinal          = final
+                                                         , compressStartAlignment = 32  -- ^ Allow gcc to use vector instructions
+                                                         }
+  where comp buf blks = do uPtr   <- onSubMemory uLengthCell getCellPointer
+                           lPtr   <- onSubMemory lLengthCell getCellPointer
+                           hshPtr <- onSubMemory blake2bCell getCellPointer
+                           liftIO $ compress2b buf blks uPtr lPtr hshPtr
+
+        lastBlock buf r = do u      <- onSubMemory uLengthCell extract
+                             l      <- onSubMemory lLengthCell extract
+                             hshPtr <- onSubMemory blake2bCell getCellPointer
+                             let f0 = complement 0
+                                 f1 = 0
+                               in  liftIO $ last2b buf r u l f0 f1 hshPtr
+
+        final buf nbytes = unsafeWrite blake2bPad buf >> finalPadded buf nbytes
+          where blake2bPad = blake2Pad (undefined :: BLAKE2b) nbytes
+
+        finalPadded buf nbytes
+          | nbytes == 0 = lastBlock buf 0  -- only when actual input is empty.
+          | otherwise   = let
+              (blks,r)       =  bytesQuotRem nbytes
+              blksToCompress = if r == 0 then blks <> toEnum (-1) else blks
+              remBytes       = if r > 0 then r else inBytes $ blocksOf 1 (undefined :: BLAKE2b)
+              lastBlockPtr   = buf `movePtr` blksToCompress
+              in do comp buf blksToCompress
+                    lastBlock lastBlockPtr remBytes
