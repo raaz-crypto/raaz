@@ -95,6 +95,8 @@ library
                  --
                  , Raaz.Hash
                  , Raaz.Hash.Internal
+                 , Raaz.Hash.Blake2
+                 , Raaz.Hash.Blake2.Implementation.CPortable
                  , Raaz.Hash.Sha1
                  , Raaz.Hash.Sha1.Implementation.CPortable
                  , Raaz.Hash.Sha224
@@ -134,6 +136,8 @@ library
                -- Hashes
                --
                , Raaz.Hash.Internal.HMAC
+               , Raaz.Hash.Blake2.Internal
+               , Raaz.Hash.Blake2.Recommendation
                , Raaz.Hash.Sha.Util
                , Raaz.Hash.Sha1.Internal
                , Raaz.Hash.Sha1.Recommendation
@@ -169,6 +173,7 @@ library
 
   c-sources: cbits/raaz/core/endian.c
            -- hash implementations
+           , cbits/raaz/hash/blake2/cportable.c
            , cbits/raaz/hash/sha1/portable.c
            , cbits/raaz/hash/sha256/portable.c
            , cbits/raaz/hash/sha512/portable.c
@@ -181,6 +186,7 @@ library
   include-dirs: cbits
   includes: raaz/core/endian.h
   install-includes: cbits/raaz/core/endian.h
+                  , cbits/raaz/hash/blake2/common.h
                   , cbits/raaz/cipher/aes/common.h
                   , cbits/raaz/cipher/aes/cportable.h
                   , cbits/raaz/cipher/chacha20/common.h
@@ -300,7 +306,7 @@ test-Suite spec
                , Raaz.Hash.Sha256Spec
                , Raaz.Hash.Sha384Spec
                , Raaz.Hash.Sha512Spec
-               , Raaz.Hash.Blake256Spec
+               , Raaz.Hash.Blake2Spec
 
 
   build-depends: base
