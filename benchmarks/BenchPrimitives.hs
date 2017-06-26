@@ -20,6 +20,7 @@ import Raaz.Cipher.Internal
 import Raaz.Hash.Internal
 import Raaz.Random
 
+import qualified Raaz.Hash.Blake2.Implementation.CPortable    as Blake2CP
 import qualified Raaz.Hash.Sha1.Implementation.CPortable      as Sha1CP
 import qualified Raaz.Hash.Sha256.Implementation.CPortable    as Sha256CP
 import qualified Raaz.Hash.Sha512.Implementation.CPortable    as Sha512CP
@@ -49,6 +50,7 @@ allBench :: [RaazBench]
 allBench =    [ memsetBench, randomnessBench ]
            ++ chacha20Benchs
            ++ aesBenchs
+           ++ blake2bBenchs
            ++ sha1Benchs
            ++ sha256Benchs
            ++ sha512Benchs
@@ -93,6 +95,8 @@ sha256Benchs = [ hashBench Sha256CP.implementation ]
 sha512Benchs :: [ RaazBench ]
 sha512Benchs = [ hashBench Sha512CP.implementation ]
 
+blake2bBenchs :: [ RaazBench ]
+blake2bBenchs = [ hashBench Blake2CP.implementation2b ]
 
 aesBenchs     :: [ RaazBench ]
 aesBenchs      = [ encryptBench AesCbcCP.aes128cbcI
