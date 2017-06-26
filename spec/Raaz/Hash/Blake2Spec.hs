@@ -17,10 +17,26 @@ hmacsTo  :: ByteString -> HMAC BLAKE2b -> Key (HMAC BLAKE2b) -> Spec
 hmacsTo  = CH.hmacsTo
 --}
 
+spec2b :: Spec
+spec2b = describe "blake2b" $ do
+  basicEndianSpecs (undefined :: BLAKE2b)
+  "" `hashesTo`
+    "786a02f742015903c6c6fd852552d272912f4740e15847618a86e217f71f5419d25e1031afee585313896444934eb04b903a685b1448b755d56f701afe9be2ce"
+  "abc" `hashesTo`
+    "ba80a53f981c4d0d6a2797b69f12f6e94c212f14685ac4b74b12bb6fdbffa2d17d87c5392aab792dc252d5de4533cc9518d38aa8dbf1925ab92386edd4009923"
+
+  where hashesTo :: ByteString -> BLAKE2b -> Spec
+        hashesTo = CH.hashesTo
+
+
+spec2s :: Spec
+spec2s = describe "blake2s" $ basicEndianSpecs (undefined :: BLAKE2s)
+
+
 spec :: Spec
-spec =  do
-  describe "blake2b" $ basicEndianSpecs (undefined :: BLAKE2b)
-  describe "blake2s" $ basicEndianSpecs (undefined :: BLAKE2s)
+spec =  spec2b >> spec2s
+
+
 
   {-
   --
@@ -47,24 +63,5 @@ spec =  do
   -- Some hmac specs
   hmacSpec
 
-
-hmacSpec :: Spec
-hmacSpec = do
-  with ("0b" `repeated` 20) $ "Hi There" `hmacsTo`
-    "87aa7cdea5ef619d4ff0b4241a1d6cb02379f4e2ce4ec2787ad0b30545e17cdedaa833b7d6b8a702038b274eaea3f4e4be9d914eeb61f1702e696c203a126854"
-
-  with ("aa" `repeated` 20) $ (replicate (50 :: BYTES Int) 0xdd) `hmacsTo`
-    "fa73b0089d56a284efb0f0756c890be9b1b5dbdd8ee81a3655f83e33b2279d39bf3e848279a722c806b485a47e67c807b946a337bee8942674278859e13292fb"
-
-  with ("aa" `repeated` 131) $ "Test Using Larger Than Block-Size Key - Hash Key First" `hmacsTo`
-    "80b24263c7c1a3ebb71493c1dd7be8b49b46d1f41b4aeec1121b013783f8f3526b56d037e05f2598bd0fd2215d6a1e5295e64f73f63f0aec8b915a985d786598"
-
-  with ("aa" `repeated` 131) $
-    "This is a test using a larger than block-size key and a larger than block-size data. The key needs to be hashed before being used by the HMAC algorithm." `hmacsTo`
-    "e37b6a775dc87dbaa4dfa9f96e5e3ffddebd71f8867289865df5a32d20cdc944b6022cac3c4982b10d5eeb55c3e4de15134676fb6de0446065c97440fa8c6a58"
-
-  let key = fromString $ (show  :: Base16 -> String) $ encodeByteString "Jefe"
-      in with key  $ "what do ya want for nothing?" `hmacsTo`
-           "164b7a7bfcf819e2e395fbe73b56e0a387bd64222e831fd610270cd7ea2505549758bf75c05a994a6d034f65f8f0e6fdcaeab1a34d4a6b4b636e070a38bce737"
 
 -}
