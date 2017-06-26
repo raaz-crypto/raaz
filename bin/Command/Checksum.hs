@@ -30,6 +30,7 @@ checksum = subparser $ commandGroup "Checksum Computation"
 #else
 checksum = subparser $ mempty
 #endif
+           <> mkCmd Blake2b
            <> mkCmd Sha1
            <> mkCmd Sha512
            <> mkCmd Sha256
@@ -39,6 +40,7 @@ checksum = subparser $ mempty
 
 -- | The hash algorithm to use.
 data Algorithm h  where
+  Blake2b  :: Algorithm BLAKE2b
   Sha1     :: Algorithm SHA1
   Sha256   :: Algorithm SHA256
   Sha512   :: Algorithm SHA512
