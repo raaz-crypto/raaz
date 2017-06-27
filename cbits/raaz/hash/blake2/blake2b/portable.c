@@ -1,6 +1,12 @@
 #include <raaz/hash/blake2/common.h>
 
-# define R(x,i) ((x << (64 - i)) | (x >> i))
+static inline Word2b R(Word2b x, int i)
+{
+    return (x << (64 - i)) | (x >> i);
+}
+
+
+
 
 
 # define G(a,b,c,d,m0,m1)		      \
