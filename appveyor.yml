@@ -3,6 +3,9 @@ build: off
 environment:
   global:
     STACK_ROOT: "c:\\sr"
+  matrix:
+    - ARCH: x86_64
+    - ARCH: i386
 
 matrix:
   allow_failures:
