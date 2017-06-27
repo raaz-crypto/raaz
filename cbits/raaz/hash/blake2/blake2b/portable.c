@@ -1,39 +1,29 @@
-#include "common.h"
+#include <raaz/hash/blake2/common.h>
 
-# define R2b(x,i) ((x << (64 - i)) | (x >> i))
-# define R2s(x,i) ((x << (32 - i)) | (x >> i))
+# define R(x,i) ((x << (64 - i)) | (x >> i))
 
 
-# define G2b(a,b,c,d,m0,m1)			\
-    {						\
-	a += b + m0  ; d ^= a; d = R2b(d,32);	\
-	c += d       ; b ^= c; b = R2b(b,24);	\
-	a += b + m1  ; d ^= a; d = R2b(d,16);   \
-	c += d       ; b ^= c; b = R2b(b,63);	\
+# define G(a,b,c,d,m0,m1)		      \
+    {					      \
+	a += b + m0  ; d ^= a; d = R(d,32);   \
+	c += d       ; b ^= c; b = R(b,24);   \
+	a += b + m1  ; d ^= a; d = R(d,16);   \
+	c += d       ; b ^= c; b = R(b,63);   \
     }
 
-
-
-# define G2s(a,b,c,d,m0,m1)			\
-    {						\
-	a += b + m0 ; d ^= a; d = R2s(d,16);	\
-	c += d      ; b ^= c; b = R2s(b,12);	\
-	a += b + m1 ; d ^= a; d = R2s(d,8);     \
-	c += d      ; b ^= c; b = R2s(b,7);	\
-    }
 
 
 /* Definitions for Blake2b */
 
-# define G0(i,j) G2b(x0, x4, x8,  x12, w##i, w##j);
-# define G1(i,j) G2b(x1, x5, x9,  x13, w##i, w##j);
-# define G2(i,j) G2b(x2, x6, x10, x14, w##i, w##j);
-# define G3(i,j) G2b(x3, x7, x11, x15, w##i, w##j);
+# define G0(i,j) G(x0, x4, x8,  x12, w##i, w##j);
+# define G1(i,j) G(x1, x5, x9,  x13, w##i, w##j);
+# define G2(i,j) G(x2, x6, x10, x14, w##i, w##j);
+# define G3(i,j) G(x3, x7, x11, x15, w##i, w##j);
 
-# define G4(i,j) G2b(x0, x5, x10, x15, w##i, w##j);
-# define G5(i,j) G2b(x1, x6, x11, x12, w##i, w##j);
-# define G6(i,j) G2b(x2, x7, x8,  x13, w##i, w##j);
-# define G7(i,j) G2b(x3, x4, x9,  x14, w##i, w##j);
+# define G4(i,j) G(x0, x5, x10, x15, w##i, w##j);
+# define G5(i,j) G(x1, x6, x11, x12, w##i, w##j);
+# define G6(i,j) G(x2, x7, x8,  x13, w##i, w##j);
+# define G7(i,j) G(x3, x4, x9,  x14, w##i, w##j);
 
 # define ROUND(i0,i1,i2,i3,i4,i5,i6,i7,i8,i9,i10,i11,i12,i13,i14,i15) \
 	{							      \
@@ -309,35 +299,3 @@ void raazHashBlake2bPortableLastBlock( Block2b mesg, int nbytes,
     h[7] ^= x7 ^ x15;
 
 }
-
-
-/* Definitions forget previous definitions */
-
-# undef G0
-# undef G1
-# undef G2
-# undef G3
-# undef G4
-# undef G5
-# undef G6
-# undef G7
-# undef ROUND
-
-
-/* Definitions for Blake2s */
-
-# define G0(i,j) G2s(x0, x4, x8,  x12, w##i, w##j);
-# define G1(i,j) G2s(x1, x5, x9,  x13, w##i, w##j);
-# define G2(i,j) G2s(x2, x6, x10, x14, w##i, w##j);
-# define G3(i,j) G2s(x3, x7, x11, x15, w##i, w##j);
-
-# define G4(i,j) G2s(x0, x5, x10, x15, w##i, w##j);
-# define G5(i,j) G2s(x1, x6, x11, x12, w##i, w##j);
-# define G6(i,j) G2s(x2, x7, x8,  x13, w##i, w##j);
-# define G7(i,j) G2s(x3, x4, x9,  x14, w##i, w##j);
-
-# define ROUND(i0,i1,i2,i3,i4,i5,i6,i7,i8,i9,i10,i11,i12,i13,i14,i15) \
-	{							      \
-	    G0( i0,i1 ); G1( i2 ,i3  ); G2( i4 ,i5  ); G3( i6 ,i7  ); \
-	    G4( i8,i9 ); G5( i10,i11 ); G6( i12,i13 ); G7( i14,i15 ); \
-	}
