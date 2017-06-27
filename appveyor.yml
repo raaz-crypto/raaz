@@ -4,9 +4,10 @@ environment:
   global:
     STACK_ROOT: "c:\\sr"
   matrix:
-    - ARCH: x86_64
-    - ARCH: i386
-
+    fast_finish: true
+    allow_failures:
+      - ARCH: x86_64
+      - ARCH: i386
 
 before_test:
 # http://help.appveyor.com/discussions/problems/6312-curl-command-not-found
