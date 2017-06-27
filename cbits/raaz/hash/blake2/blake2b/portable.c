@@ -49,15 +49,6 @@ suspects there are the following additional parameters.
 
 */
 
-# ifdef __GNUC__
-
-typedef Block2b AlignedBlock2b __attribute__ ((aligned (32)));
-void raazHashBlake2bPortableBlockCompress(AlignedBlock2b *mesg, int nblocks,
-					  Word2b *Upper, Word2b *Lower,
-					  Blake2b h)
-    __attribute__((optimize("tree-vectorize")));
-
-#endif
 
 #define LOAD(i) (raaz_tole64((*mesg)[(i)]))
 
@@ -193,17 +184,6 @@ void raazHashBlake2bPortableBlockCompress( Block2b *mesg, int nblocks,
     *Upper = upper;
     *Lower = lower;
 }
-
-# ifdef __GNUC__
-
-typedef Block2b AlignedBlock2b __attribute__ ((aligned (32)));
-void raazHashBlake2bPortableLastBlock(AlignedBlock2b mesg, int nbytes,
-				      Word2b upper, Word2b lower,
-				      Word2b f0, Word2b f1,
-				      Blake2b h)
-    __attribute__((optimize("tree-vectorize")));
-
-#endif
 
 /* This is the function for compressing the last block. The nbytes should be <= block size */
 
