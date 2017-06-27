@@ -1,4 +1,5 @@
 #include <raaz/hash/blake2/common.h>
+#include <raaz/hash/blake2/blake2b/constants.h>
 
 static inline Word2b R(Word2b x, int i)
 {

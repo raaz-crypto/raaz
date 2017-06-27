@@ -187,6 +187,7 @@ library
   includes: raaz/core/endian.h
   install-includes: cbits/raaz/core/endian.h
                   , cbits/raaz/hash/blake2/common.h
+                  , cbits/raaz/hash/blake2/blake2b/constants.h
                   , cbits/raaz/cipher/aes/common.h
                   , cbits/raaz/cipher/aes/cportable.h
                   , cbits/raaz/cipher/chacha20/common.h
