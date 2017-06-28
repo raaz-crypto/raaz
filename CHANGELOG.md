@@ -2,7 +2,7 @@
 
 ## [0.2.0] - Pending
 
-* BLAKE2b added.
+* BLAKE2b, BLAKE2s added.
 * system entropy: Experimental support for linux getrandom call
 * removed depreciated `liftSubMT` from Memory.
 * Got rid of the class `MemoryMonad`, instead introduced a more specific
