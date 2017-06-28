@@ -56,6 +56,8 @@ data.
 
 **raaz** **blake2bsum** [OPTIONS] *FILE1* *FILE2* ...
 
+**raaz** **blake2ssum** [OPTIONS] *FILE1* *FILE2* ...
+
 **raaz** **sha512sum** [OPTIONS] *FILE1* *FILE2* ...
 
 **raaz** **sha256sum** [OPTIONS] *FILE1* *FILE2* ...
@@ -71,6 +73,9 @@ example,
 ```
 $ raaz sha256sum /dev/null
 e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  /dev/null
+
+$ raaz blake2ssum /dev/null
+69217a3079908094e11121d042354a7c1f55b6482ca1a51e1b250dfd1ed0eef9  /dev/null
 ```
 
 In *computation mode*, a non-zero exist status indicates some error in
