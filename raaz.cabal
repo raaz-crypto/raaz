@@ -173,7 +173,8 @@ library
 
   c-sources: cbits/raaz/core/endian.c
            -- hash implementations
-           , cbits/raaz/hash/blake2/cportable.c
+           , cbits/raaz/hash/blake2/blake2b/portable.c
+           , cbits/raaz/hash/blake2/blake2s/portable.c
            , cbits/raaz/hash/sha1/portable.c
            , cbits/raaz/hash/sha256/portable.c
            , cbits/raaz/hash/sha512/portable.c
@@ -187,6 +188,8 @@ library
   includes: raaz/core/endian.h
   install-includes: cbits/raaz/core/endian.h
                   , cbits/raaz/hash/blake2/common.h
+                  , cbits/raaz/hash/blake2/blake2b/constants.h
+                  , cbits/raaz/hash/blake2/blake2s/constants.h
                   , cbits/raaz/cipher/aes/common.h
                   , cbits/raaz/cipher/aes/cportable.h
                   , cbits/raaz/cipher/chacha20/common.h

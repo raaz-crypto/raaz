@@ -50,7 +50,7 @@ allBench :: [RaazBench]
 allBench =    [ memsetBench, randomnessBench ]
            ++ chacha20Benchs
            ++ aesBenchs
-           ++ blake2bBenchs
+           ++ blake2Benchs
            ++ sha1Benchs
            ++ sha256Benchs
            ++ sha512Benchs
@@ -95,8 +95,10 @@ sha256Benchs = [ hashBench Sha256CP.implementation ]
 sha512Benchs :: [ RaazBench ]
 sha512Benchs = [ hashBench Sha512CP.implementation ]
 
-blake2bBenchs :: [ RaazBench ]
-blake2bBenchs = [ hashBench Blake2CP.implementation2b ]
+blake2Benchs :: [ RaazBench ]
+blake2Benchs = [ hashBench Blake2CP.implementation2b
+               , hashBench Blake2CP.implementation2s
+               ]
 
 aesBenchs     :: [ RaazBench ]
 aesBenchs      = [ encryptBench AesCbcCP.aes128cbcI
