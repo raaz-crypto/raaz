@@ -20,6 +20,8 @@ hmacsTo  = CH.hmacsTo
 spec2b :: Spec
 spec2b = describe "blake2b" $ do
   basicEndianSpecs (undefined :: BLAKE2b)
+
+  ------------- Unit tests -------------------------
   "" `hashesTo`
     "786a02f742015903c6c6fd852552d272912f4740e15847618a86e217f71f5419d25e1031afee585313896444934eb04b903a685b1448b755d56f701afe9be2ce"
   "abc" `hashesTo`
@@ -30,7 +32,17 @@ spec2b = describe "blake2b" $ do
 
 
 spec2s :: Spec
-spec2s = describe "blake2s" $ basicEndianSpecs (undefined :: BLAKE2s)
+spec2s = describe "blake2s" $ do
+  basicEndianSpecs (undefined :: BLAKE2s)
+
+  ------------- Unit tests -------------------------
+  "" `hashesTo` "69217a3079908094e11121d042354a7c1f55b6482ca1a51e1b250dfd1ed0eef9"
+
+  "abc" `hashesTo` "508c5e8c327c14e2e1a72ba34eeb452f37458b209ed63a294d999b4c86675982"
+
+
+  where hashesTo :: ByteString -> BLAKE2s -> Spec
+        hashesTo = CH.hashesTo
 
 
 spec :: Spec
