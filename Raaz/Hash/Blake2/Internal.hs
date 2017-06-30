@@ -1,12 +1,12 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE TypeFamilies               #-}
-{-# LANGUAGE RecordWildCards           #-}
+{-# LANGUAGE RecordWildCards            #-}
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE ForeignFunctionInterface   #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE DataKinds                  #-}
 {-# LANGUAGE FlexibleContexts           #-}
-{- CFILES raaz/hash/sha1/portable.c     -}
+{-# CFILES raaz/hash/sha1/portable.c    #-}
 
 module Raaz.Hash.Blake2.Internal
        ( -- * The blake2 types
@@ -178,7 +178,7 @@ blake2bImplementation nm descr compress2b last2b = HashI { hashIName            
                                                          , hashIDescription       = descr
                                                          , compress               = comp
                                                          , compressFinal          = final
-                                                         , compressStartAlignment = 32  -- ^ Allow gcc to use vector instructions
+                                                         , compressStartAlignment = 32  --  Allow gcc to use vector instructions
                                                          }
   where comp buf blks = do uPtr   <- onSubMemory uLengthCell getCellPointer
                            lPtr   <- onSubMemory lLengthCell getCellPointer
@@ -230,7 +230,7 @@ blake2sImplementation nm descr compress2s last2s = HashI { hashIName            
                                                          , hashIDescription       = descr
                                                          , compress               = comp
                                                          , compressFinal          = final
-                                                         , compressStartAlignment = 32  -- ^ Allow gcc to use vector instructions
+                                                         , compressStartAlignment = 32  --  Allow gcc to use vector instructions
                                                          }
   where comp buf blks = do len    <- onSubMemory lengthCell  extract    -- extract current length
 
