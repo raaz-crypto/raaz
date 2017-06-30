@@ -81,7 +81,7 @@ library
   exposed-modules: Raaz
                  , Raaz.Core
                  , Raaz.Core.ByteSource
-                 , Raaz.Core.DH
+               --  , Raaz.Core.DH
                  , Raaz.Core.Encode
                  , Raaz.Core.Memory
                  , Raaz.Core.MonoidalAction
