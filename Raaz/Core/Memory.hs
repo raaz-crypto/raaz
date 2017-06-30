@@ -59,8 +59,7 @@ import           Raaz.Core.Types
 -- scrapped. The primary purpose of the memory subsystem is to provide
 -- a way to allocate and manage /secure memory/, i.e. memory that will
 -- not be swapped out as long as the memory is used and will be wiped
--- clean after use. There are there important parts to the memory
--- subsystem:
+-- clean after use. It consists of the following components:
 --
 -- [The `Memory` type class:] A memory element is some type that holds
 -- an internal buffer inside it.
@@ -197,7 +196,7 @@ instance MemoryThread MT where
 execute :: MemoryThread mT => (mem -> IO a) -> mT mem a
 execute = liftMT . MT
 
-
+-- | Perform an IO action inside the memory thread.
 doIO :: MemoryThread mT => IO a -> mT mem a
 doIO = execute . const
 
@@ -214,6 +213,7 @@ liftPointerAction allocator mtAction
 
 -- TODO: This is a very general pattern needs more exploration.
 
+-- | Get the underlying memory element of the memory thread.
 getMemory :: MemoryThread mT => mT mem mem
 getMemory = execute return
 
