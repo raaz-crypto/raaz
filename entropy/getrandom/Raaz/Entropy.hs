@@ -1,4 +1,5 @@
 {-# LANGUAGE ForeignFunctionInterface         #-}
+-- | Entropy based on the getrandom system call on Linux.
 module Raaz.Entropy( getEntropy ) where
 
 import Control.Monad.IO.Class(MonadIO, liftIO)

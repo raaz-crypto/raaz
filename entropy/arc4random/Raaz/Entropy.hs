@@ -1,4 +1,6 @@
 {-# LANGUAGE ForeignFunctionInterface         #-}
+
+-- | Entropy based on arc4random_buf (OpenBSD/NetBSD etc).
 module Raaz.Entropy( getEntropy ) where
 
 import Control.Monad.IO.Class(MonadIO, liftIO)

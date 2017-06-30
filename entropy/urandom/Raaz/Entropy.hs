@@ -1,3 +1,4 @@
+-- | Entropy based on `/dev/urandom`.
 module Raaz.Entropy( getEntropy ) where
 
 import Control.Monad.IO.Class( MonadIO, liftIO)
