@@ -163,13 +163,13 @@ class MemoryThread (mT :: * -> * -> *) where
   -- a limit to how much locked memory can be allocated. Nonetheless,
   -- actions that work with sensitive information like passwords should
   -- use this to run an memory action.
-  securely   :: (MemoryThread mT, Memory mem ) => mT mem a -> IO a
+  securely   :: Memory mem => mT mem a -> IO a
 
   -- | Run a memory action with the internal memory used by the action
   -- being allocated from unlocked memory. Use this function when you
   -- work with data that is not sensitive to security considerations
   -- (for example, when you want to verify checksums of files).
-  insecurely :: (MemoryThread mT, Memory mem ) => mT mem a -> IO a
+  insecurely :: Memory mem => mT mem a -> IO a
 
   -- | Lift an actual memory thread.
   liftMT :: MT mem a -> mT mem a

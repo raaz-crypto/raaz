@@ -144,7 +144,7 @@ instance Extractable Blake2sMem BLAKE2s where
 ----------------------- Padding for Blake code ------------------------------
 
 
-blake2Pad :: (Primitive prim, Monad m, MonadIO m)
+blake2Pad :: (Primitive prim, MonadIO m)
           => prim
           -> BYTES Int
           -> WriteM m
