@@ -146,12 +146,11 @@ import Raaz.Random.ChaCha20PRG
 -- The pseudo-random generator in Raaz uses the chacha20 stream cipher.
 -- The two main steps in the generation of random data:
 --
--- [Seeding] The internal state of of the chacha20 cipher, i.e. its
---   key, iv, and counter, are set using the system entropy.
+-- [Seeding:] Setting the internal state of of the chacha20 cipher,
+-- i.e. its key, iv, and counter.
 --
--- [Sampling] Sampling is the process of generating some blocks of the
--- chacha20 key stream in an auxiliary buffer. Random bytes needed by
--- the program are given out from this auxiliary buffer.
+-- [Sampling:] Pre-computing a few blocks of the chacha20 key stream
+-- in an auxiliary buffer.
 --
 -- The auxilary buffer and the internal chacha20 state is part of the
 -- memory used in the `RT` monad and hence using `securely` will
@@ -159,30 +158,28 @@ import Raaz.Random.ChaCha20PRG
 --
 -- == Seeding.
 --
--- Raaz uses the system entropy source to seed the (key, iv) of the
--- chacha20 cipher that is used.  Reading the system entropy source is
--- a costly affair as it often involves a system call. Therefore,
--- seeding is done at the beginning of the operation and once every 1G
--- blocks (64GB) of data generated. No direct access to the system
--- entropy is provided to the user except the `reseed` combinator
--- which itself is not really recommend. This is a deliberate design
--- choice to avoid potential confusion and the resulting error for the
--- user.
+-- We use the /system entropy source/ to seed the (key, iv) of the
+-- chacha20 cipher.  Reading the system entropy source is a costly
+-- affair as it often involves a system call. Therefore, seeding is
+-- done at the beginning of the operation and once every 1G blocks
+-- (64GB) of data generated. No direct access to the system entropy is
+-- provided to the user except through the `reseed` combinator which
+-- itself is not really recommend. This is a deliberate design choice
+-- to avoid potential confusion and the resulting error for the user.
 --
 -- User level libraries have very little access to actual entropy
 -- sources and it is very difficult to ascertain the quality of the
 -- ones that we do have. Therefore, we believe it is better to rely on
--- the operating system for the entropy needed to seed the PRG. As a
+-- the operating system for the entropy needed for seeding. As a
 -- result, security of PRG is crucially dependent on the quality of
--- system entropy source. If the seed is predictable then till the
--- next seeding (an infrequent event as explained above) everything is
--- deterministic and hence compromised. We would like to warn the
--- users that certain systems have low entropy at certain epochs, like
--- at the time of startup the. This can cause the PRG to be
--- compromised but there is hardly anything that raaz can do to avoid
--- this unfortunate situation. We try to mitigate this by using the
--- best know source for each supported operating system. Given below
--- is the list of our choice of entropy source.
+-- system entropy source. If the seed is predictable then everything
+-- till the next seeding (an infrequent event as explained above) is
+-- deterministic and hence compromised. Be warned that the entropy in
+-- many systems are quite low entropy at certain epochs, like at the
+-- time of startup. This can cause the PRG to be compromised. We try
+-- to mitigate this by using the best know source for each supported
+-- operating system. Given below is the list of our choice of entropy
+-- source.
 --
 -- [OpenBSD/NetBSD:] The arc4random call.
 --
@@ -198,22 +195,20 @@ import Raaz.Random.ChaCha20PRG
 --
 -- == Sampling.
 --
--- Sampling is the stage where we generate the chacha20 keystream in
--- the an auxiliary buffer (currenlty 16 blocks of ChaCha20). The
--- actual requests for random data is satisfied from this auxiliary
--- buffer. We do two things that to ensure that the compromise of the
--- PRG state, which for us is the current (key,iv) pair and the data
--- inside the auxiliary buffer, does not compromise the random data
--- already generated.
+-- Instead of running the chacha20 cipher for every request, we
+-- generate 16 blocks of ChaCha20 key stream in an auxiliary buffer
+-- and satisfy requests for random bytes from this buffer. To ensure
+-- that the compromise of the PRG state does not compromise the random
+-- data already generated and given out, we do the following.
 --
--- 1. At each sampling we re-initialise the (key,iv) pair using the
+-- 1. At each sampling, we re-initialise the (key,iv) pair using the
 --    key size + iv size bytes from the auxiliary buffer. This ensures
 --    that there is no way to know which key,iv pairs was used to
 --    generate the current contents in the auxiliary buffer.
 --
--- 2. Every use of data from the auxiliary buffer, whether it is to satisfy
---    a request for random bytes or to reinitialise the (key,iv) pair in step 1
---    is wiped out immediately.
+-- 2. Every use of data from the auxiliary buffer, whether it is to
+--    satisfy a request for random bytes or to reinitialise the
+--    (key,iv) pair in step 1 is wiped out immediately.
 --
 -- Assuming the security of the chacha20 stream cipher we have the
 -- following security guarantee.
