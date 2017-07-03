@@ -121,8 +121,8 @@ import Raaz.Random.ChaCha20PRG
 -- > main = securely $ do
 -- >
 -- >     -- Initialisation
--- >     onSubMemory fst randomiseCell  -- randomise key
--- >     onSubMemory snd randomise Cell -- randomise iv
+-- >     onSubMemory fst randomiseCell -- randomise key
+-- >     onSubMemory snd randomiseCell -- randomise iv
 -- >
 -- >     doSomethingWithKeyIV
 --
@@ -164,8 +164,9 @@ import Raaz.Random.ChaCha20PRG
 -- done at the beginning of the operation and once every 1G blocks
 -- (64GB) of data generated. No direct access to the system entropy is
 -- provided to the user except through the `reseed` combinator which
--- itself is not really recommend. This is a deliberate design choice
--- to avoid potential confusion and the resulting error for the user.
+-- itself is not really recommended. This is a deliberate design
+-- choice to avoid potential confusion and the resulting error for the
+-- user.
 --
 -- User level libraries have very little access to actual entropy
 -- sources and it is very difficult to ascertain the quality of the
