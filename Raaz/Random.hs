@@ -3,13 +3,16 @@
 module Raaz.Random
        ( -- * Cryptographically secure randomness.
          -- $randomness$
-         RandM, RT
+         RT, RandM
        , randomByteString
+       , random, randomiseCell
        -- ** Types that can be generated randomly
-       , RandomStorable(..), unsafeFillRandomElements, random, randomiseCell
+       , RandomStorable(..), unsafeFillRandomElements
          -- * Low level access to randomness.
        , fillRandomBytes
        , reseed
+       -- * Internals
+       -- $internals$
        ) where
 
 import Control.Applicative
@@ -133,7 +136,10 @@ import Raaz.Random.ChaCha20PRG
 -- functions.
 --
 --
--- = Internal details.
+
+-- $internals$
+--
+-- __Note:__ Only for developers and reviewers.
 --
 -- Generating unpredictable stream of bytes is one task that has burnt
 -- the fingers of a lot of programmers. Unfortunately, getting it
@@ -143,18 +149,21 @@ import Raaz.Random.ChaCha20PRG
 -- user. This is a deliberate design choice to insulate the user from
 -- things that are pretty easy to mess up.
 --
--- The pseudo-random generator in Raaz uses the chacha20 stream cipher.
--- The two main steps in the generation of random data:
+-- The pseudo-random generator in Raaz uses the chacha20 stream
+-- cipher. We more or less follow the design of the arc4random
+-- implementation in OpenBSD. The two main steps in the generation of
+-- the required random bytes are the following:
 --
 -- [Seeding:] Setting the internal state of of the chacha20 cipher,
 -- i.e. its key, iv, and counter.
 --
 -- [Sampling:] Pre-computing a few blocks of the chacha20 key stream
--- in an auxiliary buffer.
+-- in an auxiliary buffer which in turn is used to satisfy the
+-- requests for random bytes.
 --
--- The auxilary buffer and the internal chacha20 state is part of the
--- memory used in the `RT` monad and hence using `securely` will
--- ensure that they are locked.
+-- The internal chacha20 state and auxilary buffer used to cache
+-- generated random bytes is part of the memory used in the `RT` monad
+-- and hence using `securely` will ensure that they are locked.
 --
 -- == Seeding.
 --
