@@ -18,8 +18,6 @@ import Data.Bits ((.|.))
 import Data.Word (Word8(), Word32())
 import Foreign.Ptr (Ptr(), nullPtr, castPtr)
 import Foreign.Storable (peek)
-import Foreign.Marshal.Alloc (mallocBytes, free)
-import Foreign.Marshal.Utils (new)
 import Foreign.C.String (CWString())
 import Raaz.Core
 
@@ -37,21 +35,17 @@ foreign import WINDOWS_CCONV unsafe "Wincrypt.h CryptReleaseContext"
 
 -- | Get cryptographically random bytes from the system.
 getEntropy :: (MonadIO m, LengthUnit l) => l -> Pointer -> m (BYTES Int)
-getEntropy l ptr = liftIO $
-    -- You can't get an address of a pointer in haskell, so making out
-    -- parameters are messy. We do this by boxing the type.
-    do ctx    <- mallocBytes (#size HCRYPTPROV)
-       addr   <- new ctx
+getEntropy l ptr = liftIO $ allocaBuffer ptrSize $ \ctx ->
+    do let addr = castPtr ctx
        ctx_ok <- c_CryptAcquireContext addr nullPtr nullPtr
-                        (#const PROV_RSA_FULL)
-                        ((#const CRYPT_VERIFYCONTEXT) .|. (#const CRYPT_SILENT))
+                       (#const PROV_RSA_FULL)
+                       ((#const CRYPT_VERIFYCONTEXT) .|. (#const CRYPT_SILENT))
        when (not ctx_ok) $ fail "Call to CryptAcquireContext failed."
        ctx'    <- peek addr
        success <- c_CryptGenRandom ctx' (fromIntegral bytes) (castPtr ptr)
-       free addr
-       free ctx
        _ <- c_CryptReleaseContext ctx' 0
        if success
           then return $ BYTES bytes
           else fail "Unable to generate entropy. Call to CryptGenRandom failed."
   where BYTES bytes = inBytes l
+        ptrSize = BYTES ((#size HCRYPTPROV) :: Int)
