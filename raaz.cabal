@@ -177,6 +177,8 @@ library
            , cbits/raaz/cipher/aes/cportable.c
            -- chacha20
            , cbits/raaz/cipher/chacha20/cportable.c
+           -- memory management
+           , cbits/raaz/core/memory.c
 
   include-dirs: cbits
   includes: raaz/core/endian.h
