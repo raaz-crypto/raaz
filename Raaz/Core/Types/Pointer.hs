@@ -2,7 +2,7 @@
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE ForeignFunctionInterface   #-}
-{-# LANGUAGE CPP                        #-}
+
 
 -- | This module exposes types that builds in type safety into some of
 -- the low level pointer operations. The functions here are pretty low
@@ -285,6 +285,18 @@ peekAligned = peek . nextAlignedPtr
 pokeAligned     :: Storable a => Ptr a -> a -> IO ()
 pokeAligned ptr =  poke $ nextAlignedPtr ptr
 
+-------------------------- Allocation  ---------------------------
+
+-- | A less general version of `allocaAligned` where the pointer passed
+-- is aligned to word boundary.
+allocaBuffer :: LengthUnit l
+             => l                  -- ^ buffer length
+             -> (Pointer -> IO b)  -- ^ the action to run
+             -> IO b
+{-# INLINE allocaBuffer #-}
+allocaBuffer = allocaAligned wordAlignment
+
+
 -- | The expression @allocaAligned a l action@ allocates a local
 -- buffer of length @l@ and alignment @a@ and passes it on to the IO
 -- action @action@. No explicit freeing of the memory is required as
@@ -299,6 +311,22 @@ allocaAligned :: LengthUnit l
 allocaAligned algn l = allocaBytesAligned b a
   where BYTES     b = inBytes l
         Alignment a = algn
+
+----------------- Secure allocation ---------------------------------
+
+-- | A less general version of `allocaSecureAligned` where the pointer passed
+-- is aligned to word boundary
+allocaSecure :: LengthUnit l
+             => l
+             -> (Pointer -> IO b)
+             -> IO b
+allocaSecure = allocaSecureAligned wordAlignment
+
+foreign import ccall unsafe "raaz/core/memory.h memorylock"
+  c_mlock :: Pointer -> BYTES Int -> IO Int
+
+foreign import ccall unsafe "raaz/core/memory.h memoryunlock"
+  c_munlock :: Pointer -> BYTES Int -> IO ()
 
 
 -- | This function allocates a chunk of "secure" memory of a given
@@ -322,13 +350,8 @@ allocaSecureAligned :: LengthUnit l
                     -> (Pointer -> IO a)
                     -> IO a
 
-#if defined(HAVE_MLOCK) || defined(PLATFORM_WINDOWS)
 
-foreign import ccall unsafe "raaz/core/memory.h memorylock"
-  c_mlock :: Pointer -> BYTES Int -> IO Int
 
-foreign import ccall unsafe "raaz/core/memory.h memoryunlock"
-  c_munlock :: Pointer -> BYTES Int -> IO ()
 
 allocaSecureAligned a l action = allocaAligned a l actualAction
   where sz = inBytes l
@@ -337,26 +360,6 @@ allocaSecureAligned a l action = allocaAligned a l actualAction
                          when (c /= 0) $ fail "secure memory: unable to lock memory"
           releaseIt =  memset cptr 0 l >>  c_munlock cptr sz
           in bracket_ lockIt releaseIt $ action cptr
-#else
-allocaSecureAligned _ _ = fail "memory locking not supported on this platform"
-
-#endif
--- | A less general version of `allocaAligned` where the pointer passed
--- is aligned to word boundary.
-allocaBuffer :: LengthUnit l
-             => l                  -- ^ buffer length
-             -> (Pointer -> IO b)  -- ^ the action to run
-             -> IO b
-{-# INLINE allocaBuffer #-}
-allocaBuffer = allocaAligned wordAlignment
-
--- | A less general version of `allocaSecureAligned` where the pointer passed
--- is aligned to word boundary
-allocaSecure :: LengthUnit l
-             => l
-             -> (Pointer -> IO b)
-             -> IO b
-allocaSecure = allocaSecureAligned wordAlignment
 
 -- | Creates a memory of given size. It is better to use over
 -- @`mallocBytes`@ as it uses typesafe length.
