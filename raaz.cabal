@@ -237,11 +237,6 @@ library
      extra-libraries: Advapi32, Kernel32
      build-tools: hsc2hs
 
-  ---------------- Stuff for posix systems. ------------------------------------
-
-  if !os(windows)
-     cpp-options: -DHAVE_MLOCK
-
   --------------------- Entropy ----------------------------------------------
 
   if os(openbsd) || os(netbsd)
