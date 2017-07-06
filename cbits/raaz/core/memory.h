@@ -2,13 +2,12 @@
 #define _RAAZ_CORE_MEMORY_H_
 #include <stdio.h>
 #include <string.h>
-#include <raaz/primitives/config.h>
 
-#ifdef RAAZ_HAVE_mlock
+#ifdef HAVE_MLOCK
 #include <sys/mman.h>
 #endif
 
-#ifdef RAAZ_HAVE_memalign
+#ifdef HAVE_memalign
 #include <stdlib.h>
 #include <unistd.h>
 #endif

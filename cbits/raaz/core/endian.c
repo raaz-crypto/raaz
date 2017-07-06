@@ -1,4 +1,4 @@
-#include "endian.h"
+#include <raaz/core/endian.h>
 #ifdef __RAAZ_REQUIRE_PORTABLE_ENDIAN__
 
 /* We were not able to detect the optimised platform specific versions

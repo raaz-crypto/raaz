@@ -322,13 +322,12 @@ allocaSecureAligned :: LengthUnit l
                     -> (Pointer -> IO a)
                     -> IO a
 
-#ifdef HAVE_MLOCK
+#if defined(HAVE_MLOCK) || defined(PLATFORM_WINDOWS)
 
-foreign import ccall unsafe "sys/mman.h mlock"
+foreign import ccall unsafe "raaz/core/memory.h memorylock"
   c_mlock :: Pointer -> BYTES Int -> IO Int
 
-
-foreign import ccall unsafe "sys/mman.h munlock"
+foreign import ccall unsafe "raaz/core/memory.h memoryunlock"
   c_munlock :: Pointer -> BYTES Int -> IO ()
 
 allocaSecureAligned a l action = allocaAligned a l actualAction
@@ -338,7 +337,6 @@ allocaSecureAligned a l action = allocaAligned a l actualAction
                          when (c /= 0) $ fail "secure memory: unable to lock memory"
           releaseIt =  memset cptr 0 l >>  c_munlock cptr sz
           in bracket_ lockIt releaseIt $ action cptr
-
 #else
 allocaSecureAligned _ _ = fail "memory locking not supported on this platform"
 

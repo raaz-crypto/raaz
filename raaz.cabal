@@ -29,6 +29,7 @@ bug-reports: https://github.com/raaz-crypto/raaz/issues
 extra-source-files: entropy/urandom/Raaz/Entropy.hs
                     entropy/arc4random/Raaz/Entropy.hs
                     entropy/getrandom/Raaz/Entropy.hs
+                    entropy/windows/Raaz/Entropy.hsc
 source-repository head
   type: git
   location: https://github.com/raaz-crypto/raaz
@@ -183,6 +184,8 @@ library
            , cbits/raaz/cipher/aes/cportable.c
            -- chacha20
            , cbits/raaz/cipher/chacha20/cportable.c
+           -- memory management
+           , cbits/raaz/core/memory.c
 
   include-dirs: cbits
   includes: raaz/core/endian.h
@@ -228,28 +231,32 @@ library
      cc-options: -DPLATFORM_OSX
   if os(openbsd)
      cc-options: -DPLATFORM_OPENBSD
-
   if os(windows)
-     cc-options: -DPLATFORM_WINDOWS
+     cc-options: -DPLATFORM_WINDOWS -DUNICODE
+     cpp-options: -DPLATFORM_WINDOWS
+     extra-libraries: Advapi32, Kernel32
+     build-tools: hsc2hs
 
   ---------------- Stuff for posix systems. ------------------------------------
 
   if !os(windows)
-
      cpp-options: -DHAVE_MLOCK
 
-     --------------------- Entropy ----------------------------------------------
+  --------------------- Entropy ----------------------------------------------
 
-     if os(openbsd) || os(netbsd)
-        -- Entropy for openbsd using arc4random
-        hs-source-dirs: entropy/arc4random
-     else
-        if os(linux) && flag(linux-getrandom)
-           -- Use getentropy on linux
-           hs-source-dirs: entropy/getrandom
-        else
-           -- Entropy for generic posix by reading /dev/urandom
-           hs-source-dirs: entropy/urandom
+  if os(openbsd) || os(netbsd)
+    -- Entropy for openbsd using arc4random
+    hs-source-dirs: entropy/arc4random
+  else
+    if os(linux) && flag(linux-getrandom)
+        -- Use getentropy on linux
+        hs-source-dirs: entropy/getrandom
+    if os(windows)
+        -- Use CryptGenRandom
+        hs-source-dirs: entropy/windows
+    else
+        -- Entropy for generic posix by reading /dev/urandom
+        hs-source-dirs: entropy/urandom
 
 
 ---------------------------- Executables -------------------------------------------------
