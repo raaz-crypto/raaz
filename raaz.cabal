@@ -82,6 +82,7 @@ library
   exposed-modules: Raaz
                  , Raaz.Core
                  , Raaz.Core.ByteSource
+                 , Raaz.Core.CpuSupports
                --  , Raaz.Core.DH
                  , Raaz.Core.Encode
                  , Raaz.Core.Memory
@@ -186,7 +187,8 @@ library
            , cbits/raaz/cipher/chacha20/cportable.c
            -- memory management
            , cbits/raaz/core/memory.c
-
+           -- cpu support
+           , cbits/raaz/core/cpusupports.c
   include-dirs: cbits
   includes: raaz/core/endian.h
   install-includes: cbits/raaz/core/endian.h
