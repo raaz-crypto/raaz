@@ -53,6 +53,8 @@ suspects there are the following additional parameters.
 
 #define LOAD(i) (raaz_tole64((*mesg)[(i)]))
 
+# pragma GCC optimize "tree-vectorize"
+
 void raazHashBlake2bPortableBlockCompress( Block2b *mesg, int nblocks,
 					   Word2b *Upper, Word2b *Lower,
 					   Blake2b h)
