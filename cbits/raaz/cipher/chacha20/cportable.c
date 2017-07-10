@@ -64,18 +64,11 @@ Some function for debugging.
 
 */
 
-# ifdef __GNUC__
 
-typedef Block AlignedBlock __attribute__ ((aligned (32)));
-void raazChaCha20Block(AlignedBlock * msg, int nblocks, const Key key, const IV iv, Counter  *ctr) __attribute__((optimize("tree-vectorize")));
 
-# else
+# pragma GCC optimize "tree-vectorize"
 
-typedef Block AlignedBlock;
-
-#endif
-
-void raazChaCha20Block(AlignedBlock * msg, int nblocks, const Key key, const IV iv, Counter  *ctr)
+void raazChaCha20Block(Block * msg, int nblocks, const Key key, const IV iv, Counter  *ctr)
 {
     register Word x0,  x1,  x2, x3;
     register Word x4,  x5,  x6, x7;
