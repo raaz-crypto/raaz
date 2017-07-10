@@ -56,10 +56,9 @@ allBench =    [ memsetBench, randomnessBench ]
            ++ sha512Benchs
 
 main :: IO ()
-main = do results <- mapM runRaazBench allBench
-          putStrLn $ "Buffer Size = " ++ show (fromIntegral nBytes :: Int)
+main = do putStrLn $ "Buffer Size = " ++ show (fromIntegral nBytes :: Int)
           putStrLn $ "Iterations  = " ++ show nRuns
-          putStrLn $ render $ vcat results
+          mapM_ runRaazBench allBench
 
 
 pprMeasured :: Measured -> Doc
@@ -146,12 +145,11 @@ randomnessBench = ("random", Benchmarkable $ rand . fromIntegral)
         fillIt :: Pointer -> RandM ()
         fillIt = fillRandomBytes nBytes
 
-runRaazBench :: RaazBench -> IO Doc
+runRaazBench :: RaazBench -> IO ()
 runRaazBench (nm, bm) = do
-  hPutStr  stderr $ "running " ++ nm ++ " ..."
   (memt,x) <- measure bm nRuns
-  hPutStrLn stderr $ "done."
-  return $ text nm $+$ nest 8 (pprMeasured memt)
+  putStrLn $ render $ text nm $+$ nest 8 (pprMeasured memt)
+  hFlush stdout
 
 -------------------------- Humanise output -----------------------------------
 
