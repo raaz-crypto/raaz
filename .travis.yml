@@ -117,7 +117,7 @@ script:
   - if [ "$BUILDCMD" == "cabal" ]; then cabal check; fi
   - if [ "$BUILDCMD" == "cabal" ]; then cabal sdist; fi
   - if [ "$BUILDCMD" == "cabal" ]; then cabal install --force-reinstalls dist/*-*.tar.gz; fi
-
+  - if [ "$BUILDCMD" == "stack" ]; then stack exec raaz cpuinfo; fi
 after_success:
   - echo "All is well."
 after_failure:
