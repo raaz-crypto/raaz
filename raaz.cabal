@@ -264,6 +264,7 @@ executable raaz
   main-is: Main.hs
   other-modules: Command.Checksum
                , Command.Rand
+               , Command.CpuInfo
                , Usage
   build-depends: base
                , optparse-applicative >= 0.10.0
