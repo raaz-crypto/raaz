@@ -4,15 +4,3 @@
 packages:
 - '.'
 resolver: lts-8.6
-
-flags:
-  # Update these flags to best match with your machine for optimal
-  # performance. Can lead to dramatic improvement of speed but needs
-  # to be carefully verified. Bad things can happen if the machine
-  # does not support the features that you enable here.
-  raaz:
-    opt-native: true
-    vector128: true  # set if machine has 128-bit vector instructions
-    vector256: true  # set if machine has 256-bit vector instructions
-    vector512: true  # set if machine has 512-bit vector instructions
-    avx2: true       # x86 arch with avx2 support.
