@@ -1,7 +1,13 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
 
 -- | This module gives functions that check at runtime whether the
--- underlying cpu supports given features.
+-- underlying cpu supports given features. CPU features are
+-- architecture specific. However, functions from this module are
+-- guaranteed to be defined always -- they return `False` for
+-- incompatible architecture. For example, the flag `avx2` is relevant
+-- only for a an X86 architecture. So it is defined false, for say the
+-- ARM architecture.
+
 module Raaz.Core.CpuSupports
        ( sse, sse2, sse3
        , sse4_1, sse4_2
