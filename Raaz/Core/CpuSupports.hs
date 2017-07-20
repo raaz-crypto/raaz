@@ -8,54 +8,62 @@ module Raaz.Core.CpuSupports
        , avx, avx2
        ) where
 
+import Foreign.C
+import System.IO.Unsafe(unsafePerformIO)
+
 foreign import ccall unsafe "raaz_supports_sse"
-  c_sse :: Bool
+  c_sse :: IO CInt
 
 foreign import ccall unsafe "raaz_supports_sse2"
-  c_sse2 :: Bool
+  c_sse2 :: IO CInt
 
 foreign import ccall unsafe "raaz_supports_sse3"
-  c_sse3 :: Bool
+  c_sse3 :: IO CInt
 
 
 foreign import ccall unsafe "raaz_supports_sse4_1"
-  c_sse4_1 :: Bool
+  c_sse4_1 :: IO CInt
 
 
 foreign import ccall unsafe "raaz_supports_sse4_2"
-  c_sse4_2 :: Bool
+  c_sse4_2 :: IO CInt
 
 foreign import ccall unsafe "raaz_supports_avx"
-  c_avx :: Bool
+  c_avx :: IO CInt
 
 foreign import ccall unsafe "raaz_supports_avx2"
-  c_avx2 :: Bool
+  c_avx2 :: IO CInt
 
+
+{-# NOINLINE toBool #-}
+
+toBool :: IO CInt -> Bool
+toBool = unsafePerformIO . fmap (>0)
 
 -- | Check whether the cpu supports sse extension.
 sse :: Bool
-sse = c_sse
+sse = toBool c_sse
 
 -- | Check whether the cpu supports sse2 extension.
 sse2 :: Bool
-sse2 = c_sse2
+sse2 = toBool c_sse2
 
 -- | Check whether the cpu supports sse3 extension.
 sse3 :: Bool
-sse3 = c_sse3
+sse3 = toBool c_sse3
 
 -- | Check whether the cpu supports sse4_1 extension.
 sse4_1 :: Bool
-sse4_1 = c_sse4_1
+sse4_1 = toBool c_sse4_1
 
 -- | Check whether the cpu supports sse-4.2 extension.
 sse4_2 :: Bool
-sse4_2 = c_sse4_2
+sse4_2 = toBool c_sse4_2
 
 -- | Check whether the cpu supports avx extension.
 avx :: Bool
-avx = c_avx
+avx = toBool c_avx
 
 -- | Check whether the cpu supports avx2 extension.
 avx2 :: Bool
-avx2 = c_avx2
+avx2 = toBool c_avx2
