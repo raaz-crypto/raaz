@@ -322,10 +322,10 @@ allocaSecure :: LengthUnit l
              -> IO b
 allocaSecure = allocaSecureAligned wordAlignment
 
-foreign import ccall unsafe "raaz/core/memory.h memorylock"
+foreign import ccall unsafe "raaz/core/memory.h raazMemorylock"
   c_mlock :: Pointer -> BYTES Int -> IO Int
 
-foreign import ccall unsafe "raaz/core/memory.h memoryunlock"
+foreign import ccall unsafe "raaz/core/memory.h raazMemoryunlock"
   c_munlock :: Pointer -> BYTES Int -> IO ()
 
 

@@ -78,7 +78,7 @@ before_install:
 
 
  - if [ "$STACK" == "yes" ]; then
-      export BUILDCMD="stack $RESOLVER --stack-yaml stack-travis.yaml";
+      export BUILDCMD="stack $RESOLVER";
       mkdir -p $HOME/.local/bin;
       curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack';
       $BUILDCMD setup;
@@ -113,11 +113,11 @@ script:
   - if [ "$BUILDCMD" == "cabal" ]; then cabal configure --enable-tests; fi
   - $BUILDCMD build
   - $BUILDCMD test
-  - if [ "$BUILDCMD" == "stack" ]; then stack bench --no-run-benchmarks; fi
+  - if [ "$STACK" == "yes" ]; then $BUILDCMD bench --no-run-benchmarks; fi
   - if [ "$BUILDCMD" == "cabal" ]; then cabal check; fi
   - if [ "$BUILDCMD" == "cabal" ]; then cabal sdist; fi
   - if [ "$BUILDCMD" == "cabal" ]; then cabal install --force-reinstalls dist/*-*.tar.gz; fi
-
+  - if [ "$STACK" == "yes" ]; then $BUILDCMD exec raaz cpuinfo; fi
 after_success:
   - echo "All is well."
 after_failure:

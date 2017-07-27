@@ -1,4 +1,0 @@
-# stack file for travis.
-packages:
-- '.'
-resolver: lts-6.9

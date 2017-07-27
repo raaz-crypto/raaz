@@ -82,6 +82,7 @@ library
   exposed-modules: Raaz
                  , Raaz.Core
                  , Raaz.Core.ByteSource
+                 , Raaz.Core.CpuSupports
                --  , Raaz.Core.DH
                  , Raaz.Core.Encode
                  , Raaz.Core.Memory
@@ -186,7 +187,8 @@ library
            , cbits/raaz/cipher/chacha20/cportable.c
            -- memory management
            , cbits/raaz/core/memory.c
-
+           -- cpu support
+           , cbits/raaz/core/cpusupports.c
   include-dirs: cbits
   includes: raaz/core/endian.h
   install-includes: cbits/raaz/core/endian.h
@@ -200,6 +202,9 @@ library
   --------------------------- Options for vector instructions ---------------------------------
   if flag(opt-native)
     cc-options: -march=native
+
+  if arch(x86_64)
+    cc-options: -DARCH_X86_64
 
   if flag(vector128)
      cpp-options: -DHAVE_VECTOR_128
@@ -262,6 +267,7 @@ executable raaz
   main-is: Main.hs
   other-modules: Command.Checksum
                , Command.Rand
+               , Command.CpuInfo
                , Usage
   build-depends: base
                , optparse-applicative >= 0.10.0

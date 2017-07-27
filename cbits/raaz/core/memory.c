@@ -10,7 +10,7 @@
 #endif
 
 /* Locks and Unlocks Memory */
-int memorylock(void* ptr, size_t size){
+int raazMemorylock(void* ptr, size_t size){
 #ifdef PLATFORM_WINDOWS
   VirtualFunction func =
      (VirtualFunction)GetProcAddress(GetModuleHandle(TEXT("kernel32")),
@@ -22,7 +22,7 @@ int memorylock(void* ptr, size_t size){
 
 }
 
-void memoryunlock(void* ptr, size_t size){
+void raazMemoryunlock(void* ptr, size_t size){
 #ifdef PLATFORM_WINDOWS
   VirtualFunction func =
      (VirtualFunction)GetProcAddress(GetModuleHandle (TEXT("kernel32")),
