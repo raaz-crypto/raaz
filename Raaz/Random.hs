@@ -200,8 +200,7 @@ import Raaz.Random.ChaCha20PRG
 --
 -- [Other Posix:] Uses @\/dev\/urandom@
 --
--- [Windows:] No support yet. If you are windows user please consider
---    contributing.
+-- [Windows:] Support using CryptGenRandom from Wincrypt.h.
 --
 -- == Sampling.
 --
