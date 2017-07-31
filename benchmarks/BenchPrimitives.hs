@@ -35,6 +35,12 @@ import qualified Raaz.Cipher.ChaCha20.Implementation.Vector128 as ChaCha20V128
 import qualified Raaz.Cipher.ChaCha20.Implementation.Vector256 as ChaCha20V256
 # endif
 
+
+#if !MIN_VERSION_criterion(1,2,0)
+toBenchmarkable :: (Int64 -> IO ()) -> Benchmarkable
+toBenchmarkable = Benchmarkable
+#endif
+
 -- The total data processed
 nBytes :: BYTES Int
 nBytes = 32 * 1024
@@ -81,7 +87,7 @@ pprMeasured (Measured{..}) = vcat
 -------------  All benchmarks ---------------------------------------------
 
 memsetBench :: RaazBench
-memsetBench = ("memset", Benchmarkable $ memBench . fromIntegral )
+memsetBench = ("memset", toBenchmarkable $ memBench . fromIntegral )
   where memBench count = allocaBuffer nBytes $ \ ptr -> replicateM_ count (memset ptr 42 nBytes)
 
 
@@ -121,26 +127,26 @@ chacha20Benchs = [ encryptBench ChaCha20CP.implementation
 --------------------------- Helper functions ---------------------------------------------------------------------------
 
 encryptBench :: Cipher c => Implementation c -> RaazBench
-encryptBench si@(SomeCipherI impl) = (nm , Benchmarkable $ encrBench . fromIntegral)
+encryptBench si@(SomeCipherI impl) = (nm , toBenchmarkable $ encrBench . fromIntegral)
   where encrBench count = allocBufferFor si sz $ \ ptr -> insecurely $ replicateM_ count $ encryptBlocks impl ptr sz
         nm = name si ++ "-encrypt"
         sz = atLeast nBytes
 
 
 decryptBench :: Cipher c => Implementation c -> RaazBench
-decryptBench si@(SomeCipherI impl) = (nm , Benchmarkable $ decrBench . fromIntegral)
+decryptBench si@(SomeCipherI impl) = (nm , toBenchmarkable $ decrBench . fromIntegral)
   where decrBench count = allocBufferFor si sz $ \ ptr -> insecurely $ replicateM_ count $ decryptBlocks impl ptr sz
         nm = name si ++ "-decrypt"
         sz = atLeast nBytes
 
 hashBench :: Hash h => Implementation h -> RaazBench
-hashBench hi@(SomeHashI impl) = (nm, Benchmarkable $ compressBench . fromIntegral )
+hashBench hi@(SomeHashI impl) = (nm, toBenchmarkable $ compressBench . fromIntegral )
   where compressBench count = allocBufferFor hi sz $ \ ptr -> insecurely $ replicateM_ count $ compress impl ptr sz
         nm = name hi ++ "-compress"
         sz = atLeast nBytes
 
 randomnessBench :: RaazBench
-randomnessBench = ("random", Benchmarkable $ rand . fromIntegral)
+randomnessBench = ("random", toBenchmarkable $ rand . fromIntegral)
   where rand count = allocaBuffer nBytes $ insecurely . replicateM_ count . fillIt
         fillIt :: Pointer -> RandM ()
         fillIt = fillRandomBytes nBytes
