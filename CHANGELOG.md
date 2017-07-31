@@ -2,6 +2,8 @@
 
 ## [0.2.0] - Pending
 
+* Some cpu detection builtin for GCC. Would come handy in future for
+  selection of primitives are runtime.
 * BLAKE2b, BLAKE2s added.
 * system entropy: Experimental support for linux getrandom call
 * removed depreciated `liftSubMT` from Memory.
@@ -13,8 +15,8 @@
   not expose previously generated data.
 * OpenBSD/NetBSD: fix incorrect arc4random call.
 * Basic Unix man-page for the raaz command.
-* Entropy support for windows.
-* Memory locking for windows.
+* Windows support is now included. The missing pieces were system
+  entropy and memory locking which is now available.
 
 ## [0.1.1] - 2nd  March, 2017
 
