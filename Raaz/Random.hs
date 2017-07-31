@@ -185,9 +185,9 @@ import Raaz.Random.ChaCha20PRG
 -- system entropy source. If the seed is predictable then everything
 -- till the next seeding (an infrequent event as explained above) is
 -- deterministic and hence compromised. Be warned that the entropy in
--- many systems are quite low entropy at certain epochs, like at the
--- time of startup. This can cause the PRG to be compromised. We try
--- to mitigate this by using the best know source for each supported
+-- many systems are quite low at certain epochs, like at the time of
+-- startup. This can cause the PRG to be compromised. We try to
+-- mitigate this by using the best know source for each supported
 -- operating system. Given below is the list of our choice of entropy
 -- source.
 --
