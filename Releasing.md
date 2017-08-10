@@ -25,6 +25,26 @@ branch which we will call release-A.B.C.
 
 * When ready merge to the master as a non-ff merge.
 
+## Candidate release.
+
+Hackage supports candidate releases which we should be making use of.
+Here is a set of steps that can be done with a candidate release that
+can help in doing a high quality release
+
+1. Make sure to trigger a documentation build for the candidate on
+   hackage.  This is currently not automated but would likely be the
+   case.
+
+2. The package build matrix is likely to be operational for candidate
+   packages as well. This gives good package compatibility hints for
+   high quality release.
+
+
+3. Get down-stream packagers to make an experimental upload of the
+   package into their CI system. Distributions like Debian often do
+   have multi-arch builds and also add builds across other platforms
+   like Hurd, kFreeBSD etc. Successful builds
+
 
 ## Post release
 
