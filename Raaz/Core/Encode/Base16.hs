@@ -27,30 +27,37 @@ import Raaz.Core.Encode.Internal
 -- `IsString` instance. The combinators `fromBase16` and `showBase16`
 -- are exposed mainly to make these definitions easy.
 --
--- The base16 encoding only produces valid hex characters. However, to
--- aid easy presentation of long hexadecimal strings, a user can add
--- add arbitrary amount of spaces, newlines and the character ':'. The
--- decoding ignores these characters.
+
 newtype Base16 = Base16 {unBase16 :: ByteString} deriving (Eq, Monoid)
 
 -- Developers note: Internally base16 just stores the bytestring as
 -- is. The conversion happens when we do an encode and decode of
 -- actual base16.
+--
+-- The base16 encoding only produces valid hex characters. However, to
+-- aid easy presentation of long hexadecimal strings, in the
+-- `IsString` instance add arbitrary amount of spaces, newlines and
+-- the character ':' can be added to make the usage more readable.
+
 
 instance Encodable Base16 where
   toByteString          = hex . unBase16
-  fromByteString        = fromByteStringStrict . ignoreChars
+
+  fromByteString bs
+    | B.length bs `mod` 2 /= 0 = Nothing
+    | validInput bs            = Just $ Base16 $ unsafeFromHex bs
+    | otherwise                = Nothing
+    where validInput  = C8.all isHexDigit
   unsafeFromByteString bs
-    | B.length bsP `mod` 2 /= 0 = error "base16 encoding is always of even size"
-    | otherwise                 = Base16 $ unsafeFromHex bsP
-    where bsP = ignoreChars bs
+    | B.length bs `mod` 2 /= 0 = error "base16 encoding is always of even size"
+    | otherwise                = Base16 $ unsafeFromHex bs
 
 instance Show Base16 where
   show = C8.unpack . toByteString
 
 instance IsString Base16 where
-  fromString = unsafeFromByteString . fromString
-
+  fromString = unsafeFromByteString . C8.filter (not . useless) . fromString
+    where useless c = isSpace c || c == ':'
 
 instance Format Base16 where
   encodeByteString = Base16
@@ -75,16 +82,7 @@ hex  bs = fst $ B.unfoldrN (2 * B.length bs) gen 0
 
 
 
-ignoreChars :: ByteString -> ByteString
-ignoreChars = C8.filter (not . useless)
-  where useless c = isSpace c || c == ':'
 
-fromByteStringStrict :: ByteString -> Maybe Base16
-fromByteStringStrict bs
-  | B.length bs `mod` 2 /= 0 = Nothing
-  | validInput bs            = Just $ Base16 $ unsafeFromHex bs
-  | otherwise                = Nothing
-  where validInput  = C8.all isHexDigit
 
 hexDigit :: Word8 -> Word8
 hexDigit x | x < 10    = c2w '0' + x
