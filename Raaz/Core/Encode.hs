@@ -1,3 +1,4 @@
+-- | Encoding and decoding values to formats.
 module Raaz.Core.Encode
        ( -- * Encoding of binary data.
          -- $encodable$
