@@ -39,6 +39,7 @@ instance Encodable Base64 where
           okeyPad     = padPart == C8.empty || padPart == C8.singleton '=' || padPart == C8.pack "=="
           isB64Char c = isAlpha c || isDigit c || c == '+' || c == '/'
 
+
   unsafeFromByteString bs | B.null bs = Base64 B.empty
                           | otherwise = Base64 $ unsafeFromB64 bs
 
@@ -47,8 +48,7 @@ instance Show Base64 where
   show = C8.unpack . toByteString
 
 instance IsString Base64 where
-  fromString = unsafeFromByteString . fromString
-
+  fromString = unsafeFromByteString . C8.filter (not . isSpace) . fromString
 
 instance Format Base64 where
   encodeByteString = Base64
@@ -154,11 +154,7 @@ merg2 a b = (unB64 a `shiftL` 6) .|. unB64 b
 
 
 unsafeFromB64 :: ByteString -> ByteString
-unsafeFromB64 = unsafeFromB64P . C8.filter (not . useless)
-  where useless = isSpace
-
-unsafeFromB64P :: ByteString -> ByteString
-unsafeFromB64P bs = fst (B.unfoldrN (3*n) gen 0) <> unPad
+unsafeFromB64 bs = fst (B.unfoldrN (3*n) gen 0) <> unPad
   where n         = B.length bs `quot` 4 - 1
         gen i     = Just (byte i, i + 1)
         at blk i  = unsafeIndex bs $ 4 * blk + i
