@@ -15,7 +15,6 @@ binary instance etc.
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# CFILES raaz/hash/sha1/portable.c    #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-
 module Raaz.Hash.Sha224.Internal
        ( SHA224(..)
        ) where

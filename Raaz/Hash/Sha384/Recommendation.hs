@@ -11,5 +11,6 @@ import Raaz.Core
 import Raaz.Hash.Sha384.Internal
 import qualified Raaz.Hash.Sha384.Implementation.CPortable as CPortable
 
+-- | Recommended implementation for SHA384.
 instance Recommendation SHA384 where
   recommended _ = CPortable.implementation

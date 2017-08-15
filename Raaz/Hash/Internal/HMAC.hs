@@ -130,18 +130,18 @@ hmac key = unsafePerformIO . hmacSource key
 {-# SPECIALIZE hmac :: (Hash h, Recommendation h) => Key (HMAC h) -> B.ByteString -> HMAC h #-}
 {-# SPECIALIZE hmac :: (Hash h, Recommendation h) => Key (HMAC h) -> L.ByteString -> HMAC h #-}
 
--- | Compute the hash of file.
+-- | Compute the hmac of file.
 hmacFile :: (Hash h, Recommendation h)
-         => Key (HMAC h)
-         -> FilePath  -- ^ File to be hashed
+         => Key (HMAC h) -- ^ Key to use for mac-ing
+         -> FilePath     -- ^ File to be hashed
          -> IO (HMAC h)
 hmacFile key fileName = withBinaryFile fileName ReadMode $ hmacSource key
 {-# INLINEABLE hmacFile #-}
 
--- | Compute the hash of a generic byte source.
+-- | Compute the hmac of a generic byte source.
 hmacSource :: ( Hash h, Recommendation h, ByteSource src )
-           => Key (HMAC h)
-           -> src  -- ^ Message
+           => Key (HMAC h)  -- ^ key to use for mac-ing.
+           -> src           -- ^ Message
            -> IO (HMAC h)
 hmacSource = go undefined
   where go :: (Hash h, Recommendation h, ByteSource src)
@@ -152,7 +152,7 @@ hmacSource = go undefined
 {-# SPECIALIZE hmacSource :: (Hash h, Recommendation h) => Key (HMAC h) -> Handle -> IO (HMAC h) #-}
 
 
--- | Compute the hash of a pure byte source like, `B.ByteString`.
+-- | Compute the hmac of a pure byte source like, `B.ByteString`.
 hmac' :: ( Hash h, Recommendation h, PureByteSource src )
       => Implementation h
       -> Key (HMAC h)
@@ -174,7 +174,7 @@ hmac' impl key = unsafePerformIO . hmacSource' impl key
   #-}
 
 
--- | Compute the hash of file.
+-- | Compute the hmac of file.
 hmacFile' :: (Hash h, Recommendation h)
          => Implementation h
          -> Key (HMAC h)
@@ -183,7 +183,7 @@ hmacFile' :: (Hash h, Recommendation h)
 hmacFile' impl key fileName = withBinaryFile fileName ReadMode $ hmacSource' impl key
 {-# INLINEABLE hmacFile' #-}
 
-
+-- | Compute the hmac of a generic ByteSource using a given implementation.
 hmacSource' :: (Hash h, Recommendation h, ByteSource src)
             => Implementation h
             -> Key (HMAC h)

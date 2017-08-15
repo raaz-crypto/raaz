@@ -1,5 +1,5 @@
 {-# LANGUAGE ForeignFunctionInterface   #-}
--- | The portable C-implementation of SHA1
+-- | The portable C-implementation of SHA256.
 module Raaz.Hash.Sha256.Implementation.CPortable
        ( implementation, cPortable
        ) where
@@ -14,6 +14,9 @@ import Raaz.Hash.Sha256.Internal
 implementation :: Implementation SHA256
 implementation =  SomeHashI cPortable
 
+-- | The Hash implementation, i.e. `HashI` associated with the
+-- portable C implementation for the hash SHA256. This can be used to
+-- define an implementation of truncated hashes like SHA224.
 cPortable :: HashI SHA256 (HashMemory SHA256)
 cPortable = shaImplementation
             "sha256-cportable"

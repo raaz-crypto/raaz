@@ -3,6 +3,7 @@
 {-# LANGUAGE FlexibleInstances                #-}
 {-# LANGUAGE DataKinds                        #-}
 
+-- | Portable C implementation of ChaCha20.
 module Raaz.Cipher.ChaCha20.Implementation.CPortable
        ( implementation, chacha20Random
        ) where
@@ -14,6 +15,7 @@ import Raaz.Core
 import Raaz.Cipher.Internal
 import Raaz.Cipher.ChaCha20.Internal
 
+-- | The portable c implementation of chacha20 cipher.
 implementation :: SomeCipherI ChaCha20
 implementation  = SomeCipherI chacha20Portable
 

@@ -6,6 +6,7 @@
 {-# LANGUAGE MultiParamTypeClasses            #-}
 {-# LANGUAGE TypeFamilies                     #-}
 
+-- | Internals of AES.
 module Raaz.Cipher.AES.Internal
        (-- * AES cipher.
          AES(..)
@@ -178,8 +179,12 @@ aes128ctr = AES
 
 --------------  Memory for storing extended keys ---------
 
+-- | Extended key for aes128
 newtype EKEY128 = EKEY128 (TUPLE 44) deriving (Storable, EndianStore)
+-- | Extended key for aes192
 newtype EKEY192 = EKEY192 (TUPLE 52) deriving (Storable, EndianStore)
+
+-- | Extended key for aes256
 newtype EKEY256 = EKEY256 (TUPLE 60) deriving (Storable, EndianStore)
 
 instance Initialisable (MemoryCell EKEY128) KEY128 where

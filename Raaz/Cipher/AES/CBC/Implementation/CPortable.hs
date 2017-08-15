@@ -2,6 +2,8 @@
 {-# LANGUAGE DataKinds                        #-}
 {-# LANGUAGE MultiParamTypeClasses            #-}
 {-# LANGUAGE FlexibleInstances                #-}
+
+-- | Portable C implementation of AES ciphers.
 module Raaz.Cipher.AES.CBC.Implementation.CPortable
        ( aes128cbcI, aes192cbcI, aes256cbcI
        ) where

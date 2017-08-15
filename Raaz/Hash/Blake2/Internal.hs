@@ -8,6 +8,7 @@
 {-# LANGUAGE FlexibleContexts           #-}
 {-# CFILES raaz/hash/sha1/portable.c    #-}
 
+-- | Internal types and function for blake2 hashes.
 module Raaz.Hash.Blake2.Internal
        ( -- * The blake2 types
          BLAKE2, BLAKE2b, BLAKE2s
@@ -106,6 +107,7 @@ hash2s0 = BLAKE2 $ unsafeFromList [ 0x6a09e667 `xor` 0x01010020
 
 ---------------------------------- Memory element for BLAKE2b -----------------------
 
+-- | Memory element for BLAKE2b implementations.
 data Blake2bMem = Blake2bMem { blake2bCell :: MemoryCell BLAKE2b
                              , uLengthCell :: MemoryCell (BYTES Word64)
                              , lLengthCell :: MemoryCell (BYTES Word64)
@@ -126,6 +128,7 @@ instance Extractable Blake2bMem BLAKE2b where
 
 ---------------------------------- Memory element for BLAKE2b -----------------------
 
+-- | Memory element for BLAKE2s implementations.
 data Blake2sMem = Blake2sMem { blake2sCell :: MemoryCell BLAKE2s
                              , lengthCell  :: MemoryCell (BYTES Word64)
                              }
@@ -143,10 +146,10 @@ instance Extractable Blake2sMem BLAKE2s where
 
 ----------------------- Padding for Blake code ------------------------------
 
-
+-- | The generic blake2 padding algorithm.
 blake2Pad :: (Primitive prim, MonadIO m)
-          => prim
-          -> BYTES Int
+          => prim      -- ^ the primitive (BLAKE2b or BLAKE2s).
+          -> BYTES Int -- ^ length of the message
           -> WriteM m
 blake2Pad prim = padWrite 0 (blocksOf 1 prim) . skipWrite
 
@@ -169,17 +172,21 @@ type Last2b =  Pointer
             -> Ptr BLAKE2b
             -> IO ()
 
+
+-- | Create a hash implementation form BLAKE2b given a compression
+-- function and the last block function.
 blake2bImplementation :: String  -- ^ Name
                       -> String  -- ^ Description
                       -> Compress2b
                       -> Last2b
                       -> HashI BLAKE2b Blake2bMem
-blake2bImplementation nm descr compress2b last2b = HashI { hashIName              = nm
-                                                         , hashIDescription       = descr
-                                                         , compress               = comp
-                                                         , compressFinal          = final
-                                                         , compressStartAlignment = 32  --  Allow gcc to use vector instructions
-                                                         }
+blake2bImplementation nm descr compress2b last2b
+  = HashI { hashIName              = nm
+          , hashIDescription       = descr
+          , compress               = comp
+          , compressFinal          = final
+          , compressStartAlignment = 32  --  Allow gcc to use vector instructions
+          }
   where comp buf blks = do uPtr   <- onSubMemory uLengthCell getCellPointer
                            lPtr   <- onSubMemory lLengthCell getCellPointer
                            hshPtr <- onSubMemory blake2bCell getCellPointer
@@ -221,17 +228,20 @@ type Last2s =  Pointer
             -> Ptr BLAKE2s
             -> IO ()
 
+-- | Create a hash implementation form BLAKE2s given a compression
+-- function and the last block function.
 blake2sImplementation :: String  -- ^ Name
                       -> String  -- ^ Description
                       -> Compress2s
                       -> Last2s
                       -> HashI BLAKE2s Blake2sMem
-blake2sImplementation nm descr compress2s last2s = HashI { hashIName              = nm
-                                                         , hashIDescription       = descr
-                                                         , compress               = comp
-                                                         , compressFinal          = final
-                                                         , compressStartAlignment = 32  --  Allow gcc to use vector instructions
-                                                         }
+blake2sImplementation nm descr compress2s last2s
+  = HashI { hashIName              = nm
+          , hashIDescription       = descr
+          , compress               = comp
+          , compressFinal          = final
+          , compressStartAlignment = 32  --  Allow gcc to use vector instructions
+          }
   where comp buf blks = do len    <- onSubMemory lengthCell  extract    -- extract current length
 
                            hshPtr <- onSubMemory blake2sCell getCellPointer

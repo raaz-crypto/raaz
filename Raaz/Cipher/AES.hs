@@ -1,3 +1,4 @@
+-- | The AES block cipher.
 module Raaz.Cipher.AES
        ( AES, KEY128, KEY192, KEY256, IV
        -- * Some AES cipher modes.

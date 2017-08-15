@@ -6,6 +6,7 @@
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# CFILES raaz/hash/sha1/portable.c    #-}
 
+-- | Internals of Sha256.
 module Raaz.Hash.Sha256.Internal
        ( SHA256(..)
        ) where

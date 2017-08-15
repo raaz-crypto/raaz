@@ -6,6 +6,7 @@
 {-# LANGUAGE DataKinds                  #-}
 {-# CFILES raaz/hash/sha1/portable.c    #-}
 
+-- | Internals of Sha512.
 module Raaz.Hash.Sha512.Internal (SHA512(..)) where
 
 

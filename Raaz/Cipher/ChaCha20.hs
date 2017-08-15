@@ -1,3 +1,4 @@
+-- | The Chacha20 cipher.
 module Raaz.Cipher.ChaCha20
        ( ChaCha20, chacha20, KEY, IV, Counter
        ) where

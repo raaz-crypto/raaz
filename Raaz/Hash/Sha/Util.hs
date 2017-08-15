@@ -2,10 +2,9 @@
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE ConstraintKinds            #-}
 
+-- | Some utility functions useful for all Sha hashes.
 module Raaz.Hash.Sha.Util
        ( shaImplementation
-       -- ** Writing message lengths.
-       -- $lengthwrites$
        , length64Write
        , length128Write
        , Compressor

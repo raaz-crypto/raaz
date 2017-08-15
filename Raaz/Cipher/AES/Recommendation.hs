@@ -16,11 +16,14 @@ import           Raaz.Cipher.Internal
 import           Raaz.Cipher.AES.Internal
 import qualified Raaz.Cipher.AES.CBC.Implementation.CPortable as CPCBC
 
+-- | Recommended implementation of AES-128 cbc
 instance Recommendation (AES 128 'CBC) where
          recommended _ = CPCBC.aes128cbcI
 
+-- | Recommended implementation of AES-192 cbc
 instance Recommendation (AES 192 'CBC) where
          recommended _ = CPCBC.aes192cbcI
 
+-- | Recommended implementation of AES-256 cbc
 instance Recommendation (AES 256 'CBC) where
          recommended _ = CPCBC.aes256cbcI

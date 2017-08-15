@@ -11,5 +11,6 @@ import Raaz.Core
 import Raaz.Hash.Sha224.Internal
 import qualified Raaz.Hash.Sha224.Implementation.CPortable as CPortable
 
+-- | Recommended implementation for SHA224.
 instance Recommendation SHA224 where
   recommended _ = CPortable.implementation

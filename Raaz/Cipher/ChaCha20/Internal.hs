@@ -4,6 +4,7 @@
 {-# LANGUAGE MultiParamTypeClasses            #-}
 {-# LANGUAGE TypeFamilies                     #-}
 
+-- | The internals of ChaCha20 ciphers.
 module Raaz.Cipher.ChaCha20.Internal
        ( ChaCha20(..), WORD, Counter(..), IV(..), KEY(..), ChaCha20Mem(..)
        ) where
@@ -49,7 +50,7 @@ instance Show KEY where
 instance IsString KEY where
   fromString = fromBase16
 
-
+-- | The type associated with the ChaCha20 cipher.
 data ChaCha20 = ChaCha20
 
 instance Primitive ChaCha20 where

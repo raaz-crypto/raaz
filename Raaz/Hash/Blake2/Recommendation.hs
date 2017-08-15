@@ -13,9 +13,10 @@ import Raaz.Hash.Blake2.Internal
 import qualified Raaz.Hash.Blake2.Implementation.CPortable as CPortable
 
 
+-- | Recommended implementation for blake2b.
 instance Recommendation BLAKE2b where
   recommended _ = CPortable.implementation2b
 
-
+-- | Recommended implementation for balke2s.
 instance Recommendation BLAKE2s where
   recommended _ = CPortable.implementation2s
