@@ -60,6 +60,7 @@ class Encodable a where
 
   unsafeFromByteString = fromMaybe (error "fromByteString error") . fromByteString
 
+instance Encodable Word8
 instance Encodable (LE Word32)
 instance Encodable (LE Word64)
 instance Encodable (BE Word32)
