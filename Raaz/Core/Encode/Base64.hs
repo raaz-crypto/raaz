@@ -17,10 +17,7 @@ import Raaz.Core.Encode.Internal
 
 
 -- | The type corresponding to the standard padded base-64 binary
--- encoding.  The base-64 encoding only produces valid base-64
--- characters. However, to aid easy presentation of long base-64
--- strings, a user can add add arbitrary amount of spaces and
--- newlines. The decoding ignores these characters.
+-- encoding.
 newtype Base64 = Base64 {unBase64 :: ByteString} deriving (Eq, Monoid)
 
 -- Developers note: Internally base16 just stores the bytestring as
@@ -47,6 +44,7 @@ instance Encodable Base64 where
 instance Show Base64 where
   show = C8.unpack . toByteString
 
+-- | Ignores spaces and newlines.
 instance IsString Base64 where
   fromString = unsafeFromByteString . C8.filter (not . isSpace) . fromString
 

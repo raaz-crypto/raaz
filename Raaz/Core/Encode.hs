@@ -55,7 +55,17 @@ import Raaz.Core.Encode.Base64
 -- Base16 to print it as a sequence of hexadecimal
 -- characters. Similarly the decode combinator in @checkAnswer@
 -- decodes a base16 before comparing with the answer.
-
+--
+-- == Liberal @IsString@ instances
+--
+-- Certain ascii printable formats like Base16 and Base64 have a more
+-- liberal `IsString` instance: they typically allow the use of spaces
+-- and newline in the input to the `fromString` function . This allows
+-- a more readable representation of these types when using the
+-- @OverloadedStrings@ extension. See the documentation of the
+-- corresponding instance declarations to see what characters are
+-- ignored. However, all `Show` instance of formats are strict in the
+-- sense that they do not produce any such extraneous characters.
 
 -- | Encode in a given format.
 encode :: (Encodable a, Format fmt) => a -> fmt

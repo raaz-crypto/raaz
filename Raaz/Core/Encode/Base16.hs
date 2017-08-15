@@ -34,10 +34,6 @@ newtype Base16 = Base16 {unBase16 :: ByteString} deriving (Eq, Monoid)
 -- is. The conversion happens when we do an encode and decode of
 -- actual base16.
 --
--- The base16 encoding only produces valid hex characters. However, to
--- aid easy presentation of long hexadecimal strings, in the
--- `IsString` instance add arbitrary amount of spaces, newlines and
--- the character ':' can be added to make the usage more readable.
 
 
 instance Encodable Base16 where
@@ -55,6 +51,7 @@ instance Encodable Base16 where
 instance Show Base16 where
   show = C8.unpack . toByteString
 
+-- | Ignores spaces and ':' (colon).
 instance IsString Base16 where
   fromString = unsafeFromByteString . C8.filter (not . useless) . fromString
     where useless c = isSpace c || c == ':'
