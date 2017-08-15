@@ -23,19 +23,39 @@ import Raaz.Core.Encode.Base64
 -- operations. There are two main classes that capture the essence of
 -- encoding.
 --
--- [`Format`] Each encoding supported by this module is an instance of
---     this class. For printing and for easy inclusion in source code
---     appropriate instances of `Show` and `Data.String.IsString` is
---     provided for these types.
+-- [`Format`:] The class of all types that are encoding formats to binary
+--     data. They are all instances of `Show` and `Data.String.IsString` for
+--     ease of printing and inclusion in source code.
 --
--- [`Encodable`] Instances of this class are those that can be encoded
---    into any of the available formats. Actual encoding and decoding
---    of elements of this class can be done by the combinators
---    `encode` and `decode`
+-- [`Encodable`:] The class of all types that can be encoded /into/ binary.
 --
--- The raaz library exposes many instances of `Format` which are all
--- some form of encoding of binary data.
+-- The combinators `encode` and `decode` allows encoding any instance of `Encodable` to
+-- any of the instances of `Format`.
 --
+-- == Sample code that makes use of Base16 encoding.
+--
+-- > theAnswer :: LE Word64
+-- > theAnswer = 42
+-- >
+-- > main = do putStr "The answer to life, universe and everything is:"
+-- >           print answserInBase16
+-- >    where answerInBase16 :: Base16
+-- >          answerInBase16 = encode theAnswer
+-- >
+-- > checkAnswer :: Base16 -> Bool
+-- > checkAnswer = maybe False (==theAnswer) . decode
+-- >
+-- > checkAnswerBS :: ByteString -> Bool
+-- > checkAnswerBS = checkAnswer . fromString
+--
+-- In the above example, @`LE` Word64@, which captures 64-bit unsigned
+-- integers is an instance of Encode (but not Word64). The encode
+-- combinator then converts in into the type Base16 that is an
+-- instance of `Format`. The print then uses the `Show` instance of
+-- Base16 to print it as a sequence of hexadecimal
+-- characters. Similarly the decode combinator in @checkAnswer@
+-- decodes a base16 before comparing with the answer.
+
 
 -- | Encode in a given format.
 encode :: (Encodable a, Format fmt) => a -> fmt

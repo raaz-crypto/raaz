@@ -23,19 +23,29 @@ import Raaz.Core.Util.ByteString(length, withByteString)
 
 
 -- | The type class `Encodable` captures all the types that can be
--- encoded into a stream of bytes. By making a type say @Foo@ an
--- instance of the `Encodable` class, we get for free methods to
--- encode it in any of the supported formats (i.e. instances of the
--- class `Format`).
+-- encoded into a stream of bytes. For a user defined type say @Foo@,
+-- defining an instance `Encodable` is all that is required to make
+-- use of `encode` and `decode` for any of the supported encoding
+-- formats (i.e. instances of the class `Format`).
 --
 -- Minimum complete definition for this class is `toByteString` and
 -- `fromByteString`. Instances of `EndianStore` have default
 -- definitions for both these functions and hence a trivial instance
 -- declaration is sufficient for such types.
 --
+-- > newtype Foo = Foo (LE Word64) deriving (Storable, EndianStore)
+-- >
+-- > instance EndianStore Foo where
+-- >   ...
 -- >
 -- > instance Encodable Foo
 -- >
+--
+-- In particular, all the endian encoded versions of Haskell's word,
+-- i.e types like @`LE` Word32@, @`LE` Word64@ etc, are instances of
+-- `Encodable`. Note that the corresponding plain type is /not/ an
+-- instance of `Encodable` because encoding of say `Word32` without
+-- specifying whether the endianness is meaningless.
 --
 class Encodable a where
   -- | Convert stuff to bytestring
