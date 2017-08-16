@@ -186,8 +186,9 @@ void raazHashBlake2sPortableBlockCompress( Block2s *mesg, int nblocks, Word2b le
 
 /* This is the function for compressing the last block. The nbytes should be <= block size */
 
-#undef  LOAD
-#define LOAD(i) (raaz_tole64(mesg[(i)]))
+#undef LOAD
+#define LOAD(i) (raaz_tole32(mesg[(i)]))
+
 void raazHashBlake2sPortableLastBlock( Block2s mesg, int nbytes,
 				       Word2b length,
 				       Word2s f0 , Word2s f1,
