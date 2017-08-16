@@ -55,7 +55,7 @@ suspects there are the following additional parameters.
 
 # pragma GCC optimize "tree-vectorize"
 
-void raazHashBlake2bPortableBlockCompress( Block2b *mesg, Word2b nblocks,
+void raazHashBlake2bPortableBlockCompress( Block2b *mesg, int nblocks,
 					   Word2b *Upper, Word2b *Lower,
 					   Blake2b h)
 {
@@ -192,7 +192,7 @@ void raazHashBlake2bPortableBlockCompress( Block2b *mesg, Word2b nblocks,
 
 #undef  LOAD
 #define LOAD(i) (raaz_tole64(mesg[(i)]))
-void raazHashBlake2bPortableLastBlock( Block2b mesg, Word2b nbytes,
+void raazHashBlake2bPortableLastBlock( Block2b mesg, int nbytes,
 				       Word2b upper, Word2b lower,
 				       Word2b f0 , Word2b f1,
 				       Blake2b h)
@@ -217,7 +217,7 @@ void raazHashBlake2bPortableLastBlock( Block2b mesg, Word2b nbytes,
     */
 
 
-    if (lower > UINT64_MAX - nbytes) { ++upper; } /* Increment the counter */
+    if (lower > UINT64_MAX - ((Word2b)nbytes)) { ++upper; } /* Increment the counter */
     lower += nbytes;
 
 
