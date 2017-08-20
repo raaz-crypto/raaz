@@ -1,12 +1,4 @@
 #include <raaz/core/endian.h>
-#ifdef __RAAZ_REQUIRE_PORTABLE_ENDIAN__
-
-/* We were not able to detect the optimised platform specific versions
- * of the low level endian functions. We now proceed to define a
- * portable variant so that the extern declarations is satisfied.
- */
-
-
 
 /*
  *  These are declared as macros because they will work for both
@@ -19,12 +11,6 @@
 # define MOVR(a,i)      ((a) >> (8*(i)))    /* shift the bytes i positions to the right */
 # define SWAP(a,i,j)   (MOVL(SEL(a,i),(j-i)) | MOVR(SEL(a,j), (j - i)))
                        /* This function swaps the ith and jth bytes and sets other bytes to 0 */
-
-
-uint32_t raaz_bswap32(uint32_t a){ return (SWAP(a,0,3) | SWAP(a,1,2)); }
-uint64_t raaz_bswap64(uint64_t a){ return (SWAP(a,0,7) | SWAP(a,1,6)  | SWAP(a,2,5) | SWAP(a,3,4)); }
-
-
 
 
 
@@ -41,6 +27,16 @@ uint64_t raaz_bswap64(uint64_t a){ return (SWAP(a,0,7) | SWAP(a,1,6)  | SWAP(a,2
 # define MK64(a,b,c,d,e,f,g,h)  \
     ((a) <<  56  | (b) << 48   | (c) << 40 | (d) << 32	| (e) << 24   | (f) << 16   | (g) << 8  | (h))
 
+
+#ifdef __RAAZ_REQUIRE_PORTABLE_SWAP__
+
+uint32_t raaz_bswap32(uint32_t a){ return (SWAP(a,0,3) | SWAP(a,1,2)); }
+uint64_t raaz_bswap64(uint64_t a){ return (SWAP(a,0,7) | SWAP(a,1,6)  | SWAP(a,2,5) | SWAP(a,3,4)); }
+
+#endif
+
+
+#ifdef __RAAZ_REQUIRE_PORTABLE_ENDIAN__
 
 uint32_t raaz_tobe32(uint32_t x)
 {
@@ -71,9 +67,8 @@ uint64_t raaz_tole64(uint64_t x)
 		B64(ptr,3), B64(ptr,2), B64(ptr,1), B64(ptr,0));
 }
 
-
-
 #endif
+
 
 /* Finally we define the functions that are called by Haskell as FFI
  * routines for their endian store instances. These should not be
