@@ -331,6 +331,7 @@ test-Suite spec
                , HUnit                          >= 1.2
                , QuickCheck                     >= 2.4
                , hspec
+               , hspec-discover
                , transformers
                , raaz
                , vector
