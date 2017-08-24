@@ -1,6 +1,6 @@
 # Change log for [raaz].
 
-## [0.2.0] - Pending
+## [0.2.0] - 24 August, 2017
 
 * Some cpu detection builtin for GCC. Would come handy in future for
   selection of primitives are runtime.
@@ -66,4 +66,5 @@ This release comes with very little changes.
 [0.0.2]: <http://github.com/raaz-crypto/raaz/releases/tag/v0.0.2>
 [0.1.0]: <http://github.com/raaz-crypto/raaz/releases/tag/v0.1.0>
 [0.1.1]: <http://github.com/raaz-crypto/raaz/releases/tag/v0.1.1>
+[0.2.0]: <http://github.com/raaz-crypto/raaz/releases/tag/v0.2.0>
 [raaz]:  <http://github.com/raaz-crypto/raaz/>
