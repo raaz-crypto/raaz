@@ -32,6 +32,10 @@ extra-source-files: entropy/urandom/Raaz/Entropy.hs
                     entropy/arc4random/Raaz/Entropy.hs
                     entropy/getrandom/Raaz/Entropy.hs
                     entropy/windows/Raaz/Entropy.hsc
+                    -- The man page in markdown and its
+                    -- makefile. Needs pandoc to build
+                    mans/raaz.1.md
+                    mans/Makefile
 source-repository head
   type: git
   location: https://github.com/raaz-crypto/raaz
