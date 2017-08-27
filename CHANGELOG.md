@@ -1,5 +1,8 @@
 # Change log for [raaz].
 
+## [0.2.1] - Pending
+
+
 ## [0.2.0] - 24 August, 2017
 
 * Some cpu detection builtin for GCC. Would come handy in future for
