@@ -175,12 +175,26 @@ class MemoryThread (mT :: * -> * -> *) where
   liftMT :: MT mem a -> mT mem a
 
 
-  -- | Combinator that allows us to run a memory action on a
-  -- sub-memory element. A sub-memory of @submem@ of a memory element
-  -- @mem@ is given by a projection @proj : mem -> submem@. The action
-  -- @onSubMemory proj@ lifts the a memory thread on the sub element
-  -- to the compound element.
+  -- | Lift actions on sub-memories to the entire memory. To
+  -- illustrate, consider the memory element given by the type @Foo@
+  -- defined below
   --
+  -- > data Foo = Foo { bar :: MemoryCell Word32, biz :: MemoryCell Word64 }
+  -- >
+  -- > instance Memory Foo where
+  -- >     . . .
+  -- >     . . .
+  --
+  -- A element of type @Foo@ is thought of as a /compound memory/ with
+  -- two /sub-memories/ @bar@ and @biz@ holding a @Word32@ and a
+  -- @Word64@ respectively. More generally, a sub-memory of a memory
+  -- element of type @mem@ is a just a projection @proj : mem ->
+  -- submem@ where the type @submem@ is also a memory element.
+  -- Typically, such projections are just record fields as in the case
+  -- of the type @Foo@ above. The combinator @onSubMemory@ provides
+  -- the natural way to lift a memory action on such submemories to
+  -- the whole memory.
+
   onSubMemory :: (mem -> submem) -> mT submem a -> mT mem a
 
 
