@@ -9,7 +9,7 @@ description: Raaz is a cryptographic library for Haskell. The library
   overflows, timing attacks etc. It also strives to achieve this
   safety with no compromise on performance.
 
-homepage: http://github.com/raaz-crypto/raaz
+homepage: https://github.com/raaz-crypto/raaz
 
 license:      BSD3
 license-file: LICENSE
