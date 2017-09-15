@@ -53,19 +53,19 @@ problems.
 [repo]: <https://github.com/raaz-crypto/raaz> "Raaz on github"
 
 [emailgroups]: <https://groups.google.com/forum/#!forum/hraaz> "Raaz on Google groups"
-[waffle-raaz]:   <http://waffle.io/raaz-crypto/raaz>
+[waffle-raaz]:   <https://waffle.io/raaz-crypto/raaz>
 [waffle-inprogress]: <https://badge.waffle.io/raaz-crypto/raaz.svg?label=waffle%3Ain%20progress&title=In%20Progress>
 [travis-status]: <https://secure.travis-ci.org/raaz-crypto/raaz.png> "Build status"
 [travis-raaz]: <https://travis-ci.org/raaz-crypto/raaz>
-[stackage-lts-raaz]: <http://stackage.org/lts/package/raaz>
-[stackage-nightly-raaz]: <http://stackage.org/nightly/package/raaz>
+[stackage-lts-raaz]: <https://stackage.org/lts/package/raaz>
+[stackage-nightly-raaz]: <https://stackage.org/nightly/package/raaz>
 
-[stackage-lts-raaz-badge]: <http://stackage.org/package/raaz/badge/lts>
-[stackage-nightly-raaz-badge]: <http://stackage.org/package/raaz/badge/nightly>
+[stackage-lts-raaz-badge]: <https://stackage.org/package/raaz/badge/lts>
+[stackage-nightly-raaz-badge]: <https://stackage.org/package/raaz/badge/nightly>
 
 [hackage]:       <https://hackage.haskell.org/package/raaz>
 [hackage-badge]: <https://img.shields.io/hackage/v/raaz.svg>
 [hackage-deps-badge]: <https://img.shields.io/hackage-deps/v/raaz.svg>
-[hackage-deps]: <http://packdeps.haskellers.com/feed?needle=raaz>
+[hackage-deps]: <https://packdeps.haskellers.com/feed?needle=raaz>
 [appveyor-status]: <https://ci.appveyor.com/api/projects/status/github/raaz-crypto/raaz?branch=master&svg=true>
 [appveyor-raaz]: <https://ci.appveyor.com/project/raaz-crypto/raaz>
