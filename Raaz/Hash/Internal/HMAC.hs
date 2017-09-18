@@ -109,7 +109,9 @@ instance Show (HMACKey h) where
 -- `Eq` instance for HMAC is essentially the `Eq` instance for the
 -- underlying hash. It is safe against timing attack provided the
 -- underlying hash comparison is safe under timing attack.
-newtype HMAC h = HMAC {unHMAC :: h} deriving ( Eq, Storable
+newtype HMAC h = HMAC {unHMAC :: h} deriving ( Equality
+                                             , Eq
+                                             , Storable
                                              , EndianStore
                                              , Encodable
                                              , IsString
