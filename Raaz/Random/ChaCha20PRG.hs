@@ -18,9 +18,15 @@ import Raaz.Entropy
 -- source. Currently set to 1024 * 1024 * 1024. Which will generate
 -- 64GB before reseeding.
 --
--- The counter is a 32-bit quantity. Which means that one can generate
--- 2^32 blocks of data before the counter roles over and starts
--- repeating. We have choosen a conservative 2^30 blocks here.
+-- The reason behind the choice of the reseeding limit is the
+-- following The counter is a 32-bit quantity. Which means that one
+-- can generate 2^32 blocks of data before the counter roles over and
+-- starts repeating. We have choosen a conservative 2^30 blocks
+-- here. Note that the roll over of the counter is not really relevant
+-- here as we updated the key,iv for every few chunks of the chacha20
+-- key stream (note the fast key erasure technique
+-- <https://blog.cr.yp.to/20170723-random.html>) but still this gives
+-- some justification for the choice of the parameter.
 maxCounterVal :: Counter
 maxCounterVal = 1024 * 1024 * 1024
 
