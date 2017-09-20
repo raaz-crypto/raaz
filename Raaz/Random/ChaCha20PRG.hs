@@ -36,6 +36,11 @@ data RandomState = RandomState { chacha20State  :: ChaCha20Mem
                                , remainingBytes :: MemoryCell (BYTES Int)
                                }
 
+
+instance Memory RandomState where
+  memoryAlloc     = RandomState <$> memoryAlloc <*> memoryAlloc <*> memoryAlloc
+  unsafeToPointer = unsafeToPointer  . chacha20State
+
 -------------------------- Some helper functions on random state -------------------
 
 -- | Run an action on the auxilary buffer.
@@ -49,10 +54,6 @@ getRemainingBytes = onSubMemory remainingBytes extract
 -- | Set the number of remaining bytes.
 setRemainingBytes :: BYTES Int -> MT RandomState ()
 setRemainingBytes = onSubMemory remainingBytes . initialise
-
-instance Memory RandomState where
-  memoryAlloc     = RandomState <$> memoryAlloc <*> memoryAlloc <*> memoryAlloc
-  unsafeToPointer = unsafeToPointer  . chacha20State
 
 -------------------------------- The PRG operations ---------------------------------------------
 
