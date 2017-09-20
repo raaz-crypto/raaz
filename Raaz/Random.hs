@@ -151,7 +151,7 @@ import Raaz.Random.ChaCha20PRG
 --
 -- The pseudo-random generator in Raaz uses the chacha20 stream
 -- cipher. We more or less follow the /fast key erasure technique/
--- (https://blog.cr.yp.to/20170723-random.html) which is used in the
+-- (<https://blog.cr.yp.to/20170723-random.html>) which is used in the
 -- arc4random implementation in OpenBSD.  The two main steps in the
 -- generation of the required random bytes are the following:
 --

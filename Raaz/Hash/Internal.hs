@@ -82,8 +82,8 @@ import Raaz.Core
 -- not write anything till the @byts@ offset but may write stuff
 -- beyond that.
 --
--- An easy to remember this rule is to remember that computing hash of
--- a payload should not modify the payload.
+-- An easy way to remember this rule is to remember that computing
+-- hash of a payload should not modify the payload.
 --
 data HashI h m = HashI
   { hashIName           :: String
