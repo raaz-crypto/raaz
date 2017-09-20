@@ -104,11 +104,11 @@ void foo(Block *ptr, int nblocks, ...)
 
 ```
 
-We would like to follow the above convention be cause it reduces the
-chance of incorrect pointer arithmetic. The bugs are concentrated on
-the definition of the block and word types. So if one is reviewing
-such low level code, it is better to get familiarised with this
-programming pattern.
+We follow the above convention because it reduces the chance of
+incorrect pointer arithmetic. The bugs are concentrated on the
+definition of the block and word types. So if one is reviewing such
+low level code, it is better to get familiarised with this programming
+pattern.
 
 
 ## Stuff that effects both C and Haskell.

@@ -7,11 +7,10 @@ assume that the current master has all the necessary changes except
 the release specific ones. The workflow is to start with a release
 branch which we will call release-A.B.C.
 
-* The first step is to update travis.yml to start building on the
-  release-A.B.C This should be done before actually creating the
-  release branch because we want all the release specific changes that
-  are pushed to be built by travis. This is done on the master branch.
-  push this change to the main repository
+* On the master branch edit the travis.yml to start building on the
+  release-A.B.C even before creating it. This ensures all release
+  specific changes that are pushed to the release-A.B.C branch will be
+  built by travis.
 
 * Create a fresh branch titled release-A.B.C.
 
