@@ -69,13 +69,14 @@ withFillResult _            endBy (Exhausted sz) = endBy sz
 -- requested. In other words, if the source returns @Remaining@ on any
 -- particular request, there should be at least 1 additional byte left
 -- on the source for the next request. Cryptographic block primitives
--- have do certain special processing for the last block and it is
--- required to know whether the last block has been read or not.
+-- perform certain special processing, like padding for example, for
+-- the last block and it is required to know whether the last block
+-- has been read or not.
 class ByteSource src where
   -- | Fills a buffer from the source.
   fillBytes :: BYTES Int  -- ^ Buffer size
             -> src        -- ^ The source to fill.
-            -> Pointer  -- ^ Buffer pointer
+            -> Pointer    -- ^ Buffer pointer
             -> IO (FillResult src)
 
 -- | A version of fillBytes that takes type safe lengths as input.
