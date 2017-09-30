@@ -119,8 +119,16 @@ newtype HMAC h = HMAC {unHMAC :: h} deriving ( Equality
 instance Show h => Show (HMAC h) where
   show  = show . unHMAC
 
+instance Primitive h => Primitive (HMAC h) where
+  blockSize hmc = blockSize $ getHash hmc
+    where getHash :: HMAC h -> h
+          getHash _ = undefined
 
-type instance  Key (HMAC h) = HMACKey h
+  type Implementation (HMAC h) = SomeHashI h
+
+
+instance Primitive h => Symmetric (HMAC h) where
+  type Key (HMAC h) = HMACKey h
 
 -- | Compute the hash of a pure byte source like, `B.ByteString`.
 hmac :: ( Hash h, Recommendation h, PureByteSource src )
