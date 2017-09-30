@@ -121,7 +121,8 @@ instance Primitive (AES 128 'CBC) where
   type Implementation (AES 128 'CBC) = SomeCipherI (AES 128 'CBC)
 
 -- | Key is @(`KEY128`,`IV`)@ pair.
-type instance Key (AES 128 'CBC) = (KEY128,IV)
+instance Symmetric (AES 128 'CBC) where
+  type Key (AES 128 'CBC) = (KEY128,IV)
 
 instance Describable (AES 128 'CBC) where
   name _ = "aes-128-cbc"
@@ -141,7 +142,8 @@ instance Primitive (AES 192 'CBC) where
   type Implementation (AES 192 'CBC) = SomeCipherI (AES 192 'CBC)
 
 -- | Key is @(`KEY192`,`IV`)@ pair.
-type instance Key (AES 192 'CBC) = (KEY192,IV)
+instance Symmetric (AES 192 'CBC)  where
+  type Key (AES 192 'CBC) = (KEY192,IV)
 
 instance Describable (AES 192 'CBC) where
   name _ = "aes-192-cbc"
@@ -161,7 +163,9 @@ instance Primitive (AES 256 'CBC) where
   type Implementation (AES 256 'CBC) = SomeCipherI (AES 256 'CBC)
 
 -- | Key is @(`KEY256`,`IV`)@ pair.
-type instance Key (AES 256 'CBC) = (KEY256,IV)
+
+instance Symmetric (AES 256 'CBC)  where
+  type Key (AES 256 'CBC) = (KEY256,IV)
 
 
 instance Describable (AES 256 'CBC) where
