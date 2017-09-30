@@ -25,6 +25,7 @@ import           Data.ByteString.Char8     (ByteString)
 import qualified Data.ByteString           as B
 import qualified Data.ByteString.Lazy      as L
 import           Data.Monoid
+import           Data.Proxy
 import           Data.String
 import           Data.Word
 import           Foreign.Ptr               ( castPtr      )
@@ -59,12 +60,10 @@ import           Raaz.Hash.Internal
 newtype HMACKey h = HMACKey { unKey :: B.ByteString } deriving Monoid
 
 instance (Hash h, Recommendation h) => Storable (HMACKey h) where
-
-  sizeOf    _  = fromIntegral $ blockSize (undefined :: h)
-
+  sizeOf    _  = fromEnum $ blockSize (Proxy :: Proxy h)
   alignment _  = alignment (undefined :: Word8)
 
-  peek         = unsafeRunParser (HMACKey <$> parseByteString (blockSize (undefined :: h))) . castPtr
+  peek         = unsafeRunParser (HMACKey <$> parseByteString (blockSize (Proxy :: Proxy h))) . castPtr
 
   poke ptr key = unsafeWrite (writeByteString $ hmacAdjustKey key) $ castPtr ptr
 
@@ -74,13 +73,15 @@ hmacAdjustKey :: (Hash h, Recommendation h, Encodable h)
 hmacAdjustKey key = padIt trimedKey
   where keyStr      = unKey key
         trimedKey   = if length keyStr > sz
-                      then toByteString
-                           $ hash keyStr `asTypeOf` theHash key
+                      then toByteString $ keyStrHash $ theProxy key
                       else keyStr
         padIt k     = k <> replicate (sz - length k) 0
-        sz          = blockSize $ theHash key
-        theHash     :: HMACKey h -> h
-        theHash  _  = undefined
+        sz          = blockSize $ theProxy key
+
+        keyStrHash  :: (Hash h, Recommendation h) => Proxy h -> h
+        keyStrHash _ = hash keyStr
+        theProxy    :: HMACKey h -> Proxy h
+        theProxy  _  = Proxy
 
 -- The HMACKey is just stored as a binary data.
 instance (Hash h, Recommendation h) => EndianStore (HMACKey h) where
@@ -120,10 +121,7 @@ instance Show h => Show (HMAC h) where
   show  = show . unHMAC
 
 instance Primitive h => Primitive (HMAC h) where
-  blockSize hmc = blockSize $ getHash hmc
-    where getHash :: HMAC h -> h
-          getHash _ = undefined
-
+  type BlockSize (HMAC h) = BlockSize h
   type Implementation (HMAC h) = SomeHashI h
 
 
@@ -153,10 +151,10 @@ hmacSource :: ( Hash h, Recommendation h, ByteSource src )
            => Key (HMAC h)  -- ^ key to use for mac-ing.
            -> src           -- ^ Message
            -> IO (HMAC h)
-hmacSource = go undefined
+hmacSource = go Proxy
   where go :: (Hash h, Recommendation h, ByteSource src)
-              => h -> Key (HMAC h) -> src -> IO (HMAC h)
-        go h = hmacSource' (recommended h)
+              => Proxy h -> Key (HMAC h) -> src -> IO (HMAC h)
+        go = hmacSource' . recommended
 
 {-# INLINEABLE hmacSource #-}
 {-# SPECIALIZE hmacSource :: (Hash h, Recommendation h) => Key (HMAC h) -> Handle -> IO (HMAC h) #-}
