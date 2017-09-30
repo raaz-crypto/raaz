@@ -40,8 +40,8 @@ matrix:
     - os: osx
 
     # Build for debian
-    - os: linux
-      env: HVR_COLLECTION=debian-8 GHCVER=7.6.3 CABALVER=1.20
+    # - os: linux
+    #  env: HVR_COLLECTION=debian-8 GHCVER=7.6.3 CABALVER=1.20
 
     # Build for the stack version that comes with the repository.
     - os: linux
