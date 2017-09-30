@@ -31,6 +31,7 @@ module Raaz.Cipher.Internal
 
 import Control.Monad.IO.Class          (liftIO)
 import Data.ByteString.Internal as IB
+import Data.Proxy
 import Foreign.Ptr                     (castPtr)
 import System.IO.Unsafe                (unsafePerformIO)
 
@@ -185,13 +186,13 @@ makeCipherI nm des trans = CipherI nm des trans trans
 -- it only works correctly when the input `ByteString` is of length
 -- which is a multiple of the block length of the cipher.
 unsafeEncrypt' :: Cipher c
-               => c                -- ^ The cipher to use
+               => Proxy c          -- ^ The cipher proxy
                -> Implementation c -- ^ The implementation to use
                -> Key c            -- ^ The key to use
                -> ByteString       -- ^ The string to encrypt.
                -> ByteString
-unsafeEncrypt' c simp@(SomeCipherI imp) key bs = IB.unsafeCreate sbytes go
-  where sz           = atMost (B.length bs) `asTypeOf` blocksOf 1 c
+unsafeEncrypt' cProxy simp@(SomeCipherI imp) key bs = IB.unsafeCreate sbytes go
+  where sz           = atMost (B.length bs) `asTypeOf` blocksOf 1 cProxy
         BYTES sbytes = inBytes sz
         go    ptr    = allocBufferFor simp sz $ \ buf -> insecurely $ do
           initialise key
@@ -204,13 +205,13 @@ unsafeEncrypt' c simp@(SomeCipherI imp) key bs = IB.unsafeCreate sbytes go
 -- these operations are same.
 
 transform' :: StreamCipher c
-           => c
+           => Proxy c
            -> Implementation c
            -> Key c
            -> ByteString
            -> ByteString
-transform' c simp@(SomeCipherI imp) key bs = unsafePerformIO $ IB.createAndTrim (fromEnum $ inBytes blks) action
-   where blks          = atLeast len `asTypeOf` blocksOf 1 c
+transform' cProxy simp@(SomeCipherI imp) key bs = unsafePerformIO $ IB.createAndTrim (fromEnum $ inBytes blks) action
+   where blks          = atLeast len `asTypeOf` blocksOf 1 cProxy
          len           = B.length bs
          action ptr    = allocBufferFor simp blks $ \ buf -> insecurely $ do
            initialise key
@@ -223,11 +224,11 @@ transform' c simp@(SomeCipherI imp) key bs = unsafePerformIO $ IB.createAndTrim 
 -- | Transform a given bytestring using the recommended implementation
 -- of a stream cipher.
 transform :: (StreamCipher c, Recommendation c)
-           => c
+           => Proxy c
            -> Key c
            -> ByteString
            -> ByteString
-transform c = transform' c $ recommended c
+transform cProxy = transform' cProxy $ recommended cProxy
 
 
 
@@ -235,23 +236,23 @@ transform c = transform' c $ recommended c
 -- unsafe because it only works correctly when the input `ByteString`
 -- is of length which is a multiple of the block length of the cipher.
 unsafeEncrypt :: (Cipher c, Recommendation c)
-              => c            -- ^ The cipher
+              => Proxy c      -- ^ The cipher proxy
               -> Key c        -- ^ The key to use
               -> ByteString   -- ^ The string to encrypt
               -> ByteString
-unsafeEncrypt c = unsafeEncrypt' c $ recommended c
+unsafeEncrypt cProxy = unsafeEncrypt' cProxy $ recommended cProxy
 
 -- | Decrypts the given `ByteString`. This function is unsafe because
 -- it only works correctly when the input `ByteString` is of length
 -- which is a multiple of the block length of the cipher.
 unsafeDecrypt' :: Cipher c
-               => c                -- ^ The cipher to use
+               => Proxy c          -- ^ The cipher proxy
                -> Implementation c -- ^ The implementation to use
                -> Key c            -- ^ The key to use
                -> ByteString       -- ^ The string to encrypt.
                -> ByteString
-unsafeDecrypt' c simp@(SomeCipherI imp) key bs = IB.unsafeCreate sbytes go
-  where sz           = atMost (B.length bs) `asTypeOf` blocksOf 1 c
+unsafeDecrypt' cProxy simp@(SomeCipherI imp) key bs = IB.unsafeCreate sbytes go
+  where sz           = atMost (B.length bs) `asTypeOf` blocksOf 1 cProxy
         BYTES sbytes = inBytes sz
         go    ptr    = allocBufferFor simp sz $ \ buf -> insecurely $ do
           initialise key
@@ -263,8 +264,8 @@ unsafeDecrypt' c simp@(SomeCipherI imp) key bs = IB.unsafeCreate sbytes go
 -- unsafe because it only works correctly when the input `ByteString`
 -- is of length which is a multiple of the block length of the cipher.
 unsafeDecrypt :: (Cipher c, Recommendation c)
-              => c            -- ^ The cipher
+              => Proxy c      -- ^ The cipher proxy
               -> Key c        -- ^ The key to use
               -> ByteString   -- ^ The string to encrypt
               -> ByteString
-unsafeDecrypt c = unsafeDecrypt' c $ recommended c
+unsafeDecrypt cProxy = unsafeDecrypt' cProxy $ recommended cProxy
