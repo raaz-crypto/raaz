@@ -11,6 +11,7 @@ module Raaz.Hash.Sha.Util
        ) where
 
 import Data.Monoid                  ( (<>)      )
+import Data.Proxy
 import Data.Word
 import Foreign.Ptr                  ( Ptr       )
 import Foreign.Storable             ( Storable  )
@@ -83,7 +84,7 @@ shaFinal :: (Primitive h, Storable h)
 shaFinal comp lenW ptr msgLen = do
   updateLength msgLen
   totalBits <- extractLength
-  let pad      = shaPad undefined msgLen $ lenW totalBits
+  let pad      = shaPad Proxy msgLen $ lenW totalBits
       blocks   = atMost $ bytesToWrite pad
       in unsafeWrite pad ptr >> comp ptr blocks
 
@@ -91,15 +92,15 @@ shaFinal comp lenW ptr msgLen = do
 -- | Padding is message followed by a single bit 1 and a glue of zeros
 -- followed by the length so that the message is aligned to the block boundary.
 shaPad :: IsSha h
-       => h
+       => Proxy h
        -> BYTES Int -- Message length
        -> ShaWrite h
        -> ShaWrite h
-shaPad h msgLen = glueWrites 0 boundary hdr
+shaPad hProxy msgLen = glueWrites 0 boundary hdr
   where skipMessage = skipWrite msgLen
         oneBit      = writeStorable (0x80 :: Word8)
         hdr         = skipMessage <> oneBit
-        boundary    = blocksOf 1 h
+        boundary    = blocksOf 1 hProxy
 
 
 

@@ -49,7 +49,7 @@ instance Initialisable (HashMemory SHA1) () where
 
 
 instance Primitive SHA1 where
-  blockSize _              = BYTES 64
+  type BlockSize SHA1      = 64
   type Implementation SHA1 = SomeHashI SHA1
 
 instance Hash SHA1 where

@@ -46,7 +46,7 @@ instance Initialisable (HashMemory SHA256) () where
                                                       ]
 
 instance Primitive SHA256 where
-  blockSize _                = BYTES 64
+  type BlockSize SHA256      = 64
   type Implementation SHA256 = SomeHashI SHA256
 
 instance Hash SHA256 where

@@ -117,7 +117,7 @@ aes128cbc = AES
 
 -- | The 128-bit aes cipher in cbc mode.
 instance Primitive (AES 128 'CBC) where
-  blockSize _ = BYTES 16
+  type BlockSize (AES 128 'CBC)      = 16
   type Implementation (AES 128 'CBC) = SomeCipherI (AES 128 'CBC)
 
 -- | Key is @(`KEY128`,`IV`)@ pair.
@@ -138,7 +138,7 @@ aes192cbc = AES
 
 -- | The 192-bit aes cipher in cbc mode.
 instance Primitive (AES 192 'CBC) where
-  blockSize _ = BYTES 16
+  type BlockSize (AES 192 'CBC)      = 16
   type Implementation (AES 192 'CBC) = SomeCipherI (AES 192 'CBC)
 
 -- | Key is @(`KEY192`,`IV`)@ pair.
@@ -159,7 +159,7 @@ aes256cbc = AES
 
 -- | The 256-bit aes cipher in cbc mode.
 instance Primitive (AES 256 'CBC) where
-  blockSize _ = BYTES 16
+  type BlockSize (AES 256 'CBC) = 16
   type Implementation (AES 256 'CBC) = SomeCipherI (AES 256 'CBC)
 
 -- | Key is @(`KEY256`,`IV`)@ pair.

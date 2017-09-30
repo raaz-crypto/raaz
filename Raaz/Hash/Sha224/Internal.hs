@@ -41,7 +41,7 @@ instance Show SHA224 where
   show =  showBase16
 
 instance Primitive SHA224 where
-  blockSize _                = BYTES 64
+  type BlockSize SHA224      = 64
   type Implementation SHA224 = SomeHashI SHA224
 
 instance Hash SHA224 where
