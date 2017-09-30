@@ -14,16 +14,19 @@ use a more high level interface.
 {-# LANGUAGE CPP                         #-}
 {-# LANGUAGE ConstraintKinds             #-}
 {-# LANGUAGE ExistentialQuantification   #-}
+{-# LANGUAGE DataKinds                   #-}
 
 module Raaz.Core.Primitives
        ( -- * Primtives and their implementations.
-         Primitive(..), BlockAlgorithm(..), Key, Recommendation(..)
+         Primitive(..), BlockAlgorithm(..), Recommendation(..), blockSize
        , BLOCKS, blocksOf
        , allocBufferFor
        , Symmetric(..)
        ) where
 
 import Data.Monoid
+import Data.Proxy
+import GHC.TypeLits
 import Prelude
 
 import Raaz.Core.Types
@@ -54,19 +57,28 @@ class Describable a => BlockAlgorithm a where
 -- implementation using the `Recommendation` class. By default this is
 -- the implementation used when no explicit implementation is
 -- specified.
-class BlockAlgorithm (Implementation p) => Primitive p where
+class ( BlockAlgorithm (Implementation p)
+      , KnownNat (BlockSize p)
+      )
+      => Primitive p where
 
-  -- | The block size.
-  blockSize :: p -> BYTES Int
+  type BlockSize p :: Nat
 
   -- | Associated type that captures an implementation of this
   -- primitive.
   type Implementation p :: *
 
+
+-- | The block size.
+blockSize :: Primitive prim => Proxy prim -> BYTES Int
+blockSize  = toEnum . fromEnum . natVal . getBlockSizeProxy
+  where getBlockSizeProxy ::  Proxy prim -> Proxy (BlockSize prim)
+        getBlockSizeProxy _ = Proxy
+
 -- | Primitives that have a recommended implementations.
 class Primitive p => Recommendation p where
   -- | The recommended implementation for the primitive.
-  recommended :: p -> Implementation p
+  recommended :: Proxy p -> Implementation p
 
 -- | Allocate a buffer a particular implementation of a primitive prim.
 -- algorithm @algo@. It ensures that the memory passed is aligned
@@ -98,13 +110,14 @@ instance Monoid (BLOCKS p) where
   mappend x y = BLOCKS $ unBLOCKS x + unBLOCKS y
 
 instance Primitive p => LengthUnit (BLOCKS p) where
-  inBytes p@(BLOCKS x) = scale * blockSize (getPrimitiveType p)
+  inBytes p@(BLOCKS x) = scale * blockSize primProxy
     where scale = BYTES x
-          getPrimitiveType :: BLOCKS p -> p
-          getPrimitiveType _ = undefined
+          primProxy = getProxy p
+          getProxy :: BLOCKS p -> Proxy p
+          getProxy _ = Proxy
 
 -- | The expression @n `blocksOf` p@ specifies the message lengths in
 -- units of the block length of the primitive @p@. This expression is
 -- sometimes required to make the type checker happy.
-blocksOf :: Int -> p -> BLOCKS p
+blocksOf :: Int -> Proxy p -> BLOCKS p
 blocksOf n _ = BLOCKS n
