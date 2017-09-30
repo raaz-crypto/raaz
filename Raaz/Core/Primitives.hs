@@ -20,6 +20,7 @@ module Raaz.Core.Primitives
          Primitive(..), BlockAlgorithm(..), Key, Recommendation(..)
        , BLOCKS, blocksOf
        , allocBufferFor
+       , Symmetric(..)
        ) where
 
 import Data.Monoid
@@ -77,10 +78,9 @@ allocBufferFor :: Primitive prim
                -> IO b
 allocBufferFor imp  = allocaAligned $ bufferStartAlignment imp
 
--- | Some primitives like ciphers have an encryption/decryption key. This
--- type family captures the key associated with a primitive if it has
--- any.
-type family  Key prim :: *
+-- | Block primitives that are symmetric key algorithms
+class Primitive prim => Symmetric prim where
+  type Key prim :: *
 
 ------------------- Type safe lengths in units of block ----------------
 
