@@ -20,7 +20,7 @@ spec =  do describe "128bit CBC" $ aes128cbcSpec
 
 aes128cbcSpec :: Spec
 aes128cbcSpec = do
-  C.encryptVsDecrypt proxy
+  C.encryptVsDecrypt aes128cbc
 
   with ( "06a9214036b8a15b512e03d534120006"
        , "3dafba429d9eb430b422da802c9fac41")
@@ -84,16 +84,13 @@ aes128cbcSpec = do
 
   where encryptsTo :: (Format fmt1, Format fmt2)
                    => fmt1 -> fmt2 -> Key (AES 128 'CBC) -> Spec
-        encryptsTo = C.encryptsTo proxy
-
-        proxy      :: Proxy (AES 128 'CBC)
-        proxy      = Proxy
+        encryptsTo = C.encryptsTo aes128cbc
 
 ------------------ AES 192 CBC ---------------------------
 
 aes192cbcSpec :: Spec
 aes192cbcSpec = do
-  C.encryptVsDecrypt proxy
+  C.encryptVsDecrypt aes192cbc
 
   with ( "8e73b0f7da0e6452c810f32b809079e562f8ead2522c6b7b"
        , "000102030405060708090a0b0c0d0e0f") $
@@ -121,15 +118,13 @@ aes192cbcSpec = do
 
   where encryptsTo :: (Format fmt1, Format fmt2)
                    => fmt1 -> fmt2 -> Key (AES 192 'CBC) -> Spec
-        encryptsTo = C.encryptsTo proxy
-        proxy      :: Proxy (AES 192 'CBC)
-        proxy      = Proxy
+        encryptsTo = C.encryptsTo aes192cbc
 
 ------------------ AES 192 CBC ---------------------------
 
 aes256cbcSpec :: Spec
 aes256cbcSpec = do
-  C.encryptVsDecrypt proxy
+  C.encryptVsDecrypt aes256cbc
 
   with ( "603deb1015ca71be2b73aef0857d77811f352c073b6108d72d9810a30914dff4"
        , "000102030405060708090a0b0c0d0e0f" ) $
@@ -157,6 +152,4 @@ aes256cbcSpec = do
 
   where encryptsTo :: (Format fmt1, Format fmt2)
                    => fmt1 -> fmt2 -> Key (AES 256 'CBC) -> Spec
-        encryptsTo = C.encryptsTo proxy
-        proxy      :: Proxy (AES 256 'CBC)
-        proxy      = Proxy
+        encryptsTo = C.encryptsTo aes256cbc

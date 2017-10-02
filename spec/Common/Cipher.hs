@@ -10,23 +10,23 @@ encryptVsDecrypt :: ( Arbitrary (Key c)
                     , Show (Key c)
                     , Cipher c, Recommendation c
                     )
-                 => Proxy c -> Spec
-encryptVsDecrypt cProxy = encryptVsDecrypt' cProxy $ recommended cProxy
+                 => c -> Spec
+encryptVsDecrypt c = encryptVsDecrypt' c $ recommended $ proxy c
 
 encryptVsDecrypt' :: ( Arbitrary (Key c)
                      , Show (Key c)
                      , Cipher c
                      )
-                     => Proxy c -> Implementation c -> Spec
+                     => c -> Implementation c -> Spec
 
-encryptVsDecrypt' cProxy imp = describe "decrypt . encrypt" $ do
+encryptVsDecrypt' c imp = describe "decrypt . encrypt" $ do
   it "trivial on strings of a length that is a multiple of the block size"
-    $ property $ forAll genKeyStr prop_EvsD
-  where genKeyStr = (,) <$> arbitrary <*> blocks cProxy
-        prop_EvsD (k,bs) = unsafeDecrypt' cProxy imp k (unsafeEncrypt' cProxy imp k bs) == bs
+    $ property $ forAll (genKeyStr c) prop_EvsD
+  where genKeyStr _ = (,) <$> arbitrary <*> blocks (proxy c)
+        prop_EvsD (k,bs) = unsafeDecrypt' c imp k (unsafeEncrypt' c imp k bs) == bs
 
 encryptsTo :: (Cipher c, Recommendation c, Format fmt1, Format fmt2)
-           => Proxy c
+           => c
            -> fmt1
            -> fmt2
            -> Key c
@@ -37,29 +37,29 @@ crossCheck :: ( Arbitrary (Key c)
               , Cipher c
               , Recommendation c
               )
-              => Proxy c -> Implementation c -> Spec
-crossCheck cProxy impl = describe mesg $ do
+              => c -> Implementation c -> Spec
+crossCheck c impl = describe mesg $ do
   it "encryption" $ property $ forAll genKeyStr prop_Enc
   it "decryption" $ property $ forAll genKeyStr prop_Dec
   where mesg      = unwords ["cross check with ", name reco , "(recommended implementation)" ]
-        reco      = recommended cProxy
-        genKeyStr = (,) <$> arbitrary <*> blocks cProxy
-        prop_Enc (k,bs) = unsafeEncrypt' cProxy reco k bs == unsafeEncrypt' cProxy impl k bs
-        prop_Dec (k,bs) = unsafeDecrypt' cProxy reco k bs == unsafeDecrypt' cProxy impl k bs
+        reco      = recommended $ proxy c
+        genKeyStr = (,) <$> arbitrary <*> blocks (proxy c)
+        prop_Enc (k,bs) = unsafeEncrypt' c reco k bs == unsafeEncrypt' c impl k bs
+        prop_Dec (k,bs) = unsafeDecrypt' c reco k bs == unsafeDecrypt' c impl k bs
 
 
-encryptsTo cProxy = encryptsTo' cProxy $ recommended cProxy
+encryptsTo c = encryptsTo' c $ recommended $ proxy c
 
 encryptsTo' :: (Cipher c, Format fmt1, Format fmt2)
-            => Proxy c
+            => c
             -> Implementation c
             -> fmt1
             -> fmt2
             -> Key c
             -> Spec
-encryptsTo' cProxy imp inp expected key
+encryptsTo' c imp inp expected key
   = it msg $ result `shouldBe` (decodeFormat expected)
-  where result = unsafeEncrypt' cProxy imp key $ decodeFormat inp
+  where result = unsafeEncrypt' c imp key $ decodeFormat inp
         msg   = unwords [ "encrypts"
                         , shortened $ show inp
                         , "to"
@@ -67,22 +67,22 @@ encryptsTo' cProxy imp inp expected key
                         ]
 
 transformsTo :: (StreamCipher c, Recommendation c, Format fmt1, Format fmt2)
-              => Proxy c
+              => c
               -> fmt1
               -> fmt2
               -> Key c
               -> Spec
-transformsTo cProxy = transformsTo' cProxy $ recommended cProxy
+transformsTo c = transformsTo' c $ recommended $ proxy c
 
 
 keyStreamIs' :: (StreamCipher c, Format fmt)
-             => Proxy c
+             => c
              -> Implementation c
              -> fmt
              -> Key c
              -> Spec
-keyStreamIs' cProxy impl expected key = it msg $ result `shouldBe` decodeFormat expected
-  where result = transform' cProxy impl key $ zeros $ 1 `blocksOf` cProxy
+keyStreamIs' c impl expected key = it msg $ result `shouldBe` decodeFormat expected
+  where result = transform' c impl key $ zeros $ 1 `blocksOf` (proxy c)
         msg    = unwords ["with key"
                          , "key stream is"
                          , shortened $ show expected
@@ -94,18 +94,22 @@ zeros = toByteString . writeZero
         writeZero = writeBytes 0
 
 transformsTo' :: (StreamCipher c, Format fmt1, Format fmt2)
-              => Proxy c
+              => c
               -> Implementation c
               -> fmt1
               -> fmt2
               -> Key c
               -> Spec
 
-transformsTo' cProxy impl inp expected key
+transformsTo' c impl inp expected key
   = it msg $ result `shouldBe` (decodeFormat expected)
-  where result = transform' cProxy impl key $ decodeFormat inp
+  where result = transform' c impl key $ decodeFormat inp
         msg   = unwords [ "encrypts"
                         , shortened $ show inp
                         , "to"
                         , shortened $ show expected
                         ]
+
+
+proxy :: c -> Proxy c
+proxy _ = Proxy

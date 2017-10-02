@@ -52,15 +52,14 @@ zeroBlocks = C.zeros . (toEnum :: Int -> BLOCKS ChaCha20)
 
 spec :: Spec
 spec = forM_ implementations $ \ imp -> do
-  let transformsTo  = C.transformsTo' proxy imp
+  let transformsTo  = C.transformsTo' chacha20 imp
       cipherImpName = "chacha20 (" ++ name imp ++ ")"
-      keyStreamIs   = C.keyStreamIs' proxy imp
-      proxy         = Proxy :: Proxy ChaCha20
+      keyStreamIs   = C.keyStreamIs' chacha20 imp
 
     in do
     describe cipherImpName $ do
-      C.encryptVsDecrypt' proxy imp
-      C.crossCheck proxy imp
+      C.encryptVsDecrypt' chacha20 imp
+      C.crossCheck chacha20 imp
       -- Unit test from RFC7539
       with ("00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f 10 11 12 13 14 15 16 17 18 19 1a 1b 1c 1d 1e 1f"
            , "00:00:00:00 00:00:00:4a 00:00:00:00"
