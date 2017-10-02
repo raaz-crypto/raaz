@@ -354,19 +354,6 @@ test-Suite liquidspec
   else
     buildable: False
 
----------------------------------------------- Bench marks -----------------------------------------
-
-benchmark blaze-vs-write
-  hs-source-dirs: benchmarks
-  default-language: Haskell2010
-  main-is: BlazeVsWrite.hs
-  type: exitcode-stdio-1.0
-  build-depends: base
-               , blaze-builder
-               , bytestring
-               , criterion >= 1.0
-               , raaz
-
 
 ---------------------------------------------- Cipher implemntation benchmarks ----------------------
 
