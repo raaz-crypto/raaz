@@ -4,6 +4,7 @@ import Control.Applicative     as E
 import Data.ByteString         as E (ByteString, pack)
 import Data.ByteString.Char8        () -- import IsString instance for
                                        -- byte string.
+import Data.Proxy              as E
 import Data.String             as E
 import Data.Monoid             as E
 import Data.Word               as E

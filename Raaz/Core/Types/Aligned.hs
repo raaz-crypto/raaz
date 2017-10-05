@@ -46,8 +46,6 @@ aligned16Bytes = Aligned
 aligned32Bytes = Aligned
 aligned64Bytes = Aligned
 
-#if MIN_VERSION_base(4,7,0)
-
 -- | The constraint on the alignment o(since base 4.7.0).
 type AlignBoundary (alg :: Nat) = KnownNat alg
 
@@ -55,20 +53,6 @@ alignmentBoundary :: AlignBoundary alg => Aligned alg a -> Int
 alignmentBoundary = aB Proxy
   where aB :: AlignBoundary algn => Proxy algn -> Aligned algn a -> Int
         aB algn _ = fromEnum $ natVal algn
-
-#else
-
--- | The constraint on the alignment (pre base 4.7.0).
-type AlignBoundary (alg :: Nat) = SingI alg
-
-alignmentBoundary :: AlignBoundary algn => Aligned algn a -> Int
-alignmentBoundary = withSing aB
-  where aB        ::  AlignBoundary algn => Sing algn      -> Aligned algn a -> Int
-        aB algn _ = fromEnum $ fromSing algn
-
-
-#endif
-
 
 instance (Storable a, AlignBoundary alg) => Storable (Aligned alg a) where
 

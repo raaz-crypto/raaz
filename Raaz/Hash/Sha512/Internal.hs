@@ -34,7 +34,7 @@ instance Show SHA512 where
   show =  showBase16
 
 instance Primitive SHA512 where
-  blockSize _ = BYTES 128
+  type BlockSize SHA512      = 128
   type Implementation SHA512 = SomeHashI SHA512
 
 instance Initialisable (HashMemory SHA512) () where

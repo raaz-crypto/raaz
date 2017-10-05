@@ -3,6 +3,7 @@ module Common.Utils where
 
 import Common.Imports hiding (length, replicate)
 
+
 import Foreign.Ptr           ( castPtr, Ptr    )
 import Data.ByteString as B  (concat)
 
@@ -71,10 +72,10 @@ genEncodable = go undefined
 
 -- | Generate bytestrings that are multiples of block size of a
 -- primitive.
-blocks :: Primitive prim => prim -> Gen ByteString
-blocks prim = B.concat <$> listOf singleBlock
+blocks :: Primitive prim => Proxy prim -> Gen ByteString
+blocks primProxy = B.concat <$> listOf singleBlock
   where singleBlock = pack <$> vector sz
-        BYTES sz    = blockSize prim
+        BYTES sz    = blockSize primProxy
 
 
 -- | Run a property with a given generator.

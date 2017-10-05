@@ -21,11 +21,7 @@ module Raaz.Core.Types.Tuple
 import           Control.Applicative
 import qualified Data.List           as L
 import           Data.Monoid
-
-#if MIN_VERSION_base(4,7,0)
 import           Data.Proxy
-#endif
-
 import qualified Data.Vector.Unboxed as V
 import           GHC.TypeLits
 import           Foreign.Ptr                 ( castPtr, Ptr )
@@ -54,10 +50,6 @@ instance (V.Unbox a, Equality a) => Eq (Tuple dim a) where
 getA :: Tuple dim a -> a
 getA _ = undefined
 
--- | Function that returns the dimension of the tuple. The dimension
--- is calculated without inspecting the tuple and hence the term
--- @`dimension` (undefined :: Tuple 5 Int)@ will evaluate to 5.
-#if MIN_VERSION_base(4,7,0)
 
 -- | The constaint on the dimension of the tuple (since base 4.7.0)
 type Dimension (dim :: Nat) = KnownNat dim
@@ -66,7 +58,9 @@ type Dimension (dim :: Nat) = KnownNat dim
 natValInt :: Dimension dim => proxy dim -> Int
 natValInt = fromEnum . natVal
 
--- | This combinator returns the dimension of the tuple.
+-- | Function that returns the dimension of the tuple. The dimension
+-- is calculated without inspecting the tuple and hence the term
+-- @`dimension` (undefined :: Tuple 5 Int)@ will evaluate to 5.
 {-@ dimension :: Dimension dim  => Raaz.Core.Types.Tuple.Tuple dim a -> {n: Int | n == dim } @-}
 dimension  :: Dimension dim => Tuple dim a -> Int
 dimensionP :: Dimension dim
@@ -75,22 +69,6 @@ dimensionP :: Dimension dim
            -> Int
 dimensionP sz _ = natValInt sz
 dimension = dimensionP Proxy
-
-#else
-
--- | The constaint on the dimension of the tuple (pre base 4.7.0)
-type Dimension (dim :: Nat) = SingI dim
-
--- | This combinator returns the dimension of the tuple.
-dimension  :: Dimension dim => Tuple dim a -> Int
-dimensionP :: Dimension dim
-           => Sing dim
-           -> Tuple dim a
-           -> Int
-dimension       = withSing dimensionP
-dimensionP sz _ = fromEnum $ fromSing sz
-
-#endif
 
 -- | Get the dimension to parser
 getParseDimension :: (V.Unbox a, Dimension dim)

@@ -31,9 +31,8 @@ module Raaz.Cipher.Internal
 
 import Control.Monad.IO.Class          (liftIO)
 import Data.ByteString.Internal as IB
+import Data.Proxy
 import Foreign.Ptr                     (castPtr)
-import System.IO.Unsafe                (unsafePerformIO)
-
 import Raaz.Core
 import Raaz.Core.Util.ByteString as B
 
@@ -185,19 +184,49 @@ makeCipherI nm des trans = CipherI nm des trans trans
 -- it only works correctly when the input `ByteString` is of length
 -- which is a multiple of the block length of the cipher.
 unsafeEncrypt' :: Cipher c
-               => c                -- ^ The cipher to use
+               => c                -- ^ The cipher
                -> Implementation c -- ^ The implementation to use
                -> Key c            -- ^ The key to use
                -> ByteString       -- ^ The string to encrypt.
                -> ByteString
-unsafeEncrypt' c simp@(SomeCipherI imp) key bs = IB.unsafeCreate sbytes go
-  where sz           = atMost (B.length bs) `asTypeOf` blocksOf 1 c
-        BYTES sbytes = inBytes sz
-        go    ptr    = allocBufferFor simp sz $ \ buf -> insecurely $ do
+unsafeEncrypt' c someImpl@(SomeCipherI impl) =
+  unsafeCipherAction c someImpl (encryptBlocks impl)
+
+-- | Decrypts the given `ByteString`. This function is unsafe because
+-- it only works correctly when the input `ByteString` is of length
+-- which is a multiple of the block length of the cipher.
+unsafeDecrypt' :: Cipher c
+               => c          -- ^ The cipher proxy
+               -> Implementation c -- ^ The implementation to use
+               -> Key c            -- ^ The key to use
+               -> ByteString       -- ^ The string to encrypt.
+               -> ByteString
+unsafeDecrypt' c someImpl@(SomeCipherI impl) key bs =
+  unsafeCipherAction c someImpl (decryptBlocks impl) key bs
+
+unsafeCipherAction :: (Cipher c, Initialisable someMem (Key c))
+                   => c
+                   -> Implementation c
+                   -> (Pointer -> BLOCKS c -> MT someMem ())
+                   -> Key c
+                   -> ByteString
+                   -> ByteString
+
+unsafeCipherAction c impl act key bs = IB.unsafeCreate sbytes go
+  where strSz           = B.length bs
+        -- | Buffer size is at least the size of the input.
+        bufSz           = atLeast strSz `asTypeOf` blocksOf 1 (proxy c)
+        -- | Where the action happens.
+        go    ptr       = allocBufferFor impl bufSz $ \ buf -> insecurely $ do
+          -- | Copy the input string to the buffer.
+          liftIO $ unsafeCopyToPointer bs buf -- Copy the input to buffer.
           initialise key
-          liftIO $ unsafeNCopyToPointer sz bs buf -- Copy the input to buffer.
-          encryptBlocks imp buf sz
-          liftIO $ Raaz.Core.memcpy (destination (castPtr ptr)) (source buf) sz
+          act buf bufSz
+          -- Copy the data in the buffer back to the destination pointer.
+          liftIO $ Raaz.Core.memcpy (destination (castPtr ptr)) (source buf) strSz
+
+        -- | Needed by unsafeCreate
+        BYTES sbytes    = inBytes strSz
 
 -- | Transforms a given bytestring using a stream cipher. We use the
 -- transform instead of encrypt/decrypt because for stream ciphers
@@ -209,16 +238,7 @@ transform' :: StreamCipher c
            -> Key c
            -> ByteString
            -> ByteString
-transform' c simp@(SomeCipherI imp) key bs = unsafePerformIO $ IB.createAndTrim (fromEnum $ inBytes blks) action
-   where blks          = atLeast len `asTypeOf` blocksOf 1 c
-         len           = B.length bs
-         action ptr    = allocBufferFor simp blks $ \ buf -> insecurely $ do
-           initialise key
-           liftIO $ unsafeCopyToPointer bs buf -- copy data into the buffer
-           encryptBlocks imp buf blks          -- encrypt it
-           liftIO $ Raaz.Core.memcpy (destination (castPtr ptr)) (source buf) len
-                                               -- copy it back to the actual pointer.
-           return $ fromIntegral len
+transform' = unsafeEncrypt'
 
 -- | Transform a given bytestring using the recommended implementation
 -- of a stream cipher.
@@ -227,7 +247,7 @@ transform :: (StreamCipher c, Recommendation c)
            -> Key c
            -> ByteString
            -> ByteString
-transform c = transform' c $ recommended c
+transform c = transform' c $ recommended $ proxy c
 
 
 
@@ -235,36 +255,24 @@ transform c = transform' c $ recommended c
 -- unsafe because it only works correctly when the input `ByteString`
 -- is of length which is a multiple of the block length of the cipher.
 unsafeEncrypt :: (Cipher c, Recommendation c)
-              => c            -- ^ The cipher
+              => c            -- ^ The cipher proxy
               -> Key c        -- ^ The key to use
               -> ByteString   -- ^ The string to encrypt
               -> ByteString
-unsafeEncrypt c = unsafeEncrypt' c $ recommended c
+unsafeEncrypt c = unsafeEncrypt' c $ recommended $ proxy c
 
--- | Decrypts the given `ByteString`. This function is unsafe because
--- it only works correctly when the input `ByteString` is of length
--- which is a multiple of the block length of the cipher.
-unsafeDecrypt' :: Cipher c
-               => c                -- ^ The cipher to use
-               -> Implementation c -- ^ The implementation to use
-               -> Key c            -- ^ The key to use
-               -> ByteString       -- ^ The string to encrypt.
-               -> ByteString
-unsafeDecrypt' c simp@(SomeCipherI imp) key bs = IB.unsafeCreate sbytes go
-  where sz           = atMost (B.length bs) `asTypeOf` blocksOf 1 c
-        BYTES sbytes = inBytes sz
-        go    ptr    = allocBufferFor simp sz $ \ buf -> insecurely $ do
-          initialise key
-          liftIO $ unsafeNCopyToPointer sz bs buf -- Copy the input to buffer.
-          decryptBlocks imp buf sz
-          liftIO $ Raaz.Core.memcpy (destination (castPtr ptr)) (source buf) sz
 
 -- | Decrypt using the recommended implementation. This function is
 -- unsafe because it only works correctly when the input `ByteString`
 -- is of length which is a multiple of the block length of the cipher.
 unsafeDecrypt :: (Cipher c, Recommendation c)
-              => c            -- ^ The cipher
+              => c            -- ^ The cipher proxy
               -> Key c        -- ^ The key to use
               -> ByteString   -- ^ The string to encrypt
               -> ByteString
-unsafeDecrypt c = unsafeDecrypt' c $ recommended c
+unsafeDecrypt c = unsafeDecrypt' c $ recommended $ proxy c
+
+
+-- | Get the proxy out of the cipher.
+proxy  :: a -> Proxy a
+proxy _ = Proxy

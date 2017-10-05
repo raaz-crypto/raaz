@@ -117,11 +117,12 @@ aes128cbc = AES
 
 -- | The 128-bit aes cipher in cbc mode.
 instance Primitive (AES 128 'CBC) where
-  blockSize _ = BYTES 16
+  type BlockSize (AES 128 'CBC)      = 16
   type Implementation (AES 128 'CBC) = SomeCipherI (AES 128 'CBC)
 
 -- | Key is @(`KEY128`,`IV`)@ pair.
-type instance Key (AES 128 'CBC) = (KEY128,IV)
+instance Symmetric (AES 128 'CBC) where
+  type Key (AES 128 'CBC) = (KEY128,IV)
 
 instance Describable (AES 128 'CBC) where
   name _ = "aes-128-cbc"
@@ -137,11 +138,12 @@ aes192cbc = AES
 
 -- | The 192-bit aes cipher in cbc mode.
 instance Primitive (AES 192 'CBC) where
-  blockSize _ = BYTES 16
+  type BlockSize (AES 192 'CBC)      = 16
   type Implementation (AES 192 'CBC) = SomeCipherI (AES 192 'CBC)
 
 -- | Key is @(`KEY192`,`IV`)@ pair.
-type instance Key (AES 192 'CBC) = (KEY192,IV)
+instance Symmetric (AES 192 'CBC)  where
+  type Key (AES 192 'CBC) = (KEY192,IV)
 
 instance Describable (AES 192 'CBC) where
   name _ = "aes-192-cbc"
@@ -157,11 +159,13 @@ aes256cbc = AES
 
 -- | The 256-bit aes cipher in cbc mode.
 instance Primitive (AES 256 'CBC) where
-  blockSize _ = BYTES 16
+  type BlockSize (AES 256 'CBC) = 16
   type Implementation (AES 256 'CBC) = SomeCipherI (AES 256 'CBC)
 
 -- | Key is @(`KEY256`,`IV`)@ pair.
-type instance Key (AES 256 'CBC) = (KEY256,IV)
+
+instance Symmetric (AES 256 'CBC)  where
+  type Key (AES 256 'CBC) = (KEY256,IV)
 
 
 instance Describable (AES 256 'CBC) where

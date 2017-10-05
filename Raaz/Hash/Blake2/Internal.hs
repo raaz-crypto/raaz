@@ -21,6 +21,7 @@ import           Control.Applicative
 import           Control.Monad.IO.Class
 import           Data.Bits           ( xor, complement )
 import           Data.Monoid
+import           Data.Proxy
 import           Data.String
 import           Data.Word
 import           Foreign.Ptr         ( Ptr          )
@@ -66,14 +67,14 @@ instance Show BLAKE2s where
   show =  showBase16
 
 instance Primitive BLAKE2b where
-  blockSize _ = BYTES 128
+  type BlockSize BLAKE2b      = 128
   type Implementation BLAKE2b = SomeHashI BLAKE2b
 
 instance Hash BLAKE2b where
   additionalPadBlocks _ = toEnum 1
 
 instance Primitive BLAKE2s where
-  blockSize _ = BYTES 64
+  type BlockSize BLAKE2s      = 64
   type Implementation BLAKE2s = SomeHashI BLAKE2s
 
 instance Hash BLAKE2s where
@@ -148,10 +149,10 @@ instance Extractable Blake2sMem BLAKE2s where
 
 -- | The generic blake2 padding algorithm.
 blake2Pad :: (Primitive prim, MonadIO m)
-          => prim      -- ^ the primitive (BLAKE2b or BLAKE2s).
-          -> BYTES Int -- ^ length of the message
+          => Proxy prim  -- ^ the primitive (BLAKE2b or BLAKE2s).
+          -> BYTES Int   -- ^ length of the message
           -> WriteM m
-blake2Pad prim = padWrite 0 (blocksOf 1 prim) . skipWrite
+blake2Pad primProxy = padWrite 0 (blocksOf 1 primProxy) . skipWrite
 
 
 
@@ -200,14 +201,14 @@ blake2bImplementation nm descr compress2b last2b
                                in  liftIO $ last2b buf r u l f0 f1 hshPtr
 
         final buf nbytes = unsafeWrite blake2bPad buf >> finalPadded buf nbytes
-          where blake2bPad = blake2Pad (undefined :: BLAKE2b) nbytes
+          where blake2bPad = blake2Pad (Proxy :: Proxy BLAKE2b) nbytes
 
         finalPadded buf nbytes
           | nbytes == 0 = lastBlock buf 0  -- only when actual input is empty.
           | otherwise   = let
               (blks,r)       =  bytesQuotRem nbytes
               blksToCompress = if r == 0 then blks <> toEnum (-1) else blks
-              remBytes       = if r > 0 then r else inBytes $ blocksOf 1 (undefined :: BLAKE2b)
+              remBytes       = if r > 0 then r else inBytes $ blocksOf 1 (Proxy :: Proxy BLAKE2b)
               lastBlockPtr   = buf `movePtr` blksToCompress
               in do comp buf blksToCompress
                     lastBlock lastBlockPtr remBytes
@@ -259,14 +260,14 @@ blake2sImplementation nm descr compress2s last2s
                                in liftIO $ last2s buf r len f0 f1 hshPtr
 
         final buf nbytes = unsafeWrite blake2sPad buf >> finalPadded buf nbytes
-          where blake2sPad = blake2Pad (undefined :: BLAKE2s) nbytes
+          where blake2sPad = blake2Pad (Proxy :: Proxy BLAKE2s) nbytes
 
         finalPadded buf nbytes
           | nbytes == 0 = lastBlock buf 0  -- only when actual input is empty.
           | otherwise   = let
               (blks,r)       =  bytesQuotRem nbytes
               blksToCompress = if r == 0 then blks <> toEnum (-1) else blks
-              remBytes       = if r > 0 then r else inBytes $ blocksOf 1 (undefined :: BLAKE2s)
+              remBytes       = if r > 0 then r else inBytes $ blocksOf 1 (Proxy :: Proxy BLAKE2s)
               lastBlockPtr   = buf `movePtr` blksToCompress
               in do comp buf blksToCompress
                     lastBlock lastBlockPtr remBytes

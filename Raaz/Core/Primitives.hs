@@ -14,15 +14,19 @@ use a more high level interface.
 {-# LANGUAGE CPP                         #-}
 {-# LANGUAGE ConstraintKinds             #-}
 {-# LANGUAGE ExistentialQuantification   #-}
+{-# LANGUAGE DataKinds                   #-}
 
 module Raaz.Core.Primitives
        ( -- * Primtives and their implementations.
-         Primitive(..), BlockAlgorithm(..), Key, Recommendation(..)
+         Primitive(..), BlockAlgorithm(..), Recommendation(..), blockSize
        , BLOCKS, blocksOf
        , allocBufferFor
+       , Symmetric(..)
        ) where
 
 import Data.Monoid
+import Data.Proxy
+import GHC.TypeLits
 import Prelude
 
 import Raaz.Core.Types
@@ -41,31 +45,37 @@ class Describable a => BlockAlgorithm a where
 
 
 -- | The type class that captures an abstract block cryptographic
--- primitive. Bulk cryptographic primitives like hashes, ciphers etc
--- often acts on blocks of data. The size of the block is captured by
--- the member `blockSize`.
---
--- As a library, raaz believes in providing multiple implementations
--- for a given primitive. The associated type `Implementation`
--- captures implementations of the primitive.
---
--- For use in production code, the library recommends a particular
+-- primitive.
+class ( BlockAlgorithm (Implementation p)
+      , KnownNat (BlockSize p)
+      )
+      => Primitive p where
+
+  -- | Bulk cryptographic primitives like hashes, ciphers etc often
+  -- acts on blocks of data. The size of the block is captured by the
+  -- associated type `BlockSize`.
+  type BlockSize p :: Nat
+
+
+  -- | As a library, raaz believes in providing multiple
+  -- implementations for a given primitive. This associated type
+  -- captures implementations of the primitive.
+  type Implementation p :: *
+
+
+-- | The block size.
+blockSize :: Primitive prim => Proxy prim -> BYTES Int
+blockSize  = toEnum . fromEnum . natVal . getBlockSizeProxy
+  where getBlockSizeProxy ::  Proxy prim -> Proxy (BlockSize prim)
+        getBlockSizeProxy _ = Proxy
+
+-- | For use in production code, the library recommends a particular
 -- implementation using the `Recommendation` class. By default this is
 -- the implementation used when no explicit implementation is
 -- specified.
-class BlockAlgorithm (Implementation p) => Primitive p where
-
-  -- | The block size.
-  blockSize :: p -> BYTES Int
-
-  -- | Associated type that captures an implementation of this
-  -- primitive.
-  type Implementation p :: *
-
--- | Primitives that have a recommended implementations.
 class Primitive p => Recommendation p where
   -- | The recommended implementation for the primitive.
-  recommended :: p -> Implementation p
+  recommended :: Proxy p -> Implementation p
 
 -- | Allocate a buffer a particular implementation of a primitive prim.
 -- algorithm @algo@. It ensures that the memory passed is aligned
@@ -77,10 +87,9 @@ allocBufferFor :: Primitive prim
                -> IO b
 allocBufferFor imp  = allocaAligned $ bufferStartAlignment imp
 
--- | Some primitives like ciphers have an encryption/decryption key. This
--- type family captures the key associated with a primitive if it has
--- any.
-type family  Key prim :: *
+-- | Block primitives that are symmetric key algorithms
+class Primitive prim => Symmetric prim where
+  type Key prim :: *
 
 ------------------- Type safe lengths in units of block ----------------
 
@@ -98,13 +107,15 @@ instance Monoid (BLOCKS p) where
   mappend x y = BLOCKS $ unBLOCKS x + unBLOCKS y
 
 instance Primitive p => LengthUnit (BLOCKS p) where
-  inBytes p@(BLOCKS x) = scale * blockSize (getPrimitiveType p)
+  inBytes p@(BLOCKS x) = scale * blockSize primProxy
     where scale = BYTES x
-          getPrimitiveType :: BLOCKS p -> p
-          getPrimitiveType _ = undefined
+          primProxy = getProxy p
+          getProxy :: BLOCKS p -> Proxy p
+          getProxy _ = Proxy
 
--- | The expression @n `blocksOf` p@ specifies the message lengths in
--- units of the block length of the primitive @p@. This expression is
--- sometimes required to make the type checker happy.
-blocksOf :: Int -> p -> BLOCKS p
+-- | The expression @n `blocksOf` primProxy@ specifies the message
+-- lengths in units of the block length of the primitive whose proxy
+-- is @primProxy@. This expression is sometimes required to make the
+-- type checker happy.
+blocksOf :: Int -> Proxy p -> BLOCKS p
 blocksOf n _ = BLOCKS n

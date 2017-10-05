@@ -33,7 +33,7 @@ instance IsString SHA384 where
 instance Show SHA384 where
   show =  showBase16
 instance Primitive SHA384 where
-  blockSize _ = BYTES 128
+  type BlockSize SHA384      = 128
   type Implementation SHA384 = SomeHashI SHA384
 
 instance Hash SHA384 where

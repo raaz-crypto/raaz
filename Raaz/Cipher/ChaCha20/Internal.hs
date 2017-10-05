@@ -54,11 +54,11 @@ instance IsString KEY where
 data ChaCha20 = ChaCha20
 
 instance Primitive ChaCha20 where
-  blockSize _ = BYTES 64
+  type BlockSize ChaCha20      = 64
   type Implementation ChaCha20 = SomeCipherI ChaCha20
 
--- | The key for ChaCha20.
-type instance Key ChaCha20 = (KEY, IV, Counter)
+instance Symmetric ChaCha20 where
+  type Key ChaCha20 = (KEY, IV, Counter)
 
 instance Describable ChaCha20 where
   name        _ = "chacha20"

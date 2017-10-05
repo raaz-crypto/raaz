@@ -36,6 +36,7 @@ import           Control.Applicative
 
 import qualified Data.ByteString      as B
 import qualified Data.ByteString.Lazy as L
+import           Data.Proxy
 import           Data.Monoid
 import           Data.Word
 import           Foreign.Storable
@@ -174,9 +175,9 @@ hashFile fileName = withBinaryFile fileName ReadMode hashSource
 hashSource :: ( Hash h, Recommendation h, ByteSource src )
            => src  -- ^ Message
            -> IO h
-hashSource = go undefined
-  where go :: (Hash h, Recommendation h, ByteSource src) => h -> src -> IO h
-        go h = hashSource' $ recommended h
+hashSource = go Proxy
+  where go :: (Hash h, Recommendation h, ByteSource src) => Proxy h -> src -> IO h
+        go = hashSource' . recommended
 
 {-# INLINEABLE hashSource #-}
 {-# SPECIALIZE hashSource :: (Hash h, Recommendation h) => Handle -> IO h #-}

@@ -52,9 +52,10 @@ zeroBlocks = C.zeros . (toEnum :: Int -> BLOCKS ChaCha20)
 
 spec :: Spec
 spec = forM_ implementations $ \ imp -> do
-  let transformsTo = C.transformsTo' chacha20 imp
+  let transformsTo  = C.transformsTo' chacha20 imp
       cipherImpName = "chacha20 (" ++ name imp ++ ")"
       keyStreamIs   = C.keyStreamIs' chacha20 imp
+
     in do
     describe cipherImpName $ do
       C.encryptVsDecrypt' chacha20 imp
