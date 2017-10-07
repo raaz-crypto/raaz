@@ -2,7 +2,6 @@
 module Raaz.Core.ByteSourceSpec where
 
 import qualified Data.ByteString as B
-import           System.IO
 import           System.IO.Unsafe
 
 import           Common

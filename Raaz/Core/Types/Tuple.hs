@@ -115,9 +115,9 @@ instance (V.Unbox a, EndianStore a, Dimension dim)
 
 
 -- | Construct a tuple by repeating a monadic action.
-repeatM :: (Functor m, Monad m, V.Unbox a, Dimension dim) => m a -> m (Tuple dim a)
+repeatM :: (Monad m, V.Unbox a, Dimension dim) => m a -> m (Tuple dim a)
 repeatM = mkTupM undefined
-  where mkTupM :: (Functor m, V.Unbox a, Monad m, Dimension dim) => Tuple dim a -> m a -> m (Tuple dim a)
+  where mkTupM :: (V.Unbox a, Monad m, Dimension dim) => Tuple dim a -> m a -> m (Tuple dim a)
         mkTupM uTup action = Tuple <$> V.replicateM (dimension uTup) action
 
 
