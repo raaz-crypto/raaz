@@ -37,6 +37,7 @@ import           Control.Exception     ( bracket_)
 import           Control.Monad         ( void, when )
 import           Control.Monad.IO.Class
 import           Data.Monoid
+import           Data.Proxy
 import           Data.Word
 import           Foreign.Marshal.Alloc
 import           Foreign.Ptr           ( Ptr         )
@@ -47,6 +48,7 @@ import           System.IO             (hGetBuf, Handle)
 
 import Prelude -- To stop the annoying warnings of Applicatives and Monoids.
 
+import Raaz.Core.Proxy
 import Raaz.Core.MonoidalAction
 import Raaz.Core.Types.Equality
 import Raaz.Core.Types.Copying
@@ -236,7 +238,7 @@ newtype Alignment = Alignment { unAlignment :: Int }
 
 -- | The default alignment to use is word boundary.
 wordAlignment :: Alignment
-wordAlignment = alignment (undefined :: Align)
+wordAlignment = alignment (Proxy :: Proxy Align)
 
 instance Monoid Alignment where
   mempty  = Alignment 1
@@ -246,20 +248,20 @@ instance Monoid Alignment where
 ---------- Type safe versions of some pointer functions -----------------
 
 -- | Compute the size of a storable element.
-sizeOf :: Storable a => a -> BYTES Int
-sizeOf = BYTES . FS.sizeOf
+sizeOf :: Storable a => Proxy a -> BYTES Int
+sizeOf = BYTES . FS.sizeOf . asProxyTypeOf undefined
 
 -- | Size of the buffer to be allocated to store an element of type
 -- @a@ so as to guarantee that there exist enough space to store the
 -- element after aligning the pointer. If the size of the element is
 -- @s@ and its alignment is @a@ then this quantity is essentially
 -- equal to @s + a - 1@. All units measured in word alignment.
-alignedSizeOf  :: Storable a => a -> ALIGN
-alignedSizeOf a =  atLeastAligned (sizeOf a) $ alignment a
+alignedSizeOf  :: Storable a => Proxy a -> ALIGN
+alignedSizeOf aproxy =  atLeastAligned (sizeOf aproxy) $ alignment aproxy
 
 -- | Compute the alignment for a storable object.
-alignment :: Storable a => a -> Alignment
-alignment =  Alignment . FS.alignment
+alignment :: Storable a => Proxy a -> Alignment
+alignment =  Alignment . FS.alignment . asProxyTypeOf undefined
 
 -- | Align a pointer to the appropriate alignment.
 alignPtr :: Ptr a -> Alignment -> Ptr a
@@ -273,9 +275,9 @@ movePtr ptr l = FP.plusPtr ptr offset
 -- | Compute the next aligned pointer starting from the given pointer
 -- location.
 nextAlignedPtr :: Storable a => Ptr a -> Ptr a
-nextAlignedPtr ptr = alignPtr ptr $ alignment $ elementOfPtr ptr
-  where elementOfPtr :: Ptr b -> b
-        elementOfPtr _ = undefined
+nextAlignedPtr ptr = alignPtr ptr $ alignment $ getProxy ptr
+  where getProxy :: Ptr b -> Proxy b
+        getProxy  = proxyUnwrap . pure
 
 -- | Peek the element from the next aligned location.
 peekAligned :: Storable a => Ptr a -> IO a
