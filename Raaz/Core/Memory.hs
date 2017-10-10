@@ -412,7 +412,7 @@ instance Storable a => Memory (MemoryCell a) where
 
   memoryAlloc = allocator undefined
     where allocator :: Storable b => b -> Alloc (MemoryCell b)
-          allocator b = makeAlloc (alignedSizeOf b) $ MemoryCell . castPtr
+          allocator b = makeAlloc (alignedSizeOf $ pure b) $ MemoryCell . castPtr
 
   unsafeToPointer  = castPtr . unMemoryCell
 
