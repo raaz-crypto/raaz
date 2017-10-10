@@ -12,7 +12,7 @@
 -- | Tuples of unboxed values with type level length encoding.
 module Raaz.Core.Types.Tuple
        ( -- * Length encoded tuples
-         Tuple, Dimension, dimension, initial, diagonal
+         Tuple, Dimension, dimension, dimension', initial, diagonal
        , repeatM, zipWith
          -- ** Unsafe operations
        , unsafeFromList
@@ -29,6 +29,7 @@ import           Foreign.Storable            ( Storable(..) )
 import           Prelude hiding              ( length, zipWith )
 
 
+import Raaz.Core.Proxy
 import Raaz.Core.Types.Equality
 import Raaz.Core.Types.Endian
 import Raaz.Core.Transfer
@@ -65,19 +66,23 @@ natValInt = fromEnum . natVal
 dimension  :: Dimension dim => Tuple dim a -> Int
 dimensionP :: Dimension dim
            => Proxy dim
-           -> Tuple dim a
+           -> Proxy (Tuple dim a)
            -> Int
 dimensionP sz _ = natValInt sz
-dimension = dimensionP Proxy
+dimension = dimensionP Proxy . pure
+
+-- | Function that returns the dimension from the proxy of the
+-- tuple. This is useful when we only have a proxy of the tuple at
+-- hand. This is clearly possible because the dimension calculation
+-- works at the type level and does not require looking at the value
+-- of the tuple.
+dimension' :: Dimension dim => Proxy (Tuple dim a) -> Int
+dimension' = dimensionP Proxy
 
 -- | Get the dimension to parser
 getParseDimension :: (V.Unbox a, Dimension dim)
                   => Parser (Tuple dim a) -> Int
-getTupFromP       :: (V.Unbox a, Dimension dim)
-                  => Parser (Tuple dim a) -> Tuple dim a
-
-getParseDimension = dimension . getTupFromP
-getTupFromP _     = undefined
+getParseDimension = dimension' . proxyUnwrap . pure
 
 
 

@@ -22,6 +22,7 @@ import           Control.Applicative
 import           Control.DeepSeq             ( NFData)
 import           Control.Monad               ( liftM )
 import           Data.Bits
+import           Data.Proxy
 import           Data.Typeable
 import           Data.Vector.Unboxed         ( MVector(..), Vector, Unbox )
 import           Data.Word
@@ -34,6 +35,7 @@ import qualified Data.Vector.Generic         as GV
 import qualified Data.Vector.Generic.Mutable as GVM
 
 
+import           Raaz.Core.Proxy
 import           Raaz.Core.Types.Copying
 import           Raaz.Core.Types.Pointer
 import           Raaz.Core.Types.Equality
@@ -165,7 +167,7 @@ storeAtIndex :: EndianStore w
              -> IO ()
 {-# INLINE storeAtIndex #-}
 storeAtIndex cptr index w = storeAt cptr offset w
-  where offset = toEnum index * sizeOf w
+  where offset  = toEnum index * sizeOf (pure w)
 
 
 -- | Load the @n@-th value of an array pointed by the crypto pointer.
@@ -175,10 +177,11 @@ loadFromIndex :: EndianStore w
               -> Int     -- ^ the index of the array
               -> IO w
 {-# INLINE loadFromIndex #-}
-loadFromIndex cptr index = load (shiftPtr cptr undefined)
-  where shiftPtr :: Storable w => Ptr w -> w -> Ptr w
-        shiftPtr ptr w = movePtr ptr (toEnum index * sizeOf w)
-
+loadFromIndex cptr index = load $ shiftPtr cptr
+  where shiftPtr :: Storable w => Ptr w -> Ptr w
+        shiftPtr ptr = movePtr ptr (toEnum index * sizeOf (getProxy ptr))
+        getProxy    :: Ptr w -> Proxy w
+        getProxy    = proxyUnwrap . pure
 -- | Load from a given offset. The offset is given in type safe units.
 loadFrom :: ( EndianStore w
             , LengthUnit offset
@@ -200,10 +203,10 @@ copyFromBytes :: EndianStore w
               -> Src  Pointer
               -> Int          -- ^ How many items.
               -> IO ()
-copyFromBytes dest@(Dest ptr) src n =  memcpy (castPtr <$> dest) src (sz dest undefined)
+copyFromBytes dest@(Dest ptr) src n =  memcpy (castPtr <$> dest) src (sz dest Proxy)
                                        >> adjustEndian ptr n
-  where sz     :: Storable w => Dest (Ptr w) -> w -> BYTES Int
-        sz _ w =  sizeOf w * toEnum n
+  where sz          :: Storable w => Dest (Ptr w) -> Proxy w -> BYTES Int
+        sz _ wProxy =  sizeOf wProxy * toEnum n
 
 -- | Similar to @copyFromBytes@ but the transfer is done in the other direction. The copy takes
 -- care of performing the appropriate endian encoding.
@@ -217,7 +220,7 @@ copyToBytes dest@(Dest dptr) src n =  memcpy dest  (castPtr <$> src) (sz src und
   where adjust :: EndianStore w => Src (Ptr w) -> Ptr w -> IO ()
         adjust _ ptr = adjustEndian ptr n
 
-        sz     :: Storable w => Src (Ptr w) -> w -> BYTES Int
+        sz     :: Storable w => Src (Ptr w) -> Proxy w -> BYTES Int
         sz _ w =  sizeOf w * toEnum n
 
 
