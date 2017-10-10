@@ -112,18 +112,18 @@ instance (V.Unbox a, EndianStore a, Dimension dim)
      where writeTup = writeVector $ unTuple tup
            cptr     = castPtr ptr
 
-  adjustEndian ptr n = adjustEndian (unTupPtr ptr) $ nos ptr undefined
-       where nos     :: Ptr (Tuple dim a) -> Tuple dim a -> Int
-             nos _ w = dimension w * n
+  adjustEndian ptr n = adjustEndian (unTupPtr ptr) $ nos ptr Proxy
+       where nos     :: Ptr (Tuple dim a) -> Proxy (Tuple dim a) -> Int
+             nos _ w = dimension' w * n
              unTupPtr   :: Ptr (Tuple dim a) -> Ptr a
              unTupPtr   = castPtr
 
 
 -- | Construct a tuple by repeating a monadic action.
 repeatM :: (Functor m, Monad m, V.Unbox a, Dimension dim) => m a -> m (Tuple dim a)
-repeatM = mkTupM undefined
-  where mkTupM :: (Functor m, V.Unbox a, Monad m, Dimension dim) => Tuple dim a -> m a -> m (Tuple dim a)
-        mkTupM uTup action = Tuple <$> V.replicateM (dimension uTup) action
+repeatM = mkTupM Proxy
+  where mkTupM :: (Functor m, V.Unbox a, Monad m, Dimension dim) => Proxy (Tuple dim a) -> m a -> m (Tuple dim a)
+        mkTupM uTupProxy action = Tuple <$> V.replicateM (dimension' uTupProxy) action
 
 
 -- | Construct a tuple out of the list. This function is unsafe and
@@ -147,17 +147,17 @@ unsafeFromList xs
 initial ::  (V.Unbox a, Dimension dim0)
          => Tuple dim1 a
          -> Tuple dim0 a
-initial = mkTuple undefined
-  where mkTuple :: (V.Unbox a, Dimension dim0) => Tuple dim0 a -> Tuple dim1 a  -> Tuple dim0 a
-        mkTuple uTup tup = Tuple $ V.take (dimension uTup) $ unTuple tup
+initial = mkTuple Proxy
+  where mkTuple :: (V.Unbox a, Dimension dim0) => Proxy (Tuple dim0 a) -> Tuple dim1 a  -> Tuple dim0 a
+        mkTuple uTupProxy tup = Tuple $ V.take (dimension' uTupProxy) $ unTuple tup
 
 -- TODO: Put a constraint that dim0 <= dim1
 
 -- | The @diagonal a@ gives a tuple, all of whose entries is @a@.
 diagonal :: (V.Unbox a, Dimension dim) => a -> Tuple dim a
-diagonal = mkTup undefined
-  where mkTup :: (V.Unbox a, Dimension dim) => Tuple dim a -> a -> Tuple dim a
-        mkTup uTup a = Tuple $ V.replicate (dimension uTup) a
+diagonal = mkTup Proxy
+  where mkTup :: (V.Unbox a, Dimension dim) => Proxy (Tuple dim a) -> a -> Tuple dim a
+        mkTup uTupProxy a = Tuple $ V.replicate (dimension' uTupProxy) a
 
 
 -- | A zipwith function for tuples
