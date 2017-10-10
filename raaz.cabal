@@ -30,7 +30,7 @@ bug-reports: https://github.com/raaz-crypto/raaz/issues
 -- List of platform specific source files.
 extra-source-files: entropy/urandom/Raaz/Entropy.hs
                     entropy/arc4random/Raaz/Entropy.hs
-                    entropy/getrandom/Raaz/Entropy.hs
+                    entropy/getrandom/Raaz/Entropy.hsc
                     entropy/windows/Raaz/Entropy.hsc
                     -- The man page in markdown and its
                     -- makefile. Needs pandoc to build
