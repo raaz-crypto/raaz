@@ -200,8 +200,8 @@ unsafeDecrypt' :: Cipher c
                -> Key c            -- ^ The key to use
                -> ByteString       -- ^ The string to encrypt.
                -> ByteString
-unsafeDecrypt' c someImpl@(SomeCipherI impl) key bs =
-  unsafeCipherAction c someImpl (decryptBlocks impl) key bs
+unsafeDecrypt' c someImpl@(SomeCipherI impl)  =
+  unsafeCipherAction c someImpl (decryptBlocks impl)
 
 unsafeCipherAction :: (Cipher c, Initialisable someMem (Key c))
                    => c

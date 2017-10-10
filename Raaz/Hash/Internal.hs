@@ -128,7 +128,7 @@ instance BlockAlgorithm (SomeHashI h) where
 truncatedI :: (BLOCKS htrunc -> BLOCKS h)
            -> (mtrunc        -> m)
            -> HashI h m -> HashI htrunc mtrunc
-truncatedI coerce unMtrunc (HashI{..})
+truncatedI coerce unMtrunc HashI{..}
   = HashI { hashIName        = hashIName
           , hashIDescription = hashIDescription
           , compress         = comp
@@ -233,7 +233,7 @@ completeHashing :: (Hash h, ByteSource src, HashM h m)
                 => HashI h m
                 -> src
                 -> MT m h
-completeHashing imp@(HashI{..}) src =
+completeHashing imp@HashI{..} src =
   allocate $ \ ptr -> let
     comp                = compress ptr bufSize
     finish bytes        = compressFinal ptr bytes >> extract

@@ -282,7 +282,7 @@ class Memory m where
   unsafeToPointer :: m -> Pointer
 
 -- | A memory element that holds nothing.
-data VoidMemory = VoidMemory { unVoidMemory :: Pointer  }
+newtype VoidMemory = VoidMemory { unVoidMemory :: Pointer  }
 
 instance Memory VoidMemory where
   memoryAlloc      = makeAlloc (0 :: BYTES Int) VoidMemory
