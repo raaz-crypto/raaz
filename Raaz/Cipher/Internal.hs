@@ -31,7 +31,6 @@ module Raaz.Cipher.Internal
 
 import Control.Monad.IO.Class          (liftIO)
 import Data.ByteString.Internal as IB
-import Data.Proxy
 import Foreign.Ptr                     (castPtr)
 import Raaz.Core
 import Raaz.Core.Util.ByteString as B
@@ -196,13 +195,13 @@ unsafeEncrypt' c someImpl@(SomeCipherI impl) =
 -- it only works correctly when the input `ByteString` is of length
 -- which is a multiple of the block length of the cipher.
 unsafeDecrypt' :: Cipher c
-               => c          -- ^ The cipher proxy
+               => c                -- ^ The cipher
                -> Implementation c -- ^ The implementation to use
                -> Key c            -- ^ The key to use
                -> ByteString       -- ^ The string to encrypt.
                -> ByteString
-unsafeDecrypt' c someImpl@(SomeCipherI impl) key bs =
-  unsafeCipherAction c someImpl (decryptBlocks impl) key bs
+unsafeDecrypt' c someImpl@(SomeCipherI impl)  =
+  unsafeCipherAction c someImpl (decryptBlocks impl)
 
 unsafeCipherAction :: (Cipher c, Initialisable someMem (Key c))
                    => c
@@ -214,15 +213,23 @@ unsafeCipherAction :: (Cipher c, Initialisable someMem (Key c))
 
 unsafeCipherAction c impl act key bs = IB.unsafeCreate sbytes go
   where strSz           = B.length bs
-        -- | Buffer size is at least the size of the input.
-        bufSz           = atLeast strSz `asTypeOf` blocksOf 1 (proxy c)
-        -- | Where the action happens.
+        --
+        -- Buffer size is at least the size of the input.
+        --
+        bufSz           = atLeast strSz `asTypeOf` blocksOf 1 (pure c)
+        --
+        -- Where the action happens.
+        --
         go    ptr       = allocBufferFor impl bufSz $ \ buf -> insecurely $ do
-          -- | Copy the input string to the buffer.
+          --
+          --  Copy the input string to the buffer.
+          --
           liftIO $ unsafeCopyToPointer bs buf -- Copy the input to buffer.
           initialise key
           act buf bufSz
+          --
           -- Copy the data in the buffer back to the destination pointer.
+          --
           liftIO $ Raaz.Core.memcpy (destination (castPtr ptr)) (source buf) strSz
 
         -- | Needed by unsafeCreate
@@ -247,7 +254,7 @@ transform :: (StreamCipher c, Recommendation c)
            -> Key c
            -> ByteString
            -> ByteString
-transform c = transform' c $ recommended $ proxy c
+transform c = transform' c $ recommended $ pure c
 
 
 
@@ -255,24 +262,19 @@ transform c = transform' c $ recommended $ proxy c
 -- unsafe because it only works correctly when the input `ByteString`
 -- is of length which is a multiple of the block length of the cipher.
 unsafeEncrypt :: (Cipher c, Recommendation c)
-              => c            -- ^ The cipher proxy
+              => c            -- ^ The cipher
               -> Key c        -- ^ The key to use
               -> ByteString   -- ^ The string to encrypt
               -> ByteString
-unsafeEncrypt c = unsafeEncrypt' c $ recommended $ proxy c
+unsafeEncrypt c = unsafeEncrypt' c $ recommended $ pure c
 
 
 -- | Decrypt using the recommended implementation. This function is
 -- unsafe because it only works correctly when the input `ByteString`
 -- is of length which is a multiple of the block length of the cipher.
 unsafeDecrypt :: (Cipher c, Recommendation c)
-              => c            -- ^ The cipher proxy
+              => c            -- ^ The cipher
               -> Key c        -- ^ The key to use
               -> ByteString   -- ^ The string to encrypt
               -> ByteString
-unsafeDecrypt c = unsafeDecrypt' c $ recommended $ proxy c
-
-
--- | Get the proxy out of the cipher.
-proxy  :: a -> Proxy a
-proxy _ = Proxy
+unsafeDecrypt c = unsafeDecrypt' c $ recommended $ pure c

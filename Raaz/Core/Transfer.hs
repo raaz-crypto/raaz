@@ -26,6 +26,7 @@ module Raaz.Core.Transfer
 
 import           Control.Monad.IO.Class
 import           Data.ByteString           (ByteString)
+import           Data.Proxy
 import           Data.String
 import           Data.ByteString.Internal  (unsafeCreate)
 import           Data.Monoid
@@ -40,6 +41,7 @@ import           Raaz.Core.Types.Endian
 import           Raaz.Core.Types.Pointer
 import           Raaz.Core.Util.ByteString as BU
 import           Raaz.Core.Encode
+import           Raaz.Core.Proxy
 
 -- $transfer$
 --
@@ -126,7 +128,7 @@ makeWrite sz  = WriteM . makeTransfer sz
 -- (otherwise this could lead to endian confusion). To take care of
 -- endianness use the `write` combinator.
 writeStorable :: (MonadIO m, Storable a) => a -> WriteM m
-writeStorable a = WriteM $ makeTransfer (sizeOf a) pokeIt
+writeStorable a = WriteM $ makeTransfer (sizeOf $ pure a) pokeIt
   where pokeIt = liftIO . flip poke a . castPtr
 -- | The expression @`write` a@ gives a write action that stores a
 -- value @a@. One needs the type of the value @a@ to be an instance of
@@ -134,15 +136,15 @@ writeStorable a = WriteM $ makeTransfer (sizeOf a) pokeIt
 -- what the machine endianness is. The man use of this write is to
 -- serialize data for the consumption of the outside world.
 write :: (MonadIO m, EndianStore a) => a -> WriteM m
-write a = makeWrite (sizeOf a) $ liftIO . flip (store . castPtr) a
+write a = makeWrite (sizeOf $ pure a) $ liftIO . flip (store . castPtr) a
 
 -- | Write many elements from the given buffer
 writeFrom :: (MonadIO m, EndianStore a) => Int -> Src (Ptr a) -> WriteM m
-writeFrom n src = makeWrite (sz undefined src)
+writeFrom n src = makeWrite (sz src)
                   $ \ ptr -> liftIO  $ copyToBytes (destination ptr) src n
-  where sz :: Storable a => a -> Src (Ptr a) -> BYTES Int
-        sz a _ = toEnum n * sizeOf a
-
+  where sz = (*) (toEnum n) . sizeOf . proxy
+        proxy :: Src (Ptr a) -> Proxy a
+        proxy = proxyUnwrap . proxyUnwrap . pure
 -- | The vector version of `writeStorable`.
 writeStorableVector :: (Storable a, G.Vector v a, MonadIO m) => v a -> WriteM m
 {-# INLINE writeStorableVector #-}
@@ -303,7 +305,8 @@ readInto :: (EndianStore a, MonadIO m)
          => Int             -- ^ how many elements to read.
          -> Dest (Ptr a)    -- ^ buffer to read the elements into
          -> ReadM m
-readInto n dest = makeRead (sz undefined dest)
+readInto n dest = makeRead (sz dest)
                   $ \ ptr -> liftIO $ copyFromBytes dest (source ptr) n
-  where sz :: Storable a => a -> Dest (Ptr a) -> BYTES Int
-        sz a _ = toEnum n * sizeOf a
+  where sz  = (*) (toEnum n) . sizeOf . proxy
+        proxy :: Dest (Ptr a) -> Proxy a
+        proxy = proxyUnwrap . proxyUnwrap . pure

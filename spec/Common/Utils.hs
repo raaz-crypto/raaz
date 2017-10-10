@@ -15,7 +15,7 @@ with key hmsto = hmsto key
 -- | Store and the load the given value.
 storeAndThenLoad :: EndianStore a
                  => a -> IO a
-storeAndThenLoad a = allocaBuffer (sizeOf a) (runStoreLoad . castPtr)
+storeAndThenLoad a = allocaBuffer (sizeOf $ pure a) (runStoreLoad . castPtr)
   where runStoreLoad ptr = store ptr a >> load ptr
 
 
@@ -29,7 +29,7 @@ storeAdjustAndPeek a
   = allocCast sz $ \ ptr -> do store ptr a
                                adjustEndian ptr 1
                                peek ptr
-  where sz = sizeOf a
+  where sz = sizeOf $ pure a
 
 pokeAdjustAndLoad :: EndianStore a
                    => a
@@ -38,7 +38,7 @@ pokeAdjustAndLoad a
   = allocCast sz $ \ ptr -> do poke ptr a
                                adjustEndian ptr 1
                                load ptr
-  where sz = sizeOf a
+  where sz = sizeOf $ pure a
 
 
 
@@ -68,7 +68,7 @@ shortened x | l <= 11    = paddedx
 genEncodable :: (Encodable a, Storable a) => Gen a
 genEncodable = go undefined
   where go :: (Encodable a, Storable a) => a -> Gen a
-        go x = unsafeFromByteString . pack <$> vector (fromEnum $ sizeOf x)
+        go x = unsafeFromByteString . pack <$> vector (fromEnum $ sizeOf $ pure x)
 
 -- | Generate bytestrings that are multiples of block size of a
 -- primitive.

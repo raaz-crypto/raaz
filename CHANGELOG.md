@@ -1,7 +1,10 @@
 # Change log for [raaz].
 
-## [0.2.1] - Pending
+## [0.3.0] - Pending
 
+- Block size moved to type level. Allows better type safety.
+- Use Data.Proxy.Proxy to get rid of some uses of undefined.
+- Support withdrawn for base < 4.7. This allows cleaning up some Nat codes.
 
 ## [0.2.0] - 24 August, 2017
 

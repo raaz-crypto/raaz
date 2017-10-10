@@ -6,6 +6,7 @@ module Raaz.Random.ChaCha20PRG
 
 import Control.Applicative
 import Control.Monad
+import Data.Proxy    ( Proxy(..)  )
 import Foreign.Ptr   (Ptr, castPtr)
 import Prelude
 
@@ -90,8 +91,8 @@ seedIfReq = do c <- onSubMemory (counterCell . chacha20State) extract
 fillKeyIVWith :: (BYTES Int -> Pointer -> MT RandomState a) -- ^ The function used to fill the buffer
               -> MT RandomState ()
 fillKeyIVWith filler = let
-  keySize = sizeOf (undefined :: KEY)
-  ivSize  = sizeOf (undefined :: IV)
+  keySize = sizeOf (Proxy :: Proxy KEY)
+  ivSize  = sizeOf (Proxy :: Proxy IV)
   in do onSubMemory (keyCell . chacha20State) getCellPointer >>= void . filler keySize . castPtr
         onSubMemory (ivCell  . chacha20State) getCellPointer >>= void . filler ivSize  . castPtr
 

@@ -20,6 +20,7 @@ import Control.Monad
 import Control.Monad.IO.Class
 import Data.ByteString             ( ByteString             )
 import Data.Int
+import Data.Proxy                  ( Proxy(..)              )
 import Data.Vector.Unboxed  hiding ( replicateM, create     )
 import Data.Word
 
@@ -28,6 +29,7 @@ import Foreign.Storable ( Storable, peek   )
 import Prelude
 
 import Raaz.Core
+import Raaz.Core.Proxy
 import Raaz.Cipher.ChaCha20.Internal(KEY, IV)
 import Raaz.Random.ChaCha20PRG
 
@@ -310,9 +312,9 @@ class Storable a => RandomStorable a where
 -- function is prefixed unsafe.
 unsafeFillRandomElements :: (Memory mem, Storable a) => Int -> Ptr a -> RT mem ()
 unsafeFillRandomElements n ptr = fillRandomBytes totalSz $ castPtr ptr
-  where totalSz = fromIntegral n * sizeOf (getElement ptr)
-        getElement :: Ptr a -> a
-        getElement _ = undefined
+  where totalSz = fromIntegral n * sizeOf (getProxy ptr)
+        getProxy :: Ptr a -> Proxy a
+        getProxy = proxyUnwrap . pure
 
 
 -- | Generate a random element from an instance of a RandomStorable
@@ -322,11 +324,11 @@ random = RT $ liftPointerAction alloc (getIt . castPtr)
   where getIt ptr    = unRT $ fillRandomElements 1 ptr >> liftIO (peek ptr)
         alloc        :: Storable a => (Pointer -> IO a) -> IO a
         alloc action = allocaAligned algn sz action
-          where getElement   :: (Pointer -> IO b) -> b
-                getElement _ = undefined
-                thisElement  = getElement action
-                algn         = alignment thisElement
-                sz           = sizeOf    thisElement
+          where getProxy   :: (Pointer -> IO b) -> Proxy b
+                getProxy  _  = Proxy
+                thisProxy    = getProxy action
+                algn         = alignment thisProxy
+                sz           = sizeOf    thisProxy
 
 -- | Randomise the contents of a memory cell. Equivalent to @`random`
 -- >>= liftMT . initialise@ but ensures that no data is transferred to
@@ -391,9 +393,8 @@ instance RandomStorable w => RandomStorable (BE w) where
           bePtrToPtr = castPtr
 
 instance (Dimension d, Unbox w, RandomStorable w) => RandomStorable (Tuple d w) where
-  fillRandomElements n ptr = fillRandomElements (n * sz) $ tupPtrToPtr ptr
-    where getTuple    :: Dimension d => Ptr (Tuple d w) -> Tuple d w
-          getTuple _  = undefined
+  fillRandomElements n ptr = fillRandomElements (n * sz ptr) $ tupPtrToPtr ptr
+    where sz   :: Dimension d => Ptr (Tuple d w) -> Int
+          sz   = dimension' . proxyUnwrap . pure
           tupPtrToPtr ::  Ptr (Tuple d w) -> Ptr w
           tupPtrToPtr = castPtr
-          sz         = dimension $ getTuple ptr

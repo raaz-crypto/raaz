@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP                   #-}
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE ConstraintKinds      #-}
 {-# LANGUAGE KindSignatures        #-}
@@ -15,10 +14,7 @@ module Raaz.Core.Types.Aligned
   ) where
 
 
-#if MIN_VERSION_base(4,7,0)
 import           Data.Proxy
-#endif
-
 import           GHC.TypeLits
 import           Foreign.Ptr                 ( castPtr      )
 import           Foreign.Storable            ( Storable(..) )
@@ -46,7 +42,7 @@ aligned16Bytes = Aligned
 aligned32Bytes = Aligned
 aligned64Bytes = Aligned
 
--- | The constraint on the alignment o(since base 4.7.0).
+-- | The constraint on the alignment.
 type AlignBoundary (alg :: Nat) = KnownNat alg
 
 alignmentBoundary :: AlignBoundary alg => Aligned alg a -> Int
