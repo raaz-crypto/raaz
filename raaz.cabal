@@ -132,6 +132,7 @@ library
                , Raaz.Core.Encode.Internal
                , Raaz.Core.Encode.Base16
                , Raaz.Core.Encode.Base64
+               , Raaz.Core.Proxy
                , Raaz.Core.Util.ByteString
                , Raaz.Core.Types.Aligned
                , Raaz.Core.Types.Pointer
