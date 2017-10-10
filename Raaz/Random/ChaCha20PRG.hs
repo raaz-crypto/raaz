@@ -71,8 +71,14 @@ setRemainingBytes = onSubMemory remainingBytes . initialise
 newSample :: MT RandomState ()
 newSample = do
   seedIfReq
-  withAuxBuffer $ onSubMemory chacha20State . flip chacha20Random randomBufferSize -- keystream
-  setRemainingBytes $ inBytes randomBufferSize -- Total bytes generated in one go
+  --
+  -- Generate key stream
+  --
+  withAuxBuffer $ onSubMemory chacha20State . flip chacha20Random randomBufferSize
+  setRemainingBytes $ inBytes randomBufferSize
+  --
+  -- Use part of the generated data to re-key the chacha20 cipher
+  --
   fillKeyIVWith fillExistingBytes
 
 
