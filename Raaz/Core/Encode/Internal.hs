@@ -58,7 +58,7 @@ class Encodable a where
   unsafeFromByteString  :: ByteString  -> a
 
   default toByteString :: EndianStore a => a -> ByteString
-  toByteString w    = unsafeCreate (fromEnum $ sizeOf w) putit
+  toByteString w    = unsafeCreate (fromEnum $ sizeOf (pure w)) putit
     where putit ptr = store (castPtr ptr) w
 
 
@@ -66,7 +66,7 @@ class Encodable a where
   fromByteString bs  | sizeOf proxy == length bs   = Just w
                      | otherwise                   = Nothing
          where w     = unsafePerformIO $ withByteString bs (load . castPtr)
-               proxy = undefined `asTypeOf` w
+               proxy = pure w
 
   unsafeFromByteString = fromMaybe (error "fromByteString error") . fromByteString
 
