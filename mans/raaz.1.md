@@ -43,14 +43,18 @@ The sub-commands of raaz falls in the following categories.
 
 ## Randomness
 
-**raaz** **rand** [BYTES_TO_GENERATE]
+**raaz** **rand**    [BYTES_TO_GENERATE]
 
+**raaz** **entropy** [BYTES_TO_GENERATE]
 
 With no arguments this command generates a never ending stream of
 cryptographically secure random bytes. For a non-negative integral
 argument **N**, this command generates exactly **N** bytes of random
-data.
-
+data. You will _never_ need to use the **entropy** variant of the
+command as it directly generates the bytes from the system entropy
+pool and hence is slower than the **rand** variant. The only reason it
+is exposed here is to make it possible to test the quality of the
+system entropy using statistical tests like die-harder.
 
 ## File checksums
 
