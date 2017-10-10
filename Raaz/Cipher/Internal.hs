@@ -213,15 +213,23 @@ unsafeCipherAction :: (Cipher c, Initialisable someMem (Key c))
 
 unsafeCipherAction c impl act key bs = IB.unsafeCreate sbytes go
   where strSz           = B.length bs
-        -- | Buffer size is at least the size of the input.
+        --
+        -- Buffer size is at least the size of the input.
+        --
         bufSz           = atLeast strSz `asTypeOf` blocksOf 1 (pure c)
-        -- | Where the action happens.
+        --
+        -- Where the action happens.
+        --
         go    ptr       = allocBufferFor impl bufSz $ \ buf -> insecurely $ do
-          -- | Copy the input string to the buffer.
+          --
+          --  Copy the input string to the buffer.
+          --
           liftIO $ unsafeCopyToPointer bs buf -- Copy the input to buffer.
           initialise key
           act buf bufSz
+          --
           -- Copy the data in the buffer back to the destination pointer.
+          --
           liftIO $ Raaz.Core.memcpy (destination (castPtr ptr)) (source buf) strSz
 
         -- | Needed by unsafeCreate
