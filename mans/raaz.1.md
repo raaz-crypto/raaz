@@ -1,5 +1,5 @@
 ---
-title: RAAZ(1) The Raaz Cryptographic Library | Version 0.2
+title: RAAZ(1) The Raaz Cryptographic Library | Version 0.3
 author: Piyush P Kurur
 date: June 22, 2017
 ---
@@ -106,3 +106,13 @@ programs can be verified by **raaz** with the appropriate sub-command
 
 **-s**, **--status**
 :    While verifying do not print anything. Only return the appropriate exit status.
+
+
+## Library information
+
+**raaz** **info**
+
+Print various information regarding the raaz library
+installation. This includes printing out the details of various
+primitive implementations, entropy source, detected cpu capabilities
+etc.
