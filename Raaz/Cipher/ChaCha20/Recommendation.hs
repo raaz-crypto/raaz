@@ -18,7 +18,9 @@ import Data.Proxy
 import Prelude
 
 import Raaz.Core
+import Raaz.Cipher.Internal
 import Raaz.Cipher.ChaCha20.Internal
+
 
 #ifdef HAVE_VECTOR_256
 import Raaz.Cipher.ChaCha20.Implementation.Vector256
@@ -29,8 +31,10 @@ import Raaz.Cipher.ChaCha20.Implementation.CPortable
 ------------ Setting the recommended implementation -------------------
 
 instance Recommendation ChaCha20 where
-         recommended _ = implementation
+         recommended _ = SomeCipherI implementation
 
+chacha20Random :: Pointer -> BLOCKS ChaCha20 -> MT ChaCha20Mem ()
+chacha20Random = encryptBlocks implementation
 
 --------------- Some information used by Raaz/Random/ChaCha20PRG.hs -------------
 

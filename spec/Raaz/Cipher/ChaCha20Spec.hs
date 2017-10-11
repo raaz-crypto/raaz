@@ -13,6 +13,7 @@ import qualified Common.Cipher as C
 
 import Raaz.Core.Transfer
 import Raaz.Cipher.ChaCha20
+import Raaz.Cipher.Internal
 import qualified Raaz.Cipher.ChaCha20.Implementation.CPortable as CP
 
 #ifdef HAVE_VECTOR_128
@@ -25,12 +26,12 @@ import qualified Raaz.Cipher.ChaCha20.Implementation.Vector256 as Vector256
 # endif
 
 implementations :: [Implementation ChaCha20]
-implementations = [ CP.implementation
+implementations = [ SomeCipherI CP.implementation
 #                   ifdef HAVE_VECTOR_128
-                  , Vector128.implementation
+                  , SomeCipherI Vector128.implementation
 #                   endif
 #                   ifdef HAVE_VECTOR_256
-                  , Vector256.implementation
+                  , SomeCipherI Vector256.implementation
 #                   endif
                   ]
 
