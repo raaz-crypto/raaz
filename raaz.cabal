@@ -70,8 +70,12 @@ flag avx2
      Manual: True
 
 flag linux-getrandom
-     Description: Use the getrandom for system entropy instead of /dev/urandom. Available only on linux kernel > 3.17.
-     Default: False
+
+     Description: Use the getrandom for system entropy instead of
+       /dev/urandom. Enabled by default but disable this for kernel <
+       3.17.
+
+     Default: True
      Manual: True
 
 flag liquidhaskell
@@ -256,13 +260,17 @@ library
     -- Entropy for openbsd using arc4random
     hs-source-dirs: entropy/arc4random
   else
-    if os(linux) && flag(linux-getrandom)
+    if os(linux)
+      if flag(linux-getrandom)
         -- Use getentropy on linux
         hs-source-dirs: entropy/getrandom
-    if os(windows)
+      else
+        hs-source-dirs: entropy/urandom
+    else
+      if os(windows)
         -- Use CryptGenRandom
         hs-source-dirs: entropy/windows
-    else
+      else
         -- Entropy for generic posix by reading /dev/urandom
         hs-source-dirs: entropy/urandom
 
