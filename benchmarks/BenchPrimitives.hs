@@ -114,12 +114,12 @@ aesBenchs      = [ encryptBench AesCbcCP.aes128cbcI
                  , decryptBench AesCbcCP.aes256cbcI
                  ]
 chacha20Benchs :: [ RaazBench ]
-chacha20Benchs = [ encryptBench ChaCha20CP.implementation
+chacha20Benchs = [ encryptBench $ SomeCipherI ChaCha20CP.implementation
 #               ifdef HAVE_VECTOR_256
-                , encryptBench ChaCha20V256.implementation
+                , encryptBench $ SomeCipherI ChaCha20V256.implementation
 #               endif
 #               ifdef HAVE_VECTOR_128
-                , encryptBench ChaCha20V128.implementation
+                , encryptBench $ SomeCipherI ChaCha20V128.implementation
 #               endif
                 ]
 
