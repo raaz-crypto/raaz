@@ -39,12 +39,12 @@ aesBench = bgroup "AES"
 
 chacha20Bench :: Benchmark
 chacha20Bench = bgroup "ChaCha20"
-                [ benchEncrypt' chacha20 CPortable.implementation
+                [ benchEncrypt' chacha20 $ SomeCipherI CPortable.implementation
 #               ifdef HAVE_VECTOR_128
-                , benchEncrypt' chacha20 Vector128.implementation
+                , benchEncrypt' chacha20 $ SomeCipherI Vector128.implementation
 #               endif
 #               ifdef HAVE_VECTOR_256
-                , benchEncrypt' chacha20 Vector256.implementation
+                , benchEncrypt' chacha20 $ SomeCipherI Vector256.implementation
 #               endif
                 ]
 

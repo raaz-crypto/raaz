@@ -292,10 +292,10 @@ class Storable a => RandomStorable a where
 --
 -- > fillRandomElements = unsafeFillRandomElements
 --
--- This would will make the instance definitions easier for the
--- Storables types that is spread over its entire range. However, it
--- would lead to a lazy definition which will compromise the quality
--- of the randomness.
+-- This will make the instance definitions easier for the Storables
+-- types that is spread over its entire range. However, it would lead
+-- to a lazy definition which will compromise the quality of the
+-- randomness.
 
 
 

@@ -10,7 +10,7 @@ import Options.Applicative
 import Raaz                  (version)
 
 import           Command.Checksum
-import           Command.CpuInfo
+import           Command.Info
 import           Command.Rand
 
 
@@ -21,7 +21,7 @@ progOption  :: Parser Option
 progOption = flag ShowVersion ShowVersion versionMods
              <|> RunCommand <$> rand
              <|> RunCommand <$> checksum
-             <|> RunCommand <$> cpuInfo
+             <|> RunCommand <$> information
 
   where versionMods = short 'v'
                       <> long "version"

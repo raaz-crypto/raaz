@@ -30,7 +30,7 @@ bug-reports: https://github.com/raaz-crypto/raaz/issues
 -- List of platform specific source files.
 extra-source-files: entropy/urandom/Raaz/Entropy.hs
                     entropy/arc4random/Raaz/Entropy.hs
-                    entropy/getrandom/Raaz/Entropy.hs
+                    entropy/getrandom/Raaz/Entropy.hsc
                     entropy/windows/Raaz/Entropy.hsc
                     -- The man page in markdown and its
                     -- makefile. Needs pandoc to build
@@ -70,8 +70,12 @@ flag avx2
      Manual: True
 
 flag linux-getrandom
-     Description: Use the getrandom for system entropy instead of /dev/urandom. Available only on linux kernel > 3.17.
-     Default: False
+
+     Description: Use the getrandom for system entropy instead of
+       /dev/urandom. Enabled by default but disable this for kernel <
+       3.17.
+
+     Default: True
      Manual: True
 
 flag liquidhaskell
@@ -128,6 +132,7 @@ library
 		 -- Randomness
 		 --
                  , Raaz.Random
+                 , Raaz.Random.Internal
   other-modules: Raaz.Core.Constants
                , Raaz.Core.Encode.Internal
                , Raaz.Core.Encode.Base16
@@ -255,13 +260,17 @@ library
     -- Entropy for openbsd using arc4random
     hs-source-dirs: entropy/arc4random
   else
-    if os(linux) && flag(linux-getrandom)
+    if os(linux)
+      if flag(linux-getrandom)
         -- Use getentropy on linux
         hs-source-dirs: entropy/getrandom
-    if os(windows)
+      else
+        hs-source-dirs: entropy/urandom
+    else
+      if os(windows)
         -- Use CryptGenRandom
         hs-source-dirs: entropy/windows
-    else
+      else
         -- Entropy for generic posix by reading /dev/urandom
         hs-source-dirs: entropy/urandom
 
@@ -274,7 +283,7 @@ executable raaz
   main-is: Main.hs
   other-modules: Command.Checksum
                , Command.Rand
-               , Command.CpuInfo
+               , Command.Info
                , Usage
   build-depends: base
                , optparse-applicative >= 0.10.0

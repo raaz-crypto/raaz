@@ -1,5 +1,5 @@
 ---
-title: RAAZ(1) The Raaz Cryptographic Library | Version 0.2
+title: RAAZ(1) The Raaz Cryptographic Library | Version 0.3
 author: Piyush P Kurur
 date: June 22, 2017
 ---
@@ -43,14 +43,18 @@ The sub-commands of raaz falls in the following categories.
 
 ## Randomness
 
-**raaz** **rand** [BYTES_TO_GENERATE]
+**raaz** **rand**    [BYTES_TO_GENERATE]
 
+**raaz** **entropy** [BYTES_TO_GENERATE]
 
 With no arguments this command generates a never ending stream of
 cryptographically secure random bytes. For a non-negative integral
 argument **N**, this command generates exactly **N** bytes of random
-data.
-
+data. You will _never_ need to use the **entropy** variant of the
+command as it directly generates the bytes from the system entropy
+pool and hence is slower than the **rand** variant. The only reason it
+is exposed here is to make it possible to test the quality of the
+system entropy using statistical tests like die-harder.
 
 ## File checksums
 
@@ -102,3 +106,13 @@ programs can be verified by **raaz** with the appropriate sub-command
 
 **-s**, **--status**
 :    While verifying do not print anything. Only return the appropriate exit status.
+
+
+## Library information
+
+**raaz** **info**
+
+Print various information regarding the raaz library
+installation. This includes printing out the details of various
+primitive implementations, entropy source, detected cpu capabilities
+etc.

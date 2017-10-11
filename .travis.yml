@@ -73,6 +73,7 @@ matrix:
     # - env: LIQUID="yes" GHCVER=8.0.2 CABALVER=1.24
 
 before_install:
+ - uname -a
  - if [ "$HLINT" == "yes" ]; then
       hlint "--ignore=Parse error" Raaz;
       exit $?;
@@ -80,7 +81,7 @@ before_install:
 
 
  - if [ "$STACK" == "yes" ]; then
-      export BUILDCMD="stack $RESOLVER";
+      export BUILDCMD="stack --stack-yaml stack-travis.yml $RESOLVER";
       mkdir -p $HOME/.local/bin;
       curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack';
       $BUILDCMD setup;
@@ -119,7 +120,7 @@ script:
   - if [ "$BUILDCMD" == "cabal" ]; then cabal check; fi
   - if [ "$BUILDCMD" == "cabal" ]; then cabal sdist; fi
   - if [ "$BUILDCMD" == "cabal" ]; then cabal install --force-reinstalls dist/*-*.tar.gz; fi
-  - if [ "$STACK" == "yes" ]; then $BUILDCMD exec raaz cpuinfo; fi
+  - if [ "$STACK" == "yes" ]; then $BUILDCMD exec raaz info; fi
 after_success:
   - echo "All is well."
 after_failure:

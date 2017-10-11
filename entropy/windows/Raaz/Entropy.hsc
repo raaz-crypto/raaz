@@ -1,5 +1,5 @@
 {-# LANGUAGE CPP #-}
-module Raaz.Entropy( getEntropy ) where
+module Raaz.Entropy( getEntropy, entropySource ) where
 
 #include <Windows.h>
 #include <Wincrypt.h>
@@ -22,6 +22,11 @@ import Foreign.C.String (CWString())
 import Raaz.Core
 
 type HCRYPTPROV = Ptr ()
+
+-- | The name of the source from which entropy is gathered. For
+-- information purposes only.
+entropySource :: String
+entropySource = "CryptGenRandom(windows)"
 
 foreign import WINDOWS_CCONV unsafe "Wincrypt.h CryptGenRandom"
     c_CryptGenRandom :: HCRYPTPROV -> Word32 -> Ptr Word8 -> IO Bool

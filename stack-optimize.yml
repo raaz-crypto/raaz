@@ -16,3 +16,4 @@ flags:
     vector256: true  # set if machine has 256-bit vector instructions
     vector512: true  # set if machine has 512-bit vector instructions
     avx2: true       # x86 arch with avx2 support.
+    linux-getrandom: true

@@ -38,7 +38,6 @@ can help in doing a high quality release
    packages as well. This gives good package compatibility hints for
    high quality release.
 
-
 3. Get down-stream packagers to make an experimental upload of the
    package into their CI system. Distributions like Debian often do
    have multi-arch builds and also add builds across other platforms
@@ -51,6 +50,6 @@ can help in doing a high quality release
 
 * Tag the release branch. Put the change log in the tag message.
 
-* Bump up the release version.
+* Bump up the release version and also the version on the man page.
 
 * Create a pending entry for the next release in the Change log.

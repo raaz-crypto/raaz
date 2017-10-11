@@ -13,8 +13,12 @@ import Raaz.Core
 import Raaz.Cipher.Internal
 import Raaz.Cipher.ChaCha20.Internal
 
-implementation :: SomeCipherI ChaCha20
-implementation  = SomeCipherI chacha20Vector
+implementation :: CipherI ChaCha20 ChaCha20Mem ChaCha20Mem
+implementation  = makeCipherI
+                   "chacha20-vector-128"
+                   "Implementation of the chacha20 stream cipher using the gcc's vector instructions"
+                   chacha20Block
+                   16
 
 -- | Chacha20 block transformation.
 foreign import ccall unsafe "raazChaCha20BlockVector"
@@ -30,10 +34,3 @@ chacha20Block msgPtr nblocks = do keyPtr <- onSubMemory keyCell     getCellPoint
                                   ivPtr  <- onSubMemory ivCell      getCellPointer
                                   ctrPtr <- onSubMemory counterCell getCellPointer
                                   liftIO $ c_chacha20_block msgPtr (fromEnum nblocks) keyPtr ivPtr ctrPtr
-
-chacha20Vector :: CipherI ChaCha20 ChaCha20Mem ChaCha20Mem
-chacha20Vector = makeCipherI
-                   "chacha20-vector-128"
-                   "Implementation of the chacha20 stream cipher using the gcc's vector instructions"
-                   chacha20Block
-                   16
