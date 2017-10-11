@@ -29,6 +29,7 @@ checksum = subparser $ commandGroup "Checksum Computation"
 #else
 checksum = subparser $ mempty
 #endif
+           <> metavar "CHECKSUM"
            <> mkCmd Blake2b
            <> mkCmd Blake2s
            <> mkCmd Sha512
@@ -56,7 +57,7 @@ mkCmd algo = command cmd inf
         algoname = map toLower $ show algo
         cmd      = algoname ++ "sum"
         hdr      = header $ unwords [ "raaz", cmd, "- File checksums using", algoname]
-        desc     = progDesc $ "Compute or verify the file checksums using " ++ algoname
+        desc     = progDesc $ "compute/verify the file checksums using " ++ algoname
 
 
 ------------------------ Types and constriants -------------------------------------

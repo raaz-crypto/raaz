@@ -32,21 +32,22 @@ rand = subparser $ commandGroup "Randomness"
 #else
 rand = subparser $ mempty
 #endif
-  <> randCmd    <> metavar "rand"
-  <> entropyCmd <> metavar "entropy"
+  <> metavar "RANDOMNESS"
+  <> randCmd
+  <> entropyCmd
   where
 
 
 randCmd :: Mod CommandFields (IO ())
 randCmd = command "rand" $ info (helper <*> randOpts) $ fullDesc
           <> header "raaz rand - Cryptographically secure pseudo random bytes."
-          <> progDesc "Generate cryptographically secure pseudo random bytes onto the stdout."
+          <> progDesc "generate cryptographically secure pseudo random bytes onto the stdout."
   where randOpts = opts insecurely emitRand
 
 entropyCmd :: Mod CommandFields (IO ())
 entropyCmd = command "entropy" $ info (helper <*> entropyOpts) $ fullDesc
           <> header "raaz entropy - System entropy."
-          <> progDesc "Emit data from the system entropy pool."
+          <> progDesc "emit data from the system entropy pool."
   where entropyOpts = opts id emitEntropy
 
 opts :: Monad m

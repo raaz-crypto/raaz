@@ -12,13 +12,15 @@ import Raaz.Random.Internal
 information :: Parser (IO ())
 
 #if MIN_VERSION_optparse_applicative(0,13,0)
-information = subparser $ commandGroup "Information" <> infoCmd <> metavar "info"
+information = subparser $ commandGroup "Information"
 #else
-information = subparser $ infoCmd <> metavar "info"
+information = subparser $ mempty
 #endif
+   <> metavar "INFORMATION"
+   <> infoCmd
   where infoCmd = command "info" $ info (helper <*> opts) $ fullDesc
                      <> header "raaz info - Print the library information"
-                     <> progDesc "Prints information about raaz library."
+                     <> progDesc "prints information about raaz library."
 
         opts = pure $ sequence_ [ field "Library Version" $ showVersion version
                                 , field "Entropy" entropySource
