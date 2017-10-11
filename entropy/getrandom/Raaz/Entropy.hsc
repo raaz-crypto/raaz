@@ -1,6 +1,6 @@
 {-# LANGUAGE ForeignFunctionInterface         #-}
 -- | Entropy based on the getrandom system call on Linux.
-module Raaz.Entropy( getEntropy ) where
+module Raaz.Entropy( getEntropy, entropySource ) where
 
 import Foreign.C             ( CLong(..)     )
 import Control.Monad.IO.Class(MonadIO, liftIO)
@@ -8,6 +8,12 @@ import Raaz.Core.Types
 
 # include <unistd.h>
 # include <sys/syscall.h>
+
+
+-- | The name of the source from which entropy is gathered. For
+-- information purposes only.
+entropySource :: String
+entropySource = "getrandom(linux)"
 
 -- | The getrandom system call.
 foreign import ccall unsafe

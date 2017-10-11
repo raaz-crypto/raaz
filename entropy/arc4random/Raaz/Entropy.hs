@@ -1,11 +1,16 @@
 {-# LANGUAGE ForeignFunctionInterface         #-}
 
 -- | Entropy based on arc4random_buf (OpenBSD/NetBSD etc).
-module Raaz.Entropy( getEntropy ) where
+module Raaz.Entropy( getEntropy, entropySource ) where
 
 import Control.Monad.IO.Class(MonadIO, liftIO)
 import Raaz.Core.Types
 
+
+-- | The name of the source from which entropy is gathered. For
+-- information purposes only.
+entropySource :: String
+entropySource = "arc4random_buf"
 
 -- | The arc4random function.
 foreign import ccall unsafe
