@@ -47,14 +47,38 @@ The sub-commands of raaz falls in the following categories.
 
 **raaz** **entropy** [BYTES_TO_GENERATE]
 
-With no arguments this command generates a never ending stream of
+With no arguments these command generates a never ending stream of
 cryptographically secure random bytes. For a non-negative integral
 argument **N**, this command generates exactly **N** bytes of random
-data. You will _never_ need to use the **entropy** variant of the
-command as it directly generates the bytes from the system entropy
-pool and hence is slower than the **rand** variant. The only reason it
-is exposed here is to make it possible to test the quality of the
-system entropy using statistical tests like die-harder.
+data.
+
+The essential difference in these two variants is this: The **rand**
+variant of the command generates cryptographically secure
+pseudo-random bytes starting with a seed picked using the system
+entropy generator, whereas the **entropy** variant directly outputs
+bytes from the system entropy pool. By the system entropy pool, we
+mean the best source of entropy on the given platform, e.g. getrandom
+on recent Linux kernels, arc4random on openbsd etc.
+
+Which of these variants should one prefer? Note that essentially all
+sources of entropy are ultimately pseudo-random and so is the source
+behind the **entropy** command. The algorithm behind the **raaz rand**
+command is essentially the same as that of the arc4random call
+available on OpenBSD/NetBSD system. There is *no* reason whatsoever to
+prefer **entropy** over **rand** just because it sounds more random;
+in fact **entropy** is almost always slower than the **rand** variant
+due to overheads of system calls. A user _should_ therefore use the
+**rand** variant. Why then provide the **entropy** variant? It is
+mainly to check the quality of the system entropy pool using
+statistical tests like die-harder. Such statistical __do not__ give
+any assurance on the cryptographic safety of the generator. They
+merely act as sanity checks against silly mistakes in the raaz code
+base.
+
+The **raaz rand** command uses the chacha20 cipher to expand the
+starting stream into a stream of pseudo-random bytes. It uses the
+*Fast Key Erasure* technique as described in the blog post
+<https://blog.cr.yp.to/20170723-random.html>.
 
 ## File checksums
 
