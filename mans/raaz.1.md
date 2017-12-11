@@ -6,13 +6,16 @@ date: June 22, 2017
 
 # NAME
 
-raaz - Command line tool for the Raaz cryptographic library.
+raaz - Command line application program for the Raaz cryptographic
+	   library.
 
 # SYNOPSIS
 
-**raaz** **[-v|--version]**
+**raaz** **[-h | --help]** **[-v|--version]**
 
-**raaz** **[COMMAND]** **[COMMAND_OPTIONS]** **[ARGUMENTS]**
+**raaz** **[SUB-COMMAND]**  **[-h | --help]**
+
+**raaz** **[SUB-COMMAND]** **[SUB-COMMAND-OPTIONS]** **[SUB-COMMAND-ARGUMENTS]**
 
 
 # DESCRIPTION
@@ -20,17 +23,14 @@ raaz - Command line tool for the Raaz cryptographic library.
 Raaz is a cryptographic library for the Haskell programming
 language. One of the important design goal is to use the type system
 of Haskell to catch various bugs like buffer overflows and timing
-attacks at compile time. Thus, Raaz is meant to be used as
+attacks at compile time. Therefore, raaz is meant to be used as
 cryptographic library for applications written in Haskell.
-Nonetheless, we expose some of the implemented primitives using the
-program **raaz** for use in shell scripts.
 
-# OPTIONS AND SUB-COMMANDS
+As part of the library, we expose an *application program* (also
+called **raaz**) which expose some of the implemented primitives in
+the library. This man page is about the program **raaz**.
 
-
-The program **raaz** exposes the cryptographic primitives as
-sub-commands. With no sub-commands **raaz** understands the following
-options
+# OPTIONS
 
 **-h**, **--help**
 :    Display help message. This option is supported by sub-commands as well
@@ -39,7 +39,11 @@ options
 **-v**, **--version**
 :    Display the version of the underlying raaz library
 
-The sub-commands of raaz falls in the following categories.
+
+# SUB-COMMANDS
+
+The program **raaz** exposes the cryptographic primitives as
+sub-commands which fall into the following categories.
 
 ## Randomness
 
@@ -60,20 +64,25 @@ bytes from the system entropy pool. By the system entropy pool, we
 mean the best source of entropy on the given platform, e.g. getrandom
 on recent Linux kernels, arc4random on openbsd etc.
 
-Which of these variants should one prefer? Note that essentially all
-sources of entropy are ultimately pseudo-random and so is the source
-behind the **entropy** command. The algorithm behind the **raaz rand**
-command is essentially the same as that of the arc4random call
-available on OpenBSD/NetBSD system. There is *no* reason whatsoever to
-prefer **entropy** over **rand** just because it sounds more random;
-in fact **entropy** is almost always slower than the **rand** variant
-due to overheads of system calls. A user _should_ therefore use the
-**rand** variant. Why then provide the **entropy** variant? It is
-mainly to check the quality of the system entropy pool using
-statistical tests like die-harder. Such statistical __do not__ give
-any assurance on the cryptographic safety of the generator. They
-merely act as sanity checks against silly mistakes in the raaz code
-base.
+
+There is *no* reason whatsoever to prefer **entropy** over **rand**
+just because it sounds more random. Note that essentially all sources
+of randomness in a system is ultimately pseudo-random and so is the
+source behind the **entropy** command. The algorithm behind the **raaz
+rand** command is essentially the same as that of the arc4random call
+available on OpenBSD/NetBSD system. It is very well likely that the
+system **entropy** command also uses the same algorithm, i.e. there is
+not really much to chose from the two command as far as quality of
+randomness is concerned. Besides the **entropy** variant is almost
+always slower than the **rand** variant due to overheads of system
+calls.  A user _should_ therefore use the **rand** variant.
+
+The only reason that this command provides the **entropy** variant is
+to check the quality of the system entropy pool using statistical
+tests like die-harder. Although such statistical tests _do not_ give
+any assurance on the cryptographic safety of the generator, they act
+as sanity checks against silly mistakes in the raaz code base that collects
+system entropy.
 
 The **raaz rand** command uses the chacha20 cipher to expand the
 starting stream into a stream of pseudo-random bytes. It uses the
