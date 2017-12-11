@@ -9,6 +9,6 @@ clean:
 	rm -f ${MAN_PAGES} ${MAN_PAGES_GZ}
 
 ${MAN_PAGES_GZ}:%.gz:%
-	gzip $<
+	gzip -f $<
 ${MAN_PAGES}:%:%.md
 	pandoc -s  $< -t man -o $@
