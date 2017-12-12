@@ -57,11 +57,11 @@ problems.
 [waffle-inprogress]: <https://badge.waffle.io/raaz-crypto/raaz.svg?label=waffle%3Ain%20progress&title=In%20Progress>
 [travis-status]: <https://secure.travis-ci.org/raaz-crypto/raaz.png> "Build status"
 [travis-raaz]: <https://travis-ci.org/raaz-crypto/raaz>
-[stackage-lts-raaz]: <https://stackage.org/lts/package/raaz>
-[stackage-nightly-raaz]: <https://stackage.org/nightly/package/raaz>
+[stackage-lts-raaz]: <https://www.stackage.org/lts/package/raaz>
+[stackage-nightly-raaz]: <https://www.stackage.org/nightly/package/raaz>
 
-[stackage-lts-raaz-badge]: <https://stackage.org/package/raaz/badge/lts>
-[stackage-nightly-raaz-badge]: <https://stackage.org/package/raaz/badge/nightly>
+[stackage-lts-raaz-badge]: <https://www.stackage.org/package/raaz/badge/lts>
+[stackage-nightly-raaz-badge]: <https://www.stackage.org/package/raaz/badge/nightly>
 
 [hackage]:       <https://hackage.haskell.org/package/raaz>
 [hackage-badge]: <https://img.shields.io/hackage/v/raaz.svg>
