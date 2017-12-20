@@ -19,6 +19,7 @@ import Raaz.Cipher
 import Raaz.Cipher.Internal
 import Raaz.Hash.Internal
 import Raaz.Random
+import Raaz.Random.Internal
 
 import qualified Raaz.Hash.Blake2.Implementation.CPortable    as Blake2CP
 import qualified Raaz.Hash.Sha1.Implementation.CPortable      as Sha1CP
@@ -53,7 +54,7 @@ type Result            = (String, Measured)
 type RaazBench         = (String, Benchmarkable)
 
 allBench :: [RaazBench]
-allBench =    [ memsetBench, randomnessBench ]
+allBench =    [ memsetBench, randomnessBench, entropyBench ]
            ++ chacha20Benchs
            ++ aesBenchs
            ++ blake2Benchs
@@ -150,6 +151,13 @@ randomnessBench = ("random", toBenchmarkable $ rand . fromIntegral)
   where rand count = allocaBuffer nBytes $ insecurely . replicateM_ count . fillIt
         fillIt :: Pointer -> RandM ()
         fillIt = fillRandomBytes nBytes
+
+entropyBench :: RaazBench
+entropyBench = ("entropy", toBenchmarkable $ rand . fromIntegral)
+  where rand count = allocaBuffer nBytes $ replicateM_ count . fillIt
+        fillIt :: Pointer -> IO ()
+        fillIt ptr = void (fillSystemEntropy nBytes ptr)
+
 
 runRaazBench :: RaazBench -> IO ()
 runRaazBench (nm, bm) = do
