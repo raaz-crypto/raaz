@@ -4,15 +4,21 @@ module Raaz.Random
        ( -- * Cryptographically secure randomness.
          -- $randomness$
          RT, RandM
-       , randomByteString
-       , random, randomiseCell
+       , random,  randomByteString
        -- ** Types that can be generated randomly
        , RandomStorable(..), unsafeFillRandomElements
-         -- * Low level access to randomness.
+       -- * Generating sensitive data
+       -- $sensitive-random$
+       , randomiseCell
        , fillRandomBytes
-       , reseed
-       -- * Internals
+         -- * Internals
        -- $internals$
+
+       -- ** Seeding
+       -- $seeding$
+       , reseed
+       -- ** Sampling
+       -- $sampling$
        ) where
 
 import Control.Applicative
@@ -37,10 +43,11 @@ import Raaz.Random.ChaCha20PRG
 -- $randomness$
 --
 -- The raaz library gives a relatively high level interface to
--- cryptographically secure randomness. The combinator `random`
--- generates pure value of certain types where as a sequence of random
--- bytes can be generated using the combinator
--- `randomByteString`. Both these combinators returns actions in the
+-- cryptographically secure randomness. The simplest combinator to use
+-- is `randomByteString` which generates a random string bytes of a
+-- given length. For types that are instances of the class
+-- `RandomStorable`, one can generate a single random value using
+-- `random` combinator. Both these combinators returns actions in the
 -- `RandM`, the monad that captures actions that generate/use
 -- cryptographically secure random bytes.
 --
@@ -76,7 +83,8 @@ import Raaz.Random.ChaCha20PRG
 -- >         who = randomByteString 10
 -- >
 --
--- = Generating sensitive data
+
+-- $sensitive-random$
 --
 -- The pseudo-random generator exposed here is cryptographically
 -- strong enough to be used in generating long term private key for a
@@ -168,7 +176,9 @@ import Raaz.Random.ChaCha20PRG
 -- generated random bytes is part of the memory used in the `RT` monad
 -- and hence using `securely` will ensure that they are locked.
 --
--- == Seeding.
+
+
+-- $seeding$
 --
 -- We use the /system entropy source/ to seed the (key, iv) of the
 -- chacha20 cipher.  Reading the system entropy source is a costly
@@ -205,7 +215,9 @@ import Raaz.Random.ChaCha20PRG
 --
 -- [Windows:] Support using CryptGenRandom from Wincrypt.h.
 --
--- == Sampling.
+
+
+-- $sampling$
 --
 -- Instead of running the chacha20 cipher for every request, we
 -- generate 16 blocks of ChaCha20 key stream in an auxiliary buffer
@@ -264,7 +276,11 @@ instance MemoryThread RT where
 reseed :: RT mem ()
 reseed = RT $ onSubMemory fst reseedMT
 
--- | Fill the given input pointer with random bytes.
+-- | Fill the given input pointer with random bytes. This function
+-- /does not/ and /cannot/ check whether the input pointer has enough
+-- space for the data. Hence this function should be used only on the
+-- last resort. You may also wish to use the member function
+-- `fillRandomElements` when you need to fill data other than bytes.
 fillRandomBytes :: LengthUnit l => l ->  Pointer -> RT mem ()
 fillRandomBytes l = RT . onSubMemory fst . fillRandomBytesMT l
 
