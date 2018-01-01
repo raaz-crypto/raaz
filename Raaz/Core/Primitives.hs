@@ -18,10 +18,9 @@ use a more high level interface.
 
 module Raaz.Core.Primitives
        ( -- * Primtives and their implementations.
-         Primitive(..), BlockAlgorithm(..), Recommendation(..), blockSize
+         Primitive(..), VoidKey(..), BlockAlgorithm(..), Recommendation(..), blockSize
        , BLOCKS, blocksOf
        , allocBufferFor
-       , Symmetric(..)
        ) where
 
 #if !MIN_VERSION_base(4,8,0)
@@ -69,6 +68,11 @@ class ( BlockAlgorithm (Implementation p)
   -- captures implementations of the primitive.
   type Implementation p :: *
 
+  -- | The key associated with primitive. For keyles
+  type Key p :: *
+
+-- | The key type used for a primitive that does not need a key.
+data VoidKey = VoidKey
 
 -- | The block size.
 blockSize :: Primitive prim => Proxy prim -> BYTES Int
@@ -93,10 +97,6 @@ allocBufferFor :: Primitive prim
                -> (Pointer -> IO b)
                -> IO b
 allocBufferFor imp  = allocaAligned $ bufferStartAlignment imp
-
--- | Block primitives that are symmetric key algorithms
-class Primitive prim => Symmetric prim where
-  type Key prim :: *
 
 ------------------- Type safe lengths in units of block ----------------
 
