@@ -56,8 +56,6 @@ data ChaCha20 = ChaCha20
 instance Primitive ChaCha20 where
   type BlockSize ChaCha20      = 64
   type Implementation ChaCha20 = SomeCipherI ChaCha20
-
-instance Symmetric ChaCha20 where
   type Key ChaCha20 = (KEY, IV, Counter)
 
 instance Describable ChaCha20 where
