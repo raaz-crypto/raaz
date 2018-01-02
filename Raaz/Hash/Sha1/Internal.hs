@@ -51,6 +51,8 @@ instance Initialisable (HashMemory SHA1) () where
 instance Primitive SHA1 where
   type BlockSize SHA1      = 64
   type Implementation SHA1 = SomeHashI SHA1
+  type Key SHA1            = ()
+  type Digest SHA1         = SHA1
 
 instance Hash SHA1 where
   additionalPadBlocks _ = toEnum 1

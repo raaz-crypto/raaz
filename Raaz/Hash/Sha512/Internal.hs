@@ -36,6 +36,8 @@ instance Show SHA512 where
 instance Primitive SHA512 where
   type BlockSize SHA512      = 128
   type Implementation SHA512 = SomeHashI SHA512
+  type Key SHA512            = ()
+  type Digest SHA512         = SHA512
 
 instance Initialisable (HashMemory SHA512) () where
   initialise _ = initialise $ SHA512

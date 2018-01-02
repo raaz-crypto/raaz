@@ -48,6 +48,8 @@ instance Initialisable (HashMemory SHA256) () where
 instance Primitive SHA256 where
   type BlockSize SHA256      = 64
   type Implementation SHA256 = SomeHashI SHA256
+  type Key SHA256            = ()
+  type Digest SHA256         = SHA256
 
 instance Hash SHA256 where
   additionalPadBlocks _ = toEnum 1

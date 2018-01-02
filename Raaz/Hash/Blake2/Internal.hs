@@ -67,6 +67,8 @@ instance Show BLAKE2s where
 instance Primitive BLAKE2b where
   type BlockSize BLAKE2b      = 128
   type Implementation BLAKE2b = SomeHashI BLAKE2b
+  type Key BLAKE2b            = ()
+  type Digest BLAKE2b         = BLAKE2b
 
 instance Hash BLAKE2b where
   additionalPadBlocks _ = toEnum 1
@@ -74,6 +76,8 @@ instance Hash BLAKE2b where
 instance Primitive BLAKE2s where
   type BlockSize BLAKE2s      = 64
   type Implementation BLAKE2s = SomeHashI BLAKE2s
+  type Key BLAKE2s            = ()
+  type Digest BLAKE2s         = BLAKE2s
 
 instance Hash BLAKE2s where
   additionalPadBlocks _ = toEnum 1
