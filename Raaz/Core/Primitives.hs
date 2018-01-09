@@ -18,7 +18,7 @@ use a more high level interface.
 
 module Raaz.Core.Primitives
        ( -- * Primtives and their implementations.
-         Primitive(..), VoidKey(..), BlockAlgorithm(..), Recommendation(..), blockSize
+         Primitive(..), BlockAlgorithm(..), Recommendation(..), blockSize
        , BLOCKS, blocksOf
        , allocBufferFor
        ) where
@@ -68,11 +68,25 @@ class ( BlockAlgorithm (Implementation p)
   -- captures implementations of the primitive.
   type Implementation p :: *
 
-  -- | The key associated with primitive. For keyles
+  -- | The key associated with primitive. In the setting of the raaz
+  -- library keys are "inputs" that are required to start processing.
+  -- Often primitives like ciphers have a /secret key/ together with
+  -- an additional nounce/IV. This type denotes not just the secret
+  -- key par but the nounce too.
+  --
+  -- Primitives like hashes that do not require a key should have this
+  -- type defined as `()`.
+
   type Key p :: *
 
--- | The key type used for a primitive that does not need a key.
-data VoidKey = VoidKey
+  -- | Many primitives produce additional message digest after
+  -- processing the input, think of cryptographic hashes, AEAD
+  -- primitives etc. This associated type captures such additional
+  -- data produced by the primitive. Primitives like ciphers, which do
+  -- not produce a digest is required to set this as the type `Void`.
+  type Digest p :: *
+
+
 
 -- | The block size.
 blockSize :: Primitive prim => Proxy prim -> BYTES Int
