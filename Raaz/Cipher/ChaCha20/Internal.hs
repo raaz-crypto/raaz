@@ -10,8 +10,9 @@ module Raaz.Cipher.ChaCha20.Internal
        ) where
 
 import Control.Applicative
-import Data.Word
 import Data.String
+import Data.Void              ( Void )
+import Data.Word
 import Foreign.Storable
 import Prelude
 
@@ -56,7 +57,8 @@ data ChaCha20 = ChaCha20
 instance Primitive ChaCha20 where
   type BlockSize ChaCha20      = 64
   type Implementation ChaCha20 = SomeCipherI ChaCha20
-  type Key ChaCha20 = (KEY, IV, Counter)
+  type Key ChaCha20            = (KEY, IV, Counter)
+  type Digest ChaCha20         = Void
 
 instance Describable ChaCha20 where
   name        _ = "chacha20"
