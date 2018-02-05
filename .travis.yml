@@ -128,4 +128,5 @@ after_failure:
 branches:
   only:
     - master
+    - backpack
     - release-0.2.0
