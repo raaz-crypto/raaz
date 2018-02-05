@@ -70,10 +70,8 @@ before_install:
  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew info ghc cabal-install z3 ; fi
 
 install:
- - $BUILDCMD --version
- - if [ "$BUILDCMD" == "cabal" ]; then
-      travis_retry cabal update;
-   fi
+ - cabal --version
+ - travis_retry cabal update;
 
 script:
   - cabal new-configure
