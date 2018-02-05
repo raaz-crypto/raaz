@@ -281,9 +281,24 @@ class Memory m where
   -- | Returns the pointer to the underlying buffer.
   unsafeToPointer :: m -> Pointer
 
+
 -- | A memory element that holds nothing.
 newtype VoidMemory = VoidMemory { unVoidMemory :: Pointer  }
 
+--
+-- DEVELOPER NOTE:
+--
+-- It might be tempting to define VoidMemory as follows.
+--
+-- >
+-- > newtype VoidMemory = VoidMemory
+-- >
+--
+-- However, this will lead to failure of memory instances of product
+-- memories where the first component is VoidMemory. Imagine what
+-- would the member function unsafeToPointer of (VoidMemory,
+-- SomeOtherMemory) look like.
+--
 instance Memory VoidMemory where
   memoryAlloc      = makeAlloc (0 :: BYTES Int) VoidMemory
   unsafeToPointer  = unVoidMemory
@@ -291,7 +306,7 @@ instance Memory VoidMemory where
 
 instance ( Memory ma, Memory mb ) => Memory (ma, mb) where
     memoryAlloc             = (,) <$> memoryAlloc <*> memoryAlloc
-    unsafeToPointer (ma, _) =  unsafeToPointer ma
+    unsafeToPointer (ma, _) = unsafeToPointer ma
 
 instance ( Memory ma
          , Memory mb
