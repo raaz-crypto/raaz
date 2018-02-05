@@ -81,7 +81,7 @@ install:
  - travis_retry cabal update;
 
 script:
-  - cabal new-configure
+  - cabal new-configure --flag='-linux-getrandom'
   - cabal new-build
   - cabal new-test
   - cabal check
