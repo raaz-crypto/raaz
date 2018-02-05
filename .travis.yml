@@ -71,7 +71,7 @@ before_install:
 
  - export PATH=/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:$PATH;
 
- - if [ -z "$STACKVER" ]; then ./script/stack-freeze.sh "$STACKVER"; fi # Sets up the appropriate freeze.
+ - if [ -n "$STACKVER" ]; then ./script/stack-freeze.sh "$STACKVER"; fi # Sets up the appropriate freeze.
  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew update; fi
  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install ghc cabal-install z3; fi
  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew info ghc cabal-install z3 ; fi
