@@ -22,3 +22,9 @@ test_script:
 # descriptor
 - echo "" | stack --no-terminal test --arch %ARCH%
 - stack exec raaz info
+
+branches:
+  only:
+    - master
+    - backpack
+    - release-0.2.0
