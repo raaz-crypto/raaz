@@ -2,7 +2,9 @@
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE ForeignFunctionInterface   #-}
-
+{-# LANGUAGE DataKinds                  #-}
+{-# LANGUAGE ConstraintKinds            #-}
+{-# LANGUAGE KindSignatures             #-}
 
 -- | This module exposes types that builds in type safety into some of
 -- the low level pointer operations. The functions here are pretty low
@@ -10,7 +12,7 @@
 -- to the core of the library.
 module Raaz.Core.Types.Pointer
        ( -- * Pointers, offsets, and alignment
-         Pointer
+         Pointer, AlignedPointer, AlignedPtr, onPtr
          -- ** Type safe length units.
        , LengthUnit(..)
        , BYTES(..), BITS(..), inBits
@@ -44,6 +46,7 @@ import           Foreign.Ptr           ( Ptr         )
 import qualified Foreign.Ptr           as FP
 import           Foreign.Storable      ( Storable, peek, poke )
 import qualified Foreign.Storable      as FS
+import           GHC.TypeLits
 import           System.IO             (hGetBuf, Handle)
 
 import Prelude -- To stop the annoying warnings of Applicatives and Monoids.
@@ -82,6 +85,15 @@ newtype Align = Align Word deriving Storable
 -- | The pointer type used by all cryptographic library.
 type Pointer = Ptr Align
 
+
+-- | The type @AlignedPtr n@ that captures pointers that are aligned
+-- to @n@ byte boundary.
+newtype AlignedPtr (n :: Nat) a = AlignedPtr { forgetAlignment :: Ptr a} deriving Storable
+
+type AlignedPointer n = AlignedPtr n Align
+
+onPtr :: (Ptr a -> b) -> AlignedPtr n a -> b
+onPtr action = action . forgetAlignment
 
 -- | In cryptographic settings, we need to measure pointer offsets and
 -- buffer sizes. The smallest of length/offset that we have is bytes
