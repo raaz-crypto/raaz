@@ -1,7 +1,5 @@
 language: c
-sudo: required
-dist: xenial
-
+sudo: false
 git:
   submodules: false
 notifications:
