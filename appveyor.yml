@@ -9,7 +9,7 @@ environment:
     - ARCH: x86_64
     - ARCH: i386
 
-clone_folder: "c:\\stack"
+clone_folder: "c:\\raaz"
 before_test:
 # http://help.appveyor.com/discussions/problems/6312-curl-command-not-found
 - set PATH=C:\Program Files\Git\mingw64\bin;%PATH%
@@ -21,8 +21,9 @@ before_test:
 - 7z x stack.zip stack.exe
 - 7z x cabal.zip
 - 7z x ghc.txz
-- set PATH=%APPVEYOR_BUILD_FOLDER%;%APPVERYOR_BUILD_FOLDER%/ghc-%GHCVER%/bin;%PATH%
+- set PATH=%APPVEYOR_BUILD_FOLDER%;%APPVEYOR_BUILD_FOLDER%/ghc-%GHCVER%/bin;%PATH%
 - cabal --version
+- ghc --version
 - echo Some information of interest
 - echo %PATH%
 - pwd
