@@ -28,7 +28,7 @@ before_test:
 - curl -S -ocabal.project.freeze %STACKAGE_URL%
 
 test_script:
-- cabal new-configure --enable-tests --enable-benchmarks
+- cabal new-configure
 - cabal new-build
 - cabal new-test
 - cabal check
