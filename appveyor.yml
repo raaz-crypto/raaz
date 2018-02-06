@@ -14,7 +14,7 @@ before_test:
 # http://help.appveyor.com/discussions/problems/6312-curl-command-not-found
 - set PATH=C:\Program Files\Git\mingw64\bin;%PATH%
 - set GHCURL=https://downloads.haskell.org/~ghc/%GHCVER%/ghc-%GHCVER%-%ARCH%-unknown-mingw32.tar.xz
-- set CABALURL=https://www.haskell.org/cabal/release/cabal-install-%CABALVER%/cabal-install-%CABALVER%-%ARCH$-unknown-mingw32.zip
+- set CABALURL=https://www.haskell.org/cabal/release/cabal-install-%CABALVER%/cabal-install-%CABALVER%-%ARCH%-unknown-mingw32.zip
 - curl -S -ocabal.zip %CABALURL%
 - curl -S -oghc.zip  %GHCURL%
 - curl -S -ostack.zip -L --insecure http://www.stackage.org/stack/windows-%ARCH%
