@@ -26,9 +26,8 @@ before_test:
 - cp appveyor\cabal.project.freeze .
 test_script:
 - cabal new-configure > nul
-- cabal new-build
+- echo "" | cabal new-build
 - echo "" | cabal new-test
-- cabal check
 
 branches:
   only:
