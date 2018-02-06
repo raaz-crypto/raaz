@@ -33,7 +33,7 @@ addons:
       - cabal-install-head
 
       - hlint
-    sources: [hvr-ghc, fpcomplete-precise]
+    sources: [hvr-ghc]
 
 matrix:
   include:
