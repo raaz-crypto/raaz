@@ -22,6 +22,7 @@ before_test:
 - set PATH=%APPVEYOR_BUILD_FOLDER%;%APPVEYOR_BUILD_FOLDER%\ghc-%GHCVER%\bin;%PATH%
 - cabal --version
 - ghc   --version
+- cabal update
 
 
 test_script:
