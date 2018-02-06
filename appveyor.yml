@@ -23,6 +23,9 @@ before_test:
 - 7z x ghc.txz
 - set PATH=%APPVEYOR_BUILD_FOLDER%;%APPVERYOR_BUILD_FOLDER%/ghc-%GHCVER%/bin;%PATH%
 - cabal --version
+- echo Some information of interest
+- echo %PATH%
+- pwd
 
 test_script:
 - stack setup > nul
