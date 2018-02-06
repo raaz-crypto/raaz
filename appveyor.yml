@@ -16,11 +16,11 @@ before_test:
 - set GHCURL=https://downloads.haskell.org/~ghc/%GHCVER%/ghc-%GHCVER%-%ARCH%-unknown-mingw32.tar.xz
 - set CABALURL=https://www.haskell.org/cabal/release/cabal-install-%CABALVER%/cabal-install-%CABALVER%-%ARCH%-unknown-mingw32.zip
 - curl -S -ocabal.zip %CABALURL%
-- curl -S -oghc.zip  %GHCURL%
+- curl -S -oghc.txz  %GHCURL%
 - curl -S -ostack.zip -L --insecure http://www.stackage.org/stack/windows-%ARCH%
 - 7z x stack.zip stack.exe
 - 7z x cabal.zip
-- 7z x ghc.tar.xz
+- 7z x ghc.txz
 - set PATH=%APPVEYOR_BUILD_FOLDER%;%APPVERYOR_BUILD_FOLDER%/ghc-%GHCVER%/bin;%PATH%
 - ghc --version
 - cabal --version
