@@ -12,18 +12,13 @@ clone_folder: "c:\\raaz"
 before_test:
 # http://help.appveyor.com/discussions/problems/6312-curl-command-not-found
 - set PATH=C:\Program Files\Git\mingw64\bin;%PATH%
-- set GHCURL=https://downloads.haskell.org/~ghc/%GHCVER%/ghc-%GHCVER%-%ARCH%-unknown-mingw32.tar.xz
-- set CABALURL=https://www.haskell.org/cabal/release/cabal-install-%CABALVER%/cabal-install-%CABALVER%-%ARCH%-unknown-mingw32.zip
-- curl -sS -ocabal.zip %CABALURL%
-- curl -sS -oghc.txz  %GHCURL%
-- 7z x cabal.zip
-- 7z x ghc.txz
-- 7z x ghc.tar
-- set PATH=%APPVEYOR_BUILD_FOLDER%;%APPVEYOR_BUILD_FOLDER%\ghc-%GHCVER%\bin;%PATH%
+- choco install -y ghc --version 8.2.2
+- refreshenv
 - cabal --version
 - ghc   --version
 - cabal update
 - cp appveyor\cabal.project.freeze .
+
 test_script:
 - cabal new-configure > nul
 - echo "" | cabal new-build
