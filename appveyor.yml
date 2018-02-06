@@ -25,7 +25,7 @@ before_test:
 
 
 test_script:
-- cabal new-configure --flag='-linux-getrandom'
+- cabal new-configure
 - cabal new-build
 - cabal new-test
 - cabal check
