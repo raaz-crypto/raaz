@@ -23,7 +23,7 @@ before_test:
 - cabal --version
 - ghc   --version
 - cabal update
-- # cp appveyor\cabal.project.freeze .
+- cp appveyor\cabal.project.freeze .
 test_script:
 - cabal new-configure > nul
 - cabal new-build
