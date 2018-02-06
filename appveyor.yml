@@ -4,6 +4,7 @@ environment:
   global:
     CABALVER: "2.0.0.1"
     GHCVER:   "8.2.2"
+    STORE_DIR: "c:\\s"
   matrix:
     - ARCH: x86_64
     - ARCH: i386
@@ -12,7 +13,7 @@ clone_folder: "c:\\raaz"
 before_test:
 # http://help.appveyor.com/discussions/problems/6312-curl-command-not-found
 - set PATH=C:\Program Files\Git\mingw64\bin;%PATH%
-- choco install -y ghc --version 8.2.2
+- choco install -y ghc --version %GHCVER%
 - refreshenv
 - cabal --version
 - ghc   --version
@@ -20,9 +21,9 @@ before_test:
 - cp appveyor\cabal.project.freeze .
 
 test_script:
-- cabal new-configure > nul
-- echo "" | cabal new-build
-- echo "" | cabal new-test
+- cabal --store-dir=%STORE_DIR% new-configure > nul
+- cabal --store-dir=%STORE_DIR% new-build
+- cabal --store-dir=%STORE_DIR% new-test
 
 branches:
   only:
