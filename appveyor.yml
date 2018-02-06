@@ -21,8 +21,9 @@ before_test:
 - 7z x stack.zip stack.exe
 - 7z x cabal.zip
 - 7z x ghc.txz
-- set PATH=%APPVEYOR_BUILD_FOLDER%;%APPVEYOR_BUILD_FOLDER%/ghc-%GHCVER%/bin;%PATH%
+- set PATH=%APPVEYOR_BUILD_FOLDER%;%APPVEYOR_BUILD_FOLDER%\ghc-%GHCVER%\bin;%PATH%
 - cabal --version
+- ghc   --version
 - echo Some information of interest
 - echo %PATH%
 - pwd
