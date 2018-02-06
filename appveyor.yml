@@ -15,12 +15,12 @@ before_test:
 - set PATH=C:\Program Files\Git\mingw64\bin;%PATH%
 - set GHCURL=https://downloads.haskell.org/~ghc/%GHCVER%/ghc-%GHCVER%-%ARCH%-unknown-mingw32.tar.xz
 - set CABALURL=https://www.haskell.org/cabal/release/cabal-install-%CABALVER%/cabal-install-%CABALVER%-%ARCH$-unknown-mingw32.zip
-- curl -sS -ocabal.zip %CABALURL%
-- curl -sS -oghc.zip  %GHCURL%
-- curl -sS -ostack.zip -L --insecure http://www.stackage.org/stack/windows-%ARCH%
+- curl -S -ocabal.zip %CABALURL%
+- curl -S -oghc.zip  %GHCURL%
+- curl -S -ostack.zip -L --insecure http://www.stackage.org/stack/windows-%ARCH%
 - 7z x stack.zip stack.exe
-- 7z x cabal.zip cabal.exe
-- 7z x ghc.zip
+- 7z x cabal.zip
+- 7z x ghc.tar.xz
 - set PATH=%APPVEYOR_BUILD_FOLDER%;%APPVERYOR_BUILD_FOLDER%/ghc-%GHCVER%/bin;%PATH%
 - ghc --version
 - cabal --version
