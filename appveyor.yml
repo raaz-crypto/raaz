@@ -23,7 +23,7 @@ before_test:
 - 7z x ghc.txz
 - set PATH=%APPVEYOR_BUILD_FOLDER%;%APPVEYOR_BUILD_FOLDER%\ghc-%GHCVER%\bin;%PATH%
 - cabal --version
-- ghc   --version
+- ls
 - echo Some information of interest
 - echo %PATH%
 - pwd
