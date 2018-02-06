@@ -2,7 +2,6 @@
 build: off
 environment:
   global:
-    STACK_ROOT: "c:\\sr"
     CABALVER: "2.0.0.1"
     GHCVER:   "8.2.2"
   matrix:
@@ -17,24 +16,19 @@ before_test:
 - set CABALURL=https://www.haskell.org/cabal/release/cabal-install-%CABALVER%/cabal-install-%CABALVER%-%ARCH%-unknown-mingw32.zip
 - curl -S -ocabal.zip %CABALURL%
 - curl -S -oghc.txz  %GHCURL%
-- curl -S -ostack.zip -L --insecure http://www.stackage.org/stack/windows-%ARCH%
-- 7z x stack.zip stack.exe
 - 7z x cabal.zip
 - 7z x ghc.txz
 - 7z x ghc.tar
 - set PATH=%APPVEYOR_BUILD_FOLDER%;%APPVEYOR_BUILD_FOLDER%\ghc-%GHCVER%\bin;%PATH%
 - cabal --version
 - ghc   --version
-- echo Some information of interest
-- echo %PATH%
-- pwd
+
 
 test_script:
-- stack setup > nul
-# The ugly echo "" hack is to avoid complaints about 0 being an invalid file
-# descriptor
-- echo "" | stack --no-terminal test --arch %ARCH%
-- stack exec raaz info
+- cabal new-configure --flag='-linux-getrandom'
+- cabal new-build
+- cabal new-test
+- cabal check
 
 branches:
   only:
