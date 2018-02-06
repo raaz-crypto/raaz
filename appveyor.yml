@@ -4,7 +4,6 @@ environment:
   global:
     CABALVER: "2.0.0.1"
     GHCVER:   "8.2.2"
-    STACK_SNAPSHOT: "lts-8.6"
   matrix:
     - ARCH: x86_64
     - ARCH: i386
@@ -15,7 +14,6 @@ before_test:
 - set PATH=C:\Program Files\Git\mingw64\bin;%PATH%
 - set GHCURL=https://downloads.haskell.org/~ghc/%GHCVER%/ghc-%GHCVER%-%ARCH%-unknown-mingw32.tar.xz
 - set CABALURL=https://www.haskell.org/cabal/release/cabal-install-%CABALVER%/cabal-install-%CABALVER%-%ARCH%-unknown-mingw32.zip
-- set STACKAGE_URL=https://www.stackage.org/%STACK_SNAPSHOT%/cabal.config
 - curl -sS -ocabal.zip %CABALURL%
 - curl -sS -oghc.txz  %GHCURL%
 - 7z x cabal.zip
@@ -25,8 +23,7 @@ before_test:
 - cabal --version
 - ghc   --version
 - cabal update
-- curl -S -ocabal.project.freeze %STACKAGE_URL%
-
+- cp appveyor\cabal.project.freeze .
 test_script:
 - cabal new-configure
 - cabal new-build
