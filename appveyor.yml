@@ -2,7 +2,6 @@
 build: off
 environment:
   global:
-    CABALVER: "2.0.0.1"
     GHCVER:   "8.2.2"
     STORE_DIR: "c:\\s"
   matrix:
@@ -18,7 +17,6 @@ before_test:
 - cabal --version
 - ghc   --version
 - cabal update
-- cp appveyor\cabal.project.freeze .
 
 test_script:
 - cabal --store-dir=%STORE_DIR% new-configure > nul
