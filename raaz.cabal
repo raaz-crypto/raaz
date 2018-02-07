@@ -335,7 +335,7 @@ test-Suite spec
                , Raaz.Hash.Sha512Spec
                , Raaz.Hash.Blake2Spec
 
-
+  build-tool-depends: hspec-discover:hspec-discover
   build-depends: base
                , bytestring
                , HUnit                          >= 1.2

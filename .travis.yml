@@ -18,8 +18,6 @@ cache:
   directories:
     - $HOME/.cabsnap
     - $HOME/.cabal/packages
-    - $HOME/.stack
-    - .stack-work
 
 fast_finish: true
 
@@ -27,50 +25,42 @@ addons:
   apt:
     packages:
       - libgmp-dev
-      - ghc-7.6.3           # For debian8
+
+      - ghc-8.2.2
+      - cabal-install-2.0
+
       - ghc-head
       - cabal-install-head
-      - cabal-install-1.20  # For debain8
+
       - hlint
-    sources: [hvr-ghc, fpcomplete-precise]
+    sources: [hvr-ghc]
 
 matrix:
+  fast-finish: true
   include:
 
     - os: osx
 
-    # Build for debian
-    # - os: linux
-    #  env: HVR_COLLECTION=debian-8 GHCVER=7.6.3 CABALVER=1.20
-
-    # Build for the stack version that comes with the repository.
     - os: linux
-      env: STACK="yes"
+      env: GHCVER=8.2.2 CABALVER=2.0
 
-    # Build for the latest stack lts
+    # Build with stack package sets
     - os: linux
-      env: STACK="yes" RESOLVER="--resolver=lts"
+      env: GHCVER=8.2.2 CABALVER=2.0 STACKVER=lts
 
-    # Build for the nighty stack build
     - os: linux
-      env: STACK="yes" RESOLVER="--resolver=nightly"
+      env: GHCVER=8.2.2 CABALVER=2.0 STACKVER=nightly
 
     # Build for the GHC head and cabal-install-head
     - os: linux
       env: GHCVER=head CABALVER=head
-
     # Lint the code.
     - os: linux
       env: HLINT="yes"
 
-    # Run liquid haskell checks.
-    # - os: linux  # Because linux version on travis does not have z3 yet.
-    #   env: LIQUID="yes" GHCVER=8.0.2 CABALVER=1.24
-
   allow_failures:
     - env: GHCVER=head CABALVER=head
     - env: HLINT="yes"
-    # - env: LIQUID="yes" GHCVER=8.0.2 CABALVER=1.24
 
 before_install:
  - uname -a
@@ -80,47 +70,23 @@ before_install:
    fi
 
 
- - if [ "$STACK" == "yes" ]; then
-      export BUILDCMD="stack --stack-yaml stack-travis.yml $RESOLVER";
-      mkdir -p $HOME/.local/bin;
-      curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack';
-      $BUILDCMD setup;
-   else
-      export PATH=/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:$PATH;
-      export BUILDCMD="cabal";
-   fi
+ - export PATH=/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:$PATH;
 
- - if [ "$LIQUID" == "yes" ]; then
-      export LIQUIDFLAGS=--flags=liquidhaskell;
-   fi
-
- - if [ "$HVR_COLLECTION" != "" ]; then
-      wget https://raw.githubusercontent.com/hvr/multi-ghc-travis/master/collections/cabal.project."$HVR_COLLECTION" -O cabal.config ;
-   fi
+ - if [ -n "$STACKVER" ]; then ./scripts/stack-freeze.sh "$STACKVER"; fi # Sets up the appropriate freeze.
  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew update; fi
  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install ghc cabal-install z3; fi
  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew info ghc cabal-install z3 ; fi
 
 install:
- - $BUILDCMD --version
- - if [ "$BUILDCMD" == "cabal" ]; then
-      travis_retry cabal update;
-      cabal install --only-dependencies --enable-tests $LIQUIDFLAGS;
-    fi
+ - cabal --version
+ - travis_retry cabal update;
 
 script:
-  - if [ "$LIQUID" == "yes"] ; then
-      cabal raaz:liquidspec --stack-yaml stack-liquidhaskell.yaml;
-      exit $?;
-     fi
-  - if [ "$BUILDCMD" == "cabal" ]; then cabal configure --enable-tests; fi
-  - $BUILDCMD build
-  - $BUILDCMD test
-  - if [ "$STACK" == "yes" ]; then $BUILDCMD bench --no-run-benchmarks; fi
-  - if [ "$BUILDCMD" == "cabal" ]; then cabal check; fi
-  - if [ "$BUILDCMD" == "cabal" ]; then cabal sdist; fi
-  - if [ "$BUILDCMD" == "cabal" ]; then cabal install --force-reinstalls dist/*-*.tar.gz; fi
-  - if [ "$STACK" == "yes" ]; then $BUILDCMD exec raaz info; fi
+  - cabal new-configure --flag='-linux-getrandom' --enable-tests --enable-benchmarks
+  - cabal new-build
+  - cabal new-test
+  - cabal check
+  - if [ "$CABALVER" == "head" ]; then cabal new-run raaz info; fi
 after_success:
   - echo "All is well."
 after_failure:
