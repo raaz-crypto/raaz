@@ -1,0 +1,37 @@
+#+STARTUP: indent
+
+
+* TODO Backpack based design
+** TODO Multiple implementation of primitives
+Raaz as a library believes in having multiple implementations of
+crypto primitives. It should be feasible for a user to select the
+implementation of her choice.
+
+*** Current solution
+
+Consider a primitive like cryptographic hashing.  Each primitive had
+an associated type called =Implementation= which captures the
+implementation of the primitive. Also the library has a recommended
+implementation for each supported primitive.  For hashing, there are
+two variants =hash= and =hash'= where the former uses the recommended
+version where as the latter takes as argument an implementation and
+uses it for computation.  If a user is not happy with a given
+recommendation, then she needs to use the primed version.
+
+
+*** Backpack based solution
+
+An /implementation/ of a particular kind of primitives, i.e. say
+hashing, is specifying a bunch of functions of particular
+kind. Depending on the nature of the primitive, we define an
+implementation signature.
+
+Having such an implementation, we can provide an /interface/ to the
+user.  Thus an /interface/ associated with a primitive depends on an
+implementation provided.
+
+*** Tasks
+- [ ] Separate out the core definitions.
+- [ ] Make implementation/interface signatures.
+  - [ ] Hashes.
+  - [ ] Ciphers
