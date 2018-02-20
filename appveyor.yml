@@ -5,17 +5,18 @@ environment:
     GHCVER:   "8.2.2"
     STORE_DIR: "c:\\s"
   matrix:
-    - ARCH: x86_64
-    - ARCH: i386
+    - ARCH_SEL_FLAG: ""    # Default
+    - ARCH_SEL_FLAG: --x86 # Select 32-bit builds
 
 clone_folder: "c:\\raaz"
 before_test:
 # http://help.appveyor.com/discussions/problems/6312-curl-command-not-found
 - set PATH=C:\Program Files\Git\mingw64\bin;%PATH%
-- choco install -y ghc --version %GHCVER%
+- choco install -y %ARCH_SEL_FLAG% ghc --version %GHCVER%
 - refreshenv
 - cabal --version
 - ghc   --version
+- ghc --info | grep "platform"
 - cabal update
 
 test_script:
