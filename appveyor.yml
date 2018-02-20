@@ -13,6 +13,7 @@ before_test:
 # http://help.appveyor.com/discussions/problems/6312-curl-command-not-found
 - set PATH=C:\Program Files\Git\mingw64\bin;%PATH%
 - choco install -y %ARCH_SEL_FLAG% ghc --version %GHCVER%
+- ghc --info | sls platform
 - refreshenv
 - cabal --version
 - ghc   --version
