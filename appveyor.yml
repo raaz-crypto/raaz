@@ -16,7 +16,7 @@ before_test:
 - refreshenv
 - cabal --version
 - ghc   --version
-- ghc --info | Select-String -Pattern "platform"
+- ghc --info | grep "platform"
 - cabal update
 
 test_script:
