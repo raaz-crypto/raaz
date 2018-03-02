@@ -19,8 +19,9 @@ encryptVsDecrypt' :: ( Arbitrary (Key c)
                      )
                      => c -> Implementation c -> Spec
 
-encryptVsDecrypt' c imp = describe "decrypt . encrypt" $ do
-  it "trivial on strings of a length that is a multiple of the block size"
+encryptVsDecrypt' c imp
+  = describe "decrypt . encrypt"
+    $ it "trivial on strings of a length that is a multiple of the block size"
     $ property $ forAll (genKeyStr c) prop_EvsD
   where genKeyStr _ = (,) <$> arbitrary <*> blocks (proxy c)
         prop_EvsD (k,bs) = unsafeDecrypt' c imp k (unsafeEncrypt' c imp k bs) == bs
@@ -58,7 +59,7 @@ encryptsTo' :: (Cipher c, Format fmt1, Format fmt2)
             -> Key c
             -> Spec
 encryptsTo' c imp inp expected key
-  = it msg $ result `shouldBe` (decodeFormat expected)
+  = it msg $ result `shouldBe` decodeFormat expected
   where result = unsafeEncrypt' c imp key $ decodeFormat inp
         msg   = unwords [ "encrypts"
                         , shortened $ show inp
@@ -82,7 +83,7 @@ keyStreamIs' :: (StreamCipher c, Format fmt)
              -> Key c
              -> Spec
 keyStreamIs' c impl expected key = it msg $ result `shouldBe` decodeFormat expected
-  where result = transform' c impl key $ zeros $ 1 `blocksOf` (proxy c)
+  where result = transform' c impl key $ zeros $ 1 `blocksOf` proxy c
         msg    = unwords ["with key"
                          , "key stream is"
                          , shortened $ show expected
@@ -102,7 +103,7 @@ transformsTo' :: (StreamCipher c, Format fmt1, Format fmt2)
               -> Spec
 
 transformsTo' c impl inp expected key
-  = it msg $ result `shouldBe` (decodeFormat expected)
+  = it msg $ result `shouldBe` decodeFormat expected
   where result = transform' c impl key $ decodeFormat inp
         msg   = unwords [ "encrypts"
                         , shortened $ show inp

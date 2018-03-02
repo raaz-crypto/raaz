@@ -23,7 +23,7 @@ spec = do
       unsafeFromByteString (toByteString x) `shouldBe` x
 
     prop "correctly encodes a 64-bit big endian word." $ \ (w :: Word64) ->
-      (read $ "0x" ++ showBase16 (bigEndian w))  == w
+      read ("0x" ++ showBase16 (bigEndian w))  == w
 
 
   describe "Base64" $ do
