@@ -9,7 +9,6 @@ module Common.Instances where
 
 import Common.Imports
 import Common.Utils
-import Raaz.Cipher.AES as AES
 import Raaz.Cipher.ChaCha20 as ChaCha20
 
 
@@ -64,18 +63,6 @@ instance Arbitrary Base64 where
   arbitrary =  (encodeByteString . pack) <$> listOf arbitrary
 
 ------------------ Arbitrary instances for Keys ---------------
-
-instance Arbitrary AES.KEY128 where
-  arbitrary = genEncodable
-
-instance Arbitrary AES.KEY192 where
-  arbitrary = genEncodable
-
-instance Arbitrary AES.KEY256 where
-  arbitrary = genEncodable
-
-instance Arbitrary AES.IV where
-  arbitrary = genEncodable
 
 instance Arbitrary ChaCha20.KEY where
   arbitrary = genEncodable

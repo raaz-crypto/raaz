@@ -24,7 +24,6 @@ import Raaz.Random.Internal
 import qualified Raaz.Hash.Blake2.Implementation.CPortable    as Blake2CP
 import qualified Raaz.Hash.Sha256.Implementation.CPortable    as Sha256CP
 import qualified Raaz.Hash.Sha512.Implementation.CPortable    as Sha512CP
-import qualified Raaz.Cipher.AES.CBC.Implementation.CPortable as AesCbcCP
 import qualified Raaz.Cipher.ChaCha20.Implementation.CPortable as ChaCha20CP
 
 #if !MIN_VERSION_criterion(1,2,0)
@@ -46,7 +45,6 @@ type RaazBench         = (String, Benchmarkable)
 allBench :: [RaazBench]
 allBench =    [ memsetBench, randomnessBench, entropyBench ]
            ++ chacha20Benchs
-           ++ aesBenchs
            ++ blake2Benchs
            ++ sha256Benchs
            ++ sha512Benchs
@@ -91,14 +89,6 @@ blake2Benchs = [ hashBench Blake2CP.implementation2b
                , hashBench Blake2CP.implementation2s
                ]
 
-aesBenchs     :: [ RaazBench ]
-aesBenchs      = [ encryptBench AesCbcCP.aes128cbcI
-                 , decryptBench AesCbcCP.aes128cbcI
-                 , encryptBench AesCbcCP.aes192cbcI
-                 , decryptBench AesCbcCP.aes192cbcI
-                 , encryptBench AesCbcCP.aes256cbcI
-                 , decryptBench AesCbcCP.aes256cbcI
-                 ]
 chacha20Benchs :: [ RaazBench ]
 chacha20Benchs = [ encryptBench $ SomeCipherI ChaCha20CP.implementation
 #               ifdef HAVE_VECTOR_256

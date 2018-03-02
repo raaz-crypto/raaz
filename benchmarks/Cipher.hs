@@ -26,16 +26,10 @@ bufSize = 32 * 1024
 
 
 main :: IO ()
-main = defaultMain [ chacha20Bench, aesBench ]
+main = defaultMain [ chacha20Bench ]
 
 
 ----------------- Benchmarks of individual ciphers. ------------------------
-aesBench :: Benchmark
-aesBench = bgroup "AES"
-           [ benchCipher aes128cbc
-           , benchCipher aes192cbc
-           , benchCipher aes256cbc
-           ]
 
 chacha20Bench :: Benchmark
 chacha20Bench = bgroup "ChaCha20"

@@ -114,8 +114,6 @@ library
                  --
                  , Raaz.Cipher
                  , Raaz.Cipher.Internal
-                 , Raaz.Cipher.AES
-                 , Raaz.Cipher.AES.CBC.Implementation.CPortable
                  , Raaz.Cipher.ChaCha20
                  , Raaz.Cipher.ChaCha20.Implementation.CPortable
 		 --
@@ -156,8 +154,6 @@ library
                --
                -- Internal modules from cipher
                --
-               , Raaz.Cipher.AES.Internal
-               , Raaz.Cipher.AES.Recommendation
                , Raaz.Cipher.ChaCha20.Internal
                , Raaz.Cipher.ChaCha20.Recommendation
                --
@@ -284,7 +280,6 @@ test-Suite spec
                , Common.Imports
                , Common.Instances
                , Common.Utils
-               , Raaz.Cipher.AESSpec
                , Raaz.Cipher.ChaCha20Spec
                , Raaz.Core.ByteSourceSpec
                , Raaz.Core.EncodeSpec

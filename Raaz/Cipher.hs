@@ -7,11 +7,9 @@ module Raaz.Cipher
          StreamCipher
        , transform, chacha20
        , Cipher
-       , aes128cbc, aes192cbc, aes256cbc
        ) where
 
 
-import Raaz.Cipher.AES      ( aes128cbc, aes192cbc, aes256cbc)
 import Raaz.Cipher.ChaCha20
 import Raaz.Cipher.Internal (transform, Cipher, StreamCipher)
 
