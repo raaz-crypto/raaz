@@ -2,7 +2,6 @@
 
 module Common.Hash
        ( hashesTo
-       , hmacsTo
        ) where
 
 import Common.Imports  hiding (replicate)
@@ -25,15 +24,3 @@ hashesTo str h = it msg (hash str `shouldBe` h)
                         , "to"
                         , shortened $ show h
                         ]
-
-hmacsTo :: ( Hash h, Recommendation h, Show h)
-        => ByteString
-        -> HMAC h
-        -> Key (HMAC h)
-        -> Spec
-hmacsTo str hm key = it mesg $ hmac key str `shouldBe` hm
-  where mesg       = unwords [ "with key", shortened $ show key
-                             ,  shortened $ show str
-                             ,  "hmacs to"
-                             ,  shortened $ show hm
-                             ]

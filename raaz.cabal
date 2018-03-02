@@ -137,7 +137,6 @@ library
                --
                -- Hashes
                --
-               , Raaz.Hash.Internal.HMAC
                , Raaz.Hash.Blake2.Internal
                , Raaz.Hash.Blake2.Recommendation
                , Raaz.Hash.Sha.Util
