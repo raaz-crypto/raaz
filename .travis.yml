@@ -91,7 +91,7 @@ script:
   - cabal new-build
   - cabal new-test
   - cabal check
-  - if [ "$CABALVER" == "head" ]; then cabal new-run raaz info; fi
+  - `find ./dist-newstyle -name raaz -executable -type f` info
 after_success:
   - echo "All is well."
 after_failure:
