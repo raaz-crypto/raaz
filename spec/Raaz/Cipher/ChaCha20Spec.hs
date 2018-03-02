@@ -16,24 +16,9 @@ import Raaz.Cipher.ChaCha20
 import Raaz.Cipher.Internal
 import qualified Raaz.Cipher.ChaCha20.Implementation.CPortable as CP
 
-#ifdef HAVE_VECTOR_128
-import qualified Raaz.Cipher.ChaCha20.Implementation.Vector128 as Vector128
-#endif
-
-
-# ifdef HAVE_VECTOR_256
-import qualified Raaz.Cipher.ChaCha20.Implementation.Vector256 as Vector256
-# endif
 
 implementations :: [Implementation ChaCha20]
-implementations = [ SomeCipherI CP.implementation
-#                   ifdef HAVE_VECTOR_128
-                  , SomeCipherI Vector128.implementation
-#                   endif
-#                   ifdef HAVE_VECTOR_256
-                  , SomeCipherI Vector256.implementation
-#                   endif
-                  ]
+implementations = [ SomeCipherI CP.implementation ]
 
 writeZeros :: BYTES Int -> WriteIO
 writeZeros = writeBytes 0
