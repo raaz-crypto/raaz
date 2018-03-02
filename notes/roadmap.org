@@ -1,7 +1,58 @@
 #+STARTUP: indent
 
+* TODO Version 1.0
 
-* TODO Backpack based design
+We have been beating around the bush quit a bit. It is useful to
+consolidate the lessons learned and aim for version 1.
+
+** Expectation for version 1.0
+When a user looks for a modern cryptographic library particularly for
+network applications some of the things that they require are
+
+*** Cryptographic hashing
+**** DONE SHA2 hashes
+**** DONE Blake2 hashes
+*** Cryptographically Secure Psedo-random generator (CSPRG)
+**** DONE Chacha20 based CSPRG.
+
+*** Digital signature scheme.
+**** TODO ED25519
+
+*** Diffie-Helman style key exchange.
+**** TODO EC25519
+
+*** Password hashing.
+**** TODO Argon
+
+*** Encrypted authenticated modes.
+The target is chacha20-poly1305. This means we need
+**** DONE Chacha20
+**** TODO Poly1305
+
+
+
+** Actions Plan
+
+Many of the primitives that we have are not aiding towards this
+goal. For example the AES-CBC ciphers are not really part of the
+game. So is HMAC. So to speed up our approach to version 1 we would
+need to disable some of these primitives so that we can move fast.
+
+We will disable the following primitives for time being and introduce them
+when need arises.
+
+*** SHA1 hashing
+
+Collision has been found in sha1 and hence we are not very keen in
+supporting this hash.
+
+*** AES
+
+Implementation of AES without side channel leaks are difficult (but
+not impossible) there is not much point in supporting the CBC mode
+which is know to have a lot of tricky edge cases.
+
+* Experimental Backpack based design
 ** TODO Multiple implementation of primitives
 Raaz as a library believes in having multiple implementations of
 crypto primitives. It should be feasible for a user to select the
