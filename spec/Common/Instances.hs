@@ -35,9 +35,6 @@ instance Arbitrary ByteString where
 
 ---------------   Arbitrary instances for Hashes ----------------
 
-instance Arbitrary SHA1 where
-  arbitrary = genEncodable
-
 instance Arbitrary SHA224 where
   arbitrary = genEncodable
 

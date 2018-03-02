@@ -99,8 +99,8 @@ library
                  , Raaz.Hash.Internal
                  , Raaz.Hash.Blake2
                  , Raaz.Hash.Blake2.Implementation.CPortable
-                 , Raaz.Hash.Sha1
-                 , Raaz.Hash.Sha1.Implementation.CPortable
+                 -- , Raaz.Hash.Sha1
+                 -- , Raaz.Hash.Sha1.Implementation.CPortable
                  , Raaz.Hash.Sha224
                  , Raaz.Hash.Sha224.Implementation.CPortable
                  , Raaz.Hash.Sha256
@@ -292,7 +292,6 @@ test-Suite spec
                , Raaz.Core.Types.WordSpec
                , Raaz.Core.Util.ByteStringSpec
                , Raaz.RandomSpec
-               , Raaz.Hash.Sha1Spec
                , Raaz.Hash.Sha224Spec
                , Raaz.Hash.Sha256Spec
                , Raaz.Hash.Sha384Spec

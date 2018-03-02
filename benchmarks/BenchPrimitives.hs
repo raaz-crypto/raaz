@@ -22,7 +22,6 @@ import Raaz.Random
 import Raaz.Random.Internal
 
 import qualified Raaz.Hash.Blake2.Implementation.CPortable    as Blake2CP
-import qualified Raaz.Hash.Sha1.Implementation.CPortable      as Sha1CP
 import qualified Raaz.Hash.Sha256.Implementation.CPortable    as Sha256CP
 import qualified Raaz.Hash.Sha512.Implementation.CPortable    as Sha512CP
 import qualified Raaz.Cipher.AES.CBC.Implementation.CPortable as AesCbcCP
@@ -49,7 +48,6 @@ allBench =    [ memsetBench, randomnessBench, entropyBench ]
            ++ chacha20Benchs
            ++ aesBenchs
            ++ blake2Benchs
-           ++ sha1Benchs
            ++ sha256Benchs
            ++ sha512Benchs
 
@@ -81,10 +79,6 @@ pprMeasured (Measured{..}) = vcat
 memsetBench :: RaazBench
 memsetBench = ("memset", toBenchmarkable $ memBench . fromIntegral )
   where memBench count = allocaBuffer nBytes $ \ ptr -> replicateM_ count (memset ptr 42 nBytes)
-
-
-sha1Benchs :: [ RaazBench ]
-sha1Benchs = [ hashBench Sha1CP.implementation ]
 
 sha256Benchs :: [ RaazBench ]
 sha256Benchs = [ hashBench Sha256CP.implementation ]
