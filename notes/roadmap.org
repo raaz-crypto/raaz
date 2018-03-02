@@ -33,24 +33,25 @@ The target is chacha20-poly1305. This means we need
 
 ** Actions Plan
 
-Many of the primitives that we have are not aiding towards this
-goal. For example the AES-CBC ciphers are not really part of the
-game. So is HMAC. So to speed up our approach to version 1 we would
-need to disable some of these primitives so that we can move fast.
+*** Disable primitives
 
-We will disable the following primitives for time being and introduce them
-when need arises.
 
-*** SHA1 hashing
+**** SHA1 hashing
 
 Collision has been found in sha1 and hence we are not very keen in
 supporting this hash.
 
-*** AES
+**** AES
 
 Implementation of AES without side channel leaks are difficult (but
-not impossible) there is not much point in supporting the CBC mode
-which is know to have a lot of tricky edge cases.
+not impossible) and that too only for the CTR mode. There is not much
+point in supporting the CBC mode which is know to have a lot of tricky
+edge cases.
+
+*** Support only portable C implementations
+
+The C compiler is often able to give very high quality code. So we
+restrict the attention to portable C implementation as of now.
 
 * Experimental Backpack based design
 ** TODO Multiple implementation of primitives
