@@ -28,15 +28,6 @@ import qualified Raaz.Hash.Sha512.Implementation.CPortable    as Sha512CP
 import qualified Raaz.Cipher.AES.CBC.Implementation.CPortable as AesCbcCP
 import qualified Raaz.Cipher.ChaCha20.Implementation.CPortable as ChaCha20CP
 
-# ifdef HAVE_VECTOR_128
-import qualified Raaz.Cipher.ChaCha20.Implementation.Vector128 as ChaCha20V128
-# endif
-
-# ifdef HAVE_VECTOR_256
-import qualified Raaz.Cipher.ChaCha20.Implementation.Vector256 as ChaCha20V256
-# endif
-
-
 #if !MIN_VERSION_criterion(1,2,0)
 toBenchmarkable :: (Int64 -> IO ()) -> Benchmarkable
 toBenchmarkable = Benchmarkable

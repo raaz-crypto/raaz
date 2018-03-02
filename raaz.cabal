@@ -42,38 +42,28 @@ source-repository head
 
 ------------------------- Flags -------------------------------------------------------------
 
-flag opt-native
-     Description: Use optimisation for the platform on which it is being built. Do not enable this
-        when cross compiling as it can break the implementation. Also tested only with gcc.
+flag native
+
+     Description: Compile for native architecture. Often this enables
+       a lot of platform specific optimisation which lead to better
+       performance. Do not enable this when packaging though. Also
+       tested only with gcc
+
      Default: False
      Manual: True
 
-flag vector128
-     Description: Make use of vector instructions with size being 128. Do not enable this unless you have reasons
-       to. It is better to use opt-native and opt-vectorise and let gcc have a go at the portable implementation
-     Default: False
-     Manual: True
-
-flag vector256
-     Description: Make use of gcc vector instructions with size being 256. Do not enable this unless you have reasons
-       to. It is better to use opt-native and opt-vectorise and let gcc have a go at the portable implementation.
-     Default: False
-     Manual: True
-
-flag vector512
-     Description: Make use of gcc vector instructions with size being 512.
-     Default: False
-     Manual: True
 flag avx2
-     Description: Support avx2 optimisations. Warning: enable only if you are sure of support.
+
+     Description: Support avx2 optimisations. Warning: enable only if
+       you are sure of support.
+
      Default: False
      Manual: True
 
 flag linux-getrandom
 
      Description: Use the getrandom for system entropy instead of
-       /dev/urandom. Enabled by default but disable this for kernel <
-       3.17.
+       /dev/urandom. Enabled by default but disable this for kernel < 3.17.
 
      Default: True
      Manual: True
@@ -212,34 +202,14 @@ library
                   , cbits/raaz/cipher/chacha20/common.h
 
   --------------------------- Options for vector instructions ---------------------------------
-  if flag(opt-native)
+  if flag(native)
     cc-options: -march=native
 
   if arch(x86_64)
     cc-options: -DARCH_X86_64
 
-  if flag(vector128)
-     cpp-options: -DHAVE_VECTOR_128
-     cc-options:  -DHAVE_VECTOR_128
-     exposed-modules: Raaz.Cipher.ChaCha20.Implementation.Vector128
-     c-sources: cbits/raaz/cipher/chacha20/vector128.c
-
-  if flag(vector256)
-     cpp-options: -DHAVE_VECTOR_256
-     cc-options:  -DHAVE_VECTOR_256
-     cpp-options: -DHAVE_VECTOR_128
-     cc-options:  -DHAVE_VECTOR_128
-     exposed-modules: Raaz.Cipher.ChaCha20.Implementation.Vector256
-     c-sources: cbits/raaz/cipher/chacha20/vector256.c
-
   if flag(avx2)
-     cpp-options: -DHAVE_VECTOR_256
-     cc-options:  -DHAVE_AVX2  -DHAVE_VECTOR_256
-     if !flag(opt-native)
-        cc-options: -mavx2
-  if flag(vector512)
-     cpp-options: -DHAVE_VECTOR_512
-     cc-options:  -DHAVE_VECTOR_512
+    cc-options: -mavx2
 
   ----------------------- System specific configurations ----------------------------------
 
@@ -303,14 +273,6 @@ test-Suite spec
   hs-source-dirs: spec
   main-is: Spec.hs
 
-  if flag(vector128)
-     cpp-options: -DHAVE_VECTOR_128
-
-  if flag(vector256)
-     cpp-options:  -DHAVE_VECTOR_256
-  if flag(vector512)
-     cpp-options: -DHAVE_VECTOR_512
-
   if !os(windows)
      cpp-options: -DHAVE_DEV_NULL
 
@@ -372,12 +334,6 @@ test-Suite liquidspec
 benchmark bench-ciphers
   hs-source-dirs: benchmarks
   default-language: Haskell2010
-  if flag(vector128)
-     cpp-options: -DHAVE_VECTOR_128
-  if flag(vector256) || flag(avx2)
-     cpp-options: -DHAVE_VECTOR_256
-  if flag(vector512)
-     cpp-options: -DHAVE_VECTOR_512
 
   main-is: Cipher.hs
   type: exitcode-stdio-1.0
@@ -392,17 +348,10 @@ benchmark bench-ciphers
 benchmark primitives
   hs-source-dirs: benchmarks
   default-language: Haskell2010
-  if flag(vector128)
-     cpp-options: -DHAVE_VECTOR_128
-  if flag(vector256) || flag(avx2)
-     cpp-options: -DHAVE_VECTOR_256
-  if flag(vector512)
-     cpp-options: -DHAVE_VECTOR_512
 
   main-is: BenchPrimitives.hs
   type: exitcode-stdio-1.0
   build-depends: base
-               , blaze-builder
                , bytestring
                , criterion >= 1.0
                , pretty
