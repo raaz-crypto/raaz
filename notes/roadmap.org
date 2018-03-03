@@ -1,0 +1,89 @@
+#+STARTUP: indent
+
+* TODO Version 1.0
+
+We have been beating around the bush quit a bit. It is useful to
+consolidate the lessons learned and aim for version 1.
+
+** Expectation for version 1.0
+When a user looks for a modern cryptographic library particularly for
+network applications some of the things that they require are
+
+*** Cryptographic hashing
+**** DONE SHA2 hashes
+**** DONE Blake2 hashes
+*** Cryptographically Secure Psedo-random generator (CSPRG)
+**** DONE Chacha20 based CSPRG.
+
+*** Digital signature scheme.
+**** TODO ED25519
+
+*** Diffie-Helman style key exchange.
+**** TODO EC25519
+
+*** Password hashing.
+**** TODO Argon
+
+*** Encrypted authenticated modes.
+The target is chacha20-poly1305. This means we need
+**** DONE Chacha20
+**** TODO Poly1305
+
+
+
+** Actions Plan
+
+*** Disable primitives
+
+
+**** SHA1 hashing
+
+Collision has been found in sha1 and hence we are not very keen in
+supporting this hash.
+
+**** AES
+
+Implementation of AES without side channel leaks are difficult (but
+not impossible) and that too only for the CTR mode. There is not much
+point in supporting the CBC mode which is know to have a lot of tricky
+edge cases.
+
+*** Support only portable C implementations
+
+The C compiler is often able to give very high quality code. So we
+restrict the attention to portable C implementation as of now.
+
+* Experimental Backpack based design
+** TODO Multiple implementation of primitives
+Raaz as a library believes in having multiple implementations of
+crypto primitives. It should be feasible for a user to select the
+implementation of her choice.
+
+*** Current solution
+
+Consider a primitive like cryptographic hashing.  Each primitive had
+an associated type called =Implementation= which captures the
+implementation of the primitive. Also the library has a recommended
+implementation for each supported primitive.  For hashing, there are
+two variants =hash= and =hash'= where the former uses the recommended
+version where as the latter takes as argument an implementation and
+uses it for computation.  If a user is not happy with a given
+recommendation, then she needs to use the primed version.
+
+
+*** Backpack based solution
+
+An /implementation/ of a particular kind of primitives, i.e. say
+hashing, is specifying a bunch of functions of particular
+kind. Depending on the nature of the primitive, we define an
+implementation signature.
+
+Having such an implementation, we can provide an /interface/ to the
+user.  Thus an /interface/ associated with a primitive depends on an
+implementation provided.
+
+*** Tasks
+- [ ] Separate out the core definitions.
+- [ ] Make implementation/interface signatures.
+  - [ ] Hashes.
+  - [ ] Ciphers

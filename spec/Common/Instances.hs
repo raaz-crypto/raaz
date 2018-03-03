@@ -9,7 +9,6 @@ module Common.Instances where
 
 import Common.Imports
 import Common.Utils
-import Raaz.Cipher.AES as AES
 import Raaz.Cipher.ChaCha20 as ChaCha20
 
 
@@ -35,19 +34,10 @@ instance Arbitrary ByteString where
 
 ---------------   Arbitrary instances for Hashes ----------------
 
-instance Arbitrary SHA1 where
-  arbitrary = genEncodable
-
-instance Arbitrary SHA224 where
-  arbitrary = genEncodable
-
 instance Arbitrary SHA256 where
   arbitrary = genEncodable
 
 instance Arbitrary SHA512 where
-  arbitrary = genEncodable
-
-instance Arbitrary SHA384 where
   arbitrary = genEncodable
 
 instance Arbitrary BLAKE2b where
@@ -67,18 +57,6 @@ instance Arbitrary Base64 where
   arbitrary =  (encodeByteString . pack) <$> listOf arbitrary
 
 ------------------ Arbitrary instances for Keys ---------------
-
-instance Arbitrary AES.KEY128 where
-  arbitrary = genEncodable
-
-instance Arbitrary AES.KEY192 where
-  arbitrary = genEncodable
-
-instance Arbitrary AES.KEY256 where
-  arbitrary = genEncodable
-
-instance Arbitrary AES.IV where
-  arbitrary = genEncodable
 
 instance Arbitrary ChaCha20.KEY where
   arbitrary = genEncodable

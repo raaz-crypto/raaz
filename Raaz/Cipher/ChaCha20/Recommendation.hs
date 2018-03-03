@@ -21,12 +21,7 @@ import Raaz.Core
 import Raaz.Cipher.Internal
 import Raaz.Cipher.ChaCha20.Internal
 
-
-#ifdef HAVE_VECTOR_256
-import Raaz.Cipher.ChaCha20.Implementation.Vector256
-#else
 import Raaz.Cipher.ChaCha20.Implementation.CPortable
-#endif
 
 ------------ Setting the recommended implementation -------------------
 

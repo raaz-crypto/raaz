@@ -12,13 +12,6 @@ import           Raaz.Core
 import           Raaz.Cipher
 import           Raaz.Cipher.Internal
 import qualified Raaz.Cipher.ChaCha20.Implementation.CPortable as CPortable
-# ifdef HAVE_VECTOR_128
-import qualified Raaz.Cipher.ChaCha20.Implementation.Vector128 as Vector128
-# endif
-
-# ifdef HAVE_VECTOR_256
-import qualified Raaz.Cipher.ChaCha20.Implementation.Vector256 as Vector256
-# endif
 
 -- | Buffer size used
 bufSize :: BYTES Int
@@ -26,27 +19,14 @@ bufSize = 32 * 1024
 
 
 main :: IO ()
-main = defaultMain [ chacha20Bench, aesBench ]
+main = defaultMain [ chacha20Bench ]
 
 
 ----------------- Benchmarks of individual ciphers. ------------------------
-aesBench :: Benchmark
-aesBench = bgroup "AES"
-           [ benchCipher aes128cbc
-           , benchCipher aes192cbc
-           , benchCipher aes256cbc
-           ]
 
 chacha20Bench :: Benchmark
 chacha20Bench = bgroup "ChaCha20"
-                [ benchEncrypt' chacha20 $ SomeCipherI CPortable.implementation
-#               ifdef HAVE_VECTOR_128
-                , benchEncrypt' chacha20 $ SomeCipherI Vector128.implementation
-#               endif
-#               ifdef HAVE_VECTOR_256
-                , benchEncrypt' chacha20 $ SomeCipherI Vector256.implementation
-#               endif
-                ]
+                [ benchEncrypt' chacha20 $ SomeCipherI CPortable.implementation ]
 
 
 ------------------ Low level functions ---------------------------------------
@@ -74,10 +54,3 @@ benchDecrypt' c si@(SomeCipherI imp) = bench nm $ nfIO go
 
 proxy :: a -> Proxy a
 proxy _ = Proxy
-
-{--
--- | Compare ciphers with a plain memset.
-benchMemSet :: Benchmark
-benchMemSet = bench "memset" $ nfIO go
-  where go = allocaBuffer bufSize $ \ ptr -> memset ptr 0 bufSize
---}
