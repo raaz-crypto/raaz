@@ -134,8 +134,6 @@ library
                , Raaz.Hash.Blake2.Internal
                , Raaz.Hash.Blake2.Recommendation
                , Raaz.Hash.Sha.Util
-               , Raaz.Hash.Sha1.Internal
-               , Raaz.Hash.Sha1.Recommendation
                , Raaz.Hash.Sha256.Recommendation
                , Raaz.Hash.Sha256.Internal
                , Raaz.Hash.Sha512.Recommendation
