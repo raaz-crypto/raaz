@@ -30,13 +30,11 @@ addons:
   apt:
     packages:
       - libgmp-dev
-
       - ghc-8.2.2
-      - cabal-install-2.0
-
+      - ghc-8.4.1
       - ghc-head
+      - cabal-install-2.0
       - cabal-install-head
-
       - hlint
     sources: [hvr-ghc]
 
