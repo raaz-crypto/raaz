@@ -47,7 +47,7 @@ matrix:
     - os: osx
 
     - os: linux
-      env: GHCVER=8.4.1 CABALVER=2.0
+      env: GHCVER=8.2.2 CABALVER=2.0
 
     # Build with stack package set for 8.0.2
     - os: linux
@@ -58,7 +58,7 @@ matrix:
       env: GHCVER=8.2.2 CABALVER=2.0 STACKVER=lts
 
     - os: linux
-      env: GHCVER=8.2.2 CABALVER=2.0 STACKVER=nightly
+      env: GHCVER=8.4.1 CABALVER=2.0 STACKVER=nightly
 
     # Build for the GHC head and cabal-install-head
     - os: linux
