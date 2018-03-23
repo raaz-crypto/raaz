@@ -5,6 +5,7 @@
 {-# LANGUAGE DataKinds                  #-}
 {-# LANGUAGE ConstraintKinds            #-}
 {-# LANGUAGE KindSignatures             #-}
+{-# LANGUAGE CPP                        #-}
 
 -- | This module exposes types that builds in type safety into some of
 -- the low level pointer operations. The functions here are pretty low
@@ -38,7 +39,15 @@ import           Control.Applicative
 import           Control.Exception     ( bracket_)
 import           Control.Monad         ( void, when )
 import           Control.Monad.IO.Class
-import           Data.Monoid
+
+#if !MIN_VERSION_base(4,8,0)
+import Data.Monoid  -- Import only when base < 4.8.0
+#endif
+
+#if !MIN_VERSION_base(4,11,0)
+import Data.Semigroup
+#endif
+
 import           Data.Proxy
 import           Data.Word
 import           Foreign.Marshal.Alloc
@@ -137,13 +146,19 @@ newtype ALIGN    = ALIGN { unALIGN :: Int }
                           , Real, Num, Storable
                           )
 
+instance Num a => Semigroup (BYTES a) where
+  (<>) = (+)
+
 instance Num a => Monoid (BYTES a) where
   mempty  = 0
-  mappend = (+)
+  mappend = (<>)
+
+instance Semigroup ALIGN where
+  (<>) x y = ALIGN $ unALIGN x + unALIGN y
 
 instance Monoid ALIGN where
   mempty  = ALIGN 0
-  mappend x y = ALIGN $ unALIGN x + unALIGN y
+  mappend = (<>)
 
 instance LengthUnit ALIGN where
   inBytes (ALIGN x) = BYTES $ x * FS.alignment (undefined :: Align)
@@ -252,9 +267,14 @@ newtype Alignment = Alignment { unAlignment :: Int }
 wordAlignment :: Alignment
 wordAlignment = alignment (Proxy :: Proxy Align)
 
+
+
+instance Semigroup Alignment where
+  (<>) = lcm
+
 instance Monoid Alignment where
   mempty  = Alignment 1
-  mappend = lcm
+  mappend = (<>)
 
 
 ---------- Type safe versions of some pointer functions -----------------

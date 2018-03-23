@@ -1,5 +1,6 @@
 -- | Module to reading from and writing into buffers.
 
+{-# LANGUAGE CPP                        #-}
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE TypeSynonymInstances       #-}
 {-# LANGUAGE FlexibleInstances          #-}
@@ -29,7 +30,15 @@ import           Data.ByteString           (ByteString)
 import           Data.Proxy
 import           Data.String
 import           Data.ByteString.Internal  (unsafeCreate)
-import           Data.Monoid
+
+#if !MIN_VERSION_base(4,8,0)
+import Data.Monoid  -- Import only when base < 4.8.0
+#endif
+
+#if !MIN_VERSION_base(4,11,0)
+import Data.Semigroup
+#endif
+
 import qualified Data.Vector.Generic       as G
 import           Data.Word                 (Word8)
 import           Foreign.Ptr               (castPtr, Ptr)
@@ -66,11 +75,15 @@ import           Raaz.Core.Proxy
 -- | This monoid captures a transfer action.
 newtype TransferM m = TransferM { unTransferM :: m () }
 
+instance Monad m => Semigroup (TransferM m) where
+  (<>) wa wb = TransferM $ unTransferM wa >> unTransferM wb
+  {-# INLINE (<>) #-}
+
 instance Monad m => Monoid (TransferM m) where
   mempty        = TransferM $ return ()
   {-# INLINE mempty #-}
 
-  mappend wa wb = TransferM $ unTransferM wa >> unTransferM wb
+  mappend = (<>)
   {-# INLINE mappend #-}
 
   mconcat = TransferM . mapM_ unTransferM
@@ -101,7 +114,7 @@ makeTransfer sz action = SemiR (TransferM . action) $ inBytes sz
 -- | An element of type `WriteM m` is an action which when executed transfers bytes
 -- /into/ its input buffer.  The type @`WriteM` m@ forms a monoid and
 -- hence can be concatnated using the `<>` operator.
-newtype WriteM m = WriteM { unWriteM :: Transfer m } deriving Monoid
+newtype WriteM m = WriteM { unWriteM :: Transfer m } deriving (Semigroup, Monoid)
 
 -- | A write io-action.
 type WriteIO = WriteM IO
@@ -260,7 +273,7 @@ instance Encodable (WriteM IO) where
 -- data associated from @r1@ and then the read associated with the
 -- data @r2@.
 
-newtype ReadM m = ReadM { unReadM :: Transfer m} deriving Monoid
+newtype ReadM m = ReadM { unReadM :: Transfer m} deriving (Semigroup, Monoid)
 
 -- | A read io-action.
 type ReadIO = ReadM IO

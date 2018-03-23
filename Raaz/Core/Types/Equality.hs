@@ -19,6 +19,10 @@ import           Data.Bits
 import Data.Monoid  -- Import only when base < 4.8.0
 #endif
 
+#if !MIN_VERSION_base(4,11,0)
+import Data.Semigroup
+#endif
+
 import qualified Data.Vector.Generic         as G
 import qualified Data.Vector.Generic.Mutable as GM
 import           Data.Vector.Unboxed         ( MVector(..), Vector, Unbox )
@@ -261,9 +265,12 @@ instance ( Equality a
 -- AND of two comparisons in a timing safe way.
 newtype Result =  Result { unResult :: Word }
 
+instance Semigroup Result where
+  (<>) a b = Result (unResult a .|. unResult b)
+
 instance Monoid Result where
-  mempty      = Result 0
-  mappend a b = Result (unResult a .|. unResult b)
+  mempty  = Result 0
+  mappend = (<>)
   {-# INLINE mempty  #-}
   {-# INLINE mappend #-}
 

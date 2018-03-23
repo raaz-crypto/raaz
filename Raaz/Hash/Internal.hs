@@ -32,12 +32,12 @@ module Raaz.Hash.Internal
 
 #if !MIN_VERSION_base(4,8,0)
 import           Control.Applicative
+import           Data.Monoid
 #endif
 
 import qualified Data.ByteString      as B
 import qualified Data.ByteString.Lazy as L
 import           Data.Proxy
-import           Data.Monoid
 import           Data.Word
 import           Foreign.Storable
 import           System.IO

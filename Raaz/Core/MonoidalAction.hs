@@ -1,6 +1,6 @@
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE FlexibleInstances          #-}
-
+{-# LANGUAGE CPP                        #-}
 -- | A module that abstracts out monoidal actions.
 module Raaz.Core.MonoidalAction
        ( -- * Monoidal action
@@ -15,7 +15,14 @@ module Raaz.Core.MonoidalAction
 
 import Control.Arrow
 import Control.Applicative
-import Data.Monoid
+
+#if !MIN_VERSION_base(4,8,0)
+import Data.Monoid  -- Import only when base < 4.8.0
+#endif
+
+#if !MIN_VERSION_base(4,11,0)
+import Data.Semigroup
+#endif
 
 ------------------ Actions and Monoidal actions -----------------------
 
@@ -91,12 +98,15 @@ class (LAction m space, Monoid space) => Distributive m space
 data SemiR space m = SemiR space !m
 
 
+instance Distributive m space => Semigroup (SemiR space m) where
+  (<>) (SemiR x a) (SemiR y b) = SemiR (x <++>  a <.> y)  (a <> b)
+
 instance Distributive m space => Monoid (SemiR space m) where
 
   mempty = SemiR mempty mempty
   {-# INLINE mempty #-}
 
-  mappend (SemiR x a) (SemiR y b) = SemiR (x <++>  a <.> y)  (a <> b)
+  mappend = (<>)
   {-# INLINE mappend #-}
 
   mconcat = foldr mappend mempty

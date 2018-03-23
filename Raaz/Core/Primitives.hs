@@ -24,7 +24,14 @@ module Raaz.Core.Primitives
        , Symmetric(..)
        ) where
 
-import Data.Monoid
+#if !MIN_VERSION_base(4,8,0)
+import Data.Monoid  -- Import only when base < 4.8.0
+#endif
+
+#if !MIN_VERSION_base(4,11,0)
+import Data.Semigroup
+#endif
+
 import Data.Proxy
 import GHC.TypeLits
 import Prelude
@@ -102,9 +109,11 @@ class Primitive prim => Symmetric prim where
 newtype BLOCKS p = BLOCKS {unBLOCKS :: Int}
                  deriving (Show, Eq, Ord, Enum)
 
+instance Semigroup (BLOCKS p) where
+  (<>) x y = BLOCKS $ unBLOCKS x + unBLOCKS y
 instance Monoid (BLOCKS p) where
-  mempty      = BLOCKS 0
-  mappend x y = BLOCKS $ unBLOCKS x + unBLOCKS y
+  mempty   = BLOCKS 0
+  mappend  = (<>)
 
 instance Primitive p => LengthUnit (BLOCKS p) where
   inBytes p@(BLOCKS x) = scale * blockSize primProxy
