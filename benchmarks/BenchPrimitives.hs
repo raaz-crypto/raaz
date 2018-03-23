@@ -11,6 +11,10 @@ import Criterion.Types hiding (measure)
 import Criterion.Measurement
 import Data.Int
 import Data.List              (span)
+
+#if MIN_VERSION_base(4,11,0)
+import Prelude  hiding ( (<>) )
+#endif
 import Text.PrettyPrint
 import System.IO
 
