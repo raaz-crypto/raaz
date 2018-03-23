@@ -8,6 +8,8 @@
 - Linux: getrandom now uses syscall directly, so works even when glibc is old.
 - raaz command expose an entropy command for checking the quality of
   system entropy source.
+- Dropped support for SHA1, SHA224, SHA384, HMAC, and AES-CBC, mainly
+  to concentrate efforts and reach stable release soon.
 
 ## [0.2.0] - 24 August, 2017
 
