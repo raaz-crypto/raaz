@@ -49,7 +49,7 @@ matrix:
 
     # Build with stack package set for 8.0.2
     - os: linux
-      env: GHCVER=8.0.2 CABALVER=2.0 STACKVER=lts-9.2.1
+      env: GHCVER=8.0.2 CABALVER=2.0 STACKVER=lts-9.2
 
     # Build with stack package sets
     - os: linux
