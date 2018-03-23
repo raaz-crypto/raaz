@@ -5,7 +5,7 @@
 module Raaz.Core.MonoidalAction
        ( -- * Monoidal action
          -- $basics$
-         LAction (..), Distributive, SemiR (..), (<++>), semiRSpace, semiRMonoid
+         LAction (..), Distributive, SemiR (..), semiRSpace, semiRMonoid
          -- ** Monoidal action on functors
        , LActionF(..), DistributiveF, TwistRF(..), twistFunctorValue, twistMonoidValue
          -- * Fields
@@ -61,12 +61,6 @@ class Monoid m => LAction m space where
 
 infixr 5 <.>
 
--- | An alternate symbol for <> more useful in the additive context.
-(<++>) :: Monoid m => m -> m -> m
-(<++>) = (<>)
-
-infixr 5 <++>
-
 
 -- | Uniform action of a monoid on a functor. The laws that should
 -- be satisfied are:
@@ -99,7 +93,7 @@ data SemiR space m = SemiR space !m
 
 
 instance Distributive m space => Semigroup (SemiR space m) where
-  (<>) (SemiR x a) (SemiR y b) = SemiR (x <++>  a <.> y)  (a <> b)
+  (<>) (SemiR x a) (SemiR y b) = SemiR (x `mappend`  (a <.> y))  (a `mappend` b)
 
 instance Distributive m space => Monoid (SemiR space m) where
 
@@ -173,7 +167,7 @@ instance DistributiveF m f => Applicative (TwistRF f m) where
 
   (TwistRF f mf)  <*> (TwistRF val mval)  = TwistRF res mres
     where res  = f <*> mf <<.>> val
-          mres = mf <> mval
+          mres = mf `mappend` mval
 
 -- Consider an expression @u = u1 <*> u2 <*> ... <ur>@ where
 -- ui = TwistRF fi mi

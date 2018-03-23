@@ -238,8 +238,8 @@ completeHashing imp@HashI{..} src =
     comp                = compress ptr bufSize
     finish bytes        = compressFinal ptr bytes >> extract
     in processChunks comp finish src bufSize ptr
-  where bufSize             = atLeast l1Cache <> toEnum 1
-        totalSize           = bufSize <> additionalPadBlocks undefined
+  where bufSize             = atLeast l1Cache `mappend` toEnum 1
+        totalSize           = bufSize `mappend` additionalPadBlocks undefined
         allocate            = liftPointerAction $ allocBufferFor (SomeHashI imp) totalSize
 
 ----------------------- Hash memory ----------------------------------
