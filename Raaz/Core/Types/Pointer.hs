@@ -142,8 +142,7 @@ newtype BITS  a  = BITS  a
 -- length. This length unit can be used if one wants to make sure that
 -- all offsets are word aligned.
 newtype ALIGN    = ALIGN { unALIGN :: Int }
-                 deriving ( Show, Eq,Ord, Enum, Integral
-                          , Real, Num, Storable
+                 deriving ( Show, Eq,Ord, Enum, Storable
                           )
 
 instance Num a => Semigroup (BYTES a) where
@@ -194,7 +193,7 @@ atLeast src | r == 0    = u
 -- next pointer aligned at boundary @a@. If the alignment required in
 -- @a@ then allocating @l + a - 1 should do the trick.
 atLeastAligned :: LengthUnit l => l -> Alignment -> ALIGN
-atLeastAligned l a = n + pad - 1
+atLeastAligned l a = n <> pad
   where n = atLeast l
         -- Alignment adjusted to word boundary.
         algn = wordAlignment   <> a
