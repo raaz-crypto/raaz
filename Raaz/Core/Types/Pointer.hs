@@ -270,9 +270,7 @@ instance LengthUnit u => LAction u Pointer where
 
 -- | Types to measure alignment in units of bytes.
 newtype Alignment = Alignment { unAlignment :: Int }
-        deriving ( Show, Eq, Ord, Enum, Integral
-                 , Real, Num
-                 )
+        deriving ( Show, Eq, Ord, Enum)
 
 -- | The default alignment to use is word boundary.
 wordAlignment :: Alignment
@@ -281,7 +279,7 @@ wordAlignment = alignment (Proxy :: Proxy Align)
 
 
 instance Semigroup Alignment where
-  (<>) = lcm
+  (<>) a b = Alignment $ lcm (unAlignment a) (unAlignment b)
 
 instance Monoid Alignment where
   mempty  = Alignment 1
