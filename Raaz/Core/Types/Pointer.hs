@@ -9,8 +9,8 @@
 
 -- | This module exposes types that builds in type safety into some of
 -- the low level pointer operations. The functions here are pretty low
--- level and will be required only by developers of the library that
--- to the core of the library.
+-- level and will be required only by developers of the core of the
+-- library.
 module Raaz.Core.Types.Pointer
        ( -- * Pointers, offsets, and alignment
          Pointer, AlignedPointer, AlignedPtr, onPtr
