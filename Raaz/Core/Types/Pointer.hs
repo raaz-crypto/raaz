@@ -27,7 +27,7 @@ module Raaz.Core.Types.Pointer
        , ALIGN
        , alignment, alignPtr, movePtr, alignedSizeOf, nextAlignedPtr, peekAligned, pokeAligned
          -- ** Allocation functions.
-       , allocaAligned, allocaSecureAligned, allocaBuffer, allocaSecure, mallocBuffer
+       , allocaBuffer, allocaAligned, allocaSecure, mallocBuffer
          -- ** Some buffer operations
        , memset, memmove, memcpy
        , hFillBuf
@@ -101,8 +101,20 @@ newtype AlignedPtr (n :: Nat) a = AlignedPtr { forgetAlignment :: Ptr a} derivin
 
 type AlignedPointer n = AlignedPtr n Align
 
+-- | Run a pointer action on the associated aligned pointer.
 onPtr :: (Ptr a -> b) -> AlignedPtr n a -> b
 onPtr action = action . forgetAlignment
+
+-- | Recover the alignment restriction of the pointer.
+ptrAlignment :: (Storable a, KnownNat n) => Proxy (AlignedPtr n a) -> Alignment
+ptrAlignment aptr = restriction <> alignment (getElementProxy aptr)
+  where getAlignProxy :: Proxy (AlignedPtr n a) -> Proxy n
+        getAlignProxy _ = Proxy
+        getElementProxy :: Proxy (AlignedPtr n a) -> Proxy a
+        getElementProxy _ = Proxy
+        restriction = toEnum $ fromEnum $ natVal $ getAlignProxy aptr
+
+-------------------------- Length Units --------- -------------------
 
 -- | In cryptographic settings, we need to measure pointer offsets and
 -- buffer sizes. The smallest of length/offset that we have is bytes
@@ -320,30 +332,42 @@ pokeAligned ptr =  poke $ nextAlignedPtr ptr
 
 -------------------------- Allocation  ---------------------------
 
--- | A less general version of `allocaAligned` where the pointer passed
--- is aligned to word boundary.
+-- | A less general version of `allocaBufferAligned` where the pointer
+-- passed is aligned to word boundary.
 allocaBuffer :: LengthUnit l
              => l                  -- ^ buffer length
              -> (Pointer -> IO b)  -- ^ the action to run
              -> IO b
 {-# INLINE allocaBuffer #-}
-allocaBuffer = allocaAligned wordAlignment
+allocaBuffer = allocaBufferAligned wordAlignment
 
 
--- | The expression @allocaAligned a l action@ allocates a local
+-- | The expression @allocaBufferAligned a l action@ allocates a local
 -- buffer of length @l@ and alignment @a@ and passes it on to the IO
 -- action @action@. No explicit freeing of the memory is required as
 -- the memory is allocated locally and freed once the action
 -- finishes. It is better to use this function than
 -- @`allocaBytesAligned`@ as it does type safe scaling and alignment.
-allocaAligned :: LengthUnit l
-              => Alignment          -- ^ the alignment of the buffer
-              -> l                  -- ^ size of the buffer
-              -> (Pointer -> IO b)  -- ^ the action to run
-              -> IO b
-allocaAligned algn l = allocaBytesAligned b a
+allocaBufferAligned :: LengthUnit l
+                    => Alignment          -- ^ the alignment of the buffer
+                    -> l                  -- ^ size of the buffer
+                    -> (Pointer -> IO b)  -- ^ the action to run
+                    -> IO b
+allocaBufferAligned algn l = allocaBytesAligned b a
   where BYTES     b = inBytes l
         Alignment a = algn
+
+
+-- | A
+allocaAligned :: (LengthUnit l, KnownNat n, Storable a)
+              => l
+              -> (AlignedPtr n a -> IO b)
+              -> IO b
+allocaAligned l action = allocaBytesAligned b algn $ \ ptr -> action (AlignedPtr ptr)
+  where getProxy :: (AlignedPtr n a -> IO b) -> Proxy (AlignedPtr n a)
+        getProxy _   = Proxy
+        BYTES     b  = inBytes l
+        Alignment algn  = ptrAlignment $ getProxy action
 
 ----------------- Secure allocation ---------------------------------
 
@@ -353,7 +377,7 @@ allocaSecure :: LengthUnit l
              => l
              -> (Pointer -> IO b)
              -> IO b
-allocaSecure = allocaSecureAligned wordAlignment
+allocaSecure = allocaSecureBufferAligned wordAlignment
 
 foreign import ccall unsafe "raaz/core/memory.h raazMemorylock"
   c_mlock :: Pointer -> BYTES Int -> IO Int
@@ -377,16 +401,13 @@ foreign import ccall unsafe "raaz/core/memory.h raazMemoryunlock"
 --
 -- TODO: File this insecurity in the wiki.
 --
-allocaSecureAligned :: LengthUnit l
+allocaSecureBufferAligned :: LengthUnit l
                     => Alignment
                     -> l
                     -> (Pointer -> IO a)
                     -> IO a
 
-
-
-
-allocaSecureAligned a l action = allocaAligned a l actualAction
+allocaSecureBufferAligned a l action = allocaBufferAligned a l actualAction
   where sz = inBytes l
         actualAction cptr = let
           lockIt    = do c <- c_mlock cptr sz
