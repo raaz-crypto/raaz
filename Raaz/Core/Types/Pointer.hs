@@ -24,7 +24,6 @@ module Raaz.Core.Types.Pointer
        , atLeast, atLeastAligned, atMost
          -- ** Types measuring alignment
        , Alignment, wordAlignment
-       , ALIGN
        , alignment, alignPtr, movePtr, alignedSizeOf, nextAlignedPtr, peekAligned, pokeAligned
          -- ** Allocation functions.
        , allocaBuffer, allocaAligned, allocaSecure, mallocBuffer
@@ -80,26 +79,18 @@ import Raaz.Core.Types.Copying
 -- type level. This helps in to avoid a lot of length conversion
 -- errors.
 
+-- | A newtype declaration so as to avoid orphan instances.
+newtype Byte = BYTE Word8 deriving Storable
 
-
--- Developers notes: I assumes that word alignment is alignment
--- safe. If this is not the case one needs to fix this to avoid
--- performance degradation or worse incorrect load/store.
-
-
--- | A type whose only purpose in this universe is to provide
--- alignment safe pointers.
-newtype Align = Align Word deriving Storable
-
--- | The pointer type used by all cryptographic library.
-type Pointer = Ptr Align
+-- | The pointer type used by raaz.
+type Pointer = Ptr Byte
 
 
 -- | The type @AlignedPtr n@ that captures pointers that are aligned
 -- to @n@ byte boundary.
 newtype AlignedPtr (n :: Nat) a = AlignedPtr { forgetAlignment :: Ptr a} deriving Storable
 
-type AlignedPointer n = AlignedPtr n Align
+type AlignedPointer n = AlignedPtr n Word8
 
 -- | Run a pointer action on the associated aligned pointer.
 onPtr :: (Ptr a -> b) -> AlignedPtr n a -> b
@@ -150,30 +141,12 @@ newtype BITS  a  = BITS  a
                  , Real, Num, Storable, Bounded
                  )
 
--- | Type safe length unit that measures offsets in multiples of word
--- length. This length unit can be used if one wants to make sure that
--- all offsets are word aligned.
-newtype ALIGN    = ALIGN { unALIGN :: Int }
-                 deriving ( Show, Eq,Ord, Enum, Storable
-                          )
-
 instance Num a => Semigroup (BYTES a) where
   (<>) = (+)
 
 instance Num a => Monoid (BYTES a) where
   mempty  = 0
   mappend = (<>)
-
-instance Semigroup ALIGN where
-  (<>) x y = ALIGN $ unALIGN x + unALIGN y
-
-instance Monoid ALIGN where
-  mempty  = ALIGN 0
-  mappend = (<>)
-
-instance LengthUnit ALIGN where
-  inBytes (ALIGN x) = BYTES $ x * FS.alignment (undefined :: Align)
-  {-# INLINE inBytes #-}
 
 instance LengthUnit (BYTES Int) where
   inBytes = id
@@ -204,12 +177,10 @@ atLeast src | r == 0    = u
 -- that there is at least @l@ length of valid buffer starting at the
 -- next pointer aligned at boundary @a@. If the alignment required in
 -- @a@ then allocating @l + a - 1 should do the trick.
-atLeastAligned :: LengthUnit l => l -> Alignment -> ALIGN
+atLeastAligned :: LengthUnit l => l -> Alignment -> BYTES Int
 atLeastAligned l a = n <> pad
-  where n = atLeast l
-        -- Alignment adjusted to word boundary.
-        algn = wordAlignment   <> a
-        pad  = atLeast $ BYTES  $ unAlignment algn
+  where n    = atLeast l
+        pad  = BYTES  $ unAlignment a - 1
 
 
 -- | Express length unit @src@ in terms of length unit @dest@ rounding
@@ -274,7 +245,7 @@ newtype Alignment = Alignment { unAlignment :: Int }
 
 -- | The default alignment to use is word boundary.
 wordAlignment :: Alignment
-wordAlignment = alignment (Proxy :: Proxy Align)
+wordAlignment = alignment (Proxy :: Proxy Word8)
 
 
 
@@ -297,7 +268,7 @@ sizeOf = BYTES . FS.sizeOf . asProxyTypeOf undefined
 -- element after aligning the pointer. If the size of the element is
 -- @s@ and its alignment is @a@ then this quantity is essentially
 -- equal to @s + a - 1@. All units measured in word alignment.
-alignedSizeOf  :: Storable a => Proxy a -> ALIGN
+alignedSizeOf  :: Storable a => Proxy a -> BYTES Int
 alignedSizeOf aproxy =  atLeastAligned (sizeOf aproxy) $ alignment aproxy
 
 -- | Compute the alignment for a storable object.
