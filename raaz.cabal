@@ -74,12 +74,23 @@ flag liquidhaskell
      Description: Use liquid haskell form verifying properties. Only for developers.
      Default: False
      Manual: True
+---------------------------- The common clause ------------------------------------------------
+
+common defaults
+  default-language: Haskell2010
+  ghc-options: -Wall
+  build-depends: base                    >= 4.7  &&  < 4.12
+
+  if flag(native)
+    cc-options: -march=native
+
+  if flag(avx2)
+    cc-options: -mavx2
 
 ----------------------------- The library -----------------------------------------------------
 
 library
-  default-language: Haskell2010
-  ghc-options: -Wall
+  import: defaults
   hs-source-dirs: .
   exposed-modules: Raaz
                  , Raaz.Core
@@ -186,15 +197,10 @@ library
                   , cbits/raaz/cipher/aes/cportable.h
                   , cbits/raaz/cipher/chacha20/common.h
 
-  --------------------------- Options for vector instructions ---------------------------------
-  if flag(native)
-    cc-options: -march=native
 
   if arch(x86_64)
     cc-options: -DARCH_X86_64
 
-  if flag(avx2)
-    cc-options: -mavx2
 
   ----------------------- System specific configurations ----------------------------------
 
@@ -235,15 +241,14 @@ library
 ---------------------------- Executables -------------------------------------------------
 
 executable raaz
-  default-language: Haskell2010
+  import: defaults
   hs-source-dirs: bin
   main-is: Main.hs
   other-modules: Command.Checksum
                , Command.Rand
                , Command.Info
                , Usage
-  build-depends: base
-               , optparse-applicative >= 0.10.0
+  build-depends: optparse-applicative >= 0.10.0
                , raaz
   if impl(ghc < 8)
     -- 'transformers' needed for "Control.Monad.IO.Class" only
@@ -253,15 +258,14 @@ executable raaz
 ---------------------------- Test suit -----------------------------------------------------
 
 test-Suite spec
-  default-language: Haskell2010
+  import: defaults
+
   type: exitcode-stdio-1.0
   hs-source-dirs: spec
   main-is: Spec.hs
 
   if !os(windows)
      cpp-options: -DHAVE_DEV_NULL
-
-  ghc-options: -Wall
 
   other-modules: Common
                , Common.Cipher
@@ -294,12 +298,10 @@ test-Suite spec
 -------------------------- Liquid haskell verification -------------------------------------
 
 test-Suite liquidspec
+  import: defaults
   hs-source-dirs: liquid
-  default-language: Haskell2010
   main-is: LiquidSpec.hs
   type: exitcode-stdio-1.0
-  build-depends: base
-
 
   if flag(liquidhaskell)
     build-depends: liquidhaskell                >=0.8
@@ -313,13 +315,13 @@ test-Suite liquidspec
 ---------------------------------------------- Cipher implemntation benchmarks ----------------------
 
 benchmark bench-ciphers
+  import: defaults
+
   hs-source-dirs: benchmarks
-  default-language: Haskell2010
 
   main-is: Cipher.hs
   type: exitcode-stdio-1.0
-  build-depends: base
-               , blaze-builder
+  build-depends: blaze-builder
                , bytestring
                , criterion >= 1.0
                , raaz
@@ -327,13 +329,12 @@ benchmark bench-ciphers
 -------------------------------- Benchmarking all primitives --------------------------------
 
 benchmark primitives
+  import: defaults
   hs-source-dirs: benchmarks
-  default-language: Haskell2010
 
   main-is: BenchPrimitives.hs
   type: exitcode-stdio-1.0
-  build-depends: base
-               , bytestring
+  build-depends: bytestring
                , criterion >= 1.0
                , pretty
                , raaz
