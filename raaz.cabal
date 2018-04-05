@@ -219,23 +219,10 @@ library
 
   --------------------- Entropy ----------------------------------------------
 
-  if os(openbsd) || os(netbsd)
-    -- Entropy for openbsd using arc4random
-    hs-source-dirs: entropy/arc4random
-  else
-    if os(linux)
-      if flag(linux-getrandom)
-        -- Use getentropy on linux
-        hs-source-dirs: entropy/getrandom
-      else
-        hs-source-dirs: entropy/urandom
-    else
-      if os(windows)
-        -- Use CryptGenRandom
-        hs-source-dirs: entropy/windows
-      else
-        -- Entropy for generic posix by reading /dev/urandom
-        hs-source-dirs: entropy/urandom
+  if  os(windows)                         { hs-source-dirs: entropy/windows    }
+  elif os(openbsd) || os(netbsd)          { hs-source-dirs: entropy/arc4random }
+  elif os(linux) && flag(linux-getrandom) { hs-source-dirs: entropy/getrandom  }
+  else                                    { hs-source-dirs: entropy/urandom    }
 
 
 ---------------------------- Executables -------------------------------------------------
