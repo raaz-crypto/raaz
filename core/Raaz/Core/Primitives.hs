@@ -20,7 +20,6 @@ module Raaz.Core.Primitives
        ( -- * Primtives and their implementations.
          Primitive(..), BlockAlgorithm(..), Recommendation(..), blockSize
        , BLOCKS, blocksOf
-       , allocBufferFor
        ) where
 
 #if !MIN_VERSION_base(4,8,0)
@@ -102,6 +101,7 @@ class Primitive p => Recommendation p where
   -- | The recommended implementation for the primitive.
   recommended :: Proxy p -> Implementation p
 
+{-
 -- | Allocate a buffer a particular implementation of a primitive prim.
 -- algorithm @algo@. It ensures that the memory passed is aligned
 -- according to the demands of the implementation.
@@ -111,7 +111,7 @@ allocBufferFor :: Primitive prim
                -> (Pointer -> IO b)
                -> IO b
 allocBufferFor imp  = allocaAligned $ bufferStartAlignment imp
-
+-}
 ------------------- Type safe lengths in units of block ----------------
 
 -- | Type safe message length in units of blocks of the primitive.
