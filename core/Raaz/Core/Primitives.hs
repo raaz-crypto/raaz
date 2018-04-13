@@ -18,7 +18,7 @@ use a more high level interface.
 
 module Raaz.Core.Primitives
        ( -- * Primtives and their implementations.
-         Primitive(..), BlockAlgorithm(..), Recommendation(..), blockSize
+         Primitive(..), blockSize
        , BLOCKS, blocksOf
        ) where
 
@@ -36,36 +36,17 @@ import Prelude
 
 import Raaz.Core.Types
 
--- | Implementation of block primitives work on buffers. Often for optimal
--- performance, and in some case for safety, we need restrictions on
--- the size and alignment of the buffer pointer. This type class
--- captures such restrictions.
-class Describable a => BlockAlgorithm a where
-
-  -- | The alignment expected for the buffer pointer.
-  bufferStartAlignment :: a -> Alignment
-
-
 ----------------------- A primitive ------------------------------------
 
 
 -- | The type class that captures an abstract block cryptographic
 -- primitive.
-class ( BlockAlgorithm (Implementation p)
-      , KnownNat (BlockSize p)
-      )
-      => Primitive p where
+class KnownNat (BlockSize p) => Primitive p where
 
   -- | Bulk cryptographic primitives like hashes, ciphers etc often
   -- acts on blocks of data. The size of the block is captured by the
   -- associated type `BlockSize`.
   type BlockSize p :: Nat
-
-
-  -- | As a library, raaz believes in providing multiple
-  -- implementations for a given primitive. This associated type
-  -- captures implementations of the primitive.
-  type Implementation p :: *
 
   -- | The key associated with primitive. In the setting of the raaz
   -- library keys are "inputs" that are required to start processing.
@@ -92,26 +73,6 @@ blockSize :: Primitive prim => Proxy prim -> BYTES Int
 blockSize  = toEnum . fromEnum . natVal . getBlockSizeProxy
   where getBlockSizeProxy ::  Proxy prim -> Proxy (BlockSize prim)
         getBlockSizeProxy _ = Proxy
-
--- | For use in production code, the library recommends a particular
--- implementation using the `Recommendation` class. By default this is
--- the implementation used when no explicit implementation is
--- specified.
-class Primitive p => Recommendation p where
-  -- | The recommended implementation for the primitive.
-  recommended :: Proxy p -> Implementation p
-
-{-
--- | Allocate a buffer a particular implementation of a primitive prim.
--- algorithm @algo@. It ensures that the memory passed is aligned
--- according to the demands of the implementation.
-allocBufferFor :: Primitive prim
-               => Implementation prim
-               -> BLOCKS prim
-               -> (Pointer -> IO b)
-               -> IO b
-allocBufferFor imp  = allocaAligned $ bufferStartAlignment imp
--}
 ------------------- Type safe lengths in units of block ----------------
 
 -- | Type safe message length in units of blocks of the primitive.
