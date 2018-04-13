@@ -16,7 +16,7 @@ use a more high level interface.
 {-# LANGUAGE ExistentialQuantification   #-}
 {-# LANGUAGE DataKinds                   #-}
 
-module Raaz.Core.Primitives
+module Raaz.Core.Primitive
        ( -- * Primtives and their implementations.
          Primitive(..), blockSize
        , BLOCKS, blocksOf

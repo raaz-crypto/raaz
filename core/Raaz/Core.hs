@@ -9,7 +9,7 @@ module Raaz.Core
        , module Raaz.Core.Constants
        , module Raaz.Core.Encode
        , module Raaz.Core.Memory
-       , module Raaz.Core.Primitives
+       , module Raaz.Core.Primitive
        , module Raaz.Core.Types
        , module Raaz.Core.Util
        ) where
@@ -18,7 +18,7 @@ import Raaz.Core.ByteSource
 import Raaz.Core.Constants
 import Raaz.Core.Encode
 import Raaz.Core.Memory
-import Raaz.Core.Primitives
+import Raaz.Core.Primitive
 import Raaz.Core.Types
 import Raaz.Core.Util
 

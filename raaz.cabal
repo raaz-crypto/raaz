@@ -106,7 +106,7 @@ library raaz-core
                  , Raaz.Core.Memory
                  , Raaz.Core.MonoidalAction
                  , Raaz.Core.Parse.Applicative
-                 , Raaz.Core.Primitives
+                 , Raaz.Core.Primitive
                  , Raaz.Core.Types
                  , Raaz.Core.Util
                  , Raaz.Core.Transfer
