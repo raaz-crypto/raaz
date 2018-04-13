@@ -26,7 +26,8 @@ module Raaz.Core.Types.Pointer
        , Alignment, wordAlignment
        , alignment, alignPtr, movePtr, alignedSizeOf, nextAlignedPtr, peekAligned, pokeAligned
          -- ** Allocation functions.
-       , allocaBuffer, allocaAligned, allocaSecure, mallocBuffer
+       , MonadAlloc(..)
+       , allocaSecure, mallocBuffer
          -- ** Some buffer operations
        , memset, memmove, memcpy
        , hFillBuf
@@ -301,25 +302,26 @@ pokeAligned ptr =  poke $ nextAlignedPtr ptr
 
 -------------------------- Allocation  ---------------------------
 
--- | A less general version of `allocaBufferAligned` where the pointer
--- passed is aligned to word boundary.
-allocaBuffer :: LengthUnit l
-             => l                  -- ^ buffer length
-             -> (Pointer -> IO b)  -- ^ the action to run
-             -> IO b
-{-# INLINE allocaBuffer #-}
-allocaBuffer l = allocaBytes b
-  where BYTES b = inBytes l
+class MonadIO m => MonadAlloc m where
+  allocaBuffer :: LengthUnit l
+               => l                  -- ^ buffer length
+               -> (Pointer -> m b)  -- ^ the action to run
+               -> m b
 
-allocaAligned :: (LengthUnit l, KnownNat n, Storable a)
-              => l
-              -> (AlignedPtr n a -> IO b)
-              -> IO b
-allocaAligned l action = allocaBytesAligned b algn $ \ ptr -> action (AlignedPtr ptr)
-  where getProxy :: (AlignedPtr n a -> IO b) -> Proxy (AlignedPtr n a)
-        getProxy _   = Proxy
-        BYTES     b  = inBytes l
-        Alignment algn  = ptrAlignment $ getProxy action
+  allocaAligned :: (LengthUnit l, KnownNat n, Storable a)
+                => l
+                -> (AlignedPtr n a -> m b)
+                -> m b
+
+instance MonadAlloc IO where
+  allocaBuffer l = allocaBytes b
+    where BYTES b = inBytes l
+
+  allocaAligned l action = allocaBytesAligned b algn $ \ ptr -> action (AlignedPtr ptr)
+    where getProxy :: (AlignedPtr n a -> IO b) -> Proxy (AlignedPtr n a)
+          getProxy _   = Proxy
+          BYTES     b  = inBytes l
+          Alignment algn  = ptrAlignment $ getProxy action
 
 ----------------- Secure allocation ---------------------------------
 
