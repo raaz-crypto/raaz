@@ -14,7 +14,7 @@ reason to look into this module.
 {-# LANGUAGE RankNTypes                 #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE FlexibleInstances          #-}
-
+{-# LANGUAGE DataKinds                  #-}
 module Raaz.Core.Memory
        (
        -- * The Memory subsystem.
@@ -29,19 +29,15 @@ module Raaz.Core.Memory
        -- *** A basic memory cell.
        , MemoryCell, withCellPointer, getCellPointer
 
-       -- ** Memory threads.
-       , MemoryThread(..), doIO , getMemory, modify, execute
+       -- ** MemoryMonad .
+       , MonadMemoryT (..), modify
        , MT
-       -- **** Some low level `MT` actions.
-
-       , liftPointerAction
-
        -- ** Memory allocation
        ,  Alloc, pointerAlloc
        ) where
 
 import           Control.Applicative
-import           Control.Monad.IO.Class
+import           Control.Monad.Trans.Reader
 import           Foreign.Storable            ( Storable )
 import           Foreign.Ptr                 ( castPtr, Ptr )
 import           Raaz.Core.MonoidalAction
@@ -110,24 +106,7 @@ import           Raaz.Core.Types
 -- a single memory object of type @mem@ and returns a result of type
 -- @a@. All the actions are performed on a single memory element and
 -- hence the side effects persist. It is analogues to the @ST@ monad.
-newtype MT mem a = MT { unMT :: mem -> IO a }
-
-
-instance Functor (MT mem) where
-  fmap f mst = MT $ \ m -> f <$> unMT mst m
-
-instance Applicative (MT mem) where
-  pure       = MT . const . pure
-  mf <*> ma  = MT $ \ m -> unMT mf m <*> unMT ma m
-
-instance Monad (MT mem) where
-  return    =  MT . const . return
-  ma >>= f  =  MT runIt
-    where runIt mem = unMT ma mem >>= \ a -> unMT (f a) mem
-
--- | __WARNING:__ do not lift a secure memory action.
-instance MonadIO (MT mem) where
-  liftIO = MT . const
+type MT mem = ReaderT mem IO
 
 -- | A class that captures abstract "memory threads". A memory thread
 -- can either be run `securely` or `insecurely`. Pure IO actions can
@@ -153,7 +132,7 @@ instance MonadIO (MT mem) where
 -- currently there is no easy way to enforce this.
 --
 
-class MemoryThread (mT :: * -> * -> *) where
+class MonadMemoryT mT where
   -- | Run a memory action with the internal memory allocated from a
   -- locked memory buffer. This memory buffer will never be swapped
   -- out by the operating system and will be wiped clean before
@@ -163,14 +142,15 @@ class MemoryThread (mT :: * -> * -> *) where
   -- a limit to how much locked memory can be allocated. Nonetheless,
   -- actions that work with sensitive information like passwords should
   -- use this to run an memory action.
-  securely   :: Memory mem => mT mem a -> IO a
+  securely   :: MonadAlloc m => mT m a -> m a
 
   -- | Run a memory action with the internal memory used by the action
   -- being allocated from unlocked memory. Use this function when you
   -- work with data that is not sensitive to security considerations
   -- (for example, when you want to verify checksums of files).
-  insecurely :: Memory mem => mT mem a -> IO a
+  insecurely :: MonadAlloc m => mT m a -> m a
 
+{--
   -- | Lift an actual memory thread.
   liftMT :: MT mem a -> mT mem a
 
@@ -196,15 +176,20 @@ class MemoryThread (mT :: * -> * -> *) where
   -- the whole memory.
 
   onSubMemory :: (mem -> submem) -> mT submem a -> mT mem a
+--}
 
+instance Memory mem => MonadMemoryT (ReaderT mem) where
+  securely               = withSecureMemory . runReaderT
+  insecurely             = withMemory . runReaderT
 
-instance MemoryThread MT where
-  securely               = withSecureMemory . unMT
-  insecurely             = withMemory . unMT
+{--
   liftMT                 = id
-  onSubMemory proj mtsub = MT $ unMT mtsub . proj
+  onSubMemory proj mtsub = MT $ withReaderunMT mtsub . proj
+--}
 
+{--
 ------------- Lifting pointer actions -----------------------------
+
 
 -- | Run a given memory action in the memory thread.
 execute :: MemoryThread mT => (mem -> IO a) -> mT mem a
@@ -214,22 +199,13 @@ execute = liftMT . MT
 doIO :: MemoryThread mT => IO a -> mT mem a
 doIO = execute . const
 
--- | A pointer action inside a monad @m@ is some function that takes a
--- pointer action of type @Pointer -> m a@ and supplies it with an
--- appropriate pointer. In particular, memory allocators are pointer
--- actions.
-type PointerAction m a b = (Pointer -> m a) -> m b
-
--- | An IO allocator can be lifted to the memory thread level as follows.
-liftPointerAction :: PointerAction IO a b -> PointerAction (MT mem) a b
-liftPointerAction allocator mtAction
-  = execute $ \ mem -> allocator (\ ptr -> unMT (mtAction ptr) mem)
-
 -- TODO: This is a very general pattern needs more exploration.
 
 -- | Get the underlying memory element of the memory thread.
 getMemory :: MemoryThread mT => mT mem mem
 getMemory = execute return
+
+--}
 
 ------------------------ A memory allocator -----------------------
 
@@ -350,9 +326,9 @@ copyMemory dmem smem = memcpy (unsafeToPointer <$> dmem) (unsafeToPointer <$> sm
 -- this method might be more efficient as the memory might be
 -- allocated from the stack directly and will have very little GC
 -- overhead.
-withMemory   :: Memory m => (m -> IO a) -> IO a
+withMemory   :: MonadAlloc m => Memory mem => (mem -> m a) -> m a
 withMemory   = withM memoryAlloc
-  where withM :: Alloc m -> (m -> IO a) -> IO a
+  where withM :: MonadAlloc m => Alloc mem -> (mem -> m a) -> m a
         withM alctr action = allocaBuffer sz actualAction
           where sz                 = twistMonoidValue alctr
                 getM               = computeField $ twistFunctorValue alctr
@@ -367,7 +343,7 @@ withMemory   = withM memoryAlloc
 -- of Haskell threads, if the main thread exists before the child
 -- thread is done with its job, sensitive data can leak. This is
 -- essentially a limitation of the bracket which is used internally.
-withSecureMemory :: Memory m => (m -> IO a) -> IO a
+withSecureMemory :: (MonadAlloc m, Memory mem) => (mem -> m a) -> m a
 withSecureMemory = withSM memoryAlloc
   where -- withSM :: Memory m => Alloc m -> (m -> IO a) -> IO a
         withSM alctr action = allocaSecure sz $ action . getM
@@ -401,8 +377,8 @@ class Memory m => Extractable m v where
 -- > modify f = do b          <- extract
 -- >               initialise $  f b
 --
-modify :: (Initialisable mem a, Extractable mem b, MemoryThread mT ) =>  (b -> a) -> mT mem ()
-modify f = liftMT $ extract >>= initialise . f
+modify :: (Initialisable mem a, Extractable mem b) =>  (b -> a) -> MT mem ()
+modify f = extract >>= initialise . f
 
 -- | A memory type that can be initialised from a pointer buffer. The initialisation performs
 -- a direct copy from the input buffer and hence the chances of the
@@ -438,22 +414,22 @@ actualCellPtr = nextAlignedPtr . unMemoryCell
 
 -- | Work with the underlying pointer of the memory cell. Useful while
 -- working with ffi functions.
-withCellPointer :: (MemoryThread mT, Storable a) => (Ptr a -> IO b) -> mT (MemoryCell a) b
+withCellPointer :: Storable a => (Ptr a -> IO b) -> MT (MemoryCell a) b
 {-# INLINE withCellPointer #-}
-withCellPointer action = execute $ action . actualCellPtr
+withCellPointer action = ReaderT $ action . actualCellPtr
 
 
 -- | Get the pointer associated with the given memory cell.
-getCellPointer :: (MemoryThread mT, Storable a) => mT (MemoryCell a) (Ptr a)
+getCellPointer :: Storable a => MT (MemoryCell a) (Ptr a)
 {-# INLINE getCellPointer #-}
-getCellPointer = liftMT $ actualCellPtr <$> getMemory
+getCellPointer = actualCellPtr <$> ask
 
 instance Storable a => Initialisable (MemoryCell a) a where
-  initialise a = execute $ flip pokeAligned a . unMemoryCell
+  initialise a = ReaderT $ flip pokeAligned a . unMemoryCell
   {-# INLINE initialise #-}
 
 instance Storable a => Extractable (MemoryCell a) a where
-  extract = execute $ peekAligned . unMemoryCell
+  extract = ReaderT $ peekAligned . unMemoryCell
   {-# INLINE extract #-}
 
 instance EndianStore a => InitialisableFromBuffer (MemoryCell a) where
