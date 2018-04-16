@@ -17,11 +17,9 @@ module Raaz.Core.Types
        , module Raaz.Core.Types.Aligned
        , module Raaz.Core.Types.Tuple
        , module Raaz.Core.Types.Copying
-       , Describable(..)
        ) where
 
 import Raaz.Core.Types.Aligned
-import Raaz.Core.Types.Describe
 import Raaz.Core.Types.Equality
 import Raaz.Core.Types.Endian
 import Raaz.Core.Types.Pointer

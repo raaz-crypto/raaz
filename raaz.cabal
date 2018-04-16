@@ -117,7 +117,6 @@ library raaz-core
                , Raaz.Core.Types.Tuple
                , Raaz.Core.Types.Equality
                , Raaz.Core.Types.Endian
-               , Raaz.Core.Types.Describe
                , Raaz.Core.Types.Copying
 
 ----------------------------- The library -----------------------------------------------------
