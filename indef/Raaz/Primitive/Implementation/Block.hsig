@@ -1,6 +1,9 @@
 {-# LANGUAGE ConstraintKinds             #-}
 {-# LANGUAGE DataKinds                   #-}
 {-# LANGUAGE KindSignatures              #-}
+{-# LANGUAGE MultiParamTypeClasses       #-}
+{-# LANGUAGE FlexibleInstances           #-}
+{-# LANGUAGE TypeFamilies                #-}
 
 -- | An implementation of a cryptographic primitive is a method to
 -- process data that is multiples of its block size. Fast
@@ -30,6 +33,8 @@ instance Primitive Prim
 -- | The internal memory used by the implementation.
 data Internals
 instance Memory Internals
+instance Key Prim ~ key => Initialisable Internals key
+instance Digest Prim ~ dgt => Extractable Internals dgt
 
 -- | Name of the implementation.
 name :: String
