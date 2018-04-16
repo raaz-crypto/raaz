@@ -83,11 +83,7 @@ common defaults
                , bytestring              >= 0.9  &&  < 0.11
                , deepseq                 >= 1.1  &&  < 1.5
                , vector                  >= 0.7.1 && < 0.13
-
-  if impl(ghc < 8)
-    -- 'transformers' needed for "Control.Monad.IO.Class" only
-    -- starting with base-4.9 we don't need 'transformers' anymore
-    build-depends: transformers
+               , transformers
 
   if flag(native)
     cc-options: -march=native

@@ -27,7 +27,7 @@ module Raaz.Core.Types.Pointer
        , alignment, alignPtr, movePtr, alignedSizeOf, nextAlignedPtr, peekAligned, pokeAligned
          -- ** Allocation functions.
        , MonadAlloc(..)
-       , allocaSecure, mallocBuffer
+       , mallocBuffer
          -- ** Some buffer operations
        , memset, memmove, memcpy
        , hFillBuf
@@ -39,6 +39,8 @@ import           Control.Applicative
 import           Control.Exception     ( bracket_)
 import           Control.Monad         ( void, when )
 import           Control.Monad.IO.Class
+import           Control.Monad.Trans.Reader
+import           Control.Monad.Trans.Class ( lift )
 
 #if !MIN_VERSION_base(4,8,0)
 import Data.Monoid  -- Import only when base < 4.8.0
@@ -301,17 +303,40 @@ pokeAligned     :: Storable a => Ptr a -> a -> IO ()
 pokeAligned ptr =  poke $ nextAlignedPtr ptr
 
 -------------------------- Allocation  ---------------------------
-
+-- | Monads that
 class MonadIO m => MonadAlloc m where
+  -- | Allocate a buffer for an action that expects a pointer. Length
+  -- can be specified in any length units.
   allocaBuffer :: LengthUnit l
                => l                  -- ^ buffer length
                -> (Pointer -> m b)  -- ^ the action to run
                -> m b
 
+  -- | Similar to `allocaBuffer` but for aligned pointers.
   allocaAligned :: (LengthUnit l, KnownNat n, Storable a)
                 => l
                 -> (AlignedPtr n a -> m b)
                 -> m b
+
+  -- | This function allocates a chunk of "secure" memory of a given
+  -- size and runs the action. The memory (1) exists for the duration
+  -- of the action (2) will not be swapped during the action and (3)
+  -- will be wiped clean and deallocated when the action terminates
+  -- either directly or indirectly via errors. While this is mostly
+  -- secure, there are still edge cases in multi-threaded applications
+  -- where the memory will not be cleaned. For example, if you run a
+  -- crypto-sensitive action inside a child thread and the main thread
+  -- gets exists, then the child thread is killed (due to the demonic
+  -- nature of threads in GHC haskell) immediately and might not give
+  -- it chance to wipe the memory clean. See
+  -- <https://ghc.haskell.org/trac/ghc/ticket/13891> on this problem
+  -- and possible workarounds.
+  --
+  allocaSecure :: LengthUnit l
+               => l
+               -> (Pointer -> m a)
+               -> m a
+
 
 instance MonadAlloc IO where
   allocaBuffer l = allocaBytes b
@@ -323,6 +348,23 @@ instance MonadAlloc IO where
           BYTES     b  = inBytes l
           Alignment algn  = ptrAlignment $ getProxy action
 
+  allocaSecure l action = allocaBuffer l actualAction
+    where sz = inBytes l
+          actualAction cptr = let
+            lockIt    = do c <- c_mlock cptr sz
+                           when (c /= 0) $ fail "secure memory: unable to lock memory"
+            releaseIt =  memset cptr 0 l >>  c_munlock cptr sz
+            in bracket_ lockIt releaseIt $ action cptr
+
+flipR :: (ptr -> ReaderT r m a) -> r -> ptr -> m a
+flipR action r = \ ptr -> runReaderT (action ptr) r
+
+instance MonadAlloc m => MonadAlloc (ReaderT r m) where
+  allocaBuffer l action = ask >>=  lift . allocaBuffer l . flipR action
+  allocaSecure l action = ask >>=  lift . allocaSecure l . flipR action
+  allocaAligned l action = ask >>= lift . allocaAligned l . flipR action
+
+
 ----------------- Secure allocation ---------------------------------
 
 foreign import ccall unsafe "raaz/core/memory.h raazMemorylock"
@@ -332,32 +374,6 @@ foreign import ccall unsafe "raaz/core/memory.h raazMemoryunlock"
   c_munlock :: Pointer -> BYTES Int -> IO ()
 
 
--- | This function allocates a chunk of "secure" memory of a given
--- size and runs the action. The memory (1) exists for the duration of
--- the action (2) will not be swapped during that time and (3) will be
--- wiped clean and deallocated when the action terminates either
--- directly or indirectly via errors. While this is mostly secure,
--- there can be strange situations in multi-threaded application where
--- the memory is not wiped out. For example if you run a
--- crypto-sensitive action inside a child thread and the main thread
--- gets exists, then the child thread is killed (due to the demonic
--- nature of haskell threads) immediately and might not give it chance
--- to wipe the memory clean. This is a problem inherent to how the
--- `bracket` combinator works inside a child thread.
---
--- TODO: File this insecurity in the wiki.
---
-allocaSecure :: LengthUnit l
-             => l
-             -> (Pointer -> IO a)
-             -> IO a
-allocaSecure l action = allocaBuffer l actualAction
-  where sz = inBytes l
-        actualAction cptr = let
-          lockIt    = do c <- c_mlock cptr sz
-                         when (c /= 0) $ fail "secure memory: unable to lock memory"
-          releaseIt =  memset cptr 0 l >>  c_munlock cptr sz
-          in bracket_ lockIt releaseIt $ action cptr
 
 -- | Creates a memory of given size. It is better to use over
 -- @`mallocBytes`@ as it uses typesafe length.
