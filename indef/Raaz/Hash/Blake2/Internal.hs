@@ -9,8 +9,8 @@
 -- | Internal types and function for blake2 hashes.
 module Raaz.Hash.Blake2.Internal
        ( -- * The blake2 types
-         BLAKE2, BLAKE2b, BLAKE2s
-       , Blake2bMem, Blake2sMem
+         BLAKE2b, BLAKE2s
+       , Blake2bMem(..), Blake2sMem(..)
        , blake2Pad
        ) where
 
@@ -66,15 +66,10 @@ instance Primitive BLAKE2b where
   type Key BLAKE2b            = ()
   type Digest BLAKE2b         = BLAKE2b
 
-instance Hash BLAKE2b where
-
 instance Primitive BLAKE2s where
   type BlockSize BLAKE2s      = 64
   type Key BLAKE2s            = ()
   type Digest BLAKE2s         = BLAKE2s
-
-instance Hash BLAKE2s
-
 
 -- | The initial value to start the blake2b hashing. This is equal to
 -- the iv `xor` the parameter block.

@@ -9,6 +9,8 @@ import GHC.TypeLits   (KnownNat)
 import Raaz.Core
 import Raaz.Primitive.Implementation
 
+type BufferPrim = AlignedPointer BufferAlignment
+
 -- | Allocate a buffer for a primitive.
 allocBufferFor :: (KnownNat BufferAlignment, MonadAlloc m)
                => BLOCKS Prim

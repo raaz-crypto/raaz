@@ -4,7 +4,9 @@ This module exposes all the cryptographic hash functions available
 under the raaz library.
 
 -}
-{-# OPTIONS_GHC -fno-warn-warnings-deprecations #-}
+{-# LANGUAGE TypeFamilies         #-}
+{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances    #-}
 
 module Raaz.Hash
        (
@@ -17,18 +19,19 @@ module Raaz.Hash
          Hash, hash, hashFile, hashSource
          -- * Exposing individual hashes.
          -- $individualHashes$
-       , module Raaz.Hash.Blake2
-       , module Raaz.Hash.Sha256
-       , module Raaz.Hash.Sha512
 
        ) where
 
 
-import Raaz.Hash.Blake2
-import Raaz.Hash.Sha256
-import Raaz.Hash.Sha512
+import qualified Data.ByteString      as B
+import qualified Data.ByteString.Lazy as L
+import           System.IO
+import           System.IO.Unsafe     (unsafePerformIO)
 
-import Raaz.Hash.Internal      ( Hash, hash, hashFile, hashSource )
+
+import           Raaz.Core
+import           Raaz.Hash.Blake2.Internal
+import           Raaz.Hash.Blake2b.Util
 
 -- $computingHash$
 --
@@ -73,4 +76,27 @@ import Raaz.Hash.Internal      ( Hash, hash, hashFile, hashSource )
 -- >            -- print the sha512 checksum of a given file.
 -- > sha512Checksum fname =  sha512File fname >>= print
 
-{-# ANN module "HLint: ignore Use import/export shortcut" #-}
+
+-- | The class that captures all cryptographic hashes.
+class (Primitive h, Key h ~ (), Digest h ~ h) => Hash h where
+  hashSource :: ByteSource src => src -> IO h
+
+
+-- | Compute the hash of a pure byte source like, `B.ByteString`.
+hash :: ( Hash h, PureByteSource src )
+     => src  -- ^ Message
+     -> h
+hash = unsafePerformIO . hashSource
+{-# INLINEABLE hash #-}
+{-# SPECIALIZE hash :: Hash h => B.ByteString -> h #-}
+{-# SPECIALIZE hash :: Hash h => L.ByteString -> h #-}
+
+-- | Compute the hash of file.
+hashFile :: Hash h
+         => FilePath  -- ^ File to be hashed
+         -> IO h
+hashFile fileName = withBinaryFile fileName ReadMode hashSource
+{-# INLINEABLE hashFile #-}
+
+instance Hash BLAKE2b where
+  hashSource = computeDigest ()

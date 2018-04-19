@@ -17,7 +17,6 @@ signature Raaz.Primitive.Implementation
           , description
           , Internals
           , BufferAlignment
-          , BufferPrim
           , processBlocks
           , processLast
           , additionalBlocks
@@ -48,7 +47,7 @@ description :: String
 -- instance KnownNat BufferAlignment
 
 -- | The buffer type for the primitve
-type BufferPrim = AlignedPointer BufferAlignment
+
 
 -- | The alignment required for buffer (hack around bug
 -- https://ghc.haskell.org/trac/ghc/ticket/15138)
@@ -59,7 +58,7 @@ additionalBlocks :: BLOCKS Prim
 
 -- | The function that process bytes in multiples of the block size of
 -- the primitive.
-processBlocks :: BufferPrim
+processBlocks :: AlignedPointer BufferAlignment
               -> BLOCKS Prim
               -> MT Internals ()
 
