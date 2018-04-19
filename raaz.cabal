@@ -119,6 +119,11 @@ library raaz-core
                , Raaz.Core.Types.Endian
                , Raaz.Core.Types.Copying
 
+  include-dirs: core/cbits
+  includes: raaz/core/endian.h
+  install-includes: cbits/raaz/core/endian.h
+
+
 -------------------------- The indef form of raaz ---------------------------------------------
 
 library raaz-indef
@@ -129,60 +134,90 @@ library raaz-indef
             , Raaz.Primitive.Implementation.Stream
 
   exposed-modules: Raaz.Primitive.Util
+                 , Raaz.Primitive.Hash
+                 , Raaz.Hash.Blake2.Internal
+
+------------------------- The implementation packages -----------------------------------------
+library raaz-implementation
+  import: defaults
+  build-depends: raaz-core
+               , raaz-indef
+  hs-source-dirs: implementation
+  exposed-modules: Raaz.Hash.Blake2b.Implementation.CPortable
+
+  c-sources: implementation/cbits/raaz/hash/blake2/blake2b/portable.c
+           , implementation/cbits/raaz/hash/blake2/blake2s/portable.c
+           , implementation/cbits/raaz/hash/sha1/portable.c
+           , implementation/cbits/raaz/hash/sha256/portable.c
+           , implementation/cbits/raaz/hash/sha512/portable.c
+  install-includes: implementation/cbits/raaz/hash/blake2/common.h
+                  , implementation/cbits/raaz/hash/blake2/blake2b/constants.h
+                  , implementation/cbits/raaz/hash/blake2/blake2s/constants.h
+                  , implementation/cbits/raaz/cipher/aes/common.h
+                  , implementation/cbits/raaz/cipher/aes/cportable.h
+                  , implementation/cbits/raaz/cipher/chacha20/common.h
+
 ----------------------------- The library -----------------------------------------------------
 
 library
   import: defaults
-  hs-source-dirs: .
-  exposed-modules: Raaz
-                 --
-                 -- Cryptographic hashes
-                 --
-                 , Raaz.Hash
-                 , Raaz.Hash.Internal
-                 , Raaz.Hash.Blake2
-                 , Raaz.Hash.Blake2.Implementation.CPortable
-                 , Raaz.Hash.Sha256
-                 , Raaz.Hash.Sha256.Implementation.CPortable
-                 , Raaz.Hash.Sha512
-                 , Raaz.Hash.Sha512.Implementation.CPortable
-                 --
-                 -- Ciphers
-                 --
-                 , Raaz.Cipher
-                 , Raaz.Cipher.Internal
-                 , Raaz.Cipher.ChaCha20
-                 , Raaz.Cipher.ChaCha20.Implementation.CPortable
-		 --
-		 -- Randomness
-		 --
-                 , Raaz.Random
-                 , Raaz.Random.Internal
-  other-modules: Raaz.Hash.Blake2.Internal
-               , Raaz.Hash.Blake2.Recommendation
-               , Raaz.Hash.Sha.Util
-               , Raaz.Hash.Sha256.Recommendation
-               , Raaz.Hash.Sha256.Internal
-               , Raaz.Hash.Sha512.Recommendation
-               , Raaz.Hash.Sha512.Internal
-               --
-               -- Internal modules from cipher
-               --
-               , Raaz.Cipher.ChaCha20.Internal
-               , Raaz.Cipher.ChaCha20.Recommendation
-               --
-               -- Internal module for randomness
-               --
-               , Raaz.Random.ChaCha20PRG
-               , Raaz.Entropy
-               , Paths_raaz
-  build-depends: bytestring                     >= 0.9  &&  < 0.11
-               , deepseq                        >= 1.1  &&  < 1.5
-               , vector                         >= 0.7.1 && < 0.13
-  if impl(ghc < 8)
-    -- 'transformers' needed for "Control.Monad.IO.Class" only
-    -- starting with base-4.9 we don't need 'transformers' anymore
-    build-depends: transformers
+  build-depends: raaz-implementation
+  mixin: raaz-indef (Raaz.Primitive.Hash as Raaz.Hash.Blake2b)
+           requires (Raaz.Primitive.Implementation.Stream as Raaz.Hash.Blake2b.Implementation.CPortable)
+
+
+
+-- Raaz
+--                  --
+--                  -- Cryptographic hashes
+--                  --
+--                  , Raaz.Hash
+--                  , Raaz.Hash.Internal
+--                  , Raaz.Hash.Blake2
+--                  , Raaz.Hash.Blake2.Implementation.CPortable
+--                  , Raaz.Hash.Sha256
+--                  , Raaz.Hash.Sha256.Implementation.CPortable
+--                  , Raaz.Hash.Sha512
+--                  , Raaz.Hash.Sha512.Implementation.CPortable
+--                  --
+--                  -- Ciphers
+--                  --
+--                  , Raaz.Cipher
+--                  , Raaz.Cipher.Internal
+--                  , Raaz.Cipher.ChaCha20
+--                  , Raaz.Cipher.ChaCha20.Implementation.CPortable
+-- 		 --
+-- 		 -- Randomness
+-- 		 --
+--                  , Raaz.Random
+--                  , Raaz.Random.Internal
+--   other-modules: Raaz.Hash.Blake2.Internal
+--                , Raaz.Hash.Blake2.Recommendation
+--                , Raaz.Hash.Sha.Util
+--                , Raaz.Hash.Sha256.Recommendation
+--                , Raaz.Hash.Sha256.Internal
+--                , Raaz.Hash.Sha512.Recommendation
+--                , Raaz.Hash.Sha512.Internal
+--                --
+--                -- Internal modules from cipher
+--                --
+--                , Raaz.Cipher.ChaCha20.Internal
+--                , Raaz.Cipher.ChaCha20.Recommendation
+--                --
+--                -- Internal module for randomness
+--                --
+--                , Raaz.Random.ChaCha20PRG
+--                , Raaz.Entropy
+--                , Paths_raaz
+--   build-depends: bytestring                     >= 0.9  &&  < 0.11
+--                , deepseq                        >= 1.1  &&  < 1.5
+--                , vector                         >= 0.7.1 && < 0.13
+
+
+--   if impl(ghc < 8)
+--     -- 'transformers' needed for "Control.Monad.IO.Class" only
+--     -- starting with base-4.9 we don't need 'transformers' anymore
+--     build-depends: transformers
 
   c-sources: cbits/raaz/core/endian.c
            -- hash implementations
