@@ -130,8 +130,7 @@ library raaz-indef
   import: defaults
   build-depends: raaz-core
   hs-source-dirs: indef
-  signatures: Raaz.Primitive.Implementation.Block
-            , Raaz.Primitive.Implementation.Stream
+  signatures: Raaz.Primitive.Implementation
 
   exposed-modules: Raaz.Primitive.Util
                  , Raaz.Primitive.Hash

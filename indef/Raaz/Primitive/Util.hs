@@ -7,7 +7,7 @@ module Raaz.Primitive.Util
 
 import GHC.TypeLits   (KnownNat)
 import Raaz.Core
-import Raaz.Primitive.Implementation.Stream
+import Raaz.Primitive.Implementation
 
 -- | Allocate a buffer for a primitive.
 allocBufferFor :: (KnownNat BufferAlignment, MonadAlloc m)

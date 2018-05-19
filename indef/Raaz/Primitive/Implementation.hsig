@@ -10,7 +10,7 @@
 -- implementations involve other details like the alignment
 -- restriction on the input buffer and all that. We package all this
 -- in the following signature.
-signature Raaz.Primitive.Implementation.Block
+signature Raaz.Primitive.Implementation
           (
             Prim
           , name
@@ -19,6 +19,7 @@ signature Raaz.Primitive.Implementation.Block
           , BufferAlignment
           , BufferPrim
           , processBlocks
+          , processLast
           , additionalBlocks
           ) where
 
@@ -56,3 +57,8 @@ additionalBlocks :: BLOCKS Prim
 processBlocks :: BufferPrim
               -> BLOCKS Prim
               -> MT Internals ()
+
+-- | Process the last bytes of the stream.
+processLast :: AlignedPointer BufferAlignment
+            -> BYTES Int
+            -> MT Internals ()
