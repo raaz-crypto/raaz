@@ -30,7 +30,7 @@ import           System.IO.Unsafe     (unsafePerformIO)
 
 
 import           Raaz.Core
-import           Raaz.Hash.Blake2.Internal
+import           Raaz.Primitive.Blake2.Internal
 import           Raaz.Hash.Blake2b.Util
 
 -- $computingHash$

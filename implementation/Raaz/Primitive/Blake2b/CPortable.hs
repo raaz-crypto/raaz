@@ -3,7 +3,7 @@
 {-# LANGUAGE KindSignatures             #-}
 
 -- | The portable C-implementation of Blake2b.
-module Raaz.Hash.Blake2b.CPortable where
+module Raaz.Primitive.Blake2b.CPortable where
 
 import Foreign.Ptr                ( Ptr          )
 import Control.Monad.IO.Class     ( liftIO       )
@@ -15,7 +15,7 @@ import Data.Bits                  ( complement   )
 
 import Raaz.Core
 import Raaz.Core.Transfer         ( bytesToWrite, unsafeWrite )
-import Raaz.Hash.Blake2.Internal
+import Raaz.Primitive.Blake2.Internal
 
 name :: String
 name = "blake2b-cportable"

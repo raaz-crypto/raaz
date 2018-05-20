@@ -107,6 +107,7 @@ library raaz-core
                  , Raaz.Core.Types
                  , Raaz.Core.Util
                  , Raaz.Core.Transfer
+                 , Raaz.Primitive.Blake2.Internal
   other-modules: Raaz.Core.Constants
                , Raaz.Core.Encode.Internal
                , Raaz.Core.Encode.Base16
@@ -135,7 +136,7 @@ library raaz-indef
   hs-source-dirs: indef
   signatures: Raaz.Primitive.Implementation
   exposed-modules: Raaz.Primitive.Util
-                 , Raaz.Hash.Blake2.Internal
+  
 
 ------------------------- The implementation packages -----------------------------------------
 library raaz-implementation
@@ -143,7 +144,7 @@ library raaz-implementation
   build-depends: raaz-core
                , raaz-indef
   hs-source-dirs: implementation
-  exposed-modules: Raaz.Hash.Blake2b.CPortable
+  exposed-modules: Raaz.Primitive.Blake2b.CPortable
 
   c-sources: implementation/cbits/raaz/hash/blake2/blake2b/portable.c
            , implementation/cbits/raaz/hash/blake2/blake2s/portable.c
@@ -166,9 +167,7 @@ library
                , raaz-core
   exposed-modules: Raaz.Hash
   mixins: raaz-indef (Raaz.Primitive.Util as Raaz.Hash.Blake2b.Util)
-          requires   (Raaz.Primitive.Implementation as Raaz.Hash.Blake2b.CPortable)
-        , raaz-indef (Raaz.Hash.Blake2.Internal)
-
+          requires   (Raaz.Primitive.Implementation as Raaz.Primitive.Blake2b.CPortable)
 
 
 

@@ -7,7 +7,7 @@
 {-# CFILES raaz/hash/sha1/portable.c    #-}
 
 -- | Internal types and function for blake2 hashes.
-module Raaz.Hash.Blake2.Internal
+module Raaz.Primitive.Blake2.Internal
        ( -- * The blake2 types
          BLAKE2b, BLAKE2s
        , Blake2bMem(..), Blake2sMem(..)
