@@ -162,6 +162,7 @@ library raaz-implementation
 
 library
   import: defaults
+  hs-source-dirs: src
   build-depends: raaz-implementation
                , raaz-indef
                , raaz-core
