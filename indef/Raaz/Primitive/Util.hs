@@ -3,18 +3,21 @@ module Raaz.Primitive.Util
        ( allocBufferFor
        , processByteSource
        , computeDigest
+       , BufferPtr
        ) where
 
 import GHC.TypeLits   (KnownNat)
 import Raaz.Core
 import Raaz.Primitive.Implementation
 
-type BufferPrim = AlignedPointer BufferAlignment
+-- | The pointer type associated with the buffer used by the
+-- implementation.
+type BufferPtr = AlignedPointer BufferAlignment
 
 -- | Allocate a buffer for a primitive.
 allocBufferFor :: (KnownNat BufferAlignment, MonadAlloc m)
                => BLOCKS Prim
-               -> (BufferPrim  -> m a) -> m a
+               -> (BufferPtr  -> m a) -> m a
 allocBufferFor blks = allocaAligned totalSize
   where totalSize = blks <> additionalBlocks
 
