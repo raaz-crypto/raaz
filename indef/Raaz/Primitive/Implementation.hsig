@@ -43,11 +43,16 @@ name :: String
 -- | Description of the implementation.
 description :: String
 
--- | The alignment requirements on the buffer.
-data BufferAlignment :: Nat
+-- -- | The alignment requirements on the buffer.
+-- data BufferAlignment :: Nat
+-- instance KnownNat BufferAlignment
 
 -- | The buffer type for the primitve
 type BufferPrim = AlignedPointer BufferAlignment
+
+-- | The alignment required for buffer (hack around bug
+-- https://ghc.haskell.org/trac/ghc/ticket/15138)
+type BufferAlignment = 32
 
 -- | The additional space required in the buffer for processing the data.
 additionalBlocks :: BLOCKS Prim
