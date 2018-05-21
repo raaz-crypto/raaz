@@ -107,6 +107,7 @@ library raaz-core
                  , Raaz.Core.Types
                  , Raaz.Core.Util
                  , Raaz.Core.Transfer
+                 , Raaz.Primitive.HashMemory
                  , Raaz.Primitive.Blake2.Internal
   other-modules: Raaz.Core.Constants
                , Raaz.Core.Encode.Internal
