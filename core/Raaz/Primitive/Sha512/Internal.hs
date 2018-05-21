@@ -7,17 +7,15 @@
 {-# CFILES raaz/hash/sha1/portable.c    #-}
 
 -- | Internals of Sha512.
-module Raaz.Hash.Sha512.Internal (SHA512(..)) where
+module Raaz.Primitive.Sha512.Internal (SHA512(..), Sha512Mem) where
 
 
-import           Data.String
-import           Data.Word
-import           Foreign.Storable    ( Storable(..) )
+import Data.String
+import Data.Word
+import Foreign.Storable          (Storable(..))
 
-import           Raaz.Core
-
-
-import           Raaz.Hash.Internal
+import Raaz.Core
+import Raaz.Primitive.HashMemory (HashMemory128)
 
 ----------------------------- SHA512 ---------------------------------
 
@@ -35,11 +33,13 @@ instance Show SHA512 where
 
 instance Primitive SHA512 where
   type BlockSize SHA512      = 128
-  type Implementation SHA512 = SomeHashI SHA512
   type Key SHA512            = ()
   type Digest SHA512         = SHA512
 
-instance Initialisable (HashMemory SHA512) () where
+
+type Sha512Mem = HashMemory128 SHA512
+
+instance Initialisable Sha512Mem () where
   initialise _ = initialise $ SHA512
                  $ unsafeFromList [ 0x6a09e667f3bcc908
                                   , 0xbb67ae8584caa73b
@@ -50,6 +50,3 @@ instance Initialisable (HashMemory SHA512) () where
                                   , 0x1f83d9abfb41bd6b
                                   , 0x5be0cd19137e2179
                                   ]
-
-instance Hash SHA512 where
-  additionalPadBlocks _ = toEnum 1

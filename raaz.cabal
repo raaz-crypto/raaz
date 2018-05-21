@@ -109,6 +109,8 @@ library raaz-core
                  , Raaz.Core.Transfer
                  , Raaz.Primitive.HashMemory
                  , Raaz.Primitive.Blake2.Internal
+                 , Raaz.Primitive.Sha256.Internal
+                 , Raaz.Primitive.Sha512.Internal
   other-modules: Raaz.Core.Constants
                , Raaz.Core.Encode.Internal
                , Raaz.Core.Encode.Base16
@@ -146,6 +148,8 @@ library raaz-implementation
                , raaz-indef
   hs-source-dirs: implementation
   exposed-modules: Raaz.Primitive.Blake2b.CPortable
+                 , Raaz.Primitive.Sha256.CPortable
+                 , Raaz.Primitive.Sha512.CPortable
 
   c-sources: implementation/cbits/raaz/hash/blake2/blake2b/portable.c
            , implementation/cbits/raaz/hash/blake2/blake2s/portable.c
@@ -169,7 +173,11 @@ library
                , raaz-core
   exposed-modules: Raaz.Hash
   mixins: raaz-indef (Raaz.Primitive.Util as Raaz.Hash.Blake2b.Util)
-          requires   (Raaz.Primitive.Implementation as Raaz.Primitive.Blake2b.CPortable)
+             requires   (Raaz.Primitive.Implementation as Raaz.Primitive.Blake2b.CPortable)
+        , raaz-indef (Raaz.Primitive.Util as Raaz.Hash.Sha256.Util)
+             requires   (Raaz.Primitive.Implementation as Raaz.Primitive.Sha256.CPortable)
+        , raaz-indef (Raaz.Primitive.Util as Raaz.Hash.Sha512.Util)
+             requires   (Raaz.Primitive.Implementation as Raaz.Primitive.Sha512.CPortable)
 
 
 

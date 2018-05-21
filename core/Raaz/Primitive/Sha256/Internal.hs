@@ -7,8 +7,8 @@
 {-# CFILES raaz/hash/sha1/portable.c    #-}
 
 -- | Internals of Sha256.
-module Raaz.Hash.Sha256.Internal
-       ( SHA256(..)
+module Raaz.Primitive.Sha256.Internal
+       ( SHA256(..), Sha256Mem
        ) where
 
 
@@ -17,8 +17,7 @@ import Data.Word
 import Foreign.Storable    ( Storable )
 
 import Raaz.Core
-
-import Raaz.Hash.Internal
+import Raaz.Primitive.HashMemory (HashMemory64)
 
 ----------------------------- SHA256 -------------------------------------------
 
@@ -34,7 +33,14 @@ instance IsString SHA256 where
 instance Show SHA256 where
   show =  showBase16
 
-instance Initialisable (HashMemory SHA256) () where
+instance Primitive SHA256 where
+  type BlockSize SHA256      = 64
+  type Key SHA256            = ()
+  type Digest SHA256         = SHA256
+
+type Sha256Mem = HashMemory64 SHA256
+
+instance Initialisable Sha256Mem () where
   initialise _ = initialise $ SHA256 $ unsafeFromList [ 0x6a09e667
                                                       , 0xbb67ae85
                                                       , 0x3c6ef372
@@ -44,12 +50,3 @@ instance Initialisable (HashMemory SHA256) () where
                                                       , 0x1f83d9ab
                                                       , 0x5be0cd19
                                                       ]
-
-instance Primitive SHA256 where
-  type BlockSize SHA256      = 64
-  type Implementation SHA256 = SomeHashI SHA256
-  type Key SHA256            = ()
-  type Digest SHA256         = SHA256
-
-instance Hash SHA256 where
-  additionalPadBlocks _ = toEnum 1
