@@ -139,7 +139,7 @@ library raaz-indef
   hs-source-dirs: indef
   signatures: Raaz.Primitive.Implementation
   exposed-modules: Raaz.Primitive.Util
-  
+
 
 ------------------------- The implementation packages -----------------------------------------
 library raaz-implementation
@@ -148,6 +148,7 @@ library raaz-implementation
                , raaz-indef
   hs-source-dirs: implementation
   exposed-modules: Raaz.Primitive.Blake2b.CPortable
+                 , Raaz.Primitive.Blake2s.CPortable
                  , Raaz.Primitive.Sha256.CPortable
                  , Raaz.Primitive.Sha512.CPortable
 
@@ -174,6 +175,8 @@ library
   exposed-modules: Raaz.Hash
   mixins: raaz-indef (Raaz.Primitive.Util as Raaz.Hash.Blake2b.Util)
              requires   (Raaz.Primitive.Implementation as Raaz.Primitive.Blake2b.CPortable)
+        , raaz-indef (Raaz.Primitive.Util as Raaz.Hash.Blake2s.Util)
+             requires   (Raaz.Primitive.Implementation as Raaz.Primitive.Blake2s.CPortable)
         , raaz-indef (Raaz.Primitive.Util as Raaz.Hash.Sha256.Util)
              requires   (Raaz.Primitive.Implementation as Raaz.Primitive.Sha256.CPortable)
         , raaz-indef (Raaz.Primitive.Util as Raaz.Hash.Sha512.Util)

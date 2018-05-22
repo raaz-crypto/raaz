@@ -30,10 +30,11 @@ import           System.IO.Unsafe     (unsafePerformIO)
 
 
 import           Raaz.Core
-import           Raaz.Primitive.Blake2.Internal (BLAKE2b)
+import           Raaz.Primitive.Blake2.Internal (BLAKE2b, BLAKE2s)
 import           Raaz.Primitive.Sha256.Internal (SHA256)
 import           Raaz.Primitive.Sha512.Internal (SHA512)
 import qualified Raaz.Hash.Blake2b.Util         as Blake2bU
+import qualified Raaz.Hash.Blake2s.Util         as Blake2sU
 import qualified Raaz.Hash.Sha256.Util          as Sha256U
 import qualified Raaz.Hash.Sha512.Util          as Sha512U
 
@@ -105,6 +106,9 @@ hashFile fileName = withBinaryFile fileName ReadMode hashSource
 
 instance Hash BLAKE2b where
   hashSource = Blake2bU.computeDigest ()
+
+instance Hash BLAKE2s where
+  hashSource = Blake2sU.computeDigest ()
 
 instance Hash SHA256 where
   hashSource = Sha256U.computeDigest ()
