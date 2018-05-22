@@ -6,6 +6,7 @@
 {-# LANGUAGE ConstraintKinds            #-}
 {-# LANGUAGE KindSignatures             #-}
 {-# LANGUAGE CPP                        #-}
+{-# LANGUAGE TypeFamilies               #-}
 
 -- | This module exposes types that builds in type safety into some of
 -- the low level pointer operations. The functions here are pretty low
@@ -37,7 +38,7 @@ module Raaz.Core.Types.Pointer
 
 import           Control.Applicative
 import           Control.Exception     ( bracket_)
-import           Control.Monad         ( void, when )
+import           Control.Monad         ( void, when, liftM )
 import           Control.Monad.IO.Class
 import           Control.Monad.Trans.Reader
 import           Control.Monad.Trans.Class ( lift )
@@ -52,6 +53,7 @@ import Data.Semigroup
 
 import           Data.Proxy
 import           Data.Word
+import           Data.Vector.Unboxed         ( MVector(..), Vector, Unbox )
 import           Foreign.Marshal.Alloc
 import           Foreign.Ptr           ( Ptr                  )
 import qualified Foreign.Ptr           as FP
@@ -59,6 +61,9 @@ import           Foreign.Storable      ( Storable, peek, poke )
 import qualified Foreign.Storable      as FS
 import           GHC.TypeLits
 import           System.IO             (hGetBuf, Handle)
+
+import qualified Data.Vector.Generic         as GV
+import qualified Data.Vector.Generic.Mutable as GVM
 
 import Prelude -- To stop the annoying warnings of Applicatives and Monoids.
 
@@ -239,6 +244,62 @@ bitsQuot bits = u
 instance LengthUnit u => LAction u Pointer where
   a <.> ptr  = movePtr ptr a
   {-# INLINE (<.>) #-}
+
+
+
+instance Unbox w => Unbox (BYTES w)
+newtype instance MVector s (BYTES w) = MV_BYTES (MVector s w)
+newtype instance Vector    (BYTES w) = V_BYTES  (Vector w)
+
+instance Unbox w => GVM.MVector MVector (BYTES w) where
+  {-# INLINE basicLength #-}
+  {-# INLINE basicUnsafeSlice #-}
+  {-# INLINE basicOverlaps #-}
+  {-# INLINE basicUnsafeNew #-}
+  {-# INLINE basicUnsafeReplicate #-}
+  {-# INLINE basicUnsafeRead #-}
+  {-# INLINE basicUnsafeWrite #-}
+  {-# INLINE basicClear #-}
+  {-# INLINE basicSet #-}
+  {-# INLINE basicUnsafeCopy #-}
+  {-# INLINE basicUnsafeGrow #-}
+  basicLength          (MV_BYTES v)           = GVM.basicLength v
+  basicUnsafeSlice i n (MV_BYTES v)           = MV_BYTES $ GVM.basicUnsafeSlice i n v
+  basicOverlaps (MV_BYTES v1) (MV_BYTES v2)   = GVM.basicOverlaps v1 v2
+
+  basicUnsafeRead  (MV_BYTES v) i             = BYTES `liftM` GVM.basicUnsafeRead v i
+  basicUnsafeWrite (MV_BYTES v) i (BYTES x)   = GVM.basicUnsafeWrite v i x
+
+  basicClear (MV_BYTES v)                     = GVM.basicClear v
+  basicSet   (MV_BYTES v)         (BYTES x)   = GVM.basicSet v x
+
+  basicUnsafeNew n                            = MV_BYTES `liftM` GVM.basicUnsafeNew n
+  basicUnsafeReplicate n     (BYTES x)        = MV_BYTES `liftM` GVM.basicUnsafeReplicate n x
+  basicUnsafeCopy (MV_BYTES v1) (MV_BYTES v2) = GVM.basicUnsafeCopy v1 v2
+  basicUnsafeGrow (MV_BYTES v)   n            = MV_BYTES `liftM` GVM.basicUnsafeGrow v n
+
+#if MIN_VERSION_vector(0,11,0)
+  basicInitialize (MV_BYTES v)                = GVM.basicInitialize v
+#endif
+
+
+
+instance Unbox w => GV.Vector Vector (BYTES w) where
+  {-# INLINE basicUnsafeFreeze #-}
+  {-# INLINE basicUnsafeThaw #-}
+  {-# INLINE basicLength #-}
+  {-# INLINE basicUnsafeSlice #-}
+  {-# INLINE basicUnsafeIndexM #-}
+  {-# INLINE elemseq #-}
+  basicUnsafeFreeze (MV_BYTES v)            = V_BYTES  `liftM` GV.basicUnsafeFreeze v
+  basicUnsafeThaw (V_BYTES v)               = MV_BYTES `liftM` GV.basicUnsafeThaw v
+  basicLength (V_BYTES v)                   = GV.basicLength v
+  basicUnsafeSlice i n (V_BYTES v)          = V_BYTES $ GV.basicUnsafeSlice i n v
+  basicUnsafeIndexM (V_BYTES v) i           = BYTES   `liftM`  GV.basicUnsafeIndexM v i
+
+  basicUnsafeCopy (MV_BYTES mv) (V_BYTES v) = GV.basicUnsafeCopy mv v
+  elemseq _ (BYTES x)                       = GV.elemseq (undefined :: Vector a) x
+
 
 ------------------------ Alignment --------------------------------
 
