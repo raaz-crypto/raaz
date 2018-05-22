@@ -51,6 +51,7 @@ import Data.Monoid  -- Import only when base < 4.8.0
 import Data.Semigroup
 #endif
 
+import           Data.Bits                   ( Bits )
 import           Data.Proxy
 import           Data.Word
 import           Data.Vector.Unboxed         ( MVector(..), Vector, Unbox )
@@ -140,7 +141,7 @@ class (Enum u, Monoid u) => LengthUnit u where
 -- | Type safe lengths/offsets in units of bytes.
 newtype BYTES a  = BYTES a
         deriving ( Show, Eq, Equality, Ord, Enum, Integral
-                 , Real, Num, Storable, Bounded
+                 , Real, Num, Storable, Bounded, Bits
                  )
 
 -- | Type safe lengths/offsets in units of bits.
