@@ -10,7 +10,7 @@
 module Raaz.Primitive.Blake2.Internal
        ( -- * The blake2 types
          BLAKE2b, BLAKE2s
-       , Blake2bMem(..), Blake2sMem(..)
+       , Blake2bMem, Blake2sMem
        , blake2Pad
        ) where
 
@@ -26,6 +26,7 @@ import           Prelude      hiding        ( zipWith      )
 
 import           Raaz.Core
 import           Raaz.Core.Transfer
+import           Raaz.Primitive.HashMemory
 
 ----------------------------- The blake2 type ---------------------------------
 
@@ -99,42 +100,14 @@ hash2s0 = BLAKE2 $ unsafeFromList [ 0x6a09e667 `xor` 0x01010020
 
 ---------------------------------- Memory element for BLAKE2b -----------------------
 
--- | Memory element for BLAKE2b implementations.
-data Blake2bMem = Blake2bMem { blake2bCell :: MemoryCell BLAKE2b
-                             , uLengthCell :: MemoryCell (BYTES Word64)
-                             , lLengthCell :: MemoryCell (BYTES Word64)
-                             }
-
-
-instance Memory Blake2bMem where
-  memoryAlloc     = Blake2bMem <$> memoryAlloc <*> memoryAlloc <*> memoryAlloc
-  unsafeToPointer = unsafeToPointer . blake2bCell
+type Blake2bMem = HashMemory128 BLAKE2b
+type Blake2sMem = HashMemory64 BLAKE2s
 
 instance Initialisable Blake2bMem () where
-  initialise _ = do withReaderT blake2bCell  $ initialise hash2b0
-                    withReaderT uLengthCell  $ initialise (0 :: BYTES Word64)
-                    withReaderT lLengthCell  $ initialise (0 :: BYTES Word64)
-
-instance Extractable Blake2bMem BLAKE2b where
-  extract = withReaderT blake2bCell extract
-
----------------------------------- Memory element for BLAKE2b -----------------------
-
--- | Memory element for BLAKE2s implementations.
-data Blake2sMem = Blake2sMem { blake2sCell :: MemoryCell BLAKE2s
-                             , lengthCell  :: MemoryCell (BYTES Word64)
-                             }
-
-instance Memory Blake2sMem where
-  memoryAlloc     = Blake2sMem <$> memoryAlloc <*> memoryAlloc
-  unsafeToPointer = unsafeToPointer . blake2sCell
+  initialise _ = initialise hash2b0
 
 instance Initialisable Blake2sMem () where
-  initialise _ = do withReaderT blake2sCell $ initialise hash2s0
-                    withReaderT lengthCell  $ initialise (0 :: BYTES Word64)
-
-instance Extractable Blake2sMem BLAKE2s where
-  extract = withReaderT blake2sCell extract
+  initialise _ = initialise hash2s0
 
 ----------------------- Padding for Blake code ------------------------------
 

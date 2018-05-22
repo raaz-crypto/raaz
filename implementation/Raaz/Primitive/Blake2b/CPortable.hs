@@ -7,7 +7,6 @@ module Raaz.Primitive.Blake2b.CPortable where
 
 import Foreign.Ptr                ( Ptr          )
 import Control.Monad.IO.Class     ( liftIO       )
-import Control.Monad.Trans.Reader ( withReaderT  )
 import GHC.TypeLits
 import Data.Word
 import Data.Proxy
@@ -15,7 +14,9 @@ import Data.Bits                  ( complement   )
 
 import Raaz.Core
 import Raaz.Core.Transfer         ( bytesToWrite, unsafeWrite )
+import Raaz.Primitive.HashMemory
 import Raaz.Primitive.Blake2.Internal
+
 
 name :: String
 name = "blake2b-cportable"
@@ -59,9 +60,9 @@ processBlocks :: AlignedPointer BufferAlignment
               -> BLOCKS BLAKE2b
               -> MT Blake2bMem ()
 
-processBlocks buf blks = do uPtr   <- withReaderT uLengthCell getCellPointer
-                            lPtr   <- withReaderT lLengthCell getCellPointer
-                            hshPtr <- withReaderT blake2bCell getCellPointer
+processBlocks buf blks = do uPtr   <- uLengthCellPointer
+                            lPtr   <- lLengthCellPointer
+                            hshPtr <- hashCell128Pointer
                             liftIO $ c_blake2b_compress buf (fromEnum blks) uPtr lPtr hshPtr
 
 -- | Process the last bytes.
@@ -74,9 +75,9 @@ processLast buf nbytes  = do
   --
   -- Handle the last block
   --
-  u      <- withReaderT uLengthCell extract
-  l      <- withReaderT lLengthCell extract
-  hshPtr <- withReaderT blake2bCell getCellPointer
+  u      <- getULength
+  l      <- getLLength
+  hshPtr <- hashCell128Pointer
   liftIO $ c_blake2b_last lastBlockPtr remBytes u l f0 f1 hshPtr
 
   where padding      = blake2Pad (Proxy :: Proxy BLAKE2b) nbytes
