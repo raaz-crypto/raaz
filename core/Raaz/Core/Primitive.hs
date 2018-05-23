@@ -62,8 +62,7 @@ class KnownNat (BlockSize p) => Primitive p where
   -- | Many primitives produce additional message digest after
   -- processing the input, think of cryptographic hashes, AEAD
   -- primitives etc. This associated type captures such additional
-  -- data produced by the primitive. Primitives like ciphers, which do
-  -- not produce a digest is required to set this as the type `Void`.
+  -- data produced by the primitive.
   type Digest p :: *
 
 
