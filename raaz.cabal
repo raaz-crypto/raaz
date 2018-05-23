@@ -147,7 +147,6 @@ library raaz-indef
 library raaz-implementation
   import: defaults
   build-depends: raaz-core
-               , raaz-indef
   hs-source-dirs: implementation
   exposed-modules: Raaz.Primitive.Blake2b.CPortable
                  , Raaz.Primitive.Blake2s.CPortable
@@ -161,22 +160,27 @@ library raaz-implementation
            , implementation/cbits/raaz/hash/sha256/portable.c
            , implementation/cbits/raaz/hash/sha512/portable.c
            , implementation/cbits/raaz/cipher/chacha20/cportable.c
-  install-includes: implementation/cbits/raaz/hash/blake2/common.h
-                  , implementation/cbits/raaz/hash/blake2/blake2b/constants.h
-                  , implementation/cbits/raaz/hash/blake2/blake2s/constants.h
-                  , implementation/cbits/raaz/cipher/aes/common.h
-                  , implementation/cbits/raaz/cipher/aes/cportable.h
-                  , implementation/cbits/raaz/cipher/chacha20/common.h
+  include-dirs: implementation/cbits/
+  includes:  implementation/cbits/raaz/hash/blake2/common.h
+          , implementation/cbits/raaz/hash/blake2/blake2b/constants.h
+          , implementation/cbits/raaz/hash/blake2/blake2s/constants.h
+
 
 ----------------------------- The library -----------------------------------------------------
 
 library
   import: defaults
   hs-source-dirs: src
-  build-depends: raaz-implementation
-               , raaz-indef
+  build-depends: raaz-indef
+               , raaz-implementation
                , raaz-core
   exposed-modules: Raaz.Hash
+                 , Raaz.Cipher
+  reexported-modules: Raaz.Core
+                    , Raaz.Primitive.Blake2.Internal
+                    , Raaz.Primitive.Sha256.Internal
+                    , Raaz.Primitive.Sha512.Internal
+                    , Raaz.Primitive.ChaCha20.Internal
   mixins: raaz-indef (Raaz.Primitive.Util as Raaz.Hash.Blake2b.Util)
              requires   (Raaz.Primitive.Implementation as Raaz.Primitive.Blake2b.CPortable)
         , raaz-indef (Raaz.Primitive.Util as Raaz.Hash.Blake2s.Util)
