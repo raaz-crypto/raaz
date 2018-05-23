@@ -161,7 +161,7 @@ library raaz-implementation
            , implementation/cbits/raaz/hash/sha512/portable.c
            , implementation/cbits/raaz/cipher/chacha20/cportable.c
   include-dirs: implementation/cbits/
-  includes:  implementation/cbits/raaz/hash/blake2/common.h
+  includes: implementation/cbits/raaz/hash/blake2/common.h
           , implementation/cbits/raaz/hash/blake2/blake2b/constants.h
           , implementation/cbits/raaz/hash/blake2/blake2s/constants.h
 
@@ -176,6 +176,7 @@ library
                , raaz-core
   exposed-modules: Raaz.Hash
                  , Raaz.Cipher
+  other-modules: Raaz.Entropy
   reexported-modules: Raaz.Core
                     , Raaz.Primitive.Blake2.Internal
                     , Raaz.Primitive.Sha256.Internal
@@ -192,26 +193,33 @@ library
         , raaz-indef (Raaz.Primitive.Util as Raaz.Cipher.ChaCha20.Util)
              requires   (Raaz.Primitive.Implementation as Raaz.Primitive.ChaCha20.CPortable)
 
+               -- ----------------------- System specific configurations ----------------------------------
+
+
+  if os(linux)
+     cc-options: -DPLATFORM_LINUX
+  if os(osx)
+     cc-options: -DPLATFORM_OSX
+  if os(openbsd)
+     cc-options: -DPLATFORM_OPENBSD
+  if os(windows)
+     cc-options: -DPLATFORM_WINDOWS -DUNICODE
+     cpp-options: -DPLATFORM_WINDOWS
+     extra-libraries: Advapi32, Kernel32
+     build-tools: hsc2hs
+
+  --------------------- Entropy ----------------------------------------------
+
+  if  os(windows)                         { hs-source-dirs: entropy/windows    }
+  elif os(openbsd) || os(netbsd)          { hs-source-dirs: entropy/arc4random }
+  elif os(linux) && flag(linux-getrandom) { hs-source-dirs: entropy/getrandom  }
+  else                                    { hs-source-dirs: entropy/urandom    }
+
 -- 		 --
 -- 		 -- Randomness
 -- 		 --
 --                  , Raaz.Random
 --                  , Raaz.Random.Internal
---   other-modules: Raaz.Hash.Blake2.Internal
---                , Raaz.Hash.Blake2.Recommendation
---                , Raaz.Hash.Sha.Util
---                , Raaz.Hash.Sha256.Recommendation
---                , Raaz.Hash.Sha256.Internal
---                , Raaz.Hash.Sha512.Recommendation
---                , Raaz.Hash.Sha512.Internal
---                --
---                -- Internal modules from cipher
---                --
---                , Raaz.Cipher.ChaCha20.Internal
---                , Raaz.Cipher.ChaCha20.Recommendation
---                --
---                -- Internal module for randomness
---                --
 --                , Raaz.Random.ChaCha20PRG
 --                , Raaz.Entropy
 --                , Paths_raaz
@@ -248,31 +256,7 @@ library
   --                 , cbits/raaz/cipher/chacha20/common.h
 
 
-  -- if arch(x86_64)
-  --   cc-options: -DARCH_X86_64
 
-
-  -- ----------------------- System specific configurations ----------------------------------
-
-
-  -- if os(linux)
-  --    cc-options: -DPLATFORM_LINUX
-  -- if os(osx)
-  --    cc-options: -DPLATFORM_OSX
-  -- if os(openbsd)
-  --    cc-options: -DPLATFORM_OPENBSD
-  -- if os(windows)
-  --    cc-options: -DPLATFORM_WINDOWS -DUNICODE
-  --    cpp-options: -DPLATFORM_WINDOWS
-  --    extra-libraries: Advapi32, Kernel32
-  --    build-tools: hsc2hs
-
-  -- --------------------- Entropy ----------------------------------------------
-
-  -- if  os(windows)                         { hs-source-dirs: entropy/windows    }
-  -- elif os(openbsd) || os(netbsd)          { hs-source-dirs: entropy/arc4random }
-  -- elif os(linux) && flag(linux-getrandom) { hs-source-dirs: entropy/getrandom  }
-  -- else                                    { hs-source-dirs: entropy/urandom    }
 
 
 ---------------------------- Executables -------------------------------------------------
