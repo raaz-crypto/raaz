@@ -5,22 +5,24 @@
 {-# LANGUAGE TypeFamilies                     #-}
 
 -- | The internals of ChaCha20 ciphers.
-module Raaz.Cipher.ChaCha20.Internal
-       ( ChaCha20(..), WORD, Counter(..), IV(..), KEY(..), ChaCha20Mem(..)
+module Raaz.Primitive.ChaCha20.Internal
+       ( ChaCha20(..), WORD, Counter(..), IV(..), KEY(..), ChaCha20Mem
+       , keyCellPtr, ivCellPtr, counterCellPtr
        ) where
 
 import Control.Applicative
+import Control.Monad.Trans.Reader ( withReaderT   )
 import Data.String
-import Data.Void              ( Void )
 import Data.Word
 import Foreign.Storable
+import Foreign.Ptr                ( Ptr  )
 import Prelude
 
 
 import Raaz.Core
-import Raaz.Cipher.Internal
 
--- | The chacha20 stream cipher.
+-- | The type associated with the ChaCha20 cipher.
+data ChaCha20 = ChaCha20
 
 
 -- | The word type
@@ -33,11 +35,12 @@ instance Encodable IV
 
 instance Show IV where
   show = showBase16
+
 instance IsString IV where
   fromString = fromBase16
 
 -- | The counter type for chacha20
-newtype Counter  = Counter (LE Word32) deriving (Num, Storable, EndianStore, Show, Eq, Ord)
+newtype Counter  = Counter (LE Word32) deriving (Num, Enum, Storable, EndianStore, Show, Eq, Ord)
 
 
 -- | The key type.
@@ -51,23 +54,10 @@ instance Show KEY where
 instance IsString KEY where
   fromString = fromBase16
 
--- | The type associated with the ChaCha20 cipher.
-data ChaCha20 = ChaCha20
-
 instance Primitive ChaCha20 where
   type BlockSize ChaCha20      = 64
-  type Implementation ChaCha20 = SomeCipherI ChaCha20
   type Key ChaCha20            = (KEY, IV, Counter)
-  type Digest ChaCha20         = Void
-
-instance Describable ChaCha20 where
-  name        _ = "chacha20"
-  description _ = "The ChaCha20 cipher"
-
-instance Cipher ChaCha20
-
-instance StreamCipher ChaCha20
-
+  type Digest ChaCha20         = ()
 
 
 ---------- Memory for ChaCha20 implementations  ------------------
@@ -77,16 +67,27 @@ data ChaCha20Mem = ChaCha20Mem { keyCell      :: MemoryCell KEY
                                , counterCell  :: MemoryCell Counter
                                }
 
+keyCellPtr :: MT ChaCha20Mem (Ptr KEY)
+keyCellPtr = withReaderT keyCell getCellPointer
+
+ivCellPtr :: MT ChaCha20Mem (Ptr IV)
+ivCellPtr = withReaderT ivCell getCellPointer
+
+counterCellPtr :: MT ChaCha20Mem (Ptr Counter)
+counterCellPtr = withReaderT counterCell getCellPointer
 
 instance Memory ChaCha20Mem where
   memoryAlloc     = ChaCha20Mem <$> memoryAlloc <*> memoryAlloc <*> memoryAlloc
   unsafeToPointer = unsafeToPointer . keyCell
 
 instance Initialisable ChaCha20Mem (KEY, IV, Counter) where
-  initialise (k,iv,ctr) = do onSubMemory keyCell     $ initialise k
-                             onSubMemory ivCell      $ initialise iv
-                             onSubMemory counterCell $ initialise ctr
+  initialise (k,iv,ctr) = do withReaderT keyCell     $ initialise k
+                             withReaderT ivCell      $ initialise iv
+                             withReaderT counterCell $ initialise ctr
 
 
 instance Initialisable ChaCha20Mem (KEY, IV) where
   initialise (k, iv) = initialise (k, iv, 0 :: Counter)
+
+instance Extractable ChaCha20Mem () where
+  extract = return ()

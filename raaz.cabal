@@ -111,6 +111,8 @@ library raaz-core
                  , Raaz.Primitive.Blake2.Internal
                  , Raaz.Primitive.Sha256.Internal
                  , Raaz.Primitive.Sha512.Internal
+                 , Raaz.Primitive.ChaCha20.Internal
+
   other-modules: Raaz.Core.Constants
                , Raaz.Core.Encode.Internal
                , Raaz.Core.Encode.Base16
@@ -151,12 +153,14 @@ library raaz-implementation
                  , Raaz.Primitive.Blake2s.CPortable
                  , Raaz.Primitive.Sha256.CPortable
                  , Raaz.Primitive.Sha512.CPortable
+                 , Raaz.Primitive.ChaCha20.CPortable
 
   c-sources: implementation/cbits/raaz/hash/blake2/blake2b/portable.c
            , implementation/cbits/raaz/hash/blake2/blake2s/portable.c
            , implementation/cbits/raaz/hash/sha1/portable.c
            , implementation/cbits/raaz/hash/sha256/portable.c
            , implementation/cbits/raaz/hash/sha512/portable.c
+           , implementation/cbits/raaz/cipher/chacha20/cportable.c
   install-includes: implementation/cbits/raaz/hash/blake2/common.h
                   , implementation/cbits/raaz/hash/blake2/blake2b/constants.h
                   , implementation/cbits/raaz/hash/blake2/blake2s/constants.h
@@ -181,6 +185,8 @@ library
              requires   (Raaz.Primitive.Implementation as Raaz.Primitive.Sha256.CPortable)
         , raaz-indef (Raaz.Primitive.Util as Raaz.Hash.Sha512.Util)
              requires   (Raaz.Primitive.Implementation as Raaz.Primitive.Sha512.CPortable)
+        , raaz-indef (Raaz.Primitive.Util as Raaz.Cipher.ChaCha20.Util)
+             requires   (Raaz.Primitive.Implementation as Raaz.Primitive.ChaCha20.CPortable)
 
 
 

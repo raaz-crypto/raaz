@@ -1,17 +1,18 @@
+{-# LANGUAGE TypeFamilies #-}
 -- | This module exposes all the ciphers provided by raaz. The
 -- interface here is pretty low level and it is usually the case that
 -- you would not need to work at this level of detail.
 module Raaz.Cipher
        ( -- * Ciphers
          -- $cipherdoc$
-         StreamCipher
-       , transform, chacha20
-       , Cipher
+         StreamCipher(..)
        ) where
 
-
-import Raaz.Cipher.ChaCha20
-import Raaz.Cipher.Internal (transform, Cipher, StreamCipher)
+import           Data.ByteString                  ( ByteString )
+import           Data.Proxy                       ( Proxy      )
+import           Raaz.Core
+import           Raaz.Primitive.ChaCha20.Internal ( ChaCha20   )
+import qualified Raaz.Cipher.ChaCha20.Util as ChaCha20U
 
 -- $cipherdoc$
 --
@@ -29,3 +30,9 @@ import Raaz.Cipher.Internal (transform, Cipher, StreamCipher)
 -- this either but hopefully this will also be fixed soon.
 --
 -- TODO: Fix the above documentation when it is done.
+
+class (Primitive c, Digest c ~ ()) => StreamCipher c where
+  transform :: Proxy c -> Key c -> ByteString -> ByteString
+
+instance StreamCipher ChaCha20 where
+  transform _ key = fst . ChaCha20U.transformAndDigest key
