@@ -13,14 +13,11 @@ module Raaz.Primitive.Sha512.CPortable
 
 import Foreign.Ptr                ( Ptr          )
 import Control.Monad.IO.Class     ( liftIO       )
-import GHC.TypeLits
 import Data.Bits
 import Data.Word
 import Data.Proxy
-import Data.Bits                  ( complement   )
 
 import Raaz.Core
-import Raaz.Core.Transfer
 import Raaz.Primitive.HashMemory
 import Raaz.Primitive.Sha512.Internal
 

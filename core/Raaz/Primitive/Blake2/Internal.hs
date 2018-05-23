@@ -14,9 +14,7 @@ module Raaz.Primitive.Blake2.Internal
        , blake2Pad
        ) where
 
-import           Control.Applicative
 import           Control.Monad.IO.Class
-import           Control.Monad.Trans.Reader ( withReaderT     )
 import           Data.Bits                  ( xor             )
 import           Data.Proxy
 import           Data.String
@@ -25,7 +23,6 @@ import           Foreign.Storable           ( Storable(..) )
 import           Prelude      hiding        ( zipWith      )
 
 import           Raaz.Core
-import           Raaz.Core.Transfer
 import           Raaz.Primitive.HashMemory
 
 ----------------------------- The blake2 type ---------------------------------
