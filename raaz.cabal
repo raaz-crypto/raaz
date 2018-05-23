@@ -192,27 +192,6 @@ library
         , raaz-indef (Raaz.Primitive.Util as Raaz.Cipher.ChaCha20.Util)
              requires   (Raaz.Primitive.Implementation as Raaz.Primitive.ChaCha20.CPortable)
 
-
-
--- Raaz
---                  --
---                  -- Cryptographic hashes
---                  --
---                  , Raaz.Hash
---                  , Raaz.Hash.Internal
---                  , Raaz.Hash.Blake2
---                  , Raaz.Hash.Blake2.Implementation.CPortable
---                  , Raaz.Hash.Sha256
---                  , Raaz.Hash.Sha256.Implementation.CPortable
---                  , Raaz.Hash.Sha512
---                  , Raaz.Hash.Sha512.Implementation.CPortable
---                  --
---                  -- Ciphers
---                  --
---                  , Raaz.Cipher
---                  , Raaz.Cipher.Internal
---                  , Raaz.Cipher.ChaCha20
---                  , Raaz.Cipher.ChaCha20.Implementation.CPortable
 -- 		 --
 -- 		 -- Randomness
 -- 		 --
@@ -315,48 +294,46 @@ library
 
 -- ---------------------------- Test suit -----------------------------------------------------
 
--- test-Suite spec
---   import: defaults
+test-suite spec
+  import: defaults
+  type: exitcode-stdio-1.0
+  hs-source-dirs: spec
+  main-is: Spec.hs
 
---   type: exitcode-stdio-1.0
---   hs-source-dirs: spec
---   main-is: Spec.hs
+  build-depends: raaz
+  build-depends: HUnit                          >= 1.2
+               , QuickCheck                     >= 2.4
+               , hspec
+               , hspec-discover
+               , transformers
+               , vector
 
---   if !os(windows)
---      cpp-options: -DHAVE_DEV_NULL
+  build-tool-depends: hspec-discover:hspec-discover
+  if !os(windows)
+    cpp-options: -DHAVE_DEV_NULL
 
---   other-modules: Common
---                , Common.Cipher
---                , Common.Hash
---                , Common.Imports
---                , Common.Instances
---                , Common.Utils
---                , Raaz.Cipher.ChaCha20Spec
---                , Raaz.Core.ByteSourceSpec
---                , Raaz.Core.EncodeSpec
---                , Raaz.Core.MemorySpec
---                , Raaz.Core.Types.WordSpec
---                , Raaz.Core.Util.ByteStringSpec
---                , Raaz.RandomSpec
---                , Raaz.Hash.Sha256Spec
---                , Raaz.Hash.Sha512Spec
---                , Raaz.Hash.Blake2Spec
+  other-modules: Common
+               , Common.Cipher
+               , Common.Hash
+               , Common.Imports
+               , Common.Instances
+               , Common.Utils
+               , Raaz.Cipher.ChaCha20Spec
+               , Raaz.Core.ByteSourceSpec
+               , Raaz.Core.EncodeSpec
+               , Raaz.Core.MemorySpec
+               , Raaz.Core.Types.WordSpec
+               , Raaz.Core.Util.ByteStringSpec
+               , Raaz.RandomSpec
+               , Raaz.Hash.Sha256Spec
+               , Raaz.Hash.Sha512Spec
+               , Raaz.Hash.Blake2Spec
 
---   build-tool-depends: hspec-discover:hspec-discover
---   build-depends: base
---                , bytestring
---                , HUnit                          >= 1.2
---                , QuickCheck                     >= 2.4
---                , hspec
---                , hspec-discover
---                , transformers
---                , raaz
---                , vector
 
 -- -------------------------- Liquid haskell verification -------------------------------------
 
 -- test-Suite liquidspec
---   import: defaults
+-- import: defaults
 --   hs-source-dirs: liquid
 --   main-is: LiquidSpec.hs
 --   type: exitcode-stdio-1.0

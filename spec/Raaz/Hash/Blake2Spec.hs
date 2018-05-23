@@ -8,6 +8,7 @@ import           Prelude hiding (replicate)
 
 import           Common
 import qualified Common.Hash as CH
+import Raaz.Primitive.Blake2.Internal
 
 {--
 hashesTo :: ByteString -> BLAKE2b -> Spec

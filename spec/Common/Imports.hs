@@ -18,4 +18,3 @@ import Raaz.Core               as E hiding ((===), Result)
 import Raaz.Hash               as E
 -- import Raaz.Hash.Sha1          as E
 import Raaz.Cipher             as E
-import Raaz.Cipher.Internal    as E ( unsafeEncrypt', unsafeDecrypt', transform' )

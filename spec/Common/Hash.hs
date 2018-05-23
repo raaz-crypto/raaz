@@ -14,7 +14,7 @@ import Common.Utils
 -- where y1 is the hexadecimal encoding of the hash of x2.
 --
 
-hashesTo :: (Hash h, Recommendation h, Encodable h, Show h)
+hashesTo :: (Hash h, Encodable h, Show h, Eq h)
          => ByteString
          -> h
          -> Spec
