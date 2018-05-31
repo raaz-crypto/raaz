@@ -1,4 +1,6 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE FlexibleInstances          #-}
 -- | Interface for cryptographically secure random byte generators.
 module Raaz.Random
        ( -- * Cryptographically secure randomness.
@@ -24,6 +26,7 @@ module Raaz.Random
 import Control.Applicative
 import Control.Monad
 import Control.Monad.IO.Class
+import Control.Monad.Reader
 import Data.ByteString             ( ByteString             )
 import Data.Int
 import Data.Proxy                  ( Proxy(..)              )
@@ -31,12 +34,12 @@ import Data.Vector.Unboxed  hiding ( replicateM, create     )
 import Data.Word
 
 import Foreign.Ptr      ( Ptr     , castPtr)
-import Foreign.Storable ( Storable, peek   )
+import Foreign.Storable ( Storable         )
 import Prelude
 
 import Raaz.Core
 import Raaz.Core.Proxy
-import Raaz.Cipher.ChaCha20.Internal(KEY, IV)
+import Raaz.Primitive.ChaCha20.Internal(KEY, IV)
 import Raaz.Random.ChaCha20PRG
 
 
@@ -124,7 +127,7 @@ import Raaz.Random.ChaCha20PRG
 -- memory used by the action. A typical situation is to generate a
 -- random element into a memory cell. This can be achieved by using
 -- `randomiseCell` which, together with appropriate uses of
--- `onSubMemory`, should take care of most use cases of generating
+-- `witReaderT`, should take care of most use cases of generating
 -- sensitive data. Here is an example where we generate a key and iv
 -- at randomly and perform an action with it.
 --
@@ -134,8 +137,8 @@ import Raaz.Random.ChaCha20PRG
 -- > main = securely $ do
 -- >
 -- >     -- Initialisation
--- >     onSubMemory fst randomiseCell -- randomise key
--- >     onSubMemory snd randomiseCell -- randomise iv
+-- >     witReaderT fst randomiseCell -- randomise key
+-- >     witReaderT snd randomiseCell -- randomise iv
 -- >
 -- >     doSomethingWithKeyIV
 --
@@ -242,47 +245,71 @@ import Raaz.Random.ChaCha20PRG
 -- not reveal the random data that is given out previously.
 --
 
--- | A batch of actions on the memory element @mem@ that uses some
--- randomness.
-newtype RT mem a = RT { unRT :: MT (RandomState, mem) a }
-                 deriving (Functor, Applicative, Monad, MonadIO)
+
+-- | A monad transformer that does a batch of action on the memory
+-- element @mem@ and uses some randomness.
+newtype RandomT mem m a = RandomT { unRandomT :: ReaderT (RandomState, mem) m a }
+                 deriving (Functor, Applicative, Monad, MonadIO, MonadIOCont)
+
+
+
+-- | Lifts an memory action on the random state to RandomT.
+liftRandomState :: MonadIO m => MT RandomState a -> RandomT mem m a
+liftRandomState = RandomT . mapReaderT liftIO . withReaderT fst
+
+-- | Lift a `MT` action to the corresponding `RandomT` action.
+liftMT :: MonadIO m => MT mem a -> RandomT mem m a
+liftMT = RandomT . mapReaderT liftIO . withReaderT snd
+
+instance Monad m => MonadReader mem (RandomT mem m) where
+  ask     = RandomT $ withReaderT snd ask
+  local f = RandomT . local fP . unRandomT
+    where fP (rstate, mem) = (rstate, f mem)
+          -- No (misguided) use of functor instance for (,) here.
 
 -- | Run a randomness thread. In particular, this combinator takes
 -- care of seeding the internal prg at the start.
-seedAndRunRT :: RT m a
-      -> MT (RandomState, m) a
-seedAndRunRT action = onSubMemory fst reseedMT >> unRT action
+seedAndRun :: MonadIO m
+           => RandomT mem m a
+           -> ReaderT (RandomState, mem) m a
+seedAndRun action = unRandomT $ reseed >> action
+
+
+
+-- | A batch of actions on the memory element @mem@ that uses some
+-- randomness.
+type RT mem = RandomT mem IO
 
 -- | The monad for generating cryptographically secure random data.
 type RandM = RT VoidMemory
 
-instance MemoryThread RT where
-  insecurely        = insecurely . seedAndRunRT
-  securely          = securely   . seedAndRunRT
-  liftMT            = RT . onSubMemory snd
-  onSubMemory proj  = RT . onSubMemory projP . unRT
-    where projP (rstate, mem) = (rstate, proj mem)
-          -- No (misguided) use of functor instance for (,) here.
+instance Memory mem => MonadMemoryT (RandomT mem) where
+  insecurely        = insecurely . seedAndRun
+  securely          = securely   . seedAndRun
 
 -- | Reseed from the system entropy pool. There is never a need to
 -- explicitly seed your generator. The insecurely and securely calls
--- makes sure that your generator is seed before
+-- makes sure that your generator is seeded before
 -- starting. Furthermore, the generator also reseeds after every few
 -- GB of random bytes that it generates. Generating random data from
 -- the system entropy is usually an order of magnitude slower than
 -- using a fast stream cipher. Reseeding often can slow your program
 -- considerably without any additional security advantage.
 --
-reseed :: RT mem ()
-reseed = RT $ onSubMemory fst reseedMT
+reseed :: MonadIO m => RandomT mem m ()
+reseed = liftRandomState reseedMT
 
+  where
 -- | Fill the given input pointer with random bytes. This function
 -- /does not/ and /cannot/ check whether the input pointer has enough
 -- space for the data. Hence this function should be used only on the
 -- last resort. You may also wish to use the member function
 -- `fillRandomElements` when you need to fill data other than bytes.
-fillRandomBytes :: LengthUnit l => l ->  Pointer -> RT mem ()
-fillRandomBytes l = RT . onSubMemory fst . fillRandomBytesMT l
+fillRandomBytes :: (LengthUnit l, MonadIO m)
+                => l          -- ^ Amount of bytes to fill.
+                -> Pointer    -- ^ The buffer to fill it in
+                -> RandomT mem m ()
+fillRandomBytes l = liftRandomState . fillRandomBytesMT l
 
 
 -- | Instances of `Storable` which can be randomly generated. It might
@@ -296,10 +323,10 @@ fillRandomBytes l = RT . onSubMemory fst . fillRandomBytesMT l
 -- skews.
 class Storable a => RandomStorable a where
   -- | Fill the buffer with so many random elements of type a.
-  fillRandomElements :: Memory mem
+  fillRandomElements :: MonadIO m
                      => Int       -- ^ number of elements to fill
                      -> Ptr a     -- ^ The buffer to fill
-                     -> RT mem ()
+                     -> RandomT mem m ()
 
 -- TOTHINK:
 -- -------
@@ -326,7 +353,7 @@ class Storable a => RandomStorable a where
 -- (consider a @`Word8`@ modulo @10@ for example) this function
 -- generates an unacceptable skew in the distribution. Hence this
 -- function is prefixed unsafe.
-unsafeFillRandomElements :: (Memory mem, Storable a) => Int -> Ptr a -> RT mem ()
+unsafeFillRandomElements :: (Storable a, MonadIO m) => Int -> Ptr a -> RandomT mem m ()
 unsafeFillRandomElements n ptr = fillRandomBytes totalSz $ castPtr ptr
   where totalSz = fromIntegral n * sizeOf (getProxy ptr)
         getProxy :: Ptr a -> Proxy a
@@ -335,29 +362,34 @@ unsafeFillRandomElements n ptr = fillRandomBytes totalSz $ castPtr ptr
 
 -- | Generate a random element from an instance of a RandomStorable
 -- element.
-random :: (RandomStorable a, Memory mem) => RT mem a
-random = RT $ liftPointerAction alloc (getIt . castPtr)
-  where getIt ptr    = unRT $ fillRandomElements 1 ptr >> liftIO (peek ptr)
-        alloc        :: Storable a => (Pointer -> IO a) -> IO a
-        alloc action = allocaAligned algn sz action
-          where getProxy   :: (Pointer -> IO b) -> Proxy b
+random :: (RandomStorable a, MonadIOCont m) => RandomT mem m a
+random = alloc (getIt . castPtr)
+  where getIt ptr    = fillRandomElements 1 (nextLocation ptr) >> liftIO (peekAligned ptr)
+        alloc        :: (MonadIOCont m, Storable a)
+                     => (Pointer -> RandomT mem m a) -> RandomT mem m a
+        alloc action = allocaBuffer sz action
+          where getProxy   :: (Pointer -> RandomT mem m b) -> Proxy b
                 getProxy  _  = Proxy
                 thisProxy    = getProxy action
-                algn         = alignment thisProxy
-                sz           = sizeOf    thisProxy
+                sz           = alignedSizeOf thisProxy
 
 -- | Randomise the contents of a memory cell. Equivalent to @`random`
 -- >>= liftMT . initialise@ but ensures that no data is transferred to
 -- unlocked memory.
-randomiseCell :: RandomStorable a => RT (MemoryCell a) ()
-randomiseCell = getCellPointer >>= fillRandomElements 1
+randomiseCell :: ( MonadIO m
+                 , RandomStorable a
+                 )
+              => RandomT (MemoryCell a) m ()
+randomiseCell = liftMT getCellPointer >>= fillRandomElements 1
 
 -- | Generate a random byteString.
 
-randomByteString :: LengthUnit l
+randomByteString :: ( MonadIOCont m
+                    , LengthUnit l
+                    )
                  => l
-                 -> RT mem ByteString
-randomByteString l = RT $ onSubMemory fst  $ liftPointerAction (create l) $ fillRandomBytesMT l
+                 -> RandomT mem m ByteString
+randomByteString l = liftIOCont (create l) $ fillRandomBytes l
 
 ------------------------------- Some instances of Random ------------------------
 

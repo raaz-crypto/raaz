@@ -10,9 +10,8 @@ module Raaz.Random.Internal
 import Data.Proxy
 import Raaz.Core.Types
 import Raaz.Entropy
-
 import Raaz.Core.Primitives
-import Raaz.Cipher.ChaCha20
+
 -- | __WARNING__ Never use this function directly. Only exposed for
 -- testing the quality of system entropy. Fill the given input buffer
 -- with from the system entropy pool. This is provided only to test
