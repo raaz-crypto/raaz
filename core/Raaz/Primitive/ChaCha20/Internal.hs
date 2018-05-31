@@ -6,7 +6,7 @@
 
 -- | The internals of ChaCha20 ciphers.
 module Raaz.Primitive.ChaCha20.Internal
-       ( ChaCha20(..), WORD, Counter(..), IV(..), KEY(..), ChaCha20Mem
+       ( ChaCha20(..), WORD, Counter(..), IV(..), KEY(..), ChaCha20Mem(..)
        , keyCellPtr, ivCellPtr, counterCellPtr
        ) where
 
