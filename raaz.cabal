@@ -104,6 +104,7 @@ library raaz-core
                  , Raaz.Core.MonoidalAction
                  , Raaz.Core.Parse.Applicative
                  , Raaz.Core.Primitive
+                 , Raaz.Core.Proxy
                  , Raaz.Core.Types
                  , Raaz.Core.Util
                  , Raaz.Core.Transfer
@@ -117,7 +118,7 @@ library raaz-core
                , Raaz.Core.Encode.Internal
                , Raaz.Core.Encode.Base16
                , Raaz.Core.Encode.Base64
-               , Raaz.Core.Proxy
+               , Raaz.Core.IOCont
                , Raaz.Core.Util.ByteString
                , Raaz.Core.Types.Aligned
                , Raaz.Core.Types.Pointer
@@ -176,7 +177,9 @@ library
                , raaz-core
   exposed-modules: Raaz.Hash
                  , Raaz.Cipher
+                 , Raaz.Random
   other-modules: Raaz.Entropy
+               , Raaz.Random.ChaCha20PRG
   reexported-modules: Raaz.Core
                     , Raaz.Primitive.Blake2.Internal
                     , Raaz.Primitive.Sha256.Internal
