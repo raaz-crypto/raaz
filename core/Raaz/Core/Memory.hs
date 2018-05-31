@@ -37,12 +37,13 @@ module Raaz.Core.Memory
        ) where
 
 import           Control.Applicative
-import           Control.Monad.Trans.Reader
+import           Control.Monad.Reader
 import           Foreign.Storable            ( Storable )
 import           Foreign.Ptr                 ( castPtr, Ptr )
 import           Raaz.Core.MonoidalAction
 import           Raaz.Core.Transfer
 import           Raaz.Core.Types
+import           Raaz.Core.IOCont
 
 -- $memorysubsystem$
 --
@@ -142,41 +143,14 @@ class MonadMemoryT mT where
   -- a limit to how much locked memory can be allocated. Nonetheless,
   -- actions that work with sensitive information like passwords should
   -- use this to run an memory action.
-  securely   :: MonadAlloc m => mT m a -> m a
+  securely   :: MonadIOCont m => mT m a -> m a
 
   -- | Run a memory action with the internal memory used by the action
   -- being allocated from unlocked memory. Use this function when you
   -- work with data that is not sensitive to security considerations
   -- (for example, when you want to verify checksums of files).
-  insecurely :: MonadAlloc m => mT m a -> m a
+  insecurely :: MonadIOCont m => mT m a -> m a
 
-{--
-  -- | Lift an actual memory thread.
-  liftMT :: MT mem a -> mT mem a
-
-
-  -- | Lift actions on sub-memories to the entire memory. To
-  -- illustrate, consider the memory element given by the type @Foo@
-  -- defined below
-  --
-  -- > data Foo = Foo { bar :: MemoryCell Word32, biz :: MemoryCell Word64 }
-  -- >
-  -- > instance Memory Foo where
-  -- >     . . .
-  -- >     . . .
-  --
-  -- A element of type @Foo@ is thought of as a /compound memory/ with
-  -- two /sub-memories/ @bar@ and @biz@ holding a @Word32@ and a
-  -- @Word64@ respectively. More generally, a sub-memory of a memory
-  -- element of type @mem@ is a just a projection @proj : mem ->
-  -- submem@ where the type @submem@ is also a memory element.
-  -- Typically, such projections are just record fields as in the case
-  -- of the type @Foo@ above. The combinator @onSubMemory@ provides
-  -- the natural way to lift a memory action on such submemories to
-  -- the whole memory.
-
-  onSubMemory :: (mem -> submem) -> mT submem a -> mT mem a
---}
 
 instance Memory mem => MonadMemoryT (ReaderT mem) where
   securely               = withSecureMemory . runReaderT
@@ -326,9 +300,9 @@ copyMemory dmem smem = memcpy (unsafeToPointer <$> dmem) (unsafeToPointer <$> sm
 -- this method might be more efficient as the memory might be
 -- allocated from the stack directly and will have very little GC
 -- overhead.
-withMemory   :: MonadAlloc m => Memory mem => (mem -> m a) -> m a
+withMemory   :: MonadIOCont m => Memory mem => (mem -> m a) -> m a
 withMemory   = withM memoryAlloc
-  where withM :: MonadAlloc m => Alloc mem -> (mem -> m a) -> m a
+  where withM :: MonadIOCont m => Alloc mem -> (mem -> m a) -> m a
         withM alctr action = allocaBuffer sz actualAction
           where sz                 = twistMonoidValue alctr
                 getM               = computeField $ twistFunctorValue alctr
@@ -343,7 +317,7 @@ withMemory   = withM memoryAlloc
 -- of Haskell threads, if the main thread exists before the child
 -- thread is done with its job, sensitive data can leak. This is
 -- essentially a limitation of the bracket which is used internally.
-withSecureMemory :: (MonadAlloc m, Memory mem) => (mem -> m a) -> m a
+withSecureMemory :: (MonadIOCont m, Memory mem) => (mem -> m a) -> m a
 withSecureMemory = withSM memoryAlloc
   where -- withSM :: Memory m => Alloc m -> (m -> IO a) -> IO a
         withSM alctr action = allocaSecure sz $ action . getM
@@ -410,7 +384,7 @@ instance Storable a => Memory (MemoryCell a) where
 -- | The location where the actual storing of element happens. This
 -- pointer is guaranteed to be aligned to the alignment restriction of @a@
 actualCellPtr :: Storable a => MemoryCell a -> Ptr a
-actualCellPtr = nextAlignedPtr . unMemoryCell
+actualCellPtr = nextLocation . unMemoryCell
 
 -- | Work with the underlying pointer of the memory cell. Useful while
 -- working with ffi functions.

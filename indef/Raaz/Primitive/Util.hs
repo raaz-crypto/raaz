@@ -5,6 +5,7 @@ module Raaz.Primitive.Util
        , computeDigest
        , transformAndDigest
        , BufferPtr
+       , module Raaz.Primitive.Implementation
        ) where
 
 import Control.Monad.IO.Class          (liftIO)
@@ -24,7 +25,7 @@ import Raaz.Primitive.Implementation
 type BufferPtr = AlignedPointer BufferAlignment
 
 -- | Allocate a buffer for a primitive.
-allocBufferFor :: (KnownNat BufferAlignment, MonadAlloc m)
+allocBufferFor :: (KnownNat BufferAlignment, MonadIOCont m)
                => BLOCKS Prim
                -> (BufferPtr  -> m a) -> m a
 allocBufferFor blks = allocaAligned totalSize
