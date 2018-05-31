@@ -8,6 +8,7 @@ module Raaz.Core
        ( module Raaz.Core.ByteSource
        , module Raaz.Core.Constants
        , module Raaz.Core.Encode
+       , module Raaz.Core.IOCont
        , module Raaz.Core.Memory
        , module Raaz.Core.Primitive
        , module Raaz.Core.Transfer
@@ -18,6 +19,7 @@ module Raaz.Core
 import Raaz.Core.ByteSource
 import Raaz.Core.Constants
 import Raaz.Core.Encode
+import Raaz.Core.IOCont
 import Raaz.Core.Memory
 import Raaz.Core.Primitive
 import Raaz.Core.Transfer

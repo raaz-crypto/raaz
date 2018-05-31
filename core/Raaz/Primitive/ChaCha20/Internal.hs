@@ -11,7 +11,7 @@ module Raaz.Primitive.ChaCha20.Internal
        ) where
 
 import Control.Applicative
-import Control.Monad.Trans.Reader ( withReaderT   )
+import Control.Monad.Reader ( withReaderT   )
 import Data.String
 import Data.Word
 import Foreign.Storable

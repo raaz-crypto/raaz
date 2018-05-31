@@ -84,7 +84,7 @@ common defaults
                , bytestring              >= 0.9  &&  < 0.11
                , deepseq                 >= 1.1  &&  < 1.5
                , vector                  >= 0.7.1 && < 0.13
-               , transformers
+               , mtl
 
   if flag(native)
     cc-options: -march=native

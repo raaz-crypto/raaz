@@ -10,7 +10,7 @@ module Raaz.Primitive.HashMemory
        ) where
 
 import Control.Monad              ( when          )
-import Control.Monad.Trans.Reader ( withReaderT   )
+import Control.Monad.Reader       ( withReaderT   )
 import Data.Word                  ( Word64        )
 import Foreign.Storable           ( Storable(..)  )
 import Foreign.Ptr                ( Ptr           )
