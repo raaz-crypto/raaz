@@ -7,10 +7,9 @@ module Raaz.Random.Internal
       ( fillSystemEntropy, entropySource, csPRG
       ) where
 
-import Data.Proxy
-import Raaz.Core.Types
-import Raaz.Entropy
-import Raaz.Core.Primitives
+import           Raaz.Core
+import           Raaz.Entropy
+import qualified Raaz.Cipher.ChaCha20.Util as Cipher
 
 -- | __WARNING__ Never use this function directly. Only exposed for
 -- testing the quality of system entropy. Fill the given input buffer
@@ -24,4 +23,4 @@ fillSystemEntropy = getEntropy
 
 -- | Name of the cryptographically secure prg.
 csPRG :: String
-csPRG = name $ recommended (Proxy :: Proxy ChaCha20)
+csPRG = Cipher.name
