@@ -71,10 +71,11 @@ flag linux-getrandom
      Default: True
      Manual: True
 
-flag liquidhaskell
-     Description: Use liquid haskell form verifying properties. Only for developers.
-     Default: False
-     Manual: True
+-- flag liquidhaskell
+--      Description: Use liquid haskell form verifying properties. Only for developers.
+--      Default: False
+--      Manual: True
+
 ---------------------------- The common clause ------------------------------------------------
 
 common defaults
