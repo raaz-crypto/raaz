@@ -12,7 +12,7 @@ import Data.Char                ( toLower )
 import Data.Monoid
 import Data.String
 import Options.Applicative
-import Raaz
+import Raaz.Hash
 import System.Exit
 import System.IO
 
@@ -64,7 +64,7 @@ mkCmd algo = command cmd inf
 
 
 -- | This constraint class consolidates the constraints on the checksum algorithms.
-type SupportedHash h = (Hash h, Recommendation h, Show h, IsString h)
+type SupportedHash h = (Hash h, Eq h, Show h, IsString h)
 
 
 

@@ -5,7 +5,6 @@
 
 
 import Data.Version          (showVersion)
-import Data.Monoid
 import Options.Applicative
 import Raaz                  (version)
 
