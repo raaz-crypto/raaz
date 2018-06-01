@@ -175,12 +175,16 @@ library
   build-depends: raaz-indef
                , raaz-implementation
                , raaz-core
-  exposed-modules: Raaz.Hash
+  exposed-modules: Raaz
+                 , Raaz.Hash
                  , Raaz.Cipher
                  , Raaz.Random
+                 , Raaz.Random.Internal
   other-modules: Raaz.Entropy
                , Raaz.Random.ChaCha20PRG
+               , Paths_raaz
   reexported-modules: Raaz.Core
+                    , Raaz.Core.CpuSupports
                     , Raaz.Primitive.Blake2.Internal
                     , Raaz.Primitive.Sha256.Internal
                     , Raaz.Primitive.Sha512.Internal
@@ -218,66 +222,22 @@ library
   elif os(linux) && flag(linux-getrandom) { hs-source-dirs: entropy/getrandom  }
   else                                    { hs-source-dirs: entropy/urandom    }
 
--- 		 --
--- 		 -- Randomness
--- 		 --
---                  , Raaz.Random
---                  , Raaz.Random.Internal
---                , Raaz.Random.ChaCha20PRG
---                , Raaz.Entropy
---                , Paths_raaz
---   build-depends: bytestring                     >= 0.9  &&  < 0.11
---                , deepseq                        >= 1.1  &&  < 1.5
---                , vector                         >= 0.7.1 && < 0.13
-
-
---   if impl(ghc < 8)
---     -- 'transformers' needed for "Control.Monad.IO.Class" only
---     -- starting with base-4.9 we don't need 'transformers' anymore
---     build-depends: transformers
-
-  -- c-sources: cbits/raaz/core/endian.c
-  --          -- hash implementations
-  --          , cbits/raaz/hash/blake2/blake2b/portable.c
-  --          , cbits/raaz/hash/blake2/blake2s/portable.c
-  --          , cbits/raaz/hash/sha1/portable.c
-  --          , cbits/raaz/hash/sha256/portable.c
-  --          , cbits/raaz/hash/sha512/portable.c
-  --          -- ciphers
-  --          , cbits/raaz/cipher/aes/common.c
-  --          , cbits/raaz/cipher/aes/cportable.c
-  --          -- chacha20
-  --          , cbits/raaz/cipher/chacha20/cportable.c
-  -- include-dirs: cbits
-  -- includes: raaz/core/endian.h
-  -- install-includes: cbits/raaz/core/endian.h
-  --                 , cbits/raaz/hash/blake2/common.h
-  --                 , cbits/raaz/hash/blake2/blake2b/constants.h
-  --                 , cbits/raaz/hash/blake2/blake2s/constants.h
-  --                 , cbits/raaz/cipher/aes/common.h
-  --                 , cbits/raaz/cipher/aes/cportable.h
-  --                 , cbits/raaz/cipher/chacha20/common.h
-
-
-
-
-
 ---------------------------- Executables -------------------------------------------------
 
--- executable raaz
---   import: defaults
---   hs-source-dirs: bin
---   main-is: Main.hs
---   other-modules: Command.Checksum
---                , Command.Rand
---                , Command.Info
---                , Usage
---   build-depends: optparse-applicative >= 0.10.0
---                , raaz
---   if impl(ghc < 8)
---     -- 'transformers' needed for "Control.Monad.IO.Class" only
---     -- starting with base-4.9 we don't need 'transformers' anymore
---     build-depends: transformers
+executable raaz
+  import: defaults
+  hs-source-dirs: bin
+  main-is: Main.hs
+  other-modules: Command.Checksum
+               , Command.Rand
+               , Command.Info
+               , Usage
+  build-depends: optparse-applicative >= 0.10.0
+               , raaz
+  if impl(ghc < 8)
+    -- 'transformers' needed for "Control.Monad.IO.Class" only
+    -- starting with base-4.9 we don't need 'transformers' anymore
+    build-depends: transformers
 
 -- ---------------------------- Test suit -----------------------------------------------------
 
