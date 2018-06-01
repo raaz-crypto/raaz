@@ -38,12 +38,6 @@ matrix:
 
     - os: osx
 
-
-    # Build with stack package set for 8.0.2
-    - os: linux
-      env: GHCVER=8.0.2 CABALVER=2.0 STACKVER=lts-9.2
-      addons: {apt: {packages: [cabal-install-2.0 ,ghc-8.0.2], sources: [hvr-ghc]}}
-
     - os: linux
       env: GHCVER=8.2.2 CABALVER=2.0
       addons: {apt: {packages: [cabal-install-2.0 ,ghc-8.2.2], sources: [hvr-ghc]}}
@@ -92,7 +86,7 @@ install:
  - travis_retry cabal update;
 
 script:
-  - cabal new-configure --flag='-linux-getrandom' --enable-tests --enable-benchmarks
+  - cabal new-configure --flag='-linux-getrandom' --enable-tests  --enable-documentation
   - cabal new-build
   - cabal new-test
   - cabal check
