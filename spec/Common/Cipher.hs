@@ -1,6 +1,40 @@
 {-# LANGUAGE FlexibleContexts #-}
 module Common.Cipher where
+import Common.Imports
+import Common.Utils
 
+transformsTo :: (StreamCipher c, Format fmt1, Format fmt2)
+              => Proxy c
+              -> fmt1
+              -> fmt2
+              -> Key c
+              -> Spec
+transformsTo cproxy inp expected key = it msg $ result `shouldBe` decodeFormat expected
+  where result = transform cproxy key $ decodeFormat inp
+        msg  = unwords [ "encrypts"
+                       , shortened $ show inp
+                       , "to"
+                       , shortened $ show expected
+                       ]
+
+keyStreamIs :: (StreamCipher c, Format fmt)
+             => Proxy c
+             -> fmt
+             -> Key c
+             -> Spec
+keyStreamIs cproxy expected key = it msg $ result `shouldBe` decodeFormat expected
+  where result = transform cproxy key $ zeros $ 1 `blocksOf` cproxy
+        msg    = unwords ["with key"
+                         , "key stream is"
+                         , shortened $ show expected
+                         ]
+
+zeros :: Primitive prim => BLOCKS prim -> ByteString
+zeros = toByteString . writeZero
+  where writeZero :: LengthUnit u => u -> WriteIO
+        writeZero = writeBytes 0
+
+{-
 import Raaz.Core.Transfer
 import Common.Imports
 import Common.Utils
@@ -89,11 +123,6 @@ keyStreamIs' c impl expected key = it msg $ result `shouldBe` decodeFormat expec
                          , shortened $ show expected
                          ]
 
-zeros :: Primitive prim => BLOCKS prim -> ByteString
-zeros = toByteString . writeZero
-  where writeZero :: LengthUnit u => u -> WriteIO
-        writeZero = writeBytes 0
-
 transformsTo' :: (StreamCipher c, Format fmt1, Format fmt2)
               => c
               -> Implementation c
@@ -103,14 +132,8 @@ transformsTo' :: (StreamCipher c, Format fmt1, Format fmt2)
               -> Spec
 
 transformsTo' c impl inp expected key
-  = it msg $ result `shouldBe` decodeFormat expected
-  where result = transform' c impl key $ decodeFormat inp
-        msg   = unwords [ "encrypts"
-                        , shortened $ show inp
-                        , "to"
-                        , shortened $ show expected
-                        ]
 
 
 proxy :: c -> Proxy c
 proxy _ = Proxy
+-}

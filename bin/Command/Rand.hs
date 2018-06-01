@@ -7,7 +7,9 @@
 {-# LANGUAGE CPP #-}
 module Command.Rand ( rand ) where
 
+
 import Control.Applicative
+import Control.Monad         ( void )
 import Control.Monad.IO.Class(liftIO)
 import Data.Monoid
 import Options.Applicative
@@ -19,10 +21,6 @@ import System.IO
 
 bufSize :: BYTES Int
 bufSize = 32 * 1024
-
-
-
-
 
 
 rand :: Parser (IO ())
@@ -87,10 +85,10 @@ genBytes filler n ptr = go n
 
 emitRand :: BYTES Int -> Pointer-> RandM ()
 emitRand m ptr = do
-  fillRandomBytes m ptr
+  void   $ fillRandomBytes m ptr
   liftIO $ hPutBuf stdout ptr $ fromIntegral m
 
 emitEntropy :: BYTES Int -> Pointer -> IO ()
 emitEntropy m ptr = do
-  fillSystemEntropy m ptr
+  void $ fillSystemEntropy m ptr
   hPutBuf stdout ptr $ fromIntegral m

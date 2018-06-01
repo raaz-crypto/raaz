@@ -9,8 +9,10 @@ module Common.Instances where
 
 import Common.Imports
 import Common.Utils
-import Raaz.Cipher.ChaCha20 as ChaCha20
-
+import Raaz.Primitive.ChaCha20.Internal as ChaCha20
+import Raaz.Primitive.Blake2.Internal
+import Raaz.Primitive.Sha512.Internal
+import Raaz.Primitive.Sha256.Internal
 
 instance Arbitrary w => Arbitrary (LE w) where
   arbitrary = littleEndian <$> arbitrary
@@ -24,9 +26,6 @@ instance Arbitrary w => Arbitrary (BYTES w) where
 
 instance Arbitrary w => Arbitrary (BITS w) where
   arbitrary = BITS <$> arbitrary
-
-instance Arbitrary ALIGN where
-  arbitrary = toEnum <$> arbitrary
 
 instance Arbitrary ByteString where
   arbitrary = pack <$> arbitrary

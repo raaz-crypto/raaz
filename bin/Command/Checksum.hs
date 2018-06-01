@@ -12,7 +12,7 @@ import Data.Char                ( toLower )
 import Data.Monoid
 import Data.String
 import Options.Applicative
-import Raaz
+import Raaz.Hash
 import System.Exit
 import System.IO
 
@@ -50,7 +50,7 @@ data Algorithm h  where
 deriving instance Show (Algorithm h)
            -- Add a mkCmd here for the new hash algorithm
 
-mkCmd :: Digest h => Algorithm h -> Mod CommandFields (IO ())
+mkCmd :: SupportedHash h => Algorithm h -> Mod CommandFields (IO ())
 mkCmd algo = command cmd inf
   where inf = info (helper <*> opts) $ fullDesc <> hdr <> desc
         opts     = run algo <$> optParse
@@ -64,11 +64,11 @@ mkCmd algo = command cmd inf
 
 
 -- | This constraint class consolidates the constraints on the checksum algorithms.
-type Digest h = (Hash h, Recommendation h, Show h, IsString h)
+type SupportedHash h = (Hash h, Eq h, Show h, IsString h)
 
 
 
-data Option = Option { checkDigest   :: Bool -- ^ true if we need verification.
+data Option = Option { checkChecksum :: Bool -- ^ true if we need verification.
                      , reportOkey    :: Bool -- ^ whether to print success
                      , reportFailure :: Bool -- ^ whether to print failure
                      , inputFiles    :: [FilePath]
@@ -76,36 +76,36 @@ data Option = Option { checkDigest   :: Bool -- ^ true if we need verification.
 
 --------------------- The checksum type ----------------------------------------
 
-data Checksum h  = Checksum {filePath :: FilePath, fileDigest  :: h}
+data Checksum h  = Checksum {filePath :: FilePath, fileChecksum  :: h}
 
 
 instance Show h => Show (Checksum h) where
-  show (Checksum{..}) = show fileDigest ++ "  " ++ filePath
+  show (Checksum{..}) = show fileChecksum ++ "  " ++ filePath
 
-parse :: Digest h => Algorithm h -> String -> Checksum h
+parse :: SupportedHash h => Algorithm h -> String -> Checksum h
 parse algo inp = Checksum { filePath   = drop 2 rest
-                          , fileDigest = parseDigest algo digest
+                          , fileChecksum = parseChecksum algo digest
                           }
-  where parseDigest    :: Digest h => Algorithm h -> String -> h
-        parseDigest _  = fromString
+  where parseChecksum    :: SupportedHash h => Algorithm h -> String -> h
+        parseChecksum _  = fromString
         (digest, rest) = break (==' ') inp -- break at the space.
 
 -- | Parse the lines into checksum.
-parseMany :: Digest h => Algorithm h -> String -> [Checksum h]
+parseMany :: SupportedHash h => Algorithm h -> String -> [Checksum h]
 parseMany algo = map (parse algo) . lines
 
 ---------- The main combinators that does the actual work -------------
 
 -- | The workhorse for this command.
-run :: Digest h => Algorithm h -> Option -> IO ()
+run :: SupportedHash h => Algorithm h -> Option -> IO ()
 run algo opt@(Option{..})
-  | checkDigest = runVerify algo opt
+  | checkChecksum = runVerify algo opt
   | otherwise   = runCompute algo inputFiles
 
 
 --------------------------- Compute mode ---------------------------------------
 
-runCompute :: Digest h
+runCompute :: SupportedHash h
            => Algorithm h    -- Algorithm to use
            -> [FilePath]     -- files for which checksums need to be computed.
            -> IO ()
@@ -117,7 +117,7 @@ runCompute algo files
 
 
 -- | Compute the checksum of a file.
-compute :: Digest h
+compute :: SupportedHash h
         => Algorithm h  -- ^ The hashing algorithm to use.
         -> FilePath     -- ^ The file to compute the token for.
         -> IO (Checksum h)
@@ -125,12 +125,12 @@ compute _ fp = Checksum fp <$> hashFile fp
 
 
 -- | Compute the checksum of standard input
-computeStdin :: Digest h => Algorithm h -> IO (Checksum h)
+computeStdin :: SupportedHash h => Algorithm h -> IO (Checksum h)
 computeStdin _ = Checksum "-" <$> hashSource stdin
 
 ----------------------------------- Verify Mode ---------------------------------------
 
-runVerify :: Digest h => Algorithm h -> Option -> IO ()
+runVerify :: SupportedHash h => Algorithm h -> Option -> IO ()
 runVerify algo opt@(Option{..}) = do
   nFails <- if null inputFiles then getContents >>= verifyLines
             else sum <$> mapM verifyFile inputFiles
@@ -142,19 +142,19 @@ runVerify algo opt@(Option{..}) = do
     verifyFile fp   = withFile fp ReadMode $ hGetContents  >=> verifyLines
 
 
-verify :: Digest h
+verify :: SupportedHash h
        => Option
        -> Checksum  h
        -> IO Bool
 verify (Option{..}) (Checksum{..}) = do
   digest <- hashFile filePath
-  let result = digest == fileDigest
+  let result = digest == fileChecksum
       okey   = when reportOkey    $ putStrLn $ filePath ++ ": OK"
       failed = when reportFailure $ putStrLn $ filePath ++ ": FAILED"
     in do if result then okey else failed
           return result
 
-verifyList :: Digest h
+verifyList :: SupportedHash h
            => Option
            -> [Checksum h]
            -> IO Int

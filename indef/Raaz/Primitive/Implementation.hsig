@@ -1,0 +1,68 @@
+{-# LANGUAGE ConstraintKinds             #-}
+{-# LANGUAGE DataKinds                   #-}
+{-# LANGUAGE KindSignatures              #-}
+{-# LANGUAGE MultiParamTypeClasses       #-}
+{-# LANGUAGE FlexibleInstances           #-}
+{-# LANGUAGE TypeFamilies                #-}
+
+-- | An implementation of a cryptographic primitive is a method to
+-- process data that is multiples of its block size. Fast
+-- implementations involve other details like the alignment
+-- restriction on the input buffer and all that. We package all this
+-- in the following signature.
+signature Raaz.Primitive.Implementation
+          (
+            Prim
+          , name
+          , description
+          , Internals
+          , BufferAlignment
+          , processBlocks
+          , processLast
+          , additionalBlocks
+          ) where
+
+import Raaz.Core
+import GHC.TypeLits
+
+-- | The primitive for which the implementation is given
+data Prim
+instance Primitive Prim
+
+
+-- | The internal memory used by the implementation.
+data Internals
+instance Memory Internals
+instance Key Prim ~ key => Initialisable Internals key
+instance Digest Prim ~ dgt => Extractable Internals dgt
+
+-- | Name of the implementation.
+name :: String
+
+-- | Description of the implementation.
+description :: String
+
+-- -- | The alignment requirements on the buffer.
+-- data BufferAlignment :: Nat
+-- instance KnownNat BufferAlignment
+
+-- | The buffer type for the primitve
+
+
+-- | The alignment required for buffer (hack around bug
+-- https://ghc.haskell.org/trac/ghc/ticket/15138)
+type BufferAlignment = 32
+
+-- | The additional space required in the buffer for processing the data.
+additionalBlocks :: BLOCKS Prim
+
+-- | The function that process bytes in multiples of the block size of
+-- the primitive.
+processBlocks :: AlignedPointer BufferAlignment
+              -> BLOCKS Prim
+              -> MT Internals ()
+
+-- | Process the last bytes of the stream.
+processLast :: AlignedPointer BufferAlignment
+            -> BYTES Int
+            -> MT Internals ()

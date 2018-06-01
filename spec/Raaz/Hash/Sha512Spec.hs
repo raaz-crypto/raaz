@@ -10,7 +10,6 @@ import           Prelude hiding (replicate)
 import           Common
 import qualified Common.Hash as CH
 
-
 hashesTo :: ByteString -> SHA512 -> Spec
 hashesTo = CH.hashesTo
 

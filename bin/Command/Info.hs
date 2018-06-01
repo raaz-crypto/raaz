@@ -32,11 +32,11 @@ information = subparser $ mempty
 
 
 field   :: String -> String -> IO ()
-field title value = putStrLn $ title ++ ": " ++ value
+field title v = putStrLn $ title ++ ": " ++ v
 section :: String -> [String] -> IO ()
-section title lines = do
+section title lns = do
   putStrLn $ title ++ ":"
-  mapM_ indent lines
+  mapM_ indent lns
   where indent = putStrLn . (++) "    "
 
 cpuCapabilities :: IO ()

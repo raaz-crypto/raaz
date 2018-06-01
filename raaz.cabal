@@ -1,3 +1,5 @@
+cabal-version: 2.2
+
 name:    raaz
 version: 0.3.0
 
@@ -11,14 +13,14 @@ description: Raaz is a cryptographic library for Haskell. The library
 
 homepage: https://github.com/raaz-crypto/raaz
 
-license:      BSD3
+license:      BSD-3-Clause
 license-file: LICENSE
 author:       Piyush P Kurur
 maintainer:   ppk@cse.iitk.ac.in
 
 category:      Codec, Raaz
 build-type:    Simple
-cabal-version: >=1.10
+
 
 extra-source-files: CHANGELOG.md
                   , README.md
@@ -36,6 +38,7 @@ extra-source-files: entropy/urandom/Raaz/Entropy.hs
                     -- makefile. Needs pandoc to build
                     mans/raaz.1.md
                     mans/Makefile
+
 source-repository head
   type: git
   location: https://github.com/raaz-crypto/raaz
@@ -68,134 +71,29 @@ flag linux-getrandom
      Default: True
      Manual: True
 
-flag liquidhaskell
-     Description: Use liquid haskell form verifying properties. Only for developers.
-     Default: False
-     Manual: True
+-- flag liquidhaskell
+--      Description: Use liquid haskell form verifying properties. Only for developers.
+--      Default: False
+--      Manual: True
 
------------------------------ The library -----------------------------------------------------
+---------------------------- The common clause ------------------------------------------------
 
-library
+common defaults
   default-language: Haskell2010
   ghc-options: -Wall
-  hs-source-dirs: .
-  exposed-modules: Raaz
-                 , Raaz.Core
-                 , Raaz.Core.ByteSource
-                 , Raaz.Core.CpuSupports
-               --  , Raaz.Core.DH
-                 , Raaz.Core.Encode
-                 , Raaz.Core.Memory
-                 , Raaz.Core.MonoidalAction
-                 , Raaz.Core.Parse.Applicative
-                 , Raaz.Core.Primitives
-                 , Raaz.Core.Types
-                 , Raaz.Core.Util
-                 , Raaz.Core.Transfer
-                 --
-                 -- Cryptographic hashes
-                 --
-                 , Raaz.Hash
-                 , Raaz.Hash.Internal
-                 , Raaz.Hash.Blake2
-                 , Raaz.Hash.Blake2.Implementation.CPortable
-                 , Raaz.Hash.Sha256
-                 , Raaz.Hash.Sha256.Implementation.CPortable
-                 , Raaz.Hash.Sha512
-                 , Raaz.Hash.Sha512.Implementation.CPortable
-                 --
-                 -- Ciphers
-                 --
-                 , Raaz.Cipher
-                 , Raaz.Cipher.Internal
-                 , Raaz.Cipher.ChaCha20
-                 , Raaz.Cipher.ChaCha20.Implementation.CPortable
-		 --
-		 -- Randomness
-		 --
-                 , Raaz.Random
-                 , Raaz.Random.Internal
-  other-modules: Raaz.Core.Constants
-               , Raaz.Core.Encode.Internal
-               , Raaz.Core.Encode.Base16
-               , Raaz.Core.Encode.Base64
-               , Raaz.Core.Proxy
-               , Raaz.Core.Util.ByteString
-               , Raaz.Core.Types.Aligned
-               , Raaz.Core.Types.Pointer
-               , Raaz.Core.Types.Tuple
-               , Raaz.Core.Types.Equality
-               , Raaz.Core.Types.Endian
-               , Raaz.Core.Types.Describe
-               , Raaz.Core.Types.Copying
-               --
-               -- Hashes
-               --
-               , Raaz.Hash.Blake2.Internal
-               , Raaz.Hash.Blake2.Recommendation
-               , Raaz.Hash.Sha.Util
-               , Raaz.Hash.Sha256.Recommendation
-               , Raaz.Hash.Sha256.Internal
-               , Raaz.Hash.Sha512.Recommendation
-               , Raaz.Hash.Sha512.Internal
-               --
-               -- Internal modules from cipher
-               --
-               , Raaz.Cipher.ChaCha20.Internal
-               , Raaz.Cipher.ChaCha20.Recommendation
-               --
-               -- Internal module for randomness
-               --
-               , Raaz.Random.ChaCha20PRG
-               , Raaz.Entropy
-               , Paths_raaz
-  build-depends: base                           >= 4.7  &&  < 4.12
-               , bytestring                     >= 0.9  &&  < 0.11
-               , deepseq                        >= 1.1  &&  < 1.5
-               , vector                         >= 0.7.1 && < 0.13
-  if impl(ghc < 8)
-    -- 'transformers' needed for "Control.Monad.IO.Class" only
-    -- starting with base-4.9 we don't need 'transformers' anymore
-    build-depends: transformers
+  build-depends: base                    >= 4.7  &&  < 4.12
+               , bytestring              >= 0.9  &&  < 0.11
+               , deepseq                 >= 1.1  &&  < 1.5
+               , vector                  >= 0.7.1 && < 0.13
+               , mtl
 
-  c-sources: cbits/raaz/core/endian.c
-           -- hash implementations
-           , cbits/raaz/hash/blake2/blake2b/portable.c
-           , cbits/raaz/hash/blake2/blake2s/portable.c
-           , cbits/raaz/hash/sha1/portable.c
-           , cbits/raaz/hash/sha256/portable.c
-           , cbits/raaz/hash/sha512/portable.c
-           -- ciphers
-           , cbits/raaz/cipher/aes/common.c
-           , cbits/raaz/cipher/aes/cportable.c
-           -- chacha20
-           , cbits/raaz/cipher/chacha20/cportable.c
-           -- memory management
-           , cbits/raaz/core/memory.c
-           -- cpu support
-           , cbits/raaz/core/cpusupports.c
-  include-dirs: cbits
-  includes: raaz/core/endian.h
-  install-includes: cbits/raaz/core/endian.h
-                  , cbits/raaz/hash/blake2/common.h
-                  , cbits/raaz/hash/blake2/blake2b/constants.h
-                  , cbits/raaz/hash/blake2/blake2s/constants.h
-                  , cbits/raaz/cipher/aes/common.h
-                  , cbits/raaz/cipher/aes/cportable.h
-                  , cbits/raaz/cipher/chacha20/common.h
-
-  --------------------------- Options for vector instructions ---------------------------------
   if flag(native)
     cc-options: -march=native
-
-  if arch(x86_64)
-    cc-options: -DARCH_X86_64
 
   if flag(avx2)
     cc-options: -mavx2
 
   ----------------------- System specific configurations ----------------------------------
-
 
   if os(linux)
      cc-options: -DPLATFORM_LINUX
@@ -209,57 +107,159 @@ library
      extra-libraries: Advapi32, Kernel32
      build-tools: hsc2hs
 
+----------------------------- The core library ------------------------------------------------
+library raaz-core
+  import: defaults
+  hs-source-dirs: core
+  exposed-modules: Raaz.Core
+                 , Raaz.Core.ByteSource
+                 , Raaz.Core.CpuSupports
+                 , Raaz.Core.Encode
+                 , Raaz.Core.Memory
+                 , Raaz.Core.MonoidalAction
+                 , Raaz.Core.Parse.Applicative
+                 , Raaz.Core.Primitive
+                 , Raaz.Core.Proxy
+                 , Raaz.Core.Types
+                 , Raaz.Core.Util
+                 , Raaz.Core.Transfer
+                 , Raaz.Primitive.HashMemory
+                 , Raaz.Primitive.Blake2.Internal
+                 , Raaz.Primitive.Sha256.Internal
+                 , Raaz.Primitive.Sha512.Internal
+                 , Raaz.Primitive.ChaCha20.Internal
+
+  other-modules: Raaz.Core.Constants
+               , Raaz.Core.Encode.Internal
+               , Raaz.Core.Encode.Base16
+               , Raaz.Core.Encode.Base64
+               , Raaz.Core.IOCont
+               , Raaz.Core.Util.ByteString
+               , Raaz.Core.Types.Aligned
+               , Raaz.Core.Types.Pointer
+               , Raaz.Core.Types.Tuple
+               , Raaz.Core.Types.Equality
+               , Raaz.Core.Types.Endian
+               , Raaz.Core.Types.Copying
+  c-sources: core/cbits/raaz/core/endian.c
+           , core/cbits/raaz/core/memory.c
+           , core/cbits/raaz/core/cpusupports.c
+  include-dirs: core/cbits
+  includes: raaz/core/endian.h
+  install-includes: core/cbits/raaz/core/endian.h
+
+
+-------------------------- The indef form of raaz ---------------------------------------------
+
+library raaz-indef
+  import: defaults
+  build-depends: raaz-core
+  hs-source-dirs: indef
+  signatures: Raaz.Primitive.Implementation
+  exposed-modules: Raaz.Primitive.Util
+
+
+------------------------- The implementation packages -----------------------------------------
+library raaz-implementation
+  import: defaults
+  build-depends: raaz-core
+  hs-source-dirs: implementation
+  exposed-modules: Raaz.Primitive.Blake2b.CPortable
+                 , Raaz.Primitive.Blake2s.CPortable
+                 , Raaz.Primitive.Sha256.CPortable
+                 , Raaz.Primitive.Sha512.CPortable
+                 , Raaz.Primitive.ChaCha20.CPortable
+
+  c-sources: implementation/cbits/raaz/hash/blake2/blake2b/portable.c
+           , implementation/cbits/raaz/hash/blake2/blake2s/portable.c
+           , implementation/cbits/raaz/hash/sha1/portable.c
+           , implementation/cbits/raaz/hash/sha256/portable.c
+           , implementation/cbits/raaz/hash/sha512/portable.c
+           , implementation/cbits/raaz/cipher/chacha20/cportable.c
+  include-dirs: implementation/cbits/
+  includes: implementation/cbits/raaz/hash/blake2/common.h
+          , implementation/cbits/raaz/hash/blake2/blake2b/constants.h
+          , implementation/cbits/raaz/hash/blake2/blake2s/constants.h
+
+
+----------------------------- The library -----------------------------------------------------
+
+library
+  import: defaults
+  hs-source-dirs: src
+  build-depends: raaz-indef
+               , raaz-implementation
+               , raaz-core
+  exposed-modules: Raaz
+                 , Raaz.Hash
+                 , Raaz.Cipher
+                 , Raaz.Random
+                 , Raaz.Random.Internal
+  other-modules: Raaz.Entropy
+               , Raaz.Random.ChaCha20PRG
+               , Paths_raaz
+  autogen-modules: Paths_raaz
+  reexported-modules: Raaz.Core
+                    , Raaz.Core.CpuSupports
+                    , Raaz.Primitive.Blake2.Internal
+                    , Raaz.Primitive.Sha256.Internal
+                    , Raaz.Primitive.Sha512.Internal
+                    , Raaz.Primitive.ChaCha20.Internal
+  mixins: raaz-indef (Raaz.Primitive.Util as Raaz.Hash.Blake2b.Util)
+             requires   (Raaz.Primitive.Implementation as Raaz.Primitive.Blake2b.CPortable)
+        , raaz-indef (Raaz.Primitive.Util as Raaz.Hash.Blake2s.Util)
+             requires   (Raaz.Primitive.Implementation as Raaz.Primitive.Blake2s.CPortable)
+        , raaz-indef (Raaz.Primitive.Util as Raaz.Hash.Sha256.Util)
+             requires   (Raaz.Primitive.Implementation as Raaz.Primitive.Sha256.CPortable)
+        , raaz-indef (Raaz.Primitive.Util as Raaz.Hash.Sha512.Util)
+             requires   (Raaz.Primitive.Implementation as Raaz.Primitive.Sha512.CPortable)
+        , raaz-indef (Raaz.Primitive.Util as Raaz.Cipher.ChaCha20.Util)
+             requires   (Raaz.Primitive.Implementation as Raaz.Primitive.ChaCha20.CPortable)
+
+
   --------------------- Entropy ----------------------------------------------
 
-  if os(openbsd) || os(netbsd)
-    -- Entropy for openbsd using arc4random
-    hs-source-dirs: entropy/arc4random
-  else
-    if os(linux)
-      if flag(linux-getrandom)
-        -- Use getentropy on linux
-        hs-source-dirs: entropy/getrandom
-      else
-        hs-source-dirs: entropy/urandom
-    else
-      if os(windows)
-        -- Use CryptGenRandom
-        hs-source-dirs: entropy/windows
-      else
-        -- Entropy for generic posix by reading /dev/urandom
-        hs-source-dirs: entropy/urandom
-
+  if  os(windows)                         { hs-source-dirs: entropy/windows    }
+  elif os(openbsd) || os(netbsd)          { hs-source-dirs: entropy/arc4random }
+  elif os(linux) && flag(linux-getrandom) { hs-source-dirs: entropy/getrandom  }
+  else                                    { hs-source-dirs: entropy/urandom    }
 
 ---------------------------- Executables -------------------------------------------------
 
 executable raaz
-  default-language: Haskell2010
+  import: defaults
   hs-source-dirs: bin
   main-is: Main.hs
   other-modules: Command.Checksum
                , Command.Rand
                , Command.Info
                , Usage
-  build-depends: base
-               , optparse-applicative >= 0.10.0
+  build-depends: optparse-applicative >= 0.10.0
                , raaz
   if impl(ghc < 8)
     -- 'transformers' needed for "Control.Monad.IO.Class" only
     -- starting with base-4.9 we don't need 'transformers' anymore
     build-depends: transformers
 
----------------------------- Test suit -----------------------------------------------------
+-- ---------------------------- Test suit -----------------------------------------------------
 
-test-Suite spec
-  default-language: Haskell2010
+test-suite spec
+  import: defaults
   type: exitcode-stdio-1.0
   hs-source-dirs: spec
   main-is: Spec.hs
 
-  if !os(windows)
-     cpp-options: -DHAVE_DEV_NULL
+  build-depends: raaz
+  build-depends: HUnit                          >= 1.2
+               , QuickCheck                     >= 2.4
+               , hspec
+               , hspec-discover
+               , transformers
+               , vector
 
-  ghc-options: -Wall
+  build-tool-depends: hspec-discover:hspec-discover
+  if !os(windows)
+    cpp-options: -DHAVE_DEV_NULL
 
   other-modules: Common
                , Common.Cipher
@@ -278,60 +278,47 @@ test-Suite spec
                , Raaz.Hash.Sha512Spec
                , Raaz.Hash.Blake2Spec
 
-  build-tool-depends: hspec-discover:hspec-discover
-  build-depends: base
-               , bytestring
-               , HUnit                          >= 1.2
-               , QuickCheck                     >= 2.4
-               , hspec
-               , hspec-discover
-               , transformers
-               , raaz
-               , vector
 
--------------------------- Liquid haskell verification -------------------------------------
+-- -------------------------- Liquid haskell verification -------------------------------------
 
-test-Suite liquidspec
-  hs-source-dirs: liquid
-  default-language: Haskell2010
-  main-is: LiquidSpec.hs
-  type: exitcode-stdio-1.0
-  build-depends: base
+-- test-Suite liquidspec
+-- import: defaults
+--   hs-source-dirs: liquid
+--   main-is: LiquidSpec.hs
+--   type: exitcode-stdio-1.0
+
+--   if flag(liquidhaskell)
+--     build-depends: liquidhaskell                >=0.8
+--                  , directory
+--                  , filepath
+--     buildable: True
+--   else
+--     buildable: False
 
 
-  if flag(liquidhaskell)
-    build-depends: liquidhaskell                >=0.8
-                 , directory
-                 , filepath
-    buildable: True
-  else
-    buildable: False
+-- ---------------------------------------------- Cipher implemntation benchmarks ----------------------
 
+-- benchmark bench-ciphers
+--   import: defaults
 
----------------------------------------------- Cipher implemntation benchmarks ----------------------
+--   hs-source-dirs: benchmarks
 
-benchmark bench-ciphers
-  hs-source-dirs: benchmarks
-  default-language: Haskell2010
+--   main-is: Cipher.hs
+--   type: exitcode-stdio-1.0
+--   build-depends: blaze-builder
+--                , bytestring
+--                , criterion >= 1.0
+--                , raaz
 
-  main-is: Cipher.hs
-  type: exitcode-stdio-1.0
-  build-depends: base
-               , blaze-builder
-               , bytestring
-               , criterion >= 1.0
-               , raaz
+-- -------------------------------- Benchmarking all primitives --------------------------------
 
--------------------------------- Benchmarking all primitives --------------------------------
+-- benchmark primitives
+--   import: defaults
+--   hs-source-dirs: benchmarks
 
-benchmark primitives
-  hs-source-dirs: benchmarks
-  default-language: Haskell2010
-
-  main-is: BenchPrimitives.hs
-  type: exitcode-stdio-1.0
-  build-depends: base
-               , bytestring
-               , criterion >= 1.0
-               , pretty
-               , raaz
+--   main-is: BenchPrimitives.hs
+--   type: exitcode-stdio-1.0
+--   build-depends: bytestring
+--                , criterion >= 1.0
+--                , pretty
+--                , raaz

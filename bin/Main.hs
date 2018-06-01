@@ -4,8 +4,8 @@
 --
 
 
-import Data.Version          (showVersion)
 import Data.Monoid
+import Data.Version          (showVersion)
 import Options.Applicative
 import Raaz                  (version)
 
