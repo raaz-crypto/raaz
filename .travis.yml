@@ -39,17 +39,17 @@ matrix:
     - os: osx
 
     - os: linux
-      env: GHCVER=8.2.2 CABALVER=2.0
-      addons: {apt: {packages: [cabal-install-2.0 ,ghc-8.2.2], sources: [hvr-ghc]}}
+      env: GHCVER=8.2.2 CABALVER=2.2
+      addons: {apt: {packages: [cabal-install-2.2 ,ghc-8.2.2], sources: [hvr-ghc]}}
 
     # Build with stack package sets
     - os: linux
-      env: GHCVER=8.2.2 CABALVER=2.0 STACKVER=lts
-      addons: {apt: {packages: [cabal-install-2.0 ,ghc-8.2.2], sources: [hvr-ghc]}}
+      env: GHCVER=8.2.2 CABALVER=2.2 STACKVER=lts
+      addons: {apt: {packages: [cabal-install-2.2 ,ghc-8.2.2], sources: [hvr-ghc]}}
 
     - os: linux
-      env: GHCVER=8.4.1 CABALVER=2.0 STACKVER=nightly
-      addons: {apt: {packages: [cabal-install-2.0 ,ghc-8.4.1], sources: [hvr-ghc]}}
+      env: GHCVER=8.4.1 CABALVER=2.2 STACKVER=nightly
+      addons: {apt: {packages: [cabal-install-2.2 ,ghc-8.4.1], sources: [hvr-ghc]}}
 
     # Build for the GHC head and cabal-install-head
     - os: linux
