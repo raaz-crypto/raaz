@@ -13,6 +13,7 @@ module Raaz.Primitive.Sha256.CPortable
 
 import Foreign.Ptr                ( Ptr          )
 import Control.Monad.IO.Class     ( liftIO       )
+import Data.Monoid
 import Data.Bits
 import Data.Word
 import Data.Proxy

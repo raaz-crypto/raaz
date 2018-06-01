@@ -11,6 +11,7 @@ module Raaz.Primitive.Util
 import Control.Monad.IO.Class          (liftIO)
 import Data.ByteString          as B
 import Data.ByteString.Internal as IB
+import Data.Monoid
 import Foreign.Ptr                     (castPtr)
 import System.IO.Unsafe                (unsafePerformIO)
 import GHC.TypeLits   (KnownNat)

@@ -7,6 +7,7 @@ module Raaz.Random.ChaCha20PRG
 import Control.Applicative
 import Control.Monad
 import Control.Monad.Reader   ( ask, withReaderT )
+import Data.Monoid
 import Data.Proxy             ( Proxy(..)        )
 import Foreign.Ptr            ( castPtr          )
 import Prelude

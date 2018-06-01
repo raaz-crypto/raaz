@@ -11,6 +11,7 @@ module Command.Rand ( rand ) where
 import Control.Applicative
 import Control.Monad         ( void )
 import Control.Monad.IO.Class(liftIO)
+import Data.Monoid
 import Options.Applicative
 import Raaz
 import Raaz.Random.Internal

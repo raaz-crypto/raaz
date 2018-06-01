@@ -7,6 +7,7 @@ module Raaz.Primitive.Blake2b.CPortable where
 
 import Foreign.Ptr                ( Ptr          )
 import Control.Monad.IO.Class     ( liftIO       )
+import Data.Monoid
 import Data.Word
 import Data.Proxy
 import Data.Bits                  ( complement   )
