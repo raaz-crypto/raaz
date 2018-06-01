@@ -135,7 +135,6 @@ library raaz-core
                , Raaz.Core.Encode.Base64
                , Raaz.Core.IOCont
                , Raaz.Core.Util.ByteString
-               , Raaz.Core.Types.Aligned
                , Raaz.Core.Types.Pointer
                , Raaz.Core.Types.Tuple
                , Raaz.Core.Types.Equality
