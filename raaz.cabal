@@ -92,6 +92,20 @@ common defaults
   if flag(avx2)
     cc-options: -mavx2
 
+  ----------------------- System specific configurations ----------------------------------
+
+  if os(linux)
+     cc-options: -DPLATFORM_LINUX
+  if os(osx)
+     cc-options: -DPLATFORM_OSX
+  if os(openbsd)
+     cc-options: -DPLATFORM_OPENBSD
+  if os(windows)
+     cc-options: -DPLATFORM_WINDOWS -DUNICODE
+     cpp-options: -DPLATFORM_WINDOWS
+     extra-libraries: Advapi32, Kernel32
+     build-tools: hsc2hs
+
 ----------------------------- The core library ------------------------------------------------
 library raaz-core
   import: defaults
@@ -200,20 +214,6 @@ library
         , raaz-indef (Raaz.Primitive.Util as Raaz.Cipher.ChaCha20.Util)
              requires   (Raaz.Primitive.Implementation as Raaz.Primitive.ChaCha20.CPortable)
 
-               -- ----------------------- System specific configurations ----------------------------------
-
-
-  if os(linux)
-     cc-options: -DPLATFORM_LINUX
-  if os(osx)
-     cc-options: -DPLATFORM_OSX
-  if os(openbsd)
-     cc-options: -DPLATFORM_OPENBSD
-  if os(windows)
-     cc-options: -DPLATFORM_WINDOWS -DUNICODE
-     cpp-options: -DPLATFORM_WINDOWS
-     extra-libraries: Advapi32, Kernel32
-     build-tools: hsc2hs
 
   --------------------- Entropy ----------------------------------------------
 
