@@ -197,6 +197,7 @@ library
   other-modules: Raaz.Entropy
                , Raaz.Random.ChaCha20PRG
                , Paths_raaz
+  autogen-modules: Paths_raaz
   reexported-modules: Raaz.Core
                     , Raaz.Core.CpuSupports
                     , Raaz.Primitive.Blake2.Internal
