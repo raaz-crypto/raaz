@@ -17,6 +17,7 @@ module Raaz.Hash
          -- $encoding$
          --
          Hash, hash, hashFile, hashSource
+       , BLAKE2b, BLAKE2s, SHA512, SHA256
          -- * Exposing individual hashes.
          -- $individualHashes$
 
