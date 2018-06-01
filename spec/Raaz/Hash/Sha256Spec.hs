@@ -9,7 +9,6 @@ import           Prelude hiding (replicate)
 
 import           Common
 import qualified Common.Hash as CH
-import           Raaz.Primitive.Sha256.Internal
 
 hashesTo :: ByteString -> SHA256 -> Spec
 hashesTo = CH.hashesTo
