@@ -85,7 +85,7 @@ import qualified Raaz.Hash.Sha512.Util          as Sha512U
 
 
 -- | The class that captures all cryptographic hashes.
-class (Primitive h, Key h ~ (), Digest h ~ h) => Hash h where
+class (Primitive h, Key h ~ (), Digest h ~ h, Equality h, Eq h) => Hash h where
   hashSource :: ByteSource src => src -> IO h
 
 

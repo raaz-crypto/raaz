@@ -64,7 +64,7 @@ mkCmd algo = command cmd inf
 
 
 -- | This constraint class consolidates the constraints on the checksum algorithms.
-type SupportedHash h = (Hash h, Eq h, Show h, IsString h)
+type SupportedHash h = (Hash h, Show h, IsString h)
 
 
 
