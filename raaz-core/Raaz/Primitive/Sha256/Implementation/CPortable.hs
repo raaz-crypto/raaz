@@ -2,8 +2,8 @@
 {-# LANGUAGE KindSignatures             #-}
 {-# LANGUAGE DataKinds                  #-}
 
--- | The portable C-implementation of SHA512.
-module Raaz.Primitive.Sha512.CPortable
+-- | The portable C-implementation of SHA256.
+module Raaz.Primitive.Sha256.Implementation.CPortable
        ( name, description
        , Prim, Internals, BufferAlignment
        , additionalBlocks
@@ -20,67 +20,63 @@ import Data.Proxy
 
 import Raaz.Core
 import Raaz.Primitive.HashMemory
-import Raaz.Primitive.Sha512.Internal
+import Raaz.Primitive.Sha256.Internal
 
 
 name :: String
-name = "sha512-cportable"
+name = "sha256-cportable"
 
 description :: String
-description = "SHA512 Implementation using portable C and Haskell FFI"
+description = "SHA256 Implementation using portable C and Haskell FFI"
 
-type Prim                    = SHA512
-type Internals               = Sha512Mem
+type Prim                    = SHA256
+type Internals               = Sha256Mem
 type BufferAlignment         = 32
 
 
-additionalBlocks :: BLOCKS SHA512
+additionalBlocks :: BLOCKS SHA256
 additionalBlocks = blocksOf 1 Proxy
 
 ------------------------ The foreign function calls  ---------------------
 
 foreign import ccall unsafe
-  "raaz/hash/sha512/portable.h raazHashSha512PortableCompress"
-  c_sha512_compress  :: Pointer -> Int -> Ptr SHA512 -> IO ()
+  "raaz/hash/sha256/portable.h raazHashSha256PortableCompress"
+  c_sha256_compress  :: Pointer -> Int -> Ptr SHA256 -> IO ()
 
 
 compressBlocks :: AlignedPointer BufferAlignment
-               -> BLOCKS SHA512
+               -> BLOCKS SHA256
                -> MT Internals ()
-compressBlocks buf blks =  hashCell128Pointer
-                           >>= liftIO . c_sha512_compress (forgetAlignment buf) (fromEnum blks)
+compressBlocks buf blks =  hashCellPointer >>= liftIO . c_sha256_compress (forgetAlignment buf) (fromEnum blks)
 
 
 processBlocks :: AlignedPointer BufferAlignment
-              -> BLOCKS SHA512
+              -> BLOCKS SHA256
               -> MT Internals ()
-processBlocks buf blks = compressBlocks buf blks >> updateLength128 blks
+processBlocks buf blks = compressBlocks buf blks >> updateLength blks
 
 
 
 -- | Padding is message followed by a single bit 1 and a glue of zeros
 -- followed by the length so that the message is aligned to the block boundary.
 padding :: BYTES Int    -- Data in buffer.
-        -> BYTES Word64 -- Message length higher
-        -> BYTES Word64 -- Message length lower
+        -> BYTES Word64 -- Message length
         -> WriteM (MT Internals)
-padding bufSize uLen lLen  = glueWrites 0 boundary hdr lengthWrite
+padding bufSize msgLen  = glueWrites 0 boundary hdr lengthWrite
   where skipMessage = skipWrite bufSize
         oneBit      = writeStorable (0x80 :: Word8)
         hdr         = skipMessage <> oneBit
-        boundary    = blocksOf 1 (Proxy :: Proxy SHA512)
-        lengthWrite = write (bigEndian up) <> write (bigEndian lp)
-        BYTES up    = shiftL uLen 3 .|. shiftR lLen 61
-        BYTES lp    = shiftL lLen 3
+        boundary    = blocksOf 1 (Proxy :: Proxy SHA256)
+        lengthWrite = write $ bigEndian (shiftL w 3)
+        BYTES w     = msgLen
 
 -- | Process the last bytes.
 processLast :: AlignedPointer BufferAlignment
             -> BYTES Int
             -> MT Internals ()
 processLast buf nbytes  = do
-  updateLength128 nbytes
-  uLen  <- getULength
-  lLen  <- getLLength
-  let pad      = padding nbytes uLen lLen
+  updateLength nbytes
+  totalBytes  <- getLength
+  let pad      = padding nbytes totalBytes
       blocks   = atMost $ bytesToWrite pad
       in unsafeWrite pad (forgetAlignment buf) >> compressBlocks buf blocks
