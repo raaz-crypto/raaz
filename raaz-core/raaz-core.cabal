@@ -101,9 +101,6 @@ common defaults
 library
   import: defaults
   hs-source-dirs: .
-  
-  signatures: Raaz.Primitive.Implementation
-  
   exposed-modules: Raaz.Core
                  , Raaz.Core.ByteSource
                  , Raaz.Core.CpuSupports
@@ -122,7 +119,6 @@ library
                  , Raaz.Primitive.Sha256.Internal
                  , Raaz.Primitive.Sha512.Internal
                  , Raaz.Primitive.ChaCha20.Internal
-                 , Raaz.Primitive.Util
 
   other-modules: Raaz.Core.Constants
                , Raaz.Core.Encode.Internal
