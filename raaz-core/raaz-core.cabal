@@ -101,6 +101,7 @@ common defaults
 library
   import: defaults
   hs-source-dirs: .
+  
   signatures: Raaz.Primitive.Implementation
   
   exposed-modules: Raaz.Core
@@ -115,6 +116,7 @@ library
                  , Raaz.Core.Types
                  , Raaz.Core.Util
                  , Raaz.Core.Transfer
+                 , Raaz.Entropy
                  , Raaz.Primitive.HashMemory
                  , Raaz.Primitive.Blake2.Internal
                  , Raaz.Primitive.Sha256.Internal
@@ -139,7 +141,9 @@ library
   include-dirs: cbits
   includes: raaz/core/endian.h
   install-includes: cbits/raaz/core/endian.h
-  hs-source-dirs: implementation
+
+  --------------------- Implementations ------------------------------
+  
   exposed-modules: Raaz.Primitive.Blake2b.Implementation.CPortable
                  , Raaz.Primitive.Blake2s.Implementation.CPortable
                  , Raaz.Primitive.Sha256.Implementation.CPortable
@@ -157,3 +161,9 @@ library
           , implementation/cbits/raaz/hash/blake2/blake2b/constants.h
           , implementation/cbits/raaz/hash/blake2/blake2s/constants.h
 
+  --------------------- Entropy ----------------------------------------------
+
+  if  os(windows)                         { hs-source-dirs: entropy/windows    }
+  elif os(openbsd) || os(netbsd)          { hs-source-dirs: entropy/arc4random }
+  elif os(linux) && flag(linux-getrandom) { hs-source-dirs: entropy/getrandom  }
+  else                                    { hs-source-dirs: entropy/urandom    }
