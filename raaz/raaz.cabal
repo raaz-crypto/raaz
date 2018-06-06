@@ -35,37 +35,6 @@ source-repository head
 
 ------------------------- Flags -------------------------------------------------------------
 
-flag native
-
-     Description: Compile for native architecture. Often this enables
-       a lot of platform specific optimisation which lead to better
-       performance. Do not enable this when packaging though. Also
-       tested only with gcc
-
-     Default: False
-     Manual: True
-
-flag avx2
-
-     Description: Support avx2 optimisations. Warning: enable only if
-       you are sure of support.
-
-     Default: False
-     Manual: True
-
-flag linux-getrandom
-
-     Description: Use the getrandom for system entropy instead of
-       /dev/urandom. Enabled by default but disable this for kernel < 3.17.
-
-     Default: True
-     Manual: True
-
--- flag liquidhaskell
---      Description: Use liquid haskell form verifying properties. Only for developers.
---      Default: False
---      Manual: True
-
 ---------------------------- The common clause ------------------------------------------------
 
 common defaults
@@ -76,12 +45,6 @@ common defaults
                , deepseq                 >= 1.1  &&  < 1.5
                , vector                  >= 0.7.1 && < 0.13
                , mtl
-
-  if flag(native)
-    cc-options: -march=native
-
-  if flag(avx2)
-    cc-options: -mavx2
 
   ----------------------- System specific configurations ----------------------------------
 
@@ -101,7 +64,8 @@ common defaults
 library
   import: defaults
   hs-source-dirs: .
-  build-depends: raaz-core >= 0.3  && < 0.4
+  build-depends: raaz-core                 >= 0.3 && < 0.4
+               , raaz-implementation       >= 0.3 && < 0.4
                , raaz-implementation-indef >= 0.3 && < 0.4
   exposed-modules: Raaz
                  , Raaz.Hash
