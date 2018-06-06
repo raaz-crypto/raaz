@@ -53,12 +53,6 @@ common defaults
                , vector                  >= 0.7.1 && < 0.13
                , mtl
 
-  if flag(native)
-    cc-options: -march=native
-
-  if flag(avx2)
-    cc-options: -mavx2
-
   ----------------------- System specific configurations ----------------------------------
 
   if os(linux)
