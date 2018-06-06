@@ -87,9 +87,9 @@ install:
 
 script:
   - cabal new-configure --flag='-linux-getrandom' --enable-tests  --enable-documentation
-  - cabal new-build
-  - cabal new-test
-  - cabal check
+  - cabal new-build all
+  - cabal new-test all
+  - cabal check all
   - $(find ./dist-newstyle -name raaz -type f) info
 after_success:
   - echo "All is well."
