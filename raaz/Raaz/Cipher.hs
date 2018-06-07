@@ -31,6 +31,7 @@ import qualified Raaz.Cipher.ChaCha20.Util as ChaCha20U
 --
 -- TODO: Fix the above documentation when it is done.
 
+-- | Primitives that are stream ciphers.
 class (Primitive c, Digest c ~ ()) => StreamCipher c where
   transform :: Proxy c -> Key c -> ByteString -> ByteString
 
