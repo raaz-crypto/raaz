@@ -50,14 +50,6 @@ flag avx2
      Default: False
      Manual: True
 
-flag linux-getrandom
-
-     Description: Use the getrandom for system entropy instead of
-       /dev/urandom. Enabled by default but disable this for kernel < 3.17.
-
-     Default: True
-     Manual: True
-
 ---------------------------- The common clause ------------------------------------------------
 
 common defaults

@@ -33,8 +33,6 @@ source-repository head
   type: git
   location: https://github.com/raaz-crypto/raaz
 
-------------------------- Flags -------------------------------------------------------------
-
 ---------------------------- The common clause ------------------------------------------------
 
 common defaults
