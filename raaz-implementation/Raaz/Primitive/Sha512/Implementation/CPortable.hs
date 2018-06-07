@@ -13,7 +13,6 @@ module Raaz.Primitive.Sha512.Implementation.CPortable
 
 import Foreign.Ptr                ( Ptr          )
 import Control.Monad.IO.Class     ( liftIO       )
-import Data.Monoid
 import Data.Bits
 import Data.Word
 import Data.Proxy
@@ -67,9 +66,9 @@ padding :: BYTES Int    -- Data in buffer.
 padding bufSize uLen lLen  = glueWrites 0 boundary hdr lengthWrite
   where skipMessage = skipWrite bufSize
         oneBit      = writeStorable (0x80 :: Word8)
-        hdr         = skipMessage <> oneBit
+        hdr         = skipMessage `mappend` oneBit
         boundary    = blocksOf 1 (Proxy :: Proxy SHA512)
-        lengthWrite = write (bigEndian up) <> write (bigEndian lp)
+        lengthWrite = write (bigEndian up) `mappend` write (bigEndian lp)
         BYTES up    = shiftL uLen 3 .|. shiftR lLen 61
         BYTES lp    = shiftL lLen 3
 

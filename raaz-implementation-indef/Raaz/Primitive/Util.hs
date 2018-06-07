@@ -11,7 +11,6 @@ module Raaz.Primitive.Util
 import Control.Monad.IO.Class          (liftIO)
 import Data.ByteString          as B
 import Data.ByteString.Internal as IB
-import Data.Monoid
 import Foreign.Ptr                     (castPtr)
 import System.IO.Unsafe                (unsafePerformIO)
 import GHC.TypeLits   (KnownNat)
@@ -30,7 +29,7 @@ allocBufferFor :: (KnownNat BufferAlignment, MonadIOCont m)
                => BLOCKS Prim
                -> (BufferPtr  -> m a) -> m a
 allocBufferFor blks = allocaAligned totalSize
-  where totalSize = blks <> additionalBlocks
+  where totalSize = blks `mappend` additionalBlocks
 
 -- | Process a byte source.
 processByteSource :: (KnownNat BufferAlignment, ByteSource src) => src -> MT Internals ()
@@ -57,7 +56,7 @@ transformAndDigest key bs = unsafePerformIO $ insecurely go
         --
         -- Buffer size is at least the size of the input.
         --
-        bufSz           = atLeast strSz <> additionalBlocks
+        bufSz           = atLeast strSz `mappend` additionalBlocks
         go :: MT Internals (B.ByteString, Digest Prim)
         --
         -- Where the action happens.

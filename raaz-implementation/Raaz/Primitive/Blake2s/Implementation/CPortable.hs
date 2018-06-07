@@ -7,7 +7,6 @@ module Raaz.Primitive.Blake2s.Implementation.CPortable where
 
 import Foreign.Ptr                ( Ptr          )
 import Control.Monad.IO.Class     ( liftIO       )
-import Data.Monoid
 import Data.Word
 import Data.Proxy
 import Data.Bits                  ( complement   )
@@ -77,8 +76,10 @@ processLast buf nbytes  = do
   liftIO $ c_blake2s_last lastBlockPtr remBytes l f0 f1 hshPtr
 
   where padding      = blake2Pad (Proxy :: Proxy Prim) nbytes
-        nBlocks      = atMost (bytesToWrite padding) <> toEnum (-1) -- all but the last block
-        remBytes     = nbytes - inBytes nBlocks                     -- Actual bytes in the last block.
+        nBlocks      = atMost (bytesToWrite padding) `mappend` toEnum (-1)
+                       -- all but the last block
+        remBytes     = nbytes - inBytes nBlocks
+                       -- Actual bytes in the last block.
         lastBlockPtr = forgetAlignment buf `movePtr` nBlocks
         --
         -- Finalisation FLAGS

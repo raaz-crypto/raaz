@@ -13,7 +13,6 @@ module Raaz.Primitive.Sha256.Implementation.CPortable
 
 import Foreign.Ptr                ( Ptr          )
 import Control.Monad.IO.Class     ( liftIO       )
-import Data.Monoid
 import Data.Bits
 import Data.Word
 import Data.Proxy
@@ -65,7 +64,7 @@ padding :: BYTES Int    -- Data in buffer.
 padding bufSize msgLen  = glueWrites 0 boundary hdr lengthWrite
   where skipMessage = skipWrite bufSize
         oneBit      = writeStorable (0x80 :: Word8)
-        hdr         = skipMessage <> oneBit
+        hdr         = skipMessage `mappend` oneBit
         boundary    = blocksOf 1 (Proxy :: Proxy SHA256)
         lengthWrite = write $ bigEndian (shiftL w 3)
         BYTES w     = msgLen
