@@ -96,7 +96,7 @@ executable raaz
                , Command.Rand
                , Command.Info
                , Usage
-  build-depends: optparse-applicative >= 0.10.0
+  build-depends: optparse-applicative >= 0.13.0.0
                , raaz-core
                , raaz
   if impl(ghc < 8)

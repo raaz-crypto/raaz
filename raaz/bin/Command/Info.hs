@@ -1,7 +1,5 @@
-{-# LANGUAGE CPP #-}
 module Command.Info where
 
-import Data.Monoid
 import Data.Version (showVersion)
 import Options.Applicative
 import Raaz
@@ -11,16 +9,16 @@ import Raaz.Random.Internal
 
 information :: Parser (IO ())
 
-#if MIN_VERSION_optparse_applicative(0,13,0)
-information = subparser $ commandGroup "Information"
-#else
-information = subparser $ mempty
-#endif
-   <> metavar "INFORMATION"
-   <> infoCmd
-  where infoCmd = command "info" $ info (helper <*> opts) $ fullDesc
-                     <> header "raaz info - Print the library information"
-                     <> progDesc "prints information about raaz library."
+information = subparser $ mconcat [ commandGroup "Information"
+                                  , metavar "INFORMATION"
+                                  , infoCmd
+                                  ]
+              
+  where infoCmd = command "info" $ info (helper <*> opts)
+                  $ mconcat [ fullDesc
+                            , header "raaz info - Print the library information"
+                            , progDesc "prints information about raaz library."
+                            ]
 
         opts = pure $ sequence_ [ field "Library Version" $ showVersion version
                                 , field "Entropy" entropySource

@@ -3,8 +3,6 @@
 -- The main function that drives other commands.
 --
 
-
-import Data.Monoid
 import Data.Version          (showVersion)
 import Options.Applicative
 import Raaz                  (version)
@@ -23,9 +21,10 @@ progOption = flag ShowVersion ShowVersion versionMods
              <|> RunCommand <$> checksum
              <|> RunCommand <$> information
 
-  where versionMods = short 'v'
-                      <> long "version"
-                      <> help "Print the version of the raaz library used"
+  where versionMods = mconcat [ short 'v'
+                              , long "version"
+                              , help "Print the version of the raaz library used"
+                              ]
 
 ---------------------- The main function and stuff ------------------------------
 run :: Option -> IO ()
@@ -35,7 +34,8 @@ run (RunCommand cmd) = cmd
 
 main :: IO ()
 main = execParser opts >>= run
-  where opts = info (helper <*> progOption) $
-               fullDesc
-               <> header "raaz - A command line interface to the raaz cryptographic library."
-               <> footer "Homepage: http://github.com/raaz-crypto"
+  where opts = info (helper <*> progOption)
+               $ mconcat [ fullDesc
+                         , header "raaz - A command line interface to the raaz cryptographic library."
+                         , footer "Homepage: http://github.com/raaz-crypto"
+                         ]

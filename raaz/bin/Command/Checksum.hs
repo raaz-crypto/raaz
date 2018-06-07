@@ -3,13 +3,11 @@
 {-# LANGUAGE RecordWildCards    #-}
 {-# LANGUAGE ConstraintKinds    #-}
 {-# LANGUAGE StandaloneDeriving #-}
-{-# LANGUAGE CPP                #-}
 
 module Command.Checksum ( checksum )  where
 
 import Control.Monad
 import Data.Char                ( toLower )
-import Data.Monoid
 import Data.String
 import Options.Applicative
 import Raaz.Hash
@@ -24,16 +22,13 @@ import System.IO
 
 
 checksum :: Parser (IO ())
-#if MIN_VERSION_optparse_applicative(0,13,0)
-checksum = subparser $ commandGroup "Checksum Computation"
-#else
-checksum = subparser $ mempty
-#endif
-           <> metavar "CHECKSUM"
-           <> mkCmd Blake2b
-           <> mkCmd Blake2s
-           <> mkCmd Sha512
-           <> mkCmd Sha256
+checksum = subparser $ mconcat [ commandGroup "Checksum Computation"
+                               , metavar "CHECKSUM"
+                               , mkCmd Blake2b
+                               , mkCmd Blake2s
+                               , mkCmd Sha512
+                               , mkCmd Sha256
+                               ]
            -- Add the mkCmd here and also add an appropriate
            -- constructor for the Algorithm type. If you add a hash
            -- Foo then the associated command will be foosum.
@@ -52,7 +47,7 @@ deriving instance Show (Algorithm h)
 
 mkCmd :: SupportedHash h => Algorithm h -> Mod CommandFields (IO ())
 mkCmd algo = command cmd inf
-  where inf = info (helper <*> opts) $ fullDesc <> hdr <> desc
+  where inf = info (helper <*> opts) $ mconcat [ fullDesc, hdr, desc]
         opts     = run algo <$> optParse
         algoname = map toLower $ show algo
         cmd      = algoname ++ "sum"
@@ -168,9 +163,10 @@ optParse   :: Parser Option
 optParse  =  verbosityOpt <*> (Option <$> checkOpt <*> pure True <*> pure True <*> files)
 
   where checkOpt = switch
-                   $  long "check"
-                   <> short 'c'
-                   <> help "Verify the input checksums instead of compute"
+                   $ mconcat [ long "check"
+                             , short 'c'
+                             , help "Verify the input checksums instead of compute"
+                             ]
         files = many $ argument str $ metavar "FILE.."
 
 
@@ -180,11 +176,13 @@ verbosityOpt = (.) <$> statusOpt <*> quietOpt
         quietMode  opt = opt { reportOkey = False }
 
         statusOpt = flag id statusOnly
-                    $  short 's'
-                    <> long  "status"
-                    <> help "Do not print anything, only return the verification status"
+                    $ mconcat [ short 's'
+                              , long  "status"
+                              , help "Do not print anything, only return the verification status"
+                              ]
 
         quietOpt  = flag id quietMode
-                    $  short 'q'
-                    <> long "quite"
-                    <> help "Do not print OK, print only failures"
+                    $ mconcat [ short 'q'
+                              , long "quite"
+                              , help "Do not print OK, print only failures"
+                              ]

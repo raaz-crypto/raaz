@@ -3,15 +3,12 @@
 -- /dev/audio), it is used to test the quality of the randomnes
 -- produced.
 
-
-{-# LANGUAGE CPP #-}
 module Command.Rand ( rand ) where
 
 
 import Control.Applicative
 import Control.Monad         ( void )
 import Control.Monad.IO.Class(liftIO)
-import Data.Monoid
 import Options.Applicative
 import Raaz
 import Raaz.Random.Internal
@@ -25,27 +22,30 @@ bufSize = 32 * 1024
 
 rand :: Parser (IO ())
 
-#if MIN_VERSION_optparse_applicative(0,13,0)
-rand = subparser $ commandGroup "Randomness"
-#else
-rand = subparser $ mempty
-#endif
-  <> metavar "RANDOMNESS"
-  <> randCmd
-  <> entropyCmd
-  where
+rand = subparser $ mconcat [ commandGroup "Randomness"
+                           , metavar "RANDOMNESS"
+                           , randCmd
+                           , entropyCmd
+                           ]
+
 
 
 randCmd :: Mod CommandFields (IO ())
-randCmd = command "rand" $ info (helper <*> randOpts) $ fullDesc
-          <> header "raaz rand - Cryptographically secure pseudo random bytes."
-          <> progDesc "generate cryptographically secure pseudo random bytes onto the stdout."
+randCmd = command "rand"
+          $ info (helper <*> randOpts)
+          $ mconcat [ fullDesc
+                     , header "raaz rand - Cryptographically secure pseudo random bytes."
+                     , progDesc "output cryptographically secure pseudo random bytes."
+                     ]
   where randOpts = opts insecurely emitRand
 
 entropyCmd :: Mod CommandFields (IO ())
-entropyCmd = command "entropy" $ info (helper <*> entropyOpts) $ fullDesc
-          <> header "raaz entropy - System entropy."
-          <> progDesc "emit data from the system entropy pool."
+entropyCmd = command "entropy"
+             $ info (helper <*> entropyOpts)
+             $ mconcat [ fullDesc
+                       , header "raaz entropy - System entropy."
+                       , progDesc "emit data from the system entropy pool."
+                       ]
   where entropyOpts = opts id emitEntropy
 
 opts :: Monad m
