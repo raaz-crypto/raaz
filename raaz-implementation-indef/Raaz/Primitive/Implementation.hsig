@@ -23,7 +23,6 @@ signature Raaz.Primitive.Implementation
           ) where
 
 import Raaz.Core
-import GHC.TypeLits
 
 -- | The primitive for which the implementation is given
 data Prim
