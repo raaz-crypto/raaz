@@ -64,7 +64,7 @@ library
   hs-source-dirs: .
   build-depends: raaz-core                 >= 0.3 && < 0.4
                , raaz-implementation       >= 0.3 && < 0.4
-               , raaz-implementation-indef >= 0.3 && < 0.4
+               , raaz-core-indef           >= 0.3 && < 0.4
   exposed-modules: Raaz
                  , Raaz.Hash
                  , Raaz.Cipher
@@ -73,16 +73,16 @@ library
                  , Raaz.Random.ChaCha20PRG
                  , Paths_raaz
   autogen-modules: Paths_raaz
-  mixins: raaz-implementation-indef (Raaz.Primitive.Util as Raaz.Hash.Blake2b.Util)
-             requires   (Raaz.Primitive.Implementation as Raaz.Primitive.Blake2b.Implementation.CPortable)
-        , raaz-implementation-indef (Raaz.Primitive.Util as Raaz.Hash.Blake2s.Util)
-             requires   (Raaz.Primitive.Implementation as Raaz.Primitive.Blake2s.Implementation.CPortable)
-        , raaz-implementation-indef (Raaz.Primitive.Util as Raaz.Hash.Sha256.Util)
-             requires   (Raaz.Primitive.Implementation as Raaz.Primitive.Sha256.Implementation.CPortable)
-        , raaz-implementation-indef (Raaz.Primitive.Util as Raaz.Hash.Sha512.Util)
-             requires   (Raaz.Primitive.Implementation as Raaz.Primitive.Sha512.Implementation.CPortable)
-        , raaz-implementation-indef (Raaz.Primitive.Util as Raaz.Cipher.ChaCha20.Util)
-             requires   (Raaz.Primitive.Implementation as Raaz.Primitive.ChaCha20.Implementation.CPortable)
+  mixins: raaz-core-indef (Raaz.Primitive.Util as Raaz.Hash.Blake2b.Util)
+          requires   (Raaz.Primitive.Implementation as Raaz.Primitive.Blake2b.Implementation.CPortable)
+        , raaz-core-indef (Raaz.Primitive.Util as Raaz.Hash.Blake2s.Util)
+          requires   (Raaz.Primitive.Implementation as Raaz.Primitive.Blake2s.Implementation.CPortable)
+        , raaz-core-indef (Raaz.Primitive.Util as Raaz.Hash.Sha256.Util)
+          requires   (Raaz.Primitive.Implementation as Raaz.Primitive.Sha256.Implementation.CPortable)
+        , raaz-core-indef (Raaz.Primitive.Util as Raaz.Hash.Sha512.Util)
+          requires   (Raaz.Primitive.Implementation as Raaz.Primitive.Sha512.Implementation.CPortable)
+        , raaz-core-indef (Raaz.Primitive.Util as Raaz.Cipher.ChaCha20.Util)
+          requires   (Raaz.Primitive.Implementation as Raaz.Primitive.ChaCha20.Implementation.CPortable)
 
 ---------------------------- Executables -------------------------------------------------
 

@@ -1,4 +1,4 @@
 packages: raaz-core/
-        , raaz-implementation-indef/
+        , raaz-core-indef/
         , raaz-implementation/
         , raaz/

@@ -1,16 +1,20 @@
 cabal-version: 2.2
 
-name:    raaz-implementation-indef
+name:    raaz-core-indef
 version: 0.3.0
 
 synopsis: The signature package for implementations of primitives in raaz.
 
-description: Raaz is a cryptographic library for Haskell. The library
-  is designed with a special emphasis on using the type system of
-  Haskell to eliminate a large set of vulnerabilities like buffer
-  overflows, timing attacks etc. It also strives to achieve this
-  safety with no compromise on performance.
-
+description: This package is part of the raaz cryptographic library
+  that abstracts out implementations of cryptographic primitives as a
+  signature. To provide a new implementation of primitive, one builds
+  a module that satisfy the signature given here. The standard
+  implementaions are separately provided by the raaz-implementation
+  package. Some of these implementations might use hardware specific
+  features like (avx2 instructions in x86_64). This interface provides
+  a way for down stream users to "plugin" the best interface depending
+  on the hardware. 
+ 
 homepage: https://github.com/raaz-crypto/raaz
 
 license:      BSD-3-Clause
@@ -25,7 +29,7 @@ bug-reports: https://github.com/raaz-crypto/raaz/issues
 
 source-repository head
   type: git
-  location: https://github.com/raaz-crypto/raaz
+  location: https://github.com/raaz-crypto/raaz-core-indef
 
   ----------------------- System specific configurations ----------------------------------
 
