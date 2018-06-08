@@ -1,0 +1,116 @@
+cabal-version: 2.2
+
+name:    raaz-core
+version: 0.3.0
+
+synopsis: The core types and signatures of the raaz cryptographic library.
+
+description: Raaz is a cryptographic library for Haskell. The library
+  is designed with a special emphasis on using the type system of
+  Haskell to eliminate a large set of vulnerabilities like buffer
+  overflows, timing attacks etc. It also strives to achieve this
+  safety with no compromise on performance.
+
+homepage: https://github.com/raaz-crypto/raaz
+
+license:      BSD-3-Clause
+license-file: LICENSE
+author:       Piyush P Kurur
+maintainer:   ppk@cse.iitk.ac.in
+
+category:      Codec, Raaz
+build-type:    Simple
+
+bug-reports: https://github.com/raaz-crypto/raaz/issues
+
+-- List of platform specific source files.
+extra-source-files: entropy/urandom/Raaz/Entropy.hs
+                    entropy/arc4random/Raaz/Entropy.hs
+                    entropy/getrandom/Raaz/Entropy.hsc
+                    entropy/windows/Raaz/Entropy.hsc
+
+source-repository head
+  type: git
+  location: https://github.com/raaz-crypto/raaz
+
+------------------------- Flags -------------------------------------------------------------
+flag linux-getrandom
+
+     Description: Use the getrandom for system entropy instead of
+       /dev/urandom. Enabled by default but disable this for kernel < 3.17.
+
+     Default: True
+     Manual: True
+
+---------------------------- The common clause ------------------------------------------------
+
+common defaults
+  default-language: Haskell2010
+  ghc-options: -Wall
+  build-depends: base                    >= 4.7  &&  < 4.12
+               , bytestring              >= 0.9  &&  < 0.11
+               , deepseq                 >= 1.1  &&  < 1.5
+               , vector                  >= 0.7.1 && < 0.13
+               , mtl
+
+  ----------------------- System specific configurations ----------------------------------
+
+  if os(linux)
+     cc-options: -DPLATFORM_LINUX
+  if os(osx)
+     cc-options: -DPLATFORM_OSX
+  if os(openbsd)
+     cc-options: -DPLATFORM_OPENBSD
+  if os(windows)
+     cc-options: -DPLATFORM_WINDOWS -DUNICODE
+     cpp-options: -DPLATFORM_WINDOWS
+     extra-libraries: Advapi32, Kernel32
+     build-tools: hsc2hs
+
+----------------------------- The core library ------------------------------------------------
+library
+  import: defaults
+  hs-source-dirs: .
+  exposed-modules: Raaz.Core
+                 , Raaz.Core.ByteSource
+                 , Raaz.Core.CpuSupports
+                 , Raaz.Core.Encode
+                 , Raaz.Core.Memory
+                 , Raaz.Core.MonoidalAction
+                 , Raaz.Core.Parse.Applicative
+                 , Raaz.Core.Primitive
+                 , Raaz.Core.Proxy
+                 , Raaz.Core.Types
+                 , Raaz.Core.Util
+                 , Raaz.Core.Transfer
+                 , Raaz.Entropy
+                 , Raaz.Primitive.HashMemory
+                 , Raaz.Primitive.Blake2.Internal
+                 , Raaz.Primitive.Sha256.Internal
+                 , Raaz.Primitive.Sha512.Internal
+                 , Raaz.Primitive.ChaCha20.Internal
+
+  other-modules: Raaz.Core.Constants
+               , Raaz.Core.Encode.Internal
+               , Raaz.Core.Encode.Base16
+               , Raaz.Core.Encode.Base64
+               , Raaz.Core.IOCont
+               , Raaz.Core.Util.ByteString
+               , Raaz.Core.Types.Pointer
+               , Raaz.Core.Types.Tuple
+               , Raaz.Core.Types.Equality
+               , Raaz.Core.Types.Endian
+               , Raaz.Core.Types.Copying
+  c-sources: cbits/raaz/core/endian.c
+           , cbits/raaz/core/memory.c
+           , cbits/raaz/core/cpusupports.c
+  include-dirs: cbits
+  includes: raaz/core/endian.h
+  install-includes: cbits/raaz/core/endian.h
+
+  --------------------- Entropy ----------------------------------------------
+
+  if  os(windows)                         { hs-source-dirs: entropy/windows    }
+  elif os(openbsd) || os(netbsd)          { hs-source-dirs: entropy/arc4random }
+  elif os(linux) && flag(linux-getrandom) { hs-source-dirs: entropy/getrandom  }
+  else                                    { hs-source-dirs: entropy/urandom    }

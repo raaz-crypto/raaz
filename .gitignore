@@ -1,9 +1,12 @@
 *.o
 *.hi
 dist
+dist-newstyle
 tags
 TAGS
 .cabal-sandbox
+.ghc.environment*
+cabal.project.local
 *test
 .hpc
 cabal.sandbox.config
