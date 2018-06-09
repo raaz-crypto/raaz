@@ -13,6 +13,7 @@ import Data.Bits                  ( complement   )
 
 import Raaz.Core
 import Raaz.Core.Transfer         ( bytesToWrite, unsafeWrite )
+import Raaz.Core.Types.Internal
 import Raaz.Primitive.HashMemory
 import Raaz.Primitive.Blake2.Internal
 
@@ -36,8 +37,8 @@ additionalBlocks = blocksOf 1 Proxy
 
 foreign import ccall unsafe
   "raaz/hash/blake2/common.h raazHashBlake2sPortableBlockCompress"
-  c_blake2s_compress  :: Pointer
-                      -> Int
+  c_blake2s_compress  :: AlignedPointer BufferAlignment
+                      -> BLOCKS BLAKE2s
                       -> BYTES Word64
                       -> Ptr Prim
                       -> IO ()
@@ -58,7 +59,7 @@ processBlocks :: AlignedPointer BufferAlignment
 
 processBlocks buf blks =
   do l      <- getLength
-     hashCellPointer >>= liftIO . c_blake2s_compress (forgetAlignment buf) (fromEnum blks) l
+     hashCellPointer >>= liftIO . c_blake2s_compress buf blks l
      updateLength blks
 
 -- | Process the last bytes.

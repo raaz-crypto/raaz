@@ -18,6 +18,7 @@ import Data.Word
 import Data.Proxy
 
 import Raaz.Core
+import Raaz.Core.Types.Internal
 import Raaz.Primitive.HashMemory
 import Raaz.Primitive.Sha512.Internal
 
@@ -40,14 +41,17 @@ additionalBlocks = blocksOf 1 Proxy
 
 foreign import ccall unsafe
   "raaz/hash/sha512/portable.h raazHashSha512PortableCompress"
-  c_sha512_compress  :: Pointer -> Int -> Ptr SHA512 -> IO ()
+  c_sha512_compress  :: AlignedPointer BufferAlignment
+                     -> BLOCKS SHA512
+                     -> Ptr SHA512
+                     -> IO ()
 
 
 compressBlocks :: AlignedPointer BufferAlignment
                -> BLOCKS SHA512
                -> MT Internals ()
 compressBlocks buf blks =  hashCell128Pointer
-                           >>= liftIO . c_sha512_compress (forgetAlignment buf) (fromEnum blks)
+                           >>= liftIO . c_sha512_compress buf blks
 
 
 processBlocks :: AlignedPointer BufferAlignment

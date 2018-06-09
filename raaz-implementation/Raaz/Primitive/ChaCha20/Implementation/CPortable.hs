@@ -10,6 +10,7 @@ import Control.Monad.IO.Class     ( liftIO       )
 import Data.Proxy
 
 import Raaz.Core
+import Raaz.Core.Types.Internal
 import Raaz.Primitive.ChaCha20.Internal
 
 
@@ -33,11 +34,11 @@ additionalBlocks = blocksOf 1 Proxy
 -- | Chacha20 block transformation.
 foreign import ccall unsafe
   "raaz/cipher/chacha20/cportable.h raazChaCha20Block"
-  c_chacha20_block :: Pointer      -- Message
-                   -> Int          -- number of blocks
-                   -> Ptr KEY      -- key
-                   -> Ptr IV       -- iv
-                   -> Ptr Counter  -- Counter value
+  c_chacha20_block :: AlignedPointer BufferAlignment -- message
+                   -> BLOCKS ChaCha20                -- number of blocks
+                   -> Ptr KEY                        -- key
+                   -> Ptr IV                         -- iv
+                   -> Ptr Counter                    -- Counter value
                    -> IO ()
 
 processBlocks :: AlignedPointer BufferAlignment
@@ -48,7 +49,7 @@ processBlocks buf blks =
   do keyPtr     <- keyCellPtr
      ivPtr      <- ivCellPtr
      counterPtr <- counterCellPtr
-     liftIO     $ c_chacha20_block (forgetAlignment buf) (fromEnum blks) keyPtr ivPtr counterPtr
+     liftIO     $ c_chacha20_block buf blks keyPtr ivPtr counterPtr
 
 -- | Process the last bytes.
 processLast :: AlignedPointer BufferAlignment
