@@ -13,8 +13,8 @@ description: This package is part of the raaz cryptographic library
   package. Some of these implementations might use hardware specific
   features like (avx2 instructions in x86_64). This interface provides
   a way for down stream users to "plugin" the best interface depending
-  on the hardware. 
- 
+  on the hardware.
+
 homepage: https://github.com/raaz-crypto/raaz
 
 license:      BSD-3-Clause
@@ -22,8 +22,9 @@ license-file: LICENSE
 author:       Piyush P Kurur
 maintainer:   ppk@cse.iitk.ac.in
 
-category:      Codec, Raaz
-build-type:    Simple
+category:    Codec, Raaz
+build-type:  Simple
+tested-with: GHC==8.2.2, GHC==8.4.3
 
 bug-reports: https://github.com/raaz-crypto/raaz/issues
 
