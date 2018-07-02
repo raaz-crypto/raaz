@@ -4,7 +4,9 @@ module Raaz.Entropy( getEntropy, entropySource ) where
 
 import Foreign.C             ( CLong(..)     )
 import Control.Monad.IO.Class(MonadIO, liftIO)
+
 import Raaz.Core.Types
+import Raaz.Core.Types.Internal
 
 # include <unistd.h>
 # include <sys/syscall.h>
