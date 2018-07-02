@@ -35,6 +35,7 @@ import GHC.TypeLits
 import Prelude
 
 import Raaz.Core.Types
+import Raaz.Core.Types.Internal
 
 ----------------------- A primitive ------------------------------------
 
