@@ -9,7 +9,9 @@ module Common.Instances where
 
 import Common.Imports
 import Common.Utils
+
 import Raaz.Primitive.ChaCha20.Internal as ChaCha20
+import Raaz.Core.Types.Internal
 
 instance Arbitrary w => Arbitrary (LE w) where
   arbitrary = littleEndian <$> arbitrary

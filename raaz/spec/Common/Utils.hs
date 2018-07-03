@@ -1,6 +1,8 @@
 {-# LANGUAGE CPP #-}
 module Common.Utils where
 
+import Raaz.Core.Types.Internal ( BYTES(..) )
+
 import Common.Imports hiding (length, replicate)
 
 
@@ -75,7 +77,7 @@ genEncodable = go undefined
 blocks :: Primitive prim => Proxy prim -> Gen ByteString
 blocks primProxy = B.concat <$> listOf singleBlock
   where singleBlock = pack <$> vector sz
-        BYTES sz    = blockSize primProxy
+        BYTES sz    = inBytes $ blocksOf 1 primProxy
 
 
 -- | Run a property with a given generator.
