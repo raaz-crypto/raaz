@@ -24,6 +24,6 @@ module Raaz.Core.Types.Internal
 
 import Raaz.Core.Types.Endian  ( LE(..), BE(..)          )
 import Raaz.Core.Types.Pointer ( Pointer, AlignedPtr(..)
-                               , BITS(..), BYTES(..)
+                               , BITS(..), BYTES(..), BLOCKS(..)
                                )
 import Raaz.Core.Types.Copying ( Src(..), Dest(..)       )
