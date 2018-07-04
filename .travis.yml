@@ -48,7 +48,7 @@ matrix:
       addons: {apt: {packages: [cabal-install-2.2 ,ghc-8.2.2], sources: [hvr-ghc]}}
 
     - os: linux
-      env: GHCVER=8.4.1 CABALVER=2.2 STACKVER=nightly
+      env: GHCVER=8.4.1 CABALVER=2.2
       addons: {apt: {packages: [cabal-install-2.2 ,ghc-8.4.1], sources: [hvr-ghc]}}
 
     # Build for the GHC head and cabal-install-head
