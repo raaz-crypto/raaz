@@ -40,9 +40,9 @@ __RAAZ_REQUIRE_PORTABLE_ENDIAN__)
    static inline uint64_t raaz_bswap64(uint64_t x){ return _byteswap_uint64(x); }
 
 #elif defined(PLATFORM_OPENBSD)
-#  include <sys/endian.h>
-   static inline uint32_t raaz_bswap32(uint32_t x){ return bswap32(x); }
-   static inline uint64_t raaz_bswap64(uint64_t x){ return bswap64(x); }
+#  include <endian.h>
+   static inline uint32_t raaz_bswap32(uint32_t x){ return swap32(x); }
+   static inline uint64_t raaz_bswap64(uint64_t x){ return swap64(x); }
 
 #elif defined(PLATFORM_LINUX) /* All other platforms */
 #  include <byteswap.h>
