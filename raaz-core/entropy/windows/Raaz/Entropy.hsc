@@ -20,6 +20,7 @@ import Foreign.Ptr (Ptr(), nullPtr, castPtr)
 import Foreign.Storable (peek)
 import Foreign.C.String (CWString())
 import Raaz.Core
+import Raaz.Core.Types.Internal
 
 type HCRYPTPROV = Ptr ()
 

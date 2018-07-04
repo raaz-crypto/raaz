@@ -12,7 +12,7 @@ module Raaz.Core.Types.Endian
          -- $endianness$
          EndianStore(..), copyFromBytes, copyToBytes
        -- ** Endian explicit word types.
-       , LE, BE, littleEndian, bigEndian
+       , LE(..), BE(..), littleEndian, bigEndian
        -- ** Helper functions for endian aware storing and loading.
        , storeAt, storeAtIndex
        , loadFrom, loadFromIndex

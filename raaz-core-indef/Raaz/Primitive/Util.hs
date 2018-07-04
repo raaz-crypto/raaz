@@ -16,6 +16,7 @@ import System.IO.Unsafe                (unsafePerformIO)
 import GHC.TypeLits   (KnownNat)
 
 import Raaz.Core
+import Raaz.Core.Types.Internal
 import Raaz.Primitive.Implementation
 
 
@@ -52,7 +53,7 @@ transformAndDigest :: KnownNat BufferAlignment
                    -> (ByteString, Digest Prim)
 transformAndDigest key bs = unsafePerformIO $ insecurely go
   where strSz           = Raaz.Core.length bs
-        BYTES sbytes    = inBytes strSz
+        BYTES sbytes    = strSz
         --
         -- Buffer size is at least the size of the input.
         --
@@ -77,5 +78,3 @@ transformAndDigest key bs = unsafePerformIO $ insecurely go
 
                   dgst <- extract
                   return (str,dgst)
-
-        -- | Needed by unsafeCreate

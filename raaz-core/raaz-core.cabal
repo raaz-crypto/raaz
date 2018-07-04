@@ -81,6 +81,7 @@ library
                  , Raaz.Core.Primitive
                  , Raaz.Core.Proxy
                  , Raaz.Core.Types
+                 , Raaz.Core.Types.Internal
                  , Raaz.Core.Util
                  , Raaz.Core.Transfer
                  , Raaz.Entropy

@@ -5,7 +5,7 @@ module Raaz.Entropy( getEntropy, entropySource ) where
 
 import Control.Monad.IO.Class(MonadIO, liftIO)
 import Raaz.Core.Types
-
+import Raaz.Core.Types.Internal
 
 -- | The name of the source from which entropy is gathered. For
 -- information purposes only.

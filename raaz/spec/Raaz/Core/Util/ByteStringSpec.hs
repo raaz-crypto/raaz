@@ -7,6 +7,7 @@ import qualified Data.ByteString as B
 import           Foreign.Ptr
 
 import           Raaz.Core as RC
+import           Raaz.Core.Types.Internal (BYTES (..))
 
 
 spec :: Spec
