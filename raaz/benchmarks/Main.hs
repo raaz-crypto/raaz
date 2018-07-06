@@ -6,7 +6,6 @@
 -- | This module benchmarks all block function and shows the
 
 import Control.Monad
-import Criterion
 
 import Text.PrettyPrint
 
