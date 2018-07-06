@@ -157,7 +157,7 @@ benchmark primitives
   hs-source-dirs: benchmarks
   main-is: Main.hs
   type: exitcode-stdio-1.0
-  build-depends: criterion >= 1.0
+  build-depends: criterion                 >= 1.0 && < 1.5
                , pretty
                , raaz                      >= 0.3 && < 0.4
                , raaz-core
