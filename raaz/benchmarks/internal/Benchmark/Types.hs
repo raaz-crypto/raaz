@@ -38,8 +38,8 @@ pprMeasured :: Measured -> Doc
 pprMeasured (Measured{..}) = vcat
   [ text "time       " <+> eqop <+> text (secs tm)
   , text "cycles     " <+> eqop <+> double cy
-  , text "rate       " <+> eqop <+> text rt   <> text "bits/sec"
-  , text "secs/byte  " <+> eqop <+> text secB <> text "sec/byte"
+  , text "rate       " <+> eqop <+> text rt   <+> text "bits/sec"
+  , text "secs/byte  " <+> eqop <+> text secB <+> text "sec/byte"
   , text "cycles/byte" <+> eqop <+> double cycB
   ]
   where tm    = measTime   / fromIntegral nRuns
