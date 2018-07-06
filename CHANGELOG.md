@@ -2,17 +2,17 @@
 
 ## [0.3.0] - Pending
 
-- Block size moved to type level. Allows better type safety.
-- Use Data.Proxy.Proxy to get rid of some uses of undefined.
-- Support withdrawn for base < 4.7. This allows cleaning up some Nat codes.
-- Linux: getrandom now uses syscall directly, so works even when glibc
+* Block size moved to type level. Allows better type safety.
+* Use Data.Proxy.Proxy to get rid of some uses of undefined.
+* Support withdrawn for base < 4.7. This allows cleaning up some Nat codes.
+* Linux: getrandom now uses syscall directly, so works even when glibc
   is old.  By default on Linux getrandom is the entropy source unless
   disabled by flags.
-- raaz command expose an entropy command for checking the quality of
+* raaz command expose an entropy command for checking the quality of
   system entropy source.
-- Dropped support for SHA1, SHA224, SHA384, HMAC, and AES-CBC, mainly
+* Dropped support for SHA1, SHA224, SHA384, HMAC, and AES-CBC, mainly
   to concentrate efforts and reach stable release soon.
-- Now uses backpack which supports easily pluggable primitive
+* Now uses backpack which supports easily pluggable primitive
   implementation.
 
 ## [0.2.0] - 24 August, 2017
