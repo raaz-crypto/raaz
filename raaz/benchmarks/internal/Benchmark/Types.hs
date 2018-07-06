@@ -8,8 +8,9 @@ module Benchmark.Types
        , runRaazBench
        ) where
 
-import Criterion.Types hiding (measure)
 import Criterion.Measurement
+import Criterion.Measurement.Types hiding (measure)
+
 import Data.Int
 import Text.PrettyPrint
 
