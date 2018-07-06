@@ -38,7 +38,7 @@ import Foreign.Storable ( Storable         )
 import Prelude
 
 import Raaz.Core
-import Raaz.Core.Proxy
+-- import Raaz.Core.Proxy
 import Raaz.Primitive.ChaCha20.Internal(KEY, IV)
 import Raaz.Random.ChaCha20PRG
 
@@ -357,8 +357,7 @@ unsafeFillRandomElements :: (Storable a, MonadIO m) => Int -> Ptr a -> RandomT m
 unsafeFillRandomElements n ptr = fillRandomBytes totalSz $ castPtr ptr
   where totalSz = fromIntegral n * sizeOf (getProxy ptr)
         getProxy :: Ptr a -> Proxy a
-        getProxy = proxyUnwrap . pure
-
+        getProxy = const Proxy
 
 -- | Generate a random element from an instance of a RandomStorable
 -- element.
@@ -369,7 +368,7 @@ random = alloc (getIt . castPtr)
                      => (Pointer -> RandomT mem m a) -> RandomT mem m a
         alloc action = allocaBuffer sz action
           where getProxy   :: (Pointer -> RandomT mem m b) -> Proxy b
-                getProxy  _  = Proxy
+                getProxy     = const Proxy
                 thisProxy    = getProxy action
                 sz           = alignedSizeOf thisProxy
 
@@ -443,6 +442,8 @@ instance RandomStorable w => RandomStorable (BE w) where
 instance (Dimension d, Unbox w, RandomStorable w) => RandomStorable (Tuple d w) where
   fillRandomElements n ptr = fillRandomElements (n * sz ptr) $ tupPtrToPtr ptr
     where sz   :: Dimension d => Ptr (Tuple d w) -> Int
-          sz   = dimension' . proxyUnwrap . pure
+          sz   = dimension' . getProxy
+          getProxy :: Ptr (Tuple d w) -> Proxy (Tuple d w)
+          getProxy = const Proxy
           tupPtrToPtr ::  Ptr (Tuple d w) -> Ptr w
           tupPtrToPtr = castPtr

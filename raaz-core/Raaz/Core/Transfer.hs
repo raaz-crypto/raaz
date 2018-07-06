@@ -50,7 +50,6 @@ import           Raaz.Core.Types.Endian
 import           Raaz.Core.Types.Pointer
 import           Raaz.Core.Util.ByteString as BU
 import           Raaz.Core.Encode
-import           Raaz.Core.Proxy
 
 -- $transfer$
 --
@@ -157,7 +156,7 @@ writeFrom n src = makeWrite (sz src)
                   $ \ ptr -> liftIO  $ copyToBytes (destination ptr) src n
   where sz = (*) (toEnum n) . sizeOf . proxy
         proxy :: Src (Ptr a) -> Proxy a
-        proxy = proxyUnwrap . proxyUnwrap . pure
+        proxy = const Proxy
 -- | The vector version of `writeStorable`.
 writeStorableVector :: (Storable a, G.Vector v a, MonadIO m) => v a -> WriteM m
 {-# INLINE writeStorableVector #-}
@@ -322,4 +321,4 @@ readInto n dest = makeRead (sz dest)
                   $ \ ptr -> liftIO $ copyFromBytes dest (source ptr) n
   where sz  = (*) (toEnum n) . sizeOf . proxy
         proxy :: Dest (Ptr a) -> Proxy a
-        proxy = proxyUnwrap . proxyUnwrap . pure
+        proxy = const Proxy

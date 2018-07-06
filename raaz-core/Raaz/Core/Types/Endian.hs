@@ -35,7 +35,6 @@ import qualified Data.Vector.Generic         as GV
 import qualified Data.Vector.Generic.Mutable as GVM
 
 
-import           Raaz.Core.Proxy
 import           Raaz.Core.Types.Copying
 import           Raaz.Core.Types.Pointer
 import           Raaz.Core.Types.Equality
@@ -181,7 +180,7 @@ loadFromIndex cptr index = load $ shiftPtr cptr
   where shiftPtr :: Storable w => Ptr w -> Ptr w
         shiftPtr ptr = movePtr ptr (toEnum index * sizeOf (getProxy ptr))
         getProxy    :: Ptr w -> Proxy w
-        getProxy    = proxyUnwrap . pure
+        getProxy    = const Proxy
 -- | Load from a given offset. The offset is given in type safe units.
 loadFrom :: ( EndianStore w
             , LengthUnit offset

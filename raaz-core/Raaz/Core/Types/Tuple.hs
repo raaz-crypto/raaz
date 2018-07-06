@@ -29,7 +29,6 @@ import           Foreign.Storable            ( Storable(..) )
 import           Prelude hiding              ( length, zipWith )
 
 
-import Raaz.Core.Proxy
 import Raaz.Core.Types.Equality
 import Raaz.Core.Types.Endian
 import Raaz.Core.Transfer
@@ -82,8 +81,9 @@ dimension' = dimensionP Proxy
 -- | Get the dimension to parser
 getParseDimension :: (V.Unbox a, Dimension dim)
                   => Parser (Tuple dim a) -> Int
-getParseDimension = dimension' . proxyUnwrap . pure
-
+getParseDimension = dimension' . getProxy
+  where getProxy :: Parser (Tuple dim a) -> Proxy (Tuple dim a)
+        getProxy = const Proxy
 
 
 instance (V.Unbox a, Storable a, Dimension dim)

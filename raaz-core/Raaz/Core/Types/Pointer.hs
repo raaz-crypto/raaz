@@ -66,7 +66,6 @@ import qualified Data.Vector.Generic.Mutable as GVM
 
 import Prelude -- To stop the annoying warnings of Applicatives and Monoids.
 
-import Raaz.Core.Proxy
 import Raaz.Core.Primitive
 import Raaz.Core.MonoidalAction
 import Raaz.Core.Types.Equality
@@ -395,7 +394,7 @@ movePtr ptr l = FP.plusPtr ptr offset
 nextLocation :: Storable a => Ptr a -> Ptr a
 nextLocation ptr = alignPtr ptr $ alignment $ getProxy ptr
   where getProxy :: Ptr b -> Proxy b
-        getProxy  = proxyUnwrap . pure
+        getProxy  = const Proxy
 
 -- | Peek the element from the next aligned location.
 peekAligned :: Storable a => Ptr a -> IO a

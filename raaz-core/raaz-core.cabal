@@ -79,7 +79,6 @@ library
                  , Raaz.Core.MonoidalAction
                  , Raaz.Core.Parse.Applicative
                  , Raaz.Core.Primitive
-                 , Raaz.Core.Proxy
                  , Raaz.Core.Types
                  , Raaz.Core.Types.Internal
                  , Raaz.Core.Util
