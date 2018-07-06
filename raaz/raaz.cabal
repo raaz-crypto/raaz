@@ -159,6 +159,15 @@ test-suite spec
 
 
 -- ---------------------------------------------- Cipher implemntation benchmarks ----------------------
+library benchmark-internal
+  import: defaults
+  hs-source-dirs: benchmarks/internal
+  exposed-modules: Benchmark.Primitive
+                 , Benchmark.Types
+  build-depends: criterion >= 1.3
+               , pretty
+               , raaz-core                 >= 0.3 && < 0.4
+               , raaz-core-indef           >= 0.3 && < 0.4
 
 -- benchmark bench-ciphers
 --   import: defaults
