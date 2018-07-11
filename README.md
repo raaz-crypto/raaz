@@ -1,5 +1,5 @@
 Raaz: A secure cryptographic library
-------------------------------------
+====================================
 
 [![Build Staus][travis-status]][travis-raaz]
 [![Build Windows][appveyor-status]][appveyor-raaz]
@@ -9,21 +9,61 @@ Raaz: A secure cryptographic library
 [![Hackage][hackage-badge]][hackage]
 [![Hackage Dependencies][hackage-deps-badge]][hackage-deps]
 
+The Raaz cryptographic library is a collection of Haskell packages
+whose goal is to provide high level access to cryptographic
+operations. The type system of Haskell plays a crucial role in
+avoiding some of common bugs in cryptographic implementations. Thhe
+library is intended to be used for standalone cryptographic
+applications as well as implementing network protocols.  Besides, we
+put a lot of emphasis on better API design and good documentation
+which, we believe, makes the usage of the library secure.
 
-This is the repository of `raaz`, a Haskell library that implements
-some standard cryptographic primitives. This library is the basis on
-which we plan to build a cryptographic framework in Haskell. For
-example, there are plans to implement some common cryptographic
-protocols like `ssh`. Thus applications that require cryptographic
-security, in particular secure networking applications can be built
-out of this.
+Some of the features that are unique to raaz are the following
 
-Raaz is also an attempt to provide better security guarantees by
-making use of Haskell's strong typing. Besides, we put a lot of
-emphasis on better API design and good documentation which, we
-believe, makes the usage of the library secure.
+1. Pervasive use of types for better safety.
+2. Default choice of primitives and implementations are safe.
+3. Multiple implementations of cryptographic primitives that make use
+   of platform specific features. An advanced user who has an indepth
+   knowledge of the platform should be able to plugin the desired
+   implementation
+4. Strong emphasis on API design with through documentation.
 
-The word `Raaz` (&#x0930;&#x093E;&#x095B;) stands for secret in Hindi.
+
+Backpack and Pluggable implementations
+--------------------------------------
+
+Depending on the platform specific features, certain cryptographic
+primitives can have better (in terms of safety and performance)
+implementations. For example, if it is known that the underlying
+processor supports vector extensions like `avx2`, some primitives like
+chacha20 can be made upto 2x times faster. Raaz cryptographic library
+uses the backpack system to provide a pluggable architecture for its
+primitives. To provide such an interface the raaz cryptographic library
+is divided into the following packages.
+
+1. `raaz-core`: contains the basic types and utility functions
+2. `raaz-core-indef`: signature package used by primitive implementations
+3. `raaz-implementation`: Modules that give low-level implementations
+   for cryptographic primitives.
+4. `raaz`: the main package that provides the user level API for
+   cryptographic primitives.
+
+An advanced user can mix and match primitives by making use of the
+signature `Raaz.Primitive.Implementation` with actual implementations
+available in raaz-implementation.
+
+Installing and Building
+-----------------------
+
+We used to support both stack and cabal-install for building
+raaz. However, starting from version 0.3, `raaz` uses backpack and as
+a result only cabal-install (>=2.2) is supported. Backpack support is
+still [work in progress for stack][stack-backpack] and it should be
+possible to use stack once this issue is resolved. If you are inside
+the raaz repository you could build raaz with the following command.
+
+    cabal new-build
+
 
 Hacking and Discussion
 ----------------------
@@ -46,7 +86,10 @@ reviewing the code. It is good to actively look for some of the
 problems suggested there but of course one should also look for other
 problems.
 
+About the name
+--------------
 
+The word `Raaz` (&#x0930;&#x093E;&#x095B;) stands for secret in Hindi.
 
 
 [wiki]: <https://github.com/raaz-crypto/raaz/wiki> "Raaz Wiki"
@@ -69,3 +112,4 @@ problems.
 [hackage-deps]: <https://packdeps.haskellers.com/feed?needle=raaz>
 [appveyor-status]: <https://ci.appveyor.com/api/projects/status/github/raaz-crypto/raaz?branch=master&svg=true>
 [appveyor-raaz]: <https://ci.appveyor.com/project/raaz-crypto/raaz>
+[stack-backpack]: <https://github.com/commercialhaskell/stack/issues/2540>
