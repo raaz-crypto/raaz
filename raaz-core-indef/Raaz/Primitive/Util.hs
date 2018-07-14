@@ -42,6 +42,7 @@ newtype Buffer (n :: Nat) = Buffer { unBuffer :: Pointer }
 getBufferPointer :: Buffer n -> BufferPtr
 getBufferPointer = nextAlignedPtr . unBuffer
 
+{-# INLINE bufferSize #-}
 -- | The size of data (measured in blocks) that can be safely
 -- processed inside this buffer.
 bufferSize :: KnownNat n => Proxy (Buffer n) -> BLOCKS Prim
@@ -56,6 +57,7 @@ actualBufferSize bproxy = bufferSize bproxy <> additionalBlocks
 
 
 -- | Process the data in the buffer.
+{-# INLINE processBuffer #-}
 processBuffer :: KnownNat n => Buffer n -> MT Internals ()
 processBuffer buf = processBlocks (getBufferPointer buf) $ bufferSize $ pure buf
 
