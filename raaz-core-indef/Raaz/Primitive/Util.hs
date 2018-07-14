@@ -1,29 +1,73 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE KindSignatures   #-}
+{-# LANGUAGE DataKinds        #-}
 module Raaz.Primitive.Util
        ( allocBufferFor
        , processByteSource
        , computeDigest
        , transformAndDigest
        , BufferPtr
+       , Buffer, getBufferPointer, bufferSize, processBuffer
        , module Raaz.Primitive.Implementation
        ) where
 
 import Control.Monad.IO.Class          (liftIO)
 import Data.ByteString          as B
 import Data.ByteString.Internal as IB
+import Data.Proxy
+import Data.Monoid
 import Foreign.Ptr                     (castPtr)
 import System.IO.Unsafe                (unsafePerformIO)
-import GHC.TypeLits   (KnownNat)
+import GHC.TypeLits
 
 import Raaz.Core
 import Raaz.Core.Types.Internal
 import Raaz.Primitive.Implementation
 
-
-
 -- | The pointer type associated with the buffer used by the
 -- implementation.
 type BufferPtr = AlignedPointer BufferAlignment
+
+-- | A memory buffer than can handle up to @n@ blocks of data. This
+-- happens when you need to do some transformation on internal data
+-- using a primitive. An example is using a stream cipher for
+-- pseudo-random generation. Note that and additional blocks that
+-- might be required at the end for padding is taken care of and one
+-- does not need to worry about it here. I.e. @Buffer n@ has enough
+-- space for the @n@ blocks and if required any additional blocks that
+-- meant for padding.
+newtype Buffer (n :: Nat) = Buffer { unBuffer :: Pointer }
+
+-- | Get the underlying pointer for the buffer.
+getBufferPointer :: Buffer n -> BufferPtr
+getBufferPointer = nextAlignedPtr . unBuffer
+
+-- | The size of data (measured in blocks) that can be safely
+-- processed inside this buffer.
+bufferSize :: KnownNat n => Proxy (Buffer n) -> BLOCKS Prim
+bufferSize = flip blocksOf Proxy . fromIntegral . natVal . nProxy
+  where nProxy :: Proxy (Buffer n) -> Proxy n
+        nProxy  _ = Proxy
+
+-- | Internal function used by allocation.  WARNING: Not to be exposed
+-- else can be confusing with `bufferSize`.
+actualBufferSize :: KnownNat n => Proxy (Buffer n) -> BLOCKS Prim
+actualBufferSize bproxy = bufferSize bproxy <> additionalBlocks
+
+
+-- | Process the data in the buffer.
+processBuffer :: KnownNat n => Buffer n -> MT Internals ()
+processBuffer buf = processBlocks (getBufferPointer buf) $ bufferSize $ pure buf
+
+instance KnownNat n => Memory (Buffer n) where
+  memoryAlloc = allocThisBuffer
+    where allocThisBuffer = Buffer <$> pointerAlloc sz
+          bufferProxy     :: Alloc (Buffer n) -> Proxy (Buffer n)
+          bufferProxy _   = Proxy
+          algn            = ptrAlignment (Proxy :: Proxy BufferPtr)
+          sz              = atLeastAligned (actualBufferSize $ bufferProxy allocThisBuffer) algn
+
+  unsafeToPointer = unBuffer
 
 -- | Allocate a buffer for a primitive.
 allocBufferFor :: (KnownNat BufferAlignment, MonadIOCont m)
