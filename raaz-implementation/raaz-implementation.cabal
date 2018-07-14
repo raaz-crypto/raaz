@@ -103,3 +103,41 @@ library
           , cbits/raaz/hash/blake2/blake2s/constants.h
 
   build-depends: raaz-core        >= 0.3 && < 0.4
+
+  
+--------------------------- Benchmarkings ---------------------------------------------
+
+library benchmark-internal
+  import: defaults
+  hs-source-dirs: benchmarks/internal
+  exposed-modules: Benchmark.Primitive
+                 , Benchmark.Types
+  build-depends: criterion-measurement     >= 0.1
+               , pretty
+               , raaz-core                 >= 0.3 && < 0.4
+               , raaz-core-indef           >= 0.3 && < 0.4
+
+benchmark primitives
+  import: defaults
+  hs-source-dirs: benchmarks
+  main-is: Main.hs
+  type: exitcode-stdio-1.0
+  build-depends: pretty
+               , raaz-core
+               , raaz-implementation       >= 0.3 && < 0.4
+               , benchmark-internal
+
+  mixins: benchmark-internal (Benchmark.Primitive as Benchmark.Blake2b.CPortable, Benchmark.Types)
+          requires   (Raaz.Primitive.Implementation as Raaz.Primitive.Blake2b.Implementation.CPortable)
+
+        , benchmark-internal (Benchmark.Primitive as Benchmark.Blake2s.CPortable)
+          requires   (Raaz.Primitive.Implementation as Raaz.Primitive.Blake2s.Implementation.CPortable)
+
+        , benchmark-internal (Benchmark.Primitive as Benchmark.ChaCha20.CPortable)
+          requires   (Raaz.Primitive.Implementation as Raaz.Primitive.ChaCha20.Implementation.CPortable)
+
+        , benchmark-internal (Benchmark.Primitive as Benchmark.Sha256.CPortable)
+          requires   (Raaz.Primitive.Implementation as Raaz.Primitive.Sha256.Implementation.CPortable)
+
+        , benchmark-internal (Benchmark.Primitive as Benchmark.Sha512.CPortable)
+          requires   (Raaz.Primitive.Implementation as Raaz.Primitive.Sha512.Implementation.CPortable)
