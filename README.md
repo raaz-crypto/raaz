@@ -12,7 +12,7 @@ Raaz: A secure cryptographic library
 The Raaz cryptographic library is a collection of Haskell packages
 whose goal is to provide high level access to cryptographic
 operations. The type system of Haskell plays a crucial role in
-avoiding some of common bugs in cryptographic implementations. Thhe
+avoiding some of common bugs in cryptographic implementations. The
 library is intended to be used for standalone cryptographic
 applications as well as implementing network protocols.  Besides, we
 put a lot of emphasis on better API design and good documentation
