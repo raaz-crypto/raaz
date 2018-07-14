@@ -52,17 +52,18 @@ An advanced user can mix and match primitives by making use of the
 signature `Raaz.Primitive.Implementation` with actual implementations
 available in raaz-implementation.
 
-Installing and Building
------------------------
+Building
+--------
 
-We used to support both stack and cabal-install for building
-raaz. However, starting from version 0.3, `raaz` uses backpack and as
-a result only cabal-install (>=2.2) is supported. Backpack support is
-still [work in progress for stack][stack-backpack] and it should be
-possible to use stack once this issue is resolved. If you are inside
-the raaz repository you could build raaz with the following command.
+Ensure that you have a ghc >= 8.2 and cabal version >= 2.2. These are
+necessary due to the crucial role played by backpack in the design.
+Having met these pre-requisites, the recommended approach towards
+building raaz using the following command.
 
     cabal new-build
+
+Backpack support is still [work in progress for stack][stack-backpack]
+and it should be possible to use stack once this issue is resolved.
 
 
 Hacking and Discussion
