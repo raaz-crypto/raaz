@@ -1,5 +1,6 @@
 -- | The module exposes the ChaCha20 based PRG.
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE DataKinds        #-}
 module Raaz.Random.ChaCha20PRG
        ( reseedMT, fillRandomBytesMT, RandomState
        ) where
@@ -7,7 +8,6 @@ module Raaz.Random.ChaCha20PRG
 import Control.Applicative
 import Control.Monad
 import Control.Monad.Reader   ( ask, withReaderT )
-import Data.Monoid
 import Data.Proxy             ( Proxy(..)        )
 import Foreign.Ptr            ( castPtr          )
 import Prelude
@@ -34,12 +34,26 @@ import Raaz.Entropy
 maxCounterVal :: Counter
 maxCounterVal = 1024 * 1024 * 1024
 
--- | Memory for strong the internal memory state.
+
+-- | The number of blocks of ChaCha20 that is generated in one go
+-- encoded as a type level nat.
+type RandomBufferSize = 16
+
+-- | The buffer to store randomness.
+type RandomBuffer     = U.Buffer RandomBufferSize
+
+
+
+-- | Memory for storing the csprg state.
 data RandomState = RandomState { chacha20State  :: U.Internals
-                               , auxBuffer      :: RandomBuf
+                               , auxBuffer      :: RandomBuffer
                                , remainingBytes :: MemoryCell (BYTES Int)
                                }
 
+-- | Apply chacha20 on the contents of the random buffer.
+chacha20Random :: MT RandomState ()
+chacha20Random = askBuffer >>= withReaderT chacha20State . U.processBuffer
+  where askBuffer = auxBuffer <$> ask
 
 instance Memory RandomState where
   memoryAlloc     = RandomState <$> memoryAlloc <*> memoryAlloc <*> memoryAlloc
@@ -49,8 +63,8 @@ instance Memory RandomState where
 
 -- | Run an action on the auxilary buffer.
 withAuxBuffer :: (BufferPtr -> MT RandomState a) -> MT RandomState a
-withAuxBuffer action = withReaderT auxBuffer getBufferPointer >>= action
-
+withAuxBuffer action = askBufferPointer >>= action
+  where askBufferPointer = getBufferPointer . auxBuffer <$> ask
 -- | Get the number of bytes in the buffer.
 getRemainingBytes :: MT RandomState (BYTES Int)
 getRemainingBytes = withReaderT remainingBytes extract
@@ -77,8 +91,8 @@ newSample = do
   --
   -- Generate key stream
   --
-  withAuxBuffer $ withReaderT chacha20State . chacha20Random
-  setRemainingBytes $ inBytes randomBufferSize
+  chacha20Random
+  setRemainingBytes $ inBytes $ bufferSize (Proxy :: Proxy RandomBuffer)
   --
   -- Use part of the generated data to re-key the chacha20 cipher
   --
@@ -152,47 +166,3 @@ fillExistingBytes req ptr = withAuxBuffer $ \ buf -> do
               memset tailPtr 0 m                          -- wipe the bytes already transfered.
               setRemainingBytes l                         -- set leftover bytes.
               return m
-
-
----------------------- The auxilary buffer ----------------------------
-
--- | The chacha stream cipher is also used as the prg for generating
--- random bytes. Such a prg needs to keep an auxilary buffer type so
--- that one can generate random bytes not just of block size but
--- smaller. This memory type is essentially for maintaining such a
--- buffer.
-
-newtype RandomBuf = RandomBuf { unBuf :: Pointer }
-
---------------------- DANGEROUS CODE --------------------------------
-
--- | The size of the buffer in blocks of ChaCha20. While the
--- implementations should handle any multiple of blocks, often
--- implementations naturally handle some multiple of blocks, for
--- example the Vector256 implementation handles 2-chacha blocks. Set
--- this quantity to the maximum supported by all implementations.
-randomBufferSize :: BLOCKS ChaCha20
-randomBufferSize = 16  `blocksOf` (Proxy :: Proxy ChaCha20)
-
--- | Implementations are also designed to work with a specific
--- alignment boundary. Unaligned access can slow down the primitives
--- quite a bit.
-randomBufferAlignment :: Alignment
-randomBufferAlignment = ptrAlignment (Proxy :: Proxy U.BufferPtr)
-
-instance Memory RandomBuf where
-  memoryAlloc = RandomBuf <$> pointerAlloc sz
-    where sz = atLeastAligned actualSize randomBufferAlignment
-          actualSize = randomBufferSize <> U.additionalBlocks
-  unsafeToPointer = unBuf
-
--- | Get the actual location where the data is to be stored. Ensures
--- that the pointer is aligned to the @randomBufferAlignment@
--- restriction.
-getBufferPointer :: MT RandomBuf BufferPtr
-getBufferPointer = actualPtr <$> ask
-  where actualPtr = nextAlignedPtr . unBuf
-
--- | Use the chacha20 encryption algorithm as a prg.
-chacha20Random :: BufferPtr -> MT U.Internals ()
-chacha20Random = flip U.processBlocks randomBufferSize
