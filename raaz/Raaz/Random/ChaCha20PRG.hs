@@ -164,9 +164,21 @@ fillExistingBytes req ptr = withAuxBuffer $ \ buf -> do
 
 newtype RandomBuf = RandomBuf { unBuf :: Pointer }
 
-
-
 --------------------- DANGEROUS CODE --------------------------------
+
+-- | The size of the buffer in blocks of ChaCha20. While the
+-- implementations should handle any multiple of blocks, often
+-- implementations naturally handle some multiple of blocks, for
+-- example the Vector256 implementation handles 2-chacha blocks. Set
+-- this quantity to the maximum supported by all implementations.
+randomBufferSize :: BLOCKS ChaCha20
+randomBufferSize = 16  `blocksOf` (Proxy :: Proxy ChaCha20)
+
+-- | Implementations are also designed to work with a specific
+-- alignment boundary. Unaligned access can slow down the primitives
+-- quite a bit.
+randomBufferAlignment :: Alignment
+randomBufferAlignment = ptrAlignment (Proxy :: Proxy U.BufferPtr)
 
 instance Memory RandomBuf where
   memoryAlloc = RandomBuf <$> pointerAlloc sz
@@ -181,22 +193,6 @@ getBufferPointer :: MT RandomBuf BufferPtr
 getBufferPointer = actualPtr <$> ask
   where actualPtr = nextAlignedPtr . unBuf
 
-
 -- | Use the chacha20 encryption algorithm as a prg.
 chacha20Random :: BufferPtr -> MT U.Internals ()
 chacha20Random = flip U.processBlocks randomBufferSize
-
--- | The size of the buffer in blocks of ChaCha20. While the
--- implementations should handle any multiple of blocks, often
--- implementations naturally handle some multiple of blocks, for
--- example the Vector256 implementation handles 2-chacha blocks. Set
--- this quantity to the maximum supported by all implementations.
-randomBufferSize :: BLOCKS ChaCha20
-randomBufferSize = 16  `blocksOf` (Proxy :: Proxy ChaCha20)
-
--- | Implementations are also designed to work with a specific
--- alignment boundary. Unaligned access can slow down the primitives
--- quite a bit. Set this to the maximum of alignment supported by all
--- implementations
-randomBufferAlignment :: Alignment
-randomBufferAlignment = ptrAlignment (Proxy :: Proxy U.BufferPtr)
