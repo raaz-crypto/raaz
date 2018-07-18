@@ -7,8 +7,6 @@ module Raaz.Core.Types.Copying
          Src(..), Dest(..), source, destination
        ) where
 
-import Foreign.Storable ( Storable )
-
 -- $copyconvention$
 --
 -- Consider a copy operation that involves copying data between two
@@ -28,7 +26,7 @@ import Foreign.Storable ( Storable )
 
 
 -- | The source of a copy operation.
-newtype Src  a = Src { unSrc :: a } deriving Storable
+newtype Src  a = Src { unSrc :: a }
 
 -- | smart constructor for source
 source :: a -> Src a
@@ -39,10 +37,9 @@ instance Functor Src where
 
 -- | The destination of a copy operation.
 --
--- Note to Developers of Raaz: Since the `Dest` type inherits the
--- Storable instance of the base type, one can use this type in
+-- Note to Developers of Raaz: One can use this type in
 -- foreign functions.
-newtype Dest a = Dest { unDest :: a } deriving Storable
+newtype Dest a = Dest { unDest :: a }
 
 -- | smart constructor for destionation.
 destination :: a -> Dest a
