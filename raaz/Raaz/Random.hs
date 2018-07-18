@@ -251,8 +251,6 @@ import Raaz.Random.ChaCha20PRG
 newtype RandomT mem m a = RandomT { unRandomT :: ReaderT (RandomState, mem) m a }
                  deriving (Functor, Applicative, Monad, MonadIO, MonadIOCont)
 
-
-
 -- | Lifts an memory action on the random state to RandomT.
 liftRandomState :: MonadIO m => MT RandomState a -> RandomT mem m a
 liftRandomState = RandomT . mapReaderT liftIO . withReaderT fst
@@ -299,7 +297,6 @@ instance Memory mem => MonadMemoryT (RandomT mem) where
 reseed :: MonadIO m => RandomT mem m ()
 reseed = liftRandomState reseedMT
 
-  where
 -- | Fill the given input pointer with random bytes. This function
 -- /does not/ and /cannot/ check whether the input pointer has enough
 -- space for the data. Hence this function should be used only on the
