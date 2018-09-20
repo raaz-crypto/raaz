@@ -97,25 +97,25 @@ library core
   import: defaults
   hs-source-dirs: core
   exposed-modules: Raaz.Core
-                 , Raaz.Core.ByteSource
                  , Raaz.Core.CpuSupports
-                 , Raaz.Core.Encode
-                 , Raaz.Core.Memory
-                 , Raaz.Core.MonoidalAction
-                 , Raaz.Core.Parse.Applicative
-                 , Raaz.Core.Primitive
+                 , Raaz.Core.Transfer
                  , Raaz.Core.Types
                  , Raaz.Core.Types.Internal
-                 , Raaz.Core.Util
-                 , Raaz.Core.Transfer
                  , Raaz.Entropy
-                 , Raaz.Primitive.HashMemory
                  , Raaz.Primitive.Blake2.Internal
                  , Raaz.Primitive.Sha256.Internal
                  , Raaz.Primitive.Sha512.Internal
                  , Raaz.Primitive.ChaCha20.Internal
+                 , Raaz.Primitive.HashMemory
 
-  other-modules: Raaz.Core.Constants
+  other-modules: Raaz.Core.ByteSource
+               , Raaz.Core.Encode
+               , Raaz.Core.Memory
+               , Raaz.Core.MonoidalAction
+               , Raaz.Core.Parse.Applicative
+               , Raaz.Core.Primitive
+               , Raaz.Core.Util
+               , Raaz.Core.Constants
                , Raaz.Core.Encode.Internal
                , Raaz.Core.Encode.Base16
                , Raaz.Core.Encode.Base64
@@ -126,6 +126,7 @@ library core
                , Raaz.Core.Types.Equality
                , Raaz.Core.Types.Endian
                , Raaz.Core.Types.Copying
+
   c-sources: core/cbits/raaz/core/endian.c
            , core/cbits/raaz/core/memory.c
            , core/cbits/raaz/core/cpusupports.c
@@ -182,14 +183,18 @@ library
   build-depends: core
                , core-indef
                , implementation
+  reexported-modules: Raaz.Core
+                    , Raaz.Core.Types
   exposed-modules: Raaz
                  , Raaz.Hash
                  , Raaz.Cipher
                  , Raaz.Random
                  , Raaz.Random.Internal
                  , Raaz.Random.ChaCha20PRG
-                 , Paths_raaz
+
   autogen-modules: Paths_raaz
+  other-modules: Paths_raaz
+
   mixins: core-indef (Raaz.Primitive.Util as Raaz.Hash.Blake2b.Util)
           requires   (Raaz.Primitive.Implementation as Raaz.Primitive.Blake2b.Implementation.CPortable)
         , core-indef (Raaz.Primitive.Util as Raaz.Hash.Blake2s.Util)
