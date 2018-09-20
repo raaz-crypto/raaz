@@ -75,14 +75,16 @@ common defaults
                , vector                  >= 0.7.1 && < 0.13
                , mtl
 
+  ------------------------ Compiler optimisation flags -------------------------------------
+
+  if flag(native) { cc-options: -march=native  }
+  if flag(avx2)   { cc-options: -mavx2         }
+
   ----------------------- System specific configurations ----------------------------------
 
-  if os(linux)
-     cc-options: -DPLATFORM_LINUX
-  if os(osx)
-     cc-options: -DPLATFORM_OSX
-  if os(openbsd)
-     cc-options: -DPLATFORM_OPENBSD
+  if os(linux)   { cc-options: -DPLATFORM_LINUX   }
+  if os(osx)     { cc-options: -DPLATFORM_OSX     }
+  if os(openbsd) { cc-options: -DPLATFORM_OPENBSD }
   if os(windows)
      cc-options: -DPLATFORM_WINDOWS -DUNICODE
      cpp-options: -DPLATFORM_WINDOWS
