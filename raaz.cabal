@@ -144,10 +144,10 @@ library core
 
 ---------------------- The signatures relevant for core ---------------------------
 
-library core-indef
+library indef
   import: defaults
   build-depends: core
-  hs-source-dirs: core-indef
+  hs-source-dirs: indef
   signatures: Raaz.Primitive.Implementation
   exposed-modules: Raaz.Primitive.Util
 
@@ -181,7 +181,7 @@ library
   import: defaults
   hs-source-dirs: raaz
   build-depends: core
-               , core-indef
+               , indef
                , implementation
   reexported-modules: Raaz.Core
                     , Raaz.Core.Types
@@ -195,15 +195,15 @@ library
   autogen-modules: Paths_raaz
   other-modules: Paths_raaz
 
-  mixins: core-indef (Raaz.Primitive.Util as Raaz.Hash.Blake2b.Util)
+  mixins: indef (Raaz.Primitive.Util as Raaz.Hash.Blake2b.Util)
           requires   (Raaz.Primitive.Implementation as Raaz.Primitive.Blake2b.Implementation.CPortable)
-        , core-indef (Raaz.Primitive.Util as Raaz.Hash.Blake2s.Util)
+        , indef (Raaz.Primitive.Util as Raaz.Hash.Blake2s.Util)
           requires   (Raaz.Primitive.Implementation as Raaz.Primitive.Blake2s.Implementation.CPortable)
-        , core-indef (Raaz.Primitive.Util as Raaz.Hash.Sha256.Util)
+        , indef (Raaz.Primitive.Util as Raaz.Hash.Sha256.Util)
           requires   (Raaz.Primitive.Implementation as Raaz.Primitive.Sha256.Implementation.CPortable)
-        , core-indef (Raaz.Primitive.Util as Raaz.Hash.Sha512.Util)
+        , indef (Raaz.Primitive.Util as Raaz.Hash.Sha512.Util)
           requires   (Raaz.Primitive.Implementation as Raaz.Primitive.Sha512.Implementation.CPortable)
-        , core-indef (Raaz.Primitive.Util as Raaz.Cipher.ChaCha20.Util)
+        , indef (Raaz.Primitive.Util as Raaz.Cipher.ChaCha20.Util)
           requires   (Raaz.Primitive.Implementation as Raaz.Primitive.ChaCha20.Implementation.CPortable)
 
 ---------------------------- Executables -------------------------------------------------
@@ -272,7 +272,7 @@ library benchmark-internal
   build-depends: criterion-measurement     >= 0.1
                , pretty
                , core
-               , core-indef
+               , indef
 
 benchmark primitives
   import: defaults
