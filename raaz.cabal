@@ -221,10 +221,10 @@ executable raaz
 
 -- ---------------------------- Test suit -----------------------------------------------------
 
-test-suite spec
+test-suite tests
   import: defaults
   type: exitcode-stdio-1.0
-  hs-source-dirs: raaz/spec
+  hs-source-dirs: tests
   main-is: Spec.hs
 
   build-depends: raaz
@@ -261,7 +261,7 @@ test-suite spec
 
 library benchmark-internal
   import: defaults
-  hs-source-dirs: implementation/benchmarks/internal
+  hs-source-dirs: benchmarks/internal
   exposed-modules: Benchmark.Primitive
                  , Benchmark.Types
   build-depends: criterion-measurement     >= 0.1
@@ -271,7 +271,7 @@ library benchmark-internal
 
 benchmark primitives
   import: defaults
-  hs-source-dirs: implementation/benchmarks
+  hs-source-dirs: benchmarks
   main-is: Main.hs
   type: exitcode-stdio-1.0
   build-depends: pretty
