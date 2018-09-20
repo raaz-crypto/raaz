@@ -5,7 +5,7 @@
 module Raaz.Random
        ( -- * Cryptographically secure randomness.
          -- $randomness$
-         RT, RandM
+        RandomT, RT, RandM
        , random,  randomByteString
        -- ** Types that can be generated randomly
        , RandomStorable(..), unsafeFillRandomElements
