@@ -1,14 +1,14 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE KindSignatures   #-}
 {-# LANGUAGE DataKinds        #-}
-module Raaz.Primitive.Util
+module Utils
        ( allocBufferFor
        , processByteSource
        , computeDigest
        , transformAndDigest
        , BufferPtr
        , Buffer, getBufferPointer, bufferSize, processBuffer
-       , module Raaz.Primitive.Implementation
+       , module Implementation
        ) where
 
 import Control.Monad.IO.Class          (liftIO)
@@ -22,7 +22,8 @@ import GHC.TypeLits
 
 import Raaz.Core
 import Raaz.Core.Types.Internal
-import Raaz.Primitive.Implementation
+
+import Implementation
 
 -- | The pointer type associated with the buffer used by the
 -- implementation.

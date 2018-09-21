@@ -10,7 +10,7 @@
 -- implementations involve other details like the alignment
 -- restriction on the input buffer and all that. We package all this
 -- in the following signature.
-signature Raaz.Primitive.Implementation
+signature Implementation
           (
             Prim
           , name

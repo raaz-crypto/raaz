@@ -5,7 +5,7 @@ import Control.Monad
 import GHC.TypeLits
 
 import Raaz.Core
-import Raaz.Primitive.Util
+import Utils
 import Benchmark.Types
 
 

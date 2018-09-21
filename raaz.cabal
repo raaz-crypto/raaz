@@ -147,9 +147,9 @@ library core
 library indef
   import: defaults
   build-depends: core
-  hs-source-dirs: indef
-  signatures: Raaz.Primitive.Implementation
-  exposed-modules: Raaz.Primitive.Util
+  hs-source-dirs: indef, implementation-sig
+  signatures: Implementation
+  exposed-modules: Utils
 
 
 --------------------  The implementation modules ----------------------------------
@@ -195,16 +195,16 @@ library
   autogen-modules: Paths_raaz
   other-modules: Paths_raaz
 
-  mixins: indef (Raaz.Primitive.Util as Raaz.Hash.Blake2b.Util)
-          requires   (Raaz.Primitive.Implementation as Raaz.Primitive.Blake2b.Implementation.CPortable)
-        , indef (Raaz.Primitive.Util as Raaz.Hash.Blake2s.Util)
-          requires   (Raaz.Primitive.Implementation as Raaz.Primitive.Blake2s.Implementation.CPortable)
-        , indef (Raaz.Primitive.Util as Raaz.Hash.Sha256.Util)
-          requires   (Raaz.Primitive.Implementation as Raaz.Primitive.Sha256.Implementation.CPortable)
-        , indef (Raaz.Primitive.Util as Raaz.Hash.Sha512.Util)
-          requires   (Raaz.Primitive.Implementation as Raaz.Primitive.Sha512.Implementation.CPortable)
-        , indef (Raaz.Primitive.Util as Raaz.Cipher.ChaCha20.Util)
-          requires   (Raaz.Primitive.Implementation as Raaz.Primitive.ChaCha20.Implementation.CPortable)
+  mixins: indef (Utils as Raaz.Hash.Blake2b.Util)
+          requires   (Implementation as Raaz.Primitive.Blake2b.Implementation.CPortable)
+        , indef (Utils as Raaz.Hash.Blake2s.Util)
+          requires   (Implementation as Raaz.Primitive.Blake2s.Implementation.CPortable)
+        , indef (Utils as Raaz.Hash.Sha256.Util)
+          requires   (Implementation as Raaz.Primitive.Sha256.Implementation.CPortable)
+        , indef (Utils as Raaz.Hash.Sha512.Util)
+          requires   (Implementation as Raaz.Primitive.Sha512.Implementation.CPortable)
+        , indef (Utils as Raaz.Cipher.ChaCha20.Util)
+          requires   (Implementation as Raaz.Primitive.ChaCha20.Implementation.CPortable)
 
 ---------------------------- Executables -------------------------------------------------
 
@@ -285,16 +285,16 @@ benchmark primitives
                , benchmark-internal
 
   mixins: benchmark-internal (Benchmark.Primitive as Benchmark.Blake2b.CPortable, Benchmark.Types)
-          requires   (Raaz.Primitive.Implementation as Raaz.Primitive.Blake2b.Implementation.CPortable)
+          requires   (Implementation as Raaz.Primitive.Blake2b.Implementation.CPortable)
 
         , benchmark-internal (Benchmark.Primitive as Benchmark.Blake2s.CPortable)
-          requires   (Raaz.Primitive.Implementation as Raaz.Primitive.Blake2s.Implementation.CPortable)
+          requires   (Implementation as Raaz.Primitive.Blake2s.Implementation.CPortable)
 
         , benchmark-internal (Benchmark.Primitive as Benchmark.ChaCha20.CPortable)
-          requires   (Raaz.Primitive.Implementation as Raaz.Primitive.ChaCha20.Implementation.CPortable)
+          requires   (Implementation as Raaz.Primitive.ChaCha20.Implementation.CPortable)
 
         , benchmark-internal (Benchmark.Primitive as Benchmark.Sha256.CPortable)
-          requires   (Raaz.Primitive.Implementation as Raaz.Primitive.Sha256.Implementation.CPortable)
+          requires   (Implementation as Raaz.Primitive.Sha256.Implementation.CPortable)
 
         , benchmark-internal (Benchmark.Primitive as Benchmark.Sha512.CPortable)
-          requires (Raaz.Primitive.Implementation as Raaz.Primitive.Sha512.Implementation.CPortable)
+          requires (Implementation as Raaz.Primitive.Sha512.Implementation.CPortable)
