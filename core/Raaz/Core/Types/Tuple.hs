@@ -96,7 +96,7 @@ instance (V.Unbox a, Storable a, Dimension dim)
     where len = getParseDimension tupParser
           tupParser = Tuple <$> unsafeParseStorableVector len
 
-  poke ptr tup = unsafeWrite writeTup cptr
+  poke ptr tup = unsafeTransfer writeTup cptr
     where writeTup = writeStorableVector $ unTuple tup
           cptr     = castPtr ptr
 
@@ -108,7 +108,7 @@ instance (V.Unbox a, EndianStore a, Dimension dim)
      where tupParser = Tuple <$> unsafeParseVector len
            len       = getParseDimension tupParser
 
-  store ptr tup = unsafeWrite writeTup cptr
+  store ptr tup = unsafeTransfer writeTup cptr
      where writeTup = writeVector $ unTuple tup
            cptr     = castPtr ptr
 
