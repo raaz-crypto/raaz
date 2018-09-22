@@ -12,7 +12,7 @@ import Data.Proxy
 import Data.Bits                  ( complement   )
 
 import Raaz.Core
-import Raaz.Core.Transfer         ( bytesToWrite, unsafeWrite )
+import Raaz.Core.Transfer         ( transferSize, unsafeTransfer )
 import Raaz.Core.Types.Internal
 import Raaz.Primitive.HashMemory
 import Raaz.Primitive.Blake2.Internal
@@ -70,8 +70,8 @@ processLast :: AlignedPointer BufferAlignment
             -> BYTES Int
             -> MT Blake2bMem ()
 processLast buf nbytes  = do
-  unsafeWrite padding $ forgetAlignment buf  -- pad the message
-  processBlocks buf nBlocks                  -- process all but the last block
+  unsafeTransfer padding $ forgetAlignment buf  -- pad the message
+  processBlocks buf nBlocks                     -- process all but the last block
   --
   -- Handle the last block
   --
@@ -81,7 +81,7 @@ processLast buf nbytes  = do
   liftIO $ c_blake2b_last lastBlockPtr remBytes u l f0 f1 hshPtr
 
   where padding      = blake2Pad (Proxy :: Proxy BLAKE2b) nbytes
-        nBlocks      = atMost (bytesToWrite padding) `mappend` toEnum (-1)
+        nBlocks      = atMost (transferSize padding) `mappend` toEnum (-1)
                                            -- all but the last block
         remBytes     = nbytes - inBytes nBlocks
                                            -- Actual bytes in the last block.

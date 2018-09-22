@@ -113,4 +113,4 @@ blake2Pad :: (Primitive prim, MonadIO m)
           => Proxy prim  -- ^ the primitive (BLAKE2b or BLAKE2s).
           -> BYTES Int   -- ^ length of the message
           -> WriteM m
-blake2Pad primProxy = padWrite 0 (blocksOf 1 primProxy) . skipWrite
+blake2Pad primProxy = padWrite 0 (blocksOf 1 primProxy) . skip

@@ -66,7 +66,7 @@ padding :: BYTES Int    -- Data in buffer.
         -> BYTES Word64 -- Message length
         -> WriteM (MT Internals)
 padding bufSize msgLen  = glueWrites 0 boundary hdr lengthWrite
-  where skipMessage = skipWrite bufSize
+  where skipMessage = skip bufSize
         oneBit      = writeStorable (0x80 :: Word8)
         hdr         = skipMessage `mappend` oneBit
         boundary    = blocksOf 1 (Proxy :: Proxy SHA256)
@@ -81,5 +81,5 @@ processLast buf nbytes  = do
   updateLength nbytes
   totalBytes  <- getLength
   let pad      = padding nbytes totalBytes
-      blocks   = atMost $ bytesToWrite pad
-      in unsafeWrite pad (forgetAlignment buf) >> compressBlocks buf blocks
+      blocks   = atMost $ transferSize pad
+      in unsafeTransfer pad (forgetAlignment buf) >> compressBlocks buf blocks
