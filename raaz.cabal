@@ -189,6 +189,7 @@ library chacha20-indef
   build-depends: core, indef
   hs-source-dirs: indef
   signatures: ChaCha20.Implementation
+  exposed-modules: ChaCha20.PRG
   mixins: indef (Utils as ChaCha20.Utils) requires (Implementation as ChaCha20.Implementation)
 
 library hash-indef

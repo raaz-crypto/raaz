@@ -9,3 +9,7 @@ import Raaz.Primitive.ChaCha20.Internal
 
 -- | The primitive for which the implementation is given
 type Prim = ChaCha20
+
+-- | The type of the internals should be ChaCha20Mem, so that we can
+-- use it for our CSPRG.
+type Internals = ChaCha20Mem
