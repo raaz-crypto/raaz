@@ -3,7 +3,7 @@
 {-# LANGUAGE KindSignatures             #-}
 
 -- | The portable C-implementation of Blake2b.
-module Raaz.Primitive.Blake2b.Implementation.CPortable where
+module Blake2b.CPortable where
 
 import Foreign.Ptr                ( Ptr          )
 import Control.Monad.IO.Class     ( liftIO       )

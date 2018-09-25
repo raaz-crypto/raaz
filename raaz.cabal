@@ -243,11 +243,11 @@ library implementation
   import: defaults
   build-depends: core
   hs-source-dirs: implementation
-  exposed-modules: Raaz.Primitive.Blake2b.Implementation.CPortable
-                 , Raaz.Primitive.Blake2s.Implementation.CPortable
-                 , Raaz.Primitive.Sha256.Implementation.CPortable
-                 , Raaz.Primitive.Sha512.Implementation.CPortable
-                 , Raaz.Primitive.ChaCha20.Implementation.CPortable
+  exposed-modules: Blake2b.CPortable
+                 , Blake2s.CPortable
+                 , Sha256.CPortable
+                 , Sha512.CPortable
+                 , ChaCha20.CPortable
 
   c-sources: implementation/cbits/raaz/hash/blake2/blake2b/portable.c
            , implementation/cbits/raaz/hash/blake2/blake2s/portable.c
@@ -272,10 +272,10 @@ library
                     , Raaz.Core.Types
                     , Raaz.Hash
   mixins: hash-indef (Hash as Raaz.Hash)
-            requires (Blake2b.Implementation as Raaz.Primitive.Blake2b.Implementation.CPortable,
-                      Blake2s.Implementation as Raaz.Primitive.Blake2s.Implementation.CPortable,
-                      Sha256.Implementation as Raaz.Primitive.Sha256.Implementation.CPortable,
-                      Sha512.Implementation as Raaz.Primitive.Sha512.Implementation.CPortable
+            requires (Blake2b.Implementation as Blake2b.CPortable,
+                      Blake2s.Implementation as Blake2s.CPortable,
+                      Sha256.Implementation as Sha256.CPortable,
+                      Sha512.Implementation as Sha512.CPortable
                      )
 
 --  exposed-modules: Raaz
