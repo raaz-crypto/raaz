@@ -190,6 +190,7 @@ library chacha20-indef
   hs-source-dirs: indef
   signatures: ChaCha20.Implementation
   exposed-modules: ChaCha20.PRG
+  reexported-modules: ChaCha20.Utils
   mixins: indef (Utils as ChaCha20.Utils) requires (Implementation as ChaCha20.Implementation)
 
 library hash-indef
@@ -201,6 +202,16 @@ library hash-indef
                , sha512-indef
                , sha256-indef
   exposed-modules: Hash
+
+library random-indef
+  import: defaults
+  hs-source-dirs: indef
+  build-depends: core
+               , chacha20-indef
+  exposed-modules: Random
+  -- Not sure why the line below is needed. Cabal seems to give an
+  -- warning.
+  other-modules: ChaCha20.PRG 
 
 ----------------------- The indef modules ----------------------------------------
 
@@ -268,6 +279,7 @@ library
   hs-source-dirs: raaz
   build-depends: core
                , hash-indef
+               , random-indef
                , implementation
   reexported-modules: Raaz.Core
                     , Raaz.Core.Types
@@ -277,7 +289,10 @@ library
                       Blake2s.Implementation as Blake2s.CPortable,
                       Sha256.Implementation as Sha256.CPortable,
                       Sha512.Implementation as Sha512.CPortable
-                     )
+          )
+        , random-indef(Random as Raaz.Random)
+            requires (ChaCha20.Implementation as ChaCha20.CPortable)
+
 
 --  exposed-modules: Raaz
 --
