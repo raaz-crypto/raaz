@@ -8,7 +8,7 @@ under the raaz library.
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE FlexibleInstances    #-}
 
-module Raaz.Hash
+module Hash
        (
          -- * Cryptographic hashes.
          -- $computingHash$
@@ -34,10 +34,10 @@ import           Raaz.Core
 import           Raaz.Primitive.Blake2.Internal (BLAKE2b, BLAKE2s)
 import           Raaz.Primitive.Sha256.Internal (SHA256)
 import           Raaz.Primitive.Sha512.Internal (SHA512)
-import qualified Raaz.Hash.Blake2b.Util         as Blake2bU
-import qualified Raaz.Hash.Blake2s.Util         as Blake2sU
-import qualified Raaz.Hash.Sha256.Util          as Sha256U
-import qualified Raaz.Hash.Sha512.Util          as Sha512U
+import qualified Blake2b.Utils         as Blake2bU
+import qualified Blake2s.Utils         as Blake2sU
+import qualified Sha256.Utils          as Sha256U
+import qualified Sha512.Utils          as Sha512U
 
 
 -- $computingHash$
