@@ -2,7 +2,7 @@
 build: off
 environment:
   global:
-    GHCVER:   "8.4.3"
+    GHCVER:   "8.6.1.1"
     STORE_DIR: "c:\\s"
   matrix:
     - ARCH_SEL_FLAG: ""    # Default
