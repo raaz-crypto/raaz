@@ -203,6 +203,13 @@ library hash-indef
                , sha256-indef
   exposed-modules: Hash
 
+library cipher-indef
+  import: defaults
+  hs-source-dirs: indef
+  build-depends: core
+               , chacha20-indef
+  exposed-modules: Cipher
+
 library random-indef
   import: defaults
   hs-source-dirs: indef
@@ -211,7 +218,7 @@ library random-indef
   exposed-modules: Random
   -- Not sure why the line below is needed. Cabal seems to give an
   -- warning.
-  other-modules: ChaCha20.PRG 
+  other-modules: ChaCha20.PRG
 
 ----------------------- The indef modules ----------------------------------------
 
@@ -279,28 +286,28 @@ library
   hs-source-dirs: raaz
   build-depends: core
                , hash-indef
+               , cipher-indef
                , random-indef
                , implementation
   reexported-modules: Raaz.Core
                     , Raaz.Core.Types
+                    , Raaz.Cipher
                     , Raaz.Hash
                     , Raaz.Random
-  mixins: hash-indef (Hash as Raaz.Hash)
+  mixins: cipher-indef (Cipher as Raaz.Cipher)
+            requires (ChaCha20.Implementation as ChaCha20.CPortable)
+
+        , hash-indef (Hash as Raaz.Hash)
             requires (Blake2b.Implementation as Blake2b.CPortable,
                       Blake2s.Implementation as Blake2s.CPortable,
                       Sha256.Implementation as Sha256.CPortable,
                       Sha512.Implementation as Sha512.CPortable
           )
+
         , random-indef(Random as Raaz.Random)
             requires (ChaCha20.Implementation as ChaCha20.CPortable)
 
 
---  exposed-modules: Raaz
---
-  --                , Raaz.Cipher
-  --                , Raaz.Random
-  --                , Raaz.Random.Internal
-  --                , Raaz.Random.ChaCha20PRG
 
   -- autogen-modules: Paths_raaz
   -- other-modules: Paths_raaz

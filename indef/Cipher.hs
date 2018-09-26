@@ -2,7 +2,7 @@
 -- | This module exposes all the ciphers provided by raaz. The
 -- interface here is pretty low level and it is usually the case that
 -- you would not need to work at this level of detail.
-module Raaz.Cipher
+module Cipher
        ( -- * Ciphers
          -- $cipherdoc$
          StreamCipher(..)
@@ -12,7 +12,7 @@ import           Data.ByteString                  ( ByteString )
 import           Data.Proxy                       ( Proxy      )
 import           Raaz.Core
 import           Raaz.Primitive.ChaCha20.Internal ( ChaCha20   )
-import qualified Raaz.Cipher.ChaCha20.Util as ChaCha20U
+import qualified ChaCha20.Utils
 
 -- $cipherdoc$
 --
@@ -36,4 +36,4 @@ class (Primitive c, Digest c ~ ()) => StreamCipher c where
   transform :: Proxy c -> Key c -> ByteString -> ByteString
 
 instance StreamCipher ChaCha20 where
-  transform _ key = fst . ChaCha20U.transformAndDigest key
+  transform _ key = fst . ChaCha20.Utils.transformAndDigest key
