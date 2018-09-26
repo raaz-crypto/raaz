@@ -336,7 +336,7 @@ test-suite tests
 
 --------------------------- Benchmarkings ---------------------------------------------
 
-library benchmark-internal
+library bench-indef
   import: defaults
   hs-source-dirs: benchmarks/internal
   exposed-modules: Benchmark.Primitive
@@ -354,19 +354,19 @@ benchmark primitives
   build-depends: pretty
                , core
                , implementation
-               , benchmark-internal
+               , bench-indef
 
-  mixins: benchmark-internal (Benchmark.Primitive as Benchmark.Blake2b.CPortable, Benchmark.Types)
+  mixins: bench-indef (Benchmark.Primitive as Benchmark.Blake2b.CPortable, Benchmark.Types)
           requires   (Implementation as Blake2b.CPortable)
 
-        , benchmark-internal (Benchmark.Primitive as Benchmark.Blake2s.CPortable)
+        , bench-indef (Benchmark.Primitive as Benchmark.Blake2s.CPortable)
           requires   (Implementation as Blake2s.CPortable)
 
-        , benchmark-internal (Benchmark.Primitive as Benchmark.ChaCha20.CPortable)
+        , bench-indef (Benchmark.Primitive as Benchmark.ChaCha20.CPortable)
           requires   (Implementation as ChaCha20.CPortable)
 
-        , benchmark-internal (Benchmark.Primitive as Benchmark.Sha256.CPortable)
+        , bench-indef (Benchmark.Primitive as Benchmark.Sha256.CPortable)
           requires   (Implementation as Sha256.CPortable)
 
-        , benchmark-internal (Benchmark.Primitive as Benchmark.Sha512.CPortable)
+        , bench-indef (Benchmark.Primitive as Benchmark.Sha512.CPortable)
           requires (Implementation as Sha512.CPortable)
