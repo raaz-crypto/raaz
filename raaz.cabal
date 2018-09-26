@@ -220,42 +220,6 @@ library random-indef
   -- warning.
   other-modules: ChaCha20.PRG
 
------------------------ The indef modules ----------------------------------------
-
--- library utils-indef
---  import: defaults
---  build-depends: core, implementation-sig
---  hs-source-dirs: indef
---  exposed-modules: Utils
-
-
--- library raaz-indef
---  import: defaults
---  build-depends: core
---               , implementation-sig
---               , blake2b-sig
---               , blake2s-sig
---               , sha256-sig
---               , sha512-sig
---  hs-source-dirs: raaz
---  exposed-modules: Raaz.Hash
-
---  mixins: indef (Utils as Raaz.Hash.Blake2b.Util)
---           requires   (Implementation as Raaz.Primitive.Blake2b.Implementation.CPortable)
---         , indef (Utils as Raaz.Hash.Blake2s.Util)
---           requires   (Implementation as Raaz.Primitive.Blake2s.Implementation.CPortable)
---         , indef (Utils as Raaz.Hash.Sha256.Util)
---           requires   (Implementation as Raaz.Primitive.Sha256.Implementation.CPortable)
---         , indef (Utils as Raaz.Hash.Sha512.Util)
---           requires   (Implementation as Raaz.Primitive.Sha512.Implementation.CPortable)
---         , indef (Utils as Raaz.Cipher.ChaCha20.Util)
---           requires   (Implementation as Raaz.Primitive.ChaCha20.Implementation.CPortable)
-
-
-
-
-
-
 --------------------  The implementation modules ----------------------------------
 
 library implementation
@@ -309,19 +273,7 @@ library
 
 
 
-  -- autogen-modules: Paths_raaz
-  -- other-modules: Paths_raaz
-
-  -- mixins: indef (Utils as Raaz.Hash.Blake2b.Util)
-  --         requires   (Implementation as Raaz.Primitive.Blake2b.Implementation.CPortable)
-  --       , indef (Utils as Raaz.Hash.Blake2s.Util)
-  --         requires   (Implementation as Raaz.Primitive.Blake2s.Implementation.CPortable)
-  --       , indef (Utils as Raaz.Hash.Sha256.Util)
-  --         requires   (Implementation as Raaz.Primitive.Sha256.Implementation.CPortable)
-  --       , indef (Utils as Raaz.Hash.Sha512.Util)
-  --         requires   (Implementation as Raaz.Primitive.Sha512.Implementation.CPortable)
-  --       , indef (Utils as Raaz.Cipher.ChaCha20.Util)
-  --         requires   (Implementation as Raaz.Primitive.ChaCha20.Implementation.CPortable)
+  autogen-modules: Paths_raaz
 
 ---------------------------- Executables -------------------------------------------------
 
