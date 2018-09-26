@@ -296,43 +296,43 @@ executable raaz
     -- starting with base-4.9 we don't need 'transformers' anymore
     build-depends: transformers
 
--- -- ---------------------------- Test suit -----------------------------------------------------
+---------------------------------- Test suit -----------------------------------------------------
 
--- test-suite tests
---   import: defaults
---   type: exitcode-stdio-1.0
---   hs-source-dirs: tests
---   main-is: Spec.hs
+test-suite tests
+  import: defaults
+  type: exitcode-stdio-1.0
+  hs-source-dirs: tests
+  main-is: Spec.hs
 
---   build-depends: raaz
---                , core
---   build-depends: HUnit                          >= 1.2
---                , QuickCheck                     >= 2.4
---                , hspec
---                , hspec-discover
---                , transformers
---                , vector
+  build-depends: raaz
+               , core
+  build-depends: HUnit                          >= 1.2
+               , QuickCheck                     >= 2.4
+               , hspec
+               , hspec-discover
+               , transformers
+               , vector
 
---   build-tool-depends: hspec-discover:hspec-discover
---   if !os(windows)
---     cpp-options: -DHAVE_DEV_NULL
+  build-tool-depends: hspec-discover:hspec-discover
+  if !os(windows)
+    cpp-options: -DHAVE_DEV_NULL
 
---   other-modules: Common
---                , Common.Cipher
---                , Common.Hash
---                , Common.Imports
---                , Common.Instances
---                , Common.Utils
---                , Raaz.Cipher.ChaCha20Spec
---                , Raaz.Core.ByteSourceSpec
---                , Raaz.Core.EncodeSpec
---                , Raaz.Core.MemorySpec
---                , Raaz.Core.Types.WordSpec
---                , Raaz.Core.Util.ByteStringSpec
---                , Raaz.RandomSpec
---                , Raaz.Hash.Sha256Spec
---                , Raaz.Hash.Sha512Spec
---                , Raaz.Hash.Blake2Spec
+  other-modules: Common
+               , Common.Cipher
+               , Common.Hash
+               , Common.Imports
+               , Common.Instances
+               , Common.Utils
+               , Raaz.Cipher.ChaCha20Spec
+               , Raaz.Core.ByteSourceSpec
+               , Raaz.Core.EncodeSpec
+               , Raaz.Core.MemorySpec
+               , Raaz.Core.Types.WordSpec
+               , Raaz.Core.Util.ByteStringSpec
+               , Raaz.RandomSpec
+               , Raaz.Hash.Sha256Spec
+               , Raaz.Hash.Sha512Spec
+               , Raaz.Hash.Blake2Spec
 
 -- --------------------------- Benchmarkings ---------------------------------------------
 
