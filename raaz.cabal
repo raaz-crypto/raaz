@@ -259,6 +259,7 @@ library
                     , Raaz.Cipher
                     , Raaz.Hash
                     , Raaz.Random
+                    , Raaz.Entropy
   mixins: cipher-indef (Cipher as Raaz.Cipher)
             requires (ChaCha20.Implementation as ChaCha20.CPortable)
 
