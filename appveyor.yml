@@ -21,7 +21,7 @@ before_test:
 - cabal --version
 - ghc   --version
 - ghc --info | grep "platform"
-- cabal update
+- cabal new-update
 
 test_script:
 - cabal --store-dir=%STORE_DIR% new-configure --builddir=d
