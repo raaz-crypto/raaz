@@ -27,6 +27,7 @@ test_script:
 - cabal --store-dir=%STORE_DIR% new-configure --builddir=d
 - cabal --store-dir=%STORE_DIR% new-build --builddir=d
 - cabal --store-dir=%STORE_DIR% new-test  --builddir=d
+- cabal --store-dir=%STORE_DIR% new-bench --builddir=d
 
 branches:
   only:
