@@ -334,39 +334,39 @@ test-suite tests
                , Raaz.Hash.Sha512Spec
                , Raaz.Hash.Blake2Spec
 
--- --------------------------- Benchmarkings ---------------------------------------------
+--------------------------- Benchmarkings ---------------------------------------------
 
--- library benchmark-internal
---   import: defaults
---   hs-source-dirs: benchmarks/internal
---   exposed-modules: Benchmark.Primitive
---                  , Benchmark.Types
---   build-depends: criterion-measurement     >= 0.1
---                , pretty
---                , core
---                , indef
+library benchmark-internal
+  import: defaults
+  hs-source-dirs: benchmarks/internal
+  exposed-modules: Benchmark.Primitive
+                 , Benchmark.Types
+  build-depends: criterion-measurement     >= 0.1
+               , pretty
+               , core
+               , indef
 
--- benchmark primitives
---   import: defaults
---   hs-source-dirs: benchmarks
---   main-is: Main.hs
---   type: exitcode-stdio-1.0
---   build-depends: pretty
---                , core
---                , implementation
---                , benchmark-internal
+benchmark primitives
+  import: defaults
+  hs-source-dirs: benchmarks
+  main-is: Main.hs
+  type: exitcode-stdio-1.0
+  build-depends: pretty
+               , core
+               , implementation
+               , benchmark-internal
 
---   mixins: benchmark-internal (Benchmark.Primitive as Benchmark.Blake2b.CPortable, Benchmark.Types)
---           requires   (Implementation as Raaz.Primitive.Blake2b.Implementation.CPortable)
+  mixins: benchmark-internal (Benchmark.Primitive as Benchmark.Blake2b.CPortable, Benchmark.Types)
+          requires   (Implementation as Blake2b.CPortable)
 
---         , benchmark-internal (Benchmark.Primitive as Benchmark.Blake2s.CPortable)
---           requires   (Implementation as Raaz.Primitive.Blake2s.Implementation.CPortable)
+        , benchmark-internal (Benchmark.Primitive as Benchmark.Blake2s.CPortable)
+          requires   (Implementation as Blake2s.CPortable)
 
---         , benchmark-internal (Benchmark.Primitive as Benchmark.ChaCha20.CPortable)
---           requires   (Implementation as Raaz.Primitive.ChaCha20.Implementation.CPortable)
+        , benchmark-internal (Benchmark.Primitive as Benchmark.ChaCha20.CPortable)
+          requires   (Implementation as ChaCha20.CPortable)
 
---         , benchmark-internal (Benchmark.Primitive as Benchmark.Sha256.CPortable)
---           requires   (Implementation as Raaz.Primitive.Sha256.Implementation.CPortable)
+        , benchmark-internal (Benchmark.Primitive as Benchmark.Sha256.CPortable)
+          requires   (Implementation as Sha256.CPortable)
 
---         , benchmark-internal (Benchmark.Primitive as Benchmark.Sha512.CPortable)
---           requires (Implementation as Raaz.Primitive.Sha512.Implementation.CPortable)
+        , benchmark-internal (Benchmark.Primitive as Benchmark.Sha512.CPortable)
+          requires (Implementation as Sha512.CPortable)
