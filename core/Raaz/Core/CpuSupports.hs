@@ -15,7 +15,6 @@ module Raaz.Core.CpuSupports
        ) where
 
 import Foreign.C
-import System.IO.Unsafe(unsafePerformIO)
 
 foreign import ccall unsafe "raaz_supports_sse"
   c_sse :: IO CInt

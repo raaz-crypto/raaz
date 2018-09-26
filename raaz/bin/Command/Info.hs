@@ -55,5 +55,5 @@ cpuCapabilities = do sse    <- CpuSupports.sse
                                           , (avx,    "avx")
                                           , (avx2,   "avx2")
                                           ]
-                  where display (True, cap) = unwords ["+", cap]
-                        display (_,cap)     = unwords ["x", cap]
+                  where display (True, cap) = unwords ["has", cap]
+                        display (_,cap)     = unwords ["no", cap]
