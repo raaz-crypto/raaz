@@ -2,7 +2,7 @@ module Command.Info where
 
 import Data.Version (showVersion)
 import Options.Applicative
-import Raaz
+import Raaz hiding (length, replicate)
 import qualified Raaz.Core.CpuSupports as CpuSupports
 import Raaz.Random  (csprgName)
 import Raaz.Entropy (entropySource)
@@ -14,7 +14,7 @@ information = subparser $ mconcat [ commandGroup "Information"
                                   , metavar "INFORMATION"
                                   , infoCmd
                                   ]
-              
+
   where infoCmd = command "info" $ info (helper <*> opts)
                   $ mconcat [ fullDesc
                             , header "raaz info - Print the library information"
@@ -46,14 +46,16 @@ cpuCapabilities = do sse    <- CpuSupports.sse
                      sse4_2 <- CpuSupports.sse4_2
                      avx    <- CpuSupports.avx
                      avx2   <- CpuSupports.avx2
-                     section "CPU capabilities"
-                       $ do map display $ [ (sse, "sse")
-                                          , (sse2, "sse2")
-                                          , (sse3, "sse3")
-                                          , (sse4_1, "sse4.1")
-                                          , (sse4_2, "sse4.2")
-                                          , (avx,    "avx")
-                                          , (avx2,   "avx2")
-                                          ]
-                  where display (True, cap) = unwords ["has", cap]
-                        display (_,cap)     = unwords ["no", cap]
+                     let caps  = [ (sse, "sse")
+                                 , (sse2, "sse2")
+                                 , (sse3, "sse3")
+                                 , (sse4_1, "sse4.1")
+                                 , (sse4_2, "sse4.2")
+                                 , (avx,    "avx")
+                                 , (avx2,   "avx2")
+                                 ]
+                         w     = foldl1 max $ map (length . snd) caps
+                         pad x = x ++ replicate (w - length x + 3) ' '
+                         display (True, c) = unwords [pad c, "- supported"]
+                         display (_,c)     = unwords [pad c, "- cannot detect"]
+                       in section "CPU capabilities" $  map display caps
