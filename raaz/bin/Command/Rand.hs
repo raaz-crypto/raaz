@@ -11,7 +11,7 @@ import Control.Monad         ( void )
 import Control.Monad.IO.Class(liftIO)
 import Options.Applicative
 import Raaz
-import Raaz.Random.Internal
+import Raaz.Entropy
 import System.IO
 
 -- So much bytes generated in one go before writing to stdout.
@@ -90,5 +90,5 @@ emitRand m ptr = do
 
 emitEntropy :: BYTES Int -> Pointer -> IO ()
 emitEntropy m ptr = do
-  void $ fillSystemEntropy m ptr
+  void $ getEntropy m ptr
   hPutBuf stdout ptr $ fromIntegral m

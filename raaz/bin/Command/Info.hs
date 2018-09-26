@@ -4,7 +4,8 @@ import Data.Version (showVersion)
 import Options.Applicative
 import Raaz
 import Raaz.Core.CpuSupports as CpuSupports
-import Raaz.Random.Internal
+import Raaz.Random  (csprgName)
+import Raaz.Entropy (entropySource)
 
 
 information :: Parser (IO ())
@@ -22,7 +23,7 @@ information = subparser $ mconcat [ commandGroup "Information"
 
         opts = pure $ sequence_ [ field "Library Version" $ showVersion version
                                 , field "Entropy" entropySource
-                                , field "CSPRG"  csPRG
+                                , field "CSPRG"  csprgName
                                 , cpuCapabilities
 
                                 ]

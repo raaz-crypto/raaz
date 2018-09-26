@@ -280,21 +280,21 @@ library
 
 ---------------------------- Executables -------------------------------------------------
 
--- executable raaz
---   import: defaults
---   hs-source-dirs: raaz/bin
---   main-is: Main.hs
---   other-modules: Command.Checksum
---                , Command.Rand
---                , Command.Info
---                , Usage
---   build-depends: optparse-applicative >= 0.13.0.0
---                , core
---                , raaz
---   if impl(ghc < 8)
---     -- 'transformers' needed for "Control.Monad.IO.Class" only
---     -- starting with base-4.9 we don't need 'transformers' anymore
---     build-depends: transformers
+executable raaz
+  import: defaults
+  hs-source-dirs: raaz/bin
+  main-is: Main.hs
+  other-modules: Command.Checksum
+               , Command.Rand
+               , Command.Info
+               , Usage
+  build-depends: optparse-applicative >= 0.13.0.0
+               , core
+               , raaz
+  if impl(ghc < 8)
+    -- 'transformers' needed for "Control.Monad.IO.Class" only
+    -- starting with base-4.9 we don't need 'transformers' anymore
+    build-depends: transformers
 
 -- -- ---------------------------- Test suit -----------------------------------------------------
 
