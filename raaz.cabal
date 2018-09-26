@@ -253,6 +253,7 @@ library
                , cipher-indef
                , random-indef
                , implementation
+  exposed-modules: Raaz
   reexported-modules: Raaz.Core
                     , Raaz.Core.Types
                     , Raaz.Cipher
@@ -274,6 +275,7 @@ library
 
 
   autogen-modules: Paths_raaz
+  other-modules: Paths_raaz
 
 ---------------------------- Executables -------------------------------------------------
 
