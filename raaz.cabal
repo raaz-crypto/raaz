@@ -284,6 +284,7 @@ library
   reexported-modules: Raaz.Core
                     , Raaz.Core.Types
                     , Raaz.Hash
+                    , Raaz.Random
   mixins: hash-indef (Hash as Raaz.Hash)
             requires (Blake2b.Implementation as Blake2b.CPortable,
                       Blake2s.Implementation as Blake2s.CPortable,
