@@ -24,9 +24,9 @@ before_test:
 - cabal update
 
 test_script:
-- cabal --store-dir=%STORE_DIR% new-configure all > nul
-- cabal --store-dir=%STORE_DIR% new-build all
-- cabal --store-dir=%STORE_DIR% new-test all
+- cabal --store-dir=%STORE_DIR% new-configure --builddir=d
+- cabal --store-dir=%STORE_DIR% new-build --builddir=d
+- cabal --store-dir=%STORE_DIR% new-test  --builddir=d
 
 branches:
   only:
