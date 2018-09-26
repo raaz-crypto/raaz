@@ -2,7 +2,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE DataKinds        #-}
 module ChaCha20.PRG
-       ( reseedMT, fillRandomBytesMT, RandomState
+       ( reseedMT, fillRandomBytesMT, RandomState, csprgName
        ) where
 
 import Control.Applicative
@@ -166,3 +166,7 @@ fillExistingBytes req ptr = withAuxBuffer $ \ buf -> do
               memset tailPtr 0 m                          -- wipe the bytes already transfered.
               setRemainingBytes l                         -- set leftover bytes.
               return m
+
+-- | Name of the csprg.
+csprgName :: String
+csprgName = U.name

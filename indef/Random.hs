@@ -21,6 +21,7 @@ module Random
        , reseed
        -- ** Sampling
        -- $sampling$
+       , csprgName
        ) where
 
 import Control.Applicative
