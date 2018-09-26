@@ -43,33 +43,33 @@ foreign import ccall unsafe "raaz_supports_avx2"
 
 {-# NOINLINE gccBuiltInToBool #-}
 
-gccBuiltInToBool :: IO CInt -> Bool
-gccBuiltInToBool = unsafePerformIO . fmap (>0)
+gccBuiltInToBool :: IO CInt -> IO Bool
+gccBuiltInToBool = fmap (>0)
 
 -- | Check whether the cpu supports sse extension.
-sse :: Bool
+sse :: IO Bool
 sse = gccBuiltInToBool c_sse
 
 -- | Check whether the cpu supports sse2 extension.
-sse2 :: Bool
+sse2 :: IO Bool
 sse2 = gccBuiltInToBool c_sse2
 
 -- | Check whether the cpu supports sse3 extension.
-sse3 :: Bool
+sse3 :: IO Bool
 sse3 = gccBuiltInToBool c_sse3
 
 -- | Check whether the cpu supports sse4_1 extension.
-sse4_1 :: Bool
+sse4_1 :: IO Bool
 sse4_1 = gccBuiltInToBool c_sse4_1
 
 -- | Check whether the cpu supports sse-4.2 extension.
-sse4_2 :: Bool
+sse4_2 :: IO Bool
 sse4_2 = gccBuiltInToBool c_sse4_2
 
 -- | Check whether the cpu supports avx extension.
-avx :: Bool
+avx :: IO Bool
 avx = gccBuiltInToBool c_avx
 
 -- | Check whether the cpu supports avx2 extension.
-avx2 :: Bool
+avx2 :: IO Bool
 avx2 = gccBuiltInToBool c_avx2
