@@ -2,6 +2,9 @@
 
 ## [0.3.0] - Pending
 
+* Complete rewrite of the interface using backpack. As a result, raaz
+  library now has an easy way to mix and match (at the backpack
+  level).  As a result, quite a bit of classes became simpler.
 * Block size moved to type level. Allows better type safety.
 * Use Data.Proxy.Proxy to get rid of some uses of undefined.
 * Support withdrawn for base < 4.7. This allows cleaning up some Nat codes.
@@ -12,8 +15,6 @@
   system entropy source.
 * Dropped support for SHA1, SHA224, SHA384, HMAC, and AES-CBC, mainly
   to concentrate efforts and reach stable release soon.
-* Now uses backpack which supports easily pluggable primitive
-  implementation.
 
 ## [0.2.0] - 24 August, 2017
 
