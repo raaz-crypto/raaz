@@ -3,7 +3,7 @@
 {-# LANGUAGE DataKinds                  #-}
 
 -- | The portable C-implementation of SHA256.
-module Raaz.Primitive.Sha256.Implementation.CPortable
+module Sha256.CPortable
        ( name, description
        , Prim, Internals, BufferAlignment
        , additionalBlocks

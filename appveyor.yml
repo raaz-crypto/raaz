@@ -1,31 +1,34 @@
 # Sample Appveyor file from https://www.snoyman.com/blog/2016/08/appveyor-haskell-windows-ci
 build: off
+cache:
+  - C:\ProgramData\chocolatey\bin -> appveyor.yml
+  - C:\qProgramData\chocolatey\lib -> appveyor.yml
+
 environment:
   global:
-    GHCVER:   "8.4.3"
     STORE_DIR: "c:\\s"
   matrix:
     - ARCH_SEL_FLAG: ""    # Default
     - ARCH_SEL_FLAG: --x86 # Select 32-bit builds
 
-clone_folder: "c:\\raaz"
+clone_folder: "c:\\r"
 before_test:
 # http://help.appveyor.com/discussions/problems/6312-curl-command-not-found
 - set PATH=C:\Program Files\Git\mingw64\bin;%PATH%
-- choco install -y %ARCH_SEL_FLAG% ghc --version %GHCVER%
+- choco install -y %ARCH_SEL_FLAG% ghc
+- choco install cabal
 - refreshenv
 - cabal --version
 - ghc   --version
 - ghc --info | grep "platform"
-- cabal update
+- cabal new-update
 
 test_script:
-- cabal --store-dir=%STORE_DIR% new-configure all > nul
-- cabal --store-dir=%STORE_DIR% new-build all
-- cabal --store-dir=%STORE_DIR% new-test all
+- cabal --store-dir=%STORE_DIR% new-configure --builddir=d
+- cabal --store-dir=%STORE_DIR% new-build --builddir=d
+- cabal --store-dir=%STORE_DIR% new-test  --builddir=d
 
 branches:
   only:
     - master
-    - backpack
     - release-0.2.0

@@ -2,7 +2,7 @@
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE FlexibleInstances          #-}
 -- | Interface for cryptographically secure random byte generators.
-module Raaz.Random
+module Random
        ( -- * Cryptographically secure randomness.
          -- $randomness$
         RandomT, RT, RandM
@@ -21,6 +21,7 @@ module Raaz.Random
        , reseed
        -- ** Sampling
        -- $sampling$
+       , csprgName
        ) where
 
 import Control.Applicative
@@ -40,7 +41,7 @@ import Prelude
 import Raaz.Core
 -- import Raaz.Core.Proxy
 import Raaz.Primitive.ChaCha20.Internal(KEY, IV)
-import Raaz.Random.ChaCha20PRG
+import ChaCha20.PRG
 
 
 -- $randomness$

@@ -2,9 +2,10 @@ module Command.Info where
 
 import Data.Version (showVersion)
 import Options.Applicative
-import Raaz
-import Raaz.Core.CpuSupports as CpuSupports
-import Raaz.Random.Internal
+import Raaz hiding (length, replicate)
+import qualified Raaz.Core.CpuSupports as CpuSupports
+import Raaz.Random  (csprgName)
+import Raaz.Entropy (entropySource)
 
 
 information :: Parser (IO ())
@@ -13,7 +14,7 @@ information = subparser $ mconcat [ commandGroup "Information"
                                   , metavar "INFORMATION"
                                   , infoCmd
                                   ]
-              
+
   where infoCmd = command "info" $ info (helper <*> opts)
                   $ mconcat [ fullDesc
                             , header "raaz info - Print the library information"
@@ -22,7 +23,7 @@ information = subparser $ mconcat [ commandGroup "Information"
 
         opts = pure $ sequence_ [ field "Library Version" $ showVersion version
                                 , field "Entropy" entropySource
-                                , field "CSPRG"  csPRG
+                                , field "CSPRG"  csprgName
                                 , cpuCapabilities
 
                                 ]
@@ -38,14 +39,23 @@ section title lns = do
   where indent = putStrLn . (++) "    "
 
 cpuCapabilities :: IO ()
-cpuCapabilities = section "CPU capabilities"
-                  $ map display $ [ (CpuSupports.sse, "sse")
-                                  , (CpuSupports.sse2, "sse2")
-                                  , (CpuSupports.sse3, "sse3")
-                                  , (CpuSupports.sse4_1, "sse4.1")
-                                  , (CpuSupports.sse4_2, "sse4.2")
-                                  , (CpuSupports.avx,    "avx")
-                                  , (CpuSupports.avx2,   "avx2")
-                                  ]
-                  where display (True, cap) = unwords ["+", cap]
-                        display (_,cap)     = unwords ["-", cap]
+cpuCapabilities = do sse    <- CpuSupports.sse
+                     sse2   <- CpuSupports.sse2
+                     sse3   <- CpuSupports.sse3
+                     sse4_1 <- CpuSupports.sse4_1
+                     sse4_2 <- CpuSupports.sse4_2
+                     avx    <- CpuSupports.avx
+                     avx2   <- CpuSupports.avx2
+                     let caps  = [ (sse, "sse")
+                                 , (sse2, "sse2")
+                                 , (sse3, "sse3")
+                                 , (sse4_1, "sse4.1")
+                                 , (sse4_2, "sse4.2")
+                                 , (avx,    "avx")
+                                 , (avx2,   "avx2")
+                                 ]
+                         w     = foldl1 max $ map (length . snd) caps
+                         pad x = x ++ replicate (w - length x + 3) ' '
+                         display (True, c) = unwords [pad c, "- supported"]
+                         display (_,c)     = unwords [pad c, "- cannot detect"]
+                       in section "CPU capabilities" $  map display caps

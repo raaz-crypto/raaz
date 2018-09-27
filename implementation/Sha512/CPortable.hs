@@ -3,7 +3,7 @@
 {-# LANGUAGE DataKinds                  #-}
 
 -- | The portable C-implementation of SHA512.
-module Raaz.Primitive.Sha512.Implementation.CPortable
+module Sha512.CPortable
        ( name, description
        , Prim, Internals, BufferAlignment
        , additionalBlocks

@@ -1,8 +1,8 @@
 -- | The module exposes the ChaCha20 based PRG.
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE DataKinds        #-}
-module Raaz.Random.ChaCha20PRG
-       ( reseedMT, fillRandomBytesMT, RandomState
+module ChaCha20.PRG
+       ( reseedMT, fillRandomBytesMT, RandomState, csprgName
        ) where
 
 import Control.Applicative
@@ -14,7 +14,7 @@ import Prelude
 
 import Raaz.Core
 import Raaz.Primitive.ChaCha20.Internal
-import Raaz.Cipher.ChaCha20.Util as U
+import ChaCha20.Utils as U
 import Raaz.Entropy
 
 
@@ -166,3 +166,7 @@ fillExistingBytes req ptr = withAuxBuffer $ \ buf -> do
               memset tailPtr 0 m                          -- wipe the bytes already transfered.
               setRemainingBytes l                         -- set leftover bytes.
               return m
+
+-- | Name of the csprg.
+csprgName :: String
+csprgName = U.name

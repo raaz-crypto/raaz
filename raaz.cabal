@@ -69,7 +69,7 @@ flag avx2
 common defaults
   default-language: Haskell2010
   ghc-options: -Wall
-  build-depends: base                    >= 4.7  &&  < 4.12
+  build-depends: base                    >= 4.7  &&  < 4.13
                , bytestring              >= 0.9  &&  < 0.11
                , deepseq                 >= 1.1  &&  < 1.5
                , vector                  >= 0.7.1 && < 0.13
@@ -148,9 +148,77 @@ library indef
   import: defaults
   build-depends: core
   hs-source-dirs: indef
-  signatures: Raaz.Primitive.Implementation
-  exposed-modules: Raaz.Primitive.Util
+  signatures: Implementation
+  exposed-modules: Utils
 
+library blake2b-indef
+  import: defaults
+  build-depends: core, indef
+  hs-source-dirs: indef
+  reexported-modules: Blake2b.Utils
+  signatures: Blake2b.Implementation
+  mixins: indef (Utils as Blake2b.Utils) requires (Implementation as Blake2b.Implementation)
+
+library blake2s-indef
+  import: defaults
+  build-depends: core, indef
+  hs-source-dirs: indef
+  reexported-modules: Blake2s.Utils
+  signatures: Blake2s.Implementation
+  mixins: indef (Utils as Blake2s.Utils) requires (Implementation as Blake2s.Implementation)
+
+library sha256-indef
+  import: defaults
+  build-depends: core, indef
+  hs-source-dirs: indef
+  reexported-modules: Sha256.Utils
+  signatures: Blake2s.Implementation
+  mixins: indef (Utils as Sha256.Utils) requires (Implementation as Sha256.Implementation)
+
+library sha512-indef
+  import: defaults
+  build-depends: core, indef
+  hs-source-dirs: indef
+  reexported-modules: Sha512.Utils
+  signatures: Sha512.Implementation
+  mixins: indef (Utils as Sha512.Utils) requires (Implementation as Sha512.Implementation)
+
+
+library chacha20-indef
+  import: defaults
+  build-depends: core, indef
+  hs-source-dirs: indef
+  signatures: ChaCha20.Implementation
+  exposed-modules: ChaCha20.PRG
+  reexported-modules: ChaCha20.Utils
+  mixins: indef (Utils as ChaCha20.Utils) requires (Implementation as ChaCha20.Implementation)
+
+library hash-indef
+  import: defaults
+  hs-source-dirs: indef
+  build-depends: core
+               , blake2b-indef
+               , blake2s-indef
+               , sha512-indef
+               , sha256-indef
+  exposed-modules: Hash
+
+library cipher-indef
+  import: defaults
+  hs-source-dirs: indef
+  build-depends: core
+               , chacha20-indef
+  exposed-modules: Cipher
+
+library random-indef
+  import: defaults
+  hs-source-dirs: indef
+  build-depends: core
+               , chacha20-indef
+  exposed-modules: Random
+  -- Not sure why the line below is needed. Cabal seems to give an
+  -- warning.
+  other-modules: ChaCha20.PRG
 
 --------------------  The implementation modules ----------------------------------
 
@@ -158,11 +226,11 @@ library implementation
   import: defaults
   build-depends: core
   hs-source-dirs: implementation
-  exposed-modules: Raaz.Primitive.Blake2b.Implementation.CPortable
-                 , Raaz.Primitive.Blake2s.Implementation.CPortable
-                 , Raaz.Primitive.Sha256.Implementation.CPortable
-                 , Raaz.Primitive.Sha512.Implementation.CPortable
-                 , Raaz.Primitive.ChaCha20.Implementation.CPortable
+  exposed-modules: Blake2b.CPortable
+                 , Blake2s.CPortable
+                 , Sha256.CPortable
+                 , Sha512.CPortable
+                 , ChaCha20.CPortable
 
   c-sources: implementation/cbits/raaz/hash/blake2/blake2b/portable.c
            , implementation/cbits/raaz/hash/blake2/blake2s/portable.c
@@ -181,30 +249,34 @@ library
   import: defaults
   hs-source-dirs: raaz
   build-depends: core
-               , indef
+               , hash-indef
+               , cipher-indef
+               , random-indef
                , implementation
+  exposed-modules: Raaz
   reexported-modules: Raaz.Core
                     , Raaz.Core.Types
-  exposed-modules: Raaz
-                 , Raaz.Hash
-                 , Raaz.Cipher
-                 , Raaz.Random
-                 , Raaz.Random.Internal
-                 , Raaz.Random.ChaCha20PRG
+                    , Raaz.Cipher
+                    , Raaz.Hash
+                    , Raaz.Random
+                    , Raaz.Entropy
+  mixins: cipher-indef (Cipher as Raaz.Cipher)
+            requires (ChaCha20.Implementation as ChaCha20.CPortable)
+
+        , hash-indef (Hash as Raaz.Hash)
+            requires (Blake2b.Implementation as Blake2b.CPortable,
+                      Blake2s.Implementation as Blake2s.CPortable,
+                      Sha256.Implementation as Sha256.CPortable,
+                      Sha512.Implementation as Sha512.CPortable
+          )
+
+        , random-indef(Random as Raaz.Random)
+            requires (ChaCha20.Implementation as ChaCha20.CPortable)
+
+
 
   autogen-modules: Paths_raaz
   other-modules: Paths_raaz
-
-  mixins: indef (Raaz.Primitive.Util as Raaz.Hash.Blake2b.Util)
-          requires   (Raaz.Primitive.Implementation as Raaz.Primitive.Blake2b.Implementation.CPortable)
-        , indef (Raaz.Primitive.Util as Raaz.Hash.Blake2s.Util)
-          requires   (Raaz.Primitive.Implementation as Raaz.Primitive.Blake2s.Implementation.CPortable)
-        , indef (Raaz.Primitive.Util as Raaz.Hash.Sha256.Util)
-          requires   (Raaz.Primitive.Implementation as Raaz.Primitive.Sha256.Implementation.CPortable)
-        , indef (Raaz.Primitive.Util as Raaz.Hash.Sha512.Util)
-          requires   (Raaz.Primitive.Implementation as Raaz.Primitive.Sha512.Implementation.CPortable)
-        , indef (Raaz.Primitive.Util as Raaz.Cipher.ChaCha20.Util)
-          requires   (Raaz.Primitive.Implementation as Raaz.Primitive.ChaCha20.Implementation.CPortable)
 
 ---------------------------- Executables -------------------------------------------------
 
@@ -224,7 +296,7 @@ executable raaz
     -- starting with base-4.9 we don't need 'transformers' anymore
     build-depends: transformers
 
--- ---------------------------- Test suit -----------------------------------------------------
+---------------------------------- Test suit -----------------------------------------------------
 
 test-suite tests
   import: defaults
@@ -264,7 +336,7 @@ test-suite tests
 
 --------------------------- Benchmarkings ---------------------------------------------
 
-library benchmark-internal
+library bench-indef
   import: defaults
   hs-source-dirs: benchmarks/internal
   exposed-modules: Benchmark.Primitive
@@ -282,19 +354,19 @@ benchmark primitives
   build-depends: pretty
                , core
                , implementation
-               , benchmark-internal
+               , bench-indef
 
-  mixins: benchmark-internal (Benchmark.Primitive as Benchmark.Blake2b.CPortable, Benchmark.Types)
-          requires   (Raaz.Primitive.Implementation as Raaz.Primitive.Blake2b.Implementation.CPortable)
+  mixins: bench-indef (Benchmark.Primitive as Benchmark.Blake2b.CPortable, Benchmark.Types)
+          requires   (Implementation as Blake2b.CPortable)
 
-        , benchmark-internal (Benchmark.Primitive as Benchmark.Blake2s.CPortable)
-          requires   (Raaz.Primitive.Implementation as Raaz.Primitive.Blake2s.Implementation.CPortable)
+        , bench-indef (Benchmark.Primitive as Benchmark.Blake2s.CPortable)
+          requires   (Implementation as Blake2s.CPortable)
 
-        , benchmark-internal (Benchmark.Primitive as Benchmark.ChaCha20.CPortable)
-          requires   (Raaz.Primitive.Implementation as Raaz.Primitive.ChaCha20.Implementation.CPortable)
+        , bench-indef (Benchmark.Primitive as Benchmark.ChaCha20.CPortable)
+          requires   (Implementation as ChaCha20.CPortable)
 
-        , benchmark-internal (Benchmark.Primitive as Benchmark.Sha256.CPortable)
-          requires   (Raaz.Primitive.Implementation as Raaz.Primitive.Sha256.Implementation.CPortable)
+        , bench-indef (Benchmark.Primitive as Benchmark.Sha256.CPortable)
+          requires   (Implementation as Sha256.CPortable)
 
-        , benchmark-internal (Benchmark.Primitive as Benchmark.Sha512.CPortable)
-          requires (Raaz.Primitive.Implementation as Raaz.Primitive.Sha512.Implementation.CPortable)
+        , bench-indef (Benchmark.Primitive as Benchmark.Sha512.CPortable)
+          requires (Implementation as Sha512.CPortable)

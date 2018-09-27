@@ -88,12 +88,13 @@ before_install:
 install:
  - ghc   --version
  - cabal --version
- - travis_retry cabal update;
+ - travis_retry cabal new-update;
 
 script:
   - cabal new-configure --flag='-linux-getrandom' --enable-tests  --enable-documentation
   - cabal new-build all
   - cabal new-test all
+  - cabal new-bench
   - for pkg in `awk '{ print $2 }' < cabal.project`;
     do
        pushd . ; cd $pkg; cabal check; popd;

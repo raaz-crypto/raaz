@@ -3,7 +3,7 @@
 {-# LANGUAGE KindSignatures             #-}
 
 -- | The portable C-implementation of Blake2b.
-module Raaz.Primitive.ChaCha20.Implementation.CPortable where
+module ChaCha20.CPortable where
 
 import Foreign.Ptr                ( Ptr          )
 import Control.Monad.IO.Class     ( liftIO       )
