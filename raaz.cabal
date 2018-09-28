@@ -22,10 +22,8 @@ category:      Codec, Raaz
 build-type:    Simple
 
 
--- extra-source-files: CHANGELOG.md
---                   , README.md
---                   , Releasing.md
---                   , Reviewing.md
+extra-source-files: CHANGELOG.md
+                  , README.md
 
 bug-reports: https://github.com/raaz-crypto/raaz/issues
 
