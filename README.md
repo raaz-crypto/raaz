@@ -80,18 +80,20 @@ implementations. For example, if it is known that the underlying
 processor supports vector extensions like `avx2`, some primitives like
 chacha20 can be made upto 2x times faster.
 
-A user who does not want to micromanage the implementations can just
-use the top level haskell library `raaz`. By default, we take care to
-use the best possible portable implementations in the top level
-library. However, if she wishes to try out a different one she can
-exploit the backpack components that are exposed from the raaz
-library.
+
 
 The raaz cryptographic library is a single package containing the
-multiple component. We describe these components and show how to
-utilise them to build libraries and programs for which implementations
-can be plugged in.
-
+multiple component. A user who only cares about a high level interface
+and does not want to micromanage the implementation of various
+primitives can just use the top level haskell library `raaz`. We have
+chosen sensible default implementations in this top level library and
+should be sufficient for most users. However, there are instances when
+one wants control over the implementations. The most important case
+being when the hardware has special features that can be exploited to
+give better implementations or when one wants to integrate with third
+party modules.  We describe these components and show how to utilise
+them to build libraries and programs for which implementations can be
+plugged in.
 
 1. The component `raaz:core` contains the core types and utility
    functions.
@@ -125,12 +127,12 @@ can be plugged in.
    ````
 
      build-depends: raaz:chacha20-indef
-	              , bar:indef
-				  , raaz:implementation
-	 mixin: bar:indef (Bar as Bar.Portable)
-	           requires (ChaCha20.Implementations as ChaCha20.Portable)
-			     -- This makes use of the portable c implementation of
-				 -- ChaCha20 from raaz:implementation
+                  , bar:indef
+                  , raaz:implementation
+     mixin: bar:indef (Bar as Bar.Portable)
+               requires (ChaCha20.Implementations as ChaCha20.Portable)
+                 -- This makes use of the portable c implementation of
+                 -- ChaCha20 from raaz:implementation
    ```
 
 
