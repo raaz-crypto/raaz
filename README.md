@@ -80,12 +80,11 @@ implementations. For example, if it is known that the underlying
 processor supports vector extensions like `avx2`, some primitives like
 chacha20 can be made upto 2x times faster.
 
-
-
 The raaz cryptographic library is a single package containing the
 multiple component. A user who only cares about a high level interface
 and does not want to micromanage the implementation of various
-primitives can just use the top level haskell library `raaz`. We have
+primitives can just ignore the various components and use only the top
+level haskell library `raaz` just like any other package. We have
 chosen sensible default implementations in this top level library and
 should be sufficient for most users. However, there are instances when
 one wants control over the implementations. The most important case
