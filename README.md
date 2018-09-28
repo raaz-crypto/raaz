@@ -123,7 +123,7 @@ having an overall picture of these components is helpful.
    `bar:indef`. The downstream user will then be able to `mixin` the
    appropriate implementation using the following in her cabal file
 
-   ````
+   ```
 
      build-depends: raaz:chacha20-indef
                   , bar:indef
