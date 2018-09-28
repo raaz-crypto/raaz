@@ -42,8 +42,6 @@ building raaz using the following command.
 Backpack support is still [work in progress for stack][stack-backpack]
 and it should be possible to use stack once this issue is resolved.
 
-
-
 Hacking and Discussion
 ----------------------
 
@@ -69,33 +67,34 @@ Backpack based pluggable implementations
 ----------------------------------------
 
 **NOTE:** The interface that we describe now needs the ability for a
-single package (raaz in our case) to expose multiple components. This
-is still work in progress but is expected to be merged in soon (See
+single package (`raaz` in our case) to expose multiple
+components. This is still work in progress but is expected to be
+merged in soon (See
 <https://github.com/haskell/cabal/issues/4206>). Without this feature
 the interface described below cannot be used.
 
-Depending on the platform specific features, certain cryptographic
-primitives can have better (in terms of safety and performance)
-implementations. For example, if it is known that the underlying
-processor supports vector extensions like `avx2`, some primitives like
-chacha20 can be made upto 2x times faster.
+Certain cryptographic primitives can have better (both in terms of
+safety and performance) implementations that exploit specific hardware
+features. For example, if the underlying processor supports vector
+extensions like `avx2`, some primitives like chacha20 can be made up
+to 2x faster. Production quality cryptographic libraries are expected
+to provide implementations tuned for such specific hardware. Even when
+they don't give one for the hardware in hand, it should be possible
+for the downstream user of the library to plugin a custom
+implementations. We want make it possible to plug-in such
+implementations and yet not disturb the high-level interface of
+raaz. Mixin-style modules provided by backpack is what we use to give
+such a pluggable interface.
 
-The raaz cryptographic library is a single package containing the
-multiple component. A user who only cares about a high level interface
-and does not want to micromanage the implementation of various
-primitives can just ignore the various components and use only the top
-level haskell library `raaz` just like any other package. We have
-chosen sensible default implementations in this top level library and
-should be sufficient for most users. However, there are instances when
-one wants control over the implementations. The most important case
-being when the hardware has special features that can be exploited to
-give better implementations or when one wants to integrate with third
-party modules.  We describe these components and show how to utilise
-them to build libraries and programs for which implementations can be
-plugged in.
+The raaz cryptographic library is organised as a single package
+containing multiple component. A user who only cares about a high
+level interface can just ignore these individual components and use
+only the top level library `raaz` much like any other package. For
+users who does care about changing the underlying implementation,
+having an overall picture of these components is helpful.
 
-1. The component `raaz:core` contains the core types and utility
-   functions.
+1. The component `raaz:core` contains core types and utility
+   functions. You would most likely need this component to begin with.
 
 2. The component `raaz:indef` exports a signature `Implementation` and
    a module `Utils` that depends on the signature. The
@@ -103,18 +102,19 @@ plugged in.
    low level implementation of a cryptographic block primitive. To
    complement this indefinite package the component
    `raaz:implementation` provides implementations that can be
-   "mixed-in" in place the signature `Implementation`. A user could
-   select the implementations from one of these or can code up her own
-   as long as it satisfies the `Implementation` signature.
+   "mixed-in" in place the signature `Implementation`. A user can
+   select one such implementation from `raaz:implementation`, or can
+   code up her own as long as it satisfies the `Implementation`
+   signature.
 
 3. For each block primitive `foo` that is supported by `raaz` there is
    a component `raaz:foo-indef`, that captures the various
-   implementations specific to `foo`. It reexports (a restricted
+   implementations of the primitive `foo`. It reexports (a restricted
    version of) the signature `Implementation` and the module `Utils`
-   as `Foo.Implementation` and `Foo.Utils` respectively.
-   For example, `raaz:chacha20-indef` component captures low-level
-   implementations of the ChaCha20 stream cipher and exposes them as
-   the signature `ChaCha20.Implementation` and `ChaCha20.Utils`
+   as `Foo.Implementation` and `Foo.Utils` respectively.  For example,
+   `raaz:chacha20-indef` component captures low-level implementations
+   of the ChaCha20 stream cipher and exposes them as the signature
+   `ChaCha20.Implementation` and `ChaCha20.Utils`
 
 
 4. Any library `bar` that wants to use a primitive `foo` while giving
@@ -133,7 +133,6 @@ plugged in.
                  -- This makes use of the portable c implementation of
                  -- ChaCha20 from raaz:implementation
    ```
-
 
 For an example of this usage check out the component `raaz:hash-indef`
 and its use in the main library.
