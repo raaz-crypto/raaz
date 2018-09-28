@@ -82,9 +82,10 @@ chacha20 can be made upto 2x times faster.
 
 A user who does not want to micromanage the implementations can just
 use the top level haskell library `raaz`. By default, we take care to
-use the best possible implementations that are currently available.
-However, if she wishes to try out a different implementation of a
-given primitive, she can do so by using the backpack system.
+use the best possible portable implementations in the top level
+library. However, if she wishes to try out a different one she can
+exploit the backpack components that are exposed from the raaz
+library.
 
 The raaz cryptographic library is a single package containing the
 multiple component. We describe these components and show how to
@@ -102,10 +103,8 @@ can be plugged in.
    complement this indefinite package the component
    `raaz:implementation` provides implementations that can be
    "mixed-in" in place the signature `Implementation`. A user could
-   select the implementations from one of these or can code up her on
-   Implementation as long as it satisfies the `Implementation`
-   signature.
-
+   select the implementations from one of these or can code up her own
+   as long as it satisfies the `Implementation` signature.
 
 3. For each block primitive `foo` that is supported by `raaz` there is
    a component `raaz:foo-indef`, that captures the various
