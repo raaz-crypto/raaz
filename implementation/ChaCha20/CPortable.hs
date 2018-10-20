@@ -5,14 +5,13 @@
 -- | The portable C-implementation of Blake2b.
 module ChaCha20.CPortable where
 
-import Foreign.Ptr                ( Ptr          )
-import Control.Monad.IO.Class     ( liftIO       )
+import Foreign.Ptr                ( castPtr )
+import Control.Monad.IO.Class     ( liftIO  )
 import Data.Proxy
 
 import Raaz.Core
-import Raaz.Core.Types.Internal
 import Raaz.Primitive.ChaCha20.Internal
-
+import Raaz.Verse.Chacha20.C.Portable
 
 name :: String
 name = "chacha20-cportable"
@@ -30,7 +29,7 @@ additionalBlocks = blocksOf 1 Proxy
 
 
 ------------------------ The foreign function calls  ---------------------
-
+{-
 -- | Chacha20 block transformation.
 foreign import ccall unsafe
   "raaz/cipher/chacha20/cportable.h raazChaCha20Block"
@@ -40,16 +39,18 @@ foreign import ccall unsafe
                    -> Ptr IV                         -- iv
                    -> Ptr Counter                    -- Counter value
                    -> IO ()
-
+-}
 processBlocks :: AlignedPointer BufferAlignment
               -> BLOCKS Prim
               -> MT Internals ()
 
 processBlocks buf blks =
-  do keyPtr     <- keyCellPtr
-     ivPtr      <- ivCellPtr
-     counterPtr <- counterCellPtr
-     liftIO     $ c_chacha20_block buf blks keyPtr ivPtr counterPtr
+  do keyPtr     <- castPtr <$> keyCellPtr
+     ivPtr      <- castPtr <$> ivCellPtr
+     counterPtr <- castPtr <$> counterCellPtr
+     let blkPtr = castPtr $ forgetAlignment buf
+         wBlks  = toEnum $ fromEnum blks
+         in liftIO $ verse_chacha20_c_portable blkPtr wBlks keyPtr ivPtr counterPtr
 
 -- | Process the last bytes.
 processLast :: AlignedPointer BufferAlignment
