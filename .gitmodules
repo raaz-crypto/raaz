@@ -1,3 +1,6 @@
 [submodule "wiki"]
 	path = wiki
 	url = https://github.com/raaz-crypto/raaz.wiki.git
+[submodule "libverse"]
+	path = libverse
+	url = https://github.com/raaz-crypto/libverse.git
