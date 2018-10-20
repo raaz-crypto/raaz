@@ -223,13 +223,19 @@ library random-indef
 library implementation
   import: defaults
   build-depends: core
-  hs-source-dirs: implementation
+  hs-source-dirs: implementation, libverse
   exposed-modules: Blake2b.CPortable
                  , Blake2s.CPortable
                  , Sha256.CPortable
                  , Sha512.CPortable
                  , ChaCha20.CPortable
-
+  other-modules: Raaz.Verse.Chacha20.C.Portable
+               , Raaz.Verse.Sha512.C.Portable
+               , Raaz.Verse.Sha256.C.Portable
+  c-sources: libverse/chacha20/c/portable.c
+           , libverse/sha256/c/portable.c
+           , libverse/sha512/c/portable.c
+           , libverse/verse.c
   c-sources: implementation/cbits/raaz/hash/blake2/blake2b/portable.c
            , implementation/cbits/raaz/hash/blake2/blake2s/portable.c
            , implementation/cbits/raaz/hash/sha1/portable.c
@@ -237,10 +243,11 @@ library implementation
            , implementation/cbits/raaz/hash/sha512/portable.c
            , implementation/cbits/raaz/cipher/chacha20/cportable.c
   include-dirs: implementation/cbits/
+              , libverse
   includes: implementation/cbits/raaz/hash/blake2/common.h
           , implementation/cbits/raaz/hash/blake2/blake2b/constants.h
           , implementation/cbits/raaz/hash/blake2/blake2s/constants.h
-
+          , libverse/verse.h
 -------------------------------- The main raaz library -------------------------------------
 
 library
