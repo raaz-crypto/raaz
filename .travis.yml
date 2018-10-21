@@ -84,7 +84,7 @@ before_install:
  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew update; fi
  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install ghc cabal-install; fi
  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew info ghc cabal-install; fi
-
+ - git submodule update --init
 install:
  - ghc   --version
  - cabal --version
