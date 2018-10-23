@@ -11,7 +11,7 @@ module Sha512.CPortable
        , processLast
        ) where
 
-import Foreign.Ptr                ( Ptr          )
+import Foreign.Ptr                ( castPtr      )
 import Control.Monad.IO.Class     ( liftIO       )
 import Data.Bits
 import Data.Word
@@ -21,6 +21,9 @@ import Raaz.Core
 import Raaz.Core.Types.Internal
 import Raaz.Primitive.HashMemory
 import Raaz.Primitive.Sha512.Internal
+
+
+import Raaz.Verse.Sha512.C.Portable
 
 
 name :: String
@@ -37,22 +40,13 @@ type BufferAlignment         = 32
 additionalBlocks :: BLOCKS SHA512
 additionalBlocks = blocksOf 1 Proxy
 
------------------------- The foreign function calls  ---------------------
-
-foreign import ccall unsafe
-  "raaz/hash/sha512/portable.h raazHashSha512PortableCompress"
-  c_sha512_compress  :: AlignedPointer BufferAlignment
-                     -> BLOCKS SHA512
-                     -> Ptr SHA512
-                     -> IO ()
-
-
 compressBlocks :: AlignedPointer BufferAlignment
                -> BLOCKS SHA512
                -> MT Internals ()
-compressBlocks buf blks =  hashCell128Pointer
-                           >>= liftIO . c_sha512_compress buf blks
-
+compressBlocks buf blks = do hPtr <- castPtr <$> hashCell128Pointer
+                             let blkPtr = castPtr $ forgetAlignment buf
+                                 wBlks  = toEnum $ fromEnum blks
+                               in liftIO $ verse_sha512_c_portable blkPtr wBlks hPtr
 
 processBlocks :: AlignedPointer BufferAlignment
               -> BLOCKS SHA512

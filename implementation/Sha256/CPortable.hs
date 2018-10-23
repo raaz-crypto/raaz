@@ -11,7 +11,7 @@ module Sha256.CPortable
        , processLast
        ) where
 
-import Foreign.Ptr                ( Ptr          )
+import Foreign.Ptr                ( castPtr      )
 import Control.Monad.IO.Class     ( liftIO       )
 import Data.Bits
 import Data.Word
@@ -22,6 +22,7 @@ import Raaz.Core.Types.Internal
 import Raaz.Primitive.HashMemory
 import Raaz.Primitive.Sha256.Internal
 
+import Raaz.Verse.Sha256.C.Portable
 
 name :: String
 name = "sha256-cportable"
@@ -37,20 +38,14 @@ type BufferAlignment         = 32
 additionalBlocks :: BLOCKS SHA256
 additionalBlocks = blocksOf 1 Proxy
 
------------------------- The foreign function calls  ---------------------
-
-foreign import ccall unsafe
-  "raaz/hash/sha256/portable.h raazHashSha256PortableCompress"
-   c_sha256_compress  :: AlignedPointer BufferAlignment
-                      -> BLOCKS SHA256
-                      -> Ptr SHA256
-                      -> IO ()
-
-
+-- | The compression algorithm.
 compressBlocks :: AlignedPointer BufferAlignment
                -> BLOCKS SHA256
                -> MT Internals ()
-compressBlocks buf blks =  hashCellPointer >>= liftIO . c_sha256_compress buf blks
+compressBlocks buf blks = do hPtr <- castPtr <$> hashCellPointer
+                             let blkPtr = castPtr $ forgetAlignment buf
+                                 wBlks  = toEnum $ fromEnum blks
+                               in liftIO $ verse_sha256_c_portable blkPtr wBlks hPtr
 
 
 processBlocks :: AlignedPointer BufferAlignment
