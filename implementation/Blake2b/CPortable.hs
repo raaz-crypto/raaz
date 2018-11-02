@@ -5,7 +5,7 @@
 -- | The portable C-implementation of Blake2b.
 module Blake2b.CPortable where
 
-import Foreign.Ptr                ( Ptr          )
+import Foreign.Ptr                ( Ptr, castPtr )
 import Control.Monad.IO.Class     ( liftIO       )
 import Data.Word
 import Data.Proxy
@@ -16,7 +16,7 @@ import Raaz.Core.Transfer         ( transferSize, unsafeTransfer )
 import Raaz.Core.Types.Internal
 import Raaz.Primitive.HashMemory
 import Raaz.Primitive.Blake2.Internal
-
+import Raaz.Verse.Blake2b.C.Portable
 
 name :: String
 name = "blake2b-cportable"
@@ -60,10 +60,15 @@ processBlocks :: AlignedPointer BufferAlignment
               -> BLOCKS BLAKE2b
               -> MT Blake2bMem ()
 
-processBlocks buf blks = do uPtr   <- uLengthCellPointer
-                            lPtr   <- lLengthCellPointer
-                            hshPtr <- hashCell128Pointer
-                            liftIO $ c_blake2b_compress buf blks uPtr lPtr hshPtr
+processBlocks buf blks =
+  do uPtr   <- castPtr <$> uLengthCellPointer
+     lPtr   <- castPtr <$>lLengthCellPointer
+     hshPtr <- castPtr <$> hashCell128Pointer
+     let wblks  = toEnum  $ fromEnum blks
+         blkPtr = castPtr $ forgetAlignment buf
+       in liftIO $ verse_blake2b_c_portable_iter
+          blkPtr wblks uPtr lPtr hshPtr
+
 
 -- | Process the last bytes.
 processLast :: AlignedPointer BufferAlignment
@@ -75,17 +80,17 @@ processLast buf nbytes  = do
   --
   -- Handle the last block
   --
-  u      <- getULength
-  l      <- getLLength
-  hshPtr <- hashCell128Pointer
-  liftIO $ c_blake2b_last lastBlockPtr remBytes u l f0 f1 hshPtr
+  BYTES u  <- getULength
+  BYTES l  <- getLLength
+  hshPtr <- castPtr <$> hashCell128Pointer
+  liftIO $ verse_blake2b_c_portable_last lastBlockPtr remBytes u l f0 f1 hshPtr
 
   where padding      = blake2Pad (Proxy :: Proxy BLAKE2b) nbytes
         nBlocks      = atMost (transferSize padding) `mappend` toEnum (-1)
                                            -- all but the last block
-        remBytes     = nbytes - inBytes nBlocks
+        remBytes     = toEnum $ fromEnum $ nbytes - inBytes nBlocks
                                            -- Actual bytes in the last block.
-        lastBlockPtr = forgetAlignment buf `movePtr` nBlocks
+        lastBlockPtr = castPtr (forgetAlignment buf `movePtr` nBlocks)
         --
         -- Finalisation FLAGS
         --
