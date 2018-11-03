@@ -78,20 +78,18 @@ safety and performance) implementations that exploit specific hardware
 features. For example, if the underlying processor supports vector
 extensions like `avx2`, some primitives like chacha20 can be made up
 to 2x faster. Production quality cryptographic libraries are expected
-to provide implementations tuned for such specific hardware. Even when
-they don't give one for the hardware in hand, it should be possible
-for the downstream user of the library to plugin a custom
-implementations. We want make it possible to plug-in such
-implementations and yet not disturb the high-level interface of
-raaz. Mixin-style modules provided by backpack is what we use to give
-such a pluggable interface.
+to provide implementations tuned for such specific hardware. In
+addition, it should be possible for users of esoteric platforms to
+override the default implementation with their own custom
+implementations. We use mixin-style modules provided by backpack to
+achieve this goal.
 
 The raaz cryptographic library is organised as a single package
-containing multiple component. A user who only cares about a high
+containing multiple component. A user who only cares about the high
 level interface can just ignore these individual components and use
 only the top level library `raaz` much like any other package. For
-users who does care about changing the underlying implementation,
-having an overall picture of these components is helpful.
+users who do care about changing the underlying implementation, having
+an overall picture of these components is helpful.
 
 1. The component `raaz:core` contains core types and utility
    functions. You would most likely need this component to begin with.
