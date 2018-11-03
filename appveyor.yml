@@ -22,6 +22,7 @@ before_test:
 - ghc   --version
 - ghc --info | grep "platform"
 - cabal new-update
+- git submodule update --init
 
 test_script:
 - cabal --store-dir=%STORE_DIR% new-configure --builddir=d

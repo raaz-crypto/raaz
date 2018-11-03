@@ -84,16 +84,16 @@ before_install:
  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew update; fi
  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install ghc cabal-install; fi
  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew info ghc cabal-install; fi
-
+ - git submodule update --init
 install:
  - ghc   --version
  - cabal --version
  - travis_retry cabal new-update;
 
 script:
-  - cabal new-configure --flag='-linux-getrandom' --enable-tests  --enable-documentation
-  - cabal new-build all
-  - cabal new-test all
+  - cabal new-configure -v --flag='-linux-getrandom' --enable-tests  --enable-documentation
+  - cabal new-build -v all
+  - cabal new-test -v all
   - cabal new-bench
   - for pkg in `awk '{ print $2 }' < cabal.project`;
     do
