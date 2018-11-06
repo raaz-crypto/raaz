@@ -366,11 +366,13 @@ benchmark primitives
                , core
                , implementation
                , bench-indef
-
   mixins: bench-indef (Benchmark.Primitive as Benchmark.Blake2b.CPortable, Benchmark.Types)
           requires   (Implementation as Blake2b.CPortable)
 
-        , bench-indef (Benchmark.Primitive as Benchmark.Blake2s.CPortable)
+        , bench-indef (Benchmark.Primitive as Benchmark.Blake2b.CHandWritten)
+          requires   (Implementation as Blake2b.CHandWritten)
+
+        , bench-indef (Benchmark.Primitive as Benchmark.Blake2s.CHandWritten)
           requires   (Implementation as Blake2s.CHandWritten)
 
         , bench-indef (Benchmark.Primitive as Benchmark.ChaCha20.CPortable)
@@ -379,5 +381,11 @@ benchmark primitives
         , bench-indef (Benchmark.Primitive as Benchmark.Sha256.CPortable)
           requires   (Implementation as Sha256.CPortable)
 
+        , bench-indef (Benchmark.Primitive as Benchmark.Sha256.CHandWritten)
+          requires   (Implementation as Sha256.CHandWritten)
+
         , bench-indef (Benchmark.Primitive as Benchmark.Sha512.CPortable)
           requires (Implementation as Sha512.CPortable)
+
+        , bench-indef (Benchmark.Primitive as Benchmark.Sha512.CHandWritten)
+          requires (Implementation as Sha512.CHandWritten)
