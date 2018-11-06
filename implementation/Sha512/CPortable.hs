@@ -27,10 +27,10 @@ import Raaz.Verse.Sha512.C.Portable
 
 
 name :: String
-name = "sha512-cportable"
+name = "sha512-libverse-c"
 
 description :: String
-description = "SHA512 Implementation using portable C and Haskell FFI"
+description = "SHA512 Implementation in C exposed by libverse"
 
 type Prim                    = SHA512
 type Internals               = Sha512Mem

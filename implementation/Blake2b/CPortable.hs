@@ -19,10 +19,10 @@ import Raaz.Primitive.Blake2.Internal
 import Raaz.Verse.Blake2b.C.Portable
 
 name :: String
-name = "blake2b-cportable"
+name = "blake2b-libverse-c"
 
 description :: String
-description = "BLAKE2b Implementation using portable C and Haskell FFI"
+description = "BLAKE2b Implementation in C exposed by libverse"
 
 type Prim                    = BLAKE2b
 type Internals               = Blake2bMem

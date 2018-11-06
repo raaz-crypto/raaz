@@ -25,10 +25,10 @@ import Raaz.Primitive.Sha256.Internal
 import Raaz.Verse.Sha256.C.Portable
 
 name :: String
-name = "sha256-cportable"
+name = "sha256-libverse-c"
 
 description :: String
-description = "SHA256 Implementation using portable C and Haskell FFI"
+description = "SHA256 Implementation in C exposed by libverse"
 
 type Prim                    = SHA256
 type Internals               = Sha256Mem
