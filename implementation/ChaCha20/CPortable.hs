@@ -14,10 +14,10 @@ import Raaz.Primitive.ChaCha20.Internal
 import Raaz.Verse.Chacha20.C.Portable
 
 name :: String
-name = "chacha20-cportable"
+name = "chacha20-libverse-c"
 
 description :: String
-description = "ChaCha20 Implementation using portable C and Haskell FFI"
+description = "ChaCha20 Implementation in C exposed by libverse"
 
 type Prim                    = ChaCha20
 type Internals               = ChaCha20Mem

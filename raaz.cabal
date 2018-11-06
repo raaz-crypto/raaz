@@ -228,10 +228,11 @@ library implementation
                  , ChaCha20.CPortable
                  , Sha512.CPortable
                  -- Implementation hand written in C
-                 , Sha256.CHandWritten
-                 , Sha512.CHandWritten
+                 , ChaCha20.CHandWritten
                  , Blake2b.CHandWritten
                  , Blake2s.CHandWritten
+                 , Sha256.CHandWritten
+                 , Sha512.CHandWritten
 
   other-modules: Raaz.Verse.Chacha20.C.Portable
                , Raaz.Verse.Sha512.C.Portable
@@ -377,6 +378,9 @@ benchmark primitives
 
         , bench-indef (Benchmark.Primitive as Benchmark.ChaCha20.CPortable)
           requires   (Implementation as ChaCha20.CPortable)
+
+        , bench-indef (Benchmark.Primitive as Benchmark.ChaCha20.CHandWritten)
+          requires   (Implementation as ChaCha20.CHandWritten)
 
         , bench-indef (Benchmark.Primitive as Benchmark.Sha256.CPortable)
           requires   (Implementation as Sha256.CPortable)
