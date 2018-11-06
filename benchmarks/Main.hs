@@ -25,7 +25,9 @@ import qualified Benchmark.Sha512.CHandWritten   as Sha512CHW
 
 
 main :: IO ()
-main = mapM_ printBench [ Blake2bCP.bench
+main = do
+  putStrLn $ render header
+  mapM_ printBench [ Blake2bCP.bench
                         , Blake2bCHW.bench
 
                         , Blake2sCHW.bench
