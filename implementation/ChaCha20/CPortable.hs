@@ -27,19 +27,6 @@ type BufferAlignment         = 32
 additionalBlocks :: BLOCKS ChaCha20
 additionalBlocks = blocksOf 1 Proxy
 
-
------------------------- The foreign function calls  ---------------------
-{-
--- | Chacha20 block transformation.
-foreign import ccall unsafe
-  "raaz/cipher/chacha20/cportable.h raazChaCha20Block"
-  c_chacha20_block :: AlignedPointer BufferAlignment -- message
-                   -> BLOCKS ChaCha20                -- number of blocks
-                   -> Ptr KEY                        -- key
-                   -> Ptr IV                         -- iv
-                   -> Ptr Counter                    -- Counter value
-                   -> IO ()
--}
 processBlocks :: AlignedPointer BufferAlignment
               -> BLOCKS Prim
               -> MT Internals ()
