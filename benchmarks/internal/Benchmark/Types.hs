@@ -33,7 +33,7 @@ header = hsep $ punctuate comma $ map text
          , "time"
          , "cycles"
          , "rate (bits/sec)"
-         , "secs/byte"
+         , "time/byte"
          , "cycles/byte"
          ]
 
@@ -49,16 +49,16 @@ runRaazBench (nm, bm) = do
 
 pprMeasured :: Measured -> [Doc]
 pprMeasured (Measured{..}) =
-  [ text (secs tm) -- time
-  , double cy      -- cycles
-  , text rt        -- rate
-  , text secB      -- secs/byte
-  , double cycB    -- cycles/byte
+  [ text (secs tm)          -- time
+  , text (humanise cy)      -- cycles
+  , text rt                 -- rate
+  , text secB               -- secs/byte
+  , text (humanise cycB)    -- cycles/byte
   ]
   where tm    = measTime   / fromIntegral nRuns
         cy    = fromIntegral measCycles / fromIntegral nRuns
         bytes = fromIntegral nBytes
-        secB  = humanise $ tm / bytes
+        secB  = humanise (tm / bytes) ++ "s"
         cycB  = cy    / bytes
         rt    = humanise $ 8 * bytes / tm
 
