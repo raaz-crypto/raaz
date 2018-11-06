@@ -224,7 +224,6 @@ library implementation
   build-depends: core
   hs-source-dirs: implementation, libverse
   exposed-modules: Blake2b.CPortable
-                 , Blake2s.CPortable
                  , Sha256.CPortable
                  , ChaCha20.CPortable
                  , Sha512.CPortable
@@ -232,6 +231,7 @@ library implementation
                  , Sha256.CHandWritten
                  , Sha512.CHandWritten
                  , Blake2b.CHandWritten
+                 , Blake2s.CHandWritten
 
   other-modules: Raaz.Verse.Chacha20.C.Portable
                , Raaz.Verse.Sha512.C.Portable
@@ -276,7 +276,7 @@ library
 
         , hash-indef (Hash as Raaz.Hash)
             requires (Blake2b.Implementation as Blake2b.CPortable,
-                      Blake2s.Implementation as Blake2s.CPortable,
+                      Blake2s.Implementation as Blake2s.CHandWritten,
                       Sha256.Implementation as Sha256.CPortable,
                       Sha512.Implementation as Sha512.CPortable
           )
@@ -371,7 +371,7 @@ benchmark primitives
           requires   (Implementation as Blake2b.CPortable)
 
         , bench-indef (Benchmark.Primitive as Benchmark.Blake2s.CPortable)
-          requires   (Implementation as Blake2s.CPortable)
+          requires   (Implementation as Blake2s.CHandWritten)
 
         , bench-indef (Benchmark.Primitive as Benchmark.ChaCha20.CPortable)
           requires   (Implementation as ChaCha20.CPortable)
