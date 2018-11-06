@@ -28,17 +28,17 @@ main :: IO ()
 main = do
   putStrLn $ render header
   mapM_ printBench [ Blake2bCP.bench
-                        , Blake2bCHW.bench
+                   , Blake2bCHW.bench
 
-                        , Blake2sCHW.bench
+                   , Blake2sCHW.bench
 
-                        , ChaCha20CP.bench
+                   , ChaCha20CP.bench
 
-                        , Sha256CP.bench
-                        , Sha256CHW.bench
+                   , Sha256CP.bench
+                   , Sha256CHW.bench
 
-                        , Sha512CP.bench
-                        , Sha512CHW.bench
-                        ]
+                   , Sha512CP.bench
+                   , Sha512CHW.bench
+                   ]
 
   where printBench = runRaazBench >=> pure . render >=> putStrLn
