@@ -226,8 +226,13 @@ library implementation
   exposed-modules: Blake2b.CPortable
                  , Blake2s.CPortable
                  , Sha256.CPortable
-                 , Sha512.CPortable
                  , ChaCha20.CPortable
+                 , Sha512.CPortable
+                 -- Implementation hand written in C
+                 , Sha256.CHandWritten
+                 , Sha512.CHandWritten
+                 , Blake2b.CHandWritten
+
   other-modules: Raaz.Verse.Chacha20.C.Portable
                , Raaz.Verse.Sha512.C.Portable
                , Raaz.Verse.Sha256.C.Portable
