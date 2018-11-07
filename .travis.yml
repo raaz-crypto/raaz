@@ -95,10 +95,6 @@ script:
   - cabal new-build -v all
   - cabal new-test -v all
   - cabal new-bench
-  - for pkg in `awk '{ print $2 }' < cabal.project`;
-    do
-       pushd . ; cd $pkg; cabal check; popd;
-    done
   - $(find ./dist-newstyle -name raaz -type f) info
   - if [ "$LIQUID_HASKELL" == "yes" ]; then ./scripts/get-lh.sh && ./scripts/run-lh.sh; exit $?; fi
 
