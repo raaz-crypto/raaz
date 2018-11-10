@@ -84,7 +84,7 @@ unitPrefix :: Int -> String
 unitPrefix ex
   | ex <  -3   = error "exponent too small name"
   | ex == -3   = "n"
-  | ex == -2   = "μ"
+  | ex == -2   = "µ"
   | ex == -1   = "m"
   | ex == 0    = ""
   | ex == 1    = "K"
