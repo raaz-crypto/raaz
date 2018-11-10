@@ -7,6 +7,7 @@
 
 import Control.Monad
 
+import System.IO
 import Text.PrettyPrint
 
 import           Benchmark.Types
@@ -27,6 +28,7 @@ import qualified Benchmark.Sha512.CHandWritten   as Sha512CHW
 
 main :: IO ()
 main = do
+  hSetEncoding stdout utf8
   putStrLn $ render header
   mapM_ printBench [ Blake2bCP.bench
                    , Blake2bCHW.bench
