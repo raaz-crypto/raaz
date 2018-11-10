@@ -3,7 +3,7 @@
 {-# LANGUAGE KindSignatures             #-}
 
 -- | The portable C-implementation of Blake2s.
-module Blake2s.CPortable where
+module Blake2s.CHandWritten where
 
 import Foreign.Ptr                ( Ptr          )
 import Control.Monad.IO.Class     ( liftIO       )
@@ -19,10 +19,10 @@ import Raaz.Primitive.Blake2.Internal
 
 
 name :: String
-name = "blake2s-cportable"
+name = "blake2s-c-handwritten"
 
 description :: String
-description = "BLAKE2s Implementation using portable C and Haskell FFI"
+description = "Hand written BLAKE2s Implementation using portable C and Haskell FFI"
 
 type Prim                    = BLAKE2s
 type Internals               = Blake2sMem

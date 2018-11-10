@@ -6,6 +6,7 @@ module Benchmark.Types
        , nBytes
        , nRuns
        , runRaazBench
+       , header
        ) where
 
 import Criterion.Measurement
@@ -26,29 +27,40 @@ nRuns = 10000
 
 type RaazBench         = (String, Benchmarkable)
 
+header :: Doc
+header = hsep $ punctuate comma $ map text
+         [ "Implementation"
+         , "time"
+         , "cycles"
+         , "rate (bits/sec)"
+         , "time/byte"
+         , "cycles/byte"
+         ]
+
 -- | Execute a benchmark and writeout the results.
 runRaazBench :: RaazBench -> IO Doc
 runRaazBench (nm, bm) = do
   (memt,_) <- measure bm nRuns
-  return $ text nm $+$ nest 8 (pprMeasured memt)
+  return $ hsep $ punctuate comma $ text nm : pprMeasured memt
+
 
 ------------------------ Helper functions ------------------------
 
-pprMeasured :: Measured -> Doc
-pprMeasured (Measured{..}) = vcat
-  [ text "time       " <+> eqop <+> text (secs tm)
-  , text "cycles     " <+> eqop <+> double cy
-  , text "rate       " <+> eqop <+> text rt   <+> text "bits/sec"
-  , text "secs/byte  " <+> eqop <+> text secB <+> text "sec/byte"
-  , text "cycles/byte" <+> eqop <+> double cycB
+
+pprMeasured :: Measured -> [Doc]
+pprMeasured (Measured{..}) =
+  [ text (secs tm)          -- time
+  , text (humanise cy)      -- cycles
+  , text rt                 -- rate
+  , text secB               -- secs/byte
+  , text (humanise cycB)    -- cycles/byte
   ]
   where tm    = measTime   / fromIntegral nRuns
         cy    = fromIntegral measCycles / fromIntegral nRuns
         bytes = fromIntegral nBytes
-        secB  = humanise $ tm / bytes
+        secB  = humanise (tm / bytes) ++ "s"
         cycB  = cy    / bytes
         rt    = humanise $ 8 * bytes / tm
-        eqop  = text "="
 
 
 -- | Humanise the output units.
@@ -72,7 +84,7 @@ unitPrefix :: Int -> String
 unitPrefix ex
   | ex <  -3   = error "exponent too small name"
   | ex == -3   = "n"
-  | ex == -2   = "μ"
+  | ex == -2   = "µ"
   | ex == -1   = "m"
   | ex == 0    = ""
   | ex == 1    = "K"

@@ -3,7 +3,7 @@
 {-# LANGUAGE DataKinds                  #-}
 
 -- | The portable C-implementation of SHA512.
-module Sha512.CPortable
+module Sha512.CHandWritten
        ( name, description
        , Prim, Internals, BufferAlignment
        , additionalBlocks
@@ -11,7 +11,7 @@ module Sha512.CPortable
        , processLast
        ) where
 
-import Foreign.Ptr                ( castPtr      )
+import Foreign.Ptr                ( Ptr          )
 import Control.Monad.IO.Class     ( liftIO       )
 import Data.Bits
 import Data.Word
@@ -23,14 +23,11 @@ import Raaz.Primitive.HashMemory
 import Raaz.Primitive.Sha512.Internal
 
 
-import Raaz.Verse.Sha512.C.Portable
-
-
 name :: String
-name = "sha512-libverse-c"
+name = "sha512-c-handwritten"
 
 description :: String
-description = "SHA512 Implementation in C exposed by libverse"
+description = "Hand written SHA512 Implementation using portable C and Haskell FFI"
 
 type Prim                    = SHA512
 type Internals               = Sha512Mem
@@ -40,13 +37,22 @@ type BufferAlignment         = 32
 additionalBlocks :: BLOCKS SHA512
 additionalBlocks = blocksOf 1 Proxy
 
+------------------------ The foreign function calls  ---------------------
+
+foreign import ccall unsafe
+  "raaz/hash/sha512/portable.h raazHashSha512PortableCompress"
+  c_sha512_compress  :: AlignedPointer BufferAlignment
+                     -> BLOCKS SHA512
+                     -> Ptr SHA512
+                     -> IO ()
+
+
 compressBlocks :: AlignedPointer BufferAlignment
                -> BLOCKS SHA512
                -> MT Internals ()
-compressBlocks buf blks = do hPtr <- castPtr <$> hashCell128Pointer
-                             let blkPtr = castPtr $ forgetAlignment buf
-                                 wBlks  = toEnum $ fromEnum blks
-                               in liftIO $ verse_sha512_c_portable blkPtr wBlks hPtr
+compressBlocks buf blks =  hashCell128Pointer
+                           >>= liftIO . c_sha512_compress buf blks
+
 
 processBlocks :: AlignedPointer BufferAlignment
               -> BLOCKS SHA512

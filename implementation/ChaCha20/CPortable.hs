@@ -14,10 +14,10 @@ import Raaz.Primitive.ChaCha20.Internal
 import Raaz.Verse.Chacha20.C.Portable
 
 name :: String
-name = "chacha20-cportable"
+name = "chacha20-libverse-c"
 
 description :: String
-description = "ChaCha20 Implementation using portable C and Haskell FFI"
+description = "ChaCha20 Implementation in C exposed by libverse"
 
 type Prim                    = ChaCha20
 type Internals               = ChaCha20Mem
@@ -27,19 +27,6 @@ type BufferAlignment         = 32
 additionalBlocks :: BLOCKS ChaCha20
 additionalBlocks = blocksOf 1 Proxy
 
-
------------------------- The foreign function calls  ---------------------
-{-
--- | Chacha20 block transformation.
-foreign import ccall unsafe
-  "raaz/cipher/chacha20/cportable.h raazChaCha20Block"
-  c_chacha20_block :: AlignedPointer BufferAlignment -- message
-                   -> BLOCKS ChaCha20                -- number of blocks
-                   -> Ptr KEY                        -- key
-                   -> Ptr IV                         -- iv
-                   -> Ptr Counter                    -- Counter value
-                   -> IO ()
--}
 processBlocks :: AlignedPointer BufferAlignment
               -> BLOCKS Prim
               -> MT Internals ()

@@ -91,14 +91,10 @@ install:
  - travis_retry cabal new-update;
 
 script:
-  - cabal new-configure -v --flag='-linux-getrandom' --enable-tests  --enable-documentation
-  - cabal new-build -v all
-  - cabal new-test -v all
+  - cabal new-configure --flag='-linux-getrandom' --enable-tests  --enable-documentation
+  - cabal new-build all
+  - cabal new-test all
   - cabal new-bench
-  - for pkg in `awk '{ print $2 }' < cabal.project`;
-    do
-       pushd . ; cd $pkg; cabal check; popd;
-    done
   - $(find ./dist-newstyle -name raaz -type f) info
   - if [ "$LIQUID_HASKELL" == "yes" ]; then ./scripts/get-lh.sh && ./scripts/run-lh.sh; exit $?; fi
 
