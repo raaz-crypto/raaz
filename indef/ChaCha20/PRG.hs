@@ -15,6 +15,7 @@ import Prelude
 import Raaz.Core
 import Raaz.Primitive.ChaCha20.Internal
 import ChaCha20.Utils as U
+import ChaCha20.Implementation ( csprgBlocks )
 import Raaz.Entropy
 
 
@@ -52,8 +53,12 @@ data RandomState = RandomState { chacha20State  :: U.Internals
 
 -- | Apply chacha20 on the contents of the random buffer.
 chacha20Random :: MT RandomState ()
-chacha20Random = askBuffer >>= withReaderT chacha20State . U.processBuffer
+chacha20Random = askBuffer >>= withReaderT chacha20State . genCSPRG
   where askBuffer = auxBuffer <$> ask
+
+genCSPRG :: RandomBuffer -> MT Internals ()
+genCSPRG rbuf = csprgBlocks (getBufferPointer rbuf) $ bufferSize $ pure rbuf
+
 
 instance Memory RandomState where
   memoryAlloc     = RandomState <$> memoryAlloc <*> memoryAlloc <*> memoryAlloc
