@@ -43,6 +43,7 @@ import Raaz.Core
 import ChaCha20.PRG
 
 import qualified Raaz.Primitive.ChaCha20.Internal  as ChaCha20
+import qualified Raaz.Primitive.Poly1305.Internal  as Poly1305
 
 -- $randomness$
 --
@@ -425,6 +426,9 @@ instance RandomStorable ChaCha20.KEY where
   fillRandomElements = unsafeFillRandomElements
 
 instance RandomStorable ChaCha20.IV where
+  fillRandomElements = unsafeFillRandomElements
+
+instance RandomStorable Poly1305.R where
   fillRandomElements = unsafeFillRandomElements
 
 instance RandomStorable w => RandomStorable (LE w) where
