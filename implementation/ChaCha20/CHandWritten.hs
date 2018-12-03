@@ -56,3 +56,9 @@ processLast :: AlignedPointer BufferAlignment
             -> BYTES Int
             -> MT Internals ()
 processLast buf = processBlocks buf . atLeast
+
+-- | Generate pseudo-random bytes using the chacha20 block function.
+csprgBlocks :: AlignedPointer BufferAlignment
+            -> BLOCKS Prim
+            -> MT Internals ()
+csprgBlocks = processBlocks

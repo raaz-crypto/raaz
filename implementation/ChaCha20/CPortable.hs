@@ -44,3 +44,15 @@ processLast :: AlignedPointer BufferAlignment
             -> BYTES Int
             -> MT Internals ()
 processLast buf = processBlocks buf . atLeast
+
+csprgBlocks :: AlignedPointer BufferAlignment
+            -> BLOCKS Prim
+            -> MT Internals ()
+
+csprgBlocks buf blks =
+  do keyPtr     <- castPtr <$> keyCellPtr
+     ivPtr      <- castPtr <$> ivCellPtr
+     counterPtr <- castPtr <$> counterCellPtr
+     let blkPtr = castPtr $ forgetAlignment buf
+         wBlks  = toEnum $ fromEnum blks
+         in liftIO $ verse_chacha20_c_portable_keystream blkPtr wBlks keyPtr ivPtr counterPtr
