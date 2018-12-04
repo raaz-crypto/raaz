@@ -3,6 +3,7 @@
 ## [0.3.0] - Pending
 
 * Use libverse for the low level FFI implementations.
+* Uses a host-endian variant of chacha20 keystream for csprg.
 * Complete rewrite of the interface using backpack. As a result, raaz
   library now has an easy way to mix and match (at the backpack
   level).  As a result, quite a bit of classes became simpler.
