@@ -1,2 +1,2 @@
 #!/bin/sh
-stack exec raaz entropy | dieharder -a -g 200
+cabal new-exec raaz entropy | dieharder -a -g 200
