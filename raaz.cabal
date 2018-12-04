@@ -347,49 +347,75 @@ test-suite tests
                , Raaz.Hash.Blake2Spec
 
 --------------------------- Benchmarkings ---------------------------------------------
-
-library bench-indef
-  import: defaults
-  hs-source-dirs: benchmarks/internal
-  exposed-modules: Benchmark.Primitive
-                 , Benchmark.Types
-  build-depends: criterion-measurement     >= 0.1
+common bench-defaults
+ import:defaults
+ hs-source-dirs: benchmarks/internal
+ build-depends:  criterion-measurement     >= 0.1
                , pretty
                , core
+
+
+
+
+library bench-types
+  import: bench-defaults
+  exposed-modules: Benchmark.Types
+
+library bench-prim
+  import: bench-defaults
+  build-depends: bench-types
                , indef
+  other-modules: Benchmark.Types
+  exposed-modules: Benchmark.Primitive
+
+library bench-csprg
+  import: bench-defaults
+  build-depends: bench-types
+               , chacha20-indef
+  exposed-modules: Benchmark.CSPRG
+  other-modules: Benchmark.Types
 
 benchmark primitives
-  import: defaults
+  import: bench-defaults
   hs-source-dirs: benchmarks
   main-is: Main.hs
   type: exitcode-stdio-1.0
   build-depends: pretty
                , core
                , implementation
-               , bench-indef
-  mixins: bench-indef (Benchmark.Primitive as Benchmark.Blake2b.CPortable, Benchmark.Types)
+               , bench-types
+               , bench-prim
+               , bench-csprg
+  other-modules: Benchmark.Types
+  mixins: bench-prim (Benchmark.Primitive as Benchmark.Blake2b.CPortable)
           requires   (Implementation as Blake2b.CPortable)
 
-        , bench-indef (Benchmark.Primitive as Benchmark.Blake2b.CHandWritten)
+        , bench-prim (Benchmark.Primitive as Benchmark.Blake2b.CHandWritten)
           requires   (Implementation as Blake2b.CHandWritten)
 
-        , bench-indef (Benchmark.Primitive as Benchmark.Blake2s.CHandWritten)
+        , bench-prim (Benchmark.Primitive as Benchmark.Blake2s.CHandWritten)
           requires   (Implementation as Blake2s.CHandWritten)
 
-        , bench-indef (Benchmark.Primitive as Benchmark.ChaCha20.CPortable)
+        , bench-prim (Benchmark.Primitive as Benchmark.ChaCha20.CPortable)
           requires   (Implementation as ChaCha20.CPortable)
 
-        , bench-indef (Benchmark.Primitive as Benchmark.ChaCha20.CHandWritten)
+        , bench-prim (Benchmark.Primitive as Benchmark.ChaCha20.CHandWritten)
           requires   (Implementation as ChaCha20.CHandWritten)
 
-        , bench-indef (Benchmark.Primitive as Benchmark.Sha256.CPortable)
+        , bench-prim (Benchmark.Primitive as Benchmark.Sha256.CPortable)
           requires   (Implementation as Sha256.CPortable)
 
-        , bench-indef (Benchmark.Primitive as Benchmark.Sha256.CHandWritten)
+        , bench-prim (Benchmark.Primitive as Benchmark.Sha256.CHandWritten)
           requires   (Implementation as Sha256.CHandWritten)
 
-        , bench-indef (Benchmark.Primitive as Benchmark.Sha512.CPortable)
+        , bench-prim (Benchmark.Primitive as Benchmark.Sha512.CPortable)
           requires (Implementation as Sha512.CPortable)
 
-        , bench-indef (Benchmark.Primitive as Benchmark.Sha512.CHandWritten)
+        , bench-prim (Benchmark.Primitive as Benchmark.Sha512.CHandWritten)
           requires (Implementation as Sha512.CHandWritten)
+
+        , bench-csprg (Benchmark.CSPRG as Benchmark.CSPRG.CPortable)
+          requires (ChaCha20.Implementation as ChaCha20.CPortable)
+
+        , bench-csprg (Benchmark.CSPRG as Benchmark.CSPRG.CHandWritten)
+          requires (ChaCha20.Implementation as ChaCha20.CHandWritten)
