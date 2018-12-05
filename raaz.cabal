@@ -13,8 +13,11 @@ description: Raaz is a cryptographic library for Haskell. The library
 
 homepage: https://github.com/raaz-crypto/raaz
 
-license:      BSD-3-Clause
-license-file: LICENSE
+copyright: (c) 2012 Piyush P Kurur
+license:      Apache-2.0 OR BSD-3-Clause
+license-files: LICENSE-BSD3
+               LICENSE-APACHE-2.0
+
 author:       Piyush P Kurur
 maintainer:   ppk@cse.iitk.ac.in
 
