@@ -17,6 +17,7 @@
   system entropy source.
 * Dropped support for SHA1, SHA224, SHA384, HMAC, and AES-CBC, mainly
   to concentrate efforts and reach stable release soon.
+* From BSD-3-Clause to dual license Apache-2.0 OR BSD-3-Clause.
 
 ## [0.2.0] - 24 August, 2017
 
