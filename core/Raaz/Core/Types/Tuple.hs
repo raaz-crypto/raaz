@@ -15,7 +15,7 @@ module Raaz.Core.Types.Tuple
          Tuple, Dimension, dimension, dimension', initial, diagonal
        , repeatM, zipWith
          -- ** Unsafe operations
-       , unsafeFromList
+       , unsafeFromList, unsafeToVector
        ) where
 
 import           Control.Applicative
@@ -38,6 +38,10 @@ import Raaz.Core.Parse.Applicative
 -- the length its dimension.
 newtype Tuple (dim :: Nat) a = Tuple { unTuple :: V.Vector a }
                              deriving Show
+
+-- | Convert the tuple to vector.
+unsafeToVector :: Tuple dim a -> V.Vector a
+unsafeToVector = unTuple
 
 instance (V.Unbox a, Equality a) => Equality (Tuple dim a) where
   eq (Tuple u) (Tuple v) = V.foldl' mappend mempty $ V.zipWith eq u v
