@@ -107,6 +107,7 @@ library core
                  , Raaz.Primitive.Sha512.Internal
                  , Raaz.Primitive.ChaCha20.Internal
                  , Raaz.Primitive.Poly1305.Internal
+                 , Raaz.Primitive.Poly1305.Memory
                  , Raaz.Primitive.HashMemory
 
   other-modules: Raaz.Core.ByteSource
