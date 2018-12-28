@@ -14,6 +14,7 @@ import           Data.Bits
 import qualified Data.Vector.Unboxed as V
 import           Data.Word
 import           Raaz.Core.Types
+import qualified Raaz.Core.Types.Internal        as TI
 import           Raaz.Core.Memory
 import           Raaz.Primitive.Poly1305.Internal
 
@@ -47,3 +48,9 @@ instance Initialisable Mem (R,S) where
                          withReaderT sCell   $ initialise $ s
     where zeros :: Element
           zeros = unsafeFromList [0, 0, 0]
+
+instance Extractable Mem Poly1305 where
+    extract = toPoly1305 <$> withReaderT accCell extract
+      where toPoly1305 = Poly1305 . TI.map littleEndian . project
+            project :: Tuple 3 Word64 -> Tuple 2 Word64
+            project = initial
