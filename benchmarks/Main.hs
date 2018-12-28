@@ -19,6 +19,8 @@ import qualified Benchmark.Blake2s.CHandWritten  as Blake2sCHW
 import qualified Benchmark.ChaCha20.CPortable    as ChaCha20CP
 import qualified Benchmark.ChaCha20.CHandWritten as ChaCha20CHW
 
+import qualified Benchmark.Poly1305.CPortable    as Poly1305CP
+
 import qualified Benchmark.Sha256.CPortable      as Sha256CP
 import qualified Benchmark.Sha256.CHandWritten   as Sha256CHW
 
@@ -37,6 +39,8 @@ main = do
                    , Blake2bCHW.bench
 
                    , Blake2sCHW.bench
+
+                   , Poly1305CP.bench
 
                    , ChaCha20CP.bench
                    , ChaCha20CHW.bench

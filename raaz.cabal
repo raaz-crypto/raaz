@@ -437,6 +437,9 @@ benchmark primitives
         , bench-prim (Benchmark.Primitive as Benchmark.ChaCha20.CHandWritten)
           requires   (Implementation as ChaCha20.CHandWritten)
 
+        , bench-prim (Benchmark.Primitive as Benchmark.Poly1305.CPortable)
+          requires   (Implementation as Poly1305.CPortable)
+
         , bench-prim (Benchmark.Primitive as Benchmark.Sha256.CPortable)
           requires   (Implementation as Sha256.CPortable)
 
