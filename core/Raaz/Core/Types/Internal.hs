@@ -20,6 +20,7 @@ module Raaz.Core.Types.Internal
        ( module Raaz.Core.Types.Endian
        , module Raaz.Core.Types.Pointer
        , module Raaz.Core.Types.Copying
+       , module Raaz.Core.Types.Tuple
        ) where
 
 import Raaz.Core.Types.Endian  ( LE(..), BE(..)          )
@@ -27,3 +28,4 @@ import Raaz.Core.Types.Pointer ( Pointer, AlignedPtr(..)
                                , BITS(..), BYTES(..), BLOCKS(..)
                                )
 import Raaz.Core.Types.Copying ( Src(..), Dest(..)       )
+import Raaz.Core.Types.Tuple

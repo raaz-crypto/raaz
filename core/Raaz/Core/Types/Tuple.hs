@@ -13,7 +13,7 @@
 module Raaz.Core.Types.Tuple
        ( -- * Length encoded tuples
          Tuple, Dimension, dimension, dimension', initial, diagonal
-       , repeatM, zipWith
+       , repeatM, zipWith, map
          -- ** Unsafe operations
        , unsafeFromList, unsafeToVector
        ) where
@@ -26,7 +26,7 @@ import qualified Data.Vector.Unboxed as V
 import           GHC.TypeLits
 import           Foreign.Ptr                 ( castPtr, Ptr )
 import           Foreign.Storable            ( Storable(..) )
-import           Prelude hiding              ( length, zipWith )
+import           Prelude hiding              ( length, zipWith, map )
 
 
 import Raaz.Core.Types.Equality
@@ -38,6 +38,10 @@ import Raaz.Core.Parse.Applicative
 -- the length its dimension.
 newtype Tuple (dim :: Nat) a = Tuple { unTuple :: V.Vector a }
                              deriving Show
+
+-- | Map function for tuples.
+map :: (V.Unbox a, V.Unbox b) => (a -> b) -> Tuple dim a -> Tuple dim b
+map f = Tuple . V.map f . unTuple
 
 -- | Convert the tuple to vector.
 unsafeToVector :: Tuple dim a -> V.Vector a
