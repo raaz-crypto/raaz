@@ -11,6 +11,7 @@ import Common.Imports
 import Common.Utils
 
 import Raaz.Primitive.ChaCha20.Internal as ChaCha20
+import Raaz.Primitive.Poly1305.Internal as Poly1305
 import Raaz.Core.Types.Internal
 
 instance Arbitrary w => Arbitrary (LE w) where
@@ -66,3 +67,14 @@ instance Arbitrary ChaCha20.Counter where
   arbitrary = le32ToCtr <$> arbitrary
     where le32ToCtr :: LE Word32 -> Counter
           le32ToCtr = fromIntegral
+
+------------------ Arbitrary instances for Poly1305 -------------
+instance Arbitrary Poly1305.R where
+  arbitrary = genEncodable
+
+instance Arbitrary Poly1305.S where
+  arbitrary = genEncodable
+
+instance Arbitrary Poly1305.Poly1305 where
+  arbitrary = genEncodable
+

@@ -384,6 +384,7 @@ test-suite tests
                , Raaz.Hash.Sha256Spec
                , Raaz.Hash.Sha512Spec
                , Raaz.Hash.Blake2Spec
+               , Raaz.Mac.Poly1305Spec
 
 --------------------------- Benchmarkings ---------------------------------------------
 common bench-defaults
