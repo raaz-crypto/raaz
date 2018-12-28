@@ -256,6 +256,7 @@ library implementation
                  , ChaCha20.CHandWritten
                  , Blake2b.CHandWritten
                  , Blake2s.CHandWritten
+                 , Poly1305.CPortable
                  , Sha256.CHandWritten
                  , Sha512.CHandWritten
 
@@ -263,6 +264,7 @@ library implementation
                , Raaz.Verse.Sha512.C.Portable
                , Raaz.Verse.Sha256.C.Portable
                , Raaz.Verse.Blake2b.C.Portable
+               , Raaz.Verse.Poly1305.C.Portable
   c-sources: libverse/chacha20/c/portable.c
            , libverse/sha256/c/portable.c
            , libverse/sha512/c/portable.c
