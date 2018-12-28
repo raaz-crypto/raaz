@@ -94,6 +94,7 @@ common defaults
 
 ----------------------------- The core library ------------------------------------------------
 library core
+  -- visibility: public
   import: defaults
   hs-source-dirs: core
   exposed-modules: Raaz.Core
@@ -147,6 +148,7 @@ library core
 ---------------------- The signatures relevant for core ---------------------------
 
 library indef
+  -- visibility: public
   import: defaults
   build-depends: core
   hs-source-dirs: indef
@@ -154,6 +156,7 @@ library indef
   exposed-modules: Utils
 
 library blake2b-indef
+  -- visibility: public
   import: defaults
   build-depends: core, indef
   hs-source-dirs: indef
@@ -162,6 +165,7 @@ library blake2b-indef
   mixins: indef (Utils as Blake2b.Utils) requires (Implementation as Blake2b.Implementation)
 
 library blake2s-indef
+  -- visibility: public
   import: defaults
   build-depends: core, indef
   hs-source-dirs: indef
@@ -170,6 +174,7 @@ library blake2s-indef
   mixins: indef (Utils as Blake2s.Utils) requires (Implementation as Blake2s.Implementation)
 
 library sha256-indef
+  -- visibility: public
   import: defaults
   build-depends: core, indef
   hs-source-dirs: indef
@@ -178,6 +183,7 @@ library sha256-indef
   mixins: indef (Utils as Sha256.Utils) requires (Implementation as Sha256.Implementation)
 
 library sha512-indef
+  -- visibility: public
   import: defaults
   build-depends: core, indef
   hs-source-dirs: indef
@@ -187,6 +193,7 @@ library sha512-indef
 
 
 library chacha20-indef
+  -- visibility: public
   import: defaults
   build-depends: core, indef
   hs-source-dirs: indef
@@ -205,6 +212,7 @@ library poly1305-indef
   mixins: indef (Utils as Poly1305.Utils) requires (Implementation as Poly1305.Implementation)
 
 library hash-indef
+  -- visibility: public
   import: defaults
   hs-source-dirs: indef
   build-depends: core
@@ -215,6 +223,7 @@ library hash-indef
   exposed-modules: Hash
 
 library cipher-indef
+  -- visibility: public
   import: defaults
   hs-source-dirs: indef
   build-depends: core
@@ -222,6 +231,7 @@ library cipher-indef
   exposed-modules: Cipher
 
 library random-indef
+  -- visibility: public
   import: defaults
   hs-source-dirs: indef
   build-depends: core
@@ -234,6 +244,7 @@ library random-indef
 --------------------  The implementation modules ----------------------------------
 
 library implementation
+  -- visibility: public
   import: defaults
   build-depends: core
   hs-source-dirs: implementation, libverse
