@@ -29,6 +29,7 @@ import           System.IO.Unsafe     (unsafePerformIO)
 
 import           Raaz.Core
 import           Raaz.Primitive.Poly1305.Internal (Poly1305)
+import           Poly1305.Implementation          ( clamp  )
 import qualified Poly1305.Utils        as Poly1305U
 
 
@@ -92,4 +93,7 @@ macFile key fileName = withBinaryFile fileName ReadMode $ macSource key
 {-# INLINEABLE macFile #-}
 
 instance Mac Poly1305 where
-  macSource = Poly1305U.computeDigest
+  macSource key src = insecurely $ do initialise key
+                                      clamp
+                                      Poly1305U.processByteSource src
+                                      extract

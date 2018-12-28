@@ -2,13 +2,14 @@
 {-# LANGUAGE KindSignatures             #-}
 {-# LANGUAGE DataKinds                  #-}
 
--- | The portable C-implementation of SHA256.
+-- | The portable C-implementation of Poly1305.
 module Poly1305.CPortable
        ( name, description
        , Prim, Internals, BufferAlignment
        , additionalBlocks
        , processBlocks
        , processLast
+       , clamp
        ) where
 
 import Foreign.Ptr                ( castPtr, Ptr  )
@@ -107,3 +108,7 @@ padding :: BYTES Int    -- Data in buffer.
 padding mLen = padWrite 0 boundary $ skip mLen <> one
   where one         = writeStorable (1::Word8)
         boundary    = blocksOf 1 (Proxy :: Proxy Poly1305)
+
+-- | The clamping operation
+clamp :: MT Internals ()
+clamp = rKeyPtr >>= liftIO . flip verse_poly1305_c_portable_clamp 1

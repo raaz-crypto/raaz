@@ -6,9 +6,19 @@
 -- in the following signature.
 signature Poly1305.Implementation where
 
+import Raaz.Core
 import Raaz.Primitive.Poly1305.Internal
 
 type BufferAlignment = 32
 
 -- | The primitive for which the implementation is given
 type Prim = Poly1305
+
+-- | The internal memory used by the implementation.
+data Internals
+instance Memory Internals
+
+-- | Poly1305 assumes certain bits of r is cleared. Clamps r stored in
+--   the internal memory to such a value is done by this action.
+clamp :: MT Internals ()
+
