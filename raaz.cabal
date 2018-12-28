@@ -195,6 +195,15 @@ library chacha20-indef
   reexported-modules: ChaCha20.Utils
   mixins: indef (Utils as ChaCha20.Utils) requires (Implementation as ChaCha20.Implementation)
 
+library poly1305-indef
+  -- visibility: public
+  import: defaults
+  build-depends: core, indef
+  hs-source-dirs: indef
+  signatures: Poly1305.Implementation
+  reexported-modules: Poly1305.Utils
+  mixins: indef (Utils as Poly1305.Utils) requires (Implementation as Poly1305.Implementation)
+
 library hash-indef
   import: defaults
   hs-source-dirs: indef
