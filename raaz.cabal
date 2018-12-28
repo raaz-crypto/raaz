@@ -276,6 +276,7 @@ library implementation
            , libverse/sha256/c/portable.c
            , libverse/sha512/c/portable.c
            , libverse/blake2b/c/portable.c
+           , libverse/poly1305/c/portable.c
            , libverse/verse.c
   c-sources: implementation/cbits/raaz/hash/blake2/blake2b/portable.c
            , implementation/cbits/raaz/hash/blake2/blake2s/portable.c
