@@ -297,6 +297,7 @@ library
   hs-source-dirs: raaz
   build-depends: core
                , hash-indef
+               , mac-indef
                , cipher-indef
                , random-indef
                , implementation
@@ -305,6 +306,7 @@ library
                     , Raaz.Core.Types
                     , Raaz.Cipher
                     , Raaz.Hash
+                    , Raaz.Mac
                     , Raaz.Random
                     , Raaz.Entropy
   mixins: cipher-indef (Cipher as Raaz.Cipher)
@@ -317,6 +319,8 @@ library
                       Sha512.Implementation as Sha512.CPortable
           )
 
+        , mac-indef (Mac as Raaz.Mac)
+            requires (Poly1305.Implementation as Poly1305.CPortable)
         , random-indef(Random as Raaz.Random)
             requires (ChaCha20.Implementation as ChaCha20.CPortable)
 
