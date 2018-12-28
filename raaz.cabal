@@ -222,6 +222,13 @@ library hash-indef
                , sha256-indef
   exposed-modules: Hash
 
+library mac-indef
+  import: defaults
+  hs-source-dirs: indef
+  build-depends: core
+               , poly1305-indef
+  exposed-modules: Mac
+
 library cipher-indef
   -- visibility: public
   import: defaults
