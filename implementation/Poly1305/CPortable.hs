@@ -105,7 +105,7 @@ processLast buf nBytes
 -- message is not a multiple of the block length.
 padding :: BYTES Int    -- Data in buffer.
         -> WriteM (MT Internals)
-padding mLen = padWrite 0 boundary $ skip mLen <> one
+padding mLen = padWrite 0 boundary $ skip mLen `mappend` one
   where one         = writeStorable (1::Word8)
         boundary    = blocksOf 1 (Proxy :: Proxy Poly1305)
 
