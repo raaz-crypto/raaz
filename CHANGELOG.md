@@ -2,14 +2,22 @@
 
 ## [0.3.0] - Pending
 
-* Use libverse for the low level FFI implementations.
+* Major changes are
+
+    1. Use libverse for the low level FFI implementations. From now on
+       newer primitives will be coded up in verse instead of hand
+       written C/assembly.
+
+    2. Complete rewrite of the interface using backpack where modules
+       and signatures now replace classes related to
+       implementation. Simplifies the library and allows easy plugging
+       in of custom implementations.
+
+    3. GHC below 8.2 not supported anymore because of backpack.
+
 * Uses a host-endian variant of chacha20 keystream for csprg.
-* Complete rewrite of the interface using backpack. As a result, raaz
-  library now has an easy way to mix and match (at the backpack
-  level).  As a result, quite a bit of classes became simpler.
 * Block size moved to type level. Allows better type safety.
 * Use Data.Proxy.Proxy to get rid of some uses of undefined.
-* Support withdrawn for base < 4.7. This allows cleaning up some Nat codes.
 * Linux: getrandom now uses syscall directly, so works even when glibc
   is old.  By default on Linux getrandom is the entropy source unless
   disabled by flags.

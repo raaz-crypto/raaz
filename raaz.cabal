@@ -70,10 +70,10 @@ flag avx2
 common defaults
   default-language: Haskell2010
   ghc-options: -Wall
-  build-depends: base                    >= 4.7  &&  < 4.13
-               , bytestring              >= 0.9  &&  < 0.11
-               , deepseq                 >= 1.1  &&  < 1.5
-               , vector                  >= 0.7.1 && < 0.13
+  build-depends: base                    >= 4.10 &&  < 4.13
+               , bytestring              >= 0.10 &&  < 0.11
+               , deepseq                 >= 1.4  &&  < 1.5
+               , vector                  >= 0.12 &&  < 0.13
                , mtl
 
   ------------------------ Compiler optimisation flags -------------------------------------
@@ -94,6 +94,7 @@ common defaults
 
 ----------------------------- The core library ------------------------------------------------
 library core
+  -- visibility: public
   import: defaults
   hs-source-dirs: core
   exposed-modules: Raaz.Core
@@ -106,6 +107,8 @@ library core
                  , Raaz.Primitive.Sha256.Internal
                  , Raaz.Primitive.Sha512.Internal
                  , Raaz.Primitive.ChaCha20.Internal
+                 , Raaz.Primitive.Poly1305.Internal
+                 , Raaz.Primitive.Poly1305.Memory
                  , Raaz.Primitive.HashMemory
 
   other-modules: Raaz.Core.ByteSource
@@ -145,6 +148,7 @@ library core
 ---------------------- The signatures relevant for core ---------------------------
 
 library indef
+  -- visibility: public
   import: defaults
   build-depends: core
   hs-source-dirs: indef
@@ -152,6 +156,7 @@ library indef
   exposed-modules: Utils
 
 library blake2b-indef
+  -- visibility: public
   import: defaults
   build-depends: core, indef
   hs-source-dirs: indef
@@ -160,6 +165,7 @@ library blake2b-indef
   mixins: indef (Utils as Blake2b.Utils) requires (Implementation as Blake2b.Implementation)
 
 library blake2s-indef
+  -- visibility: public
   import: defaults
   build-depends: core, indef
   hs-source-dirs: indef
@@ -168,6 +174,7 @@ library blake2s-indef
   mixins: indef (Utils as Blake2s.Utils) requires (Implementation as Blake2s.Implementation)
 
 library sha256-indef
+  -- visibility: public
   import: defaults
   build-depends: core, indef
   hs-source-dirs: indef
@@ -176,6 +183,7 @@ library sha256-indef
   mixins: indef (Utils as Sha256.Utils) requires (Implementation as Sha256.Implementation)
 
 library sha512-indef
+  -- visibility: public
   import: defaults
   build-depends: core, indef
   hs-source-dirs: indef
@@ -185,6 +193,7 @@ library sha512-indef
 
 
 library chacha20-indef
+  -- visibility: public
   import: defaults
   build-depends: core, indef
   hs-source-dirs: indef
@@ -193,7 +202,17 @@ library chacha20-indef
   reexported-modules: ChaCha20.Utils
   mixins: indef (Utils as ChaCha20.Utils) requires (Implementation as ChaCha20.Implementation)
 
+library poly1305-indef
+  -- visibility: public
+  import: defaults
+  build-depends: core, indef
+  hs-source-dirs: indef
+  signatures: Poly1305.Implementation
+  reexported-modules: Poly1305.Utils
+  mixins: indef (Utils as Poly1305.Utils) requires (Implementation as Poly1305.Implementation)
+
 library hash-indef
+  -- visibility: public
   import: defaults
   hs-source-dirs: indef
   build-depends: core
@@ -203,7 +222,15 @@ library hash-indef
                , sha256-indef
   exposed-modules: Hash
 
+library mac-indef
+  import: defaults
+  hs-source-dirs: indef
+  build-depends: core
+               , poly1305-indef
+  exposed-modules: Mac
+
 library cipher-indef
+  -- visibility: public
   import: defaults
   hs-source-dirs: indef
   build-depends: core
@@ -211,6 +238,7 @@ library cipher-indef
   exposed-modules: Cipher
 
 library random-indef
+  -- visibility: public
   import: defaults
   hs-source-dirs: indef
   build-depends: core
@@ -223,6 +251,7 @@ library random-indef
 --------------------  The implementation modules ----------------------------------
 
 library implementation
+  -- visibility: public
   import: defaults
   build-depends: core
   hs-source-dirs: implementation, libverse
@@ -234,6 +263,7 @@ library implementation
                  , ChaCha20.CHandWritten
                  , Blake2b.CHandWritten
                  , Blake2s.CHandWritten
+                 , Poly1305.CPortable
                  , Sha256.CHandWritten
                  , Sha512.CHandWritten
 
@@ -241,10 +271,12 @@ library implementation
                , Raaz.Verse.Sha512.C.Portable
                , Raaz.Verse.Sha256.C.Portable
                , Raaz.Verse.Blake2b.C.Portable
+               , Raaz.Verse.Poly1305.C.Portable
   c-sources: libverse/chacha20/c/portable.c
            , libverse/sha256/c/portable.c
            , libverse/sha512/c/portable.c
            , libverse/blake2b/c/portable.c
+           , libverse/poly1305/c/portable.c
            , libverse/verse.c
   c-sources: implementation/cbits/raaz/hash/blake2/blake2b/portable.c
            , implementation/cbits/raaz/hash/blake2/blake2s/portable.c
@@ -265,6 +297,7 @@ library
   hs-source-dirs: raaz
   build-depends: core
                , hash-indef
+               , mac-indef
                , cipher-indef
                , random-indef
                , implementation
@@ -273,6 +306,7 @@ library
                     , Raaz.Core.Types
                     , Raaz.Cipher
                     , Raaz.Hash
+                    , Raaz.Mac
                     , Raaz.Random
                     , Raaz.Entropy
   mixins: cipher-indef (Cipher as Raaz.Cipher)
@@ -285,6 +319,8 @@ library
                       Sha512.Implementation as Sha512.CPortable
           )
 
+        , mac-indef (Mac as Raaz.Mac)
+            requires (Poly1305.Implementation as Poly1305.CPortable)
         , random-indef(Random as Raaz.Random)
             requires (ChaCha20.Implementation as ChaCha20.CPortable)
 
@@ -348,6 +384,7 @@ test-suite tests
                , Raaz.Hash.Sha256Spec
                , Raaz.Hash.Sha512Spec
                , Raaz.Hash.Blake2Spec
+               , Raaz.Mac.Poly1305Spec
 
 --------------------------- Benchmarkings ---------------------------------------------
 common bench-defaults
@@ -404,6 +441,9 @@ benchmark primitives
 
         , bench-prim (Benchmark.Primitive as Benchmark.ChaCha20.CHandWritten)
           requires   (Implementation as ChaCha20.CHandWritten)
+
+        , bench-prim (Benchmark.Primitive as Benchmark.Poly1305.CPortable)
+          requires   (Implementation as Poly1305.CPortable)
 
         , bench-prim (Benchmark.Primitive as Benchmark.Sha256.CPortable)
           requires   (Implementation as Sha256.CPortable)

@@ -40,9 +40,10 @@ import Prelude
 
 import Raaz.Core
 -- import Raaz.Core.Proxy
-import Raaz.Primitive.ChaCha20.Internal(KEY, IV)
 import ChaCha20.PRG
 
+import qualified Raaz.Primitive.ChaCha20.Internal  as ChaCha20
+import qualified Raaz.Primitive.Poly1305.Internal  as Poly1305
 
 -- $randomness$
 --
@@ -421,10 +422,13 @@ instance RandomStorable Int64 where
 instance RandomStorable Int where
   fillRandomElements = unsafeFillRandomElements
 
-instance RandomStorable KEY where
+instance RandomStorable ChaCha20.KEY where
   fillRandomElements = unsafeFillRandomElements
 
-instance RandomStorable IV where
+instance RandomStorable ChaCha20.IV where
+  fillRandomElements = unsafeFillRandomElements
+
+instance RandomStorable Poly1305.R where
   fillRandomElements = unsafeFillRandomElements
 
 instance RandomStorable w => RandomStorable (LE w) where

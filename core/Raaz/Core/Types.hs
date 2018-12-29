@@ -27,7 +27,7 @@ import Raaz.Core.Types.Endian         (LE, BE)
 
 import Raaz.Core.Types.Pointer hiding ( AlignedPtr, BYTES, BITS, BLOCKS)
 import Raaz.Core.Types.Pointer        ( AlignedPtr, BYTES, BITS, BLOCKS)
-import Raaz.Core.Types.Tuple
+import Raaz.Core.Types.Tuple   hiding ( map                            )
 import Raaz.Core.Types.Copying( Src, Dest, source, destination)
 
 
