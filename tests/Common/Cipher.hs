@@ -5,13 +5,15 @@ import Common.Utils
 
 transformsTo :: (StreamCipher c, Format fmt1, Format fmt2)
               => Proxy c
+              -> (Key c -> String)
               -> fmt1
               -> fmt2
               -> Key c
               -> Spec
-transformsTo cproxy inp expected key = it msg $ result `shouldBe` decodeFormat expected
+transformsTo cproxy kprint inp expected key = it msg $ result `shouldBe` decodeFormat expected
   where result = transform cproxy key $ decodeFormat inp
-        msg  = unwords [ "encrypts"
+        msg  = unwords [ "with key", kprint key
+                       , "encrypts"
                        , shortened $ show inp
                        , "to"
                        , shortened $ show expected
@@ -19,12 +21,13 @@ transformsTo cproxy inp expected key = it msg $ result `shouldBe` decodeFormat e
 
 keyStreamIs :: (StreamCipher c, Format fmt)
              => Proxy c
+             -> (Key c -> String)
              -> fmt
              -> Key c
              -> Spec
-keyStreamIs cproxy expected key = it msg $ result `shouldBe` decodeFormat expected
+keyStreamIs cproxy kprint expected key = it msg $ result `shouldBe` decodeFormat expected
   where result = transform cproxy key $ zeros $ 1 `blocksOf` cproxy
-        msg    = unwords ["with key"
+        msg    = unwords ["with key", kprint key
                          , "key stream is"
                          , shortened $ show expected
                          ]

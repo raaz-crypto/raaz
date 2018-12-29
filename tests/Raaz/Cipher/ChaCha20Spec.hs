@@ -12,6 +12,12 @@ import qualified Common.Cipher as C
 import Raaz.Primitive.ChaCha20.Internal
 
 
+keyPrint :: Key ChaCha20 -> String
+keyPrint (k,i,c) = "("
+                   ++ shortened (show k) ++ ", "
+                   ++ shortened (show i) ++ ","
+                   ++ show (fromEnum c) ++ ")"
+
 writeZeros :: BYTES Int -> WriteIO
 writeZeros = writeBytes 0
 
@@ -29,10 +35,10 @@ zeroBlocks :: Int -> ByteString
 zeroBlocks = C.zeros . (toEnum :: Int -> BLOCKS ChaCha20)
 
 transformsTo :: (Format fmt1, Format fmt2) => fmt1 -> fmt2 -> Key ChaCha20 -> Spec
-transformsTo fmt1 fmt2 key = C.transformsTo (Proxy :: Proxy ChaCha20) fmt1 fmt2 key
+transformsTo fmt1 fmt2 key = C.transformsTo (Proxy :: Proxy ChaCha20) keyPrint fmt1 fmt2 key
 
 keyStreamIs  :: Format fmt => fmt -> Key ChaCha20 -> Spec
-keyStreamIs fmt key = C.keyStreamIs (Proxy :: Proxy ChaCha20) fmt key
+keyStreamIs fmt key = C.keyStreamIs (Proxy :: Proxy ChaCha20) keyPrint fmt key
 
 spec :: Spec
 spec =describe "ChaCha20" $ do
