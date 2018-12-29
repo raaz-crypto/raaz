@@ -16,7 +16,9 @@ import Raaz.Primitive.Poly1305.Internal
 macsTo :: ByteString -> Poly1305 -> Key Poly1305 -> Spec
 macsTo inp expected key =  it msg $ result `shouldBe` expected
   where result = mac key inp
-        msg  = unwords [ "macs"
+        msg  = unwords [ "with key"
+                       , shortened $ show key
+                       , "macs"
                        , shortened $ show inp
                        , "to"
                        , shortened $ show expected
