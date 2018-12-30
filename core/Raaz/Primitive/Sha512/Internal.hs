@@ -33,9 +33,6 @@ instance Show SHA512 where
 
 instance Primitive SHA512 where
   type BlockSize SHA512      = 128
-  type Key SHA512            = ()
-  type Digest SHA512         = SHA512
-
 
 type Sha512Mem = HashMemory128 SHA512
 

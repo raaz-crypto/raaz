@@ -58,8 +58,9 @@ instance IsString KEY where
 
 instance Primitive ChaCha20 where
   type BlockSize ChaCha20      = 64
-  type Key ChaCha20            = (KEY, IV, Counter)
-  type Digest ChaCha20         = ()
+
+type instance Key ChaCha20            = (KEY, IV, Counter)
+
 
 
 ---------- Memory for ChaCha20 implementations  ------------------

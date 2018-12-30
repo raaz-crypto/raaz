@@ -69,5 +69,5 @@ instance Show S where
 
 instance Primitive Poly1305 where
   type BlockSize Poly1305      = 16
-  type Key Poly1305            = (R, S)
-  type Digest Poly1305         = Poly1305
+
+type instance Key Poly1305            = (R, S)

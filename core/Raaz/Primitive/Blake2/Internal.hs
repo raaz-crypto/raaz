@@ -61,13 +61,9 @@ instance Show BLAKE2s where
 
 instance Primitive BLAKE2b where
   type BlockSize BLAKE2b      = 128
-  type Key BLAKE2b            = ()
-  type Digest BLAKE2b         = BLAKE2b
 
 instance Primitive BLAKE2s where
   type BlockSize BLAKE2s      = 64
-  type Key BLAKE2s            = ()
-  type Digest BLAKE2s         = BLAKE2s
 
 -- | The initial value to start the blake2b hashing. This is equal to
 -- the iv `xor` the parameter block.

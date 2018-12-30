@@ -35,8 +35,6 @@ instance Show SHA256 where
 
 instance Primitive SHA256 where
   type BlockSize SHA256      = 64
-  type Key SHA256            = ()
-  type Digest SHA256         = SHA256
 
 type Sha256Mem = HashMemory64 SHA256
 
