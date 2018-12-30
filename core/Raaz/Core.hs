@@ -26,5 +26,4 @@ import Raaz.Core.Transfer
 import Raaz.Core.Types
 import Raaz.Core.Util
 
-
 {-# ANN module "HLint: ignore Use import/export shortcut" #-}

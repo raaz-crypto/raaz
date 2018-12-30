@@ -143,10 +143,10 @@ library core
 
   --------------------- Entropy ----------------------------------------------
 
-  if  os(windows)                         { hs-source-dirs: core/entropy/windows    }
-  elif os(openbsd) || os(netbsd)          { hs-source-dirs: core/entropy/arc4random }
-  elif os(linux) && flag(linux-getrandom) { hs-source-dirs: core/entropy/getrandom  }
-  else                                    { hs-source-dirs: core/entropy/urandom    }
+  if   os(windows)                          { hs-source-dirs: core/entropy/windows    }
+  elif os(openbsd) || os(netbsd)            { hs-source-dirs: core/entropy/arc4random }
+  elif os(linux)   && flag(linux-getrandom) { hs-source-dirs: core/entropy/getrandom  }
+  else                                      { hs-source-dirs: core/entropy/urandom    }
 
 
 ---------------------- The signatures relevant for core ---------------------------
@@ -158,99 +158,55 @@ library indef
   hs-source-dirs: indef
   signatures: Implementation
   exposed-modules: Utils
-
-library blake2b-indef
-  -- visibility: public
-  import: defaults
-  build-depends: core, indef
-  hs-source-dirs: indef
-  reexported-modules: Blake2b.Utils
-  signatures: Blake2b.Implementation
-  mixins: indef (Utils as Blake2b.Utils) requires (Implementation as Blake2b.Implementation)
-
-library blake2s-indef
-  -- visibility: public
-  import: defaults
-  build-depends: core, indef
-  hs-source-dirs: indef
-  reexported-modules: Blake2s.Utils
-  signatures: Blake2s.Implementation
-  mixins: indef (Utils as Blake2s.Utils) requires (Implementation as Blake2s.Implementation)
-
-library sha256-indef
-  -- visibility: public
-  import: defaults
-  build-depends: core, indef
-  hs-source-dirs: indef
-  reexported-modules: Sha256.Utils
-  signatures: Blake2s.Implementation
-  mixins: indef (Utils as Sha256.Utils) requires (Implementation as Sha256.Implementation)
-
-library sha512-indef
-  -- visibility: public
-  import: defaults
-  build-depends: core, indef
-  hs-source-dirs: indef
-  reexported-modules: Sha512.Utils
-  signatures: Sha512.Implementation
-  mixins: indef (Utils as Sha512.Utils) requires (Implementation as Sha512.Implementation)
-
-
-library chacha20-indef
-  -- visibility: public
-  import: defaults
-  build-depends: core, indef
-  hs-source-dirs: indef
-  signatures: ChaCha20.Implementation
-  exposed-modules: ChaCha20.PRG
-  reexported-modules: ChaCha20.Utils
-  mixins: indef (Utils as ChaCha20.Utils) requires (Implementation as ChaCha20.Implementation)
-
-library poly1305-indef
-  -- visibility: public
-  import: defaults
-  build-depends: core, indef
-  hs-source-dirs: indef
-  signatures: Poly1305.Implementation
-  reexported-modules: Poly1305.Utils
-  mixins: indef (Utils as Poly1305.Utils) requires (Implementation as Poly1305.Implementation)
-
-library hash-indef
+  
+library digest-indef
   -- visibility: public
   import: defaults
   hs-source-dirs: indef
+  signatures: Digest.Implementation
   build-depends: core
-               , blake2b-indef
-               , blake2s-indef
-               , sha512-indef
-               , sha256-indef
-  exposed-modules: Hash
+               , indef
+  mixins: indef (Utils as DigestUtils) requires (Implementation as Digest.Implementation)
+  exposed-modules: Digest.Utils
 
-library mac-indef
-  import: defaults
-  hs-source-dirs: indef
-  build-depends: core
-               , poly1305-indef
-  exposed-modules: Mac
+-- library chacha20-indef
+--   -- visibility: public
+--   import: defaults
+--   build-depends: core, indef
+--   hs-source-dirs: indef
+--   signatures: ChaCha20.Implementation
+--   exposed-modules: ChaCha20.PRG
+--   reexported-modules: ChaCha20.Utils
+--   mixins: indef (Utils as ChaCha20.Utils) requires (Implementation as ChaCha20.Implementation)
 
-library cipher-indef
-  -- visibility: public
-  import: defaults
-  hs-source-dirs: indef
-  build-depends: core
-               , chacha20-indef
-  exposed-modules: Cipher
+-- library poly1305-indef
+--   -- visibility: public
+--   import: defaults
+--   build-depends: core, indef
+--   hs-source-dirs: indef
+--   signatures: Poly1305.Implementation
+--   reexported-modules: Poly1305.Utils
+--   mixins: indef (Utils as Poly1305.Utils) requires (Implementation as Poly1305.Implementation)
 
-library random-indef
-  -- visibility: public
-  import: defaults
-  hs-source-dirs: indef
-  build-depends: core
-               , chacha20-indef
-  exposed-modules: Random
-  -- Not sure why the line below is needed. Cabal seems to give an
-  -- warning.
-  other-modules: ChaCha20.PRG
+
+-- library cipher-indef
+--   -- visibility: public
+--   import: defaults
+--   hs-source-dirs: indef
+--   build-depends: core
+--                , chacha20-indef
+--   exposed-modules: Cipher
+
+-- library random-indef
+--   -- visibility: public
+--   import: defaults
+--   hs-source-dirs: indef
+--   build-depends: core
+--                , chacha20-indef
+--   exposed-modules: Random
+--   -- Not sure why the line below is needed. Cabal seems to give an
+--   -- warning.
+--   other-modules: ChaCha20.PRG
 
 --------------------  The implementation modules ----------------------------------
 
@@ -300,169 +256,185 @@ library
   import: defaults
   hs-source-dirs: raaz
   build-depends: core
-               , hash-indef
-               , mac-indef
-               , cipher-indef
-               , random-indef
+               , digest-indef
                , implementation
+               -- , mac-indef
+               -- , cipher-indef
+               -- , random-indef
+ 
   exposed-modules: Raaz
+                 , Raaz.Blake2b
+                 , Raaz.Blake2s
+                 , Raaz.Sha256
+                 , Raaz.Sha512
   reexported-modules: Raaz.Core
                     , Raaz.Core.Types
-                    , Raaz.Cipher
-                    , Raaz.Hash
-                    , Raaz.Mac
-                    , Raaz.Random
-                    , Raaz.Entropy
-  mixins: cipher-indef (Cipher as Raaz.Cipher)
-            requires (ChaCha20.Implementation as ChaCha20.CPortable)
+                    
+  --                   , Raaz.Cipher
+  --                   , Raaz.Hash
+  --                   , Raaz.Mac
+  --                   , Raaz.Random
+  --                   , Raaz.Entropy
+  mixins: digest-indef (Digest.Utils as Raaz.Blake2b.Utils)
+            requires (Digest.Implementation as Blake2b.CPortable)
+        , digest-indef (Digest.Utils as Raaz.Blake2s.Utils)
+           requires (Digest.Implementation as Blake2s.CHandWritten)
+        , digest-indef  (Digest.Utils as Raaz.Sha256.Utils)
+           requires (Digest.Implementation as Sha256.CPortable)
+        , digest-indef  (Digest.Utils as Raaz.Sha512.Utils)
+           requires  (Digest.Implementation as Sha512.CPortable)
+  other-modules: Raaz.V1
+ 
+  -- mixins: cipher-indef (Cipher as Raaz.Cipher)
+  --           requires (ChaCha20.Implementation as ChaCha20.CPortable)
 
-        , hash-indef (Hash as Raaz.Hash)
-            requires (Blake2b.Implementation as Blake2b.CPortable,
-                      Blake2s.Implementation as Blake2s.CHandWritten,
-                      Sha256.Implementation as Sha256.CPortable,
-                      Sha512.Implementation as Sha512.CPortable
-          )
+  --       , hash-indef (Hash as Raaz.Hash)
+  --           requires (Blake2b.Implementation as Blake2b.CPortable,
+  --                     Blake2s.Implementation as Blake2s.CHandWritten,
+  --                     Sha256.Implementation as Sha256.CPortable,
+  --                     Sha512.Implementation as Sha512.CPortable
+  --         )
 
-        , mac-indef (Mac as Raaz.Mac)
-            requires (Poly1305.Implementation as Poly1305.CPortable)
-        , random-indef(Random as Raaz.Random)
-            requires (ChaCha20.Implementation as ChaCha20.CPortable)
+  --       , mac-indef (Mac as Raaz.Mac)
+  --           requires (Poly1305.Implementation as Poly1305.CPortable)
+  --       , random-indef(Random as Raaz.Random)
+  --           requires (ChaCha20.Implementation as ChaCha20.CPortable)
 
 
 
-  autogen-modules: Paths_raaz
+  -- autogen-modules: Paths_raaz
   other-modules: Paths_raaz
 
 ---------------------------- Executables -------------------------------------------------
 
-executable raaz
-  import: defaults
-  hs-source-dirs: raaz/bin
-  main-is: Main.hs
-  other-modules: Command.Checksum
-               , Command.Rand
-               , Command.Info
-               , Usage
-  build-depends: optparse-applicative >= 0.13.0.0
-               , core
-               , raaz
-  if impl(ghc < 8)
-    -- 'transformers' needed for "Control.Monad.IO.Class" only
-    -- starting with base-4.9 we don't need 'transformers' anymore
-    build-depends: transformers
+-- executable raaz
+--   import: defaults
+--   hs-source-dirs: raaz/bin
+--   main-is: Main.hs
+--   other-modules: Command.Checksum
+--                , Command.Rand
+--                , Command.Info
+--                , Usage
+--   build-depends: optparse-applicative >= 0.13.0.0
+--                , core
+--                , raaz
+--   if impl(ghc < 8)
+--     -- 'transformers' needed for "Control.Monad.IO.Class" only
+--     -- starting with base-4.9 we don't need 'transformers' anymore
+--     build-depends: transformers
 
 ---------------------------------- Test suit -----------------------------------------------------
 
-test-suite tests
-  import: defaults
-  type: exitcode-stdio-1.0
-  hs-source-dirs: tests
-  main-is: Spec.hs
+-- test-suite tests
+--   import: defaults
+--   type: exitcode-stdio-1.0
+--   hs-source-dirs: tests
+--   main-is: Spec.hs
 
-  build-depends: raaz
-               , core
-  build-depends: HUnit                          >= 1.2
-               , QuickCheck                     >= 2.4
-               , hspec
-               , hspec-discover
-               , transformers
-               , vector
+--   build-depends: raaz
+--                , core
+--   build-depends: HUnit                          >= 1.2
+--                , QuickCheck                     >= 2.4
+--                , hspec
+--                , hspec-discover
+--                , transformers
+--                , vector
 
-  build-tool-depends: hspec-discover:hspec-discover
-  if !os(windows)
-    cpp-options: -DHAVE_DEV_NULL
+--   build-tool-depends: hspec-discover:hspec-discover
+--   if !os(windows)
+--     cpp-options: -DHAVE_DEV_NULL
 
-  other-modules: Common
-               , Common.Cipher
-               , Common.Hash
-               , Common.Imports
-               , Common.Instances
-               , Common.Utils
-               , Raaz.Cipher.ChaCha20Spec
-               , Raaz.Core.ByteSourceSpec
-               , Raaz.Core.EncodeSpec
-               , Raaz.Core.MemorySpec
-               , Raaz.Core.Types.WordSpec
-               , Raaz.Core.Util.ByteStringSpec
-               , Raaz.RandomSpec
-               , Raaz.Hash.Sha256Spec
-               , Raaz.Hash.Sha512Spec
-               , Raaz.Hash.Blake2Spec
-               , Raaz.Mac.Poly1305Spec
+--   other-modules: Common
+--                , Common.Cipher
+--                , Common.Hash
+--                , Common.Imports
+--                , Common.Instances
+--                , Common.Utils
+--                , Raaz.Cipher.ChaCha20Spec
+--                , Raaz.Core.ByteSourceSpec
+--                , Raaz.Core.EncodeSpec
+--                , Raaz.Core.MemorySpec
+--                , Raaz.Core.Types.WordSpec
+--                , Raaz.Core.Util.ByteStringSpec
+--                , Raaz.RandomSpec
+--                , Raaz.Hash.Sha256Spec
+--                , Raaz.Hash.Sha512Spec
+--                , Raaz.Hash.Blake2Spec
+--                , Raaz.Mac.Poly1305Spec
 
 --------------------------- Benchmarkings ---------------------------------------------
-common bench-defaults
- import:defaults
- hs-source-dirs: benchmarks/internal
- build-depends:  criterion-measurement     >= 0.1
-               , pretty
-               , core
+-- common bench-defaults
+--  import:defaults
+--  hs-source-dirs: benchmarks/internal
+--  build-depends:  criterion-measurement     >= 0.1
+--                , pretty
+--                , core
 
 
 
 
-library bench-types
-  import: bench-defaults
-  exposed-modules: Benchmark.Types
+-- library bench-types
+--   import: bench-defaults
+--   exposed-modules: Benchmark.Types
 
-library bench-prim
-  import: bench-defaults
-  build-depends: bench-types
-               , indef
-  other-modules: Benchmark.Types
-  exposed-modules: Benchmark.Primitive
+-- library bench-prim
+--   import: bench-defaults
+--   build-depends: bench-types
+--                , indef
+--   other-modules: Benchmark.Types
+--   exposed-modules: Benchmark.Primitive
 
-library bench-csprg
-  import: bench-defaults
-  build-depends: bench-types
-               , chacha20-indef
-  exposed-modules: Benchmark.CSPRG
-  other-modules: Benchmark.Types
+-- library bench-csprg
+--   import: bench-defaults
+--   build-depends: bench-types
+--                , chacha20-indef
+--   exposed-modules: Benchmark.CSPRG
+--   other-modules: Benchmark.Types
 
-benchmark primitives
-  import: bench-defaults
-  hs-source-dirs: benchmarks
-  main-is: Main.hs
-  type: exitcode-stdio-1.0
-  build-depends: pretty
-               , core
-               , implementation
-               , bench-types
-               , bench-prim
-               , bench-csprg
-  other-modules: Benchmark.Types
-  mixins: bench-prim (Benchmark.Primitive as Benchmark.Blake2b.CPortable)
-          requires   (Implementation as Blake2b.CPortable)
+-- benchmark primitives
+--   import: bench-defaults
+--   hs-source-dirs: benchmarks
+--   main-is: Main.hs
+--   type: exitcode-stdio-1.0
+--   build-depends: pretty
+--                , core
+--                , implementation
+--                , bench-types
+--                , bench-prim
+--                , bench-csprg
+--   other-modules: Benchmark.Types
+--   mixins: bench-prim (Benchmark.Primitive as Benchmark.Blake2b.CPortable)
+--           requires   (Implementation as Blake2b.CPortable)
 
-        , bench-prim (Benchmark.Primitive as Benchmark.Blake2b.CHandWritten)
-          requires   (Implementation as Blake2b.CHandWritten)
+--         , bench-prim (Benchmark.Primitive as Benchmark.Blake2b.CHandWritten)
+--           requires   (Implementation as Blake2b.CHandWritten)
 
-        , bench-prim (Benchmark.Primitive as Benchmark.Blake2s.CHandWritten)
-          requires   (Implementation as Blake2s.CHandWritten)
+--         , bench-prim (Benchmark.Primitive as Benchmark.Blake2s.CHandWritten)
+--           requires   (Implementation as Blake2s.CHandWritten)
 
-        , bench-prim (Benchmark.Primitive as Benchmark.ChaCha20.CPortable)
-          requires   (Implementation as ChaCha20.CPortable)
+--         , bench-prim (Benchmark.Primitive as Benchmark.ChaCha20.CPortable)
+--           requires   (Implementation as ChaCha20.CPortable)
 
-        , bench-prim (Benchmark.Primitive as Benchmark.ChaCha20.CHandWritten)
-          requires   (Implementation as ChaCha20.CHandWritten)
+--         , bench-prim (Benchmark.Primitive as Benchmark.ChaCha20.CHandWritten)
+--           requires   (Implementation as ChaCha20.CHandWritten)
 
-        , bench-prim (Benchmark.Primitive as Benchmark.Poly1305.CPortable)
-          requires   (Implementation as Poly1305.CPortable)
+--         , bench-prim (Benchmark.Primitive as Benchmark.Poly1305.CPortable)
+--           requires   (Implementation as Poly1305.CPortable)
 
-        , bench-prim (Benchmark.Primitive as Benchmark.Sha256.CPortable)
-          requires   (Implementation as Sha256.CPortable)
+--         , bench-prim (Benchmark.Primitive as Benchmark.Sha256.CPortable)
+--           requires   (Implementation as Sha256.CPortable)
 
-        , bench-prim (Benchmark.Primitive as Benchmark.Sha256.CHandWritten)
-          requires   (Implementation as Sha256.CHandWritten)
+--         , bench-prim (Benchmark.Primitive as Benchmark.Sha256.CHandWritten)
+--           requires   (Implementation as Sha256.CHandWritten)
 
-        , bench-prim (Benchmark.Primitive as Benchmark.Sha512.CPortable)
-          requires (Implementation as Sha512.CPortable)
+--         , bench-prim (Benchmark.Primitive as Benchmark.Sha512.CPortable)
+--           requires (Implementation as Sha512.CPortable)
 
-        , bench-prim (Benchmark.Primitive as Benchmark.Sha512.CHandWritten)
-          requires (Implementation as Sha512.CHandWritten)
+--         , bench-prim (Benchmark.Primitive as Benchmark.Sha512.CHandWritten)
+--           requires (Implementation as Sha512.CHandWritten)
 
-        , bench-csprg (Benchmark.CSPRG as Benchmark.CSPRG.CPortable)
-          requires (ChaCha20.Implementation as ChaCha20.CPortable)
+--         , bench-csprg (Benchmark.CSPRG as Benchmark.CSPRG.CPortable)
+--           requires (ChaCha20.Implementation as ChaCha20.CPortable)
 
-        , bench-csprg (Benchmark.CSPRG as Benchmark.CSPRG.CHandWritten)
-          requires (ChaCha20.Implementation as ChaCha20.CHandWritten)
+--         , bench-csprg (Benchmark.CSPRG as Benchmark.CSPRG.CHandWritten)
+--           requires (ChaCha20.Implementation as ChaCha20.CHandWritten)

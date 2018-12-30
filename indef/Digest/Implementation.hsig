@@ -1,0 +1,30 @@
+{-# LANGUAGE ConstraintKinds             #-}
+{-# LANGUAGE DataKinds                   #-}
+{-# LANGUAGE KindSignatures              #-}
+{-# LANGUAGE MultiParamTypeClasses       #-}
+{-# LANGUAGE FlexibleInstances           #-}
+{-# LANGUAGE TypeFamilies                #-}
+
+-- | The additional properties that is need to make a primitive `Prim`
+-- to make it a message digest is the following:
+--
+-- 1. Internal state is initialisable without anything
+--
+-- 2. The digest of the message should be extractable from the
+--    internal state (at the end of the processing).
+--
+-- This signature adds these additional constraints that makes the
+-- supporting primitive as a message digest.
+--
+signature Digest.Implementation where
+
+
+import Raaz.Core
+
+-- | The primitive for which the implementation is given
+
+data Prim
+data Internals
+instance Memory Internals
+instance Initialisable Internals ()
+instance Extractable Internals Prim

@@ -11,8 +11,7 @@
 -- restriction on the input buffer and all that. We package all this
 -- in the following signature.
 signature Implementation
-          (
-            Prim
+          ( Prim
           , name
           , description
           , Internals
@@ -26,14 +25,11 @@ import Raaz.Core
 
 -- | The primitive for which the implementation is given
 data Prim
-instance Primitive Prim
-
-
 -- | The internal memory used by the implementation.
 data Internals
+
+instance Primitive Prim
 instance Memory Internals
-instance Key Prim ~ key => Initialisable Internals key
-instance Digest Prim ~ dgt => Extractable Internals dgt
 
 -- | Name of the implementation.
 name :: String
