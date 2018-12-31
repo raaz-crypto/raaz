@@ -519,14 +519,22 @@ wipe_memory :: (MonadIO m, LengthUnit l)
             -> m ()
 
 #ifdef HAVE_EXPLICIT_BZERO
+
+#ifdef PLATFORM_WINDOWS
+foreign import ccall unsafe "string.h raazWindowsSecureZeroMemory" c_wipe_memory
+    :: Pointer -> BYTES Int -> IO Pointer
+#else
 foreign import ccall unsafe "string.h explicit_bzero" c_wipe_memory
     :: Pointer -> BYTES Int -> IO Pointer
+#endif
 wipe_memory p = liftIO . void . c_wipe_memory p . inBytes
 
 #elif defined HAVE_EXPLICIT_MEMSET
+
 foreign import ccall unsafe "string.h memset" c_explicit_memset
     :: Pointer -> CInt-> BYTES Int -> IO Pointer
 wipe_memory p = liftIO . void . c_explicit_memset p 0 . inBytes
+
 #else
 wipe_memory p = memset p 0  -- Not a safe option but the best that we
                             -- can do. Compiler hopefully not "smart"

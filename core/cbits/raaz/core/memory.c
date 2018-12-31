@@ -32,3 +32,13 @@ void raazMemoryunlock(void* ptr, size_t size){
     munlock(ptr,size);
 #endif
 }
+
+#ifdef PLATFORM_WINDOWS
+void raazWindowsSecureZeroMemory(void * ptr, size_t size)
+{
+    VirtualFunction func =
+	(VirtualFunction)GetProcAddress(GetModuleHandle(TEXT("kernel32")),
+					"SecureZeroMemory");
+    func(ptr, size);
+}
+#endif

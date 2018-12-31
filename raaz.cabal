@@ -87,8 +87,9 @@ common defaults
 
   ------------------------ Memory wiping calls  -------------------------------------------
   if flag(explicit_bzero)
-     if os(linux) || os(freebsd) || os(openbsd)  { cpp-options: -DHAVE_EXPLICIT_BZERO }
-     elif os(netbsd) { cpp-options: -DHAVE_EXPLICIT_MEMSET }
+     if os(netbsd) { cpp-options: -DHAVE_EXPLICIT_MEMSET }
+     else          { cpp-options: -DHAVE_EXPLICIT_BZERO }
+
 
   ----------------------- System specific configurations ----------------------------------
 
