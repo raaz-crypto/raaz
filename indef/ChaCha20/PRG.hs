@@ -168,7 +168,7 @@ fillExistingBytes req ptr = withAuxBuffer $ \ buf -> do
               --   |   l              |    m                           |
               --   -----------------------------------------------------
               memcpy (destination ptr) (source tailPtr) m -- transfer the bytes to destination
-              memset tailPtr 0 m                          -- wipe the bytes already transfered.
+              wipe_memory tailPtr m                       -- wipe the bytes already transfered.
               setRemainingBytes l                         -- set leftover bytes.
               return m
 
