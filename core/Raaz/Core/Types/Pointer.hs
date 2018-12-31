@@ -31,6 +31,7 @@ module Raaz.Core.Types.Pointer
        , mallocBuffer
          -- ** Some buffer operations
        , memset
+       , wipe_memory
        , memcpy
        , hFillBuf
        ) where
@@ -454,7 +455,7 @@ allocaSecure l action = liftIOCont (allocaBuffer l) actualAction
                                  when (c /= 0) $ fail "secure memory: unable to lock memory"
                                  return cptr
 
-          releaseIt cptr    = memset cptr 0 l >>  c_munlock cptr sz
+          releaseIt cptr    = wipe_memory cptr l >>  c_munlock cptr sz
 
 
 
@@ -511,6 +512,27 @@ memcpy dest src = liftIO . void . c_memcpy dest src . inBytes
 
 foreign import ccall unsafe "string.h memset" c_memset
     :: Pointer -> Word8 -> BYTES Int -> IO Pointer
+
+wipe_memory :: (MonadIO m, LengthUnit l)
+            => Pointer -- ^ buffer to wipe
+            -> l       -- ^ buffer length
+            -> m ()
+
+#ifdef HAVE_EXPLICIT_BZERO
+foreign import ccall unsafe "string.h explicit_bzero" c_wipe_memory
+    :: Pointer -> BYTES Int -> IO Pointer
+wipe_memory p = liftIO . void . c_wipe_memory p . inBytes
+
+#elif defined HAVE_EXPLICIT_MEMSET
+foreign import ccall unsafe "string.h memset" c_explicit_memset
+    :: Pointer -> CInt-> BYTES Int -> IO Pointer
+wipe_memory p = liftIO . void . c_explicit_memset p 0 . inBytes
+#else
+wipe_memory p = memset p 0  -- Not a safe option but the best that we
+                            -- can do. Compiler hopefully not "smart"
+                            -- enough to see dead code across
+                            -- Haskell-C boundary.
+#endif
 
 -- | Sets the given number of Bytes to the specified value.
 memset :: (MonadIO m, LengthUnit l)
