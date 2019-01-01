@@ -1,3 +1,4 @@
+
 # ifdef PLATFORM_WINDOWS
 # include <windows.h>
 
@@ -33,12 +34,16 @@ void raazMemoryunlock(void* ptr, size_t size){
 #endif
 }
 
+#if defined(HAVE_EXPLICIT_BZERO) || defined(HAVE_EXPLICIT_MEMSET)
+#include <strings.h>
+#endif
+
 void raazWipeMemory(void * ptr, size_t size)
 {
 #ifdef HAVE_EXPLICIT_BZERO
-    explicit_memzero(ptr,size)
+    explicit_bzero(ptr,size);
 #elif  HAVE_EXPLICIT_MEMSET
-    explicit_memset(ptr,0,size)
+    explicit_memset(ptr,0,size);
 #elif HAVE_SECURE_ZERO_MEMORY
     VirtualFunction func =
 	(VirtualFunction)GetProcAddress(GetModuleHandle(TEXT("kernel32")),
@@ -46,6 +51,6 @@ void raazWipeMemory(void * ptr, size_t size)
     func(ptr, size);
 #else
 #waring "Using memset for wiping memory, the compiler might optimise it away"
-    memset(ptr,0,size)
+    memset(ptr,0,size);
 #endif
 }
