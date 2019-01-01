@@ -64,12 +64,6 @@ flag avx2
      Default: False
      Manual: True
 
-flag explicit_bzero
-
-     Description: Use explicit_bzero or similar calls instead of memset of wiping memory
-     Default: True
-     Manual: True
-
 ---------------------------- The common clause ------------------------------------------------
 
 common defaults
@@ -86,9 +80,10 @@ common defaults
   if flag(avx2)   { cc-options: -mavx2         }
 
   ------------------------ Memory wiping calls  -------------------------------------------
-  if flag(explicit_bzero)
-     if os(netbsd) { cpp-options: -DHAVE_EXPLICIT_MEMSET }
-     else          { cpp-options: -DHAVE_EXPLICIT_BZERO }
+  if   os(netbsd)  { cc-options: -DHAVE_EXPLICIT_MEMSET    }
+  elif os(windows) { cc-options: -DHAVE_SECURE_ZERO_MEMORY }
+  elif !os(osx)    { cc-options: -DHAVE_EXPLICIT_BZERO     }
+
 
 
   ----------------------- System specific configurations ----------------------------------

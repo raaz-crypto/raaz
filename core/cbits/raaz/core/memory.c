@@ -33,12 +33,19 @@ void raazMemoryunlock(void* ptr, size_t size){
 #endif
 }
 
-#ifdef PLATFORM_WINDOWS
-void raazWindowsSecureZeroMemory(void * ptr, size_t size)
+void raazWipeMemory(void * ptr, size_t size)
 {
+#ifdef HAVE_EXPLICIT_BZERO
+    explicit_memzero(ptr,size)
+#elif  HAVE_EXPLICIT_MEMSET
+    explicit_memset(ptr,0,size)
+#elif HAVE_SECURE_ZERO_MEMORY
     VirtualFunction func =
 	(VirtualFunction)GetProcAddress(GetModuleHandle(TEXT("kernel32")),
 					"SecureZeroMemory");
     func(ptr, size);
-}
+#else
+#waring "Using memset for wiping memory, the compiler might optimise it away"
+    memset(ptr,0,size)
 #endif
+}
