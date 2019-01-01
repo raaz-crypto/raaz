@@ -34,19 +34,13 @@ void raazMemoryunlock(void* ptr, size_t size){
 #endif
 }
 
-/*
- * HACK
- * When compiling with ghc some how it is not able to locate this
- * functions declaration. So we have the following extern declaration.
-*/
-#if defined(HAVE_EXPLICIT_BZERO)
-extern void explicit_bzero(void *ptr, size_t sz);
-#elif defined(HAVE_EXPLICIT_MEMSET)
-extern void *explicit_memset(void *ptr, int c, size_t len);
-#endif
+
+#include <string.h>
+
 
 void raazWipeMemory(void * ptr, size_t size)
 {
+
 #ifdef HAVE_EXPLICIT_BZERO
     explicit_bzero(ptr,size);
 #elif  HAVE_EXPLICIT_MEMSET
@@ -57,7 +51,7 @@ void raazWipeMemory(void * ptr, size_t size)
 					"SecureZeroMemory");
     func(ptr, size);
 #else
-#waring "Using memset for wiping memory, the compiler might optimise it away"
+#warning memset the compiler might optimise it away
     memset(ptr,0,size);
 #endif
 }
