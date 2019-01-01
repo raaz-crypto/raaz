@@ -34,8 +34,15 @@ void raazMemoryunlock(void* ptr, size_t size){
 #endif
 }
 
-#if defined(HAVE_EXPLICIT_BZERO) || defined(HAVE_EXPLICIT_MEMSET)
-#include <strings.h>
+/*
+ * HACK
+ * When compiling with ghc some how it is not able to locate this
+ * functions declaration. So we have the following extern declaration.
+*/
+#if defined(HAVE_EXPLICIT_BZERO)
+extern void explicit_bzero(void *ptr, size_t sz);
+#elif defined(HAVE_EXPLICIT_MEMSET)
+extern void *explicit_memset(void *ptr, int c, size_t len);
 #endif
 
 void raazWipeMemory(void * ptr, size_t size)
