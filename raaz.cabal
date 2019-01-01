@@ -64,6 +64,16 @@ flag avx2
      Default: False
      Manual: True
 
+flag wipe-memset
+
+     Description: Use plain memset for wiping memory. The problem its use is that agressive
+       compilers often optimise it out. Raaz uses platform specific functions designed
+       specifically to avoid this and hence this flag is STRONGLY NOT RECOMMENDED.
+       Use it only if your platform does not support such a call.
+
+     Default: False
+     Manual: True
+
 ---------------------------- The common clause ------------------------------------------------
 
 common defaults
@@ -80,14 +90,12 @@ common defaults
   if flag(avx2)   { cc-options: -mavx2         }
 
   ------------------------ Memory wiping calls  -------------------------------------------
-  if   os(netbsd)  { cc-options: -DHAVE_EXPLICIT_MEMSET    }
-  elif os(windows) { cc-options: -DHAVE_SECURE_ZERO_MEMORY }
-  elif !os(osx)    { cc-options: -DHAVE_EXPLICIT_BZERO     }
-
-
+  if !flag(wipe-memset)
+     if   os(netbsd)  { cc-options: -DHAVE_EXPLICIT_MEMSET    }
+     elif os(windows) { cc-options: -DHAVE_SECURE_ZERO_MEMORY }
+     elif !os(osx)    { cc-options: -DHAVE_EXPLICIT_BZERO     }
 
   ----------------------- System specific configurations ----------------------------------
-
   if os(linux)   { cc-options: -DPLATFORM_LINUX   }
   if os(osx)     { cc-options: -DPLATFORM_OSX     }
   if os(openbsd) { cc-options: -DPLATFORM_OPENBSD }
