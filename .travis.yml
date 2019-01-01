@@ -92,7 +92,7 @@ install:
  - travis_retry cabal new-update;
 
 script:
-  - cabal new-configure --flag='-linux-getrandom' --enable-tests  --enable-documentation
+  - cabal new-configure --enable-tests  --enable-documentation
   - cabal new-build all
   - cabal new-test all
   - cabal new-bench
