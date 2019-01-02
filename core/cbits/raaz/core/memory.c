@@ -1,7 +1,7 @@
 
 # ifdef PLATFORM_WINDOWS
 # include <windows.h>
-
+# indlude <wincrypt.h>
    typedef BOOL WINAPI (*VirtualFunction)(LPVOID, SIZE_T);
 
 #else /* we assume posix system */
@@ -46,10 +46,7 @@ void raazWipeMemory(void * ptr, size_t size)
 #elif  HAVE_EXPLICIT_MEMSET
     explicit_memset(ptr,0,size);
 #elif HAVE_SECURE_ZERO_MEMORY
-    VirtualFunction func =
-	(VirtualFunction)GetProcAddress(GetModuleHandle(TEXT("kernel32")),
-					"SecureZeroMemory");
-    func(ptr, size);
+    SecureZeroMemory(ptr, size)
 #else
 #warning memset the compiler might optimise it away
     memset(ptr,0,size);
