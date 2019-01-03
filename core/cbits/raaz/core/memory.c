@@ -1,6 +1,7 @@
+
 # ifdef PLATFORM_WINDOWS
 # include <windows.h>
-
+# include <wincrypt.h>
    typedef BOOL WINAPI (*VirtualFunction)(LPVOID, SIZE_T);
 
 #else /* we assume posix system */
@@ -30,5 +31,24 @@ void raazMemoryunlock(void* ptr, size_t size){
   func(ptr, size);
 #else  /* posix */
     munlock(ptr,size);
+#endif
+}
+
+
+#include <string.h>
+
+
+void raazWipeMemory(void * ptr, size_t size)
+{
+
+#ifdef HAVE_EXPLICIT_BZERO
+    explicit_bzero(ptr,size);
+#elif  HAVE_EXPLICIT_MEMSET
+    explicit_memset(ptr,0,size);
+#elif HAVE_SECURE_ZERO_MEMORY
+    SecureZeroMemory(ptr, size);
+#else
+#warning memset: The compiler might optimise it away.
+    memset(ptr,0,size);
 #endif
 }

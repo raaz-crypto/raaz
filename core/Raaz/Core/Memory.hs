@@ -306,7 +306,7 @@ withMemory   = withM memoryAlloc
         withM alctr action = allocaBuffer sz actualAction
           where sz                 = twistMonoidValue alctr
                 getM               = computeField $ twistFunctorValue alctr
-                wipeIt cptr        = memset cptr 0 sz
+                wipeIt cptr        = wipe_memory cptr sz
                 actualAction  cptr = action (getM cptr) <* wipeIt cptr
 
 

@@ -30,7 +30,9 @@ module Raaz.Core.Types.Pointer
        , allocaBuffer, allocaAligned, allocaSecure
        , mallocBuffer
          -- ** Some buffer operations
-       , memset, memmove, memcpy
+       , memset
+       , wipe_memory
+       , memcpy
        , hFillBuf
        ) where
 
@@ -453,7 +455,7 @@ allocaSecure l action = liftIOCont (allocaBuffer l) actualAction
                                  when (c /= 0) $ fail "secure memory: unable to lock memory"
                                  return cptr
 
-          releaseIt cptr    = memset cptr 0 l >>  c_munlock cptr sz
+          releaseIt cptr    = wipe_memory cptr l >>  c_munlock cptr sz
 
 
 
@@ -508,18 +510,6 @@ memcpy dest src = liftIO . void . c_memcpy dest src . inBytes
 
 {-# SPECIALIZE memcpy :: Dest Pointer -> Src Pointer -> BYTES Int -> IO () #-}
 
-foreign import ccall unsafe "string.h memmove" c_memmove
-    :: Dest Pointer -> Src Pointer -> BYTES Int -> IO Pointer
-
--- | Move between pointers.
-memmove :: (MonadIO m, LengthUnit l)
-        => Dest Pointer -- ^ destination
-        -> Src Pointer  -- ^ source
-        -> l            -- ^ Number of Bytes to copy
-        -> m ()
-memmove dest src = liftIO . void . c_memmove dest src . inBytes
-{-# SPECIALIZE memmove :: Dest Pointer -> Src Pointer -> BYTES Int -> IO () #-}
-
 foreign import ccall unsafe "string.h memset" c_memset
     :: Pointer -> Word8 -> BYTES Int -> IO Pointer
 
@@ -531,3 +521,12 @@ memset :: (MonadIO m, LengthUnit l)
        -> m ()
 memset p w = liftIO . void . c_memset p w . inBytes
 {-# SPECIALIZE memset :: Pointer -> Word8 -> BYTES Int -> IO () #-}
+
+foreign import ccall unsafe "raazWipeMemory" c_wipe_memory
+    :: Pointer -> BYTES Int -> IO Pointer
+
+wipe_memory :: (MonadIO m, LengthUnit l)
+            => Pointer -- ^ buffer to wipe
+            -> l       -- ^ buffer length
+            -> m ()
+wipe_memory p = liftIO . void . c_wipe_memory p . inBytes
