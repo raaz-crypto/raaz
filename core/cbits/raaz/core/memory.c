@@ -48,7 +48,7 @@ void raazWipeMemory(void * ptr, size_t size)
 #elif HAVE_SECURE_ZERO_MEMORY
     SecureZeroMemory(ptr, size);
 #else
-#warning memset the compiler might optimise it away
+#warning memset: The compiler might optimise it away.
     memset(ptr,0,size);
 #endif
 }
