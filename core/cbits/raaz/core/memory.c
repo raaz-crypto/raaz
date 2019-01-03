@@ -1,7 +1,7 @@
 
 # ifdef PLATFORM_WINDOWS
 # include <windows.h>
-# indlude <wincrypt.h>
+# include <wincrypt.h>
    typedef BOOL WINAPI (*VirtualFunction)(LPVOID, SIZE_T);
 
 #else /* we assume posix system */
