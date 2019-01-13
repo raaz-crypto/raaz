@@ -22,9 +22,9 @@ name :: String
 name = "blake2s-c-handwritten"
 
 description :: String
-description = "Hand written BLAKE2s Implementation using portable C and Haskell FFI"
+description = "Hand written Blake2s Implementation using portable C and Haskell FFI"
 
-type Prim                    = BLAKE2s
+type Prim                    = Blake2s
 type Internals               = Blake2sMem
 type BufferAlignment         = 32
 
@@ -38,7 +38,7 @@ additionalBlocks = blocksOf 1 Proxy
 foreign import ccall unsafe
   "raaz/hash/blake2/common.h raazHashBlake2sPortableBlockCompress"
   c_blake2s_compress  :: AlignedPointer BufferAlignment
-                      -> BLOCKS BLAKE2s
+                      -> BLOCKS Blake2s
                       -> BYTES Word64
                       -> Ptr Prim
                       -> IO ()
