@@ -2,7 +2,7 @@
 {-# LANGUAGE KindSignatures             #-}
 {-# LANGUAGE DataKinds                  #-}
 
--- | The portable C-implementation of SHA512.
+-- | The portable C-implementation of Sha512.
 module Sha512.CPortable
        ( name, description
        , Prim, Internals, BufferAlignment
@@ -17,7 +17,7 @@ import Data.Proxy
 
 import Raaz.Core
 import Raaz.Primitive.HashMemory
-import Raaz.Primitive.Sha2.Internal (SHA512, Sha512Mem, process512Last)
+import Raaz.Primitive.Sha2.Internal (Sha512, Sha512Mem, process512Last)
 
 import Raaz.Verse.Sha512.C.Portable
 
@@ -26,18 +26,18 @@ name :: String
 name = "sha512-libverse-c"
 
 description :: String
-description = "SHA512 Implementation in C exposed by libverse"
+description = "Sha512 Implementation in C exposed by libverse"
 
-type Prim                    = SHA512
+type Prim                    = Sha512
 type Internals               = Sha512Mem
 type BufferAlignment         = 32
 
 
-additionalBlocks :: BLOCKS SHA512
+additionalBlocks :: BLOCKS Sha512
 additionalBlocks = blocksOf 1 Proxy
 
 compressBlocks :: AlignedPointer BufferAlignment
-               -> BLOCKS SHA512
+               -> BLOCKS Sha512
                -> MT Internals ()
 compressBlocks buf blks = do hPtr <- castPtr <$> hashCell128Pointer
                              let blkPtr = castPtr $ forgetAlignment buf
@@ -45,7 +45,7 @@ compressBlocks buf blks = do hPtr <- castPtr <$> hashCell128Pointer
                                in liftIO $ verse_sha512_c_portable blkPtr wBlks hPtr
 
 processBlocks :: AlignedPointer BufferAlignment
-              -> BLOCKS SHA512
+              -> BLOCKS Sha512
               -> MT Internals ()
 processBlocks buf blks = compressBlocks buf blks >> updateLength128 blks
 

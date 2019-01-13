@@ -2,7 +2,7 @@
 {-# LANGUAGE KindSignatures             #-}
 {-# LANGUAGE DataKinds                  #-}
 
--- | The portable C-implementation of SHA256.
+-- | The portable C-implementation of Sha256.
 module Sha256.CPortable
        ( name, description
        , Prim, Internals, BufferAlignment
@@ -17,7 +17,7 @@ import Data.Proxy
 
 import Raaz.Core
 import Raaz.Primitive.HashMemory
-import Raaz.Primitive.Sha2.Internal (SHA256, Sha256Mem, process256Last)
+import Raaz.Primitive.Sha2.Internal (Sha256, Sha256Mem, process256Last)
 
 import Raaz.Verse.Sha256.C.Portable
 
@@ -25,19 +25,19 @@ name :: String
 name = "sha256-libverse-c"
 
 description :: String
-description = "SHA256 Implementation in C exposed by libverse"
+description = "Sha256 Implementation in C exposed by libverse"
 
-type Prim                    = SHA256
+type Prim                    = Sha256
 type Internals               = Sha256Mem
 type BufferAlignment         = 32
 
 
-additionalBlocks :: BLOCKS SHA256
+additionalBlocks :: BLOCKS Sha256
 additionalBlocks = blocksOf 1 Proxy
 
 -- | The compression algorithm.
 compressBlocks :: AlignedPointer BufferAlignment
-               -> BLOCKS SHA256
+               -> BLOCKS Sha256
                -> MT Internals ()
 compressBlocks buf blks = do hPtr <- castPtr <$> hashCellPointer
                              let blkPtr = castPtr $ forgetAlignment buf
@@ -46,7 +46,7 @@ compressBlocks buf blks = do hPtr <- castPtr <$> hashCellPointer
 
 
 processBlocks :: AlignedPointer BufferAlignment
-              -> BLOCKS SHA256
+              -> BLOCKS Sha256
               -> MT Internals ()
 processBlocks buf blks = compressBlocks buf blks >> updateLength blks
 
