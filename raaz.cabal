@@ -158,17 +158,17 @@ library indef
   build-depends: core
   hs-source-dirs: indef
   signatures: Implementation
+            , Digest.Implementation
   exposed-modules: Utils
   
-library digest-indef
+library interface
   -- visibility: public
   import: defaults
   hs-source-dirs: indef
-  signatures: Digest.Implementation
   build-depends: core
                , indef
-  mixins: indef (Utils as DigestUtils) requires (Implementation as Digest.Implementation)
-  exposed-modules: Digest.Utils
+  mixins: indef (Utils as Digest.Utils) requires (Implementation as Digest.Implementation)
+  exposed-modules: Digest.Interface
 
 -- library chacha20-indef
 --   -- visibility: public
@@ -257,7 +257,7 @@ library
   import: defaults
   hs-source-dirs: raaz
   build-depends: core
-               , digest-indef
+               , interface
                , implementation
                -- , mac-indef
                -- , cipher-indef
@@ -276,13 +276,13 @@ library
   --                   , Raaz.Mac
   --                   , Raaz.Random
   --                   , Raaz.Entropy
-  mixins: digest-indef (Digest.Utils as Raaz.Blake2b.Utils)
+  mixins: interface (Digest.Interface as Raaz.Blake2b.Interface)
             requires (Digest.Implementation as Blake2b.CPortable)
-        , digest-indef (Digest.Utils as Raaz.Blake2s.Utils)
+        , interface (Digest.Interface as Raaz.Blake2s.Interface)
            requires (Digest.Implementation as Blake2s.CHandWritten)
-        , digest-indef  (Digest.Utils as Raaz.Sha256.Utils)
+        , interface  (Digest.Interface as Raaz.Sha256.Interface)
            requires (Digest.Implementation as Sha256.CPortable)
-        , digest-indef  (Digest.Utils as Raaz.Sha512.Utils)
+        , interface  (Digest.Interface as Raaz.Sha512.Interface)
            requires  (Digest.Implementation as Sha512.CPortable)
   other-modules: Raaz.V1
 

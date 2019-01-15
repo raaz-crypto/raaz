@@ -8,7 +8,7 @@ module Raaz.Blake2s
 
 import           Raaz.Core
 import           Raaz.Primitive.Blake2.Internal ( Blake2s )
-import qualified Raaz.Blake2s.Utils as U
+import qualified Raaz.Blake2s.Interface as U
 
 -- | Compute the digest of a pure byte source like, `B.ByteString`.
 digest :: PureByteSource src

@@ -1,8 +1,8 @@
-module Digest.Utils ( Digest
-                  , digest
-                  , digestFile
-                  , digestSource
-                  ) where
+module Digest.Interface ( Digest
+                        , digest
+                        , digestFile
+                        , digestSource
+                        ) where
 
 import qualified Data.ByteString      as B
 import qualified Data.ByteString.Lazy as L
@@ -12,7 +12,7 @@ import           System.IO.Unsafe     (unsafePerformIO)
 
 import           Raaz.Core
 import           Digest.Implementation
-import           DigestUtils
+import           Digest.Utils
 
 -- | The message digest.
 type Digest = Prim
