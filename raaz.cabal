@@ -58,10 +58,11 @@ flag native
 
 flag wipe-memset
 
-     Description: Use plain memset for wiping memory. The problem its use is that agressive
-       compilers often optimise it out. Raaz uses platform specific functions designed
-       specifically to avoid this and hence this flag is STRONGLY NOT RECOMMENDED.
-       Use it only if your platform does not support such a call.
+     Description: Use plain memset for wiping memory. The problem with
+       its use is that agressive compilers often optimise it out. Raaz
+       uses platform specific functions designed specifically to avoid
+       this and hence enabling this flag is STRONGLY DISCOURAGED.  Use
+       it only if your platform does not support such a call.
 
      Default: False
      Manual: True
