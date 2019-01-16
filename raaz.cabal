@@ -164,7 +164,7 @@ library indef
 library interface
   -- visibility: public
   import: defaults
-  hs-source-dirs: indef
+  hs-source-dirs: interface
   build-depends: core
                , indef
   mixins: indef (Utils as Digest.Utils) requires (Implementation as Digest.Implementation)
