@@ -262,7 +262,7 @@ library
                -- , mac-indef
                -- , cipher-indef
                -- , random-indef
- 
+
   exposed-modules: Raaz
                  , Raaz.Blake2b
                  , Raaz.Blake2s
@@ -270,7 +270,7 @@ library
                  , Raaz.Sha512
   reexported-modules: Raaz.Core
                     , Raaz.Core.Types
-                    
+
   --                   , Raaz.Cipher
   --                   , Raaz.Hash
   --                   , Raaz.Mac
@@ -285,7 +285,7 @@ library
         , digest-indef  (Digest.Utils as Raaz.Sha512.Utils)
            requires  (Digest.Implementation as Sha512.CPortable)
   other-modules: Raaz.V1
- 
+
   -- mixins: cipher-indef (Cipher as Raaz.Cipher)
   --           requires (ChaCha20.Implementation as ChaCha20.CPortable)
 
