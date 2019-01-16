@@ -7,7 +7,6 @@ module Utils
        , transform
        , BufferPtr
        , Buffer, getBufferPointer, bufferSize, processBuffer
-       , module Implementation
        ) where
 
 import Control.Monad.IO.Class          (liftIO)
