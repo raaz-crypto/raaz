@@ -5,7 +5,7 @@ module Raaz
          -- $intro$
 
          -- ** Message digest.
-         -- 
+         --
          -- $messagedigest$
          Digest, digest, digestFile, digestSource
          --
@@ -38,12 +38,12 @@ import Raaz.V1
 -- selecting the sane primitives and their correct usages for the
 -- user. In addition, raaz makes use of the type system of Haskell to
 -- give additional guarantees:
--- 
+--
 -- [Type safety:] Instead of representing cryptographic data as plain
 -- strings, raaz uses distinct types for semantically distinct
--- cryptographic data. If the user inadvertently compares a `SHA512`
--- digest with a `BLAKE2b` digest, the compiler will flag this as an
--- error.
+-- cryptographic data. If the user inadvertently compares a
+-- 'Raaz.Sha512.Sha512' digest with a `Raaz.Blake2b.Blake2b` digest,
+-- the compiler will flag this as an error.
 --
 -- [Timing safe equality:] All cryptographically sensitive data have
 -- timing safe equality operation `==`. The default comparison is
@@ -66,7 +66,7 @@ import Raaz.V1
 -- liberal. Users can use arbitrary combination of lower and upper
 -- case hex digest and can also use the spaces and ':' (the colon
 -- character) as separators (which are ignored).
--- 
+--
 -- Therefore, unless there is specific interoperability requirements,
 -- we encourage the user to just import this top level module and use
 -- the high level interface. We also document how to choose specific
@@ -91,6 +91,7 @@ import Raaz.V1
 -- Here is a simple application for computing and verifying the digest
 -- of a file.
 --
+--
 -- > -- Program to compute the message digest of a file
 -- >
 -- > import Raaz
@@ -103,12 +104,13 @@ import Raaz.V1
 -- >
 -- > import Raaz
 -- > import System.Environment
--- > 
+-- >
 -- > main = do [d,file] <- getArgs
 -- >           dp       <- digestFile file
 -- >           if fromString d == dp
 -- >              then putStrLn "OK"
 -- >              else putStrLn "FAILED"
+-- >
 --
 -- There are three variants for computing the digest of a
 -- message. `digest`, `digestFile` and `digestSource`.
@@ -126,10 +128,10 @@ import Raaz.V1
 -- want to compute the digest using specific cryptographic hash. Raaz
 -- supports the following:
 --
--- * `Raaz.Blake2b`
--- * `Raaz.Blake2s`
--- * `Raaz.Sha512`
--- * `Raaz.Sha256`
+-- * `Raaz.Blake2b.Blake2b`
+-- * `Raaz.Blake2s.Blake2s`
+-- * `Raaz.Sha512.Sha512`
+-- * `Raaz.Sha256.Sha256`
 --
 -- Here is an example that uses sha512 to compute the digest.
 --
