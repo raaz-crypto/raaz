@@ -27,4 +27,3 @@ digestSource :: ByteSource src
                            -- computed.
              -> IO Sha512
 digestSource = U.digestSource
-
