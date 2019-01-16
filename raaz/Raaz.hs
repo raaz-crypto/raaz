@@ -26,7 +26,7 @@ import Raaz.V1
 --
 -- Raaz is a cryptographic library that provides an easy to use, type
 -- safe interface for cryptographic applications. Experience has shown
--- that applications often gets compromised because of wrong primitive
+-- that applications often get compromised because of wrong primitive
 -- choice (e.g. RC4 for encryption md5 for message digest). In
 -- addition, security is also compromised when tricky issues like
 -- nounce reuse are not taken care of. For these reasons, modern
@@ -54,18 +54,20 @@ import Raaz.V1
 -- [Convenient Encoding:] The Show instance of most types give a
 -- base16 encoding which is the convention in most cryptographic
 -- literature.  More generally these types are instances of the
--- `Encodable` class and hence can be encoded to any encoding `Format`
--- supported by Raaz.
+-- `Raaz.Core.Encode.Encodable` class and hence can be encoded to any
+-- encoding `Raaz.Core.Encode.Format` supported by Raaz.
 --
 -- [`IsString` instances:] Although /not recommended/ due to errors
 -- being thrown at runtime, there are often instances where one would
--- like to conveniently represent cryptographic values in
--- program. Most primitives have an `IsString` instance which accepts
--- the base16 encoding of the value. While `show` function only
--- generate characters [0-9a-f], the `IsString` instance is
--- liberal. Users can use arbitrary combination of lower and upper
--- case hex digest and can also use the spaces and ':' (the colon
--- character) as separators (which are ignored).
+-- like to represent cryptographic values in program source
+-- code. Typical examples are unit tests involving exact value of the
+-- primitives. Most primitives have an `Data.String.IsString` instance
+-- which accepts the base16 encoding of the value. While `show`
+-- function only generate characters [0-9a-f], the
+-- `Data.String.IsString` instances are liberal. Users can use
+-- arbitrary combination of lower and upper case hex digest and can
+-- also use the spaces and ':' (the colon character) as separators
+-- (which are ignored).
 --
 -- Therefore, unless there is specific interoperability requirements,
 -- we encourage the user to just import this top level module and use
