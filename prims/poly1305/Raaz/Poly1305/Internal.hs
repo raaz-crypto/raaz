@@ -24,7 +24,7 @@
 {-# LANGUAGE DataKinds                  #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE TypeFamilies               #-}
-module Raaz.Primitive.Poly1305.Internal
+module Raaz.Poly1305.Internal
        ( Poly1305(..), R(..), S(..), WORD
        ) where
 
