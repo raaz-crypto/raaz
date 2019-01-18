@@ -109,6 +109,12 @@ library core
                  , Raaz.Core.Types
                  , Raaz.Core.Types.Internal
                  , Raaz.Entropy
+                 , Raaz.Primitive.Blake2.Internal
+                 , Raaz.Primitive.Sha2.Internal
+                 , Raaz.Primitive.ChaCha20.Internal
+                 , Raaz.Primitive.Poly1305.Internal
+                 , Raaz.Primitive.Poly1305.Memory
+                 , Raaz.Primitive.HashMemory
 
   other-modules: Raaz.Core.ByteSource
                , Raaz.Core.Encode

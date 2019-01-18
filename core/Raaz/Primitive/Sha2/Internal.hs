@@ -7,7 +7,7 @@
 {-# CFILES raaz/hash/sha1/portable.c    #-}
 
 -- | Internal types and function for sha2 hashes.
-module Raaz.Sha2.Internal
+module Raaz.Primitive.Sha2.Internal
        ( -- * The sha2 types
          Sha512, Sha256
        , Sha512Mem, Sha256Mem
