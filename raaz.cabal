@@ -159,11 +159,12 @@ library indef
   hs-source-dirs: indef
   signatures: Implementation
 
-library utils
+library util
   import: defaults
   build-depends: core
                , indef
   hs-source-dirs: indef
+  mixins: indef
   exposed-modules: Utils
 
 library digest-indef
@@ -172,11 +173,9 @@ library digest-indef
   hs-source-dirs: indef
   signatures: Digest.Implementation
   build-depends: core
-               , indef
-               , utils
-  mixins: utils (Utils as Digest.Utils) requires (Implementation as Digest.Implementation)
+               , util
+  mixins: util (Utils as Digest.Utils) requires (Implementation as Digest.Implementation)
   exposed-modules: Digest.Interface
-                 , Digest.Memory
 
 library sha2-indef
   -- visibility: public
@@ -192,8 +191,6 @@ library sha2-indef
             requires (Digest.Implementation as Sha512.Implementation)
         , digest-indef (Digest.Interface as Sha256.Interface)
             requires (Digest.Implementation as Sha256.Implementation)
-  exposed-modules: Raaz.Sha2.Internal
-
 
 library blake2-indef
   -- visibility: public
@@ -209,7 +206,6 @@ library blake2-indef
             requires (Digest.Implementation as Blake2b.Implementation)
         , digest-indef (Digest.Interface as Blake2s.Interface)
             requires (Digest.Implementation as Blake2s.Implementation)
-  exposed-modules: Raaz.Blake2.Internal
 
 
 -- library chacha20-indef
@@ -315,22 +311,12 @@ library
                     , Raaz.Sha256
                     , Raaz.Sha512
 
-  --                   , Raaz.Cipher
-  --                   , Raaz.Hash
-  --                   , Raaz.Mac
-  --                   , Raaz.Random
-  --                   , Raaz.Entropy
-  mixins: blake2-indef (Blake2b.Interface as Raaz.Blake2b)
-            requires (Blake2b.Implementation as Blake2b.CPortable)
 
-        , blake2-indef (Blake2s.Interface as Raaz.Blake2s)
-            requires (Blake2s.Implementation as Blake2s.CHandWritten)
+  mixins: blake2-indef (Blake2b.Interface as Raaz.Blake2b.Interface, Blake2s.Interface as Raaz.Blake2s.Interface)
+          requires (Blake2b.Implementation as Blake2b.CPortable, Blake2s.Implementation as Blake2s.CHandWritten)
 
-        , sha2-indef (Sha256.Interface as Raaz.Sha256)
-            requires (Sha256.Implementation as Sha256.CPortable)
-
-        , sha2-indef (Sha512.Interface as Raaz.Sha512)
-            requires  (Sha512.Implementation as Sha512.CPortable)
+        , sha2-indef (Sha512.Interface as Raaz.Sha512.Interface, Sha256.Interface as Raaz.Sha256.Interface)
+          requires (Sha512.Implementation as Sha512.CPortable, Sha256.Implementation as Sha256.CPortable)
 
   other-modules: Raaz.V1
 

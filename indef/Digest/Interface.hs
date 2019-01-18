@@ -1,5 +1,4 @@
-module Digest.Interface ( Digest
-                        , digest
+module Digest.Interface ( digest
                         , digestFile
                         , digestSource
                         ) where
@@ -13,9 +12,6 @@ import           System.IO.Unsafe     (unsafePerformIO)
 import           Raaz.Core
 import           Digest.Implementation
 import           Digest.Utils
-
--- | The message digest.
-type Digest = Prim
 
 -- | Compute the digest of a pure byte source like, `B.ByteString`.
 digest :: PureByteSource src
