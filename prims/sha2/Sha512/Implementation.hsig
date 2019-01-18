@@ -1,0 +1,7 @@
+-- | An implementation Sha512.
+signature Sha512.Implementation where
+
+import Raaz.Sha512.Internal ( Sha512 )
+
+-- | The primitive for which the implementation is given
+type Prim = SHA512
