@@ -1,7 +1,8 @@
 -- | This module exposes the interface to compute message digests
 -- using the sha512 cryptographic hash.
 module Raaz.Sha512
-       ( digest
+       ( Sha512
+       , digest
        , digestFile
        , digestSource
        ) where

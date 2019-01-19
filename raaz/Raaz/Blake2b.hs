@@ -1,7 +1,8 @@
 -- | This module exposes the interface to compute message digests
 -- using the blake2b cryptographic hash.
 module Raaz.Blake2b
-       ( digest
+       ( Blake2b
+       , digest
        , digestFile
        , digestSource
        ) where

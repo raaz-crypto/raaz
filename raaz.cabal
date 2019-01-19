@@ -304,12 +304,13 @@ library
                -- , random-indef
 
   exposed-modules: Raaz
+                 , Raaz.Blake2b
+                 , Raaz.Blake2s
+                 , Raaz.Sha256
+                 , Raaz.Sha512
+
   reexported-modules: Raaz.Core
                     , Raaz.Core.Types
-                    , Raaz.Blake2b
-                    , Raaz.Blake2s
-                    , Raaz.Sha256
-                    , Raaz.Sha512
 
 
   mixins: blake2-indef (Blake2b.Interface as Raaz.Blake2b.Interface, Blake2s.Interface as Raaz.Blake2s.Interface)
