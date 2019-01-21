@@ -267,6 +267,14 @@ library implementation
                  , Sha256.CHandWritten
                  , Sha512.CHandWritten
 
+  -- By re-exporting the modules, we are giving a default selection
+  -- for implementations.
+  reexported-modules: Blake2b.CPortable as Blake2b.Implementation
+                    , Blake2s.CHandWritten as Blake2s.Implementation
+                    , ChaCha20.CPortable   as ChaCha20.Implementation
+                    , Sha256.CPortable     as Sha256.Implementation
+                    , Poly1305.CPortable   as Poly1305.Implementation
+                    , Sha512.CPortable     as Sha512.Implementation
   other-modules: Raaz.Verse.Chacha20.C.Portable
                , Raaz.Verse.Sha512.C.Portable
                , Raaz.Verse.Sha256.C.Portable
@@ -314,10 +322,7 @@ library
 
 
   mixins: blake2-indef (Blake2b.Interface as Raaz.Blake2b.Interface, Blake2s.Interface as Raaz.Blake2s.Interface)
-          requires (Blake2b.Implementation as Blake2b.CPortable, Blake2s.Implementation as Blake2s.CHandWritten)
-
         , sha2-indef (Sha512.Interface as Raaz.Sha512.Interface, Sha256.Interface as Raaz.Sha256.Interface)
-          requires (Sha512.Implementation as Sha512.CPortable, Sha256.Implementation as Sha256.CPortable)
 
   other-modules: Raaz.V1
 
