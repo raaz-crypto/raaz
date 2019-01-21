@@ -164,7 +164,6 @@ library util
   build-depends: core
                , indef
   hs-source-dirs: indef
-  mixins: indef
   exposed-modules: Utils
 
 library digest-indef
