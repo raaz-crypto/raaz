@@ -16,7 +16,7 @@
 -- This signature adds these additional constraints that makes the
 -- supporting primitive as a message digest.
 --
-signature Digest.Implementation where
+signature Implementation where
 
 
 import Raaz.Core

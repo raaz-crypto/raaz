@@ -169,43 +169,32 @@ library util
 library digest-indef
   -- visibility: public
   import: defaults
-  hs-source-dirs: indef
-  signatures: Digest.Implementation
+  hs-source-dirs: indef/digest
+  signatures: Implementation
   build-depends: core
+               , indef
                , util
-  mixins: util (Utils as Digest.Utils) requires (Implementation as Digest.Implementation)
-  exposed-modules: Digest.Interface
+  exposed-modules: Interface
 
-library sha2-indef
+library prim-indef
   -- visibility: public
   import: defaults
-  hs-source-dirs: prims/sha2
-  signatures: Sha512.Implementation
-            , Sha256.Implementation
-  reexported-modules: Sha256.Interface
-                    , Sha512.Interface
   build-depends: core
                , digest-indef
-  mixins: digest-indef (Digest.Interface as Sha512.Interface)
-            requires (Digest.Implementation as Sha512.Implementation)
-        , digest-indef (Digest.Interface as Sha256.Interface)
-            requires (Digest.Implementation as Sha256.Implementation)
-
-library blake2-indef
-  -- visibility: public
-  import: defaults
-  hs-source-dirs: prims/blake2
+  hs-source-dirs: prims/sha2
+                , prim/blake2
   signatures: Blake2b.Implementation
             , Blake2s.Implementation
+            , Sha256.Implementation
+            , Sha512.Implementation
   reexported-modules: Blake2b.Interface
                     , Blake2s.Interface
-  build-depends: core
-               , digest-indef
-  mixins: digest-indef (Digest.Interface as Blake2b.Interface)
-            requires (Digest.Implementation as Blake2b.Implementation)
-        , digest-indef (Digest.Interface as Blake2s.Interface)
-            requires (Digest.Implementation as Blake2s.Implementation)
-
+                    , Sha256.Interface
+                    , Sha512.Interface
+  mixins: digest-indef (Interface as Blake2b.Interface) requires (Implementation as Blake2b.Implementation)
+        , digest-indef (Interface as Blake2s.Interface) requires (Implementation as Blake2s.Implementation)
+        , digest-indef (Interface as Sha512.Interface)  requires (Implementation as Sha512.Implementation)
+        , digest-indef (Interface as Sha256.Interface)  requires (Implementation as Sha256.Implementation)
 
 -- library chacha20-indef
 --   -- visibility: public
@@ -303,9 +292,8 @@ library
   import: defaults
   hs-source-dirs: raaz
   build-depends: core
-               , sha2-indef
-               , blake2-indef
                , implementation
+               , prim-indef
                -- , mac-indef
                -- , cipher-indef
                -- , random-indef
@@ -318,10 +306,6 @@ library
 
   reexported-modules: Raaz.Core
                     , Raaz.Core.Types
-
-
-  mixins: blake2-indef (Blake2b.Interface as Raaz.Blake2b.Interface, Blake2s.Interface as Raaz.Blake2s.Interface)
-        , sha2-indef (Sha512.Interface as Raaz.Sha512.Interface, Sha256.Interface as Raaz.Sha256.Interface)
 
   other-modules: Raaz.V1
 

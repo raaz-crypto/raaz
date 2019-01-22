@@ -9,7 +9,7 @@ module Raaz.Sha512
 
 import           Raaz.Core
 import           Raaz.Primitive.Sha2.Internal ( Sha512 )
-import qualified Raaz.Sha512.Interface as U
+import qualified Sha512.Interface as U
 
 -- | Compute the digest of a pure byte source like, `B.ByteString`.
 digest :: PureByteSource src
