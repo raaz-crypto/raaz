@@ -176,13 +176,23 @@ library digest-indef
                , util
   exposed-modules: Interface
 
+library random-indef
+  import: defaults
+  hs-source-dirs: indef/random
+  build-depends: core
+               , indef
+               , util
+  signatures: Implementation
+  exposed-modules: PRGState
+
 library prim-indef
   -- visibility: public
   import: defaults
   build-depends: core
                , digest-indef
+               , random-indef
   hs-source-dirs: prims/sha2
-                , prim/blake2
+                , prims/blake2
   signatures: Blake2b.Implementation
             , Blake2s.Implementation
             , Sha256.Implementation
@@ -191,10 +201,12 @@ library prim-indef
                     , Blake2s.Interface
                     , Sha256.Interface
                     , Sha512.Interface
-  mixins: digest-indef (Interface as Blake2b.Interface) requires (Implementation as Blake2b.Implementation)
-        , digest-indef (Interface as Blake2s.Interface) requires (Implementation as Blake2s.Implementation)
-        , digest-indef (Interface as Sha512.Interface)  requires (Implementation as Sha512.Implementation)
-        , digest-indef (Interface as Sha256.Interface)  requires (Implementation as Sha256.Implementation)
+                    , PRGState
+  mixins: digest-indef (Interface as Blake2b.Interface)  requires (Implementation as Blake2b.Implementation)
+        , digest-indef (Interface as Blake2s.Interface)  requires (Implementation as Blake2s.Implementation)
+        , digest-indef (Interface as Sha512.Interface)   requires (Implementation as Sha512.Implementation)
+        , digest-indef (Interface as Sha256.Interface)   requires (Implementation as Sha256.Implementation)
+        , random-indef requires (Implementation as ChaCha20.Implementation)
 
 -- library chacha20-indef
 --   -- visibility: public
@@ -303,7 +315,7 @@ library
                  , Raaz.Blake2s
                  , Raaz.Sha256
                  , Raaz.Sha512
-
+                 , Raaz.Random
   reexported-modules: Raaz.Core
                     , Raaz.Core.Types
 
