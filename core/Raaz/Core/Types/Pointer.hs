@@ -261,7 +261,7 @@ instance LengthUnit u => LAction u Pointer where
 -- long as they can be converted to bytes. This can avoid a lot of
 -- tedious and error prone length calculations.
 newtype BLOCKS p = BLOCKS {unBLOCKS :: Int}
-                 deriving (Show, Eq, Ord, Enum)
+                 deriving (Show, Eq, Ord, Enum, Storable)
 
 instance Semigroup (BLOCKS p) where
   (<>) x y = BLOCKS $ unBLOCKS x + unBLOCKS y
