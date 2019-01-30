@@ -6,10 +6,12 @@
 module ChaCha20.CPortable where
 
 import Foreign.Ptr                ( castPtr )
+import Control.Monad              ( void    )
 import Control.Monad.IO.Class     ( liftIO  )
 import Data.Proxy
 
 import Raaz.Core
+import Raaz.Entropy
 import Raaz.Primitive.ChaCha20.Internal
 import Raaz.Verse.Chacha20.C.Portable
 
@@ -45,11 +47,26 @@ processLast :: AlignedPointer BufferAlignment
             -> MT Internals ()
 processLast buf = processBlocks buf . atLeast
 
-csprgBlocks :: AlignedPointer BufferAlignment
-            -> BLOCKS Prim
-            -> MT Internals ()
 
-csprgBlocks buf blks =
+-- | The number of blocks of the cipher that is generated in one go
+-- encoded as a type level nat.
+type RandomBufferSize = 16
+
+
+-- | How many blocks of the primitive to generated before re-seeding.
+reseedAfter :: BLOCKS Prim
+reseedAfter = blocksOf (1024 * 1024 * 1024) (Proxy :: Proxy Prim)
+
+-- | When using the cipher as a csprg, fill the contents of its
+-- internal memory with the system entropy function.
+initFromEntropyPool :: MT Internals ()
+initFromEntropyPool = void $ withMemoryPtr getEntropy
+
+randomBlocks :: AlignedPointer BufferAlignment
+             -> BLOCKS Prim
+             -> MT Internals ()
+
+randomBlocks buf blks =
   do keyPtr     <- castPtr <$> keyCellPtr
      ivPtr      <- castPtr <$> ivCellPtr
      counterPtr <- castPtr <$> counterCellPtr
