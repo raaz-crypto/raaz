@@ -174,7 +174,6 @@ library digest-indef
   build-depends: core
                , indef
                , util
-  exposed-modules: Interface
 
 library keyed-indef
   import: defaults
@@ -182,6 +181,15 @@ library keyed-indef
   signatures: Implementation
   build-depends: core
                , indef
+               , util
+
+library message-digest-indef
+  import: defaults
+  hs-source-dirs: indef/digest/message
+  signatures: Implementation
+  build-depends: core
+               , indef
+               , digest-indef
                , util
   exposed-modules: Interface
 
@@ -198,7 +206,7 @@ library prim-indef
   -- visibility: public
   import: defaults
   build-depends: core
-               , digest-indef
+               , message-digest-indef
                , random-indef
   hs-source-dirs: prims/sha2
                 , prims/blake2
@@ -211,10 +219,10 @@ library prim-indef
                     , Sha256.Interface
                     , Sha512.Interface
                     , PRGState
-  mixins: digest-indef (Interface as Blake2b.Interface)  requires (Implementation as Blake2b.Implementation)
-        , digest-indef (Interface as Blake2s.Interface)  requires (Implementation as Blake2s.Implementation)
-        , digest-indef (Interface as Sha512.Interface)   requires (Implementation as Sha512.Implementation)
-        , digest-indef (Interface as Sha256.Interface)   requires (Implementation as Sha256.Implementation)
+  mixins: message-digest-indef (Interface as Blake2b.Interface)  requires (Implementation as Blake2b.Implementation)
+        , message-digest-indef (Interface as Blake2s.Interface)  requires (Implementation as Blake2s.Implementation)
+        , message-digest-indef (Interface as Sha512.Interface)   requires (Implementation as Sha512.Implementation)
+        , message-digest-indef (Interface as Sha256.Interface)   requires (Implementation as Sha256.Implementation)
         , random-indef requires (Implementation as ChaCha20.Implementation)
 
 -- library chacha20-indef
