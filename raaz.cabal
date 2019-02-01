@@ -176,6 +176,15 @@ library digest-indef
                , util
   exposed-modules: Interface
 
+library keyed-indef
+  import: defaults
+  hs-source-dirs: indef/keyed
+  signatures: Implementation
+  build-depends: core
+               , indef
+               , util
+  exposed-modules: Interface
+
 library random-indef
   import: defaults
   hs-source-dirs: indef/random
