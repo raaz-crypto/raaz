@@ -1,15 +1,16 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE FlexibleInstances          #-}
+{-# LANGUAGE DefaultSignatures          #-}
 -- | Interface for cryptographically secure random byte generators
 -- using a stream cipher for stream expansion.
 module Raaz.Random
        ( -- * Cryptographically secure randomness.
          -- $randomness$
         RandomT, RT, RandM
-       , random,  randomByteString
+       , randomByteString
        -- ** Types that can be generated randomly
-       , RandomStorable(..), unsafeFillRandomElements
+       , Random(..), RandomStorable(..), unsafeFillRandomElements
        -- * Generating sensitive data
        -- $sensitive-random$
        , randomiseCell
@@ -311,8 +312,7 @@ fillRandomBytes :: (LengthUnit l, MonadIO m)
                 -> RandomT mem m ()
 fillRandomBytes l = liftRandomState . PS.fillRandomBytes l
 
-
--- | Instances of `Storable` which can be randomly generated. It might
+-- | Subclass of `Storable` which can be randomly generated. It might
 -- appear that all instances of the class `Storable` should be
 -- be instances of this class, after all we know the size of the
 -- element, why not write that many random bytes. In fact, this module
@@ -359,18 +359,6 @@ unsafeFillRandomElements n ptr = fillRandomBytes totalSz $ castPtr ptr
         getProxy :: Ptr a -> Proxy a
         getProxy = const Proxy
 
--- | Generate a random element from an instance of a RandomStorable
--- element.
-random :: (RandomStorable a, MonadIOCont m) => RandomT mem m a
-random = alloc (getIt . castPtr)
-  where getIt ptr    = fillRandomElements 1 (nextLocation ptr) >> liftIO (peekAligned ptr)
-        alloc        :: (MonadIOCont m, Storable a)
-                     => (Pointer -> RandomT mem m a) -> RandomT mem m a
-        alloc action = allocaBuffer sz action
-          where getProxy   :: (Pointer -> RandomT mem m b) -> Proxy b
-                getProxy     = const Proxy
-                thisProxy    = getProxy action
-                sz           = alignedSizeOf thisProxy
 
 -- | Randomise the contents of a memory cell. Equivalent to @`random`
 -- >>= liftMT . initialise@ but ensures that no data is transferred to
@@ -395,8 +383,9 @@ randomByteString l = liftIOCont (create l) $ fillRandomBytes l
 instance RandomStorable Word8 where
   fillRandomElements = unsafeFillRandomElements
 
-instance RandomStorable Word16 where
 
+
+instance RandomStorable Word16 where
   fillRandomElements = unsafeFillRandomElements
 
 instance RandomStorable Word32 where
@@ -450,3 +439,76 @@ instance (Dimension d, Unbox w, RandomStorable w) => RandomStorable (Tuple d w) 
           getProxy = const Proxy
           tupPtrToPtr ::  Ptr (Tuple d w) -> Ptr w
           tupPtrToPtr = castPtr
+
+
+
+
+--------------------------------- Generating elements randomly ----------------------------
+
+-- | Elements that can be randomly generated.
+class Random a where
+  random :: MonadIOCont m
+         => RandomT mem m a
+
+  default random :: (RandomStorable a, MonadIOCont m) => RandomT mem m a
+  random = alloc (getIt . castPtr)
+    where getIt ptr    = fillRandomElements 1 (nextLocation ptr) >> liftIO (peekAligned ptr)
+          alloc        :: (MonadIOCont m, Storable a)
+                       => (Pointer -> RandomT mem m a) -> RandomT mem m a
+          alloc action = allocaBuffer sz action
+            where getProxy   :: (Pointer -> RandomT mem m b) -> Proxy b
+                  getProxy     = const Proxy
+                  thisProxy    = getProxy action
+                  sz           = alignedSizeOf thisProxy
+
+
+instance (Random a, Random b) => Random (a,b) where
+  random = (,)
+           <$> random
+           <*> random
+instance (Random a, Random b, Random c) => Random (a,b,c) where
+  random = (,,)
+           <$> random
+           <*> random
+           <*> random
+
+
+instance (Random a, Random b, Random c, Random d) => Random (a,b,c,d) where
+  random = (,,,)
+           <$> random
+           <*> random
+           <*> random
+           <*> random
+
+
+instance (Random a, Random b, Random c, Random d, Random e) => Random (a,b,c,d,e) where
+  random = (,,,,)
+           <$> random
+           <*> random
+           <*> random
+           <*> random
+           <*> random
+
+instance Random Word8
+instance Random Word16
+instance Random Word32
+instance Random Word64
+instance Random Int8
+instance Random Int16
+instance Random Int32
+instance Random Int64
+
+instance Random ChaCha20.KEY where
+
+instance Random ChaCha20.IV where
+
+instance Random Poly1305.R where
+
+instance Random w => Random (LE w) where
+  random = littleEndian <$> random
+
+instance Random w => Random (BE w) where
+  random = bigEndian <$> random
+
+
+instance (Dimension d, Unbox w, RandomStorable w) => Random (Tuple d w) where
