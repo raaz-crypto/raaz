@@ -15,10 +15,16 @@ signature Implementation where
 
 
 import Raaz.Core
+import Data.String (IsString)
 
 -- | The primitive for which the implementation is given
 
 data Prim
+instance Encodable Prim
+instance Eq Prim
+instance Equality Prim
+instance Show Prim
+instance IsString Prim
 data Internals
 instance Memory Internals
 instance Extractable Internals Prim
