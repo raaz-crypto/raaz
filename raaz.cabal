@@ -434,6 +434,7 @@ test-suite tests
                , test-core
                , test-cipher
                , test-message-digest
+               , auth-indef
                , implementation
                , raaz
   build-tool-depends: hspec-discover:hspec-discover
@@ -450,13 +451,13 @@ test-suite tests
                , Raaz.Digest.Sha256Spec
                , Raaz.Digest.Sha512Spec
                , Raaz.Digest.Blake2Spec
-
+               , Raaz.Mac.Poly1305Spec
   mixins: test-cipher requires (Implementation as ChaCha20.Implementation)
         , test-message-digest (Tests.Digest as Sha256.Digest) requires (Implementation as Sha256.Implementation)
         , test-message-digest (Tests.Digest as Sha512.Digest) requires (Implementation as Sha512.Implementation)
         , test-message-digest (Tests.Digest as Blake2b.Digest) requires (Implementation as Blake2b.Implementation)
         , test-message-digest (Tests.Digest as Blake2s.Digest) requires (Implementation as Blake2s.Implementation)
-
+        , auth-indef (Interface as Poly1305.Interface)         requires (Implementation as Poly1305.Implementation)
               -- , Raaz.Mac.Poly1305Spec
 
 --------------------------- Benchmarkings ---------------------------------------------

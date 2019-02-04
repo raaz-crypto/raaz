@@ -7,18 +7,11 @@
 module Raaz.Mac.Poly1305Spec where
 
 import Tests.Core
-import Poly1305.Implementation
-import Poly1305.Utils
-
-
-
-import Raaz.Primitive.Poly1305.Internal
-
-macs :: Key Poly1305 -> ByteString -> Spec
+import Poly1305.Interface
 
 macsTo :: ByteString -> Poly1305 -> Key Poly1305 -> Spec
 macsTo inp expected key =  it msg $ result `shouldBe` expected
-  where result = mac key inp
+  where result = auth key inp
         msg  = unwords [ "with key"
                        , shortened $ show key
                        , "macs"
