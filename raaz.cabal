@@ -407,6 +407,10 @@ library test-cipher
                , util
   exposed-modules: Tests.Cipher
 
+library test-hash
+  import: test-defaults
+  hs-source-dirs
+
 test-suite tests
   import: test-defaults
   type: exitcode-stdio-1.0

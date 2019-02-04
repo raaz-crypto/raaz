@@ -6,8 +6,8 @@ module Raaz.Hash.Blake2Spec where
 
 import           Prelude hiding (replicate)
 
-import           Common
-import qualified Common.Hash as CH
+import           Tests.Core
+import qualified Tests.Hash as CH
 
 {--
 hashesTo :: ByteString -> BLAKE2b -> Spec

@@ -4,8 +4,8 @@ module Common.Hash
        ( hashesTo
        ) where
 
-import Common.Imports  hiding (replicate)
-import Common.Utils
+import Implementation
+import Interface
 
 --
 -- For unit tests for hash we have the following idiom
@@ -14,9 +14,8 @@ import Common.Utils
 -- where y1 is the hexadecimal encoding of the hash of x2.
 --
 
-hashesTo :: (Hash h, Encodable h, Show h, Eq h)
-         => ByteString
-         -> h
+hashesTo :: ByteString
+         -> Prim
          -> Spec
 hashesTo str h = it msg (hash str `shouldBe` h)
   where msg   = unwords [ "hashes"
