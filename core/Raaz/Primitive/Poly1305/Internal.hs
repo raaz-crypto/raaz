@@ -70,4 +70,4 @@ instance Show S where
 instance Primitive Poly1305 where
   type BlockSize Poly1305      = 16
 
-type instance Key Poly1305            = (R, S)
+type instance Key Poly1305     = (R, S)
