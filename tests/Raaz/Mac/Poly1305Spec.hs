@@ -6,12 +6,15 @@
 
 module Raaz.Mac.Poly1305Spec where
 
-import           Common
-import           Common.Utils
-import qualified Common.Cipher as C
+import Tests.Core
+import Poly1305.Implementation
+import Poly1305.Utils
+
+
 
 import Raaz.Primitive.Poly1305.Internal
 
+macs :: Key Poly1305 -> ByteString -> Spec
 
 macsTo :: ByteString -> Poly1305 -> Key Poly1305 -> Spec
 macsTo inp expected key =  it msg $ result `shouldBe` expected
