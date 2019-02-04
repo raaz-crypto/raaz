@@ -1,12 +1,16 @@
 {-# LANGUAGE FlexibleContexts #-}
-module Common.Cipher( transform, transformsTo, keyStreamIs) where
+module Tests.Cipher( transform
+                   , transformsTo
+                   , keyStreamIs
+                   , zeros
+                   ) where
 
 import           System.IO.Unsafe ( unsafePerformIO )
 
-import           Common.Imports
-import           Common.Utils
-import           Cipher.Implementation
-import qualified Cipher.Utils as U
+import           Tests.Core.Imports
+import           Tests.Core.Utils
+import           Implementation
+import qualified Utils as U
 
 -- | Transforms the input byte string using the stream
 -- cipher.

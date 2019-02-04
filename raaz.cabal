@@ -400,14 +400,12 @@ library test-core
 
 library test-cipher
   import: test-defaults
-  hs-source-dirs: tests/core
+  hs-source-dirs: tests/cipher
   build-depends: test-core
-               , util
+               , indef
                , keyed-indef
-  exposied-modules: Tests.Cipher
-  mixins: keyed-indef requires (Implementation as Cipher.Implementation)
-        , util (Utils as Cipher.Utils)
-             requires (Implementation as Cipher.Implementation)
+               , util
+  exposed-modules: Tests.Cipher
 
 test-suite tests
   import: test-defaults
@@ -416,6 +414,8 @@ test-suite tests
   main-is: Spec.hs
   build-depends: hspec-discover
                , test-core
+               , test-cipher
+               , implementation
                , raaz
   build-tool-depends: hspec-discover:hspec-discover
   if !os(windows)
@@ -427,8 +427,8 @@ test-suite tests
                , Raaz.Core.Types.WordSpec
                , Raaz.Core.Util.ByteStringSpec
                , Raaz.RandomSpec
-              -- , Raaz.Cipher.ChaCha20Spec
-
+               , Raaz.Cipher.ChaCha20Spec
+  mixins: test-cipher (Tests.Cipher) requires (Implementation as ChaCha20.Implementation)
               -- , Raaz.Hash.Sha256Spec
               -- , Raaz.Hash.Sha512Spec
               -- , Raaz.Hash.Blake2Spec
