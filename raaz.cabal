@@ -407,9 +407,14 @@ library test-cipher
                , util
   exposed-modules: Tests.Cipher
 
-library test-hash
+library test-message-digest
   import: test-defaults
-  hs-source-dirs
+  hs-source-dirs: tests/message-digest
+  build-depends: test-core
+               , indef
+               , message-digest-indef
+               , util
+  exposed-modules: Tests.Digest
 
 test-suite tests
   import: test-defaults
@@ -419,6 +424,7 @@ test-suite tests
   build-depends: hspec-discover
                , test-core
                , test-cipher
+               , test-message-digest
                , implementation
                , raaz
   build-tool-depends: hspec-discover:hspec-discover
@@ -432,10 +438,16 @@ test-suite tests
                , Raaz.Core.Util.ByteStringSpec
                , Raaz.RandomSpec
                , Raaz.Cipher.ChaCha20Spec
-  mixins: test-cipher (Tests.Cipher) requires (Implementation as ChaCha20.Implementation)
-              -- , Raaz.Hash.Sha256Spec
-              -- , Raaz.Hash.Sha512Spec
-              -- , Raaz.Hash.Blake2Spec
+               , Raaz.Digest.Sha256Spec
+               , Raaz.Digest.Sha512Spec
+               , Raaz.Digest.Blake2Spec
+
+  mixins: test-cipher requires (Implementation as ChaCha20.Implementation)
+        , test-message-digest (Tests.Digest as Sha256.Digest) requires (Implementation as Sha256.Implementation)
+        , test-message-digest (Tests.Digest as Sha512.Digest) requires (Implementation as Sha512.Implementation)
+        , test-message-digest (Tests.Digest as Blake2b.Digest) requires (Implementation as Blake2b.Implementation)
+        , test-message-digest (Tests.Digest as Blake2s.Digest) requires (Implementation as Blake2s.Implementation)
+
               -- , Raaz.Mac.Poly1305Spec
 
 --------------------------- Benchmarkings ---------------------------------------------
