@@ -1,5 +1,5 @@
 -- Common imports.
-module Common.Imports( module E ) where
+module Tests.Core.Imports( module E ) where
 import Control.Applicative     as E
 import Data.ByteString         as E (ByteString, pack)
 import Data.ByteString.Char8        () -- import IsString instance for
@@ -15,7 +15,11 @@ import Test.QuickCheck         as E
 import Test.QuickCheck.Monadic as E
 
 import Raaz.Core               as E hiding ((===), Result)
-import Raaz.Hash               as E
+
+import Raaz.Primitive.Blake2.Internal   as E
+import Raaz.Primitive.ChaCha20.Internal as E hiding ( WORD )
+import Raaz.Primitive.Poly1305.Internal as E hiding ( WORD )
+import Raaz.Primitive.Sha2.Internal     as E
+
+
 -- import Raaz.Hash.Sha1          as E
-import Raaz.Cipher             as E
-import Raaz.Mac                as E

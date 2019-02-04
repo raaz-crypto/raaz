@@ -377,43 +377,62 @@ library
 --     build-depends: transformers
 
 ---------------------------------- Test suit -----------------------------------------------------
+common test-defaults
+  import: defaults
+  build-depends: core
+               , HUnit                          >= 1.2
+               , QuickCheck                     >= 2.4
+               , hspec
 
--- test-suite tests
---   import: defaults
---   type: exitcode-stdio-1.0
---   hs-source-dirs: tests
---   main-is: Spec.hs
+library test-core
+  -- visibility: private
+  import: test-defaults
+  hs-source-dirs: tests/core
+  exposed-modules: Tests.Core
+                 , Tests.Core.Imports
+                 , Tests.Core.Instances
+                 , Tests.Core.Utils
+--  build-depends: core
+--               , util
+--               , keyed-indef
+--   mixins: keyed-indef requires (Implementation as Cipher.Implementation)
+--        , util (Utils as Cipher.Utils) requires (Implementation as Cipher.Implementation)
 
---   build-depends: raaz
---                , core
---   build-depends: HUnit                          >= 1.2
---                , QuickCheck                     >= 2.4
---                , hspec
---                , hspec-discover
---                , transformers
---                , vector
+library test-cipher
+  import: test-defaults
+  hs-source-dirs: tests/core
+  build-depends: test-core
+               , util
+               , keyed-indef
+  exposied-modules: Tests.Cipher
+  mixins: keyed-indef requires (Implementation as Cipher.Implementation)
+        , util (Utils as Cipher.Utils)
+             requires (Implementation as Cipher.Implementation)
 
---   build-tool-depends: hspec-discover:hspec-discover
---   if !os(windows)
---     cpp-options: -DHAVE_DEV_NULL
+test-suite tests
+  import: test-defaults
+  type: exitcode-stdio-1.0
+  hs-source-dirs: tests
+  main-is: Spec.hs
+  build-depends: hspec-discover
+               , test-core
+               , raaz
+  build-tool-depends: hspec-discover:hspec-discover
+  if !os(windows)
+    cpp-options: -DHAVE_DEV_NULL
 
---   other-modules: Common
---                , Common.Cipher
---                , Common.Hash
---                , Common.Imports
---                , Common.Instances
---                , Common.Utils
---                , Raaz.Cipher.ChaCha20Spec
---                , Raaz.Core.ByteSourceSpec
---                , Raaz.Core.EncodeSpec
---                , Raaz.Core.MemorySpec
---                , Raaz.Core.Types.WordSpec
---                , Raaz.Core.Util.ByteStringSpec
---                , Raaz.RandomSpec
---                , Raaz.Hash.Sha256Spec
---                , Raaz.Hash.Sha512Spec
---                , Raaz.Hash.Blake2Spec
---                , Raaz.Mac.Poly1305Spec
+  other-modules: Raaz.Core.ByteSourceSpec
+               , Raaz.Core.EncodeSpec
+               , Raaz.Core.MemorySpec
+               , Raaz.Core.Types.WordSpec
+               , Raaz.Core.Util.ByteStringSpec
+               , Raaz.RandomSpec
+              -- , Raaz.Cipher.ChaCha20Spec
+
+              -- , Raaz.Hash.Sha256Spec
+              -- , Raaz.Hash.Sha512Spec
+              -- , Raaz.Hash.Blake2Spec
+              -- , Raaz.Mac.Poly1305Spec
 
 --------------------------- Benchmarkings ---------------------------------------------
 -- common bench-defaults

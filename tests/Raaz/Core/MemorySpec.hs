@@ -1,7 +1,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 module Raaz.Core.MemorySpec where
 
-import Common
+import Tests.Core
 
 spec :: Spec
 spec = prop "store followed by read gives identical values"

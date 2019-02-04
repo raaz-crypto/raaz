@@ -1,9 +1,9 @@
 {-# LANGUAGE CPP #-}
-module Common.Utils where
+module Tests.Core.Utils where
 
 import Raaz.Core.Types.Internal ( BYTES(..) )
 
-import Common.Imports hiding (length, replicate)
+import Tests.Core.Imports hiding (length, replicate)
 
 
 import Foreign.Ptr           ( castPtr, Ptr    )

@@ -5,10 +5,10 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 -- | Some common instances that are required by the test cases.
-module Common.Instances where
+module Tests.Core.Instances where
 
-import Common.Imports
-import Common.Utils
+import Tests.Core.Imports
+import Tests.Core.Utils
 
 import Raaz.Primitive.ChaCha20.Internal as ChaCha20
 import Raaz.Primitive.Poly1305.Internal as Poly1305
@@ -33,16 +33,16 @@ instance Arbitrary ByteString where
 
 ---------------   Arbitrary instances for Hashes ----------------
 
-instance Arbitrary SHA256 where
+instance Arbitrary Sha256 where
   arbitrary = genEncodable
 
-instance Arbitrary SHA512 where
+instance Arbitrary Sha512 where
   arbitrary = genEncodable
 
-instance Arbitrary BLAKE2b where
+instance Arbitrary Blake2b where
   arbitrary = genEncodable
 
-instance Arbitrary BLAKE2s where
+instance Arbitrary Blake2s where
   arbitrary = genEncodable
 
 ---------------- Parameter block for Blake          -------------
@@ -77,4 +77,3 @@ instance Arbitrary Poly1305.S where
 
 instance Arbitrary Poly1305.Poly1305 where
   arbitrary = genEncodable
-

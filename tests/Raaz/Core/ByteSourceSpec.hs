@@ -5,7 +5,7 @@ import qualified Data.ByteString as B
 import           System.IO
 import           System.IO.Unsafe
 
-import           Common
+import           Tests.Core
 
 
 readResult :: ByteSource src => BYTES Int -> src -> IO (FillResult src)
