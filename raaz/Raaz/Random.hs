@@ -213,17 +213,14 @@ import qualified Raaz.Primitive.Poly1305.Internal as Poly1305
 --
 -- [OpenBSD/NetBSD:] The arc4random call.
 --
--- [Linux:] Defaults to @\/dev\/urandom@ but has experimental support
--- for `getrandom` (needs testing). The `getrandom` call is better but
--- many current systems do not have support for this (needs kernel >
--- 3.17 and libc > 2.25).
+-- [Linux:] The @getrandom@ system call. For older (< 3.17) kernels
+-- lacking support for this call, you might need to compile raaz with
+-- the `linux-getrandom` disabled.
 --
 -- [Other Posix:] Uses @\/dev\/urandom@
 --
 -- [Windows:] Support using CryptGenRandom from Wincrypt.h.
 --
-
-
 -- $sampling$
 --
 -- Instead of running the chacha20 cipher for every request, we
