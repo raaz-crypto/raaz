@@ -183,6 +183,15 @@ library keyed-indef
                , indef
                , util
 
+library auth-indef
+  import: defaults
+  hs-source-dirs: indef/auth
+  build-depends: core
+               , keyed-indef
+               , digest-indef
+               , util
+  exposed-modules: Interface
+
 library message-digest-indef
   import: defaults
   hs-source-dirs: indef/digest/message
