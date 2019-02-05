@@ -213,7 +213,7 @@ library auth-indef
                , util
   exposed-modules: Interface
 
-library message-digest-indef
+library mesg-digest-indef
   import: defaults
   hs-source-dirs: indef/digest/message
   signatures: Implementation
@@ -236,7 +236,7 @@ library prim-indef
   -- visibility: public
   import: defaults
   build-depends: core
-               , message-digest-indef
+               , mesg-digest-indef
                , random-indef
   hs-source-dirs: prims/sha2
                 , prims/blake2
@@ -249,10 +249,10 @@ library prim-indef
                     , Sha256.Interface
                     , Sha512.Interface
                     , PRGState
-  mixins: message-digest-indef (Interface as Blake2b.Interface)  requires (Implementation as Blake2b.Implementation)
-        , message-digest-indef (Interface as Blake2s.Interface)  requires (Implementation as Blake2s.Implementation)
-        , message-digest-indef (Interface as Sha512.Interface)   requires (Implementation as Sha512.Implementation)
-        , message-digest-indef (Interface as Sha256.Interface)   requires (Implementation as Sha256.Implementation)
+  mixins: mesg-digest-indef (Interface as Blake2b.Interface)  requires (Implementation as Blake2b.Implementation)
+        , mesg-digest-indef (Interface as Blake2s.Interface)  requires (Implementation as Blake2s.Implementation)
+        , mesg-digest-indef (Interface as Sha512.Interface)   requires (Implementation as Sha512.Implementation)
+        , mesg-digest-indef (Interface as Sha256.Interface)   requires (Implementation as Sha256.Implementation)
         , random-indef requires (Implementation as ChaCha20.Implementation)
 
 --------------------  The implementation modules ----------------------------------
@@ -371,12 +371,12 @@ library test-cipher
                , util
   exposed-modules: Tests.Cipher
 
-library test-message-digest
+library test-mesg-digest
   import: test-defaults
   hs-source-dirs: tests/message-digest
   build-depends: test-core
                , indef
-               , message-digest-indef
+               , mesg-digest-indef
                , util
   exposed-modules: Tests.Digest
 
@@ -388,7 +388,7 @@ test-suite tests
   build-depends: hspec-discover
                , test-core
                , test-cipher
-               , test-message-digest
+               , test-mesg-digest
                , auth-indef
                , implementation
                , raaz
@@ -408,10 +408,10 @@ test-suite tests
                , Raaz.Digest.Blake2Spec
                , Raaz.Mac.Poly1305Spec
   mixins: test-cipher requires (Implementation as ChaCha20.Implementation)
-        , test-message-digest (Tests.Digest as Sha256.Digest) requires (Implementation as Sha256.Implementation)
-        , test-message-digest (Tests.Digest as Sha512.Digest) requires (Implementation as Sha512.Implementation)
-        , test-message-digest (Tests.Digest as Blake2b.Digest) requires (Implementation as Blake2b.Implementation)
-        , test-message-digest (Tests.Digest as Blake2s.Digest) requires (Implementation as Blake2s.Implementation)
+        , test-mesg-digest (Tests.Digest as Sha256.Digest) requires (Implementation as Sha256.Implementation)
+        , test-mesg-digest (Tests.Digest as Sha512.Digest) requires (Implementation as Sha512.Implementation)
+        , test-mesg-digest (Tests.Digest as Blake2b.Digest) requires (Implementation as Blake2b.Implementation)
+        , test-mesg-digest (Tests.Digest as Blake2s.Digest) requires (Implementation as Blake2s.Implementation)
         , auth-indef (Interface as Poly1305.Interface)         requires (Implementation as Poly1305.Implementation)
               -- , Raaz.Mac.Poly1305Spec
 
