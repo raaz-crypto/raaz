@@ -10,8 +10,9 @@ import Control.Applicative
 import Control.Monad         ( void )
 import Control.Monad.IO.Class(liftIO)
 import Options.Applicative
-import Raaz
 import Raaz.Entropy
+import Raaz.Core
+import Raaz.Random
 import System.IO
 
 -- So much bytes generated in one go before writing to stdout.
@@ -34,9 +35,9 @@ randCmd :: Mod CommandFields (IO ())
 randCmd = command "rand"
           $ info (helper <*> randOpts)
           $ mconcat [ fullDesc
-                     , header "raaz rand - Cryptographically secure pseudo random bytes."
-                     , progDesc "output cryptographically secure pseudo random bytes."
-                     ]
+                    , header "raaz rand - Cryptographically secure pseudo random bytes."
+                    , progDesc "output cryptographically secure pseudo random bytes."
+                    ]
   where randOpts = opts insecurely emitRand
 
 entropyCmd :: Mod CommandFields (IO ())

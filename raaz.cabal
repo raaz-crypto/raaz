@@ -255,46 +255,6 @@ library prim-indef
         , message-digest-indef (Interface as Sha256.Interface)   requires (Implementation as Sha256.Implementation)
         , random-indef requires (Implementation as ChaCha20.Implementation)
 
--- library chacha20-indef
---   -- visibility: public
---   import: defaults
---   build-depends: core, indef
---   hs-source-dirs: indef
---   signatures: ChaCha20.Implementation
---   exposed-modules: ChaCha20.PRG
---   reexported-modules: ChaCha20.Utils
---   mixins: indef (Utils as ChaCha20.Utils) requires (Implementation as ChaCha20.Implementation)
-
--- library poly1305-indef
---   -- visibility: public
---   import: defaults
---   build-depends: core, indef
---   hs-source-dirs: indef
---   signatures: Poly1305.Implementation
---   reexported-modules: Poly1305.Utils
-     --                 , Raaz.Primitive.Poly1305.Memory
---   mixins: indef (Utils as Poly1305.Utils) requires (Implementation as Poly1305.Implementation)
-
-
--- library cipher-indef
---   -- visibility: public
---   import: defaults
---   hs-source-dirs: indef
---   build-depends: core
---                , chacha20-indef
---   exposed-modules: Cipher
-
--- library random-indef
---   -- visibility: public
---   import: defaults
---   hs-source-dirs: indef
---   build-depends: core
---                , chacha20-indef
---   exposed-modules: Random
---   -- Not sure why the line below is needed. Cabal seems to give an
---   -- warning.
---   other-modules: ChaCha20.PRG
-
 --------------------  The implementation modules ----------------------------------
 
 library implementation
@@ -359,43 +319,26 @@ library
 
   other-modules: Raaz.V1
 
-  -- mixins: cipher-indef (Cipher as Raaz.Cipher)
-  --           requires (ChaCha20.Implementation as ChaCha20.CPortable)
-
-  --       , hash-indef (Hash as Raaz.Hash)
-  --           requires (Blake2b.Implementation as Blake2b.CPortable,
-  --                     Blake2s.Implementation as Blake2s.CHandWritten,
-  --                     Sha256.Implementation as Sha256.CPortable,
-  --                     Sha512.Implementation as Sha512.CPortable
-  --         )
-
-  --       , mac-indef (Mac as Raaz.Mac)
-  --           requires (Poly1305.Implementation as Poly1305.CPortable)
-  --       , random-indef(Random as Raaz.Random)
-  --           requires (ChaCha20.Implementation as ChaCha20.CPortable)
-
-
-
-  -- autogen-modules: Paths_raaz
+  autogen-modules: Paths_raaz
   other-modules: Paths_raaz
 
 ---------------------------- Executables -------------------------------------------------
 
--- executable raaz
---   import: defaults
---   hs-source-dirs: raaz/bin
---   main-is: Main.hs
---   other-modules: Command.Checksum
---                , Command.Rand
---                , Command.Info
---                , Usage
---   build-depends: optparse-applicative >= 0.13.0.0
---                , core
---                , raaz
---   if impl(ghc < 8)
---     -- 'transformers' needed for "Control.Monad.IO.Class" only
---     -- starting with base-4.9 we don't need 'transformers' anymore
---     build-depends: transformers
+executable raaz
+  import: defaults
+  hs-source-dirs: raaz/bin
+  main-is: Main.hs
+  other-modules: Command.Rand
+               , Command.Info
+               , Command.Checksum
+               , Usage
+  build-depends: optparse-applicative >= 0.13.0.0
+               , core
+               , raaz
+  if impl(ghc < 8)
+    -- 'transformers' needed for "Control.Monad.IO.Class" only
+    -- starting with base-4.9 we don't need 'transformers' anymore
+    build-depends: transformers
 
 ---------------------------------- Test suit -----------------------------------------------------
 common test-defaults
