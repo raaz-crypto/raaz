@@ -304,9 +304,6 @@ library
                , implementation
                , prim-indef
                , libverse
-               -- , mac-indef
-               -- , cipher-indef
-               -- , random-indef
 
   exposed-modules: Raaz
                  , Raaz.Blake2b
@@ -356,11 +353,6 @@ library test-core
                  , Tests.Core.Imports
                  , Tests.Core.Instances
                  , Tests.Core.Utils
---  build-depends: core
---               , util
---               , keyed-indef
---   mixins: keyed-indef requires (Implementation as Cipher.Implementation)
---        , util (Utils as Cipher.Utils) requires (Implementation as Cipher.Implementation)
 
 library test-cipher
   import: test-defaults
