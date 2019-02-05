@@ -213,9 +213,9 @@ library auth-indef
                , util
   exposed-modules: Interface
 
-library mesg-digest-indef
+library hash-indef
   import: defaults
-  hs-source-dirs: indef/digest/message
+  hs-source-dirs: indef/digest/hash
   signatures: Implementation
   build-depends: core
                , indef
@@ -236,7 +236,7 @@ library prim-indef
   -- visibility: public
   import: defaults
   build-depends: core
-               , mesg-digest-indef
+               , hash-indef
                , random-indef
   hs-source-dirs: prims/sha2
                 , prims/blake2
@@ -249,10 +249,10 @@ library prim-indef
                     , Sha256.Interface
                     , Sha512.Interface
                     , PRGState
-  mixins: mesg-digest-indef (Interface as Blake2b.Interface)  requires (Implementation as Blake2b.Implementation)
-        , mesg-digest-indef (Interface as Blake2s.Interface)  requires (Implementation as Blake2s.Implementation)
-        , mesg-digest-indef (Interface as Sha512.Interface)   requires (Implementation as Sha512.Implementation)
-        , mesg-digest-indef (Interface as Sha256.Interface)   requires (Implementation as Sha256.Implementation)
+  mixins: hash-indef (Interface as Blake2b.Interface)  requires (Implementation as Blake2b.Implementation)
+        , hash-indef (Interface as Blake2s.Interface)  requires (Implementation as Blake2s.Implementation)
+        , hash-indef (Interface as Sha512.Interface)   requires (Implementation as Sha512.Implementation)
+        , hash-indef (Interface as Sha256.Interface)   requires (Implementation as Sha256.Implementation)
         , random-indef requires (Implementation as ChaCha20.Implementation)
 
 --------------------  The implementation modules ----------------------------------
@@ -368,7 +368,7 @@ library test-mesg-digest
   hs-source-dirs: tests/message-digest
   build-depends: test-core
                , indef
-               , mesg-digest-indef
+               , hash-indef
                , util
   exposed-modules: Tests.Digest
 
