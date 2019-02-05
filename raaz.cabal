@@ -343,6 +343,7 @@ library
   build-depends: core
                , implementation
                , prim-indef
+               , libverse
                -- , mac-indef
                -- , cipher-indef
                -- , random-indef

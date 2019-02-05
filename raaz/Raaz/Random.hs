@@ -46,7 +46,7 @@ import qualified PRGState as PS
 import           PRGState (csprgName, csprgDescription)
 import qualified Raaz.Primitive.ChaCha20.Internal as ChaCha20
 import qualified Raaz.Primitive.Poly1305.Internal as Poly1305
-
+import           Raaz.Verse.Poly1305.C.Portable   ( verse_poly1305_c_portable_clamp)
 -- $randomness$
 --
 -- The raaz library gives a relatively high level interface to
@@ -414,7 +414,8 @@ instance RandomStorable ChaCha20.IV where
   fillRandomElements = unsafeFillRandomElements
 
 instance RandomStorable Poly1305.R where
-  fillRandomElements = unsafeFillRandomElements
+  fillRandomElements n ptr = unsafeFillRandomElements n ptr >> clamp
+    where clamp = liftIO $ verse_poly1305_c_portable_clamp (castPtr ptr) (toEnum n)
 
 instance RandomStorable w => RandomStorable (LE w) where
   fillRandomElements n = fillRandomElements n . lePtrToPtr
