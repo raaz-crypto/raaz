@@ -113,7 +113,6 @@ library core
                  , Raaz.Primitive.Sha2.Internal
                  , Raaz.Primitive.ChaCha20.Internal
                  , Raaz.Primitive.Poly1305.Internal
-                 , Raaz.Primitive.Poly1305.Memory
                  , Raaz.Primitive.HashMemory
 
   other-modules: Raaz.Core.ByteSource
@@ -306,6 +305,7 @@ library implementation
                , Raaz.Verse.Sha256.C.Portable
                , Raaz.Verse.Blake2b.C.Portable
                , Raaz.Verse.Poly1305.C.Portable
+               , Poly1305.Memory
   c-sources: libverse/chacha20/c/portable.c
            , libverse/sha256/c/portable.c
            , libverse/sha512/c/portable.c

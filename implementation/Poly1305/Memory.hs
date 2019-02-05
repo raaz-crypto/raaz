@@ -3,20 +3,25 @@
 {-# LANGUAGE FlexibleInstances          #-}
 -- | This module implements memory elements used for Poly1305
 -- implementations.
-module Raaz.Primitive.Poly1305.Memory
+module Poly1305.Memory
        ( Mem(..)
        , Element
        , elementToInteger
+       , rKeyPtr
+       , sKeyPtr
+       , accumPtr
        ) where
 
 import           Control.Monad.Reader
 import           Data.Bits
 import qualified Data.Vector.Unboxed as V
 import           Data.Word
+import           Foreign.Ptr                        ( Ptr, castPtr )
 import           Raaz.Core
 import qualified Raaz.Core.Types.Internal        as TI
 import           Raaz.Primitive.Poly1305.Internal
 
+import           Raaz.Verse.Poly1305.C.Portable (verse_poly1305_c_portable_clamp)
 
 -- | An element in the finite field GF(2¹³⁰ - 5) requires 130 bits
 -- which is stored as three 64-bit word where the last word has only
@@ -47,10 +52,28 @@ instance Memory Mem where
   memoryAlloc     = Mem <$> memoryAlloc <*> memoryAlloc <*> memoryAlloc
   unsafeToPointer = unsafeToPointer . accCell
 
+
+-- | Get the pointer to the array holding the key fragment r.
+rKeyPtr  :: MT Mem  (Ptr (Tuple 2 Word64))
+rKeyPtr  = castPtr  <$> withReaderT rCell getCellPointer
+
+-- | Get the pointer to the array holding the key fragment s.
+sKeyPtr  :: MT Mem (Ptr (Tuple 2 Word64))
+sKeyPtr  = castPtr <$> withReaderT sCell getCellPointer
+
+-- | Get the pointer to the accumulator array.
+accumPtr :: MT Mem (Ptr Element)
+accumPtr = withReaderT accCell getCellPointer
+
+-- | The clamping operation
+clamp :: MT Mem ()
+clamp = rKeyPtr >>= liftIO . flip verse_poly1305_c_portable_clamp 1
+
 instance Initialisable Mem (R,S) where
   initialise (r, s) = do clearAcc
                          withReaderT rCell   $ initialise $ r
                          withReaderT sCell   $ initialise $ s
+                         clamp
 
 instance Extractable Mem Poly1305 where
     extract = toPoly1305 <$> withReaderT accCell extract
@@ -62,5 +85,7 @@ instance InitialisableFromBuffer Mem where
   initialiser mem = interleave clearAcc
                     `mappend` liftInit rCell mem
                     `mappend` liftInit sCell mem
+                    `mappend` interleave clamp
+
     where liftRead f = liftTransfer (withReaderT f)
           liftInit f = liftRead f . initialiser . f
