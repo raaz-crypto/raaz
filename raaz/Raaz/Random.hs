@@ -380,8 +380,6 @@ randomByteString l = liftIOCont (create l) $ fillRandomBytes l
 instance RandomStorable Word8 where
   fillRandomElements = unsafeFillRandomElements
 
-
-
 instance RandomStorable Word16 where
   fillRandomElements = unsafeFillRandomElements
 
