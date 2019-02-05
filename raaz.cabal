@@ -148,8 +148,30 @@ library core
   elif os(linux)   && flag(linux-getrandom) { hs-source-dirs: core/entropy/getrandom  }
   else                                      { hs-source-dirs: core/entropy/urandom    }
 
+----------------------------- Libverse as a sublibrary -----------------------------
+
+library libverse
+  import: defaults
+  build-depends: core
+  hs-source-dirs: libverse
+  exposed-modules: Raaz.Verse.Chacha20.C.Portable
+                 , Raaz.Verse.Sha512.C.Portable
+                 , Raaz.Verse.Sha256.C.Portable
+                 , Raaz.Verse.Blake2b.C.Portable
+                 , Raaz.Verse.Poly1305.C.Portable
+  c-sources: libverse/chacha20/c/portable.c
+           , libverse/sha256/c/portable.c
+           , libverse/sha512/c/portable.c
+           , libverse/blake2b/c/portable.c
+           , libverse/poly1305/c/portable.c
+           , libverse/verse.c
+  include-dirs: libverse
+  includes: libverse/verse.h
+
 
 ---------------------- The signatures relevant for core ---------------------------
+
+
 
 library indef
   -- visibility: public
@@ -279,7 +301,8 @@ library implementation
   -- visibility: public
   import: defaults
   build-depends: core
-  hs-source-dirs: implementation, libverse
+               , libverse
+  hs-source-dirs: implementation
   exposed-modules: Blake2b.CPortable
                  , Sha256.CPortable
                  , ChaCha20.CPortable
@@ -300,18 +323,7 @@ library implementation
                     , Sha256.CPortable     as Sha256.Implementation
                     , Poly1305.CPortable   as Poly1305.Implementation
                     , Sha512.CPortable     as Sha512.Implementation
-  other-modules: Raaz.Verse.Chacha20.C.Portable
-               , Raaz.Verse.Sha512.C.Portable
-               , Raaz.Verse.Sha256.C.Portable
-               , Raaz.Verse.Blake2b.C.Portable
-               , Raaz.Verse.Poly1305.C.Portable
-               , Poly1305.Memory
-  c-sources: libverse/chacha20/c/portable.c
-           , libverse/sha256/c/portable.c
-           , libverse/sha512/c/portable.c
-           , libverse/blake2b/c/portable.c
-           , libverse/poly1305/c/portable.c
-           , libverse/verse.c
+  other-modules: Poly1305.Memory
   c-sources: implementation/cbits/raaz/hash/blake2/blake2b/portable.c
            , implementation/cbits/raaz/hash/blake2/blake2s/portable.c
            , implementation/cbits/raaz/hash/sha1/portable.c
@@ -319,11 +331,10 @@ library implementation
            , implementation/cbits/raaz/hash/sha512/portable.c
            , implementation/cbits/raaz/cipher/chacha20/cportable.c
   include-dirs: implementation/cbits/
-              , libverse
   includes: implementation/cbits/raaz/hash/blake2/common.h
           , implementation/cbits/raaz/hash/blake2/blake2b/constants.h
           , implementation/cbits/raaz/hash/blake2/blake2s/constants.h
-          , libverse/verse.h
+
 -------------------------------- The main raaz library -------------------------------------
 
 library
