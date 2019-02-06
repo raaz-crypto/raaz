@@ -2,7 +2,7 @@ module Command.Info where
 
 import Data.Version (showVersion)
 import Options.Applicative
-import Raaz hiding (length, replicate)
+import Raaz
 import qualified Raaz.Core.CpuSupports as CpuSupports
 import Raaz.Random  (csprgName)
 import Raaz.Entropy (entropySource)

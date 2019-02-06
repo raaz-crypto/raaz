@@ -1,6 +1,6 @@
 module Raaz.Core.Util.ByteStringSpec where
 
-import           Common
+import           Tests.Core
 import           Prelude hiding (length, take)
 import           Data.ByteString.Internal(createAndTrim)
 import qualified Data.ByteString as B

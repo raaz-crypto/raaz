@@ -1,0 +1,5 @@
+-- | An implementation of Blake2s.
+signature Blake2s.Implementation where
+
+import Raaz.Primitive.Blake2.Internal ( Blake2s )
+type   Prim = Blake2s

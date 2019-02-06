@@ -58,10 +58,11 @@ flag native
 
 flag wipe-memset
 
-     Description: Use plain memset for wiping memory. The problem its use is that agressive
-       compilers often optimise it out. Raaz uses platform specific functions designed
-       specifically to avoid this and hence this flag is STRONGLY NOT RECOMMENDED.
-       Use it only if your platform does not support such a call.
+     Description: Use plain memset for wiping memory. The problem with
+       its use is that agressive compilers often optimise it out. Raaz
+       uses platform specific functions designed specifically to avoid
+       this and hence enabling this flag is STRONGLY DISCOURAGED.  Use
+       it only if your platform does not support such a call.
 
      Default: False
      Manual: True
@@ -109,11 +110,9 @@ library core
                  , Raaz.Core.Types.Internal
                  , Raaz.Entropy
                  , Raaz.Primitive.Blake2.Internal
-                 , Raaz.Primitive.Sha256.Internal
-                 , Raaz.Primitive.Sha512.Internal
+                 , Raaz.Primitive.Sha2.Internal
                  , Raaz.Primitive.ChaCha20.Internal
                  , Raaz.Primitive.Poly1305.Internal
-                 , Raaz.Primitive.Poly1305.Memory
                  , Raaz.Primitive.HashMemory
 
   other-modules: Raaz.Core.ByteSource
@@ -144,13 +143,35 @@ library core
 
   --------------------- Entropy ----------------------------------------------
 
-  if  os(windows)                         { hs-source-dirs: core/entropy/windows    }
-  elif os(openbsd) || os(netbsd)          { hs-source-dirs: core/entropy/arc4random }
-  elif os(linux) && flag(linux-getrandom) { hs-source-dirs: core/entropy/getrandom  }
-  else                                    { hs-source-dirs: core/entropy/urandom    }
+  if   os(windows)                          { hs-source-dirs: core/entropy/windows    }
+  elif os(openbsd) || os(netbsd)            { hs-source-dirs: core/entropy/arc4random }
+  elif os(linux)   && flag(linux-getrandom) { hs-source-dirs: core/entropy/getrandom  }
+  else                                      { hs-source-dirs: core/entropy/urandom    }
+
+----------------------------- Libverse as a sublibrary -----------------------------
+
+library libverse
+  import: defaults
+  build-depends: core
+  hs-source-dirs: libverse
+  exposed-modules: Raaz.Verse.Chacha20.C.Portable
+                 , Raaz.Verse.Sha512.C.Portable
+                 , Raaz.Verse.Sha256.C.Portable
+                 , Raaz.Verse.Blake2b.C.Portable
+                 , Raaz.Verse.Poly1305.C.Portable
+  c-sources: libverse/chacha20/c/portable.c
+           , libverse/sha256/c/portable.c
+           , libverse/sha512/c/portable.c
+           , libverse/blake2b/c/portable.c
+           , libverse/poly1305/c/portable.c
+           , libverse/verse.c
+  include-dirs: libverse
+  includes: libverse/verse.h
 
 
 ---------------------- The signatures relevant for core ---------------------------
+
+
 
 library indef
   -- visibility: public
@@ -158,100 +179,81 @@ library indef
   build-depends: core
   hs-source-dirs: indef
   signatures: Implementation
+
+library util
+  import: defaults
+  build-depends: core
+               , indef
+  hs-source-dirs: indef
   exposed-modules: Utils
 
-library blake2b-indef
+library digest-indef
   -- visibility: public
   import: defaults
-  build-depends: core, indef
-  hs-source-dirs: indef
-  reexported-modules: Blake2b.Utils
-  signatures: Blake2b.Implementation
-  mixins: indef (Utils as Blake2b.Utils) requires (Implementation as Blake2b.Implementation)
+  hs-source-dirs: indef/digest
+  signatures: Implementation
+  build-depends: core
+               , indef
+               , util
 
-library blake2s-indef
-  -- visibility: public
+library keyed-indef
   import: defaults
-  build-depends: core, indef
-  hs-source-dirs: indef
-  reexported-modules: Blake2s.Utils
-  signatures: Blake2s.Implementation
-  mixins: indef (Utils as Blake2s.Utils) requires (Implementation as Blake2s.Implementation)
+  hs-source-dirs: indef/keyed
+  signatures: Implementation
+  build-depends: core
+               , indef
+               , util
 
-library sha256-indef
-  -- visibility: public
+library auth-indef
   import: defaults
-  build-depends: core, indef
-  hs-source-dirs: indef
-  reexported-modules: Sha256.Utils
-  signatures: Blake2s.Implementation
-  mixins: indef (Utils as Sha256.Utils) requires (Implementation as Sha256.Implementation)
-
-library sha512-indef
-  -- visibility: public
-  import: defaults
-  build-depends: core, indef
-  hs-source-dirs: indef
-  reexported-modules: Sha512.Utils
-  signatures: Sha512.Implementation
-  mixins: indef (Utils as Sha512.Utils) requires (Implementation as Sha512.Implementation)
-
-
-library chacha20-indef
-  -- visibility: public
-  import: defaults
-  build-depends: core, indef
-  hs-source-dirs: indef
-  signatures: ChaCha20.Implementation
-  exposed-modules: ChaCha20.PRG
-  reexported-modules: ChaCha20.Utils
-  mixins: indef (Utils as ChaCha20.Utils) requires (Implementation as ChaCha20.Implementation)
-
-library poly1305-indef
-  -- visibility: public
-  import: defaults
-  build-depends: core, indef
-  hs-source-dirs: indef
-  signatures: Poly1305.Implementation
-  reexported-modules: Poly1305.Utils
-  mixins: indef (Utils as Poly1305.Utils) requires (Implementation as Poly1305.Implementation)
+  hs-source-dirs: indef/auth
+  build-depends: core
+               , keyed-indef
+               , digest-indef
+               , util
+  exposed-modules: Interface
 
 library hash-indef
-  -- visibility: public
   import: defaults
-  hs-source-dirs: indef
+  hs-source-dirs: indef/digest/hash
+  signatures: Implementation
   build-depends: core
-               , blake2b-indef
-               , blake2s-indef
-               , sha512-indef
-               , sha256-indef
-  exposed-modules: Hash
-
-library mac-indef
-  import: defaults
-  hs-source-dirs: indef
-  build-depends: core
-               , poly1305-indef
-  exposed-modules: Mac
-
-library cipher-indef
-  -- visibility: public
-  import: defaults
-  hs-source-dirs: indef
-  build-depends: core
-               , chacha20-indef
-  exposed-modules: Cipher
+               , indef
+               , digest-indef
+               , util
+  exposed-modules: Interface
 
 library random-indef
+  import: defaults
+  hs-source-dirs: indef/random
+  build-depends: core
+               , indef
+               , util
+  signatures: Implementation
+  exposed-modules: PRGState
+
+library prim-indef
   -- visibility: public
   import: defaults
-  hs-source-dirs: indef
   build-depends: core
-               , chacha20-indef
-  exposed-modules: Random
-  -- Not sure why the line below is needed. Cabal seems to give an
-  -- warning.
-  other-modules: ChaCha20.PRG
+               , hash-indef
+               , random-indef
+  hs-source-dirs: prims/sha2
+                , prims/blake2
+  signatures: Blake2b.Implementation
+            , Blake2s.Implementation
+            , Sha256.Implementation
+            , Sha512.Implementation
+  reexported-modules: Blake2b.Interface
+                    , Blake2s.Interface
+                    , Sha256.Interface
+                    , Sha512.Interface
+                    , PRGState
+  mixins: hash-indef (Interface as Blake2b.Interface)  requires (Implementation as Blake2b.Implementation)
+        , hash-indef (Interface as Blake2s.Interface)  requires (Implementation as Blake2s.Implementation)
+        , hash-indef (Interface as Sha512.Interface)   requires (Implementation as Sha512.Implementation)
+        , hash-indef (Interface as Sha256.Interface)   requires (Implementation as Sha256.Implementation)
+        , random-indef requires (Implementation as ChaCha20.Implementation)
 
 --------------------  The implementation modules ----------------------------------
 
@@ -259,7 +261,8 @@ library implementation
   -- visibility: public
   import: defaults
   build-depends: core
-  hs-source-dirs: implementation, libverse
+               , libverse
+  hs-source-dirs: implementation
   exposed-modules: Blake2b.CPortable
                  , Sha256.CPortable
                  , ChaCha20.CPortable
@@ -272,17 +275,15 @@ library implementation
                  , Sha256.CHandWritten
                  , Sha512.CHandWritten
 
-  other-modules: Raaz.Verse.Chacha20.C.Portable
-               , Raaz.Verse.Sha512.C.Portable
-               , Raaz.Verse.Sha256.C.Portable
-               , Raaz.Verse.Blake2b.C.Portable
-               , Raaz.Verse.Poly1305.C.Portable
-  c-sources: libverse/chacha20/c/portable.c
-           , libverse/sha256/c/portable.c
-           , libverse/sha512/c/portable.c
-           , libverse/blake2b/c/portable.c
-           , libverse/poly1305/c/portable.c
-           , libverse/verse.c
+  -- By re-exporting the modules, we are giving a default selection
+  -- for implementations.
+  reexported-modules: Blake2b.CPortable as Blake2b.Implementation
+                    , Blake2s.CHandWritten as Blake2s.Implementation
+                    , ChaCha20.CPortable   as ChaCha20.Implementation
+                    , Sha256.CPortable     as Sha256.Implementation
+                    , Poly1305.CPortable   as Poly1305.Implementation
+                    , Sha512.CPortable     as Sha512.Implementation
+  other-modules: Poly1305.Memory
   c-sources: implementation/cbits/raaz/hash/blake2/blake2b/portable.c
            , implementation/cbits/raaz/hash/blake2/blake2s/portable.c
            , implementation/cbits/raaz/hash/sha1/portable.c
@@ -290,46 +291,30 @@ library implementation
            , implementation/cbits/raaz/hash/sha512/portable.c
            , implementation/cbits/raaz/cipher/chacha20/cportable.c
   include-dirs: implementation/cbits/
-              , libverse
   includes: implementation/cbits/raaz/hash/blake2/common.h
           , implementation/cbits/raaz/hash/blake2/blake2b/constants.h
           , implementation/cbits/raaz/hash/blake2/blake2s/constants.h
-          , libverse/verse.h
+
 -------------------------------- The main raaz library -------------------------------------
 
 library
   import: defaults
   hs-source-dirs: raaz
   build-depends: core
-               , hash-indef
-               , mac-indef
-               , cipher-indef
-               , random-indef
                , implementation
+               , prim-indef
+               , libverse
+
   exposed-modules: Raaz
+                 , Raaz.Blake2b
+                 , Raaz.Blake2s
+                 , Raaz.Sha256
+                 , Raaz.Sha512
+                 , Raaz.Random
   reexported-modules: Raaz.Core
                     , Raaz.Core.Types
-                    , Raaz.Cipher
-                    , Raaz.Hash
-                    , Raaz.Mac
-                    , Raaz.Random
-                    , Raaz.Entropy
-  mixins: cipher-indef (Cipher as Raaz.Cipher)
-            requires (ChaCha20.Implementation as ChaCha20.CPortable)
 
-        , hash-indef (Hash as Raaz.Hash)
-            requires (Blake2b.Implementation as Blake2b.CPortable,
-                      Blake2s.Implementation as Blake2s.CHandWritten,
-                      Sha256.Implementation as Sha256.CPortable,
-                      Sha512.Implementation as Sha512.CPortable
-          )
-
-        , mac-indef (Mac as Raaz.Mac)
-            requires (Poly1305.Implementation as Poly1305.CPortable)
-        , random-indef(Random as Raaz.Random)
-            requires (ChaCha20.Implementation as ChaCha20.CPortable)
-
-
+  other-modules: Raaz.V1
 
   autogen-modules: Paths_raaz
   other-modules: Paths_raaz
@@ -340,9 +325,9 @@ executable raaz
   import: defaults
   hs-source-dirs: raaz/bin
   main-is: Main.hs
-  other-modules: Command.Checksum
-               , Command.Rand
+  other-modules: Command.Rand
                , Command.Info
+               , Command.Checksum
                , Usage
   build-depends: optparse-applicative >= 0.13.0.0
                , core
@@ -353,43 +338,74 @@ executable raaz
     build-depends: transformers
 
 ---------------------------------- Test suit -----------------------------------------------------
+common test-defaults
+  import: defaults
+  build-depends: core
+               , HUnit                          >= 1.2
+               , QuickCheck                     >= 2.4
+               , hspec
+
+library test-core
+  -- visibility: private
+  import: test-defaults
+  hs-source-dirs: tests/core
+  exposed-modules: Tests.Core
+                 , Tests.Core.Imports
+                 , Tests.Core.Instances
+                 , Tests.Core.Utils
+
+library test-cipher
+  import: test-defaults
+  hs-source-dirs: tests/cipher
+  build-depends: test-core
+               , indef
+               , keyed-indef
+               , util
+  exposed-modules: Tests.Cipher
+
+library test-hash
+  import: test-defaults
+  hs-source-dirs: tests/message-digest
+  build-depends: test-core
+               , indef
+               , hash-indef
+               , util
+  exposed-modules: Tests.Digest
 
 test-suite tests
-  import: defaults
+  import: test-defaults
   type: exitcode-stdio-1.0
   hs-source-dirs: tests
   main-is: Spec.hs
-
-  build-depends: raaz
-               , core
-  build-depends: HUnit                          >= 1.2
-               , QuickCheck                     >= 2.4
-               , hspec
-               , hspec-discover
-               , transformers
-               , vector
-
+  build-depends: hspec-discover
+               , test-core
+               , test-cipher
+               , test-hash
+               , auth-indef
+               , implementation
+               , raaz
   build-tool-depends: hspec-discover:hspec-discover
   if !os(windows)
     cpp-options: -DHAVE_DEV_NULL
 
-  other-modules: Common
-               , Common.Cipher
-               , Common.Hash
-               , Common.Imports
-               , Common.Instances
-               , Common.Utils
-               , Raaz.Cipher.ChaCha20Spec
-               , Raaz.Core.ByteSourceSpec
+  other-modules: Raaz.Core.ByteSourceSpec
                , Raaz.Core.EncodeSpec
                , Raaz.Core.MemorySpec
                , Raaz.Core.Types.WordSpec
                , Raaz.Core.Util.ByteStringSpec
                , Raaz.RandomSpec
-               , Raaz.Hash.Sha256Spec
-               , Raaz.Hash.Sha512Spec
-               , Raaz.Hash.Blake2Spec
+               , Raaz.Cipher.ChaCha20Spec
+               , Raaz.Digest.Sha256Spec
+               , Raaz.Digest.Sha512Spec
+               , Raaz.Digest.Blake2Spec
                , Raaz.Mac.Poly1305Spec
+  mixins: test-cipher requires (Implementation as ChaCha20.Implementation)
+        , test-hash (Tests.Digest as Sha256.Digest) requires (Implementation as Sha256.Implementation)
+        , test-hash (Tests.Digest as Sha512.Digest) requires (Implementation as Sha512.Implementation)
+        , test-hash (Tests.Digest as Blake2b.Digest) requires (Implementation as Blake2b.Implementation)
+        , test-hash (Tests.Digest as Blake2s.Digest) requires (Implementation as Blake2s.Implementation)
+        , auth-indef (Interface as Poly1305.Interface)         requires (Implementation as Poly1305.Implementation)
+              -- , Raaz.Mac.Poly1305Spec
 
 --------------------------- Benchmarkings ---------------------------------------------
 common bench-defaults
@@ -409,6 +425,7 @@ library bench-types
 library bench-prim
   import: bench-defaults
   build-depends: bench-types
+               , util
                , indef
   other-modules: Benchmark.Types
   exposed-modules: Benchmark.Primitive
@@ -416,9 +433,11 @@ library bench-prim
 library bench-csprg
   import: bench-defaults
   build-depends: bench-types
-               , chacha20-indef
+               , util
+               , random-indef
   exposed-modules: Benchmark.CSPRG
   other-modules: Benchmark.Types
+
 
 benchmark primitives
   import: bench-defaults
@@ -463,7 +482,4 @@ benchmark primitives
           requires (Implementation as Sha512.CHandWritten)
 
         , bench-csprg (Benchmark.CSPRG as Benchmark.CSPRG.CPortable)
-          requires (ChaCha20.Implementation as ChaCha20.CPortable)
-
-        , bench-csprg (Benchmark.CSPRG as Benchmark.CSPRG.CHandWritten)
-          requires (ChaCha20.Implementation as ChaCha20.CHandWritten)
+          requires (Implementation as ChaCha20.CPortable)

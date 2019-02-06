@@ -3,7 +3,7 @@
 {-# LANGUAGE OverloadedStrings   #-}
 module Raaz.Core.EncodeSpec where
 
-import           Common
+import           Tests.Core
 import qualified Data.ByteString as B
 
 shouldBeAMultipleOf :: Int -> Int -> Bool

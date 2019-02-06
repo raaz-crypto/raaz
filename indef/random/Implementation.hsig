@@ -1,0 +1,52 @@
+{-# LANGUAGE DataKinds                   #-}
+{-# LANGUAGE FlexibleInstances           #-}
+{-# LANGUAGE MultiParamTypeClasses       #-}
+{-# LANGUAGE TypeFamilies                #-}
+
+-- | An implementation of a cryptographically secure pseudo-random
+-- generator out of a primitive.
+
+signature Implementation where
+
+import Raaz.Core
+
+-- | The primitive.
+data Prim
+instance Primitive Prim
+
+-- | The internal memory. It should be possible to initialise the
+-- contents of the internal memory from a buffer. After generating
+-- some pseudo-random bytes, we use this ability to achieve the /fast
+-- key erasure/ (<https://blog.cr.yp.to/20170723-random.html>). This
+-- design ensure that revealing the current state does not compromise
+-- the pseudo-random bytes generated in the past.
+data Internals
+instance Memory Internals
+instance InitialisableFromBuffer Internals
+
+-- | The alignment required for buffer (hack around bug
+-- https://ghc.haskell.org/trac/ghc/ticket/15138)
+type BufferAlignment = 32
+
+-- | The number of blocks of the cipher that is generated in one go
+-- encoded as a type level nat.
+type RandomBufferSize = 16
+
+
+-- | How many blocks of the primitive to generated before re-seeding.
+reseedAfter :: BLOCKS Prim
+-- | When using the cipher as a csprg, fill the contents of its
+-- internal memory with the system entropy function.
+initFromEntropyPool :: MT Internals ()
+
+-- | Generate pseudo-random data in multiples of the blocks.  The sole
+-- purpose of this function is to stretch a fixed size seed (the key
+-- of the cipher) to a cryptographically unpredictable stream of
+-- bytes. While, the key stream function of a cipher is a natural
+-- candidate actual implementations might differ for example, by
+-- ignoring the endian considerations. In particular, if deterministic
+-- generation of random bytes across architectures are what is
+-- desired, this function is not suitable.
+randomBlocks :: AlignedPointer BufferAlignment
+             -> BLOCKS Prim
+             -> MT Internals ()

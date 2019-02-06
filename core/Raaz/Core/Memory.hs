@@ -21,7 +21,7 @@ module Raaz.Core.Memory
        -- $memorysubsystem$
 
        -- ** Memory elements.
-         Memory(..), VoidMemory, copyMemory
+         Memory(..), VoidMemory, copyMemory, withMemoryPtr
        -- *** Initialisation and Extraction.
        -- $init-extract$
        , Initialisable(..), Extractable(..)
@@ -293,6 +293,18 @@ copyMemory dmem smem = memcpy (unsafeToPointer <$> dmem) (unsafeToPointer <$> sm
   where sz       = twistMonoidValue $ getAlloc smem
         getAlloc :: Memory m => Src m -> Alloc m
         getAlloc _ = memoryAlloc
+
+-- | Apply some low level action on the underlying buffer of the
+-- memory.
+withMemoryPtr :: Memory m
+              => (BYTES Int -> Pointer -> IO a)
+              -> MT m a
+withMemoryPtr action = do
+  mem <- ask
+  let sz = twistMonoidValue $ getAlloc mem
+      getAlloc :: Memory m => m -> Alloc m
+      getAlloc _ = memoryAlloc
+    in liftIO $ action sz $ unsafeToPointer mem
 
 -- | Perform an action which makes use of this memory. The memory
 -- allocated will automatically be freed when the action finishes

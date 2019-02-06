@@ -5,13 +5,12 @@ import Control.Monad
 import GHC.TypeLits
 
 import Raaz.Core
-import ChaCha20.Utils
-import ChaCha20.Implementation
 import Benchmark.Types
-
+import Implementation
+import Utils
 
 bench :: KnownNat BufferAlignment => RaazBench
 bench = (nm, toBenchmarkable $ action . fromIntegral)
-  where action count = allocBufferFor sz $ \ ptr -> insecurely $ replicateM_ count $ csprgBlocks ptr sz
+  where action count = allocBufferFor sz $ \ ptr -> insecurely $ replicateM_ count $ randomBlocks ptr sz
         nm = name ++ "-csprg"
         sz = atLeast nBytes

@@ -9,7 +9,7 @@
 -- | Internal types and function for blake2 hashes.
 module Raaz.Primitive.Blake2.Internal
        ( -- * The blake2 types
-         BLAKE2b, BLAKE2s
+         Blake2b, Blake2s
        , Blake2bMem, Blake2sMem
        , blake2Pad
        ) where
@@ -27,8 +27,8 @@ import           Raaz.Primitive.HashMemory
 
 ----------------------------- The blake2 type ---------------------------------
 
--- | The BLAKE2 type.
-newtype BLAKE2 w = BLAKE2 (Tuple 8 w)
+-- | The Blake2 type.
+newtype Blake2 w = Blake2 (Tuple 8 w)
                deriving (Eq, Equality, Storable, EndianStore)
 
 -- | Word type for Blake2b
@@ -37,42 +37,38 @@ type Word2b = LE Word64
 -- | Word type for Blake2s
 type Word2s = LE Word32
 
--- | The BLAKE2b hash type.
-type BLAKE2b = BLAKE2 Word2b
+-- | The Blake2b hash type.
+type Blake2b = Blake2 Word2b
 
--- | The BLAKE2s hash type.
-type BLAKE2s = BLAKE2 Word2s
+-- | The Blake2s hash type.
+type Blake2s = Blake2 Word2s
 
-instance Encodable BLAKE2b
-instance Encodable BLAKE2s
+instance Encodable Blake2b
+instance Encodable Blake2s
 
 
-instance IsString BLAKE2b where
+instance IsString Blake2b where
   fromString = fromBase16
 
-instance IsString BLAKE2s where
+instance IsString Blake2s where
   fromString = fromBase16
 
-instance Show BLAKE2b where
+instance Show Blake2b where
   show =  showBase16
 
-instance Show BLAKE2s where
+instance Show Blake2s where
   show =  showBase16
 
-instance Primitive BLAKE2b where
-  type BlockSize BLAKE2b      = 128
-  type Key BLAKE2b            = ()
-  type Digest BLAKE2b         = BLAKE2b
+instance Primitive Blake2b where
+  type BlockSize Blake2b      = 128
 
-instance Primitive BLAKE2s where
-  type BlockSize BLAKE2s      = 64
-  type Key BLAKE2s            = ()
-  type Digest BLAKE2s         = BLAKE2s
+instance Primitive Blake2s where
+  type BlockSize Blake2s      = 64
 
 -- | The initial value to start the blake2b hashing. This is equal to
 -- the iv `xor` the parameter block.
-hash2b0 :: BLAKE2b
-hash2b0 = BLAKE2 $ unsafeFromList [ 0x6a09e667f3bcc908 `xor` 0x01010040
+hash2b0 :: Blake2b
+hash2b0 = Blake2 $ unsafeFromList [ 0x6a09e667f3bcc908 `xor` 0x01010040
                                   , 0xbb67ae8584caa73b
                                   , 0x3c6ef372fe94f82b
                                   , 0xa54ff53a5f1d36f1
@@ -84,8 +80,8 @@ hash2b0 = BLAKE2 $ unsafeFromList [ 0x6a09e667f3bcc908 `xor` 0x01010040
 
 -- | The initial value to start the blake2b hashing. This is equal to
 -- the iv `xor` the parameter block.
-hash2s0 :: BLAKE2s
-hash2s0 = BLAKE2 $ unsafeFromList [ 0x6a09e667 `xor` 0x01010020
+hash2s0 :: Blake2s
+hash2s0 = Blake2 $ unsafeFromList [ 0x6a09e667 `xor` 0x01010020
                                   , 0xbb67ae85
                                   , 0x3c6ef372
                                   , 0xa54ff53a
@@ -95,10 +91,10 @@ hash2s0 = BLAKE2 $ unsafeFromList [ 0x6a09e667 `xor` 0x01010020
                                   , 0x5be0cd19
                                   ]
 
----------------------------------- Memory element for BLAKE2b -----------------------
+---------------------------------- Memory element for Blake2b -----------------------
 
-type Blake2bMem = HashMemory128 BLAKE2b
-type Blake2sMem = HashMemory64 BLAKE2s
+type Blake2bMem = HashMemory128 Blake2b
+type Blake2sMem = HashMemory64 Blake2s
 
 instance Initialisable Blake2bMem () where
   initialise _ = initialise hash2b0
@@ -110,7 +106,7 @@ instance Initialisable Blake2sMem () where
 
 -- | The generic blake2 padding algorithm.
 blake2Pad :: (Primitive prim, MonadIO m)
-          => Proxy prim  -- ^ the primitive (BLAKE2b or BLAKE2s).
+          => Proxy prim  -- ^ the primitive (Blake2b or Blake2s).
           -> BYTES Int   -- ^ length of the message
           -> WriteM m
 blake2Pad primProxy = padWrite 0 (blocksOf 1 primProxy) . skip

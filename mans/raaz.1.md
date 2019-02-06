@@ -11,9 +11,9 @@ raaz - Command line application program for the Raaz cryptographic
 
 # SYNOPSIS
 
-**raaz** **[-h | --help]** **[-v|--version]**
+**raaz** **[-h |\--help]** **[-v|\--version]**
 
-**raaz** **[SUB-COMMAND]**  **[-h | --help]**
+**raaz** **[SUB-COMMAND]**  **[-h | \--help]**
 
 **raaz** **[SUB-COMMAND]** **[SUB-COMMAND-OPTIONS]** **[SUB-COMMAND-ARGUMENTS]**
 
@@ -32,11 +32,11 @@ the library. This man page is about the program **raaz**.
 
 # OPTIONS
 
-**-h**, **--help**
+**-h**, **\--help**
 :    Display help message. This option is supported by sub-commands as well
      in which case it displays the brief help of that sub-command.
 
-**-v**, **--version**
+**-v**, **\--version**
 :    Display the version of the underlying raaz library
 
 
@@ -91,28 +91,19 @@ starting stream into a stream of pseudo-random bytes. It uses the
 
 ## File checksums
 
-**raaz** **blake2bsum** [OPTIONS] *FILE1* *FILE2* ...
+**raaz** **checksum** [OPTIONS] *FILE1* *FILE2* ...
 
-**raaz** **blake2ssum** [OPTIONS] *FILE1* *FILE2* ...
-
-**raaz** **sha512sum** [OPTIONS] *FILE1* *FILE2* ...
-
-**raaz** **sha256sum** [OPTIONS] *FILE1* *FILE2* ...
-
-Use the above checksum commands to compute/verify file checksums.  All
-these commands take the same set of options. One can use these
-checksum commands to compute as well as verify the integrity of
-files. In *compute mode*, the command prints one line in the format
-(DIGEST 2*SPACE FILE) for each input file. The DIGEST is the base16
-encoding of the cryptographic hash of the contents of the file. For
-example,
+This command uses the message digest algorithm in raaz to
+compute/verify file checksums. One can use these checksum command to
+compute as well as verify the integrity of files. In *compute mode*,
+the command prints one line in the format (DIGEST 2*SPACE FILE) for
+each input file. The DIGEST is the base16 encoding of the
+cryptographic hash of the contents of the file. For example,
 
 ```
-$ raaz sha256sum /dev/null
-e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  /dev/null
+$ raaz checksum /dev/null
+786a02f742015903c6c6fd852552d272912f4740e15847618a86e217f71f5419d25e1031afee585313896444934eb04b903a685b1448b755d56f701afe9be2ce  /dev/null
 
-$ raaz blake2ssum /dev/null
-69217a3079908094e11121d042354a7c1f55b6482ca1a51e1b250dfd1ed0eef9  /dev/null
 ```
 
 In *computation mode*, a non-zero exist status indicates some error in
@@ -122,22 +113,20 @@ with its associated input checksum. Thus, these commands can be used
 to check the integrity of a set of files.
 
 
-These commands provide an alternative to the common unix commands
-sha512sum and sha256sum. Therefore, checksums computed by one of these
-programs can be verified by **raaz** with the appropriate sub-command
-(and vice-versa).
+This command serves as a replacement for the common unix commands
+sha512sum and sha256sum.
 
 
 **Common options for all checksum commands**
 
-**-c**, **--check**
+**-c**, **\--check**
 :    *Verify* the checksums present in the input file instead of compute
      the checksum of the arguments.
 
-**-q**, **--quiet**
+**-q**, **\--quiet**
 :    While verifying do not print OK for successful checks. Only print failures.
 
-**-s**, **--status**
+**-s**, **\--status**
 :    While verifying do not print anything. Only return the appropriate exit status.
 
 

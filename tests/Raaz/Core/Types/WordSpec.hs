@@ -1,7 +1,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 module Raaz.Core.Types.WordSpec where
 
-import Common
+import Tests.Core
 import Data.ByteString as B
 import Data.Bits
 

@@ -58,8 +58,9 @@ instance IsString KEY where
 
 instance Primitive ChaCha20 where
   type BlockSize ChaCha20      = 64
-  type Key ChaCha20            = (KEY, IV, Counter)
-  type Digest ChaCha20         = ()
+
+type instance Key ChaCha20            = (KEY, IV, Counter)
+
 
 
 ---------- Memory for ChaCha20 implementations  ------------------
@@ -91,5 +92,6 @@ instance Initialisable ChaCha20Mem (KEY, IV, Counter) where
 instance Initialisable ChaCha20Mem (KEY, IV) where
   initialise (k, iv) = initialise (k, iv, 0 :: Counter)
 
-instance Extractable ChaCha20Mem () where
-  extract = return ()
+instance InitialisableFromBuffer ChaCha20Mem where
+  initialiser m = liftInit keyCell m `mappend` liftInit ivCell m `mappend` liftInit counterCell m
+    where liftInit f = liftTransfer (withReaderT f) . initialiser . f

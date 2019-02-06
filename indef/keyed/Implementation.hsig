@@ -1,0 +1,23 @@
+{-# LANGUAGE ConstraintKinds             #-}
+{-# LANGUAGE MultiParamTypeClasses       #-}
+{-# LANGUAGE FlexibleInstances           #-}
+{-# LANGUAGE TypeFamilies                #-}
+
+-- | A keyed primitive is something that expects a key for it to
+-- function. Examples include, encryption, encrypted-authentication
+-- etc. This signature add additional constraints to an implementation
+-- to make it a keyed cryptographic primitive.
+signature Implementation
+          ( Prim
+          , Internals
+          ) where
+
+import Raaz.Core
+
+-- | The primitive for which the implementation is given
+data Prim
+instance Primitive Prim
+-- | The internal memory used by the implementation.
+data Internals
+instance Memory Internals
+instance Key Prim ~ key => Initialisable Internals key

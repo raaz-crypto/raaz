@@ -22,14 +22,14 @@ name :: String
 name = "blake2b-c-handwritten"
 
 description :: String
-description = "Hand written BLAKE2b Implementation in portable C and Haskell FFI"
+description = "Hand written Blake2b Implementation in portable C and Haskell FFI"
 
-type Prim                    = BLAKE2b
+type Prim                    = Blake2b
 type Internals               = Blake2bMem
 type BufferAlignment         = 32
 
 
-additionalBlocks :: BLOCKS BLAKE2b
+additionalBlocks :: BLOCKS Blake2b
 additionalBlocks = blocksOf 1 Proxy
 
 
@@ -41,7 +41,7 @@ foreign import ccall unsafe
                       -> BLOCKS Prim
                       -> Ptr (BYTES Word64)
                       -> Ptr (BYTES Word64)
-                      -> Ptr BLAKE2b
+                      -> Ptr Blake2b
                       -> IO ()
 
 foreign import ccall unsafe
@@ -52,12 +52,12 @@ foreign import ccall unsafe
                    -> BYTES Word64
                    -> Word64
                    -> Word64
-                   -> Ptr BLAKE2b
+                   -> Ptr Blake2b
                    -> IO ()
 
 --
 processBlocks :: AlignedPointer BufferAlignment
-              -> BLOCKS BLAKE2b
+              -> BLOCKS Blake2b
               -> MT Blake2bMem ()
 
 processBlocks buf blks = do uPtr   <- uLengthCellPointer
@@ -80,7 +80,7 @@ processLast buf nbytes  = do
   hshPtr <- hashCell128Pointer
   liftIO $ c_blake2b_last lastBlockPtr remBytes u l f0 f1 hshPtr
 
-  where padding      = blake2Pad (Proxy :: Proxy BLAKE2b) nbytes
+  where padding      = blake2Pad (Proxy :: Proxy Blake2b) nbytes
         nBlocks      = atMost (transferSize padding) `mappend` toEnum (-1)
                                            -- all but the last block
         remBytes     = nbytes - inBytes nBlocks

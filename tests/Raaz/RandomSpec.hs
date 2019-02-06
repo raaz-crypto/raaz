@@ -1,6 +1,6 @@
 module Raaz.RandomSpec where
 
-import Common
+import Tests.Core
 import Raaz.Random
 
 spec :: Spec

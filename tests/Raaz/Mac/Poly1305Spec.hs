@@ -6,16 +6,15 @@
 
 module Raaz.Mac.Poly1305Spec where
 
-import           Common
-import           Common.Utils
-import qualified Common.Cipher as C
-
-import Raaz.Primitive.Poly1305.Internal
-
+import           Tests.Core
+import           Poly1305.Interface
+import           Raaz.Random
+import qualified Data.ByteString as BS
+import           Raaz.Primitive.Poly1305.Internal (R)
 
 macsTo :: ByteString -> Poly1305 -> Key Poly1305 -> Spec
 macsTo inp expected key =  it msg $ result `shouldBe` expected
-  where result = mac key inp
+  where result = auth key inp
         msg  = unwords [ "with key"
                        , shortened $ show key
                        , "macs"
@@ -23,16 +22,36 @@ macsTo inp expected key =  it msg $ result `shouldBe` expected
                        , "to"
                        , shortened $ show expected
                        ]
+
+randomClamping :: Spec
+randomClamping = it "randomly generated R values should be clamped"
+       $ checkClamped `shouldReturn` True
+  where randR :: RandM R
+        randR = random
+        checkClamped = insecurely $ isClamped <$> randR
+
+
+-- | Check whether the given value of r is clamped.
+isClamped :: R -> Bool
+isClamped = isClampedStr . toByteString
+  where top4Clear w = w < 16
+        bot2Clear w = w `mod` 4  == 0
+        isClampedStr bs = check top4Clear [3,7,11,15] && check bot2Clear [4,8,12]
+          where check pr  = all (pr . BS.index bs)
+
 spec :: Spec
-spec = do 
-  describe "Poly1305" $ 
+spec = do
+  describe "Poly1305" $
     basicEndianSpecs (undefined :: Poly1305)
-  describe "R" $
+  describe "R" $ do
     basicEndianSpecs (undefined :: R)
+    randomClamping
+
   describe "S" $
     basicEndianSpecs (undefined :: S)
 
-    
+
+
   with ( "85:d6:be:78:57:55:6d:33:7f:44:52:fe:42:d5:06:a8"
        , "01:03:80:8a:fb:0d:b2:fd:4a:bf:f6:af:41:49:f5:1b"
        ) $ ( "Cryptographic Forum Research Group" :: ByteString)

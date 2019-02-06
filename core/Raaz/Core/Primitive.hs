@@ -13,7 +13,7 @@ use a more high level interface.
 
 module Raaz.Core.Primitive
        ( -- * Cryptographic Primtives
-         Primitive(..)
+         Primitive(..), Key
        ) where
 
 import GHC.TypeLits
@@ -36,13 +36,7 @@ class KnownNat (BlockSize p) => Primitive p where
   -- an additional nounce/IV. This type denotes not just the secret
   -- key par but the nounce too.
   --
-  -- Primitives like hashes that do not require a key should have this
-  -- type defined as `()`.
 
-  type Key p :: *
+-- The type family that captures the key of a keyed primitive.
+type family Key p :: *
 
-  -- | Many primitives produce additional message digest after
-  -- processing the input, think of cryptographic hashes, AEAD
-  -- primitives etc. This associated type captures such additional
-  -- data produced by the primitive.
-  type Digest p :: *

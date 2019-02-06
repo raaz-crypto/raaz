@@ -116,7 +116,7 @@ class ByteSource src => PureByteSource src where
 
 ----------------------- Instances of byte source -----------------------
 
--- | __WARNING:_ The `fillBytes` may block.
+-- | __WARNING:__ The `fillBytes` may block.
 instance ByteSource Handle where
   {-# INLINE fillBytes #-}
   fillBytes sz hand cptr = do

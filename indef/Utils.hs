@@ -4,11 +4,9 @@
 module Utils
        ( allocBufferFor
        , processByteSource
-       , computeDigest
-       , transformAndDigest
+       , transform
        , BufferPtr
        , Buffer, getBufferPointer, bufferSize, processBuffer
-       , module Implementation
        ) where
 
 import Control.Monad.IO.Class          (liftIO)
@@ -17,7 +15,6 @@ import Data.ByteString.Internal as IB
 import Data.Proxy
 import Data.Monoid
 import Foreign.Ptr                     (castPtr)
-import System.IO.Unsafe                (unsafePerformIO)
 import GHC.TypeLits
 
 import Raaz.Core
@@ -85,43 +82,56 @@ processByteSource src = allocBufferFor blks $ \ ptr -> do
   processChunks (processBlocks ptr blks) (processLast ptr) src blks (forgetAlignment ptr)
   where blks       = atLeast l1Cache :: BLOCKS Prim
 
+
+{-
 -- | Compute the digest of a message.
-computeDigest :: (KnownNat BufferAlignment, ByteSource src)
-              => Key Prim -> src -> IO (Digest Prim)
+computeDigest :: ( ByteSource src
+                 , KnownNat BufferAlignment
+                 , Initialisable Internals (Key Prim)
+                 , Extractable   Internals Prim
+                 )
+              => Key Prim -> src -> IO Prim
 computeDigest key src = insecurely $ do initialise key
                                         processByteSource src
                                         extract
+-}
 
--- | Transform a given bytestring using the recommended implementation
--- of a stream cipher.
-transformAndDigest :: KnownNat BufferAlignment
-                   => Key Prim
-                   -> ByteString
-                   -> (ByteString, Digest Prim)
-transformAndDigest key bs = unsafePerformIO $ insecurely go
+transform :: ByteString -> MT Internals ByteString
+transform bs = allocBufferFor bufSz $ \ buf ->  do
+  let bufPtr = forgetAlignment buf
+    in do liftIO $ unsafeCopyToPointer bs bufPtr -- Copy the input to buffer.
+          processLast buf strSz
+          str  <- liftIO $ IB.create sbytes
+                  $ \ ptr -> Raaz.Core.memcpy (destination (castPtr ptr)) (source bufPtr) strSz
+          return str
+
   where strSz           = Raaz.Core.length bs
         BYTES sbytes    = strSz
         --
         -- Buffer size is at least the size of the input.
         --
         bufSz           = atLeast strSz `mappend` additionalBlocks
-        go :: MT Internals (B.ByteString, Digest Prim)
-        --
-        -- Where the action happens.
-        --
-        go = allocBufferFor bufSz $ \ buf ->  do
-          --
-          --  Copy the input string to the buffer.
-          --
-          let bufPtr = forgetAlignment buf
-            in do liftIO $ unsafeCopyToPointer bs bufPtr -- Copy the input to buffer.
-                  initialise key
-                  processLast buf strSz
-                  --
-                  -- Copy the data in the buffer back to the destination pointer.
-                  --
-                  str  <- liftIO $ IB.create sbytes
-                    $ \ ptr -> Raaz.Core.memcpy (destination (castPtr ptr)) (source bufPtr) strSz
+{-        
 
-                  dgst <- extract
-                  return (str,dgst)
+-- | Transform a given bytestring using the recommended implementation
+-- of a stream cipher.
+transformAndDigest :: ( KnownNat BufferAlignment
+                      , Initialisable Internals (Key Prim)
+                      , Extractable   Internals (Digest Prim)
+                      )
+                   => Key Prim
+                   -> ByteString
+                   -> (ByteString, Digest Prim)
+                   
+-- | Transform a given bytestring using the recommended implementation
+-- of a stream cipher.
+transformAndDigest :: ( KnownNat BufferAlignment
+                      , Initialisable Internals (Key Prim)
+                      , Extractable   Internals (Digest Prim)
+                      )
+                   => Key Prim
+                   -> ByteString
+                   -> (ByteString, Digest Prim)
+
+transformAndDigest key bs = unsafePerformIO $ insecurely go
+-}
