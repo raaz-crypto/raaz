@@ -93,5 +93,5 @@ instance Initialisable ChaCha20Mem (KEY, IV) where
   initialise (k, iv) = initialise (k, iv, 0 :: Counter)
 
 instance InitialisableFromBuffer ChaCha20Mem where
-  initialiser m = liftInit keyCell m <> liftInit ivCell m <> liftInit counterCell m
+  initialiser m = liftInit keyCell m `mappend` liftInit ivCell m `mappend` liftInit counterCell m
     where liftInit f = liftTransfer (withReaderT f) . initialiser . f
