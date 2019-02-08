@@ -114,6 +114,7 @@ library core
                  , Raaz.Primitive.ChaCha20.Internal
                  , Raaz.Primitive.Poly1305.Internal
                  , Raaz.Primitive.HashMemory
+                 , Raaz.Primitive.Keyed.Internal
 
   other-modules: Raaz.Core.ByteSource
                , Raaz.Core.Encode
