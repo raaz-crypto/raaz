@@ -169,9 +169,26 @@ library libverse
   includes: libverse/verse.h
 
 
----------------------- The signatures relevant for core ---------------------------
-
-
+---------------------- Indef packages for implementations ----------------------
+--
+-- There are the following generic indef packages which capture
+-- implementation of cryptographic bulk primitives.
+--
+-- indef: Captures implementation of a generic primitive
+--
+-- util: Exposes some utility function using the generic interface of
+--   the primitive
+--
+-- digest-indef: Captures implementation of a primitive that processes
+--   its input and finally produces a digest value. Examples include
+--   cryptographic hashes, MACs, encrypted authenticators etc. In the
+--   case of the last one we also encrypt the message (process the
+--   input)
+--
+-- keyed-indef: Captures implementations of primitives that requires a
+--   starting (often secret) key. Examples are ciphers, MACs,
+--   encrypted authenticators.
+--
 
 library indef
   -- visibility: public
@@ -204,6 +221,21 @@ library keyed-indef
                , indef
                , util
 
+-------- Indef packages supplying cryptographic operations ----------------------------
+--
+-- A cryptographic operation performed using an implementation of a
+-- primitive is exposed in the next set of packages using an interface
+-- file.
+--
+-- hash-indef: Provides cryptographic hashes/message digests
+--
+-- auth-indef: Provides message authentication
+--
+-- random-indef: Provides cryptographically secure pseudo-random
+--   generator making use of system entropy for seeding and a suitable
+--   primitive (typically a cipher) for stretching the seed.
+
+
 library auth-indef
   import: defaults
   hs-source-dirs: indef/auth
@@ -232,6 +264,14 @@ library random-indef
   signatures: Implementation
   exposed-modules: PRGState
 
+------------------- The indef of all primitives ------------------
+--
+-- This package collects all primitives supported by raaz, gives
+-- primitive specific implementations a new name, and exposes the
+-- interfaces. This is the indef package to use if you want to plugin
+-- new implementation.
+--
+
 library prim-indef
   -- visibility: public
   import: defaults
@@ -256,6 +296,26 @@ library prim-indef
         , random-indef requires (Implementation as ChaCha20.Implementation)
 
 --------------------  The implementation modules ----------------------------------
+--
+-- This package exposes all the implementations provided by the raaz
+-- library. In addition, for all primitives Prim supported by raaz, it
+-- exposes a default Prim.Implementation module. Therefore, adding
+-- this package to the dependency of another package that needs an
+-- implementation of Prim (via the module hole Prim.Implementation)
+-- satisfies the requirement.
+--
+-- One can selectively override the implementation used by a primitive
+-- or two primitives using the idiom
+--
+-- build-depends: prim-indef
+--              , implementation
+-- mixins: prim-indef requires (ChaCha20.Implementation as ChaCha20.CHandWritten)
+--
+--
+-- The above lines ensures that the interface provided by prim-indef
+-- for ChaCha20, uses the the Hand Written implementation while all
+-- other primitives uses the default implementation (set in the
+-- implementation package).
 
 library implementation
   -- visibility: public
@@ -304,7 +364,6 @@ library
                , implementation
                , prim-indef
                , libverse
-
   exposed-modules: Raaz
                  , Raaz.Blake2b
                  , Raaz.Blake2s
