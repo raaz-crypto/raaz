@@ -15,15 +15,16 @@ module Raaz.Primitive.Blake2.Internal
        ) where
 
 import           Control.Monad.IO.Class
-import           Data.Bits                  ( xor             )
+import           Data.Bits
 import           Data.Proxy
 import           Data.String
-import           Data.Word                  ( Word64, Word32  )
-import           Foreign.Storable           ( Storable(..) )
-import           Prelude      hiding        ( zipWith      )
+import           Data.Word                  ( Word64, Word32 )
+import           Foreign.Storable           ( Storable(..)   )
+import           Prelude      hiding        ( zipWith        )
 
 import           Raaz.Core
 import           Raaz.Primitive.HashMemory
+import           Raaz.Primitive.Keyed.Internal
 
 ----------------------------- The blake2 type ---------------------------------
 
@@ -65,31 +66,39 @@ instance Primitive Blake2b where
 instance Primitive Blake2s where
   type BlockSize Blake2s      = 64
 
--- | The initial value to start the blake2b hashing. This is equal to
--- the iv `xor` the parameter block.
-hash2b0 :: Blake2b
-hash2b0 = Blake2 $ unsafeFromList [ 0x6a09e667f3bcc908 `xor` 0x01010040
-                                  , 0xbb67ae8584caa73b
-                                  , 0x3c6ef372fe94f82b
-                                  , 0xa54ff53a5f1d36f1
-                                  , 0x510e527fade682d1
-                                  , 0x9b05688c2b3e6c1f
-                                  , 0x1f83d9abfb41bd6b
-                                  , 0x5be0cd19137e2179
-                                  ]
 
--- | The initial value to start the blake2b hashing. This is equal to
--- the iv `xor` the parameter block.
-hash2s0 :: Blake2s
-hash2s0 = Blake2 $ unsafeFromList [ 0x6a09e667 `xor` 0x01010020
-                                  , 0xbb67ae85
-                                  , 0x3c6ef372
-                                  , 0xa54ff53a
-                                  , 0x510e527f
-                                  , 0x9b05688c
-                                  , 0x1f83d9ab
-                                  , 0x5be0cd19
-                                  ]
+keyLength :: (Storable prim, Num b) => Proxy prim -> BYTES Int -> b
+keyLength proxy len
+  | len > tLen = fromIntegral tLen
+  | otherwise  = fromIntegral len
+  where tLen = trimLength proxy
+
+instance KeyedHash Blake2b where
+  hashInit len = Blake2 $ unsafeFromList [ 0x6a09e667f3bcc908 `xor` iv0
+                                         , 0xbb67ae8584caa73b
+                                         , 0x3c6ef372fe94f82b
+                                         , 0xa54ff53a5f1d36f1
+                                         , 0x510e527fade682d1
+                                         , 0x9b05688c2b3e6c1f
+                                         , 0x1f83d9abfb41bd6b
+                                         , 0x5be0cd19137e2179
+                                         ]
+    where len8 = keyLength (Proxy :: Proxy Blake2b) len
+          iv0 = 0x01010040 .|. shiftL len8 8
+
+instance KeyedHash Blake2s where
+  hashInit len =  Blake2 $ unsafeFromList [ 0x6a09e667 `xor` iv0
+                                          , 0xbb67ae85
+                                          , 0x3c6ef372
+                                          , 0xa54ff53a
+                                          , 0x510e527f
+                                          , 0x9b05688c
+                                          , 0x1f83d9ab
+                                          , 0x5be0cd19
+                                          ]
+    where len8 = keyLength (Proxy :: Proxy Blake2s) len
+          iv0  = 0x01010020  .|. shiftL len8 8
+
 
 ---------------------------------- Memory element for Blake2b -----------------------
 
@@ -97,10 +106,10 @@ type Blake2bMem = HashMemory128 Blake2b
 type Blake2sMem = HashMemory64 Blake2s
 
 instance Initialisable Blake2bMem () where
-  initialise _ = initialise hash2b0
+  initialise _ = initialise $ (hashInit 0 :: Blake2b)
 
 instance Initialisable Blake2sMem () where
-  initialise _ = initialise hash2s0
+  initialise _ = initialise $ (hashInit 0 :: Blake2s)
 
 ----------------------- Padding for Blake code ------------------------------
 
