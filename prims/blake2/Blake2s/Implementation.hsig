@@ -1,5 +1,13 @@
+{-# LANGUAGE TypeSynonymInstances  #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE FlexibleInstances     #-}
+
 -- | An implementation of Blake2s.
 signature Blake2s.Implementation where
 
+import Raaz.Core
 import Raaz.Primitive.Blake2.Internal ( Blake2s )
 type   Prim = Blake2s
+
+data Internals
+instance Initialisable Internals Blake2s
