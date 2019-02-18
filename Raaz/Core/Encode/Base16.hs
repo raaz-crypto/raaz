@@ -1,5 +1,6 @@
 -- | Base 16 or hexadecimal encoding of objects.
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE CPP                        #-}
 module Raaz.Core.Encode.Base16
        ( Base16
        , fromBase16, showBase16
@@ -28,7 +29,12 @@ import Raaz.Core.Encode.Internal
 -- are exposed mainly to make these definitions easy.
 --
 
-newtype Base16 = Base16 {unBase16 :: ByteString} deriving (Eq, Monoid)
+newtype Base16 = Base16 {unBase16 :: ByteString}
+#if MIN_VERSION_base(4,11,0)
+                 deriving (Eq, Semigroup, Monoid)
+#else
+                 deriving (Eq, Monoid)
+#endif
 
 -- Developers note: Internally base16 just stores the bytestring as
 -- is. The conversion happens when we do an encode and decode of

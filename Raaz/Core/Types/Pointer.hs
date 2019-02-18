@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP                        #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE FlexibleInstances          #-}
@@ -122,10 +123,23 @@ newtype ALIGN    = ALIGN { unALIGN :: Int }
                  deriving ( Show, Eq,Ord, Enum, Integral
                           , Real, Num, Storable
                           )
+#if MIN_VERSION_base(4,11,0)
+
+instance Num a => Semigroup (BYTES a) where
+  (<>) = (+)
+
+#endif
 
 instance Num a => Monoid (BYTES a) where
   mempty  = 0
   mappend = (+)
+
+#if MIN_VERSION_base(4,11,0)
+
+instance Semigroup ALIGN where
+  (<>) x y = ALIGN $ unALIGN x + unALIGN y
+
+#endif
 
 instance Monoid ALIGN where
   mempty  = ALIGN 0
@@ -237,6 +251,12 @@ newtype Alignment = Alignment { unAlignment :: Int }
 -- | The default alignment to use is word boundary.
 wordAlignment :: Alignment
 wordAlignment = alignment (undefined :: Align)
+
+#if MIN_VERSION_base(4,11,0)
+
+instance Semigroup Alignment where
+  (<>) = lcm
+#endif
 
 instance Monoid Alignment where
   mempty  = Alignment 1

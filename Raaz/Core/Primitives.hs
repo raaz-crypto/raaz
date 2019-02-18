@@ -93,6 +93,11 @@ type family  Key prim :: *
 newtype BLOCKS p = BLOCKS {unBLOCKS :: Int}
                  deriving (Show, Eq, Ord, Enum)
 
+#if MIN_VERSION_base(4,11,0)
+instance Semigroup (BLOCKS p) where
+  (<>) x y = BLOCKS $ unBLOCKS x + unBLOCKS y
+#endif
+
 instance Monoid (BLOCKS p) where
   mempty      = BLOCKS 0
   mappend x y = BLOCKS $ unBLOCKS x + unBLOCKS y

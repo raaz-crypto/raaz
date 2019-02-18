@@ -261,6 +261,11 @@ instance ( Equality a
 -- AND of two comparisons in a timing safe way.
 newtype Result =  Result { unResult :: Word }
 
+#if MIN_VERSION_base(4,11,0)
+instance Semigroup Result where
+    (<>) a b = Result (unResult a .|. unResult b)
+#endif
+
 instance Monoid Result where
   mempty      = Result 0
   mappend a b = Result (unResult a .|. unResult b)

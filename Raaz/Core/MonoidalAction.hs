@@ -1,5 +1,6 @@
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE FlexibleInstances          #-}
+{-# LANGUAGE CPP                        #-}
 
 -- | A module that abstracts out monoidal actions.
 module Raaz.Core.MonoidalAction
@@ -90,6 +91,12 @@ class (LAction m space, Monoid space) => Distributive m space
 -- a semidirect product.
 data SemiR space m = SemiR space !m
 
+#if MIN_VERSION_base(4,11,0)
+
+instance Distributive m space => Semigroup (SemiR space m) where
+  (<>) (SemiR x a) (SemiR y b) = SemiR (x `mappend`  (a <.> y))  (a `mappend` b)
+
+#endif
 
 instance Distributive m space => Monoid (SemiR space m) where
 

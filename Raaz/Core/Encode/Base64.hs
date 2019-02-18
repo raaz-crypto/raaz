@@ -1,5 +1,6 @@
 -- | Base 64 encoding of objects.
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE CPP                        #-}
 module Raaz.Core.Encode.Base64( Base64 ) where
 
 import Data.Char
@@ -18,7 +19,13 @@ import Raaz.Core.Encode.Internal
 
 -- | The type corresponding to the standard padded base-64 binary
 -- encoding.
-newtype Base64 = Base64 {unBase64 :: ByteString} deriving (Eq, Monoid)
+newtype Base64 = Base64 {unBase64 :: ByteString}
+#if MIN_VERSION_base(4,11,0)
+                 deriving (Eq, Semigroup, Monoid)
+#else
+                 deriving (Eq, Monoid)
+#endif
+
 
 -- Developers note: Internally base16 just stores the bytestring as
 -- is. The conversion happens when we do an encode and decode of

@@ -5,7 +5,7 @@
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-
+{-# LANGUAGE CPP                        #-}
 
 module Raaz.Core.Transfer
        ( -- * Transfer actions.
@@ -64,6 +64,12 @@ import           Raaz.Core.Encode
 -- | This monoid captures a transfer action.
 newtype TransferM m = TransferM { unTransferM :: m () }
 
+#if MIN_VERSION_base(4,11,0)
+instance Monad m => Semigroup (TransferM m) where
+  (<>) wa wb = TransferM $ unTransferM wa >> unTransferM wb
+#endif
+
+
 instance Monad m => Monoid (TransferM m) where
   mempty        = TransferM $ return ()
   {-# INLINE mempty #-}
@@ -99,7 +105,13 @@ makeTransfer sz action = SemiR (TransferM . action) $ inBytes sz
 -- | An element of type `WriteM m` is an action which when executed transfers bytes
 -- /into/ its input buffer.  The type @`WriteM` m@ forms a monoid and
 -- hence can be concatnated using the `<>` operator.
-newtype WriteM m = WriteM { unWriteM :: Transfer m } deriving Monoid
+newtype WriteM m = WriteM { unWriteM :: Transfer m }
+#if MIN_VERSION_base(4,11,0)
+                 deriving (Semigroup, Monoid)
+#else
+                 deriving Monoid
+#endif
+
 
 -- | A write io-action.
 type WriteIO = WriteM IO
@@ -258,7 +270,12 @@ instance Encodable (WriteM IO) where
 -- data associated from @r1@ and then the read associated with the
 -- data @r2@.
 
-newtype ReadM m = ReadM { unReadM :: Transfer m} deriving Monoid
+newtype ReadM m = ReadM { unReadM :: Transfer m}
+#if MIN_VERSION_base(4,11,0)
+                 deriving (Semigroup, Monoid)
+#else
+                 deriving Monoid
+#endif
 
 -- | A read io-action.
 type ReadIO = ReadM IO

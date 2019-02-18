@@ -1,6 +1,6 @@
 -- |The HMAC construction for a cryptographic hash
 
-
+{-# LANGUAGE CPP                        #-}
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE FlexibleContexts           #-}
@@ -56,7 +56,12 @@ import           Raaz.Hash.Internal
 -- are shortened by applying the appropriate hash. As a result the
 -- `show` and `fromString` need not be inverses of each other.
 --
-newtype HMACKey h = HMACKey { unKey :: B.ByteString } deriving Monoid
+newtype HMACKey h = HMACKey { unKey :: B.ByteString }
+#if MIN_VERSION_base(4,11,0)
+                 deriving (Semigroup, Monoid)
+#else
+                 deriving Monoid
+#endif
 
 instance (Hash h, Recommendation h) => Storable (HMACKey h) where
 
