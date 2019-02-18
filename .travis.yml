@@ -126,3 +126,5 @@ branches:
   only:
     - master
     - release-0.2.0
+    - release-0.2.1
+    - release-0.2.2
