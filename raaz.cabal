@@ -222,7 +222,7 @@ library keyed-indef
                , indef
                , util
 
--------- Indef packages supplying cryptographic operations ----------------------------
+-------- Indef packages supplying cryptographic operations -------------------------
 --
 -- A cryptographic operation performed using an implementation of a
 -- primitive is exposed in the next set of packages using an interface
@@ -264,6 +264,21 @@ library random-indef
                , util
   signatures: Implementation
   exposed-modules: PRGState
+
+-- keyed-hash: An implementation of message authentication using
+-- hashes. This package takes in an Implementation of a hash (together
+-- with some constraints) and creates an implementation for a message
+-- authenticator. The Mac.Implementation module that it exposes can be
+-- used as the Implementation module for the auth-indef package.
+
+library keyed-hash
+  import: defaults
+  hs-source-dirs: indef/keyed/hash
+  signatures: Implementation
+  build-depends: core
+               , util
+  exposed-modules: Mac.Implementation
+
 
 ------------------- The indef of all primitives ------------------
 --
