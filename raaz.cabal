@@ -294,6 +294,8 @@ library prim-indef
   build-depends: core
                , hash-indef
                , random-indef
+               , keyed-hash
+               , auth-indef
   hs-source-dirs: prims/sha2
                 , prims/blake2
   signatures: Blake2b.Implementation
@@ -304,12 +306,24 @@ library prim-indef
                     , Blake2s.Interface
                     , Sha256.Interface
                     , Sha512.Interface
+                    , Blake2b.Mac.Interface
+                    , Blake2s.Mac.Interface
                     , PRGState
   mixins: hash-indef (Interface as Blake2b.Interface)  requires (Implementation as Blake2b.Implementation)
         , hash-indef (Interface as Blake2s.Interface)  requires (Implementation as Blake2s.Implementation)
         , hash-indef (Interface as Sha512.Interface)   requires (Implementation as Sha512.Implementation)
         , hash-indef (Interface as Sha256.Interface)   requires (Implementation as Sha256.Implementation)
         , random-indef requires (Implementation as ChaCha20.Implementation)
+
+        -- MAC-ing with blake2b
+        , keyed-hash (Mac.Implementation as Blake2b.Mac.Implementation)
+            requires (Implementation as Blake2b.Implementation)
+        , auth-indef (Interface as Blake2b.Mac.Interface) requires (Implementation as Blake2b.Mac.Implementation)
+
+        -- MAC-ing with blake2s
+        , keyed-hash (Mac.Implementation as Blake2s.Mac.Implementation)
+            requires (Implementation as Blake2s.Implementation)
+        , auth-indef (Interface as Blake2s.Mac.Interface) requires (Implementation as Blake2s.Mac.Implementation)
 
 --------------------  The implementation modules ----------------------------------
 --
