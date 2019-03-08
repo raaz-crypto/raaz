@@ -9,10 +9,23 @@ module Raaz
          -- $messagedigest$
          Digest, digest, digestFile, digestSource
          --
-         -- *** Interoperability Notes
+         -- *** Specific message digests.
          -- $specific-digest$
 
-         -- ** Encryption.
+         -- ** Message authentication.
+         --
+         -- $messageauth$
+         --
+
+       , Auth
+       , auth
+       , authFile
+       , authSource
+         --
+         -- *** Specific message authentication algorithms
+         -- $specific-auth$
+         --
+
    --     , module Raaz.Random
        , version
        ) where
@@ -119,10 +132,8 @@ import Raaz.V1
 --
 -- == Warning
 --
--- Message digests __DO NOT__ provide any authentication. When used to
--- check a received message @M@, using the message digest can
--- guarantee integrity only in the case when we have separately
--- confirmed the veracity of the digest in hand.
+-- Message digests __DO NOT__ provide any authentication, use the
+-- message authenticator `Auth` instead.
 
 -- $specific-digest$
 --
@@ -130,10 +141,10 @@ import Raaz.V1
 -- want to compute the digest using specific cryptographic hash. Raaz
 -- supports the following:
 --
--- * `Raaz.Blake2b.Blake2b`
--- * `Raaz.Blake2s.Blake2s`
--- * `Raaz.Sha512.Sha512`
--- * `Raaz.Sha256.Sha256`
+-- * "Raaz.Blake2b"
+-- * "Raaz.Blake2s"
+-- * "Raaz.Sha512"
+-- * "Raaz.Sha256"
 --
 -- Here is an example that uses sha512 to compute the digest.
 --
@@ -142,6 +153,30 @@ import Raaz.V1
 -- >
 -- > main = getArgs >>= digestFile . head >>= print
 -- >
+
+-- $messageauth$
+--
+-- Given a message @M@ and a key @K@ the message authenticator is a
+-- short summary @S@ of @M@ with the additional property that it is
+-- cryptographically hard to compute @S@ if the key @K@ is unknown. In
+-- fact some thing stronger is true: Even when the adversary knows a
+-- set of messages @M₁,...,Mₙ@ and their authenticators @S₁,...Sₙ@,
+-- all of which was created using the key @K@, she cannot construct a
+-- message @M@ different from @M₁,...,Mₙ@ and its authenticator @S@
+-- without knowing the key @K@.
+--
+-- The message authentication tag provides authenticity in addition to
+-- integrity in the sense that only peers that know the secret key can
+-- generate the tag.
+
+-- $specific-auth$
+--
+-- If you want to use specific primitives for message authentication, you can use
+-- one of the following modules.
+--
+-- * "Raaz.Blake2b"
+-- * "Raaz.Blake2s.Blake2s"
+
 
 -- | Raaz library version number.
 version :: Version
