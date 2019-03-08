@@ -1,13 +1,16 @@
--- | This module exposes the interface to compute message digests
--- using the blake2b cryptographic hash.
+-- | This module exposes the interface to compute message digests and
+-- message authenticators using the blake2b cryptographic hash.
 module Raaz.Blake2b
-       ( Blake2b
+       ( -- * Message digest
+         Blake2b
        , digest
        , digestFile
        , digestSource
-       , auth, verify
-       , authFile, verifyFile
-       , authSource, verifySource
+         -- * Message authenticator
+       , Auth
+       , auth
+       , authFile
+       , authSource
        ) where
 
 import qualified Blake2b.Interface as U
@@ -35,47 +38,26 @@ digestSource :: ByteSource src
              -> IO Blake2b
 digestSource = U.digestSource
 
--- | Use the blake2b hashing algorithm as a message authenticator
--- using the keyed hashing algorithm for blake2b.
+type Auth = Keyed Blake2b
+
+-- | Using the keyed hashing for blake2s compute the message
+-- authenticator.
 auth :: PureByteSource src
-     => Key (Keyed Blake2b)
+     => Key Auth
      -> src  -- ^ Message
-     -> Keyed Blake2b
+     -> Auth
 auth  = A.auth
 
--- | Verify a message using the authentication tag.
-verify :: PureByteSource src
-       => Key (Keyed Blake2b) -- ^ The secret key used.
-       -> Keyed Blake2b       -- ^ The authentication tag.
-       -> src                 -- ^ Message to authenticate.
-       -> Bool
-verify = A.verify
-  -- The equality checking by design timing safe so do not worry.
-
--- | Compute the auth of file.
-authFile :: Key (Keyed Blake2b)
+-- | Compute the message authenticator for a file.
+authFile :: Key Auth
          -> FilePath  -- ^ File to be authed
-         -> IO (Keyed Blake2b)
+         -> IO Auth
 authFile = A.authFile
 
--- | Verify
-verifyFile :: Key (Keyed Blake2b)
-           -> Keyed Blake2b
-           -> FilePath
-           -> IO Bool
-verifyFile = A.verifyFile
-
--- | Compute the auth of an arbitrary byte source.
+-- | Compute the message authenticator for an arbitrary byte source.
 authSource :: ByteSource src
-           => Key (Keyed Blake2b)
+           => Key Auth
            -> src
-           -> IO (Keyed Blake2b)
+           -> IO Auth
 
 authSource = A.authSource
-
-verifySource :: ByteSource src
-             => Key (Keyed Blake2b)
-             -> Keyed Blake2b
-             -> src
-             -> IO Bool
-verifySource = A.verifySource

@@ -1,13 +1,16 @@
--- | This module exposes the interface to compute message digests
--- using the blake2s cryptographic hash.
+-- | This module exposes the interface to compute message digests and
+-- message authenticators using the blake2s cryptographic hash.
 module Raaz.Blake2s
-       ( Blake2s
+       ( -- * Message digest
+         Blake2s
        , digest
        , digestFile
        , digestSource
-       , auth, verify
-       , authFile, verifyFile
-       , authSource, verifySource
+
+         -- * Message authenticator
+       , auth
+       , authFile
+       , authSource
 
        ) where
 
@@ -35,47 +38,24 @@ digestSource :: ByteSource src
              -> IO Blake2s
 digestSource = U.digestSource
 
--- | Use the blake2b hashing algorithm as a message authenticator
--- using the keyed hashing algorithm for blake2b.
+-- | Using the keyed hashing for blake2s compute the message
+-- authenticator.
 auth :: PureByteSource src
      => Key (Keyed Blake2s)
      -> src  -- ^ Message
      -> Keyed Blake2s
 auth  = A.auth
 
--- | Verify a message using the authentication tag.
-verify :: PureByteSource src
-       => Key (Keyed Blake2s) -- ^ The secret key used.
-       -> Keyed Blake2s       -- ^ The authentication tag.
-       -> src                 -- ^ Message to authenticate.
-       -> Bool
-verify = A.verify
-  -- The equality checking by design timing safe so do not worry.
-
--- | Compute the auth of file.
+-- | Compute the message authenticator for a file.
 authFile :: Key (Keyed Blake2s)
          -> FilePath  -- ^ File to be authed
          -> IO (Keyed Blake2s)
 authFile = A.authFile
 
--- | Verify
-verifyFile :: Key (Keyed Blake2s)
-           -> Keyed Blake2s
-           -> FilePath
-           -> IO Bool
-verifyFile = A.verifyFile
-
--- | Compute the auth of an arbitrary byte source.
+-- | Compute the message authenticator for an arbitrary byte source.
 authSource :: ByteSource src
            => Key (Keyed Blake2s)
            -> src
            -> IO (Keyed Blake2s)
 
 authSource = A.authSource
-
-verifySource :: ByteSource src
-             => Key (Keyed Blake2s)
-             -> Keyed Blake2s
-             -> src
-             -> IO Bool
-verifySource = A.verifySource
