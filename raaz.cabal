@@ -335,7 +335,7 @@ library prim-indef
 -- satisfies the requirement.
 --
 -- One can selectively override the implementation used by a primitive
--- or two primitives using the idiom
+-- using the idiom
 --
 -- build-depends: prim-indef
 --              , implementation
