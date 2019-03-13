@@ -461,6 +461,14 @@ library test-hash
                , util
   exposed-modules: Tests.Digest
 
+library test-auth
+  import: test-defaults
+  hs-source-dirs: tests/auth
+  build-depends: test-core
+               , indef
+               , auth-indef
+  exposed-modules: Tests.Auth
+
 test-suite tests
   import: test-defaults
   type: exitcode-stdio-1.0
@@ -470,7 +478,7 @@ test-suite tests
                , test-core
                , test-cipher
                , test-hash
-               , auth-indef
+               , test-auth
                , implementation
                , raaz
   build-tool-depends: hspec-discover:hspec-discover
@@ -493,8 +501,9 @@ test-suite tests
         , test-hash (Tests.Digest as Sha512.Digest) requires (Implementation as Sha512.Implementation)
         , test-hash (Tests.Digest as Blake2b.Digest) requires (Implementation as Blake2b.Implementation)
         , test-hash (Tests.Digest as Blake2s.Digest) requires (Implementation as Blake2s.Implementation)
-        , auth-indef (Interface as Poly1305.Interface)         requires (Implementation as Poly1305.Implementation)
-              -- , Raaz.Mac.Poly1305Spec
+
+        , test-auth (Tests.Auth as Poly1305.Auth)     requires (Implementation as Poly1305.Implementation)
+
 
 --------------------------- Benchmarkings ---------------------------------------------
 common bench-defaults
