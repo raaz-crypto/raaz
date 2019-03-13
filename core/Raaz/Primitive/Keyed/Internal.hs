@@ -10,7 +10,7 @@
 -- the sha2 family of hashes; they require a more complicated HMAC
 -- construction.
 module Raaz.Primitive.Keyed.Internal
-       ( Keyed(..), KeyedHash(..), unsafeToKeyed, unsafeToPrim
+       ( Keyed(..), KeyedHash(..), HashKey(..), unsafeToKeyed, unsafeToPrim
        , trim, trimLength
        ) where
 
@@ -29,8 +29,8 @@ class (Primitive prim, Storable prim) => KeyedHash prim where
   hashInit :: BYTES Int -> prim
 
 
-trim :: Storable prim => Proxy prim -> Keyed ByteString -> BS.ByteString
-trim proxy (Keyed keyBS) = BS.take sz keyBS
+trim :: Storable prim => Proxy prim -> HashKey prim -> BS.ByteString
+trim proxy (HashKey hKey) = BS.take sz hKey
   where sz = fromEnum $ trimLength proxy
 
 trimLength :: Storable prim => Proxy prim -> BYTES Int
@@ -41,8 +41,16 @@ trimLength proxy = sizeOf proxy
 newtype Keyed prim = Keyed prim
                  deriving (Eq, Equality, Storable, EndianStore, Encodable)
 
+newtype HashKey prim = HashKey ByteString
 
-type instance Key (Keyed prim) = Keyed ByteString
+type instance Key (Keyed prim) = HashKey prim
+
+
+instance IsString (HashKey prim) where
+  fromString = HashKey . fromBase16
+
+instance Show (HashKey prim) where
+  show (HashKey hkey) = showBase16 hkey
 
 -- | Converts a Keyed value to the corresponding hash value. This
 -- function violates the principle that semantically distinct values

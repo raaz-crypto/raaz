@@ -26,7 +26,6 @@ module Mac.Implementation
           ) where
 
 import           Control.Monad.Reader
-import qualified Data.ByteString             as BS
 import           Data.Proxy
 import           Raaz.Core
 import           Raaz.Primitive.Keyed.Internal
@@ -69,14 +68,14 @@ instance Memory Internals where
   memoryAlloc = MACInternals <$> memoryAlloc <*> memoryAlloc
   unsafeToPointer = unsafeToPointer . hashInternals
 
-instance Initialisable Internals (Keyed BS.ByteString) where
-  initialise macKey = do withReaderT hashInternals $ initialise hash0
-                         bufPtr <- U.getBufferPointer <$> withReaderT keyBuffer ask
-                         unsafeTransfer keyWrite $ forgetAlignment bufPtr
-                         processKey
+instance Initialisable Internals (HashKey Base.Prim) where
+  initialise hKey = do withReaderT hashInternals $ initialise hash0
+                       bufPtr <- U.getBufferPointer <$> withReaderT keyBuffer ask
+                       unsafeTransfer keyWrite $ forgetAlignment bufPtr
+                       processKey
      where hash0    :: Base.Prim
-           kbs      = trim (Proxy :: Proxy Base.Prim) macKey
            hash0    = hashInit $ Raaz.Core.length kbs
+           kbs      = trim (Proxy :: Proxy Base.Prim) hKey
            keyWrite = padWrite 0 (blocksOf 1 proxyPrim) $ writeByteString kbs
            processKey = withReaderT keyBuffer ask >>= withReaderT hashInternals . U.processBuffer
            proxyPrim = Proxy :: Proxy Base.Prim
