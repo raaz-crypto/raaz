@@ -479,6 +479,7 @@ test-suite tests
                , test-cipher
                , test-hash
                , test-auth
+               , keyed-hash
                , implementation
                , raaz
   build-tool-depends: hspec-discover:hspec-discover
@@ -504,6 +505,13 @@ test-suite tests
 
         , test-auth (Tests.Auth as Poly1305.Auth)     requires (Implementation as Poly1305.Implementation)
 
+        , keyed-hash (Mac.Implementation as Blake2s.Mac.Implementation)
+            requires (Implementation as Blake2s.Implementation)
+        , test-auth  (Tests.Auth as Blake2s.Auth) requires (Implementation as Blake2s.Mac.Implementation)
+
+        , keyed-hash (Mac.Implementation as Blake2b.Mac.Implementation)
+            requires (Implementation as Blake2b.Implementation)
+        , test-auth  (Tests.Auth as Blake2b.Auth) requires (Implementation as Blake2b.Mac.Implementation)
 
 --------------------------- Benchmarkings ---------------------------------------------
 common bench-defaults
