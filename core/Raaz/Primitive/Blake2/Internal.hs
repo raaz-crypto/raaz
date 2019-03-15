@@ -84,7 +84,7 @@ instance KeyedHash Blake2b where
                                          , 0x5be0cd19137e2179
                                          ]
     where len8 = keyLength (Proxy :: Proxy Blake2b) len
-          iv0 = 0x01010040 .|. shiftL len8 8
+          iv0  = 0x01010040 .|. shiftL len8 8
 
 instance KeyedHash Blake2s where
   hashInit len =  Blake2 $ unsafeFromList [ 0x6a09e667 `xor` iv0
