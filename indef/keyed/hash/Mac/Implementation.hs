@@ -29,7 +29,7 @@ import           Control.Monad.Reader
 import           Data.Proxy
 import           Raaz.Core
 import           Raaz.Primitive.Keyed.Internal
-
+import           Control.Monad.IO.Class
 import qualified Implementation        as Base
 import qualified Utils                 as U
 
@@ -59,26 +59,62 @@ additionalBlocks = toKeyedBlocks Base.additionalBlocks
 
 
 -- | The internal memory used by the implementation.
-data Internals = MACInternals { hashInternals :: Base.Internals
-                              , keyBuffer     :: U.Buffer 1
+data Internals = MACInternals { hashInternals    :: Base.Internals
+                              , keyBuffer        :: U.Buffer 1
+                              , atStart          :: MemoryCell Bool
+                                -- Flag to check whether the key has been processed or not.
+                                -- see the note on Delayed key processing
                               }
+
+-- | Process the key inside the buffer with the process Buffer
+-- function.
+processKey :: MT Internals ()
+processKey = withReaderT keyBuffer ask
+             >>= withReaderT hashInternals . U.processBuffer
+
+
+-- | Process the key in the buffer with the processLast function.
+processKeyLast :: MT Internals ()
+processKeyLast = withReaderT keyBuffer ask >>=
+                 \ buffer ->
+                   let bufsz  = inBytes $ blocksOf 1 (Proxy :: Proxy (Base.Prim))
+                       bufPtr = U.getBufferPointer buffer
+                   in withReaderT hashInternals $ Base.processLast bufPtr bufsz
+
 
 
 instance Memory Internals where
-  memoryAlloc = MACInternals <$> memoryAlloc <*> memoryAlloc
+  memoryAlloc = MACInternals <$> memoryAlloc <*> memoryAlloc <*> memoryAlloc
   unsafeToPointer = unsafeToPointer . hashInternals
+
+-- * Delayed key processing ::
+--
+-- It would look like the initialisation step is pretty straight
+-- forward. Write the padded key to the buffer and then run process
+-- blocks on it. This will work as long as the message that needs to
+-- be authenticated is at-least 1 byte long.
+--
+-- For null bytes the padded key block is the last block and hashes
+-- like blake2 pass a different finalisation flag for the last
+-- block. At initialisation we cannot predict whether the message we
+-- are about to see is empty or not. So we keep everything ready
+-- (i.e. write the key into the keybuffer) and mark a flag that says
+-- we at the start of the message processing. The first time we call
+-- processBlocks or processLast, will have to do the appropriate
+-- initialisation and then proceed from there on.
 
 instance Initialisable Internals (HashKey Base.Prim) where
   initialise hKey = do withReaderT hashInternals $ initialise hash0
-                       bufPtr <- U.getBufferPointer <$> withReaderT keyBuffer ask
-                       unsafeTransfer keyWrite $ forgetAlignment bufPtr
-                       processKey
-     where hash0    :: Base.Prim
-           hash0    = hashInit $ Raaz.Core.length kbs
-           kbs      = trim (Proxy :: Proxy Base.Prim) hKey
-           keyWrite = padWrite 0 (blocksOf 1 proxyPrim) $ writeByteString kbs
-           processKey = withReaderT keyBuffer ask >>= withReaderT hashInternals . U.processBuffer
-           proxyPrim = Proxy :: Proxy Base.Prim
+                       withReaderT keyBuffer ask >>= writeKeyIntoBuffer
+                       withReaderT atStart $ initialise True
+
+     where kbs        = trim (Proxy :: Proxy Base.Prim) hKey
+           hash0      :: Base.Prim
+           hash0      = hashInit $ Raaz.Core.length kbs
+           keyWrite   = padWrite 0 (blocksOf 1 proxyPrim) $ writeByteString kbs
+
+           writeKeyIntoBuffer = unsafeTransfer keyWrite . forgetAlignment . U.getBufferPointer
+           proxyPrim = Proxy :: Proxy (Base.Prim)
 
 instance Extractable Internals Prim where
   extract = unsafeToKeyed <$> withReaderT hashInternals extractIt
@@ -91,10 +127,19 @@ instance Extractable Internals Prim where
 processBlocks :: AlignedPointer BufferAlignment
               -> BLOCKS Prim
               -> MT Internals ()
-processBlocks aptr = withReaderT hashInternals  . Base.processBlocks aptr . fromKeyedBlocks
+processBlocks aptr blks = do
+  start <- withReaderT atStart extract
+  when start $ do processKey
+                  withReaderT atStart $ initialise False
+  withReaderT hashInternals $ Base.processBlocks aptr $ fromKeyedBlocks blks
 
 -- | Process the last bytes of the stream.
 processLast :: AlignedPointer BufferAlignment
             -> BYTES Int
             -> MT Internals ()
-processLast aptr = withReaderT hashInternals . Base.processLast aptr
+processLast aptr sz = do
+  start <- withReaderT atStart extract
+
+  if start && sz == 0 then processKeyLast
+    else do when start processKey
+            withReaderT hashInternals $ Base.processLast aptr sz
