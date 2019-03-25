@@ -13,8 +13,14 @@ import qualified Blake2b.Auth   as B2b
 import qualified Blake2s.Digest as B2s
 import qualified Blake2s.Auth   as B2s
 
+import qualified Blake2b.VsHandwritten as VsB2bHW
+import qualified Blake2s.VsHandwritten as VsB2sHW
+
+
 spec2b :: Spec
 spec2b = describe "blake2b" $ do
+
+  VsB2bHW.specCompare
   basicEndianSpecs (undefined :: Blake2b)
   ------------- Unit tests -------------------------
   let digestsTo = B2b.digestsTo
@@ -40,6 +46,8 @@ spec2b = describe "blake2b" $ do
 
 spec2s :: Spec
 spec2s = describe "blake2s" $ do
+  VsB2sHW.specCompare
+
   basicEndianSpecs (undefined :: Blake2s)
 
   ------------- Unit tests -------------------------

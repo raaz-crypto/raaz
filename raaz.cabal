@@ -489,6 +489,7 @@ test-suite tests
                , test-core
                , test-cipher
                , test-hash
+               , test-hash-compare
                , test-auth
                , keyed-hash
                , implementation
@@ -510,9 +511,21 @@ test-suite tests
                , Raaz.Mac.Poly1305Spec
   mixins: test-cipher requires (Implementation as ChaCha20.Implementation)
         , test-hash (Tests.Digest as Sha256.Digest) requires (Implementation as Sha256.Implementation)
+        , test-hash-compare (Tests.Digest.Compare as Sha256.VsHandwritten)
+             requires (Implementation as Sha256.Implementation, Alternate as Sha256.CHandWritten)
+
         , test-hash (Tests.Digest as Sha512.Digest) requires (Implementation as Sha512.Implementation)
+        , test-hash-compare (Tests.Digest.Compare as Sha512.VsHandwritten)
+             requires (Implementation as Sha512.Implementation, Alternate as Sha512.CHandWritten)
+
         , test-hash (Tests.Digest as Blake2b.Digest) requires (Implementation as Blake2b.Implementation)
+        , test-hash-compare (Tests.Digest.Compare as Blake2b.VsHandwritten)
+             requires (Implementation as Blake2b.Implementation, Alternate as Blake2b.CHandWritten)
+
         , test-hash (Tests.Digest as Blake2s.Digest) requires (Implementation as Blake2s.Implementation)
+        , test-hash-compare (Tests.Digest.Compare as Blake2s.VsHandwritten)
+             requires (Implementation as Blake2s.Implementation, Alternate as Blake2s.CHandWritten)
+
 
         , test-auth (Tests.Auth as Poly1305.Auth)     requires (Implementation as Poly1305.Implementation)
 
