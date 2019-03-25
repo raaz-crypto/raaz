@@ -1,5 +1,11 @@
 # Change log for [raaz].
 
+## [0.2.1] - 25 March, 2019
+
+This is a minor release just to get the latest ghc.
+
+* Get raaz to work with latest ghcs.
+
 ## [0.2.0] - 24 August, 2017
 
 * Some cpu detection builtin for GCC. Would come handy in future for
@@ -67,4 +73,5 @@ This release comes with very little changes.
 [0.1.0]: <http://github.com/raaz-crypto/raaz/releases/tag/v0.1.0>
 [0.1.1]: <http://github.com/raaz-crypto/raaz/releases/tag/v0.1.1>
 [0.2.0]: <http://github.com/raaz-crypto/raaz/releases/tag/v0.2.0>
+[0.2.1]: <http://github.com/raaz-crypto/raaz/releases/tag/v0.2.1>
 [raaz]:  <http://github.com/raaz-crypto/raaz/>
