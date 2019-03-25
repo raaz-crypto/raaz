@@ -26,10 +26,11 @@ module Mac.Implementation
           ) where
 
 import           Control.Monad.Reader
+
+import           Data.ByteString       as BS
 import           Data.Proxy
 import           Raaz.Core
 import           Raaz.Primitive.Keyed.Internal
-import           Control.Monad.IO.Class
 import qualified Implementation        as Base
 import qualified Utils                 as U
 
@@ -56,6 +57,9 @@ fromKeyedBlocks = toEnum . fromEnum
 additionalBlocks :: BLOCKS Prim
 additionalBlocks = toKeyedBlocks Base.additionalBlocks
 
+trim ::  HashKey Base.Prim -> BS.ByteString
+trim (HashKey hKey) = BS.take sz hKey
+  where sz = fromEnum $ sizeOf (Proxy :: Proxy Base.Prim)
 
 
 -- | The internal memory used by the implementation.
@@ -108,13 +112,13 @@ instance Initialisable Internals (HashKey Base.Prim) where
                        withReaderT keyBuffer ask >>= writeKeyIntoBuffer
                        withReaderT atStart $ initialise True
 
-     where kbs        = trim (Proxy :: Proxy Base.Prim) hKey
+     where kbs        = trim hKey
            hash0      :: Base.Prim
            hash0      = hashInit $ Raaz.Core.length kbs
            keyWrite   = padWrite 0 (blocksOf 1 proxyPrim) $ writeByteString kbs
 
            writeKeyIntoBuffer = unsafeTransfer keyWrite . forgetAlignment . U.getBufferPointer
-           proxyPrim = Proxy :: Proxy (Base.Prim)
+           proxyPrim = Proxy :: Proxy Base.Prim
 
 instance Extractable Internals Prim where
   extract = unsafeToKeyed <$> withReaderT hashInternals extractIt

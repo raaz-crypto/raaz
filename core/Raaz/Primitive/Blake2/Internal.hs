@@ -19,7 +19,7 @@ import           Data.Bits
 import           Data.Proxy
 import           Data.String
 import           Data.Word                  ( Word64, Word32 )
-import           Foreign.Storable           ( Storable(..)   )
+import           Foreign.Storable           ( Storable       )
 import           Prelude      hiding        ( zipWith        )
 
 import           Raaz.Core
@@ -71,7 +71,7 @@ keyLength :: (Storable prim, Num b) => Proxy prim -> BYTES Int -> b
 keyLength proxy len
   | len > tLen = fromIntegral tLen
   | otherwise  = fromIntegral len
-  where tLen = trimLength proxy
+  where tLen = sizeOf proxy
 
 instance KeyedHash Blake2b where
   hashInit len = Blake2 $ unsafeFromList [ 0x6a09e667f3bcc908 `xor` iv0

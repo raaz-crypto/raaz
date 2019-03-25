@@ -11,11 +11,9 @@
 -- construction.
 module Raaz.Primitive.Keyed.Internal
        ( Keyed(..), KeyedHash(..), HashKey(..), unsafeToKeyed, unsafeToPrim
-       , trim, trimLength
        ) where
 
 import Data.ByteString  as BS
-import Data.Proxy       ( Proxy    )
 import Data.String
 import Foreign.Storable ( Storable )
 
@@ -27,15 +25,6 @@ class (Primitive prim, Storable prim) => KeyedHash prim where
   -- The initialisation used by the hash can depend on the length of
   -- the key used.
   hashInit :: BYTES Int -> prim
-
-
-trim :: Storable prim => Proxy prim -> HashKey prim -> BS.ByteString
-trim proxy (HashKey hKey) = BS.take sz hKey
-  where sz = fromEnum $ trimLength proxy
-
-trimLength :: Storable prim => Proxy prim -> BYTES Int
-trimLength proxy = sizeOf proxy
-
 
 -- | The message authentication code associated with the hashes.
 newtype Keyed prim = Keyed prim
