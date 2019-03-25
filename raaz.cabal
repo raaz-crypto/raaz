@@ -461,6 +461,17 @@ library test-hash
                , util
   exposed-modules: Tests.Digest
 
+library test-hash-compare
+  import: test-defaults
+  hs-source-dirs: tests/message-digest
+  build-depends: test-core
+               , indef
+               , hash-indef
+               , util
+  exposed-modules: Tests.Digest.Compare
+  mixins: hash-indef(Interface as AlternateInterface) requires (Implementation as Alternate)
+        , hash-indef
+
 library test-auth
   import: test-defaults
   hs-source-dirs: tests/auth
