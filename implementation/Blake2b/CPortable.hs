@@ -42,11 +42,27 @@ processBlocks buf blks =
      hshPtr <- castPtr <$> hashCell128Pointer
      let wblks  = toEnum  $ fromEnum blks
          blkPtr = castPtr $ forgetAlignment buf
-       in liftIO $ verse_blake2b_c_portable_iter
-          blkPtr wblks uPtr lPtr hshPtr
+       in liftIO $
+          verse_blake2b_c_portable_iter blkPtr wblks uPtr lPtr hshPtr
 
 
--- | Process the last bytes.
+-- | Process the last bytes. The last block of the message (whether it
+-- is padded or not) should necessarily be processed by the
+-- processLast function as one needs to set the finalisation flag for
+-- it.
+--
+-- Let us consider two cases.
+--
+-- 1. The message is empty. In which case the padding is 1-block
+--    size. This needs to be processed as the last block
+--
+-- 2. If the message is non-empty then the padded message is the least
+--    multiple @n@ of block size that is greater than or equal to the
+--    input and hence is at least 1 block in size. Therefore, we
+--    should be compressing a total @n-1@ blocks using the block
+--    compression function at the last block using the finalisation
+--    flags.
+--
 processLast :: AlignedPointer BufferAlignment
             -> BYTES Int
             -> MT Blake2bMem ()
