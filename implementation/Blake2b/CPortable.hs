@@ -1,15 +1,14 @@
-{-# LANGUAGE ForeignFunctionInterface   #-}
 {-# LANGUAGE DataKinds                  #-}
 {-# LANGUAGE KindSignatures             #-}
 
 -- | The portable C-implementation of Blake2b.
 module Blake2b.CPortable where
 
-import Foreign.Ptr                ( Ptr, castPtr )
+
 import Control.Monad.IO.Class     ( liftIO       )
-import Data.Word
 import Data.Proxy
 import Data.Bits                  ( complement   )
+import Foreign.Ptr                ( castPtr      )
 
 import Raaz.Core
 import Raaz.Core.Transfer         ( transferSize, unsafeTransfer )
@@ -33,29 +32,6 @@ additionalBlocks :: BLOCKS Blake2b
 additionalBlocks = blocksOf 1 Proxy
 
 
------------------------- The foreign function calls  ---------------------
-
-foreign import ccall unsafe
-  "raaz/hash/blake2/common.h raazHashBlake2bPortableBlockCompress"
-  c_blake2b_compress  :: AlignedPointer BufferAlignment
-                      -> BLOCKS Prim
-                      -> Ptr (BYTES Word64)
-                      -> Ptr (BYTES Word64)
-                      -> Ptr Blake2b
-                      -> IO ()
-
-foreign import ccall unsafe
-  "raaz/hash/blake2/common.h raazHashBlake2bPortableLastBlock"
-  c_blake2b_last   :: Pointer
-                   -> BYTES Int
-                   -> BYTES Word64
-                   -> BYTES Word64
-                   -> Word64
-                   -> Word64
-                   -> Ptr Blake2b
-                   -> IO ()
-
---
 processBlocks :: AlignedPointer BufferAlignment
               -> BLOCKS Blake2b
               -> MT Blake2bMem ()
