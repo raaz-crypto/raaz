@@ -42,7 +42,7 @@ name = Base.name ++ "-keyed-hash"
 
 -- | Description of the implementation.
 description :: String
-description = "This is the implementation of a MAC using a simple keyed hashing using the " ++ Base.name
+description = "Implementation of a MAC based on simple keyed hashing that makes use of " ++ Base.name
               ++ "implementation."
 
 type BufferAlignment = Base.BufferAlignment
