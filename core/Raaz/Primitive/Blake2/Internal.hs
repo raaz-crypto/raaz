@@ -113,9 +113,15 @@ instance Initialisable Blake2sMem () where
 
 ----------------------- Padding for Blake code ------------------------------
 
--- | The generic blake2 padding algorithm.
+-- | The generic blake2 padding algorithm. We pad the message with
+-- just enough zero's to make it a multiple of the block size. The
+-- exception is the empty message which should generate a single block
+-- of zeros.
+--
 blake2Pad :: (Primitive prim, MonadIO m)
           => Proxy prim  -- ^ the primitive (Blake2b or Blake2s).
           -> BYTES Int   -- ^ length of the message
           -> WriteM m
-blake2Pad primProxy = padWrite 0 (blocksOf 1 primProxy) . skip
+blake2Pad primProxy m
+  | m == 0    = writeBytes 0 $ blocksOf 1 primProxy -- empty message
+  | otherwise = padWrite 0 (blocksOf 1 primProxy) $ skip m
