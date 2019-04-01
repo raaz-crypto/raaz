@@ -41,6 +41,11 @@ instance IsString (HashKey prim) where
 instance Show (HashKey prim) where
   show (HashKey hkey) = showBase16 hkey
 
+instance Encodable (HashKey prim) where
+  toByteString   (HashKey bs) = bs
+  fromByteString              = Just . HashKey
+  unsafeFromByteString        = HashKey
+
 -- | Converts a Keyed value to the corresponding hash value. This
 -- function violates the principle that semantically distinct values
 -- should be of distinct types and hence should be considered unsafe
