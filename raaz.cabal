@@ -401,10 +401,9 @@ library
                  , Raaz.Sha256
                  , Raaz.Sha512
                  , Raaz.Random
+                 , Raaz.V1
   reexported-modules: Raaz.Core
                     , Raaz.Core.Types
-
-  other-modules: Raaz.V1
 
   autogen-modules: Paths_raaz
   other-modules: Paths_raaz

@@ -7,7 +7,6 @@ module Raaz.Blake2b
        , digestFile
        , digestSource
          -- * Message authenticator
-       , Auth
        , auth
        , authFile
        , authSource
@@ -17,7 +16,7 @@ import qualified Blake2b.Interface as U
 import qualified Blake2b.Mac.Interface as A
 import           Raaz.Core
 import           Raaz.Primitive.Blake2.Internal ( Blake2b )
-import           Raaz.Primitive.Keyed.Internal  (Keyed)
+import           Raaz.Primitive.Keyed.Internal  (Keyed, HashKey)
 
 
 -- | Compute the digest of a pure byte source like, `B.ByteString`.
@@ -38,26 +37,24 @@ digestSource :: ByteSource src
              -> IO Blake2b
 digestSource = U.digestSource
 
-type Auth = Keyed Blake2b
-
 -- | Using the keyed hashing for blake2s compute the message
 -- authenticator.
 auth :: PureByteSource src
-     => Key Auth
+     => HashKey Blake2b
      -> src  -- ^ Message
-     -> Auth
+     -> Keyed Blake2b
 auth  = A.auth
 
 -- | Compute the message authenticator for a file.
-authFile :: Key Auth
+authFile :: HashKey Blake2b
          -> FilePath  -- ^ File to be authed
-         -> IO Auth
+         -> IO (Keyed Blake2b)
 authFile = A.authFile
 
 -- | Compute the message authenticator for an arbitrary byte source.
 authSource :: ByteSource src
-           => Key Auth
+           => HashKey Blake2b
            -> src
-           -> IO Auth
+           -> IO (Keyed Blake2b)
 
 authSource = A.authSource
