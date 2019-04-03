@@ -24,6 +24,7 @@ maintainer:   ppk@cse.iitk.ac.in
 category:      Codec, Raaz
 build-type:    Simple
 
+data-files: tests/standard-test-vectors/blake2/tests.json
 
 extra-source-files: CHANGELOG.md
                   , README.md
@@ -480,12 +481,15 @@ library test-auth
                , auth-indef
   exposed-modules: Tests.Auth
 
+-------------------------- The test suits -------------------------
+
 test-suite tests
   import: test-defaults
   type: exitcode-stdio-1.0
   hs-source-dirs: tests
   main-is: Spec.hs
   build-depends: hspec-discover
+               , attoparsec
                , test-core
                , test-cipher
                , test-hash
@@ -509,6 +513,8 @@ test-suite tests
                , Raaz.Digest.Sha512Spec
                , Raaz.Digest.Blake2Spec
                , Raaz.Mac.Poly1305Spec
+               , Paths_raaz
+
   mixins: test-cipher requires (Implementation as ChaCha20.Implementation)
         , test-hash (Tests.Digest as Sha256.Digest) requires (Implementation as Sha256.Implementation)
         , test-hash-compare (Tests.Digest.Compare as Sha256.VsHandwritten)
