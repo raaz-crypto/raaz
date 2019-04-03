@@ -9,12 +9,13 @@
        written C/assembly.
 
     2. Complete rewrite of the interface using backpack where modules
-       and signatures now replace classes related to
-       implementation. Simplifies the library and allows easy plugging
-       in of custom implementations.
+       and signatures now replace classes related to implementation.
+       Simplifies the library and allows easy plugging in of custom
+       implementations.
 
     3. GHC below 8.2 not supported anymore because of backpack.
 
+* Blake2 based keyed hashing for message authentication.
 * Uses a host-endian variant of chacha20 keystream for csprg.
 * Block size moved to type level. Allows better type safety.
 * Use Data.Proxy.Proxy to get rid of some uses of undefined.
