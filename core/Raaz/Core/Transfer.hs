@@ -237,25 +237,11 @@ writeBytes :: (LengthUnit n, MonadIO m) => Word8 -> n -> WriteM m
 writeBytes w8 n = makeTransfer n memsetIt
   where memsetIt cptr = liftIO $ memset cptr w8 n
 
-{-
--- | The write action @padWriteTo w n wr@ is wr padded with the byte @w@ so that the total length
--- is n. If the total bytes written by @wr@ is greater than @n@ then this throws an error.
-padWriteTo :: ( LengthUnit n, MonadIO m)
-              => Word8     -- ^ the padding byte to use
-              -> n         -- ^ the total length to pad to
-              -> WriteM m  -- ^ the write that needs padding
-              -> WriteM m
-padWriteTo w8 n wrm | pl < 0    = error "padToLength: padding length smaller than total length"
-                    | otherwise = wrm <> writeBytes w8 n
-  where pl = inBytes n - bytesToWrite wrm
-
--}
-
--- | The combinator @glueWrites w n hdr ftr@ is equivalent to
--- @hdr <> glue <> ftr@ where the write @glue@ writes as many bytes
--- @w@ so that the total length is aligned to the boundary @n@.
+-- | The combinator @glueWrites w n hdr ftr@ is equivalent to @hdr <>
+-- glue <> ftr@ where the write @glue@ writes just enough bytes @w@ so
+-- that the total length is aligned to the boundary @n@.
 glueWrites :: ( LengthUnit n, MonadIO m)
-           =>  Word8    -- ^ The bytes to use in the glue
+           => Word8    -- ^ The bytes to use in the glue
            -> n        -- ^ The length boundary to align to.
            -> WriteM m -- ^ The header write
            -> WriteM m -- ^ The footer write
@@ -264,10 +250,8 @@ glueWrites w8 n hdr ftr = hdr <> writeBytes w8 lglue <> ftr
   where lhead   = transferSize hdr
         lfoot   = transferSize ftr
         lexceed = (lhead + lfoot) `rem` nBytes  -- bytes exceeding the boundary.
-        lglue   = nBytes - lexceed
+        lglue   = if lexceed > 0 then nBytes - lexceed else 0
         nBytes  = inBytes n
-
-
 
 -- | The write action @prependWrite w n wr@ is wr pre-pended with the byte @w@ so that the total length
 -- ends at a multiple of @n@.

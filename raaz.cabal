@@ -24,6 +24,7 @@ maintainer:   ppk@cse.iitk.ac.in
 category:      Codec, Raaz
 build-type:    Simple
 
+data-files: tests/standard-test-vectors/blake2/tests.json
 
 extra-source-files: CHANGELOG.md
                   , README.md
@@ -114,6 +115,7 @@ library core
                  , Raaz.Primitive.ChaCha20.Internal
                  , Raaz.Primitive.Poly1305.Internal
                  , Raaz.Primitive.HashMemory
+                 , Raaz.Primitive.Keyed.Internal
 
   other-modules: Raaz.Core.ByteSource
                , Raaz.Core.Encode
@@ -221,7 +223,7 @@ library keyed-indef
                , indef
                , util
 
--------- Indef packages supplying cryptographic operations ----------------------------
+-------- Indef packages supplying cryptographic operations -------------------------
 --
 -- A cryptographic operation performed using an implementation of a
 -- primitive is exposed in the next set of packages using an interface
@@ -264,6 +266,21 @@ library random-indef
   signatures: Implementation
   exposed-modules: PRGState
 
+-- keyed-hash: An implementation of message authentication using
+-- hashes. This package takes in an Implementation of a hash (together
+-- with some constraints) and creates an implementation for a message
+-- authenticator. The Mac.Implementation module that it exposes can be
+-- used as the Implementation module for the auth-indef package.
+
+library keyed-hash
+  import: defaults
+  hs-source-dirs: indef/keyed/hash
+  signatures: Implementation
+  build-depends: core
+               , util
+  exposed-modules: Mac.Implementation
+
+
 ------------------- The indef of all primitives ------------------
 --
 -- This package collects all primitives supported by raaz, gives
@@ -278,6 +295,8 @@ library prim-indef
   build-depends: core
                , hash-indef
                , random-indef
+               , keyed-hash
+               , auth-indef
   hs-source-dirs: prims/sha2
                 , prims/blake2
   signatures: Blake2b.Implementation
@@ -288,12 +307,24 @@ library prim-indef
                     , Blake2s.Interface
                     , Sha256.Interface
                     , Sha512.Interface
+                    , Blake2b.Mac.Interface
+                    , Blake2s.Mac.Interface
                     , PRGState
   mixins: hash-indef (Interface as Blake2b.Interface)  requires (Implementation as Blake2b.Implementation)
         , hash-indef (Interface as Blake2s.Interface)  requires (Implementation as Blake2s.Implementation)
         , hash-indef (Interface as Sha512.Interface)   requires (Implementation as Sha512.Implementation)
         , hash-indef (Interface as Sha256.Interface)   requires (Implementation as Sha256.Implementation)
         , random-indef requires (Implementation as ChaCha20.Implementation)
+
+        -- MAC-ing with blake2b
+        , keyed-hash (Mac.Implementation as Blake2b.Mac.Implementation)
+            requires (Implementation as Blake2b.Implementation)
+        , auth-indef (Interface as Blake2b.Mac.Interface) requires (Implementation as Blake2b.Mac.Implementation)
+
+        -- MAC-ing with blake2s
+        , keyed-hash (Mac.Implementation as Blake2s.Mac.Implementation)
+            requires (Implementation as Blake2s.Implementation)
+        , auth-indef (Interface as Blake2s.Mac.Interface) requires (Implementation as Blake2s.Mac.Implementation)
 
 --------------------  The implementation modules ----------------------------------
 --
@@ -305,7 +336,7 @@ library prim-indef
 -- satisfies the requirement.
 --
 -- One can selectively override the implementation used by a primitive
--- or two primitives using the idiom
+-- using the idiom
 --
 -- build-depends: prim-indef
 --              , implementation
@@ -370,10 +401,9 @@ library
                  , Raaz.Sha256
                  , Raaz.Sha512
                  , Raaz.Random
+                 , Raaz.V1
   reexported-modules: Raaz.Core
                     , Raaz.Core.Types
-
-  other-modules: Raaz.V1
 
   autogen-modules: Paths_raaz
   other-modules: Paths_raaz
@@ -430,6 +460,19 @@ library test-hash
                , hash-indef
                , util
   exposed-modules: Tests.Digest
+                 , Tests.Digest.Compare
+  mixins: hash-indef(Interface as AlternateInterface) requires (Implementation as Alternate)
+        , hash-indef
+
+library test-auth
+  import: test-defaults
+  hs-source-dirs: tests/auth
+  build-depends: test-core
+               , indef
+               , auth-indef
+  exposed-modules: Tests.Auth
+
+-------------------------- The test suits -------------------------
 
 test-suite tests
   import: test-defaults
@@ -437,10 +480,12 @@ test-suite tests
   hs-source-dirs: tests
   main-is: Spec.hs
   build-depends: hspec-discover
+               , attoparsec
                , test-core
                , test-cipher
                , test-hash
-               , auth-indef
+               , test-auth
+               , keyed-hash
                , implementation
                , raaz
   build-tool-depends: hspec-discover:hspec-discover
@@ -458,13 +503,31 @@ test-suite tests
                , Raaz.Digest.Sha512Spec
                , Raaz.Digest.Blake2Spec
                , Raaz.Mac.Poly1305Spec
+               , Paths_raaz
+
   mixins: test-cipher requires (Implementation as ChaCha20.Implementation)
-        , test-hash (Tests.Digest as Sha256.Digest) requires (Implementation as Sha256.Implementation)
-        , test-hash (Tests.Digest as Sha512.Digest) requires (Implementation as Sha512.Implementation)
-        , test-hash (Tests.Digest as Blake2b.Digest) requires (Implementation as Blake2b.Implementation)
-        , test-hash (Tests.Digest as Blake2s.Digest) requires (Implementation as Blake2s.Implementation)
-        , auth-indef (Interface as Poly1305.Interface)         requires (Implementation as Poly1305.Implementation)
-              -- , Raaz.Mac.Poly1305Spec
+        , test-hash (Tests.Digest as Sha256.Digest, Tests.Digest.Compare as Sha256.VsHandwritten)
+          requires (Implementation as Sha256.Implementation, Alternate as Sha256.CHandWritten)
+
+        , test-hash (Tests.Digest as Sha512.Digest, Tests.Digest.Compare as Sha512.VsHandwritten)
+          requires (Implementation as Sha512.Implementation, Alternate as Sha512.CHandWritten)
+
+        , test-hash (Tests.Digest as Blake2b.Digest, Tests.Digest.Compare as Blake2b.VsHandwritten)
+          requires (Implementation as Blake2b.Implementation, Alternate as Blake2b.CHandWritten)
+
+        , test-hash (Tests.Digest as Blake2s.Digest, Tests.Digest.Compare as Blake2s.VsHandwritten)
+          requires (Implementation as Blake2s.Implementation, Alternate as Blake2s.CHandWritten)
+
+
+        , test-auth (Tests.Auth as Poly1305.Auth)     requires (Implementation as Poly1305.Implementation)
+
+        , keyed-hash (Mac.Implementation as Blake2s.Mac.Implementation)
+            requires (Implementation as Blake2s.Implementation)
+        , test-auth  (Tests.Auth as Blake2s.Auth) requires (Implementation as Blake2s.Mac.Implementation)
+
+        , keyed-hash (Mac.Implementation as Blake2b.Mac.Implementation)
+            requires (Implementation as Blake2b.Implementation)
+        , test-auth  (Tests.Auth as Blake2b.Auth) requires (Implementation as Blake2b.Mac.Implementation)
 
 --------------------------- Benchmarkings ---------------------------------------------
 common bench-defaults

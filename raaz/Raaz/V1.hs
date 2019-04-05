@@ -1,45 +1,18 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
--- | Version 1 of the interface.
+-- | The interface is the same as that of "Raaz" but the primitive
+-- selection corresponds to the version 1 of the raaz library. Use
+-- this module if you want compatibility with Version 1 of the
+-- library.
+--
+-- For documentation refer the top-most module "Raaz".
+
 module Raaz.V1 ( Digest
-               , digest, digestFile, digestSource
+               , Auth
+               , module Raaz.Blake2b
                ) where
 
-import           Data.String      ( IsString (..) )
-import           Foreign.Storable ( Storable )
+import Raaz.Blake2b
+import Raaz.Primitive.Keyed.Internal(Keyed)
 
-import           Raaz.Core
-import qualified Raaz.Blake2b    as B2b
-
-
-newtype Digest = Digest B2b.Blake2b deriving ( Equality
-                                             , Eq
-                                             , Storable
-                                             , EndianStore
-                                             , Encodable
-                                             )
-
-instance Show Digest where
-  show (Digest dst) = show dst
-
-instance IsString Digest where
-  fromString = Digest . fromString
-
-
-
--- | Compute the digest of a pure byte source like, `B.ByteString`.
-digest :: PureByteSource src
-       => src              -- ^ Message
-       -> Digest
-digest = Digest . B2b.digest
-
--- | Compute the digest of file.
-digestFile :: FilePath     -- ^ File to be digested
-           -> IO Digest
-digestFile = fmap Digest . B2b.digestFile
-
--- | Compute the digest of an arbitrary byte source.
-digestSource :: ByteSource src
-             => src        -- ^ The source whose digest needs to be
-                           -- computed.
-             -> IO Digest
-digestSource = fmap Digest . B2b.digestSource
+type Digest = Blake2b
+type Auth   = Keyed Blake2b
