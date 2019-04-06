@@ -15,12 +15,8 @@ module Raaz.Primitive.Sha2.Internal
        , process256Last
        ) where
 
-import           Data.Bits
-import           Data.Proxy
-import           Data.String
-import           Data.Word
 import           Foreign.Storable           ( Storable(..) )
-import           Prelude      hiding        ( zipWith      )
+
 
 import           Raaz.Core
 import           Raaz.Core.Types.Internal

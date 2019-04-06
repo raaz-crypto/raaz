@@ -11,13 +11,12 @@ module Raaz.Core.Parse.Applicative
        ) where
 
 import           Data.ByteString           (ByteString)
-import           Data.Proxy
 import           Data.Vector.Generic       (Vector, generateM)
 import           Foreign.Ptr               (castPtr)
 import           Foreign.Storable          (Storable, peek, peekElemOff)
-import           Prelude          hiding   ( length )
 import           System.IO.Unsafe          (unsafePerformIO)
 
+import           Raaz.Core.Prelude
 import           Raaz.Core.MonoidalAction
 import           Raaz.Core.Types.Endian
 import           Raaz.Core.Types.Pointer

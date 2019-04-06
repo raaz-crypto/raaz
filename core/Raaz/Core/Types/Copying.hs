@@ -7,6 +7,8 @@ module Raaz.Core.Types.Copying
          Src(..), Dest(..), source, destination
        ) where
 
+import Raaz.Core.Prelude
+
 -- $copyconvention$
 --
 -- Consider a copy operation that involves copying data between two

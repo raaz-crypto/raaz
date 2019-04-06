@@ -73,6 +73,7 @@ flag wipe-memset
 common defaults
   default-language: Haskell2010
   ghc-options: -Wall
+  extensions: NoImplicitPrelude
   build-depends: base                    >= 4.10 &&  < 4.13
                , bytestring              >= 0.10 &&  < 0.11
                , deepseq                 >= 1.4  &&  < 1.5

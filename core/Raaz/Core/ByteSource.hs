@@ -11,13 +11,11 @@ module Raaz.Core.ByteSource
        , withFillResult
        ) where
 
-import           Control.Applicative
 import           Control.Monad.IO.Class
 import qualified Data.ByteString      as B
 import qualified Data.ByteString.Lazy as L
-import           Prelude hiding(length)
-import           System.IO            (Handle, hIsEOF)
 
+import           Raaz.Core.Prelude
 import           Raaz.Core.MonoidalAction
 import           Raaz.Core.Types      (BYTES, Pointer, LengthUnit (..))
 import           Raaz.Core.Util.ByteString( unsafeCopyToPointer

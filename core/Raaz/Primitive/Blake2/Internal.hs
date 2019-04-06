@@ -15,12 +15,7 @@ module Raaz.Primitive.Blake2.Internal
        ) where
 
 import           Control.Monad.IO.Class
-import           Data.Bits
-import           Data.Proxy
-import           Data.String
-import           Data.Word                  ( Word64, Word32 )
 import           Foreign.Storable           ( Storable       )
-import           Prelude      hiding        ( zipWith        )
 
 import           Raaz.Core
 import           Raaz.Primitive.HashMemory

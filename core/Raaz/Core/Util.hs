@@ -10,6 +10,7 @@ module Raaz.Core.Util
        ) where
 
 import Control.Monad.Reader
+import Raaz.Core.Prelude
 import Raaz.Core.Util.ByteString
 
 liftToReaderT :: ((a -> m b) -> m c) -> (a -> ReaderT r m b) -> ReaderT r m c

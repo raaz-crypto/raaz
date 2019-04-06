@@ -5,7 +5,6 @@
 {-# LANGUAGE DataKinds                  #-}
 {-# LANGUAGE ConstraintKinds            #-}
 {-# LANGUAGE KindSignatures             #-}
-{-# LANGUAGE CPP                        #-}
 {-# LANGUAGE TypeFamilies               #-}
 
 -- | This module exposes types that builds in type safety into some of
@@ -38,22 +37,9 @@ module Raaz.Core.Types.Pointer
 
 
 
-import           Control.Applicative
 import           Control.Exception     ( bracket )
-import           Control.Monad         ( void, when, liftM )
 import           Control.Monad.IO.Class
 
-#if !MIN_VERSION_base(4,8,0)
-import Data.Monoid  -- Import only when base < 4.8.0
-#endif
-
-#if !MIN_VERSION_base(4,11,0)
-import Data.Semigroup
-#endif
-
-import           Data.Bits                   ( Bits )
-import           Data.Proxy
-import           Data.Word
 import           Data.Vector.Unboxed         ( MVector(..), Vector, Unbox )
 import           Foreign.Marshal.Alloc
 import           Foreign.Ptr           ( Ptr                  )
@@ -61,13 +47,11 @@ import qualified Foreign.Ptr           as FP
 import           Foreign.Storable      ( Storable, peek, poke )
 import qualified Foreign.Storable      as FS
 import           GHC.TypeLits
-import           System.IO             (hGetBuf, Handle)
 
 import qualified Data.Vector.Generic         as GV
 import qualified Data.Vector.Generic.Mutable as GVM
 
-import Prelude -- To stop the annoying warnings of Applicatives and Monoids.
-
+import Raaz.Core.Prelude
 import Raaz.Core.Primitive
 import Raaz.Core.MonoidalAction
 import Raaz.Core.Types.Equality
@@ -318,10 +302,7 @@ instance Unbox w => GVM.MVector MVector (BYTES w) where
   basicUnsafeReplicate n     (BYTES x)        = MV_BYTES `liftM` GVM.basicUnsafeReplicate n x
   basicUnsafeCopy (MV_BYTES v1) (MV_BYTES v2) = GVM.basicUnsafeCopy v1 v2
   basicUnsafeGrow (MV_BYTES v)   n            = MV_BYTES `liftM` GVM.basicUnsafeGrow v n
-
-#if MIN_VERSION_vector(0,11,0)
   basicInitialize (MV_BYTES v)                = GVM.basicInitialize v
-#endif
 
 
 

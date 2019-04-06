@@ -9,15 +9,11 @@ module Raaz.Primitive.HashMemory
        , updateLength, updateLength128
        ) where
 
-import Control.Monad              ( when          )
+
 import Control.Monad.Reader       ( withReaderT   )
-import Data.Word                  ( Word64        )
 import Foreign.Storable           ( Storable(..)  )
 import Foreign.Ptr                ( Ptr           )
-
-
-
-import Raaz.Core hiding          ( alignment      )
+import Raaz.Core
 
 
 

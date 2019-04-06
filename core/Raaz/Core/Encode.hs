@@ -12,6 +12,7 @@ module Raaz.Core.Encode
        , Base64
        ) where
 
+import Raaz.Core.Prelude
 import Raaz.Core.Encode.Internal
 import Raaz.Core.Encode.Base16
 import Raaz.Core.Encode.Base64

@@ -36,10 +36,10 @@ module Raaz.Core.Memory
        ,  Alloc, pointerAlloc
        ) where
 
-import           Control.Applicative
 import           Control.Monad.Reader
 import           Foreign.Storable            ( Storable )
 import           Foreign.Ptr                 ( castPtr, Ptr )
+import           Raaz.Core.Prelude
 import           Raaz.Core.MonoidalAction
 import           Raaz.Core.Transfer
 import           Raaz.Core.Types
