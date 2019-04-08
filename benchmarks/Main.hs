@@ -7,6 +7,7 @@
 
 import Control.Monad
 
+import Prelude
 import System.IO
 import Text.PrettyPrint
 
