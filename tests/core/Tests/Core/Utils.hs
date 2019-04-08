@@ -1,10 +1,9 @@
-{-# LANGUAGE CPP #-}
 module Tests.Core.Utils where
 
 import Raaz.Core.Types.Internal ( BYTES(..) )
 
 import Tests.Core.Imports hiding (length, replicate)
-
+import Prelude                   (length, replicate)
 
 import Foreign.Ptr           ( castPtr, Ptr    )
 import Data.ByteString as B  (concat)

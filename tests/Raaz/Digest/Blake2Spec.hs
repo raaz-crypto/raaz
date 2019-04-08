@@ -12,7 +12,6 @@ import           Raaz.Primitive.Blake2.Internal(Blake2b, Blake2s)
 import           Data.Attoparsec.ByteString.Char8 as AP
 import qualified Data.ByteString                  as BS
 import           Data.Char
-import           System.IO
 import           Raaz.Primitive.Keyed.Internal
 import           Paths_raaz
 

@@ -2,7 +2,6 @@
 {-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE ScopedTypeVariables  #-}
 {-# LANGUAGE DataKinds            #-}
-{-# LANGUAGE CPP                  #-}
 
 module Raaz.Cipher.ChaCha20Spec where
 
