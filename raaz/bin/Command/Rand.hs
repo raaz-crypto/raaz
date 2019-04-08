@@ -6,14 +6,11 @@
 module Command.Rand ( rand ) where
 
 
-import Control.Applicative
-import Control.Monad         ( void )
 import Control.Monad.IO.Class(liftIO)
 import Options.Applicative
 import Raaz.Entropy
 import Raaz.Core
 import Raaz.Random
-import System.IO
 
 -- So much bytes generated in one go before writing to stdout.
 

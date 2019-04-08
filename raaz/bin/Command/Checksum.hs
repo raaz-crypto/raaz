@@ -3,12 +3,12 @@
 
 module Command.Checksum ( checksum )  where
 
-import Control.Monad
-import Data.String
 import Options.Applicative
-import Raaz
+import Prelude
 import System.Exit
-import System.IO
+import Raaz
+import Raaz.Core
+
 
 
 ------------------------- Supported checksum algorithm -------------------------------

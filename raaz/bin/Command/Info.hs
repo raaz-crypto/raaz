@@ -2,6 +2,7 @@ module Command.Info where
 
 import Data.Version (showVersion)
 import Options.Applicative
+import Prelude
 import Raaz
 import qualified Raaz.Core.CpuSupports as CpuSupports
 import Raaz.Random  (csprgName)
