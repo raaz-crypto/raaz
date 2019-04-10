@@ -101,10 +101,10 @@ type Blake2bMem = HashMemory128 Blake2b
 type Blake2sMem = HashMemory64 Blake2s
 
 instance Initialisable Blake2bMem () where
-  initialise _ = initialise $ (hashInit 0 :: Blake2b)
+  initialise _ = initialise (hashInit 0 :: Blake2b)
 
 instance Initialisable Blake2sMem () where
-  initialise _ = initialise $ (hashInit 0 :: Blake2s)
+  initialise _ = initialise (hashInit 0 :: Blake2s)
 
 ----------------------- Padding for Blake code ------------------------------
 
