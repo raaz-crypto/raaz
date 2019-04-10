@@ -30,7 +30,7 @@ module Raaz.Core.Types.Pointer
        , mallocBuffer
          -- ** Some buffer operations
        , memset
-       , wipe_memory
+       , wipeMemory
        , memcpy
        , hFillBuf
        ) where
@@ -436,7 +436,7 @@ allocaSecure l action = liftIOCont (allocaBuffer l) actualAction
                                  when (c /= 0) $ fail "secure memory: unable to lock memory"
                                  return cptr
 
-          releaseIt cptr    = wipe_memory cptr l >>  c_munlock cptr sz
+          releaseIt cptr    = wipeMemory cptr l >>  c_munlock cptr sz
 
 
 
@@ -506,8 +506,8 @@ memset p w = liftIO . void . c_memset p w . inBytes
 foreign import ccall unsafe "raazWipeMemory" c_wipe_memory
     :: Pointer -> BYTES Int -> IO Pointer
 
-wipe_memory :: (MonadIO m, LengthUnit l)
+wipeMemory :: (MonadIO m, LengthUnit l)
             => Pointer -- ^ buffer to wipe
             -> l       -- ^ buffer length
             -> m ()
-wipe_memory p = liftIO . void . c_wipe_memory p . inBytes
+wipeMemory p = liftIO . void . c_wipe_memory p . inBytes

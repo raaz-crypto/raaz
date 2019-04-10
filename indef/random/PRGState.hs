@@ -153,5 +153,5 @@ unsafeWithExisting m action =  withAuxBuffer $ \ buf -> do
     --   |   l              |    m                           |
     --   -----------------------------------------------------
     action tailPtr          -- run the transfer action from the tail.
-    wipe_memory tailPtr m   -- wipe the bytes already transfered.
+    wipeMemory tailPtr m    -- wipe the bytes already transfered.
     setRemainingBytes l     -- set leftover bytes.
