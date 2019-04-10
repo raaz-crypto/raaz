@@ -2,7 +2,7 @@
 module Raaz.Core.Prelude ( module X
                          , module Prelude
 #if !MIN_VERSION_base(4,11,0)
-                         , (<>)
+                         , Semigroup(..)
 #endif
                          ) where
 
@@ -14,7 +14,7 @@ import Data.ByteString.Lazy.Char8      ()
 import Data.Maybe                   as X
 import Data.Proxy                   as X
 #if !MIN_VERSION_base(4,11,0)
-import Data.Semigroup ( (<>) )
+import Data.Semigroup ( Semigroup(..))
 #endif
 
 import Data.String             as X
