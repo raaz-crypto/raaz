@@ -13,9 +13,7 @@ module Poly1305.Memory
        ) where
 
 import           Control.Monad.Reader
-import           Data.Bits
 import qualified Data.Vector.Unboxed as V
-import           Data.Word
 import           Foreign.Ptr                        ( Ptr, castPtr )
 import           Raaz.Core
 import qualified Raaz.Core.Types.Internal        as TI

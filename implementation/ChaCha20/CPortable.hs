@@ -6,9 +6,8 @@
 module ChaCha20.CPortable where
 
 import Foreign.Ptr                ( castPtr )
-import Control.Monad              ( void    )
 import Control.Monad.IO.Class     ( liftIO  )
-import Data.Proxy
+
 
 import Raaz.Core
 import Raaz.Entropy

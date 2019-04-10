@@ -13,7 +13,6 @@ module Sha512.CHandWritten
 
 import Foreign.Ptr                ( Ptr          )
 import Control.Monad.IO.Class     ( liftIO       )
-import Data.Proxy
 
 import Raaz.Core
 import Raaz.Core.Types.Internal

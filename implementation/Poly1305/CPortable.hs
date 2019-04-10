@@ -13,8 +13,6 @@ module Poly1305.CPortable
 
 import Foreign.Ptr                ( castPtr       )
 import Control.Monad.IO.Class     ( liftIO        )
-import Data.Word
-import Data.Proxy
 
 import Raaz.Core
 import Raaz.Primitive.Poly1305.Internal
