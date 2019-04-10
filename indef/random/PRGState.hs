@@ -49,7 +49,7 @@ instance Memory RandomState where
 sampleWithSeedIfReq :: MT RandomState ()
 sampleWithSeedIfReq = do
   nGenBlocks <- getGenBlocks
-  if (nGenBlocks >= reseedAfter)
+  if nGenBlocks >= reseedAfter
     then clearBlocks >> reseed
     else newSample
   where getGenBlocks = withReaderT blocksGenerated extract

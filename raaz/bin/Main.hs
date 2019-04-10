@@ -1,4 +1,3 @@
-{-# LANGUAGE RecordWildCards #-}
 --
 -- The main function that drives other commands.
 --

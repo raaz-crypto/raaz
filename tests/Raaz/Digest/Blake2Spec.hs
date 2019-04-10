@@ -1,7 +1,6 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE ScopedTypeVariables  #-}
-{-# LANGUAGE DeriveGeneric        #-}
 
 module Raaz.Digest.Blake2Spec where
 
@@ -106,7 +105,6 @@ byteStringField s =  field s  (decodeFormat <$> base16)
 
 encodableField :: Encodable a => ByteString -> Parser a
 encodableField s = field s (unsafeDecode <$> base16)
-  where
 
 base16 :: Parser Base16
 base16 = hex >>= maybe (fail "bad base16 string") return

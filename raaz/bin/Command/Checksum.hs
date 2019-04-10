@@ -24,7 +24,7 @@ checksum = subparser $ mconcat [ commandGroup "File checksum"
                                ]
   where inf = info (helper <*> opts) $ mconcat [ fullDesc, desc]
         opts     = run <$> optParse
-        desc     = progDesc $ "compute/verify file checksums using the message digest algorithm of raaz"
+        desc     = progDesc "compute/verify file checksums using the message digest algorithm of raaz"
 
 
 ------------------------ Types and constriants -------------------------------------
@@ -44,7 +44,7 @@ data Checksum = Checksum {filePath :: FilePath, fileChecksum  :: Digest}
 
 
 instance Show Checksum where
-  show (Checksum{..}) = show fileChecksum ++ "  " ++ filePath
+  show Checksum{..} = show fileChecksum ++ "  " ++ filePath
 
 parse :: String -> Checksum
 parse inp = Checksum { filePath   = drop 2 rest
@@ -60,7 +60,7 @@ parseMany = map parse . lines
 
 -- | The workhorse for this command.
 run :: Option -> IO ()
-run opt@(Option{..})
+run opt@Option{..}
   | checkChecksum = runVerify opt
   | otherwise     = runCompute inputFiles
 
@@ -89,7 +89,7 @@ computeStdin = Checksum "-" <$> digestSource stdin
 ----------------------------------- Verify Mode ---------------------------------------
 
 runVerify :: Option -> IO ()
-runVerify opt@(Option{..}) = do
+runVerify opt@Option{..} = do
   nFails <- if null inputFiles then getContents >>= verifyLines
             else sum <$> mapM verifyFile inputFiles
 
@@ -103,7 +103,7 @@ runVerify opt@(Option{..}) = do
 verify :: Option
        -> Checksum
        -> IO Bool
-verify (Option{..}) (Checksum{..}) = do
+verify Option{..} Checksum{..} = do
   dgst <- digestFile filePath
   let result = dgst == fileChecksum
       okey   = when reportOkey    $ putStrLn $ filePath ++ ": OK"

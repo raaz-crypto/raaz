@@ -1,6 +1,6 @@
 {-# LANGUAGE ForeignFunctionInterface   #-}
 {-# LANGUAGE DataKinds                  #-}
-{-# LANGUAGE KindSignatures             #-}
+
 
 -- | The portable C-implementation of Blake2b.
 module Blake2b.CHandWritten where

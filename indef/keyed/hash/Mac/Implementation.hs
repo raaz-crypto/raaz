@@ -80,7 +80,7 @@ processKey = withReaderT keyBuffer ask
 processKeyLast :: MT Internals ()
 processKeyLast = withReaderT keyBuffer ask >>=
                  \ buffer ->
-                   let bufsz  = inBytes $ blocksOf 1 (Proxy :: Proxy (Base.Prim))
+                   let bufsz  = inBytes $ blocksOf 1 (Proxy :: Proxy Base.Prim)
                        bufPtr = U.getBufferPointer buffer
                    in withReaderT hashInternals $ Base.processLast bufPtr bufsz
 

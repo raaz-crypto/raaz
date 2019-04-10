@@ -76,8 +76,9 @@ allocBufferFor blks = allocaAligned totalSize
 
 -- | Process a byte source.
 processByteSource :: (KnownNat BufferAlignment, ByteSource src) => src -> MT Internals ()
-processByteSource src = allocBufferFor blks $ \ ptr -> do
-  processChunks (processBlocks ptr blks) (processLast ptr) src blks (forgetAlignment ptr)
+processByteSource src
+  = allocBufferFor blks $
+    \ ptr -> processChunks (processBlocks ptr blks) (processLast ptr) src blks (forgetAlignment ptr)
   where blks       = atLeast l1Cache :: BLOCKS Prim
 
 
@@ -95,21 +96,21 @@ computeDigest key src = insecurely $ do initialise key
 -}
 
 transform :: ByteString -> MT Internals ByteString
-transform bs = allocBufferFor bufSz $ \ buf ->  do
-  let bufPtr = forgetAlignment buf
-    in do liftIO $ unsafeCopyToPointer bs bufPtr -- Copy the input to buffer.
-          processLast buf strSz
-          str  <- liftIO $ IB.create sbytes
-                  $ \ ptr -> Raaz.Core.memcpy (destination (castPtr ptr)) (source bufPtr) strSz
-          return str
-
+transform bs
+  = allocBufferFor bufSz $
+    \ buf ->
+      let bufPtr = forgetAlignment buf
+      in do liftIO $ unsafeCopyToPointer bs bufPtr -- Copy the input to buffer.
+            processLast buf strSz
+            liftIO $ IB.create sbytes $
+              \ ptr -> Raaz.Core.memcpy (destination (castPtr ptr)) (source bufPtr) strSz
   where strSz           = Raaz.Core.length bs
         BYTES sbytes    = strSz
         --
         -- Buffer size is at least the size of the input.
         --
         bufSz           = atLeast strSz `mappend` additionalBlocks
-{-        
+{-
 
 -- | Transform a given bytestring using the recommended implementation
 -- of a stream cipher.
@@ -120,7 +121,7 @@ transformAndDigest :: ( KnownNat BufferAlignment
                    => Key Prim
                    -> ByteString
                    -> (ByteString, Digest Prim)
-                   
+
 -- | Transform a given bytestring using the recommended implementation
 -- of a stream cipher.
 transformAndDigest :: ( KnownNat BufferAlignment

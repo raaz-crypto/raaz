@@ -1,12 +1,11 @@
-{-# LANGUAGE ForeignFunctionInterface   #-}
 {-# LANGUAGE DataKinds                  #-}
-{-# LANGUAGE KindSignatures             #-}
+
 
 -- | The portable C-implementation of Blake2b.
 module ChaCha20.CPortable where
 
-import Foreign.Ptr                ( castPtr )
-import Control.Monad.IO.Class     ( liftIO  )
+import Foreign.Ptr                ( castPtr, Ptr )
+import Control.Monad.IO.Class     ( liftIO       )
 
 
 import Raaz.Core
@@ -32,13 +31,26 @@ processBlocks :: AlignedPointer BufferAlignment
               -> BLOCKS Prim
               -> MT Internals ()
 
-processBlocks buf blks =
+processBlocks = runBlockProcess verse_chacha20_c_portable
+
+runBlockProcess :: ( Ptr buf ->
+                     Word64  ->
+                     Ptr a   ->
+                     Ptr b   ->
+                     Ptr c   ->
+                     IO ()
+                   )
+                -> AlignedPointer BufferAlignment
+                -> BLOCKS Prim
+                -> MT Internals ()
+runBlockProcess func buf blks =
   do keyPtr     <- castPtr <$> keyCellPtr
      ivPtr      <- castPtr <$> ivCellPtr
      counterPtr <- castPtr <$> counterCellPtr
      let blkPtr = castPtr $ forgetAlignment buf
-         wBlks  = toEnum $ fromEnum blks
-         in liftIO $ verse_chacha20_c_portable blkPtr wBlks keyPtr ivPtr counterPtr
+         wBlks  = toEnum  $ fromEnum blks
+         in liftIO $ func blkPtr wBlks keyPtr ivPtr counterPtr
+
 
 -- | Process the last bytes.
 processLast :: AlignedPointer BufferAlignment
@@ -64,11 +76,4 @@ initFromEntropyPool = void $ withMemoryPtr getEntropy
 randomBlocks :: AlignedPointer BufferAlignment
              -> BLOCKS Prim
              -> MT Internals ()
-
-randomBlocks buf blks =
-  do keyPtr     <- castPtr <$> keyCellPtr
-     ivPtr      <- castPtr <$> ivCellPtr
-     counterPtr <- castPtr <$> counterCellPtr
-     let blkPtr = castPtr $ forgetAlignment buf
-         wBlks  = toEnum $ fromEnum blks
-         in liftIO $ verse_chacha20_c_portable_keystream blkPtr wBlks keyPtr ivPtr counterPtr
+randomBlocks = runBlockProcess verse_chacha20_c_portable_keystream

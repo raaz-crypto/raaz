@@ -1,4 +1,3 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 -- | The interface is the same as that of "Raaz" but the primitive
 -- selection corresponds to the version 1 of the raaz library. Use
 -- this module if you want compatibility with Version 1 of the

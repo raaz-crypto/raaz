@@ -31,10 +31,10 @@ zeroBlocks :: Int -> ByteString
 zeroBlocks = C.zeros . (toEnum :: Int -> BLOCKS ChaCha20)
 
 transformsTo :: (Format fmt1, Format fmt2) => fmt1 -> fmt2 -> Key ChaCha20 -> Spec
-transformsTo fmt1 fmt2 key = C.transformsTo keyPrint fmt1 fmt2 key
+transformsTo = C.transformsTo keyPrint
 
 keyStreamIs  :: Format fmt => fmt -> Key ChaCha20 -> Spec
-keyStreamIs fmt key = C.keyStreamIs keyPrint fmt key
+keyStreamIs  = C.keyStreamIs keyPrint
 
 spec :: Spec
 spec =describe "ChaCha20" $ do

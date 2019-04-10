@@ -1,5 +1,4 @@
 {-# LANGUAGE ForeignFunctionInterface   #-}
-{-# LANGUAGE KindSignatures             #-}
 {-# LANGUAGE DataKinds                  #-}
 
 -- | The portable C-implementation of Sha512.

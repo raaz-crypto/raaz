@@ -1,5 +1,3 @@
-{-# LANGUAGE ForeignFunctionInterface   #-}
-{-# LANGUAGE KindSignatures             #-}
 {-# LANGUAGE DataKinds                  #-}
 
 -- | The portable C-implementation of Poly1305.
