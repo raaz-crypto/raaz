@@ -1,4 +1,3 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 -- | Types to avoid source destination confusion while copying.
 module Raaz.Core.Types.Copying
        (
