@@ -28,7 +28,6 @@ module Mac.Implementation
 import           Control.Monad.Reader
 
 import           Data.ByteString       as BS
-import           Data.Proxy
 import           Raaz.Core
 import           Raaz.Primitive.Keyed.Internal
 import qualified Implementation        as Base

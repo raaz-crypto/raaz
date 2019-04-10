@@ -9,10 +9,7 @@ module PRGState
        , csprgName, csprgDescription
        ) where
 
-import Control.Applicative
-import Control.Monad
 import Control.Monad.Reader   ( ask, withReaderT )
-import Data.Proxy             ( Proxy(..)        )
 import Prelude
 
 import Raaz.Core

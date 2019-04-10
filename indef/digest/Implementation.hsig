@@ -15,7 +15,6 @@ signature Implementation where
 
 
 import Raaz.Core
-import Data.String (IsString)
 
 -- | The primitive for which the implementation is given
 

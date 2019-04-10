@@ -5,7 +5,6 @@ module Interface ( digest
 
 import qualified Data.ByteString      as B
 import qualified Data.ByteString.Lazy as L
-import           System.IO
 import           System.IO.Unsafe     (unsafePerformIO)
 
 

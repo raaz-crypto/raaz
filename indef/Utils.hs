@@ -12,8 +12,6 @@ module Utils
 import Control.Monad.IO.Class          (liftIO)
 import Data.ByteString          as B
 import Data.ByteString.Internal as IB
-import Data.Proxy
-import Data.Monoid
 import Foreign.Ptr                     (castPtr)
 import GHC.TypeLits
 
