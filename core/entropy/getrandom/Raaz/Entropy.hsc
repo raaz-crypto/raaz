@@ -27,12 +27,12 @@ foreign import ccall unsafe
             -> Int          -- flags
             -> IO (BYTES Int)
 
-sys_GETRANDOM :: CLong
-sys_GETRANDOM = #const SYS_getrandom
+sysGETRANDOM :: CLong
+sysGETRANDOM = #const SYS_getrandom
 
 -- | Get random bytes from using the @getrandom@ system call on
 -- linux. This is only used to seed the PRG and not intended for call
 -- by others.
 getEntropy :: (MonadIO m, LengthUnit l) => l -> Pointer -> m (BYTES Int)
-getEntropy l ptr = liftIO $ c_syscall sys_GETRANDOM ptr lenBytes 0
+getEntropy l ptr = liftIO $ c_syscall sysGETRANDOM ptr lenBytes 0
   where lenBytes = inBytes l
