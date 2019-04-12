@@ -18,23 +18,17 @@ module Raaz.Core.Types.Endian
        , loadFrom, loadFromIndex
        ) where
 
-import           Control.Applicative
+
 import           Control.DeepSeq             ( NFData)
-import           Control.Monad               ( liftM )
-import           Data.Bits
-import           Data.Proxy
 import           Data.Typeable
 import           Data.Vector.Unboxed         ( MVector(..), Vector, Unbox )
-import           Data.Word
 import           Foreign.Ptr                 ( castPtr, Ptr )
 import           Foreign.Storable            ( Storable, peek, poke )
-
-import           Prelude
 
 import qualified Data.Vector.Generic         as GV
 import qualified Data.Vector.Generic.Mutable as GVM
 
-
+import           Raaz.Core.Prelude
 import           Raaz.Core.Types.Copying
 import           Raaz.Core.Types.Pointer
 import           Raaz.Core.Types.Equality

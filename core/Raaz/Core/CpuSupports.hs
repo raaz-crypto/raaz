@@ -15,6 +15,7 @@ module Raaz.Core.CpuSupports
        ) where
 
 import Foreign.C
+import Raaz.Core.Prelude
 
 foreign import ccall unsafe "raaz_supports_sse"
   c_sse :: IO CInt

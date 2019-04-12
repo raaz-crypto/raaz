@@ -1,13 +1,11 @@
 {-# LANGUAGE ForeignFunctionInterface   #-}
 {-# LANGUAGE DataKinds                  #-}
-{-# LANGUAGE KindSignatures             #-}
+
 
 -- | The portable C-implementation of Blake2b.
 module ChaCha20.CHandWritten where
 
-import Control.Monad              ( void         )
 import Control.Monad.IO.Class     ( liftIO       )
-import Data.Proxy
 import Foreign.Ptr                ( Ptr          )
 
 import Raaz.Core

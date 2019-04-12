@@ -1,7 +1,5 @@
-{-# LANGUAGE CPP                   #-}
 {-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE ConstraintKinds      #-}
-{-# LANGUAGE KindSignatures        #-}
+{-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE TypeFamilies          #-}
@@ -18,17 +16,13 @@ module Raaz.Core.Types.Tuple
        , unsafeFromList, unsafeToVector
        ) where
 
-import           Control.Applicative
 import qualified Data.List           as L
-import           Data.Monoid
-import           Data.Proxy
 import qualified Data.Vector.Unboxed as V
 import           GHC.TypeLits
 import           Foreign.Ptr                 ( castPtr, Ptr )
 import           Foreign.Storable            ( Storable(..) )
-import           Prelude hiding              ( length, zipWith, map )
 
-
+import Raaz.Core.Prelude          hiding     ( map          )
 import Raaz.Core.Types.Equality
 import Raaz.Core.Types.Endian
 import Raaz.Core.Transfer
@@ -40,7 +34,9 @@ newtype Tuple (dim :: Nat) a = Tuple { unTuple :: V.Vector a }
                              deriving Show
 
 -- | Map function for tuples.
-map :: (V.Unbox a, V.Unbox b) => (a -> b) -> Tuple dim a -> Tuple dim b
+map :: (V.Unbox a, V.Unbox b)
+    => (a -> b)
+    -> Tuple dim a -> Tuple dim b
 map f = Tuple . V.map f . unTuple
 
 -- | Convert the tuple to vector.

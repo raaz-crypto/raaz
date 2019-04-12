@@ -14,7 +14,6 @@ module Raaz.Primitive.Keyed.Internal
        ) where
 
 import Data.ByteString  as BS
-import Data.String
 import Foreign.Storable ( Storable )
 
 import Raaz.Core

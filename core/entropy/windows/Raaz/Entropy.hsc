@@ -13,12 +13,10 @@ module Raaz.Entropy( getEntropy, entropySource ) where
 ##endif
 
 import Control.Monad.IO.Class( MonadIO, liftIO)
-import Control.Monad (when)
-import Data.Bits ((.|.))
-import Data.Word (Word8(), Word32())
 import Foreign.Ptr (Ptr(), nullPtr, castPtr)
 import Foreign.Storable (peek)
 import Foreign.C.String (CWString())
+import Raaz.Core.Prelude
 import Raaz.Core
 import Raaz.Core.Types.Internal
 

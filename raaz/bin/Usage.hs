@@ -1,5 +1,6 @@
 module Usage( usage, errorBailout ) where
 
+import Prelude
 import System.Console.GetOpt
 import System.IO
 import System.Exit

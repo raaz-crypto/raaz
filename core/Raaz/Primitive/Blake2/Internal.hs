@@ -15,12 +15,7 @@ module Raaz.Primitive.Blake2.Internal
        ) where
 
 import           Control.Monad.IO.Class
-import           Data.Bits
-import           Data.Proxy
-import           Data.String
-import           Data.Word                  ( Word64, Word32 )
 import           Foreign.Storable           ( Storable       )
-import           Prelude      hiding        ( zipWith        )
 
 import           Raaz.Core
 import           Raaz.Primitive.HashMemory
@@ -106,10 +101,10 @@ type Blake2bMem = HashMemory128 Blake2b
 type Blake2sMem = HashMemory64 Blake2s
 
 instance Initialisable Blake2bMem () where
-  initialise _ = initialise $ (hashInit 0 :: Blake2b)
+  initialise _ = initialise (hashInit 0 :: Blake2b)
 
 instance Initialisable Blake2sMem () where
-  initialise _ = initialise $ (hashInit 0 :: Blake2s)
+  initialise _ = initialise (hashInit 0 :: Blake2s)
 
 ----------------------- Padding for Blake code ------------------------------
 

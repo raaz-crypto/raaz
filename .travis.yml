@@ -36,8 +36,10 @@ addons:
 matrix:
   fast-finish: true
   include:
-
-    - os: osx
+     # Lint the code.
+    - os: linux
+      env: HLINT="yes"
+      addons: {apt: {packages: [curl], sources: [hvr-ghc]}}
 
     - os: linux
       env: GHCVER=8.2.2 CABALVER=2.2
@@ -56,24 +58,22 @@ matrix:
       env: GHCVER=head CABALVER=head
       addons: {apt: {packages: [cabal-install-head ,ghc-head], sources: [hvr-ghc]}}
 
-    # Lint the code.
-    - os: linux
-      env: HLINT="yes"
-      addons: {apt: {packages: [hlint], sources: [hvr-ghc]}}
-
     - os: linux
       env: LIQUID_HASKELL="yes"
       addons: {apt: {packages: [cabal-install-2.2 ,ghc-8.2.2, z3], sources: [hvr-ghc, sourceline: 'ppa:hvr/z3']}}
 
+    # Build on OSX.
+
+    - os: osx
+
   allow_failures:
     - env: GHCVER=head CABALVER=head
-    - env: HLINT="yes"
     - env: LIQUID_HASKELL="yes"
 
 before_install:
  - uname -a
  - if [ "$HLINT" == "yes" ]; then
-      hlint "--ignore=Parse error" Raaz;
+      curl -sSL https://raw.github.com/ndmitchell/hlint/master/misc/run.sh | sh -s .;
       exit $?;
    fi
 

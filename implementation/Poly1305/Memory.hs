@@ -13,9 +13,7 @@ module Poly1305.Memory
        ) where
 
 import           Control.Monad.Reader
-import           Data.Bits
 import qualified Data.Vector.Unboxed as V
-import           Data.Word
 import           Foreign.Ptr                        ( Ptr, castPtr )
 import           Raaz.Core
 import qualified Raaz.Core.Types.Internal        as TI
@@ -71,8 +69,8 @@ clamp = rKeyPtr >>= liftIO . flip verse_poly1305_c_portable_clamp 1
 
 instance Initialisable Mem (R,S) where
   initialise (r, s) = do clearAcc
-                         withReaderT rCell   $ initialise $ r
-                         withReaderT sCell   $ initialise $ s
+                         withReaderT rCell   $ initialise r
+                         withReaderT sCell   $ initialise s
                          clamp
 
 instance Extractable Mem Poly1305 where

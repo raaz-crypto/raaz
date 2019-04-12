@@ -4,6 +4,7 @@
 module Raaz.Entropy( getEntropy, entropySource ) where
 
 import Control.Monad.IO.Class(MonadIO, liftIO)
+import Raaz.Core.Prelude
 import Raaz.Core.Types
 import Raaz.Core.Types.Internal
 

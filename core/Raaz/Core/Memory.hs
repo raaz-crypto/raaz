@@ -36,10 +36,10 @@ module Raaz.Core.Memory
        ,  Alloc, pointerAlloc
        ) where
 
-import           Control.Applicative
 import           Control.Monad.Reader
 import           Foreign.Storable            ( Storable )
 import           Foreign.Ptr                 ( castPtr, Ptr )
+import           Raaz.Core.Prelude
 import           Raaz.Core.MonoidalAction
 import           Raaz.Core.Transfer
 import           Raaz.Core.Types
@@ -318,7 +318,7 @@ withMemory   = withM memoryAlloc
         withM alctr action = allocaBuffer sz actualAction
           where sz                 = twistMonoidValue alctr
                 getM               = computeField $ twistFunctorValue alctr
-                wipeIt cptr        = wipe_memory cptr sz
+                wipeIt cptr        = wipeMemory cptr sz
                 actualAction  cptr = action (getM cptr) <* wipeIt cptr
 
 
@@ -408,7 +408,7 @@ withCellPointer action = ReaderT $ action . actualCellPtr
 -- | Get the pointer associated with the given memory cell.
 getCellPointer :: Storable a => MT (MemoryCell a) (Ptr a)
 {-# INLINE getCellPointer #-}
-getCellPointer = actualCellPtr <$> ask
+getCellPointer = asks actualCellPtr
 
 instance Storable a => Initialisable (MemoryCell a) a where
   initialise a = ReaderT $ flip pokeAligned a . unMemoryCell

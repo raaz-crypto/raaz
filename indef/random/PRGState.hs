@@ -9,10 +9,7 @@ module PRGState
        , csprgName, csprgDescription
        ) where
 
-import Control.Applicative
-import Control.Monad
-import Control.Monad.Reader   ( ask, withReaderT )
-import Data.Proxy             ( Proxy(..)        )
+import Control.Monad.Reader
 import Prelude
 
 import Raaz.Core
@@ -52,7 +49,7 @@ instance Memory RandomState where
 sampleWithSeedIfReq :: MT RandomState ()
 sampleWithSeedIfReq = do
   nGenBlocks <- getGenBlocks
-  if (nGenBlocks >= reseedAfter)
+  if nGenBlocks >= reseedAfter
     then clearBlocks >> reseed
     else newSample
   where getGenBlocks = withReaderT blocksGenerated extract
@@ -95,7 +92,7 @@ reInitStateFromBuffer = do
 -- | Run an action on the auxilary buffer.
 withAuxBuffer :: (BufferPtr -> MT RandomState a) -> MT RandomState a
 withAuxBuffer action = askBufferPointer >>= action
-  where askBufferPointer = getBufferPointer . auxBuffer <$> ask
+  where askBufferPointer = asks $ getBufferPointer . auxBuffer
 
 runOnInternals :: MT Internals a -> MT RandomState a
 runOnInternals = withReaderT internals
@@ -156,5 +153,5 @@ unsafeWithExisting m action =  withAuxBuffer $ \ buf -> do
     --   |   l              |    m                           |
     --   -----------------------------------------------------
     action tailPtr          -- run the transfer action from the tail.
-    wipe_memory tailPtr m   -- wipe the bytes already transfered.
+    wipeMemory tailPtr m    -- wipe the bytes already transfered.
     setRemainingBytes l     -- set leftover bytes.

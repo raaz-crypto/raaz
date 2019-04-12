@@ -1,10 +1,10 @@
-{-# LANGUAGE RecordWildCards #-}
 --
 -- The main function that drives other commands.
 --
 
 import Data.Version          (showVersion)
 import Options.Applicative
+import Prelude
 import Raaz                  (version)
 
 import           Command.Checksum

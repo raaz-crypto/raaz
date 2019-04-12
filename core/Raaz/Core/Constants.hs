@@ -2,6 +2,7 @@
 module Raaz.Core.Constants
        ( l1Cache
        ) where
+import Raaz.Core.Prelude
 import Raaz.Core.Types
 
 -- | Typical size of L1 cache. Used for selecting buffer size etc in crypto operations.

@@ -1,12 +1,8 @@
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE FlexibleInstances   #-}
-{-# LANGUAGE CPP                 #-}
-{-# LANGUAGE RecordWildCards     #-}
-
 -- | This module benchmarks all block function and shows the
 
 import Control.Monad
 
+import Prelude
 import System.IO
 import Text.PrettyPrint
 

@@ -1,4 +1,3 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 -- | Types to avoid source destination confusion while copying.
 module Raaz.Core.Types.Copying
        (
@@ -6,6 +5,8 @@ module Raaz.Core.Types.Copying
          -- $copyconvention$
          Src(..), Dest(..), source, destination
        ) where
+
+import Raaz.Core.Prelude
 
 -- $copyconvention$
 --

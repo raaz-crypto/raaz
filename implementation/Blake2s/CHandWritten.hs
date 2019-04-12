@@ -1,15 +1,12 @@
 {-# LANGUAGE ForeignFunctionInterface   #-}
 {-# LANGUAGE DataKinds                  #-}
-{-# LANGUAGE KindSignatures             #-}
+
 
 -- | The portable C-implementation of Blake2s.
 module Blake2s.CHandWritten where
 
 import Foreign.Ptr                ( Ptr          )
 import Control.Monad.IO.Class     ( liftIO       )
-import Data.Word
-import Data.Proxy
-import Data.Bits                  ( complement   )
 
 import Raaz.Core
 import Raaz.Core.Transfer         ( transferSize, unsafeTransfer )

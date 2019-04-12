@@ -17,7 +17,7 @@ toCheck = [ "Raaz/Core/Encode"
           ]
 
 main :: IO ()
-main = do allHsFiles toCheck >>= liquid
+main = allHsFiles toCheck >>= liquid
 
 
 allHsFiles :: [FilePath] -> IO [FilePath]

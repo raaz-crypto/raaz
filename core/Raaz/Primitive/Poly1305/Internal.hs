@@ -28,8 +28,6 @@ module Raaz.Primitive.Poly1305.Internal
        ( Poly1305(..), R(..), S(..), WORD
        ) where
 
-import Data.String
-import Data.Word
 import Foreign.Storable( Storable )
 import Raaz.Core
 

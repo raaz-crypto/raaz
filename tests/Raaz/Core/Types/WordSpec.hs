@@ -3,7 +3,6 @@ module Raaz.Core.Types.WordSpec where
 
 import Tests.Core
 import Data.ByteString as B
-import Data.Bits
 
 
 msbFirst :: (Bits a, Integral a) => B.ByteString -> a

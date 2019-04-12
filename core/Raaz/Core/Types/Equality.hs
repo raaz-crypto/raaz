@@ -12,21 +12,10 @@ module Raaz.Core.Types.Equality
        , Result
        ) where
 
-import           Control.Monad               ( liftM )
-import           Data.Bits
-
-#if !MIN_VERSION_base(4,8,0)
-import Data.Monoid  -- Import only when base < 4.8.0
-#endif
-
-#if !MIN_VERSION_base(4,11,0)
-import Data.Semigroup
-#endif
-
 import qualified Data.Vector.Generic         as G
 import qualified Data.Vector.Generic.Mutable as GM
 import           Data.Vector.Unboxed         ( MVector(..), Vector, Unbox )
-import           Data.Word
+import           Raaz.Core.Prelude
 
 
 

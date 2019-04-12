@@ -2,6 +2,7 @@ module Command.Info where
 
 import Data.Version (showVersion)
 import Options.Applicative
+import Prelude
 import Raaz
 import qualified Raaz.Core.CpuSupports as CpuSupports
 import Raaz.Random  (csprgName)
@@ -54,7 +55,7 @@ cpuCapabilities = do sse    <- CpuSupports.sse
                                  , (avx,    "avx")
                                  , (avx2,   "avx2")
                                  ]
-                         w     = foldl1 max $ map (length . snd) caps
+                         w     = maximum $ map (length . snd) caps
                          pad x = x ++ replicate (w - length x + 3) ' '
                          display (True, c) = unwords [pad c, "- supported"]
                          display (_,c)     = unwords [pad c, "- cannot detect"]

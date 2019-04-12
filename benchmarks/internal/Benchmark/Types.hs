@@ -48,7 +48,7 @@ runRaazBench (nm, bm) = do
 
 
 pprMeasured :: Measured -> [Doc]
-pprMeasured (Measured{..}) =
+pprMeasured Measured{..} =
   [ text (secs tm)          -- time
   , text (humanise cy)      -- cycles
   , text rt                 -- rate

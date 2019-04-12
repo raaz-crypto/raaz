@@ -13,7 +13,8 @@ import AlternateInterface
 import Tests.Core
 
 specCompare :: Spec
-specCompare = describe title $ do
-  prop "should hash same strings to same hashes" $ \ (x :: ByteString) ->
-    (show $ Interface.digest x) `shouldBe` (show $ AlternateInterface.digest x)
+specCompare
+  = describe title $ prop "should hash same strings to same hashes" $
+    \ (x :: ByteString) ->
+      show (Interface.digest x) `shouldBe` show (AlternateInterface.digest x)
   where title = Implementation.name ++ " vs " ++ Alternate.name

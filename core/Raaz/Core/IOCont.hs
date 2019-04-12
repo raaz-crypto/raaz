@@ -2,6 +2,7 @@ module Raaz.Core.IOCont where
 
 import Control.Monad.IO.Class
 import Control.Monad.Reader
+import Raaz.Core.Prelude
 
 -- | Monads that allows lifting IO continuations.
 class MonadIO m => MonadIOCont m where

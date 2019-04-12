@@ -12,14 +12,9 @@ module Raaz.Primitive.ChaCha20.Internal
        , keyCellPtr, ivCellPtr, counterCellPtr
        ) where
 
-import Control.Applicative
 import Control.Monad.Reader ( withReaderT   )
-import Data.String
-import Data.Word
 import Foreign.Storable
 import Foreign.Ptr                ( Ptr  )
-import Prelude
-
 
 import Raaz.Core
 

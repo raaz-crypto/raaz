@@ -15,12 +15,8 @@ module Raaz.Primitive.Sha2.Internal
        , process256Last
        ) where
 
-import           Data.Bits
-import           Data.Proxy
-import           Data.String
-import           Data.Word
+import           Control.Monad.IO.Class     ( MonadIO      )
 import           Foreign.Storable           ( Storable(..) )
-import           Prelude      hiding        ( zipWith      )
 
 import           Raaz.Core
 import           Raaz.Core.Types.Internal
@@ -139,11 +135,8 @@ padding256 :: BYTES Int    -- Data in buffer.
            -> BYTES Word64 -- Message length
            -> WriteM (MT Sha256Mem)
 padding256 bufSize msgLen  =
-  glueWrites 0 boundary hdr lengthWrite
-  where skipMessage = skip bufSize
-        oneBit      = writeStorable (0x80 :: Word8)
-        hdr         = skipMessage `mappend` oneBit
-        boundary    = blocksOf 1 (Proxy :: Proxy Sha256)
+  glueWrites 0 boundary (padBit1 bufSize) lengthWrite
+  where boundary    = blocksOf 1 (Proxy :: Proxy Sha256)
         lengthWrite = write $ bigEndian (shiftL w 3)
         BYTES w     = msgLen
 
@@ -152,11 +145,15 @@ padding512 :: BYTES Int    -- Data in buffer.
            -> BYTES Word64 -- Message length higher
            -> BYTES Word64 -- Message length lower
            -> WriteM (MT Sha512Mem)
-padding512 bufSize uLen lLen  = glueWrites 0 boundary hdr lengthWrite
-  where skipMessage = skip bufSize
-        oneBit      = writeStorable (0x80 :: Word8)
-        hdr         = skipMessage `mappend` oneBit
-        boundary    = blocksOf 1 (Proxy :: Proxy Sha512)
+padding512 bufSize uLen lLen  = glueWrites 0 boundary (padBit1 bufSize) lengthWrite
+  where boundary    = blocksOf 1 (Proxy :: Proxy Sha512)
         lengthWrite = write (bigEndian up) `mappend` write (bigEndian lp)
         BYTES up    = shiftL uLen 3 .|. shiftR lLen 61
         BYTES lp    = shiftL lLen 3
+
+
+-- | Pad the message with a 1-bit.
+padBit1 :: MonadIO m
+        => BYTES Int -- ^ message length
+        -> WriteM m
+padBit1  sz = skip sz <> writeStorable (0x80 :: Word8)

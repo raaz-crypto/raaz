@@ -1,5 +1,3 @@
-{-# LANGUAGE ForeignFunctionInterface   #-}
-{-# LANGUAGE KindSignatures             #-}
 {-# LANGUAGE DataKinds                  #-}
 
 -- | The portable C-implementation of Sha512.
@@ -13,7 +11,6 @@ module Sha512.CPortable
 
 import Foreign.Ptr                ( castPtr      )
 import Control.Monad.IO.Class     ( liftIO       )
-import Data.Proxy
 
 import Raaz.Core
 import Raaz.Primitive.HashMemory

@@ -1,11 +1,7 @@
 -- | Module to reading from and writing into buffers.
-
-{-# LANGUAGE CPP                        #-}
 {-# LANGUAGE FlexibleContexts           #-}
-{-# LANGUAGE TypeSynonymInstances       #-}
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE DataKinds                  #-}
 {-# LANGUAGE KindSignatures             #-}
 
@@ -27,24 +23,14 @@ module Raaz.Core.Transfer
 
 import           Control.Monad.IO.Class
 import           Data.ByteString           (ByteString)
-import           Data.Functor              ( void     )
-import           Data.Proxy
-import           Data.String
 import           Data.ByteString.Internal  (unsafeCreate)
 
-#if !MIN_VERSION_base(4,8,0)
-import Data.Monoid  -- Import only when base < 4.8.0
-#endif
-
-#if !MIN_VERSION_base(4,11,0)
-import Data.Semigroup
-#endif
 
 import qualified Data.Vector.Generic       as G
-import           Data.Word                 (Word8)
 import           Foreign.Ptr               (castPtr, Ptr)
 import           Foreign.Storable          ( Storable, poke )
 
+import           Raaz.Core.Prelude
 import           Raaz.Core.MonoidalAction
 import           Raaz.Core.Types.Copying
 import           Raaz.Core.Types.Endian

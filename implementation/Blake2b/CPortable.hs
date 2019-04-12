@@ -1,13 +1,10 @@
 {-# LANGUAGE DataKinds                  #-}
-{-# LANGUAGE KindSignatures             #-}
 
 -- | The portable C-implementation of Blake2b.
 module Blake2b.CPortable where
 
 
 import Control.Monad.IO.Class     ( liftIO       )
-import Data.Proxy
-import Data.Bits                  ( complement   )
 import Foreign.Ptr                ( castPtr      )
 
 import Raaz.Core
