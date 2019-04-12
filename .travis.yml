@@ -67,7 +67,6 @@ matrix:
 
   allow_failures:
     - env: GHCVER=head CABALVER=head
-    - env: HLINT="yes"
     - env: LIQUID_HASKELL="yes"
 
 before_install:
