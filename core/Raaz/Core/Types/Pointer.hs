@@ -4,7 +4,6 @@
 {-# LANGUAGE ForeignFunctionInterface   #-}
 {-# LANGUAGE DataKinds                  #-}
 {-# LANGUAGE ConstraintKinds            #-}
-{-# LANGUAGE KindSignatures             #-}
 {-# LANGUAGE TypeFamilies               #-}
 
 -- | This module exposes types that builds in type safety into some of

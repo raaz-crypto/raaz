@@ -408,7 +408,7 @@ withCellPointer action = ReaderT $ action . actualCellPtr
 -- | Get the pointer associated with the given memory cell.
 getCellPointer :: Storable a => MT (MemoryCell a) (Ptr a)
 {-# INLINE getCellPointer #-}
-getCellPointer = actualCellPtr <$> ask
+getCellPointer = asks actualCellPtr
 
 instance Storable a => Initialisable (MemoryCell a) a where
   initialise a = ReaderT $ flip pokeAligned a . unMemoryCell

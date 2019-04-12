@@ -1,6 +1,5 @@
 {-# LANGUAGE CPP                  #-}
 {-# LANGUAGE DataKinds            #-}
-{-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE FlexibleInstances    #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
@@ -50,10 +49,10 @@ instance Arbitrary Blake2s where
 ---------------- Arbitrary instaces of encoded data --------------
 
 instance Arbitrary Base16 where
-  arbitrary =  (encodeByteString . pack) <$> listOf arbitrary
+  arbitrary =  encodeByteString . pack <$> listOf arbitrary
 
 instance Arbitrary Base64 where
-  arbitrary =  (encodeByteString . pack) <$> listOf arbitrary
+  arbitrary =  encodeByteString . pack <$> listOf arbitrary
 
 ------------------ Arbitrary instances for Keys ---------------
 

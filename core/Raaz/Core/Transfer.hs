@@ -1,6 +1,5 @@
 -- | Module to reading from and writing into buffers.
 {-# LANGUAGE FlexibleContexts           #-}
-{-# LANGUAGE TypeSynonymInstances       #-}
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE DataKinds                  #-}

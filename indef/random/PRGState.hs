@@ -9,7 +9,7 @@ module PRGState
        , csprgName, csprgDescription
        ) where
 
-import Control.Monad.Reader   ( ask, withReaderT )
+import Control.Monad.Reader
 import Prelude
 
 import Raaz.Core
@@ -92,7 +92,7 @@ reInitStateFromBuffer = do
 -- | Run an action on the auxilary buffer.
 withAuxBuffer :: (BufferPtr -> MT RandomState a) -> MT RandomState a
 withAuxBuffer action = askBufferPointer >>= action
-  where askBufferPointer = getBufferPointer . auxBuffer <$> ask
+  where askBufferPointer = asks $ getBufferPointer . auxBuffer
 
 runOnInternals :: MT Internals a -> MT RandomState a
 runOnInternals = withReaderT internals
