@@ -9,7 +9,7 @@ module Poly1305.CPortable
        , processLast
        ) where
 
-import Foreign.Ptr                ( castPtr       )
+import Foreign.Ptr                ( castPtr, Ptr  )
 import Control.Monad.IO.Class     ( liftIO        )
 
 import Raaz.Core
@@ -47,13 +47,21 @@ processBlocks buf blks = do
 blocksMac :: AlignedPointer BufferAlignment
           -> BLOCKS Poly1305
           -> MT Internals ()
-blocksMac buf blks = do
-  aP <- accumPtr
-  rP <- rKeyPtr
-  sP <- sKeyPtr
-  liftIO $ verse_poly1305_c_portable_blockmac bufPtr wBlks aP rP sP
+blocksMac buf blks = runWithRS $ verse_poly1305_c_portable_blockmac bufPtr wBlks
   where bufPtr = castPtr $ forgetAlignment buf
-        wBlks  = toEnum $ fromEnum blks
+        wBlks  = toEnum  $ fromEnum blks
+
+-- | Run an IO action with the pointers to the element, r and s cells.
+runWithRS :: ( Ptr Element ->
+               Ptr (Tuple 2 Word64) ->
+               Ptr (Tuple 2 Word64) ->
+               IO ()
+             )
+          -> MT Internals ()
+runWithRS func = do aP <- accumPtr
+                    rP <- rKeyPtr
+                    sKeyPtr >>= liftIO . func aP rP
+
 
 -- | Process a message that has its last block incomplete. The total
 -- blocks argument here is the greatest multiple of the block that is
@@ -63,12 +71,10 @@ partialBlockMac :: AlignedPointer BufferAlignment
                 -> MT Internals ()
 partialBlockMac buf blks = do
   processBlocks buf blks
-  aP <- accumPtr
-  rP <- rKeyPtr
-  sP <- sKeyPtr
-  let bufPtr = castPtr $ forgetAlignment buf
-      lastBlockPtr = bufPtr `movePtr` blks
-      in liftIO $ verse_poly1305_c_portable_partialmac lastBlockPtr aP rP sP
+  runWithRS $ verse_poly1305_c_portable_partialmac lastBlockPtr
+  where bufPtr       = castPtr $ forgetAlignment buf
+        lastBlockPtr = bufPtr `movePtr` blks
+
 
 -- | Process the last bytes.
 processLast :: AlignedPointer BufferAlignment
