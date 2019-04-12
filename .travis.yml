@@ -73,7 +73,7 @@ matrix:
 before_install:
  - uname -a
  - if [ "$HLINT" == "yes" ]; then
-      hlint "--ignore=Parse error" Raaz;
+      hlint "--ignore=Parse error" . ;
       exit $?;
    fi
 
