@@ -73,6 +73,7 @@ matrix:
 before_install:
  - uname -a
  - if [ "$HLINT" == "yes" ]; then
+      hlint --version;
       hlint "--ignore=Parse error" . ;
       exit $?;
    fi
