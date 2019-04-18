@@ -89,17 +89,17 @@ raaz supports is exposed through its `Interface` module which in turn
 depends on an appropriate `Implementation` module. This dependency is
 satisfied by the `mixin` mechanism of backpack.
 
-1. The package `raaz:prim-indef` exposes an `Interface` module one for
-   each primitive that raaz supports. For example, the
+1. The package `raaz:prim-indef` exposes an `Interface` module, one
+   for each primitive that raaz supports. For example, the
    `Blake2b.Interface` provides access to [blake2b][blake2] hashing.
    However, this package cannot be used as such because it is a
    _package with a hole_. One needs to actually _mixin_ a module with
    name `Blake2b.Implementation` for this to work.
 
-2. The `Implementation` modules are provided by the component
-   `raaz:implementation`. By listing both `raaz:prim-indef` and
-   `raaz:implementation` in the `build-depends` the Implementations
-   needed by `raaz:prim-indef` are satisfied by the default
+2. The component `raaz:implementation` provides the needed
+   `Implementation` modules and by listing both `raaz:prim-indef` and
+   `raaz:implementation` in the `build-depends` the implementation
+   modules needed by `raaz:prim-indef` are satisfied by the default
    implementations from `raaz:implementation`. This is how the raaz
    library provides you with the interface.
 
