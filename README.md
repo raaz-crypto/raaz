@@ -80,19 +80,21 @@ containing multiple component. A user who only cares about the high
 level interface can just ignore these individual components and use
 only the top level library `raaz` much like any other package. For
 users who do care about changing the underlying implementation, having
-an overall picture of these components is helpful.
+an overall picture of these components is helpful. We assume some
+familiarity with the backpack system of mixin style modules for
+Haskell for the rest of this section.
 
-Any primitive that raaz supports is supported through its `Interface`
-module. Typically such Interface module needs to be _mixed in_ with an
-appropriate `Implementation` module for it to be useful. Two packages
-are of at most importance here.
+The overall picture can be simplified as follows: Any primitive that
+raaz supports is exposed through its `Interface` module which in turn
+depends on an appropriate `Implementation` module. This dependency is
+satisfied by the `mixin` mechanism of backpack.
 
-1. The package `raaz:prim-indef` exposes an `Interface` module for
+1. The package `raaz:prim-indef` exposes an `Interface` module one for
    each primitive that raaz supports. For example, the
    `Blake2b.Interface` provides access to [blake2b][blake2] hashing.
    However, this package cannot be used as such because it is a
-   _package with a hole_. One needs to actually mixin implementations
-   of blake2 to make it usable.
+   _package with a hole_. One needs to actually _mixin_ a module with
+   name `Blake2b.Implementation` for this to work.
 
 2. The `Implementation` modules are provided by the component
    `raaz:implementation`. By listing both `raaz:prim-indef` and
@@ -107,19 +109,20 @@ are of at most importance here.
 
 ```
 
-### Overiding default implementations
+### Overiding the default implementation
 
 The `raaz:implementation` often provide multiple implementation for
 the same primitives but for a particular primitives selects one as the
 default implementation. If we stick to the Blakd2b example,
 `raaz:implementation` exposes `Blake2b.CPortable` and
 `Blake2b.CHandWritten` of which `Blake2b.CPortable` is made the
-default implementation by re-exporting it also under the name
+default implementation by re-exporting it under the name
 `Blakd2b.Implementation`. This means that when we add both
 `raaz:prim-indef` and the `raaz:implementation` to the build depends
-field, the demand for the module Blake2b.Implementation from the
-former component is satisfied by the `Blakd2b.CPortable`. We can selectively override this
-using the following cabal stanza.
+field, the demand for the module `Blake2b.Implementation` from the
+former component is satisfied by the `Blakd2b.CPortable`. We can
+selectively override this using the following cabal stanza.
+
 
 
 ```
@@ -128,7 +131,7 @@ build-depends: raaz:prim-indef
 mixins: raaz:prim-indef requires (Blake2b.Implementation as Blake2b.CHandWritten)
 ```
 
-You can also mixin custom implementations (i.e implementations that
+You can also mix-in custom implementations (i.e implementations that
 are not exposed by raaz) using this technique.
 
 
@@ -142,10 +145,9 @@ mixins: raaz:prim-indef requires (Blake2b.Implementation as MyCustom.Blake2b.Imp
 ```
 
 The above stanza ensures all primitives except blake2b uses the
-default implementation from raaz-implementations but Blakd2b alone
+default implementation from `raaz-implementation` but `Blake2b` alone
 uses `MyCustom.Blake2b.Implementation` (exposed from
-my-custom-blake2).
-
+`my-custom-blake2`).
 
 About the name
 --------------
