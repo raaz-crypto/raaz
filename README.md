@@ -3,9 +3,6 @@ Raaz: A secure cryptographic library
 
 [![Build Staus][travis-status]][travis-raaz]
 [![Build Windows][appveyor-status]][appveyor-raaz]
-[![In Progress][waffle-inprogress]][waffle-raaz]
-[![Stackage LTS][stackage-lts-raaz-badge]][stackage-lts-raaz]
-[![Stackage Nightly][stackage-nightly-raaz-badge]][stackage-nightly-raaz]
 [![Hackage][hackage-badge]][hackage]
 [![Hackage Dependencies][hackage-deps-badge]][hackage-deps]
 
