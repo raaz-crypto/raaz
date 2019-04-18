@@ -9,25 +9,19 @@ Raaz: A secure cryptographic library
 [![Hackage][hackage-badge]][hackage]
 [![Hackage Dependencies][hackage-deps-badge]][hackage-deps]
 
-The Raaz cryptographic library is a collection of Haskell packages
-whose goal is to provide high level access to cryptographic
-operations. The type system of Haskell plays a crucial role in
-avoiding some of common bugs in cryptographic implementations. The
-library is intended to be used for standalone cryptographic
-applications as well as implementing network protocols.  Besides, we
-put a lot of emphasis on better API design and good documentation
-which, we believe, makes the usage of the library secure.
-
-Some of the features that are unique to raaz are the following
+Raaz is a cryptographic library in Haskell that provide a high level
+and safe access to a lot of cryptographic operations. The library can
+be used for standalone cryptographic applications as well as for
+implementing other network protocols. Some of the features that are
+unique to raaz are the following
 
 1. Pervasive use of types for better safety.
 2. Default choice of primitives and implementations are safe.
 3. Mechanism to have multiple implementations for any given
-   cryptographic primitives. An advanced user who has an indepth
+   cryptographic primitives. An advanced user who has an in-depth
    knowledge of the platform should be able to plugin the desired
-   implementation
+   implementation.
 4. Strong emphasis on API design with through documentation.
-
 
 Building
 --------
@@ -91,49 +85,69 @@ only the top level library `raaz` much like any other package. For
 users who do care about changing the underlying implementation, having
 an overall picture of these components is helpful.
 
-1. The component `raaz:core` contains core types and utility
-   functions. You would most likely need this component to begin with.
+Any primitive that raaz supports is supported through its `Interface`
+module. Typically such Interface module needs to be _mixed in_ with an
+appropriate `Implementation` module for it to be useful. Two packages
+are of at most importance here.
 
-2. The component `raaz:indef` exports a signature `Implementation` and
-   a module `Utils` that depends on the signature. The
-   `Implementation` signature captures the Haskell interface to the
-   low level implementation of a cryptographic block primitive. To
-   complement this indefinite package the component
-   `raaz:implementation` provides implementations that can be
-   "mixed-in" in place the signature `Implementation`. A user can
-   select one such implementation from `raaz:implementation`, or can
-   code up her own as long as it satisfies the `Implementation`
-   signature.
+1. The package `raaz:prim-indef` exposes an `Interface` module for
+   each primitive that raaz supports. For example, the
+   `Blake2b.Interface` provides access to [blake2b][blake2] hashing.
+   However, this package cannot be used as such because it is a
+   _package with a hole_. One needs to actually mixin implementations
+   of blake2 to make it usable.
 
-3. For each block primitive `foo` that is supported by `raaz` there is
-   a component `raaz:foo-indef`, that captures the various
-   implementations of the primitive `foo`. It reexports (a restricted
-   version of) the signature `Implementation` and the module `Utils`
-   as `Foo.Implementation` and `Foo.Utils` respectively.  For example,
-   `raaz:chacha20-indef` component captures low-level implementations
-   of the ChaCha20 stream cipher and exposes them as the signature
-   `ChaCha20.Implementation` and `ChaCha20.Utils`
+2. The `Implementation` modules are provided by the component
+   `raaz:implementation`. By listing both `raaz:prim-indef` and
+   `raaz:implementation` in the `build-depends` the Implementations
+   needed by `raaz:prim-indef` are satisfied by the default
+   implementations from `raaz:implementation`. This is how the raaz
+   library provides you with the interface.
+
+```
+   build-depends: raaz:prim-indef
+                , raaz:implementation
+
+```
+
+### Overiding default implementations
+
+The `raaz:implementation` often provide multiple implementation for
+the same primitives but for a particular primitives selects one as the
+default implementation. If we stick to the Blakd2b example,
+`raaz:implementation` exposes `Blake2b.CPortable` and
+`Blake2b.CHandWritten` of which `Blake2b.CPortable` is made the
+default implementation by re-exporting it also under the name
+`Blakd2b.Implementation`. This means that when we add both
+`raaz:prim-indef` and the `raaz:implementation` to the build depends
+field, the demand for the module Blake2b.Implementation from the
+former component is satisfied by the `Blakd2b.CPortable`. We can selectively override this
+using the following cabal stanza.
 
 
-4. Any library `bar` that wants to use a primitive `foo` while giving
-   the flexibility for the downstream user to plugin different
-   implementations of `foo` should define an indefinite package
-   `bar:indef`. The downstream user will then be able to `mixin` the
-   appropriate implementation using the following in her cabal file
+```
+build-depends: raaz:prim-indef
+             , raaz:implementation
+mixins: raaz:prim-indef requires (Blake2b.Implementation as Blake2b.CHandWritten)
+```
 
-   ```
+You can also mixin custom implementations (i.e implementations that
+are not exposed by raaz) using this technique.
 
-     build-depends: raaz:chacha20-indef
-                  , bar:indef
-                  , raaz:implementation
-     mixin: bar:indef (Bar as Bar.Portable)
-               requires (ChaCha20.Implementations as ChaCha20.Portable)
-                 -- This makes use of the portable c implementation of
-                 -- ChaCha20 from raaz:implementation
-   ```
 
-For an example of this usage check out the component `raaz:hash-indef`
-and its use in the main library.
+```
+build-depends: raaz:prim-indef
+             , raaz:implementation
+             , my-custom-blake2
+
+mixins: raaz:prim-indef requires (Blake2b.Implementation as MyCustom.Blake2b.Implementation)
+
+```
+
+The above stanza ensures all primitives except blake2b uses the
+default implementation from raaz-implementations but Blakd2b alone
+uses `MyCustom.Blake2b.Implementation` (exposed from
+my-custom-blake2).
 
 
 About the name
@@ -168,7 +182,7 @@ LICENSE file.
 
 [wiki]: <https://github.com/raaz-crypto/raaz/wiki> "Raaz Wiki"
 [repo]: <https://github.com/raaz-crypto/raaz> "Raaz on github"
-
+[blake2]: <https://blake2.net/> "Blake2 hash function"
 [emailgroups]: <https://groups.google.com/forum/#!forum/hraaz> "Raaz on Google groups"
 [waffle-raaz]:   <https://waffle.io/raaz-crypto/raaz>
 [waffle-inprogress]: <https://badge.waffle.io/raaz-crypto/raaz.svg?label=waffle%3Ain%20progress&title=In%20Progress>
