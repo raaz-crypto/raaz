@@ -95,6 +95,7 @@ script:
   - cabal new-build all
   - cabal new-test all
   - cabal new-bench
+  - cabal new-haddock
   - $(find ./dist-newstyle -name raaz -type f) info
   - if [ "$LIQUID_HASKELL" == "yes" ]; then ./scripts/get-lh.sh && ./scripts/run-lh.sh; exit $?; fi
 
