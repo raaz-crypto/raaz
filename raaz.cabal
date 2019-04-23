@@ -173,28 +173,33 @@ library libverse
   includes: libverse/verse.h
 
 
----------------------- Indef packages for implementations ----------------------
+---------------------- Implementation signature packages -------------
 --
--- There are the following generic indef packages which capture
--- implementation of cryptographic bulk primitives.
+-- The first set of indef packages expose an Implementation signature
+-- for common block primitives.
 --
--- indef: Captures implementation of a generic primitive
+-- prim-indef: Signature package exposing the signature
+--   `Implementation` that captures implementation of a block
+--   primitive
 --
--- util: Exposes some utility function using the generic interface of
---   the primitive
---
--- digest-indef: Captures implementation of a primitive that processes
---   its input and finally produces a digest value. Examples include
+-- digest-indef: This package adds additional constraints on
+--   `prim-indef:Implementation` to capture primitive that produces a
+--   digest value at the end of processing data. Examples include
 --   cryptographic hashes, MACs, encrypted authenticators etc. In the
 --   case of the last one we also encrypt the message (process the
 --   input)
 --
--- keyed-indef: Captures implementations of primitives that requires a
+-- keyed-indef: This package adds additional constraints on
+--   `prim-indef:Implementation` to capture primitives that requires a
 --   starting (often secret) key. Examples are ciphers, MACs,
 --   encrypted authenticators.
 --
-
-library indef
+-- prim-util: Exposes some generic utility function for a
+--   primitive. Thus the assumption made is only that of the
+--   `Interface` signature provided by the `prim-indef` package.
+--
+        
+library prim-indef
   -- visibility: public
   import: defaults
   build-depends: core
@@ -207,126 +212,135 @@ library digest-indef
   hs-source-dirs: indef/digest
   signatures: Implementation
   build-depends: core
-               , indef
-
+               , prim-indef
 
 library keyed-indef
   import: defaults
   hs-source-dirs: indef/keyed
   signatures: Implementation
   build-depends: core
-               , indef
+               , prim-indef
 
+               
+library prim-utils
+  import: defaults
+  build-depends: core
+               , prim-indef
+  hs-source-dirs: indef
+  exposed-modules: Utils
 
--------- Indef packages supplying cryptographic operations -------------------------
+-------------------- Derived Implementations ----------------------------
 --
--- A cryptographic operation performed using an implementation of a
--- primitive is exposed in the next set of packages using an interface
--- file.
+-- Certain primitives are defined based on other primitive. Given
+-- below are indef packages for these.
+--
+-- keyed-hash: Certain hashes like blake2 supports a simple keyed
+--   hashing algorithm that can be used as message authentication
+--   code. This module exposes the module `Mac.Implementation` which
+--   can be mixed into the auth-api module to satisfy its
+--   requirement of an `Implementation` module.
+
+
+library keyed-hash-indef
+  import: defaults
+  hs-source-dirs: indef/keyed/hash
+  signatures: Implementation
+  build-depends: core
+               , prim-utils
+  exposed-modules: Mac.Implementation
+
+-------- API packages ----------------------------------------------
+--
+-- An api package provides an `Interface` module for some common
+-- cryptographic operations. Typically they depend on one or more of
+-- the implementation modules.
 --
 -- hash-indef: Provides cryptographic hashes/message digests
 --
--- auth-indef: Provides message authentication
+-- auth-api: Provides message authentication
 --
 -- random-indef: Provides cryptographically secure pseudo-random
 --   generator making use of system entropy for seeding and a suitable
 --   primitive (typically a cipher) for stretching the seed.
 
-
-
-library util
-  import: defaults
-  build-depends: core
-               , indef
-  hs-source-dirs: indef
-  exposed-modules: Utils
-
-library auth-indef
-  import: defaults
-  hs-source-dirs: indef/auth
-  build-depends: core
-               , keyed-indef
-               , digest-indef
-               , util
-  exposed-modules: Interface
-
-library hash-indef
+library hash-api
   import: defaults
   hs-source-dirs: indef/digest/hash
   signatures: Implementation
   build-depends: core
                , digest-indef
-               , util
+               , prim-utils
   exposed-modules: Interface
 
-library random-indef
+  
+library auth-api
+  import: defaults
+  hs-source-dirs: indef/auth
+  build-depends: core
+               , keyed-indef
+               , digest-indef
+               , prim-utils
+  exposed-modules: Interface
+
+library random-api
   import: defaults
   hs-source-dirs: indef/random
   build-depends: core
-               , indef
-               , util
+               , prim-indef
+               , prim-utils
+               , libverse
   signatures: Implementation
-  exposed-modules: PRGState
+  exposed-modules: Interface
+                 , Internal
+  other-modules: PRGState
 
--- keyed-hash: An implementation of message authentication using
--- hashes. This package takes in an Implementation of a hash (together
--- with some constraints) and creates an implementation for a message
--- authenticator. The Mac.Implementation module that it exposes can be
--- used as the Implementation module for the auth-indef package.
-
-library keyed-hash
-  import: defaults
-  hs-source-dirs: indef/keyed/hash
-  signatures: Implementation
-  build-depends: core
-               , util
-  exposed-modules: Mac.Implementation
-
-
-------------------- The indef of all primitives ------------------
+-------------------- The raaz indef package ------------------------
 --
--- This package collects all primitives supported by raaz, gives
--- primitive specific implementations a new name, and exposes the
--- interfaces. This is the indef package to use if you want to plugin
--- new implementation.
---
+-- This is the indef package to use if you want to get an interface
+-- similar to raaz and want to override the implementations.
 
-library prim-indef
+library raaz-indef
   -- visibility: public
   import: defaults
   build-depends: core
-               , hash-indef
-               , random-indef
-               , keyed-hash
-               , auth-indef
+               , hash-api
+               , random-api
+               , auth-api
+               , keyed-hash-indef
   hs-source-dirs: prims/sha2
                 , prims/blake2
   signatures: Blake2b.Implementation
             , Blake2s.Implementation
             , Sha256.Implementation
             , Sha512.Implementation
-  reexported-modules: Blake2b.Interface
-                    , Blake2s.Interface
-                    , Sha256.Interface
-                    , Sha512.Interface
-                    , Blake2b.Mac.Interface
-                    , Blake2s.Mac.Interface
-                    , PRGState
-  mixins: hash-indef (Interface as Blake2b.Interface)  requires (Implementation as Blake2b.Implementation)
-        , hash-indef (Interface as Blake2s.Interface)  requires (Implementation as Blake2s.Implementation)
-        , hash-indef (Interface as Sha512.Interface)   requires (Implementation as Sha512.Implementation)
-        , hash-indef (Interface as Sha256.Interface)   requires (Implementation as Sha256.Implementation)
-        , random-indef requires (Implementation as ChaCha20.Implementation)
+  reexported-modules: Digest.Blake2b
+                    , Digest.Blake2s
+                    , Digest.Sha256
+                    , Digest.Sha512
+                    , Auth.Blake2b
+                    , Auth.Blake2s
+                    , Random
+                    , Random.Internal
+  mixins: hash-api (Interface as Digest.Blake2b)
+            requires (Implementation as Blake2b.Implementation)
+        , hash-api (Interface as Digest.Blake2s)
+            requires (Implementation as Blake2s.Implementation)
+        , hash-api (Interface as Digest.Sha512)
+            requires (Implementation as Sha512.Implementation)
+        , hash-api (Interface as Digest.Sha256)
+            requires (Implementation as Sha256.Implementation)
+        , random-api (Interface as Random, Internal as Random.Internal)
+            requires (Implementation as ChaCha20.Implementation)
 
         -- MAC-ing with blake2b
-        , keyed-hash (Mac.Implementation as Blake2b.Mac.Implementation)
+        , keyed-hash-indef (Mac.Implementation as Blake2b.Mac.Implementation)
             requires (Implementation as Blake2b.Implementation)
-        , auth-indef (Interface as Blake2b.Mac.Interface) requires (Implementation as Blake2b.Mac.Implementation)
+        , auth-api (Interface as Auth.Blake2b) requires (Implementation as Blake2b.Mac.Implementation)
 
         -- MAC-ing with blake2s
-        , keyed-hash (Mac.Implementation as Blake2s.Mac.Implementation)
+        , keyed-hash-indef (Mac.Implementation as Blake2s.Mac.Implementation)
             requires (Implementation as Blake2s.Implementation)
-        , auth-indef (Interface as Blake2s.Mac.Interface) requires (Implementation as Blake2s.Mac.Implementation)
+        , auth-api (Interface as Auth.Blake2s) requires (Implementation as Blake2s.Mac.Implementation)
 
 --------------------  The implementation modules ----------------------------------
 --
@@ -340,12 +354,12 @@ library prim-indef
 -- One can selectively override the implementation used by a primitive
 -- using the idiom
 --
--- build-depends: prim-indef
+-- build-depends: raaz-indef
 --              , implementation
--- mixins: prim-indef requires (ChaCha20.Implementation as ChaCha20.CHandWritten)
+-- mixins: raaz-indef requires (ChaCha20.Implementation as ChaCha20.CHandWritten)
 --
 --
--- The above lines ensures that the interface provided by prim-indef
+-- The above lines ensures that the interface provided by raaz-indef
 -- for ChaCha20, uses the the Hand Written implementation while all
 -- other primitives uses the default implementation (set in the
 -- implementation package).
@@ -395,18 +409,18 @@ library
   hs-source-dirs: raaz
   build-depends: core
                , implementation
-               , prim-indef
-               , libverse
+               , raaz-indef
   exposed-modules: Raaz
-                 , Raaz.Blake2b
-                 , Raaz.Blake2s
-                 , Raaz.Sha256
-                 , Raaz.Sha512
-                 , Raaz.Random
-                 , Raaz.V1
-  reexported-modules: Raaz.Core
+  reexported-modules: Auth.Blake2b    as Raaz.Auth.Blake2b
+                    , Auth.Blake2s    as Raaz.Auth.Blake2s
+                    , Digest.Blake2b  as Raaz.Digest.Blake2b
+                    , Digest.Blake2s  as Raaz.Digest.Blake2s
+                    , Digest.Sha512   as Raaz.Digest.Sha512
+                    , Digest.Sha256   as Raaz.Digest.Sha256
+                    , Random          as Raaz.Random
+                    , Random.Internal as Raaz.Random.Internal
+                    , Raaz.Core
                     , Raaz.Core.Types
-
   autogen-modules: Paths_raaz
   other-modules: Paths_raaz
 
@@ -449,29 +463,29 @@ library test-cipher
   import: test-defaults
   hs-source-dirs: tests/cipher
   build-depends: test-core
-               , indef
+               , prim-indef
                , keyed-indef
-               , util
+               , prim-utils
   exposed-modules: Tests.Cipher
 
 library test-hash
   import: test-defaults
   hs-source-dirs: tests/message-digest
   build-depends: test-core
-               , indef
-               , hash-indef
-               , util
+               , prim-indef
+               , hash-api
+               , prim-utils
   exposed-modules: Tests.Digest
                  , Tests.Digest.Compare
-  mixins: hash-indef(Interface as AlternateInterface) requires (Implementation as Alternate)
-        , hash-indef
+  mixins: hash-api (Interface as AlternateInterface) requires (Implementation as Alternate)
+        , hash-api
 
 library test-auth
   import: test-defaults
   hs-source-dirs: tests/auth
   build-depends: test-core
-               , indef
-               , auth-indef
+               , prim-indef
+               , auth-api
   exposed-modules: Tests.Auth
 
 -------------------------- The test suits -------------------------
@@ -487,7 +501,7 @@ test-suite tests
                , test-cipher
                , test-hash
                , test-auth
-               , keyed-hash
+               , keyed-hash-indef
                , implementation
                , raaz
   build-tool-depends: hspec-discover:hspec-discover
@@ -523,11 +537,11 @@ test-suite tests
 
         , test-auth (Tests.Auth as Poly1305.Auth)     requires (Implementation as Poly1305.Implementation)
 
-        , keyed-hash (Mac.Implementation as Blake2s.Mac.Implementation)
+        , keyed-hash-indef (Mac.Implementation as Blake2s.Mac.Implementation)
             requires (Implementation as Blake2s.Implementation)
         , test-auth  (Tests.Auth as Blake2s.Auth) requires (Implementation as Blake2s.Mac.Implementation)
 
-        , keyed-hash (Mac.Implementation as Blake2b.Mac.Implementation)
+        , keyed-hash-indef (Mac.Implementation as Blake2b.Mac.Implementation)
             requires (Implementation as Blake2b.Implementation)
         , test-auth  (Tests.Auth as Blake2b.Auth) requires (Implementation as Blake2b.Mac.Implementation)
 
@@ -549,16 +563,16 @@ library bench-types
 library bench-prim
   import: bench-defaults
   build-depends: bench-types
-               , util
-               , indef
+               , prim-indef
+               , prim-utils
   other-modules: Benchmark.Types
   exposed-modules: Benchmark.Primitive
 
 library bench-csprg
   import: bench-defaults
   build-depends: bench-types
-               , util
-               , random-indef
+               , prim-utils
+               , random-api
   exposed-modules: Benchmark.CSPRG
   other-modules: Benchmark.Types
 
