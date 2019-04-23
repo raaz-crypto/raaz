@@ -423,6 +423,7 @@ library
                     , Raaz.Core.Types
   autogen-modules: Paths_raaz
   other-modules: Paths_raaz
+               , Raaz.V1
 
 ---------------------------- Executables -------------------------------------------------
 
