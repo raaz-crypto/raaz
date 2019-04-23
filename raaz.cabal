@@ -234,14 +234,14 @@ library prim-utils
 -- Certain primitives are defined based on other primitive. Given
 -- below are indef packages for these.
 --
--- keyed-hash: Certain hashes like blake2 supports a simple keyed
+-- mac-indef: Certain hashes like blake2 supports a simple keyed
 --   hashing algorithm that can be used as message authentication
 --   code. This module exposes the module `Mac.Implementation` which
 --   can be mixed into the auth-api module to satisfy its
 --   requirement of an `Implementation` module.
 
 
-library keyed-hash-indef
+library mac-indef
   import: defaults
   hs-source-dirs: indef/keyed/hash
   signatures: Implementation
@@ -259,7 +259,7 @@ library keyed-hash-indef
 --
 -- auth-api: Provides message authentication
 --
--- random-indef: Provides cryptographically secure pseudo-random
+-- random-api: Provides cryptographically secure pseudo-random
 --   generator making use of system entropy for seeding and a suitable
 --   primitive (typically a cipher) for stretching the seed.
 
@@ -306,7 +306,7 @@ library raaz-indef
                , hash-api
                , random-api
                , auth-api
-               , keyed-hash-indef
+               , mac-indef
   hs-source-dirs: prims/sha2
                 , prims/blake2
   signatures: Blake2b.Implementation
@@ -333,12 +333,12 @@ library raaz-indef
             requires (Implementation as ChaCha20.Implementation)
 
         -- MAC-ing with blake2b
-        , keyed-hash-indef (Mac.Implementation as Blake2b.Mac.Implementation)
+        , mac-indef (Mac.Implementation as Blake2b.Mac.Implementation)
             requires (Implementation as Blake2b.Implementation)
         , auth-api (Interface as Auth.Blake2b) requires (Implementation as Blake2b.Mac.Implementation)
 
         -- MAC-ing with blake2s
-        , keyed-hash-indef (Mac.Implementation as Blake2s.Mac.Implementation)
+        , mac-indef (Mac.Implementation as Blake2s.Mac.Implementation)
             requires (Implementation as Blake2s.Implementation)
         , auth-api (Interface as Auth.Blake2s) requires (Implementation as Blake2s.Mac.Implementation)
 
@@ -501,7 +501,7 @@ test-suite tests
                , test-cipher
                , test-hash
                , test-auth
-               , keyed-hash-indef
+               , mac-indef
                , implementation
                , raaz
   build-tool-depends: hspec-discover:hspec-discover
@@ -537,11 +537,11 @@ test-suite tests
 
         , test-auth (Tests.Auth as Poly1305.Auth)     requires (Implementation as Poly1305.Implementation)
 
-        , keyed-hash-indef (Mac.Implementation as Blake2s.Mac.Implementation)
+        , mac-indef (Mac.Implementation as Blake2s.Mac.Implementation)
             requires (Implementation as Blake2s.Implementation)
         , test-auth  (Tests.Auth as Blake2s.Auth) requires (Implementation as Blake2s.Mac.Implementation)
 
-        , keyed-hash-indef (Mac.Implementation as Blake2b.Mac.Implementation)
+        , mac-indef (Mac.Implementation as Blake2b.Mac.Implementation)
             requires (Implementation as Blake2b.Implementation)
         , test-auth  (Tests.Auth as Blake2b.Auth) requires (Implementation as Blake2b.Mac.Implementation)
 
