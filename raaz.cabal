@@ -201,13 +201,6 @@ library indef
   hs-source-dirs: indef
   signatures: Implementation
 
-library util
-  import: defaults
-  build-depends: core
-               , indef
-  hs-source-dirs: indef
-  exposed-modules: Utils
-
 library digest-indef
   -- visibility: public
   import: defaults
@@ -215,7 +208,7 @@ library digest-indef
   signatures: Implementation
   build-depends: core
                , indef
-               , util
+
 
 library keyed-indef
   import: defaults
@@ -223,7 +216,7 @@ library keyed-indef
   signatures: Implementation
   build-depends: core
                , indef
-               , util
+
 
 -------- Indef packages supplying cryptographic operations -------------------------
 --
@@ -240,6 +233,14 @@ library keyed-indef
 --   primitive (typically a cipher) for stretching the seed.
 
 
+
+library util
+  import: defaults
+  build-depends: core
+               , indef
+  hs-source-dirs: indef
+  exposed-modules: Utils
+
 library auth-indef
   import: defaults
   hs-source-dirs: indef/auth
@@ -254,7 +255,6 @@ library hash-indef
   hs-source-dirs: indef/digest/hash
   signatures: Implementation
   build-depends: core
-               , indef
                , digest-indef
                , util
   exposed-modules: Interface
