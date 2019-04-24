@@ -1,0 +1,14 @@
+-- | Signature capturing entropy source in the system
+signature Entropy where
+
+import Raaz.Core
+
+-- | The name of the source from which entropy is gathered. For
+-- information purposes only. Mainly for information purposes.
+entropySource :: String
+
+
+-- | Read the given amount of random bytes from the entropy pool. Do
+-- not over use this function as it is meant to be used just to seed a
+-- PRG.
+getEntropy :: BYTES Int -> Pointer -> IO (BYTES Int)
