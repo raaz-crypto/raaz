@@ -1,5 +1,5 @@
 {-# LANGUAGE CPP #-}
-module Raaz.Entropy( getEntropy, entropySource ) where
+module Windows.Entropy( getEntropy, entropySource ) where
 
 #include <Windows.h>
 #include <Wincrypt.h>
@@ -12,7 +12,6 @@ module Raaz.Entropy( getEntropy, entropySource ) where
 ## error Unknown mingw32 arch
 ##endif
 
-import Control.Monad.IO.Class( MonadIO, liftIO)
 import Foreign.Ptr (Ptr(), nullPtr, castPtr)
 import Foreign.Storable (peek)
 import Foreign.C.String (CWString())
@@ -38,18 +37,17 @@ foreign import WINDOWS_CCONV unsafe "Wincrypt.h CryptReleaseContext"
     c_CryptReleaseContext :: HCRYPTPROV -> Word32 -> IO Bool
 
 -- | Get cryptographically random bytes from the system.
-getEntropy :: (MonadIO m, LengthUnit l) => l -> Pointer -> m (BYTES Int)
-getEntropy l ptr = liftIO $ allocaBuffer ptrSize $ \ctx ->
+getEntropy :: BYTES Int -> Pointer -> IO (BYTES Int)
+getEntropy l ptr = allocaBuffer ptrSize $ \ctx ->
     do let addr = castPtr ctx
        ctx_ok <- c_CryptAcquireContext addr nullPtr nullPtr
                        (#const PROV_RSA_FULL)
                        ((#const CRYPT_VERIFYCONTEXT) .|. (#const CRYPT_SILENT))
        when (not ctx_ok) $ fail "Call to CryptAcquireContext failed."
        ctx'    <- peek addr
-       success <- c_CryptGenRandom ctx' (fromIntegral bytes) (castPtr ptr)
+       success <- c_CryptGenRandom ctx' (fromIntegral l) (castPtr ptr)
        _ <- c_CryptReleaseContext ctx' 0
        if success
-          then return $ BYTES bytes
+          then return $ l
           else fail "Unable to generate entropy. Call to CryptGenRandom failed."
-  where BYTES bytes = inBytes l
-        ptrSize = BYTES ((#size HCRYPTPROV) :: Int)
+  where ptrSize = BYTES ((#size HCRYPTPROV) :: Int)

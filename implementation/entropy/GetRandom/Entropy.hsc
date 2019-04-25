@@ -1,9 +1,8 @@
 {-# LANGUAGE ForeignFunctionInterface         #-}
 -- | Entropy based on the getrandom system call on Linux.
-module Raaz.Entropy( getEntropy, entropySource ) where
+module GetRandom.Entropy( getEntropy, entropySource ) where
 
-import Foreign.C             ( CLong(..)     )
-import Control.Monad.IO.Class(MonadIO, liftIO)
+import Foreign.C             ( CLong(..) )
 
 import Raaz.Core.Prelude
 import Raaz.Core.Types
@@ -33,6 +32,5 @@ sysGETRANDOM = #const SYS_getrandom
 -- | Get random bytes from using the @getrandom@ system call on
 -- linux. This is only used to seed the PRG and not intended for call
 -- by others.
-getEntropy :: (MonadIO m, LengthUnit l) => l -> Pointer -> m (BYTES Int)
-getEntropy l ptr = liftIO $ c_syscall sysGETRANDOM ptr lenBytes 0
-  where lenBytes = inBytes l
+getEntropy :: BYTES Int -> Pointer -> IO (BYTES Int)
+getEntropy l ptr = c_syscall sysGETRANDOM ptr l 0
