@@ -9,7 +9,6 @@ import Control.Monad.IO.Class     ( liftIO       )
 
 
 import Raaz.Core
-import Raaz.Entropy
 import Raaz.Primitive.ChaCha20.Internal
 import Raaz.Verse.Chacha20.C.Portable
 
@@ -68,10 +67,6 @@ type RandomBufferSize = 16
 reseedAfter :: BLOCKS Prim
 reseedAfter = blocksOf (1024 * 1024 * 1024) (Proxy :: Proxy Prim)
 
--- | When using the cipher as a csprg, fill the contents of its
--- internal memory with the system entropy function.
-initFromEntropyPool :: MT Internals ()
-initFromEntropyPool = void $ withMemoryPtr getEntropy
 
 randomBlocks :: AlignedPointer BufferAlignment
              -> BLOCKS Prim
