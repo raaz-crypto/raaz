@@ -8,9 +8,10 @@ module Command.Rand ( rand ) where
 
 import Control.Monad.IO.Class(liftIO)
 import Options.Applicative
-import Raaz.Entropy
 import Raaz.Core
 import Raaz.Random
+import Raaz.Random.Internal
+
 
 -- So much bytes generated in one go before writing to stdout.
 
@@ -88,5 +89,5 @@ emitRand m ptr = do
 
 emitEntropy :: BYTES Int -> Pointer -> IO ()
 emitEntropy m ptr = do
-  void $ getEntropy m ptr
+  void $ fillSystemEntropy m ptr
   hPutBuf stdout ptr $ fromIntegral m
