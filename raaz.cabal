@@ -304,53 +304,6 @@ library random-api
                  , Internal
   other-modules: PRGState
 
--------------------- The raaz indef package ------------------------
---
--- This is the indef package to use if you want to get an interface
--- similar to raaz and want to override the implementations.
-
-library raaz-indef
-  -- visibility: public
-  import: defaults
-  build-depends: core
-               , hash-api
-               , random-api
-               , auth-api
-               , mac-indef
-  hs-source-dirs: prims/sha2
-                , prims/blake2
-  signatures: Blake2b.Implementation
-            , Blake2s.Implementation
-            , Sha256.Implementation
-            , Sha512.Implementation
-  reexported-modules: Digest.Blake2b
-                    , Digest.Blake2s
-                    , Digest.Sha256
-                    , Digest.Sha512
-                    , Auth.Blake2b
-                    , Auth.Blake2s
-                    , Random
-                    , Random.Internal
-  mixins: hash-api (Interface as Digest.Blake2b)
-            requires (Implementation as Blake2b.Implementation)
-        , hash-api (Interface as Digest.Blake2s)
-            requires (Implementation as Blake2s.Implementation)
-        , hash-api (Interface as Digest.Sha512)
-            requires (Implementation as Sha512.Implementation)
-        , hash-api (Interface as Digest.Sha256)
-            requires (Implementation as Sha256.Implementation)
-        , random-api (Interface as Random, Internal as Random.Internal)
-            requires (Implementation as ChaCha20.Implementation)
-        -- MAC-ing with blake2b
-        , mac-indef (Mac.Implementation as Blake2b.Mac.Implementation)
-            requires (Implementation as Blake2b.Implementation)
-        , auth-api (Interface as Auth.Blake2b) requires (Implementation as Blake2b.Mac.Implementation)
-
-        -- MAC-ing with blake2s
-        , mac-indef (Mac.Implementation as Blake2s.Mac.Implementation)
-            requires (Implementation as Blake2s.Implementation)
-        , auth-api (Interface as Auth.Blake2s) requires (Implementation as Blake2s.Mac.Implementation)
-
 --------------------  The implementation modules ----------------------------------
 --
 -- This package exposes all the implementations provided by the raaz
@@ -438,6 +391,52 @@ library implementation
         reexported-modules: URandom.Entropy as Entropy
 
 
+-------------------- The raaz indef package ------------------------
+--
+-- This is the indef package to use if you want to get an interface
+-- similar to raaz and want to override the implementations.
+
+library raaz-indef
+  -- visibility: public
+  import: defaults
+  build-depends: core
+               , hash-api
+               , random-api
+               , auth-api
+               , mac-indef
+  hs-source-dirs: prims/sha2
+                , prims/blake2
+  signatures: Blake2b.Implementation
+            , Blake2s.Implementation
+            , Sha256.Implementation
+            , Sha512.Implementation
+  reexported-modules: Auth.Blake2b
+                    , Auth.Blake2s
+                    , Digest.Blake2b
+                    , Digest.Blake2s
+                    , Digest.Sha256
+                    , Digest.Sha512
+                    , Random
+                    , Random.Internal
+  mixins: hash-api (Interface as Digest.Blake2b)
+            requires (Implementation as Blake2b.Implementation)
+        , hash-api (Interface as Digest.Blake2s)
+            requires (Implementation as Blake2s.Implementation)
+        , hash-api (Interface as Digest.Sha512)
+            requires (Implementation as Sha512.Implementation)
+        , hash-api (Interface as Digest.Sha256)
+            requires (Implementation as Sha256.Implementation)
+        , random-api (Interface as Random, Internal as Random.Internal)
+            requires (Implementation as ChaCha20.Implementation)
+        -- MAC-ing with blake2b
+        , mac-indef (Mac.Implementation as Blake2b.Mac.Implementation)
+            requires (Implementation as Blake2b.Implementation)
+        , auth-api (Interface as Auth.Blake2b) requires (Implementation as Blake2b.Mac.Implementation)
+
+        -- MAC-ing with blake2s
+        , mac-indef (Mac.Implementation as Blake2s.Mac.Implementation)
+            requires (Implementation as Blake2s.Implementation)
+        , auth-api (Interface as Auth.Blake2s) requires (Implementation as Blake2s.Mac.Implementation)
 
 
 -------------------------------- The main raaz library -------------------------------------
