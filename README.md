@@ -64,16 +64,17 @@ merged in soon (See
 <https://github.com/haskell/cabal/issues/4206>). Without this feature
 the interface described below cannot be used.
 
-Certain cryptographic primitives can have better (both in terms of
-safety and performance) implementations that exploit specific hardware
-features. For example, if the underlying processor supports vector
-extensions like `avx2`, some primitives like chacha20 can be made up
-to 2x faster. Production quality cryptographic libraries are expected
-to provide implementations tuned for such specific hardware. In
-addition, it should be possible for users of esoteric platforms to
-override the default implementation with their own custom
-implementations. We use mixin-style modules provided by backpack to
-achieve this goal.
+One of the biggest safety feature of the raaz cryptographic library is
+that the implementations are fast and safe by default. However, there
+are some rare cases when the user might want to rework the internals
+of the raaz library. This could be for performance reasons --- certain
+cryptographic primitives can have better (both in terms of safety and
+performance) implementations that exploit specific hardware features
+--- or due to safety reasons -- the default entropy source might not
+be the best on certain virtualised system.  While we *do not*
+recommend such tinkering in general, it is nonetheless possible to
+tweak each and every implementations of primitives or tweak the
+underlying entropy source using backpack style modules and signatures.
 
 The raaz cryptographic library is organised as a single package
 containing multiple component. A user who only cares about the high
@@ -126,9 +127,9 @@ selectively override this using the following cabal stanza.
 
 
 ```
-build-depends: raaz:prim-indef
+build-depends: raaz:raaz-indef
              , raaz:implementation
-mixins: raaz:prim-indef requires (Blake2b.Implementation as Blake2b.CHandWritten)
+mixins: raaz:raaz-indef requires (Blake2b.Implementation as Blake2b.CHandWritten)
 ```
 
 You can also mix-in custom implementations (i.e implementations that
@@ -136,18 +137,39 @@ are not exposed by raaz) using this technique.
 
 
 ```
-build-depends: raaz:prim-indef
-             , raaz:implementation
+build-depends: raaz:raaz-indef
+             , raaz-implementation
              , my-custom-blake2
 
 mixins: raaz:prim-indef requires (Blake2b.Implementation as MyCustom.Blake2b.Implementation)
 
 ```
 
+
 The above stanza ensures all primitives except blake2b uses the
-default implementation from `raaz-implementation` but `Blake2b` alone
+default implementation from `raaz:implementation` but `Blake2b` alone
 uses `MyCustom.Blake2b.Implementation` (exposed from
 `my-custom-blake2`).
+
+### Overriding the Entropy source.
+
+
+The raaz library expects entropy to be supplied through and interface
+captured by the signature `Entropy` exposed by the `raaz:random-api`
+component. We can override the entropy source by using the following
+cabal stanza
+
+```
+build-depends: raaz:raaz-indef
+             , raaz:implementation
+             , my-custom-blake2
+			 , my-custom-entropy
+
+mixins: raaz:raaz-indef requires (Blake2b.Implementation as MyCustom.Blake2b.Implementation,
+                                  Entropy as MyCustom.Entropy)
+
+```
+
 
 About the name
 --------------

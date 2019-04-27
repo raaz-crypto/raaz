@@ -4,7 +4,7 @@
 {-# LANGUAGE DefaultSignatures          #-}
 -- | Interface for cryptographically secure random byte generators
 -- using a stream cipher for stream expansion.
-module Raaz.Random
+module Interface
        ( -- * Cryptographically secure randomness.
          -- $randomness$
         RandomT, RT, RandM

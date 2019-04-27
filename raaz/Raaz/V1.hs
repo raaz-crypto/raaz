@@ -7,10 +7,13 @@
 
 module Raaz.V1 ( Digest
                , Auth
-               , module Raaz.Blake2b
+               , module Digest.Blake2b
+               , module Auth.Blake2b
                ) where
 
-import Raaz.Blake2b
+import Digest.Blake2b
+import Auth.Blake2b
+import Raaz.Primitive.Blake2.Internal(Blake2b)
 import Raaz.Primitive.Keyed.Internal(Keyed)
 
 type Digest = Blake2b
