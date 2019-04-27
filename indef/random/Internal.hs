@@ -9,7 +9,7 @@ module Internal
 
 import Implementation ( name )
 import Raaz.Core
-import Raaz.Entropy
+import Entropy
 
 -- | __WARNING__ Never use this function directly. Only exposed for
 -- testing the quality of system entropy. Fill the given input buffer
@@ -19,7 +19,7 @@ import Raaz.Entropy
 -- level nature of the function) and slower (due to system call
 -- overheads).
 fillSystemEntropy :: LengthUnit l => l -> Pointer -> IO (BYTES Int)
-fillSystemEntropy = getEntropy
+fillSystemEntropy = getEntropy . inBytes
 
 csPRG :: String
 csPRG = name
