@@ -3,13 +3,30 @@ cabal-version: 2.2
 name:    raaz
 version: 0.3.0
 
-synopsis: The raaz cryptographic library.
+synopsis: Fast and type safe cryptography.
 
-description: Raaz is a cryptographic library for Haskell. The library
-  is designed with a special emphasis on using the type system of
-  Haskell to eliminate a large set of vulnerabilities like buffer
-  overflows, timing attacks etc. It also strives to achieve this
-  safety with no compromise on performance.
+description:
+
+  Raaz is a cryptographic library which provides the state of the art
+  cryptographic primitives via a high-level, type safe interface. The
+  primary focus of raaz is to expose to the user a rather high level
+  interface for cryptography with all the problematic parts like the
+  selection of primitives, their implementations or for that matter
+  system entropy sources etc taken care of automatically. The strong
+  type system of Haskell is used to complement this high level
+  interface to provide additional security.
+
+  Advanced users sometimes need additional flexibility. For example,
+  for compatibility with other protocols, the default primitive
+  selection might need changing. This is possible with the current
+  interface. In addition, in some rare circumstances a user might want
+  to change certain underlying implementations used by the
+  library. For example, on a system with GPUs, there might be a faster
+  implementation of a primitive or the standard entropy source might
+  be weak on certain virtual machines. In such cases, the backpack
+  based multi-component structure provided by raaz can be used to
+  plugin custom implementation of primitives or system entropy sources
+  and still maintain the high level and type safe interface.
 
 homepage: https://github.com/raaz-crypto/raaz
 
@@ -107,10 +124,10 @@ library core
   hs-source-dirs: core
   exposed-modules: Raaz.Core
                  , Raaz.Core.CpuSupports
+                 , Raaz.Core.Prelude
                  , Raaz.Core.Transfer
                  , Raaz.Core.Types
                  , Raaz.Core.Types.Internal
-                 , Raaz.Entropy
                  , Raaz.Primitive.Blake2.Internal
                  , Raaz.Primitive.Sha2.Internal
                  , Raaz.Primitive.ChaCha20.Internal
@@ -130,7 +147,6 @@ library core
                , Raaz.Core.Encode.Base16
                , Raaz.Core.Encode.Base64
                , Raaz.Core.IOCont
-               , Raaz.Core.Prelude
                , Raaz.Core.Util.ByteString
                , Raaz.Core.Types.Pointer
                , Raaz.Core.Types.Tuple
@@ -144,13 +160,6 @@ library core
   include-dirs: core/cbits
   includes: core/cbits/raaz/core/endian.h
   install-includes: core/cbits/raaz/core/endian.h
-
-  --------------------- Entropy ----------------------------------------------
-
-  if   os(windows)                          { hs-source-dirs: core/entropy/windows    }
-  elif os(openbsd) || os(netbsd)            { hs-source-dirs: core/entropy/arc4random }
-  elif os(linux)   && flag(linux-getrandom) { hs-source-dirs: core/entropy/getrandom  }
-  else                                      { hs-source-dirs: core/entropy/urandom    }
 
 ----------------------------- Libverse as a sublibrary -----------------------------
 
@@ -198,7 +207,7 @@ library libverse
 --   primitive. Thus the assumption made is only that of the
 --   `Interface` signature provided by the `prim-indef` package.
 --
-        
+
 library prim-indef
   -- visibility: public
   import: defaults
@@ -221,7 +230,7 @@ library keyed-indef
   build-depends: core
                , prim-indef
 
-               
+
 library prim-utils
   import: defaults
   build-depends: core
@@ -272,7 +281,7 @@ library hash-api
                , prim-utils
   exposed-modules: Interface
 
-  
+
 library auth-api
   import: defaults
   hs-source-dirs: indef/auth
@@ -290,6 +299,7 @@ library random-api
                , prim-utils
                , libverse
   signatures: Implementation
+            , Entropy
   exposed-modules: Interface
                  , Internal
   other-modules: PRGState
@@ -331,7 +341,6 @@ library raaz-indef
             requires (Implementation as Sha256.Implementation)
         , random-api (Interface as Random, Internal as Random.Internal)
             requires (Implementation as ChaCha20.Implementation)
-
         -- MAC-ing with blake2b
         , mac-indef (Mac.Implementation as Blake2b.Mac.Implementation)
             requires (Implementation as Blake2b.Implementation)
@@ -369,7 +378,7 @@ library implementation
   import: defaults
   build-depends: core
                , libverse
-  hs-source-dirs: implementation
+  hs-source-dirs: implementation, implementation/entropy
   exposed-modules: Blake2b.CPortable
                  , Sha256.CPortable
                  , ChaCha20.CPortable
@@ -402,6 +411,35 @@ library implementation
           , implementation/cbits/raaz/hash/blake2/blake2b/constants.h
           , implementation/cbits/raaz/hash/blake2/blake2s/constants.h
 
+  -------------------------- Implementation of system entropy ----------------------------
+  --
+  -- The next conditionals perform the following configuration tasks.
+  --
+  -- 1. Expose *all* the available sources of entropy.
+  --
+  -- 2. Reexport the most desirable source as the module Entropy. This
+  -- way by mixing in the implementation component, the correct
+  -- entropy source is used (which can be overridden by the user if
+  -- they so wish -- do not try that unless you know what you are
+  -- doing)
+
+  if os(windows)
+     exposed-modules: Windows.Entropy
+     reexported-modules: Windows.Entropy as Entropy
+  else
+     exposed-modules: URandom.Entropy
+     if os(openbsd) || os(netbsd)
+        exposed-modules: ARC4Random.Entropy
+        reexported-modules: ARC4Random.Entropy as Entropy
+    elif os(linux)   && flag(linux-getrandom)
+        exposed-modules: GetRandom.Entropy
+        reexported-modules: GetRandom.Entropy as Entropy
+    else
+        reexported-modules: URandom.Entropy as Entropy
+
+
+
+
 -------------------------------- The main raaz library -------------------------------------
 
 library
@@ -411,14 +449,14 @@ library
                , implementation
                , raaz-indef
   exposed-modules: Raaz
-  reexported-modules: Auth.Blake2b    as Raaz.Auth.Blake2b
-                    , Auth.Blake2s    as Raaz.Auth.Blake2s
-                    , Digest.Blake2b  as Raaz.Digest.Blake2b
-                    , Digest.Blake2s  as Raaz.Digest.Blake2s
-                    , Digest.Sha512   as Raaz.Digest.Sha512
-                    , Digest.Sha256   as Raaz.Digest.Sha256
-                    , Random          as Raaz.Random
-                    , Random.Internal as Raaz.Random.Internal
+  reexported-modules: Auth.Blake2b       as Raaz.Auth.Blake2b
+                    , Auth.Blake2s       as Raaz.Auth.Blake2s
+                    , Digest.Blake2b     as Raaz.Digest.Blake2b
+                    , Digest.Blake2s     as Raaz.Digest.Blake2s
+                    , Digest.Sha512      as Raaz.Digest.Sha512
+                    , Digest.Sha256      as Raaz.Digest.Sha256
+                    , Random             as Raaz.Random
+                    , Random.Internal    as Raaz.Random.Internal
                     , Raaz.Core
                     , Raaz.Core.Types
   autogen-modules: Paths_raaz
@@ -553,9 +591,6 @@ common bench-defaults
  build-depends:  criterion-measurement     >= 0.1
                , pretty
                , core
-
-
-
 
 library bench-types
   import: bench-defaults
