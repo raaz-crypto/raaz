@@ -114,11 +114,11 @@ satisfied by the `mixin` mechanism of backpack.
 
 The `raaz:implementation` often provide multiple implementation for
 the same primitives but for a particular primitives selects one as the
-default implementation. If we stick to the Blakd2b example,
+default implementation. If we stick to the `Blake2b` example,
 `raaz:implementation` exposes `Blake2b.CPortable` and
 `Blake2b.CHandWritten` of which `Blake2b.CPortable` is made the
 default implementation by re-exporting it under the name
-`Blakd2b.Implementation`. This means that when we add both
+`Blake2b.Implementation`. This means that when we add both
 `raaz:prim-indef` and the `raaz:implementation` to the build depends
 field, the demand for the module `Blake2b.Implementation` from the
 former component is satisfied by the `Blakd2b.CPortable`. We can
