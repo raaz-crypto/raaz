@@ -8,9 +8,9 @@
 #
 language: c
 dist: xenial
-git:
+# git:
   # whether to recursively clone submodules
-  submodules: false
+  # submodules: false
 cache:
   directories:
     - $HOME/.cabal/packages
