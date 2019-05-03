@@ -8,9 +8,9 @@
 #
 language: c
 dist: xenial
-# git:
+git:
   # whether to recursively clone submodules
-  # submodules: false
+  submodules: false
 cache:
   directories:
     - $HOME/.cabal/packages
@@ -49,6 +49,7 @@ matrix:
     - compiler: ghc-8.2.1
       addons: {"apt":{"sources":["hvr-ghc"],"packages":["ghc-8.2.1","cabal-install-2.4"]}}
 before_install:
+  - git submodule update --init # we need to get the submodules for stuff to work.
   - HC=$(echo "/opt/$CC/bin/ghc" | sed 's/-/\//')
   - HCPKG="$HC-pkg"
   - unset CC
