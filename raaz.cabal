@@ -364,9 +364,14 @@ library implementation
            , implementation/cbits/raaz/hash/sha512/portable.c
            , implementation/cbits/raaz/cipher/chacha20/cportable.c
   include-dirs: implementation/cbits/
-  includes: implementation/cbits/raaz/hash/blake2/common.h
+  includes: implementation/cbits/raaz/cipher/chacha20/common.h
+          , implementation/cbits/raaz/hash/blake2/common.h
           , implementation/cbits/raaz/hash/blake2/blake2b/constants.h
           , implementation/cbits/raaz/hash/blake2/blake2s/constants.h
+  install-includes: implementation/cbits/raaz/cipher/chacha20/common.h
+                  , implementation/cbits/raaz/hash/blake2/common.h
+                  , implementation/cbits/raaz/hash/blake2/blake2b/constants.h
+                  , implementation/cbits/raaz/hash/blake2/blake2s/constants.h
 
   -------------------------- Implementation of system entropy ----------------------------
   --
