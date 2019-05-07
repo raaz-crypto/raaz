@@ -183,6 +183,7 @@ library libverse
            , libverse/verse.c
   include-dirs: libverse
   includes: libverse/verse.h
+  install-includes: libverse/verse.h
 
 
 ---------------------- Implementation signature packages -------------
