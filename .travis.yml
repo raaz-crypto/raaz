@@ -32,7 +32,6 @@ env:
 addons:
   apt:
     packages:
-
       - cabal-install-2.4   # latest stable cabal to test things
       - cabal-install-head  # head
       - hlint
@@ -51,7 +50,7 @@ matrix:
     - compiler: ghc-8.2.2
     - compiler: ghc-8.4.4
     - compiler: ghc-8.6.5
-    - compiler: head
+    - compiler: ghc-head
     - os: osx
       compiler: ghc
 
@@ -62,32 +61,32 @@ matrix:
     # Build on OSX.
 
   allow_failures:
-    - compiler: head
+    - compiler: ghc-head
 
 
 before_install:
- - uname -a
- - if [ "$CC" == "hlint" ]; then
+  - uname -a
+  - if [ "$CC" == "hlint" ]; then
       unset CC;
       curl -sSL https://raw.github.com/ndmitchell/hlint/master/misc/run.sh | sh -s .;
       exit $?;
    fi
- - GHCVER=echo "$CC" | sed /ghc-//
- - if [ "$CC" == "ghc-head" ]; then
+  - GHCVER=$(echo "$CC" | sed 's/ghc-//')
+  - if [ "$CC" == "ghc-head" ]; then
       CABALVER=head;
    else
       CABALVER=${CABAL_STABLE};
    fi
- - export PATH=/opt/cabal/"$CABALVER"/bin:/opt/ghc/"$GHCVER"/bin:$PATH;
- - unset CC
- - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew update; fi
- - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install ghc cabal-install; fi
- - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew info ghc cabal-install; fi
+  - export PATH=/opt/cabal/"$CABALVER"/bin:/opt/ghc/"$GHCVER"/bin:$PATH;
+  - unset CC
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew update; fi
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install ghc cabal-install; fi
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew info ghc cabal-install; fi
 
- install:
- - ghc   --version
- - cabal --version
- - travis_retry cabal v2-update;
+install:
+  - ghc   --version
+  - cabal --version
+  - travis_retry cabal v2-update;
 
 script:
   - cabal v2-configure --flags="wipe-memset" --enable-tests  --enable-documentation
