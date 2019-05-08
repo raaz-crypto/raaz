@@ -1,8 +1,6 @@
 language: c
 sudo: false
 dist: xenial
-git:
-  submodules: false
 notifications:
   irc: "irc.freenode.net#haskell-raaz"
   on_success: always
@@ -27,77 +25,75 @@ before_cache:
 
 fast_finish: true
 
+env:
+  global:
+    - CABAL_STABLE=2.4
 addons:
   apt:
     packages:
-      - libgmp-dev
-    sources: [hvr-ghc]
 
+      - cabal-install-2.4   # latest stable cabal to test things
+      - cabal-install-head  # head
+      - ghc-8.2.2
+      - ghc-8.4.4
+      - ghc-8.6.5
+      - ghc-head
+      - libgmp-dev
+      - curl
+    sources: [hvr-ghc]
 matrix:
   fast-finish: true
   include:
      # Lint the code.
-    - os: linux
-      env: HLINT="yes"
-      addons: {apt: {packages: [curl], sources: [hvr-ghc]}}
+    - compiler: hlint
+    - compiler: 8.2.2
+    - compiler: 8.4.4
+    - compiler: 8.6.5
+    - compiler: head
+    - os: osx
+      compiler: ghc
 
-    - os: linux
-      env: GHCVER=8.2.2 CABALVER=2.2
-      addons: {apt: {packages: [cabal-install-2.2 ,ghc-8.2.2], sources: [hvr-ghc]}}
-
-    - os: linux
-      env: GHCVER=8.4.1 CABALVER=2.2
-      addons: {apt: {packages: [cabal-install-2.2 ,ghc-8.4.1], sources: [hvr-ghc]}}
-
-    - os: linux
-      env: GHCVER=8.6.3 CABALVER=2.4
-      addons: {apt: {packages: [cabal-install-2.4 ,ghc-8.6.3], sources: [hvr-ghc]}}
-
-    # Build for the GHC head and cabal-install-head
-    - os: linux
-      env: GHCVER=head CABALVER=head
-      addons: {apt: {packages: [cabal-install-head ,ghc-head], sources: [hvr-ghc]}}
-
-    - os: linux
-      env: LIQUID_HASKELL="yes"
-      addons: {apt: {packages: [cabal-install-2.2 ,ghc-8.2.2, z3], sources: [hvr-ghc, sourceline: 'ppa:hvr/z3']}}
+    # - os: linux
+    #   env: LIQUID_HASKELL="yes"
+    #   addons: {apt: {packages: [cabal-install-2.2 ,ghc-8.2.2, z3], sources: [hvr-ghc, sourceline: 'ppa:hvr/z3']}}
 
     # Build on OSX.
 
-    - os: osx
-
   allow_failures:
-    - env: GHCVER=head CABALVER=head
-    - env: LIQUID_HASKELL="yes"
+    - compiler: head
+
 
 before_install:
  - uname -a
- - if [ "$HLINT" == "yes" ]; then
+ - if [ "$CC" == "hlint" ]; then
+      unset CC;
       curl -sSL https://raw.github.com/ndmitchell/hlint/master/misc/run.sh | sh -s .;
       exit $?;
    fi
 
-
- - export PATH=/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:$PATH;
-
- - if [ -n "$STACKVER" ]; then ./scripts/stack-freeze.sh "$STACKVER"; fi # Sets up the appropriate freeze.
+ - export PATH=/opt/ghc/"$CC"/bin:$PATH
+ - if [ "$CC" == "head" ]; then
+      export PATH=/opt/cabal/head/bin:$PATH;
+   else
+      export PATH=/opt/cabal/${CABAL_STABLE}/bin:$PATH;
+   fi
+ - unset CC
  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew update; fi
  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install ghc cabal-install; fi
  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew info ghc cabal-install; fi
- - git submodule update --init
 install:
  - ghc   --version
  - cabal --version
- - travis_retry cabal new-update;
+ - travis_retry cabal v2-update;
 
 script:
-  - cabal new-configure --flags="wipe-memset" --enable-tests  --enable-documentation
-  - cabal new-build all
-  - cabal new-test all
-  - cabal new-bench
-  - cabal new-haddock
+  - cabal v2-configure --flags="wipe-memset" --enable-tests  --enable-documentation
+  - cabal v2-build all
+  - cabal v2-test all
+  - cabal v2-bench
+  - cabal v2-haddock
   - $(find ./dist-newstyle -name raaz -type f) info
-  - if [ "$LIQUID_HASKELL" == "yes" ]; then ./scripts/get-lh.sh && ./scripts/run-lh.sh; exit $?; fi
+  # - if [ "$LIQUID_HASKELL" == "yes" ]; then ./scripts/get-lh.sh && ./scripts/run-lh.sh; exit $?; fi
 
 after_success:
   - echo "All is well."
