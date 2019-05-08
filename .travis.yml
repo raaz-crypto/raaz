@@ -9,6 +9,7 @@ notifications:
   skip_join: false
 
 cache:
+  apt: true
   directories:
     - $HOME/.cabal/packages
     - $HOME/.cabal/store
