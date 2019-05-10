@@ -2,31 +2,65 @@
 
 ## [0.3.0] - Pending
 
-* Major changes are
+* User facing interface
 
-    1. Use libverse for the low level FFI implementations. From now on
-       newer primitives will be coded up in verse instead of hand
-       written C/assembly.
+  - Top level `Raaz` module centred around cryptographic operation
+    instead of specific primitives. This release supports the
+    following operations
 
-    2. Complete rewrite of the interface using backpack where modules
-       and signatures now replace classes related to implementation.
-       Simplifies the library and allows easy plugging in of custom
-       implementations.
+	- message digest
+	- message authentication
 
-    3. GHC below 8.2 not supported anymore because of backpack.
+  - Explicit primitive based interface meant only for interworking
+    with other library.
 
-* Blake2 based keyed hashing for message authentication.
-* Uses a host-endian variant of chacha20 keystream for csprg.
-* Block size moved to type level. Allows better type safety.
-* Use Data.Proxy.Proxy to get rid of some uses of undefined.
-* Linux: getrandom now uses syscall directly, so works even when glibc
-  is old.  By default on Linux getrandom is the entropy source unless
-  disabled by flags.
-* raaz command expose an entropy command for checking the quality of
-  system entropy source.
-* Dropped support for SHA1, SHA224, SHA384, HMAC, and AES-CBC, mainly
-  to concentrate efforts and reach stable release soon.
-* From BSD-3-Clause to dual license Apache-2.0 OR BSD-3-Clause.
+  - Dropped support for SHA1, SHA224, SHA384, HMAC, and AES-CBC,
+	mainly to concentrate efforts and reach stable release soon.
+
+  - Pluggable interface to implementations and entropy source
+    (recommended only for advanced users)
+
+* Internal changes.
+
+  - Use libverse for the low level FFI implementations. From now on
+    newer primitives will be coded up in verse instead of hand written
+    C/assembly.
+
+  - Backpack based modules and signatures instead of classes for
+    primitive implementation. Simplifies the library and allows easy
+    plugging in of custom implementations.
+
+  - GHC below 8.2 not supported anymore because of backpack.
+
+* CSPRG and Entropy
+
+  - Entropy on linux: uses getrandom by default with flag to fall back
+	to `/dev/urandom`.
+
+  - The raaz command now exposes the sub-command entropy (just like
+	rand) mainly for system entropy quality checking.
+
+  - A host-endian variant of chacha20 keystream for csprg.
+
+  - Backpack based pluggable entropy source (recommended only for
+	advanced users).
+
+* Type level improvements.
+
+  - Using Data.Proxy.Proxy to get rid of some uses of undefined.
+
+  - Primitives block sizes to type level.
+
+  - Aligned pointer with alignment at type level.
+
+* Licensing: From BSD-3-Clause to dual license Apache-2.0 OR BSD-3-Clause.
+
+
+## [0.2.1] - 25 March, 2019
+
+This is a minor release just to get the latest ghc.
+
+* Get raaz to work with latest ghcs.
 
 ## [0.2.0] - 24 August, 2017
 
