@@ -1,11 +1,18 @@
 module Command.Info where
 
-import Data.Version (showVersion)
-import Options.Applicative
-import Prelude
-import Raaz
+import           Data.Version (showVersion)
+import           Options.Applicative
+import           Prelude
+import           Raaz
 import qualified Raaz.Core.CpuSupports as CpuSupports
-import Raaz.Random          (entropySource, csprgName)
+import           Raaz.Random          (entropySource, csprgName)
+import qualified Raaz.Auth.Blake2b
+import qualified Raaz.Auth.Blake2s
+import qualified Raaz.Digest.Blake2b
+import qualified Raaz.Digest.Blake2s
+import qualified Raaz.Digest.Sha512
+import qualified Raaz.Digest.Sha256
+
 
 
 information :: Parser (IO ())
@@ -24,8 +31,8 @@ information = subparser $ mconcat [ commandGroup "Information"
         opts = pure $ sequence_ [ field "Library Version" $ showVersion version
                                 , field "Entropy" entropySource
                                 , field "CSPRG"  csprgName
+                                , implementationInfo
                                 , cpuCapabilities
-
                                 ]
 
 
@@ -37,6 +44,17 @@ section title lns = do
   putStrLn $ title ++ ":"
   mapM_ indent lns
   where indent = putStrLn . (++) "    "
+
+implementationInfo :: IO ()
+implementationInfo = section "Implementation Info" $ map unwords
+  [ [ "auth (blake2b):", Raaz.Auth.Blake2b.name]
+  , [ "auth (blake2s):", Raaz.Auth.Blake2s.name]
+  , [ "blake2b:", Raaz.Digest.Blake2b.name ]
+  , [ "blake2s:", Raaz.Digest.Blake2s.name ]
+  , [ "sha512:", Raaz.Digest.Sha512.name ]
+  , [ "sha256:", Raaz.Digest.Sha256.name ]
+  ]
+
 
 cpuCapabilities :: IO ()
 cpuCapabilities = do sse    <- CpuSupports.sse
