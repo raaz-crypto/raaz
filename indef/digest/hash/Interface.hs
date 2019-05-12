@@ -1,7 +1,9 @@
 module Interface ( digest
-                        , digestFile
-                        , digestSource
-                        ) where
+                 , digestFile
+                 , digestSource
+                 , name
+                 , description
+                 ) where
 
 import qualified Data.ByteString      as B
 import qualified Data.ByteString.Lazy as L
@@ -9,8 +11,10 @@ import           System.IO.Unsafe     (unsafePerformIO)
 
 
 import           Raaz.Core
-import           Implementation
+import qualified Implementation
 import           Utils
+
+type Prim = Implementation.Prim
 
 -- | Compute the digest of a pure byte source like, `B.ByteString`.
 digest :: PureByteSource src
@@ -39,3 +43,11 @@ digestSource src = insecurely $ do
   initialise ()
   processByteSource src
   extract
+
+-- | Textual name of the digest implementation.
+name :: String
+name = Implementation.name
+
+-- | Description of the implementation
+description :: String
+description = Implementation.description

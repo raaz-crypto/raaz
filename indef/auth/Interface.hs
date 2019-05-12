@@ -1,6 +1,8 @@
 module Interface ( auth
                  , authFile
                  , authSource
+                 , name
+                 , description
                  ) where
 
 import qualified Data.ByteString      as B
@@ -9,8 +11,10 @@ import           System.IO.Unsafe     (unsafePerformIO)
 
 
 import           Raaz.Core
-import           Implementation
+import qualified Implementation
 import           Utils
+
+type Prim = Implementation.Prim
 
 -- | Compute the authenticator of a pure byte source like,
 -- `B.ByteString`.
@@ -44,3 +48,12 @@ authSource key src = insecurely $ do
   initialise key
   processByteSource src
   extract
+
+
+-- | Textual name of the authenticator implementation.
+name :: String
+name = Implementation.name
+
+-- | Description of the implementation
+description :: String
+description = Implementation.description
