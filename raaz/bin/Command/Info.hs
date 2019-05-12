@@ -5,8 +5,7 @@ import Options.Applicative
 import Prelude
 import Raaz
 import qualified Raaz.Core.CpuSupports as CpuSupports
-import Raaz.Random          (csprgName)
-import Raaz.Random.Internal (entropySource)
+import Raaz.Random          (entropySource, csprgName)
 
 
 information :: Parser (IO ())
