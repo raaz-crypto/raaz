@@ -23,6 +23,7 @@ module Interface
        , reseed
        -- ** Sampling
        -- $sampling$
+       , entropySource
        , csprgName, csprgDescription
        ) where
 
@@ -43,7 +44,7 @@ import Prelude
 
 import           Raaz.Core
 import qualified PRGState as PS
-import           PRGState (csprgName, csprgDescription)
+import           PRGState (entropySource, csprgName, csprgDescription)
 import qualified Raaz.Primitive.ChaCha20.Internal as ChaCha20
 import qualified Raaz.Primitive.Poly1305.Internal as Poly1305
 import           Raaz.Verse.Poly1305.C.Portable   ( verse_poly1305_c_portable_clamp)

@@ -4,10 +4,9 @@
 -- the functions here, it should be treated as a bug in raaz. Please
 -- file an issue.
 module Internal
-      ( fillSystemEntropy, entropySource, csPRG
+      ( fillSystemEntropy
       ) where
 
-import Implementation ( name )
 import Raaz.Core
 import Entropy
 
@@ -20,6 +19,3 @@ import Entropy
 -- overheads).
 fillSystemEntropy :: LengthUnit l => l -> Pointer -> IO (BYTES Int)
 fillSystemEntropy = getEntropy . inBytes
-
-csPRG :: String
-csPRG = name

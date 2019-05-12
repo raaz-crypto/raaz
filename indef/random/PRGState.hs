@@ -6,11 +6,11 @@
 module PRGState
        ( RandomState, reseed, fillRandomBytes
        -- ** Information about the cryptographic generator.
-       , csprgName, csprgDescription
+       , entropySource, csprgName, csprgDescription
        ) where
 
 import Control.Monad.Reader
-import Entropy (getEntropy)
+import Entropy
 import Prelude
 
 import Raaz.Core
