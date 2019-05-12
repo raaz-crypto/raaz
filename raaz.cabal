@@ -404,8 +404,8 @@ library raaz-indef
                , random-api
                , auth-api
                , mac-indef
-  hs-source-dirs: prims/sha2
-                , prims/blake2
+  hs-source-dirs: indef/sha2
+                , indef/blake2
   signatures: Blake2b.Implementation
             , Blake2s.Implementation
             , Sha256.Implementation
