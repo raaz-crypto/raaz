@@ -1,39 +1,18 @@
 -- | Raaz: High level, typesafe cryptographic library.
 module Raaz
-       ( -- module Raaz.Cipher
+       (
          -- * Getting started
          -- $intro$
-
-         -- ** Message digest.
-         --
-         -- $messagedigest$
-         Digest, digest, digestFile, digestSource
-         --
-         -- *** Specific message digests.
-         -- $specific-digest$
-
-         -- ** Message authentication.
-         --
-         -- $messageauth$
-         --
-
-       , Auth
-       , auth
-       , authFile
-       , authSource
-         --
-         -- *** Specific message authentication algorithms
-         -- $specific-auth$
-         --
-
-   --     , module Raaz.Random
+         module Raaz.Digest
+       , module Raaz.Auth
+         -- * Library information.
        , version
        ) where
 
 import qualified Paths_raaz as P
 import           Data.Version  (Version)
-
-import Raaz.V1
+import Raaz.Digest
+import Raaz.Auth
 
 -- $intro$
 --
@@ -84,98 +63,18 @@ import Raaz.V1
 --
 -- Therefore, unless there is specific interoperability requirements,
 -- we encourage the user to just import this top level module and use
--- the high level interface. We also document how to choose specific
--- primitives when interoperability is desired.
+-- the high level interface.
 --
 -- > module Main where
 -- >
 -- > import Raaz
 -- >
-
-
--- $messagedigest$
 --
--- A message digest is a short (fixed size) summary of a long message
--- which is cryptographically secure against tampering. Use a message
--- digest if all you care about is integrity: If @d@ is the digest of
--- a message @m@, then a computationally bound adversary cannot
--- produce another message @m'@ for which the digest is also
--- @d@. Typically, cryptographic hash functions are what are used as
--- message digest.
---
--- Here is a simple application for computing and verifying the digest
--- of a file.
---
---
--- > -- Program to compute the message digest of a file
--- >
--- > import Raaz
--- > import System.Environment
--- >
--- > main = getArgs >>= digestFile . head >>= print
--- >
---
--- > -- Program to verify the integrity of a file
--- >
--- > import Raaz
--- > import System.Environment
--- >
--- > main = do [d,file] <- getArgs
--- >           dp       <- digestFile file
--- >           if fromString d == dp
--- >              then putStrLn "OK"
--- >              else putStrLn "FAILED"
--- >
---
--- There are three variants for computing the digest of a
--- message. `digest`, `digestFile` and `digestSource`.
---
--- == Warning
---
--- Message digests __DO NOT__ provide any authentication, use the
--- message authenticator `Auth` instead.
-
--- $specific-digest$
---
--- To inter-operate with other libraries and applications, one might
--- want to compute the digest using specific cryptographic hash. Raaz
--- supports the following:
---
--- * "Raaz.Blake2b"
--- * "Raaz.Blake2s"
--- * "Raaz.Sha512"
--- * "Raaz.Sha256"
---
--- Here is an example that uses sha512 to compute the digest.
---
--- > import Raaz.Sha512
--- > import System.Environment
--- >
--- > main = getArgs >>= digestFile . head >>= print
--- >
-
--- $messageauth$
---
--- Given a message @M@ and a key @K@ the message authenticator is a
--- short summary @S@ of @M@ with the additional property that it is
--- cryptographically hard to compute @S@ if the key @K@ is unknown. In
--- fact some thing stronger is true: Even when the adversary knows a
--- set of messages @M₁,...,Mₙ@ and their authenticators @S₁,...Sₙ@,
--- all of which was created using the key @K@, she cannot construct a
--- message @M@ different from @M₁,...,Mₙ@ and its authenticator @S@
--- without knowing the key @K@.
---
--- The message authentication tag provides authenticity in addition to
--- integrity in the sense that only peers that know the secret key can
--- generate the tag.
-
--- $specific-auth$
---
--- If you want to use specific primitives for message authentication, you can use
--- one of the following modules.
---
--- * "Raaz.Blake2b"
--- * "Raaz.Blake2s.Blake2s"
+-- The top level module "Raaz" exposes all the cryptographic
+-- operations supported by this library.  Applications that only need
+-- specific cryptographic operations can selectively import the
+-- appropriate modules given below (see the module specific
+-- documentation for the detailed interface for each operation).
 
 
 -- | Raaz library version number.
