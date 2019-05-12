@@ -23,7 +23,7 @@ import Utils
 csprgName :: String
 csprgName = name
 
--- | A short discription of the csprg.
+-- | A short description of the csprg.
 csprgDescription :: String
 csprgDescription = description
 
