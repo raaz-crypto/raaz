@@ -26,31 +26,25 @@ before_cache:
 
 fast_finish: true
 
-env:
-  global:
-    - CABAL_STABLE=2.4
-addons:
-  apt:
-    packages:
-      - cabal-install-2.4   # latest stable cabal to test things
-      - cabal-install-head  # head
-      - hlint
-      - ghc-8.2.2
-      - ghc-8.4.4
-      - ghc-8.6.5
-      - ghc-head
-      - libgmp-dev
-      - curl
-    sources: [hvr-ghc]
 matrix:
   fast-finish: true
   include:
      # Lint the code.
     - compiler: hlint
+      addons: {apt: {packages: [curl], sources: [hvr-ghc]}}
+
     - compiler: ghc-8.2.2
+      addons: {apt: {packages: [cabal-install-2.4 ,ghc-8.2.2], sources: [hvr-ghc]}}
+
     - compiler: ghc-8.4.4
+      addons: {apt: {packages: [cabal-install-2.4 ,ghc-8.4.4], sources: [hvr-ghc]}}
+
     - compiler: ghc-8.6.5
+      addons: {apt: {packages: [cabal-install-2.4 ,ghc-8.6.5], sources: [hvr-ghc]}}
+
     - compiler: ghc-head
+      addons: {apt: {packages: [cabal-install-head ,ghc-head], sources: [hvr-ghc]}}
+
     - os: osx
       compiler: ghc
 
