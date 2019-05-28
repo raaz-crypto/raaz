@@ -1,4 +1,4 @@
--- | Message authentication in Raaz
+-- | Message authentication in Raaz.
 module Raaz.Auth
        ( -- ** Message authentication.
          --
@@ -26,14 +26,24 @@ import Raaz.V1.Auth
 -- message @M@ different from @M₁,...,Mₙ@ and its authenticator @S@
 -- without knowing the key @K@.
 --
--- The message authentication tag provides authenticity in addition to
--- integrity in the sense that only peers that know the secret key can
--- generate the tag.
+-- The message authentication @s::`Auth`@ of a message @m@ computed
+-- using a key @k :: Key Auth@, can be seen as a message digest that
+-- can only be computed/verified by someone who has the knowledge of
+-- the key @k@. Thus a message @m@ together with its valid
+-- authentication @s@ proves authenticity (to someone who already know
+-- @k@) in addition to integrity as only a peers that know the secret
+-- key @k@ could have generated @s@.
+--
+-- == Warning
+--
+-- Message authentication __does not__ provide secrecy of the message
+-- @m@.
+
 
 -- $specific-auth$
 --
--- If you want to use specific primitives for message authentication, you can use
--- one of the following modules.
+-- If you want to use specific primitives for message authentication,
+-- you can use one of the following modules.
 --
 -- * "Raaz.Auth.Blake2b"
 -- * "Raaz.Auth.Blake2s"

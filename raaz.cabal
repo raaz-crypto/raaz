@@ -9,24 +9,12 @@ description:
 
   Raaz is a cryptographic library which provides the state of the art
   cryptographic primitives via a high-level, type safe interface. The
-  primary focus of raaz is to expose to the user a rather high level
-  interface for cryptography with all the problematic parts like the
-  selection of primitives, their implementations or for that matter
-  system entropy sources etc taken care of automatically. The strong
-  type system of Haskell is used to complement this high level
-  interface to provide additional security.
-
-  Advanced users sometimes need additional flexibility. For example,
-  for compatibility with other protocols, the default primitive
-  selection might need changing. This is possible with the current
-  interface. In addition, in some rare circumstances a user might want
-  to change certain underlying implementations used by the
-  library. For example, on a system with GPUs, there might be a faster
-  implementation of a primitive or the standard entropy source might
-  be weak on certain virtual machines. In such cases, the backpack
-  based multi-component structure provided by raaz can be used to
-  plugin custom implementation of primitives or system entropy sources
-  and still maintain the high level and type safe interface.
+  default interface takes care of primitive selection with facilities
+  to manually override when compatibility is required. Further low
+  level stuff like entropy source or a implementation for a particular
+  primitive can be replaced with no change to the existing code base
+  by making use of the the backpack based multi-component structure of
+  this package.
 
 homepage: https://github.com/raaz-crypto/raaz
 

@@ -6,9 +6,35 @@
 -- For documentation refer the module "Raaz.Auth".
 
 module Raaz.V1.Auth ( Auth
-                    , module Auth.Blake2b
+                    , auth, authFile, authSource
                     ) where
-import Auth.Blake2b
-import Raaz.Primitive.Blake2.Internal(Blake2b)
-import Raaz.Primitive.Keyed.Internal(Keyed)
+
+import           Raaz.Core
+import qualified Auth.Blake2b as B2bAuth
+import           Raaz.Primitive.Blake2.Internal(Blake2b)
+import           Raaz.Primitive.Keyed.Internal(Keyed)
+
+-- | The message authentication.
 type Auth   = Keyed Blake2b
+
+-- | Compute the authenticator of a pure byte source like,
+-- `B.ByteString`.
+auth :: PureByteSource src
+     => Key Auth
+     -> src  -- ^ Message
+     -> Auth
+auth = B2bAuth.auth
+
+
+-- | Compute the auth of file.
+authFile :: Key Auth
+         -> FilePath  -- ^ File to be authed
+         -> IO Auth
+authFile = B2bAuth.authFile
+
+-- | Compute the auth of an arbitrary byte source.
+authSource :: ByteSource src
+           => Key Auth
+           -> src
+           -> IO Auth
+authSource = B2bAuth.authSource
