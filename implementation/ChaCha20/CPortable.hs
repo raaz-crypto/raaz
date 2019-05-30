@@ -71,4 +71,4 @@ reseedAfter = blocksOf (1024 * 1024 * 1024) (Proxy :: Proxy Prim)
 randomBlocks :: AlignedPointer BufferAlignment
              -> BLOCKS Prim
              -> MT Internals ()
-randomBlocks = runBlockProcess verse_chacha20_c_portable_keystream
+randomBlocks = runBlockProcess verse_chacha20csprg_c_portable
