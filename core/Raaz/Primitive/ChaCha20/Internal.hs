@@ -8,7 +8,10 @@
 -- we implement is the IETF version described in RFC 7538 with 32-bit
 -- (4-byte) counter and 96-bit (12-byte) IV.
 module Raaz.Primitive.ChaCha20.Internal
-       ( ChaCha20(..), WORD, Counter(..), IV(..), KEY(..), ChaCha20Mem(..)
+       ( ChaCha20(..), XChaCha20(..)
+       , WORD, Counter(..)
+       , IV(..), XIV(..)
+       , KEY(..), ChaCha20Mem(..)
        , keyCellPtr, ivCellPtr, counterCellPtr
        ) where
 
@@ -21,6 +24,8 @@ import Raaz.Core
 -- | The type associated with the ChaCha20 cipher.
 data ChaCha20 = ChaCha20
 
+-- | The type associated with the XChaCha20 variant.
+data XChaCha20 = XChaCha20
 
 -- | The word type
 type WORD     = LE Word32
@@ -28,12 +33,22 @@ type WORD     = LE Word32
 -- | The IV for the chacha20
 newtype IV       = IV (Tuple 3 (LE Word32))     deriving (Storable, EndianStore)
 
+-- | The IV for the xchacha20 variant.
+newtype XIV      = XIV (Tuple 6 (LE Word32))     deriving (Storable, EndianStore)
+
 instance Encodable IV
+instance Encodable XIV
 
 instance Show IV where
   show = showBase16
 
+instance Show XIV where
+  show = showBase16
+
 instance IsString IV where
+  fromString = fromBase16
+
+instance IsString XIV where
   fromString = fromBase16
 
 -- | The counter type for chacha20
@@ -54,8 +69,11 @@ instance IsString KEY where
 instance Primitive ChaCha20 where
   type BlockSize ChaCha20      = 64
 
-type instance Key ChaCha20            = (KEY, IV, Counter)
+instance Primitive XChaCha20 where
+  type BlockSize XChaCha20     = 64
 
+type instance Key ChaCha20            = (KEY, IV, Counter)
+type instance Key XChaCha20           = (KEY, XIV, Counter)
 
 
 ---------- Memory for ChaCha20 implementations  ------------------
