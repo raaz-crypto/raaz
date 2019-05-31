@@ -72,8 +72,10 @@ instance Primitive ChaCha20 where
 instance Primitive XChaCha20 where
   type BlockSize XChaCha20     = 64
 
-type instance Key ChaCha20            = (KEY, IV, Counter)
-type instance Key XChaCha20           = (KEY, XIV, Counter)
+type instance Key ChaCha20            = KEY
+type instance Nounce ChaCha20         = IV
+type instance Key XChaCha20           = KEY
+type instance Nounce XChaCha20        = XIV
 
 
 ---------- Memory for ChaCha20 implementations  ------------------
@@ -96,15 +98,16 @@ instance Memory ChaCha20Mem where
   memoryAlloc     = ChaCha20Mem <$> memoryAlloc <*> memoryAlloc <*> memoryAlloc
   unsafeToPointer = unsafeToPointer . keyCell
 
-instance Initialisable ChaCha20Mem (KEY, IV, Counter) where
-  initialise (k,iv,ctr) = do withReaderT keyCell     $ initialise k
-                             withReaderT ivCell      $ initialise iv
-                             withReaderT counterCell $ initialise ctr
+instance Initialisable ChaCha20Mem KEY where
+  initialise  = withReaderT keyCell . initialise
 
+instance Initialisable ChaCha20Mem IV where
+  initialise  =  withReaderT ivCell . initialise
 
-instance Initialisable ChaCha20Mem (KEY, IV) where
-  initialise (k, iv) = initialise (k, iv, 0 :: Counter)
+instance Initialisable ChaCha20Mem Counter where
+  initialise = withReaderT counterCell . initialise
 
+-- | Initialises key from a buffer.
 instance InitialisableFromBuffer ChaCha20Mem where
-  initialiser m = liftInit keyCell m `mappend` liftInit ivCell m `mappend` liftInit counterCell m
+  initialiser m = liftInit keyCell m <> interleave (initialise (0 :: Counter))
     where liftInit f = liftTransfer (withReaderT f) . initialiser . f
