@@ -9,6 +9,7 @@ module Raaz.Core.Transfer
        ( -- * Transfer actions.
          -- $transfer$
          ReadM, ReadIO
+       , consume, consumeStorable, consumeParse
        , readBytes, readInto
        , WriteM, WriteIO
        , write, writeStorable, writeVector, writeStorableVector
@@ -32,6 +33,7 @@ import           Foreign.Storable          ( Storable, poke )
 
 import           Raaz.Core.Prelude
 import           Raaz.Core.MonoidalAction
+import           Raaz.Core.Parse.Applicative hiding (skip, interleave)
 import           Raaz.Core.Types.Copying
 import           Raaz.Core.Types.Endian
 import           Raaz.Core.Types.Pointer
@@ -163,7 +165,28 @@ unsafeTransfer tr = unTransferM . semiRSpace tr
 skip :: (LengthUnit l, Monad m) => l -> Transfer t m
 skip = flip makeTransfer $ const $ return ()
 
+-------------------------- Monoids for consuming stuff ------------------------------------
 
+-- | Given a parser @p :: Parser a@ for parsing @a@ and @act :: a -> m
+-- b@ consuming a, @consumeParse p act@, gives a reader that parses a
+-- from the input buffer passing it to the action act.
+consumeParse :: MonadIO m => Parser a -> (a -> m b) -> ReadM m
+consumeParse p action = makeTransfer (parseWidth p) $
+                        \ ptr -> liftIO (unsafeRunParser p ptr) >>= void . action
+
+-- | Reads @a@ from the buffer and supplies it to the action. The
+-- value read is independent of the endianness of the underlying.
+consume :: (EndianStore a, MonadIO m)
+        => (a -> m b)
+        -> ReadM m
+consume = consumeParse parse
+
+-- | Similar to @consume@ but does not take care of adjusting for
+-- endianness. Use therefore limited to internal buffers.
+consumeStorable :: (Storable a, MonadIO m)
+                => (a -> m b)
+                -> ReadM m
+consumeStorable = consumeParse parseStorable
 
 -------------------------- Monoid for writing stuff --------------------------------------
 
@@ -257,23 +280,10 @@ padWrite :: ( LengthUnit n, MonadIO m)
          -> WriteM m
 padWrite w8 n = flip (glueWrites w8 n) mempty
 
+-------------  Reading and writing byte strings -----------------------------------
 -- | Writes a strict bytestring.
 writeByteString :: MonadIO m => ByteString -> WriteM m
 writeByteString bs = makeTransfer (BU.length bs) $ liftIO  . BU.unsafeCopyToPointer bs
-
-instance MonadIO m => IsString (WriteM m)  where
-  fromString = writeByteString . fromString
-
-instance Encodable WriteIO where
-  {-# INLINE toByteString #-}
-  toByteString w  = unsafeCreate n $ unsafeTransfer w . castPtr
-    where BYTES n = transferSize w
-
-  {-# INLINE unsafeFromByteString #-}
-  unsafeFromByteString = writeByteString
-
-  {-# INLINE fromByteString #-}
-  fromByteString       = Just . writeByteString
 
 -- | The action @readBytes sz dptr@ gives a read action, which if run on
 -- an input buffer, will transfers @sz@ to the destination buffer
@@ -301,3 +311,17 @@ readInto n dest = makeTransfer (sz dest)
   where sz  = (*) (toEnum n) . sizeOf . proxy
         proxy :: Dest (Ptr a) -> Proxy a
         proxy = const Proxy
+
+instance MonadIO m => IsString (WriteM m)  where
+  fromString = writeByteString . fromString
+
+instance Encodable WriteIO where
+  {-# INLINE toByteString #-}
+  toByteString w  = unsafeCreate n $ unsafeTransfer w . castPtr
+    where BYTES n = transferSize w
+
+  {-# INLINE unsafeFromByteString #-}
+  unsafeFromByteString = writeByteString
+
+  {-# INLINE fromByteString #-}
+  fromByteString       = Just . writeByteString
