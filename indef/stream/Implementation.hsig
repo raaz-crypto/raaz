@@ -1,0 +1,22 @@
+{-# LANGUAGE ConstraintKinds             #-}
+{-# LANGUAGE MultiParamTypeClasses       #-}
+{-# LANGUAGE FlexibleInstances           #-}
+{-# LANGUAGE FlexibleContexts            #-}
+{-# LANGUAGE TypeFamilies                #-}
+
+-- | Streams are special primitives that have a counter that can be
+-- fixed to reposition in the stream. The counter typically counts the
+-- number of blocks since start. This implementation adds additional
+-- constraints that come with stream primitives.
+signature Implementation where
+
+import Raaz.Core
+
+data Prim
+-- | The internal memory used by the implementation.
+data Internals
+instance Memory Internals
+
+instance Initialisable Internals (Counter Prim)
+instance Num (Counter Prim)
+instance Enum (Counter Prim)
