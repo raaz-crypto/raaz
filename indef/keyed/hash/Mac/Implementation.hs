@@ -56,8 +56,8 @@ fromKeyedBlocks = toEnum . fromEnum
 additionalBlocks :: BLOCKS Prim
 additionalBlocks = toKeyedBlocks Base.additionalBlocks
 
-trim ::  HashKey Base.Prim -> BS.ByteString
-trim (HashKey hKey) = BS.take sz hKey
+trim ::  Key (Keyed Base.Prim) -> BS.ByteString
+trim (Key hKey) = BS.take sz hKey
   where sz = fromEnum $ sizeOf (Proxy :: Proxy Base.Prim)
 
 
@@ -106,7 +106,7 @@ instance Memory Internals where
 -- processBlocks or processLast, will have to do the appropriate
 -- initialisation and then proceed from there on.
 
-instance Initialisable Internals (HashKey Base.Prim) where
+instance Initialisable Internals (Key (Keyed Base.Prim)) where
   initialise hKey = do withReaderT hashInternals $ initialise hash0
                        withReaderT keyBuffer ask >>= writeKeyIntoBuffer
                        withReaderT atStart $ initialise True

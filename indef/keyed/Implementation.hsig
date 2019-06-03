@@ -16,8 +16,9 @@ import Raaz.Core
 
 -- | The primitive for which the implementation is given
 data Prim
-instance Primitive Prim
+
 -- | The internal memory used by the implementation.
 data Internals
 instance Memory Internals
-instance Key Prim ~ key => Initialisable Internals key
+instance Initialisable Internals (Key Prim)
+instance Show      (Key Prim)

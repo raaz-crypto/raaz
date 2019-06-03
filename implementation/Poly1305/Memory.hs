@@ -67,11 +67,11 @@ accumPtr = withReaderT accCell getCellPointer
 clamp :: MT Mem ()
 clamp = rKeyPtr >>= liftIO . flip verse_poly1305_c_portable_clamp 1
 
-instance Initialisable Mem (R,S) where
-  initialise (r, s) = do clearAcc
-                         withReaderT rCell   $ initialise r
-                         withReaderT sCell   $ initialise s
-                         clamp
+instance Initialisable Mem (Key Poly1305) where
+  initialise (Key r s) = do clearAcc
+                            withReaderT rCell   $ initialise r
+                            withReaderT sCell   $ initialise s
+                            clamp
 
 instance Extractable Mem Poly1305 where
     extract = toPoly1305 <$> withReaderT accCell extract
