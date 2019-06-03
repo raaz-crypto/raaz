@@ -8,35 +8,36 @@ module Raaz.Cipher.ChaCha20Spec where
 import           Tests.Core
 import qualified Tests.Cipher as C
 
-keyPrint :: Key ChaCha20 -> String
-keyPrint (k,i,c) = "("
-                   ++ shortened (show k) ++ ", "
-                   ++ shortened (show i) ++ ","
-                   ++ show (fromEnum c) ++ ")"
-
 writeZeros :: BYTES Int -> WriteIO
 writeZeros = writeBytes 0
 
-zeroIV :: IV
+zeroIV :: Nounce ChaCha20
 zeroIV = unsafeDecode $ toByteString $ writeZeros 12
 
-zeroKey :: KEY
+zeroKey :: Key ChaCha20
 zeroKey = unsafeDecode $ toByteString $ writeZeros 32
 
-oneKey :: KEY
+oneKey :: Key ChaCha20
 oneKey = unsafeDecode $ toByteString $ one <> writeZeros 31
   where one = writeBytes 1 (1 :: BYTES Int)
 
 zeroBlocks :: Int -> ByteString
-zeroBlocks = C.zeros . (toEnum :: Int -> BLOCKS ChaCha20)
+zeroBlocks n = C.zeros $ inBytes $ blocksOf n (Proxy :: Proxy ChaCha20)
 
-transformsTo :: (Format fmt1, Format fmt2) => fmt1 -> fmt2 -> Key ChaCha20 -> Spec
-transformsTo = C.transformsTo keyPrint
 
-keyStreamIs  :: Format fmt => fmt -> Key ChaCha20 -> Spec
-keyStreamIs  = C.keyStreamIs keyPrint
+transformsTo :: (Format fmt1, Format fmt2)
+             => fmt1
+             -> fmt2
+             -> (Key ChaCha20, Nounce ChaCha20, Counter ChaCha20)
+             -> Spec
+transformsTo = C.transformsTo
+
+keyStreamIs  :: Format fmt => fmt -> (Key ChaCha20, Nounce ChaCha20, Counter ChaCha20) -> Spec
+keyStreamIs  = C.keyStreamIs
 
 spec :: Spec
+-- spec = return ()
+{--}
 spec =describe "ChaCha20" $ do
   -- Unit test from RFC7539
   with ("00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f 10 11 12 13 14 15 16 17 18 19 1a 1b 1c 1d 1e 1f"
@@ -94,3 +95,4 @@ spec =describe "ChaCha20" $ do
                                             "3f 6d 02 63 bd 14 df d6 ab 8c 70 52 1c 19 33 8b" <>
                                             "23 08 b9 5c f8 d0 bb 7d 20 2d 21 02 78 0e a3 52" <>
                                             "8f 1c b4 85 60 f7 6b 20 f3 82 b9 42 50 0f ce ac" :: Base16)
+--}

@@ -12,8 +12,8 @@ import Test.QuickCheck.Monadic as E
 import Raaz.Core               as E hiding ((===), Result, (.&.))
 
 import Raaz.Primitive.Blake2.Internal   as E
-import Raaz.Primitive.ChaCha20.Internal as E hiding ( WORD )
-import Raaz.Primitive.Poly1305.Internal as E hiding ( WORD )
+import Raaz.Primitive.ChaCha20.Internal as E hiding ( WORD, Key )
+import Raaz.Primitive.Poly1305.Internal as E hiding ( WORD, Key )
 import Raaz.Primitive.Sha2.Internal     as E
 
 

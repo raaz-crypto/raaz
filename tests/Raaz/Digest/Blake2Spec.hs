@@ -62,7 +62,7 @@ data B2Test = B2b (Test Blake2b)
             | Skip ByteString
 
 data Test h = HT ByteString h
-            | AT ByteString (HashKey h) (Keyed h)
+            | AT ByteString (Key (Keyed h)) (Keyed h)
 
 toSpec :: B2Test -> Spec
 toSpec tst  =
