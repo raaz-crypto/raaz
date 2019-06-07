@@ -33,7 +33,7 @@ import           Foreign.Storable          ( Storable, poke )
 
 import           Raaz.Core.Prelude
 import           Raaz.Core.MonoidalAction
-import           Raaz.Core.Parse.Applicative hiding (skip, interleave)
+import           Raaz.Core.Parse.Applicative hiding (skip)
 import           Raaz.Core.Types.Copying
 import           Raaz.Core.Types.Endian
 import           Raaz.Core.Types.Pointer
