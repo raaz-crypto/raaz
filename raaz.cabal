@@ -1,4 +1,4 @@
-cabal-version: 2.2
+cabal-version: 3.0
 
 name:    raaz
 version: 0.3.0
@@ -107,8 +107,8 @@ common defaults
 
 ----------------------------- The core library ------------------------------------------------
 library core
-  -- visibility: public
   import: defaults
+  visibility: public
   hs-source-dirs: core
   exposed-modules: Raaz.Core
                  , Raaz.Core.CpuSupports
@@ -197,15 +197,15 @@ library libverse
 --
 
 library prim-indef
-  -- visibility: public
   import: defaults
+  visibility: public
   build-depends: core
   hs-source-dirs: indef
   signatures: Implementation
 
 library digest-indef
-  -- visibility: public
   import: defaults
+  visibility: public
   hs-source-dirs: indef/digest
   signatures: Implementation
   build-depends: core
@@ -315,8 +315,8 @@ library random-api
 -- implementation package).
 
 library implementation
-  -- visibility: public
   import: defaults
+  visibility: public
   build-depends: core
                , libverse
   hs-source-dirs: implementation, implementation/entropy
@@ -385,8 +385,8 @@ library implementation
 -- similar to raaz and want to override the implementations.
 
 library raaz-indef
-  -- visibility: public
   import: defaults
+  visibility: public
   build-depends: core
                , hash-api
                , random-api
@@ -481,7 +481,6 @@ common test-defaults
                , hspec
 
 library test-core
-  -- visibility: private
   import: test-defaults
   hs-source-dirs: tests/core
   exposed-modules: Tests.Core
