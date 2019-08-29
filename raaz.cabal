@@ -438,17 +438,26 @@ library
   exposed-modules: Raaz
                  , Raaz.Auth
                  , Raaz.Digest
-  reexported-modules: Auth.Blake2b       as Raaz.Auth.Blake2b
-                    , Auth.Blake2s       as Raaz.Auth.Blake2s
-                    , Digest.Blake2b     as Raaz.Digest.Blake2b
-                    , Digest.Blake2s     as Raaz.Digest.Blake2s
-                    , Digest.Sha512      as Raaz.Digest.Sha512
-                    , Digest.Sha256      as Raaz.Digest.Sha256
-                    , Random             as Raaz.Random
-                    , Random.Internal    as Raaz.Random.Internal
+  reexported-modules: Raaz.Auth.Blake2b
+                    , Raaz.Auth.Blake2s
+                    , Raaz.Digest.Blake2b
+                    , Raaz.Digest.Blake2s
+                    , Raaz.Digest.Sha512
+                    , Raaz.Digest.Sha256
+                    , Raaz.Random
+                    , Raaz.Random.Internal
                     , Raaz.Core
                     , Raaz.Core.Types
   autogen-modules: Paths_raaz
+  mixins: raaz-indef ( Auth.Blake2b as Raaz.Auth.Blake2b
+                     , Auth.Blake2s       as Raaz.Auth.Blake2s
+                     , Digest.Blake2b     as Raaz.Digest.Blake2b
+                     , Digest.Blake2s     as Raaz.Digest.Blake2s
+                     , Digest.Sha512      as Raaz.Digest.Sha512
+                     , Digest.Sha256      as Raaz.Digest.Sha256
+                     , Random             as Raaz.Random
+                     , Random.Internal    as Raaz.Random.Internal
+                     )
   other-modules: Paths_raaz
                , Raaz.V1.Auth
                , Raaz.V1.Digest
