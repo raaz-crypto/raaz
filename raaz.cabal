@@ -102,7 +102,7 @@ common defaults
      cc-options: -DPLATFORM_WINDOWS -DUNICODE
      cpp-options: -DPLATFORM_WINDOWS
      extra-libraries: Advapi32, Kernel32
-     build-tools: hsc2hs
+     build-tool-depends: hsc2hs:hsc2hs
 
 
 ----------------------------- The core library ------------------------------------------------
