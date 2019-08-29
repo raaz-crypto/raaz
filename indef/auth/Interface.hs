@@ -1,4 +1,5 @@
-module Interface ( auth
+module Interface ( Auth
+                 , auth
                  , authFile
                  , authSource
                  , name
@@ -14,35 +15,35 @@ import           Raaz.Core
 import qualified Implementation
 import           Utils
 
-type Prim = Implementation.Prim
+type Auth = Implementation.Prim
 
 -- | Compute the authenticator of a pure byte source like,
 -- `B.ByteString`.
 auth :: PureByteSource src
-     => Key Prim
+     => Key Auth
      -> src  -- ^ Message
-     -> Prim
+     -> Auth
 auth key = unsafePerformIO . authSource key
 {-# INLINEABLE auth #-}
-{-# SPECIALIZE auth :: Key Prim -> B.ByteString -> Prim #-}
-{-# SPECIALIZE auth :: Key Prim -> L.ByteString -> Prim #-}
+{-# SPECIALIZE auth :: Key Auth -> B.ByteString -> Auth #-}
+{-# SPECIALIZE auth :: Key Auth -> L.ByteString -> Auth #-}
 
 -- | Compute the auth of file.
-authFile :: Key Prim
+authFile :: Key Auth
          -> FilePath  -- ^ File to be authed
-         -> IO Prim
+         -> IO Auth
 authFile key fileName = withBinaryFile fileName ReadMode $ authSource key
 {-# INLINEABLE authFile   #-}
 
 
 -- | Compute the auth of an arbitrary byte source.
 authSource :: ByteSource src
-           => Key Prim
+           => Key Auth
            -> src
-           -> IO Prim
-{-# SPECIALIZE authSource :: Key Prim -> B.ByteString -> IO Prim #-}
-{-# SPECIALIZE authSource :: Key Prim -> L.ByteString -> IO Prim #-}
-{-# SPECIALIZE authSource :: Key Prim -> Handle       -> IO Prim #-}
+           -> IO Auth
+{-# SPECIALIZE authSource :: Key Auth -> B.ByteString -> IO Auth #-}
+{-# SPECIALIZE authSource :: Key Auth -> L.ByteString -> IO Auth #-}
+{-# SPECIALIZE authSource :: Key Auth -> Handle       -> IO Auth #-}
 
 authSource key src = insecurely $ do
   initialise key

@@ -1,4 +1,5 @@
-module Interface ( digest
+module Interface ( Digest
+                 , digest
                  , digestFile
                  , digestSource
                  , name
@@ -14,30 +15,30 @@ import           Raaz.Core
 import qualified Implementation
 import           Utils
 
-type Prim = Implementation.Prim
+type Digest = Implementation.Prim
 
 -- | Compute the digest of a pure byte source like, `B.ByteString`.
 digest :: PureByteSource src
        => src  -- ^ Message
-       -> Prim
+       -> Digest
 digest = unsafePerformIO . digestSource
 {-# INLINEABLE digest #-}
-{-# SPECIALIZE digest :: B.ByteString -> Prim #-}
-{-# SPECIALIZE digest :: L.ByteString -> Prim #-}
+{-# SPECIALIZE digest :: B.ByteString -> Digest #-}
+{-# SPECIALIZE digest :: L.ByteString -> Digest #-}
 
 -- | Compute the digest of file.
 digestFile :: FilePath  -- ^ File to be digested
-           -> IO Prim
+           -> IO Digest
 digestFile fileName = withBinaryFile fileName ReadMode digestSource
 {-# INLINEABLE digestFile #-}
 
 -- | Compute the digest of an arbitrary byte source.
 digestSource :: ByteSource src
              => src
-             -> IO Prim
-{-# SPECIALIZE digestSource :: B.ByteString -> IO Prim #-}
-{-# SPECIALIZE digestSource :: L.ByteString -> IO Prim #-}
-{-# SPECIALIZE digestSource :: Handle       -> IO Prim #-}
+             -> IO Digest
+{-# SPECIALIZE digestSource :: B.ByteString -> IO Digest #-}
+{-# SPECIALIZE digestSource :: L.ByteString -> IO Digest #-}
+{-# SPECIALIZE digestSource :: Handle       -> IO Digest #-}
 
 digestSource src = insecurely $ do
   initialise ()
