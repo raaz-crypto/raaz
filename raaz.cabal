@@ -2,6 +2,7 @@ cabal-version: 3.0
 
 name:    raaz
 version: 0.3.0
+stability: experimental
 
 synopsis: Fast and type safe cryptography.
 
@@ -9,12 +10,55 @@ description:
 
   Raaz is a cryptographic library which provides the state of the art
   cryptographic primitives via a high-level, type safe interface. The
-  default interface takes care of primitive selection with facilities
-  to manually override when compatibility is required. Further low
-  level stuff like entropy source or a implementation for a particular
-  primitive can be replaced with no change to the existing code base
-  by making use of the the backpack based multi-component structure of
-  this package.
+  default interface to the library is provided by the "Raaz" module
+  that takes care of tricky issues like selecting the entropy source
+  or the primitive for a given cryptographic task. It is the
+  cryptogrphic operation that the user concentrates on rather than how
+  (or using which primitive) it is implemented.
+
+  The raaz library however gives enough ways by which this default
+  selection can be overridden. A common situation is when the
+  primitive selection is forced due to compatibility or interworking
+  with other programs libraries. For such situation, raaz exposes a
+  primitive specific interface, e.g. "Raaz.Digest.Sha256" gives the
+  message digesting interface which makes use of the sha256 hash as
+  the digest algorithm.
+
+  == Tweaking primitive implementations, entropy sources, etc.
+
+  The @raaz:implementation@ package provides the default
+  implementations used by the raaz library. We do strive very hard to
+  give the best possible defaults. However, these low level aspects of
+  the raaz library can also be tweaked if you think there are better
+  choices. For example you might have custom hardware are your
+  disposal where a particular primitive can be made much more
+  performant, or maybe for the given platform (say in a virtualised
+  environment) you might have a better entropy source than the
+  defaults. Raaz uses backpack signatures and modules to make it
+  relatively painless to integrate such custom requirements.
+
+  The @raaz-indef@ package gives an interface pretty similar to the
+  top level @raaz@ package that abstracts over the
+  implementations. The `raaz:implementation` package subcomponent
+  provides the default implementation of the primitives supported by
+  raaz. You can override this selection by providing a module that
+  meet the same signature requirements. As an example, the Blake2b
+  implementation can be overridden (in your packages cabal file as
+  follows) as follows.
+
+  >
+  > build-depends: raaz:raaz-indef
+  >              , raaz:implementation
+  >              , mychacha20
+  >              , myentropy
+  > mixins: raaz-indef requires (ChaCha20.Implementation as MyChaCha20.Implementation
+  >                              Entropy as MyEntropy.Entropy)
+  >
+
+  In the above cabal stanza, the chacha20 implementation and the
+  entropy source have been overridden. However, the rest of the
+  implmentations are satisfied by the defaults that are provided by
+  @raaz:implementation@.
 
 homepage: https://github.com/raaz-crypto/raaz
 
