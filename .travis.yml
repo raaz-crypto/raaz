@@ -33,15 +33,11 @@ matrix:
     - compiler: hlint
       addons: {apt: {packages: [curl], sources: [hvr-ghc]}}
 
-    - compiler: ghc-8.2.2
-      addons: {apt: {packages: [cabal-install-3.0 ,ghc-8.2.2], sources: [hvr-ghc]}}
-
     - compiler: ghc-8.4.4
       addons: {apt: {packages: [cabal-install-3.0 ,ghc-8.4.4], sources: [hvr-ghc]}}
 
     - compiler: ghc-8.6.5
       addons: {apt: {packages: [cabal-install-3.0 ,ghc-8.6.5], sources: [hvr-ghc]}}
-
 
     - compiler: ghc-8.8.1
       addons: {apt: {packages: [cabal-install-3.0 ,ghc-8.8.1], sources: [hvr-ghc]}}
@@ -60,7 +56,7 @@ matrix:
 
   allow_failures:
     - compiler: ghc-head
-
+    - compiler: ghc-8.8.1
 
 before_install:
   - uname -a
