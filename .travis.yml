@@ -34,13 +34,13 @@ matrix:
       addons: {apt: {packages: [curl], sources: [hvr-ghc]}}
 
     - compiler: ghc-8.2.2
-      addons: {apt: {packages: [cabal-install-2.4 ,ghc-8.2.2], sources: [hvr-ghc]}}
+      addons: {apt: {packages: [cabal-install-3.0 ,ghc-8.2.2], sources: [hvr-ghc]}}
 
     - compiler: ghc-8.4.4
-      addons: {apt: {packages: [cabal-install-2.4 ,ghc-8.4.4], sources: [hvr-ghc]}}
+      addons: {apt: {packages: [cabal-install-3.0 ,ghc-8.4.4], sources: [hvr-ghc]}}
 
     - compiler: ghc-8.6.5
-      addons: {apt: {packages: [cabal-install-2.4 ,ghc-8.6.5], sources: [hvr-ghc]}}
+      addons: {apt: {packages: [cabal-install-3.0 ,ghc-8.6.5], sources: [hvr-ghc]}}
 
     - compiler: ghc-head
       addons: {apt: {packages: [cabal-install-head ,ghc-head], sources: [hvr-ghc]}}
