@@ -3,8 +3,16 @@
 {-# LANGUAGE MultiParamTypeClasses       #-}
 {-# LANGUAGE TypeFamilies                #-}
 
--- | An implementation of a cryptographically secure pseudo-random
--- generator out of a primitive.
+-- | Cryptographically secure pseudo-random generator or CSPRG for
+-- short is typically implemented from a stream cipher by setting its
+-- internals from an entropy source and generating its key stream as
+-- the pseudo-random stream. This signature captures primitives that
+-- can be used in such a fashion.
+--
+-- == Defaults
+--
+-- The raaz:implementation package uses the ChaCha20 cipher to satisfy
+-- this implementation.
 
 signature Implementation where
 

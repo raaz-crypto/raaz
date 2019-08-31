@@ -1,4 +1,38 @@
--- | Signature capturing entropy source in the system
+-- | Cryptographic pseudo-random generators need an entropy source
+-- using which its internal state is initialised at startup or after
+-- some pre-defined amount of random data is generated. This signature
+-- captures the interface for getting randomness from the entropy
+-- pool. The pseudo-random generator exposed from this component can
+-- work with any module that satisfies this signature. Be warned
+-- however that it is really not a good idea to plug in random (pun
+-- unintended) entropy sources.
+--
+-- == Default entropy source
+--
+-- The Entropy module exposed by the @raaz:implementation@ component
+-- is what is used by default by the raaz library. User level
+-- libraries have very little access to actual entropy sources and it
+-- is very difficult to ascertain the quality of the ones that we do
+-- have. Therefore, we believe it is better to rely on the operating
+-- system for the entropy needed for seeding. Given below is the list of our choice
+-- of entropy source.
+--
+-- [OpenBSD/NetBSD:] The arc4random call.
+--
+-- [Linux:] The @getrandom@ system call. For older (< 3.17) kernels
+-- lacking support for this call, you might need to compile raaz with
+-- the `linux-getrandom` disabled.
+--
+-- [Other Posix:] Uses @\/dev\/urandom@
+--
+-- [Windows:] Support using CryptGenRandom from Wincrypt.h.
+--
+-- Be warned that on some (older?) posix systems, the entropy can be
+-- quite low at certain epochs, like at the time of startup. Another
+-- situation when entropy gets compromised is when containers are
+-- replicated. Defending against these however are beyond the scope of
+-- raaz.
+
 signature Entropy where
 
 import Raaz.Core

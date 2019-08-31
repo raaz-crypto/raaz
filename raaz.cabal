@@ -334,7 +334,7 @@ library random-api
             , Entropy
   exposed-modules: Interface
                  , Internal
-  other-modules: PRGState
+  other-modules: PRGenerator
 
 --------------------  The implementation modules ----------------------------------
 --
