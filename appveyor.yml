@@ -11,6 +11,9 @@ environment:
     - ARCH_SEL_FLAG: ""    # Default
     - ARCH_SEL_FLAG: --x86 # Select 32-bit builds
 
+matrix:
+  fast_finish: true
+
 clone_folder: "c:\\r"
 skip_branch_with_pr: true # Do not build feature branch with open Pull Requests
 
