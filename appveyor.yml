@@ -7,12 +7,25 @@ cache:
 environment:
   global:
     STORE_DIR: "c:\\s"
-  matrix:
-    - ARCH_SEL_FLAG: ""    # Default
-    - ARCH_SEL_FLAG: --x86 # Select 32-bit builds
+
 
 matrix:
   fast_finish: true
+
+# Platforms to build
+
+platform:
+  - x86
+  - x64
+
+# platform specific installation.
+for:
+-
+  matrix: { only: [platform: x86] }
+  install: [ choco install -y --x86 --version 8.6.5 ghc ]
+
+- matrix: { only: [platform: x64] }
+  install: [ choco install -y --version 8.6.5 ghc ]
 
 clone_folder: "c:\\r"
 skip_branch_with_pr: true # Do not build feature branch with open Pull Requests
@@ -20,8 +33,6 @@ skip_branch_with_pr: true # Do not build feature branch with open Pull Requests
 before_test:
 # http://help.appveyor.com/discussions/problems/6312-curl-command-not-found
 - set PATH=C:\Program Files\Git\mingw64\bin;%PATH%
-- choco install -y %ARCH_SEL_FLAG% ghc
-- choco install cabal
 - refreshenv
 - cabal --version
 - ghc   --version
