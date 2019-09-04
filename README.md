@@ -23,15 +23,12 @@ unique to raaz are the following
 Building
 --------
 
-Ensure that you have a ghc >= 8.2 and cabal version >= 2.2. These are
-necessary due to the crucial role played by backpack in the design.
-Having met these pre-requisites, the recommended approach towards
-building raaz using the following command.
+The recommended way to install raaz is through `cabal-install` version
+3.0 or above. We also require `ghc` version 8.4 or above.
 
-    cabal new-build
-
-Backpack support is still [work in progress for stack][stack-backpack]
-and it should be possible to use stack once this issue is resolved.
+    cabal build
+	cabal test
+	cabal install
 
 Hacking and Discussion
 ----------------------
@@ -56,13 +53,6 @@ problems.
 
 Backpack based pluggable implementations
 ----------------------------------------
-
-**NOTE:** The interface that we describe now needs the ability for a
-single package (`raaz` in our case) to expose multiple
-components. This is still work in progress but is expected to be
-merged in soon (See
-<https://github.com/haskell/cabal/issues/4206>). Without this feature
-the interface described below cannot be used.
 
 One of the biggest safety feature of the raaz cryptographic library is
 that the implementations are fast and safe by default. However, there
