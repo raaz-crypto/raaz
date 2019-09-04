@@ -2,6 +2,11 @@
 
 ## [0.3.0] - Pending
 
+* Platform requirements
+
+  - Cabal >= 3.0.0.0
+  - GHC   >= 8.4
+
 * User facing interface
 
   - Top level `Raaz` module centred around cryptographic operation
@@ -30,8 +35,6 @@
     primitive implementation. Simplifies the library and allows easy
     plugging in of custom implementations.
 
-  - GHC below 8.2 not supported anymore because of backpack.
-
 * CSPRG and Entropy
 
   - Entropy on linux: uses getrandom by default with flag to fall back
@@ -53,7 +56,9 @@
 
   - Aligned pointer with alignment at type level.
 
-* Licensing: From BSD-3-Clause to dual license Apache-2.0 OR BSD-3-Clause.
+* Licensing:
+
+  - Apache-2.0 OR BSD-3-Clause.
 
 
 ## [0.2.1] - 25 March, 2019
