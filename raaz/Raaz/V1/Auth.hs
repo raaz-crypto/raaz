@@ -10,7 +10,7 @@ module Raaz.V1.Auth ( Auth
                     ) where
 
 import           Raaz.Core
-import qualified Auth.Blake2b as B2bAuth
+import qualified Raaz.Auth.Blake2b as B2bAuth
 import           Raaz.Primitive.Blake2.Internal(Blake2b)
 import           Raaz.Primitive.Keyed.Internal(Keyed)
 

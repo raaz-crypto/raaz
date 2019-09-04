@@ -58,17 +58,18 @@ import Raaz.V1.Digest
 -- $specific-digest$
 --
 -- To inter-operate with other libraries and applications, one might
--- want to compute the digest using specific cryptographic hash. Raaz
--- supports the following:
+-- want to compute the digest using specific cryptographic hash. In
+-- such a situation, import one of the more specific module instead of
+-- this one.
 --
--- * "Raaz.Digest.Blake2b"
--- * "Raaz.Digest.Blake2s"
--- * "Raaz.Digest.Sha512"
--- * "Raaz.Digest.Sha256"
+-- * Raaz.Digest.Blake2b
+-- * Raaz.Digest.Blake2s
+-- * Raaz.Digest.Sha512
+-- * Raaz.Digest.Sha256
 --
 -- Here is an example that uses sha512 to compute the digest.
 --
--- > import Raaz.Sha512
+-- > import Raaz.Digest.Sha512
 -- > import System.Environment
 -- >
 -- > main = getArgs >>= digestFile . head >>= print

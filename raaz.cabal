@@ -1,7 +1,8 @@
-cabal-version: 2.2
+cabal-version: 3.0
 
 name:    raaz
 version: 0.3.0
+stability: experimental
 
 synopsis: Fast and type safe cryptography.
 
@@ -9,12 +10,55 @@ description:
 
   Raaz is a cryptographic library which provides the state of the art
   cryptographic primitives via a high-level, type safe interface. The
-  default interface takes care of primitive selection with facilities
-  to manually override when compatibility is required. Further low
-  level stuff like entropy source or a implementation for a particular
-  primitive can be replaced with no change to the existing code base
-  by making use of the the backpack based multi-component structure of
-  this package.
+  default interface to the library is provided by the "Raaz" module
+  that takes care of tricky issues like selecting the entropy source
+  or the primitive for a given cryptographic task. It is the
+  cryptogrphic operation that the user concentrates on rather than how
+  (or using which primitive) it is implemented.
+
+  The raaz library however gives enough ways by which this default
+  selection can be overridden. A common situation is when the
+  primitive selection is forced due to compatibility or interworking
+  with other programs libraries. For such situation, raaz exposes a
+  primitive specific interface, e.g. "Raaz.Digest.Sha256" gives the
+  message digesting interface which makes use of the sha256 hash as
+  the digest algorithm.
+
+  == Tweaking primitive implementations, entropy sources, etc.
+
+  The @raaz:implementation@ package provides the default
+  implementations used by the raaz library. We do strive very hard to
+  give the best possible defaults. However, these low level aspects of
+  the raaz library can also be tweaked if you think there are better
+  choices. For example you might have custom hardware are your
+  disposal where a particular primitive can be made much more
+  performant, or maybe for the given platform (say in a virtualised
+  environment) you might have a better entropy source than the
+  defaults. Raaz uses backpack signatures and modules to make it
+  relatively painless to integrate such custom requirements.
+
+  The @raaz-indef@ package gives an interface pretty similar to the
+  top level @raaz@ package that abstracts over the
+  implementations. The `raaz:implementation` package subcomponent
+  provides the default implementation of the primitives supported by
+  raaz. You can override this selection by providing a module that
+  meet the same signature requirements. As an example, the Blake2b
+  implementation can be overridden (in your packages cabal file as
+  follows) as follows.
+
+  >
+  > build-depends: raaz:raaz-indef
+  >              , raaz:implementation
+  >              , mychacha20
+  >              , myentropy
+  > mixins: raaz-indef requires (ChaCha20.Implementation as MyChaCha20.Implementation
+  >                              Entropy as MyEntropy.Entropy)
+  >
+
+  In the above cabal stanza, the chacha20 implementation and the
+  entropy source have been overridden. However, the rest of the
+  implmentations are satisfied by the defaults that are provided by
+  @raaz:implementation@.
 
 homepage: https://github.com/raaz-crypto/raaz
 
@@ -79,7 +123,7 @@ common defaults
   default-language: Haskell2010
   ghc-options: -Wall
   default-extensions: NoImplicitPrelude
-  build-depends: base                    >= 4.10 &&  < 4.13
+  build-depends: base                    >= 4.11 &&  < 4.14
                , bytestring              >= 0.10 &&  < 0.11
                , deepseq                 >= 1.4  &&  < 1.5
                , vector                  >= 0.12 &&  < 0.13
@@ -102,13 +146,13 @@ common defaults
      cc-options: -DPLATFORM_WINDOWS -DUNICODE
      cpp-options: -DPLATFORM_WINDOWS
      extra-libraries: Advapi32, Kernel32
-     build-tools: hsc2hs
+     build-tool-depends: hsc2hs:hsc2hs
 
 
 ----------------------------- The core library ------------------------------------------------
 library core
-  -- visibility: public
   import: defaults
+  visibility: public
   hs-source-dirs: core
   exposed-modules: Raaz.Core
                  , Raaz.Core.CpuSupports
@@ -197,15 +241,15 @@ library libverse
 --
 
 library prim-indef
-  -- visibility: public
   import: defaults
+  visibility: public
   build-depends: core
   hs-source-dirs: indef
   signatures: Implementation
 
 library digest-indef
-  -- visibility: public
   import: defaults
+  visibility: public
   hs-source-dirs: indef/digest
   signatures: Implementation
   build-depends: core
@@ -290,7 +334,7 @@ library random-api
             , Entropy
   exposed-modules: Interface
                  , Internal
-  other-modules: PRGState
+  other-modules: PRGenerator
 
 --------------------  The implementation modules ----------------------------------
 --
@@ -315,8 +359,8 @@ library random-api
 -- implementation package).
 
 library implementation
-  -- visibility: public
   import: defaults
+  visibility: public
   build-depends: core
                , libverse
   hs-source-dirs: implementation, implementation/entropy
@@ -385,8 +429,8 @@ library implementation
 -- similar to raaz and want to override the implementations.
 
 library raaz-indef
-  -- visibility: public
   import: defaults
+  visibility: public
   build-depends: core
                , hash-api
                , random-api
@@ -438,17 +482,26 @@ library
   exposed-modules: Raaz
                  , Raaz.Auth
                  , Raaz.Digest
-  reexported-modules: Auth.Blake2b       as Raaz.Auth.Blake2b
-                    , Auth.Blake2s       as Raaz.Auth.Blake2s
-                    , Digest.Blake2b     as Raaz.Digest.Blake2b
-                    , Digest.Blake2s     as Raaz.Digest.Blake2s
-                    , Digest.Sha512      as Raaz.Digest.Sha512
-                    , Digest.Sha256      as Raaz.Digest.Sha256
-                    , Random             as Raaz.Random
-                    , Random.Internal    as Raaz.Random.Internal
+  reexported-modules: Raaz.Auth.Blake2b
+                    , Raaz.Auth.Blake2s
+                    , Raaz.Digest.Blake2b
+                    , Raaz.Digest.Blake2s
+                    , Raaz.Digest.Sha512
+                    , Raaz.Digest.Sha256
+                    , Raaz.Random
+                    , Raaz.Random.Internal
                     , Raaz.Core
                     , Raaz.Core.Types
   autogen-modules: Paths_raaz
+  mixins: raaz-indef ( Auth.Blake2b as Raaz.Auth.Blake2b
+                     , Auth.Blake2s       as Raaz.Auth.Blake2s
+                     , Digest.Blake2b     as Raaz.Digest.Blake2b
+                     , Digest.Blake2s     as Raaz.Digest.Blake2s
+                     , Digest.Sha512      as Raaz.Digest.Sha512
+                     , Digest.Sha256      as Raaz.Digest.Sha256
+                     , Random             as Raaz.Random
+                     , Random.Internal    as Raaz.Random.Internal
+                     )
   other-modules: Paths_raaz
                , Raaz.V1.Auth
                , Raaz.V1.Digest
@@ -481,7 +534,6 @@ common test-defaults
                , hspec
 
 library test-core
-  -- visibility: private
   import: test-defaults
   hs-source-dirs: tests/core
   exposed-modules: Tests.Core

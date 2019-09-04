@@ -264,15 +264,6 @@ foreign import ccall unsafe "raaz/core/endian.h raazSwap32Array"
 foreign import ccall unsafe "raaz/core/endian.h raazSwap64Array"
   c_Swap64Array :: Ptr Word64 -> Int -> IO ()
 
-# if !MIN_VERSION_base(4,7,0)
-
-foreign import ccall unsafe "raaz/core/endian.h raazSwap32"
-  byteSwap32  :: Word32 -> Word32
-foreign import ccall unsafe "raaz/core/endian.h raazSwap64"
-  byteSwap64  :: Word64 -> Word64
-
-# endif
-
 #ifdef WORDS_BIGENDIAN
 
 unLEPtr :: Ptr (LE w) -> Ptr w
@@ -371,10 +362,7 @@ instance Unbox w => GVM.MVector MVector (LE w) where
   basicUnsafeReplicate n     (LE x)     = MV_LE `liftM` GVM.basicUnsafeReplicate n x
   basicUnsafeCopy (MV_LE v1) (MV_LE v2) = GVM.basicUnsafeCopy v1 v2
   basicUnsafeGrow (MV_LE v)   n         = MV_LE `liftM` GVM.basicUnsafeGrow v n
-
-#if MIN_VERSION_vector(0,11,0)
   basicInitialize (MV_LE v)           = GVM.basicInitialize v
-#endif
 
 instance Unbox w => GV.Vector Vector (LE w) where
   {-# INLINE basicUnsafeFreeze #-}
@@ -419,10 +407,7 @@ instance Unbox w => GVM.MVector MVector (BE w) where
   basicUnsafeReplicate n     (BE x)     = MV_BE `liftM` GVM.basicUnsafeReplicate n x
   basicUnsafeCopy (MV_BE v1) (MV_BE v2) = GVM.basicUnsafeCopy v1 v2
   basicUnsafeGrow (MV_BE v)   n         = MV_BE `liftM` GVM.basicUnsafeGrow v n
-
-#if MIN_VERSION_vector(0,11,0)
   basicInitialize (MV_BE v)           = GVM.basicInitialize v
-#endif
 
 
 

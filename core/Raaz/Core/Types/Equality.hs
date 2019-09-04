@@ -301,10 +301,7 @@ instance GM.MVector MVector Result where
   basicUnsafeReplicate n     (Result x)         = MV_Result `liftM` GM.basicUnsafeReplicate n x
   basicUnsafeCopy (MV_Result v1) (MV_Result v2) = GM.basicUnsafeCopy v1 v2
   basicUnsafeGrow (MV_Result v)   n             = MV_Result `liftM` GM.basicUnsafeGrow v n
-
-#if MIN_VERSION_vector(0,11,0)
   basicInitialize (MV_Result v)               = GM.basicInitialize v
-#endif
 
 
 

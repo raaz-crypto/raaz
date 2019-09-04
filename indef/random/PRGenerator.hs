@@ -1,11 +1,22 @@
--- | This module exposes the low level details of pseudo-random
--- generator built out of an implementation of a pseudo-random
--- generator.
+-- | This module implements the pseudo-random generator using the
+-- /fast key erasure technique/
+-- (<https://blog.cr.yp.to/20170723-random.html>) parameterised on the
+-- signatures "Implementation" and "Entropy". This technique is the
+-- underlying algorithm used in systems like OpenBSD in their
+-- implementation of arc4random.
+--
+-- __Note:__ These details are only for developers and reviewers and a
+-- casual user is discouraged from looking into this or worse tweaking
+-- stuff here.
+--
+
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE DataKinds        #-}
-module PRGState
-       ( RandomState, reseed, fillRandomBytes
-       -- ** Information about the cryptographic generator.
+module PRGenerator
+       ( -- * Pseudo-random generator
+         -- $internals$
+         RandomState, reseed, fillRandomBytes
+         -- ** Information about the cryptographic generator.
        , entropySource, csprgName, csprgDescription
        ) where
 
@@ -17,6 +28,62 @@ import Raaz.Core
 
 import Implementation
 import Utils
+
+-- $internals$
+--
+-- Generating unpredictable stream of bytes is one task that has burnt
+-- the fingers of a lot of programmers. Unfortunately, getting it
+-- correct is something of a black art. We give the internal details
+-- of the cryptographic pseudo-random generator used in raaz. Note
+-- that none of the details here are accessible or tuneable by the
+-- user. This is a deliberate design choice to insulate the user from
+-- things that are pretty easy to mess up.
+--
+-- The pseudo-random generator is essentially a primitive that
+-- supports the generation of multiple blocks of data once its
+-- internals are set. The overall idea is to set the internals from a
+-- truly random source and then use the primitive to expand the
+-- internal state into pseudo-random bytes. However there are tricky
+-- issues regarding forward security that will make such a simplistic
+-- algorithm insecure. Besides where do we get our truly random seed
+-- to begin the process?
+--
+-- We more or less follow the /fast key erasure technique/
+-- (<https://blog.cr.yp.to/20170723-random.html>) which is used in the
+-- arc4random implementation in OpenBSD.  The two main steps in the
+-- generation of the required random bytes are the following:
+--
+-- [Seeding:] Setting the internal state of a primitive. We use the
+-- `getEntropy` function for this purposes.
+--
+-- [Sampling:] Pre-computing a few random blocks using the
+-- `randomBlocks` function of in an auxiliary buffer which in turn is
+-- used to satisfy the requests for random bytes.
+--
+-- Instead of running the `randomBlocks` for every request, we
+-- generate `RandomBufferSize` blocks of random blocks in an auxiliary
+-- buffer and satisfy requests for random bytes from this buffer. To
+-- ensure that the compromise of the PRG state does not compromise the
+-- random data already generated and given out, we do the following.
+--
+-- 1. After generating `RandomBufferSize` blocks of data in the
+--    auxiliary buffer, we immediately re-initialise the internals of
+--    the primitive from the auxiliary buffer. This ensures that there
+--    is no way to know which internal state was used to generate the
+--    current contents in the auxiliary buffer.
+--
+-- 2. Every use of data from the auxiliary buffer, whether it is to
+--    satisfy a request for random bytes or to reinitialise the
+--    internals in step 1 is wiped out immediately.
+--
+-- Assuming the security of the entropy source given by the
+-- `getEntropy` and the random block generator given by the
+-- `randomBlocks` we have the following security guarantee.
+--
+-- [Security Guarantee:] At any point of time, a compromise of the
+-- cipher state (i.e. key iv pair) and/or the auxiliary buffer does
+-- not reveal the random data that is given out previously.
+--
 
 
 -- | Name of the csprg used for stretching the seed.

@@ -11,7 +11,7 @@ module Raaz.V1.Digest ( Digest
                       , digestSource
                       ) where
 
-import qualified Digest.Blake2b as B2b
+import qualified Raaz.Digest.Blake2b as B2b
 import           Raaz.Core
 import           Raaz.Primitive.Blake2.Internal(Blake2b)
 

@@ -15,14 +15,8 @@ module Interface
        -- $sensitive-random$
        , randomiseCell
        , fillRandomBytes
-         -- * Internals
-       -- $internals$
-
-       -- ** Seeding
-       -- $seeding$
        , reseed
-       -- ** Sampling
-       -- $sampling$
+       -- * Information
        , entropySource
        , csprgName, csprgDescription
        ) where
@@ -43,8 +37,8 @@ import Prelude
 
 
 import           Raaz.Core
-import qualified PRGState as PS
-import           PRGState (entropySource, csprgName, csprgDescription)
+import qualified PRGenerator as PRG
+import           PRGenerator (entropySource, csprgName, csprgDescription)
 import qualified Raaz.Primitive.ChaCha20.Internal as ChaCha20
 import qualified Raaz.Primitive.Poly1305.Internal as Poly1305
 import           Raaz.Verse.Poly1305.C.Portable   ( verse_poly1305_c_portable_clamp)
@@ -153,108 +147,15 @@ import           Raaz.Verse.Poly1305.C.Portable   ( verse_poly1305_c_portable_cl
 -- possible as they are prone to all the problems with pointer
 -- functions.
 --
---
-
--- $internals$
---
--- __Note:__ Only for developers and reviewers.
---
--- Generating unpredictable stream of bytes is one task that has burnt
--- the fingers of a lot of programmers. Unfortunately, getting it
--- correct is something of a black art. We give the internal details
--- of the cryptographic pseudo-random generator used in raaz. Note
--- that none of the details here are accessible or tuneable by the
--- user. This is a deliberate design choice to insulate the user from
--- things that are pretty easy to mess up.
---
--- The pseudo-random generator in Raaz uses the chacha20 stream
--- cipher. We more or less follow the /fast key erasure technique/
--- (<https://blog.cr.yp.to/20170723-random.html>) which is used in the
--- arc4random implementation in OpenBSD.  The two main steps in the
--- generation of the required random bytes are the following:
---
--- [Seeding:] Setting the internal state of of the chacha20 cipher,
--- i.e. its key, iv, and counter.
---
--- [Sampling:] Pre-computing a few blocks of the chacha20 key stream
--- in an auxiliary buffer which in turn is used to satisfy the
--- requests for random bytes.
---
--- The internal chacha20 state and auxilary buffer used to cache
--- generated random bytes is part of the memory used in the `RT` monad
--- and hence using `securely` will ensure that they are locked.
---
-
-
--- $seeding$
---
--- We use the /system entropy source/ to seed the (key, iv) of the
--- chacha20 cipher.  Reading the system entropy source is a costly
--- affair as it often involves a system call. Therefore, seeding is
--- done at the beginning of the operation and once every 1G blocks
--- (64GB) of data generated. No direct access to the system entropy is
--- provided to the user except through the `reseed` combinator which
--- itself is not really recommended. This is a deliberate design
--- choice to avoid potential confusion and the resulting error for the
--- user.
---
--- User level libraries have very little access to actual entropy
--- sources and it is very difficult to ascertain the quality of the
--- ones that we do have. Therefore, we believe it is better to rely on
--- the operating system for the entropy needed for seeding. As a
--- result, security of PRG is crucially dependent on the quality of
--- system entropy source. If the seed is predictable then everything
--- till the next seeding (an infrequent event as explained above) is
--- deterministic and hence compromised. Be warned that the entropy in
--- many systems are quite low at certain epochs, like at the time of
--- startup. This can cause the PRG to be compromised. We try to
--- mitigate this by using the best know source for each supported
--- operating system. Given below is the list of our choice of entropy
--- source.
---
--- [OpenBSD/NetBSD:] The arc4random call.
---
--- [Linux:] The @getrandom@ system call. For older (< 3.17) kernels
--- lacking support for this call, you might need to compile raaz with
--- the `linux-getrandom` disabled.
---
--- [Other Posix:] Uses @\/dev\/urandom@
---
--- [Windows:] Support using CryptGenRandom from Wincrypt.h.
---
--- $sampling$
---
--- Instead of running the chacha20 cipher for every request, we
--- generate 16 blocks of ChaCha20 key stream in an auxiliary buffer
--- and satisfy requests for random bytes from this buffer. To ensure
--- that the compromise of the PRG state does not compromise the random
--- data already generated and given out, we do the following.
---
--- 1. At each sampling, we re-initialise the (key,iv) pair using the
---    key size + iv size bytes from the auxiliary buffer. This ensures
---    that there is no way to know which key,iv pairs was used to
---    generate the current contents in the auxiliary buffer.
---
--- 2. Every use of data from the auxiliary buffer, whether it is to
---    satisfy a request for random bytes or to reinitialise the
---    (key,iv) pair in step 1 is wiped out immediately.
---
--- Assuming the security of the chacha20 stream cipher we have the
--- following security guarantee.
---
--- [Security Guarantee:] At any point of time, a compromise of the
--- cipher state (i.e. key iv pair) and/or the auxiliary buffer does
--- not reveal the random data that is given out previously.
---
 
 
 -- | A monad transformer that does a batch of action on the memory
 -- element @mem@ and uses some randomness.
-newtype RandomT mem m a = RandomT { unRandomT :: ReaderT (PS.RandomState, mem) m a }
+newtype RandomT mem m a = RandomT { unRandomT :: ReaderT (PRG.RandomState, mem) m a }
                  deriving (Functor, Applicative, Monad, MonadIO, MonadIOCont)
 
 -- | Lifts an memory action on the random state to RandomT.
-liftRandomState :: MonadIO m => MT PS.RandomState a -> RandomT mem m a
+liftRandomState :: MonadIO m => MT PRG.RandomState a -> RandomT mem m a
 liftRandomState = RandomT . mapReaderT liftIO . withReaderT fst
 
 -- | Lift a `MT` action to the corresponding `RandomT` action.
@@ -271,7 +172,7 @@ instance Monad m => MonadReader mem (RandomT mem m) where
 -- care of seeding the internal prg at the start.
 seedAndRun :: MonadIO m
            => RandomT mem m a
-           -> ReaderT (PS.RandomState, mem) m a
+           -> ReaderT (PRG.RandomState, mem) m a
 seedAndRun action = unRandomT $ reseed >> action
 
 
@@ -297,7 +198,7 @@ instance Memory mem => MonadMemoryT (RandomT mem) where
 -- considerably without any additional security advantage.
 --
 reseed :: MonadIO m => RandomT mem m ()
-reseed = liftRandomState PS.reseed
+reseed = liftRandomState PRG.reseed
 
 -- | Fill the given input pointer with random bytes. This function
 -- /does not/ and /cannot/ check whether the input pointer has enough
@@ -308,7 +209,7 @@ fillRandomBytes :: (LengthUnit l, MonadIO m)
                 => l          -- ^ Amount of bytes to fill.
                 -> Pointer    -- ^ The buffer to fill it in
                 -> RandomT mem m ()
-fillRandomBytes l = liftRandomState . PS.fillRandomBytes l
+fillRandomBytes l = liftRandomState . PRG.fillRandomBytes l
 
 -- | Subclass of `Storable` which can be randomly generated. It might
 -- appear that all instances of the class `Storable` should be
@@ -337,7 +238,6 @@ class Storable a => RandomStorable a where
 -- types that is spread over its entire range. However, it would lead
 -- to a lazy definition which will compromise the quality of the
 -- randomness.
-
 
 
 -- | This is a helper function that has been exported to simplify the
