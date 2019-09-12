@@ -40,15 +40,17 @@ spec = do
   -- | Running the standard test cases.
   let process hand = parseWith (slurp hand) tests BS.empty
       slurp   hand = BS.hGetSome hand $ 32 * 1024
+      reportFailure l str = prop l $ counterexample str False
     in do
-    result <- runIO $ do fp <- getDataFileName "tests/standard-test-vectors/blake2/tests.json"
-                         withFile fp ReadMode process
+
+    result <- runIO $ do
+      fp    <- getDataFileName "tests/standard-test-vectors/blake2/tests.json"
+      withFile fp ReadMode process
 
     case result of
       Done _ testCases -> mapM_ toSpec testCases
-      Fail _ _ err     -> fail $ unwords ["Parse Error:", err]
-      _                -> fail "blake2 tests: something terrible happened may be incomplete file"
-
+      Fail _ _ err     -> reportFailure "Parse Error" err
+      _                -> reportFailure "fatal" "something terrible happened may be incomplete file"
 
 
 
