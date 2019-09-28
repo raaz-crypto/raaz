@@ -1,6 +1,8 @@
 -- This module compares two different implementations of the same
 -- digest.
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE MonoLocalBinds      #-}
 module Tests.Digest.Compare (specCompare) where
 
 
@@ -12,7 +14,10 @@ import Alternate
 import AlternateInterface
 import Tests.Core
 
-specCompare :: Spec
+specCompare :: ( Show Implementation.Prim
+               , Show Alternate.Prim
+               )
+            => Spec
 specCompare
   = describe title $ prop "should hash same strings to same hashes" $
     \ (x :: ByteString) ->

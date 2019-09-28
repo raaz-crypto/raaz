@@ -1,5 +1,5 @@
 -- Generic tests for hash.
-
+{-# LANGUAGE FlexibleContexts #-}
 module Tests.Auth
        ( authsTo
        ) where
@@ -12,7 +12,8 @@ import Tests.Core
 
 
 
-authsTo :: ByteString
+authsTo :: (Show Prim, Show (Key Prim), Eq Prim)
+        => ByteString
         -> Prim
         -> Key Prim
         -> Spec

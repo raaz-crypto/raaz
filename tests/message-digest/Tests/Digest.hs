@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 -- Generic tests for hash.
 
 module Tests.Digest
@@ -13,7 +14,8 @@ import Tests.Core
 
 
 
-digestsTo :: ByteString
+digestsTo :: (Show Prim, Eq Prim)
+          => ByteString
           -> Prim
           -> Spec
 digestsTo str h = it msg (digest str `shouldBe` h)
