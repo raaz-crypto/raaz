@@ -37,7 +37,7 @@ foreign import ccall unsafe
                    -> BLOCKS ChaCha20                -- number of blocks
                    -> Ptr (Key ChaCha20)             -- key
                    -> Ptr (Nounce ChaCha20)          -- iv
-                   -> Ptr (Counter ChaCha20)         -- Counter value
+                   -> Ptr WORD
                    -> IO ()
 
 processBlocks :: AlignedPointer BufferAlignment

@@ -62,10 +62,8 @@ instance Arbitrary (Key ChaCha20) where
 instance Arbitrary (Nounce ChaCha20) where
   arbitrary = genEncodable
 
-instance Arbitrary (Counter ChaCha20) where
-  arbitrary = le32ToCtr <$> arbitrary
-    where le32ToCtr :: LE Word32 -> Counter ChaCha20
-          le32ToCtr = fromIntegral
+instance Arbitrary (BLOCKS ChaCha20) where
+  arbitrary = toEnum <$> arbitrary
 
 ------------------ For XChaCha20 types -------------------------
 
@@ -75,10 +73,8 @@ instance Arbitrary (Key XChaCha20) where
 instance Arbitrary (Nounce XChaCha20) where
   arbitrary = genEncodable
 
-instance Arbitrary (Counter XChaCha20) where
-  arbitrary = le32ToCtr <$> arbitrary
-    where le32ToCtr :: LE Word32 -> Counter XChaCha20
-          le32ToCtr = fromIntegral
+instance Arbitrary (BLOCKS XChaCha20) where
+  arbitrary = toEnum <$> arbitrary
 
 ------------------ Arbitrary instances for Poly1305 -------------
 instance Arbitrary Poly1305.R where

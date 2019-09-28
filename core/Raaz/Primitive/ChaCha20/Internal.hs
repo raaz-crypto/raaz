@@ -10,7 +10,7 @@
 module Raaz.Primitive.ChaCha20.Internal
        ( ChaCha20(..), XChaCha20(..)
        , WORD
-       , Key(..), Nounce(..), Counter(..)
+       , Key(..), Nounce(..)
        , ChaCha20Mem(..)
        , keyCellPtr, ivCellPtr, counterCellPtr
        ) where
@@ -44,9 +44,6 @@ newtype instance Key     ChaCha20 = Key     KEY
 newtype instance Nounce  ChaCha20 = Nounce  (Tuple 3 WORD)
   deriving (Storable, EndianStore)
 
-newtype instance Counter ChaCha20 = Counter WORD
-  deriving (Num, Enum, Storable, EndianStore, Show, Eq, Ord)
-
 instance Encodable (Key     ChaCha20)
 instance Encodable (Nounce  ChaCha20)
 
@@ -69,9 +66,6 @@ newtype instance Key     XChaCha20 = XKey     KEY
   deriving (Storable, EndianStore)
 newtype instance Nounce  XChaCha20 = XNounce  (Tuple 6 WORD)
   deriving (Storable, EndianStore)
-newtype instance Counter XChaCha20 = XCounter WORD
-  deriving (Num, Enum, Storable, EndianStore, Show, Eq, Ord)
-
 
 instance Encodable (Key     XChaCha20)
 instance Encodable (Nounce  XChaCha20)
@@ -94,7 +88,7 @@ instance IsString (Nounce XChaCha20) where
 -- | chacha20 memory
 data ChaCha20Mem = ChaCha20Mem { keyCell      :: MemoryCell (Key     ChaCha20)
                                , ivCell       :: MemoryCell (Nounce  ChaCha20)
-                               , counterCell  :: MemoryCell (Counter ChaCha20)
+                               , counterCell  :: MemoryCell WORD
                                }
 
 keyCellPtr :: MT ChaCha20Mem (Ptr (Key ChaCha20))
@@ -103,7 +97,7 @@ keyCellPtr = withReaderT keyCell getCellPointer
 ivCellPtr :: MT ChaCha20Mem (Ptr (Nounce ChaCha20))
 ivCellPtr = withReaderT ivCell getCellPointer
 
-counterCellPtr :: MT ChaCha20Mem (Ptr (Counter ChaCha20))
+counterCellPtr :: MT ChaCha20Mem (Ptr WORD)
 counterCellPtr = withReaderT counterCell getCellPointer
 
 instance Memory ChaCha20Mem where
@@ -116,8 +110,10 @@ instance Initialisable ChaCha20Mem (Key ChaCha20) where
 instance Initialisable ChaCha20Mem (Nounce ChaCha20)  where
   initialise  = withReaderT ivCell . initialise
 
-instance Initialisable ChaCha20Mem (Counter ChaCha20) where
-  initialise = withReaderT counterCell . initialise
+instance Initialisable ChaCha20Mem (BLOCKS ChaCha20) where
+  initialise = withReaderT counterCell . initialise . conv
+    where conv :: BLOCKS ChaCha20 -> WORD
+          conv = toEnum . fromEnum
 
 -- | Initialises key from a buffer. Use this instance if you want to
 -- initialise (only the) key from a secure memory location.

@@ -13,7 +13,7 @@ use a more high level interface.
 
 module Raaz.Core.Primitive
        ( -- * Cryptographic Primtives
-         Primitive(..), Key, Nounce, Counter
+         Primitive(..), Key, Nounce
        ) where
 
 import GHC.TypeLits
@@ -45,9 +45,3 @@ data family Key p :: *
 -- sharing the key. The type family that captures the nounce for a
 -- primitive (if it requires one).
 data family Nounce p :: *
-
-
--- | Finally stream primitives, like stream ciphers take an additional
--- counter argument. This counter can be used to move forward and
--- backward in the stream.
-data family Counter p :: *
