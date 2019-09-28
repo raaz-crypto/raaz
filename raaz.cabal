@@ -323,9 +323,9 @@ library mac-indef
 --   generator making use of system entropy for seeding and a suitable
 --   primitive (typically a cipher) for stretching the seed.
 
-library hash-api
+library digest-api
   import: defaults
-  hs-source-dirs: indef/digest/hash
+  hs-source-dirs: api/digest/
   signatures: Implementation
   build-depends: core
                , digest-indef
@@ -335,7 +335,7 @@ library hash-api
 
 library auth-api
   import: defaults
-  hs-source-dirs: indef/auth
+  hs-source-dirs: api/auth
   build-depends: core
                , keyed-indef
                , digest-indef
@@ -344,7 +344,7 @@ library auth-api
 
 library random-api
   import: defaults
-  hs-source-dirs: indef/random
+  hs-source-dirs: api/random
   build-depends: core
                , prim-indef
                , prim-utils
@@ -455,7 +455,7 @@ library raaz-indef
   import: defaults
   visibility: public
   build-depends: core
-               , hash-api
+               , digest-api
                , random-api
                , auth-api
                , mac-indef
@@ -473,13 +473,13 @@ library raaz-indef
                     , Digest.Sha512
                     , Random
                     , Random.Internal
-  mixins: hash-api (Interface as Digest.Blake2b)
+  mixins: digest-api (Interface as Digest.Blake2b)
             requires (Implementation as Blake2b.Implementation)
-        , hash-api (Interface as Digest.Blake2s)
+        , digest-api (Interface as Digest.Blake2s)
             requires (Implementation as Blake2s.Implementation)
-        , hash-api (Interface as Digest.Sha512)
+        , digest-api (Interface as Digest.Sha512)
             requires (Implementation as Sha512.Implementation)
-        , hash-api (Interface as Digest.Sha256)
+        , digest-api (Interface as Digest.Sha256)
             requires (Implementation as Sha256.Implementation)
         , random-api (Interface as Random, Internal as Random.Internal)
             requires (Implementation as ChaCha20.Implementation)
@@ -578,12 +578,12 @@ library test-hash
   hs-source-dirs: tests/message-digest
   build-depends: test-core
                , prim-indef
-               , hash-api
+               , digest-api
                , prim-utils
   exposed-modules: Tests.Digest
                  , Tests.Digest.Compare
-  mixins: hash-api (Interface as AlternateInterface) requires (Implementation as Alternate)
-        , hash-api
+  mixins: digest-api (Interface as AlternateInterface) requires (Implementation as Alternate)
+        , digest-api
 
 library test-auth
   import: test-defaults
