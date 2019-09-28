@@ -19,11 +19,11 @@ import Raaz.Core
 -- | The primitive for which the implementation is given
 
 data Prim
-instance Encodable Prim
+
 instance Eq Prim
 instance Equality Prim
-instance Show Prim
-instance IsString Prim
+
+----------------------------------- Internal ---------------
 data Internals
 instance Memory Internals
 instance Extractable Internals Prim

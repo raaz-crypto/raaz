@@ -18,4 +18,3 @@ data Prim
 data Internals
 instance Memory Internals
 instance Initialisable Internals (Nounce Prim)
-instance Show      (Nounce Prim)

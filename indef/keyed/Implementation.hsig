@@ -21,4 +21,3 @@ data Prim
 data Internals
 instance Memory Internals
 instance Initialisable Internals (Key Prim)
-instance Show      (Key Prim)
