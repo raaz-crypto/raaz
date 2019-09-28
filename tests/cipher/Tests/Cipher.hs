@@ -1,38 +1,23 @@
 {-# LANGUAGE FlexibleContexts #-}
-module Tests.Cipher( transform
-                   , transformsTo
+{-# LANGUAGE MonoLocalBinds   #-}
+module Tests.Cipher( transformsTo
                    , keyStreamIs
                    , zeros
                    ) where
-
-import           System.IO.Unsafe ( unsafePerformIO )
 import           Raaz.Core
 import           Prelude hiding (length)
 import           Tests.Core.Imports
 import           Tests.Core.Utils
 import           Implementation
-import qualified Utils as U
+import           Interface
 
--- | Transforms the input byte string using the stream
--- cipher.
-transform :: Key Prim     -- ^ The key for the stream cipher
-          -> Nounce Prim  -- ^ The nounce used by the stream cipher.
-          -> Counter Prim
-          -> ByteString   -- ^ The bytestring to process
-          -> ByteString
-transform key nounce ctr bs = unsafePerformIO $ insecurely $ do
-  initialise key
-  initialise nounce
-  initialise ctr
-  U.transform bs
-
-transformsTo :: (Format fmt1, Format fmt2)
+transformsTo :: (Format fmt1, Format fmt2, Show (Nounce Prim), Show (Key Prim))
              => fmt1
              -> fmt2
-             -> (Key Prim, Nounce Prim, Counter Prim)
+             -> (Key Prim, Nounce Prim, Int)
              -> Spec
 transformsTo inp expected (key,nounce,ctr) = it msg $ result `shouldBe` decodeFormat expected
-  where result = transform key nounce ctr $ decodeFormat inp
+  where result = encryptAt key nounce (blocksOf ctr Proxy) $ decodeFormat inp
         msg  = unwords [ withKeyNounce key nounce ctr
                        , "encrypts"
                        , shortened $ show inp
@@ -40,24 +25,25 @@ transformsTo inp expected (key,nounce,ctr) = it msg $ result `shouldBe` decodeFo
                        , shortened $ show expected
                        ]
 
-withKeyNounce :: Key Prim
+withKeyNounce :: (Show (Key Prim), Show (Nounce Prim))
+              => Key Prim
               -> Nounce Prim
-              -> Counter Prim
+              -> Int
               -> String
 withKeyNounce key nounce ctr = unwords [ "with {"
                                        , "key:"    ++ shortened (show key)
                                        , ", nounce:" ++ shortened (show nounce)
-                                       , ", counter:" ++ show (fromEnum ctr)
+                                       , ", counter:" ++ show ctr
                                        , "}"
                                        ]
 
-keyStreamIs :: Format fmt
+keyStreamIs :: ( Show (Key Prim), Show (Nounce Prim), Format fmt)
             => fmt
-            -> (Key Prim, Nounce Prim, Counter Prim)
+            -> (Key Prim, Nounce Prim, Int)
             -> Spec
 keyStreamIs expected (key, nounce, ctr) = it msg $ result `shouldBe` decoded
   where decoded = decodeFormat expected
-        result = transform key nounce ctr $ zeros $ Raaz.Core.length decoded
+        result = encryptAt key nounce (blocksOf ctr Proxy) $ zeros $ Raaz.Core.length decoded
         msg    = unwords [ withKeyNounce key nounce ctr
                          , "key stream is"
                          , shortened $ show expected

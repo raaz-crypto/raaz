@@ -574,9 +574,7 @@ library test-cipher
   import: test-defaults
   hs-source-dirs: tests/cipher
   build-depends: test-core
-               , prim-indef
-               , stream-indef
-               , prim-utils
+               , encrypt-api
   exposed-modules: Tests.Cipher
 
 library test-hash

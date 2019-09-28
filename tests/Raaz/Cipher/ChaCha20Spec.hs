@@ -28,11 +28,11 @@ zeroBlocks n = C.zeros $ inBytes $ blocksOf n (Proxy :: Proxy ChaCha20)
 transformsTo :: (Format fmt1, Format fmt2)
              => fmt1
              -> fmt2
-             -> (Key ChaCha20, Nounce ChaCha20, Counter ChaCha20)
+             -> (Key ChaCha20, Nounce ChaCha20, Int)
              -> Spec
 transformsTo = C.transformsTo
 
-keyStreamIs  :: Format fmt => fmt -> (Key ChaCha20, Nounce ChaCha20, Counter ChaCha20) -> Spec
+keyStreamIs  :: Format fmt => fmt -> (Key ChaCha20, Nounce ChaCha20, Int) -> Spec
 keyStreamIs  = C.keyStreamIs
 
 spec :: Spec
