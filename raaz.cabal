@@ -355,10 +355,16 @@ library random-api
                  , Internal
   other-modules: PRGenerator
 
--------------------- chacha20 based implementation --------------------------------
-library chacha20
+library encrypt-api
   import: defaults
-  hs-source-dirs: indef/chacha20
+  hs-source-dirs: api/encrypt
+  build-depends: core
+               , keyed-indef
+               , stream-indef
+               , nounce-indef
+               , prim-utils
+  exposed-modules: Interface
+
 --------------------  The implementation modules ----------------------------------
 --
 -- This package exposes all the implementations provided by the raaz
