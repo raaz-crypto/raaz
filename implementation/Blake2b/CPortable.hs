@@ -8,7 +8,6 @@ import Control.Monad.IO.Class     ( liftIO       )
 import Foreign.Ptr                ( castPtr      )
 
 import Raaz.Core
-import Raaz.Core.Transfer         ( transferSize, unsafeTransfer )
 import Raaz.Core.Types.Internal
 import Raaz.Primitive.HashMemory
 import Raaz.Primitive.Blake2.Internal
