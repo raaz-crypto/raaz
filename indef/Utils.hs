@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE KindSignatures   #-}
 {-# LANGUAGE DataKinds        #-}
+{-# LANGUAGE MonoLocalBinds   #-}
 module Utils
        ( allocBufferFor
        , processByteSource
