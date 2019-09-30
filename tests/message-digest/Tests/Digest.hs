@@ -5,8 +5,6 @@ module Tests.Digest
        ( digestsTo
        ) where
 
-
-import Data.ByteString (ByteString)
 import Implementation
 import Interface
 

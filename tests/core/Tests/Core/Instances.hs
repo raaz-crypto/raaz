@@ -9,7 +9,6 @@ module Tests.Core.Instances where
 import Tests.Core.Imports
 import Tests.Core.Utils
 
-import Raaz.Primitive.ChaCha20.Internal (ChaCha20, XChaCha20)
 import Raaz.Primitive.Poly1305.Internal as Poly1305
 import Raaz.Core.Types.Internal
 

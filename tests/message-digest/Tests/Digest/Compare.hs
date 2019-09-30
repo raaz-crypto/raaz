@@ -6,8 +6,6 @@
 module Tests.Digest.Compare (specCompare) where
 
 
-
-import Data.ByteString (ByteString)
 import Implementation
 import Interface
 import Alternate

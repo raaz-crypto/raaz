@@ -27,7 +27,6 @@ import Control.Monad.IO.Class
 import Control.Monad.Reader
 import Data.ByteString             ( ByteString             )
 import Data.Int
-import Data.Proxy                  ( Proxy(..)              )
 import Data.Vector.Unboxed  hiding ( replicateM, create     )
 import Data.Word
 
