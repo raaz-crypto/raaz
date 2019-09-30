@@ -4,8 +4,6 @@ module Tests.Auth
        ( authsTo
        ) where
 
-
-import Data.ByteString (ByteString)
 import Implementation
 import Interface
 import Tests.Core
