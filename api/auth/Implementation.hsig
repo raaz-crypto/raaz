@@ -15,9 +15,9 @@ data Prim
 data Internals
 instance Memory Internals
 
--- | A digest primitive is a message digest if it is a digest and its
--- internals can be initialised without any key (or equivalently with
--- `()`.
+-- | The constraints below say that for a message authenticator, one
+-- should able to initialise with the secrete Key and then after
+-- processing extract out the digest.
 
-instance Initialisable Internals ()
+instance Initialisable Internals (Key Prim)
 instance Extractable Internals Prim

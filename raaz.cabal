@@ -30,12 +30,12 @@ description:
   implementations used by the raaz library. We do strive very hard to
   give the best possible defaults. However, these low level aspects of
   the raaz library can also be tweaked if you think there are better
-  choices. For example you might have custom hardware are your
-  disposal where a particular primitive can be made much more
-  performant, or maybe for the given platform (say in a virtualised
-  environment) you might have a better entropy source than the
-  defaults. Raaz uses backpack signatures and modules to make it
-  relatively painless to integrate such custom requirements.
+  choices. For example you might have custom hardware at your disposal
+  where a particular primitive can be made much more performant, or
+  maybe for the given platform (say in a virtualised environment) you
+  might have a better entropy source than the defaults. Raaz uses
+  backpack signatures and modules to make it relatively painless to
+  integrate such custom requirements.
 
   The @raaz-indef@ package gives an interface pretty similar to the
   top level @raaz@ package that abstracts over the
@@ -253,40 +253,6 @@ library prim-indef
   build-depends: core
   hs-source-dirs: indef
   signatures: Implementation
-
-library digest-indef
-  import: defaults
-  visibility: public
-  hs-source-dirs: indef/digest
-  signatures: Implementation
-  build-depends: core
-               , prim-indef
-
-library keyed-indef
-  import: defaults
-  hs-source-dirs: indef/keyed
-  signatures: Implementation
-  build-depends: core
-               , prim-indef
-
-library nounce-indef
-  import: defaults
-  hs-source-dirs: indef/nounce
-  signatures: Implementation
-  build-depends: core
-               , keyed-indef
-
-library stream-indef
-  import:defaults
-  hs-source-dirs: indef/stream
-  build-depends: core
-               , nounce-indef
-
-library prim-utils
-  import: defaults
-  build-depends: core
-               , prim-indef
-  hs-source-dirs: indef
   exposed-modules: Utils
 
 -------------------- Derived Implementations ----------------------------
@@ -306,7 +272,7 @@ library mac-indef
   hs-source-dirs: indef/keyed/hash
   signatures: Implementation
   build-depends: core
-               , prim-utils
+               , prim-indef
   exposed-modules: Mac.Implementation
 
 -------- API packages ----------------------------------------------
@@ -328,18 +294,16 @@ library digest-api
   hs-source-dirs: api/digest/
   signatures: Implementation
   build-depends: core
-               , digest-indef
-               , prim-utils
+               , prim-indef
   exposed-modules: Interface
 
 
 library auth-api
   import: defaults
   hs-source-dirs: api/auth
+  signatures: Implementation
   build-depends: core
-               , keyed-indef
-               , digest-indef
-               , prim-utils
+               , prim-indef
   exposed-modules: Interface
 
 library random-api
@@ -347,7 +311,6 @@ library random-api
   hs-source-dirs: api/random
   build-depends: core
                , prim-indef
-               , prim-utils
                , libverse
   signatures: Implementation
             , Entropy
@@ -358,11 +321,9 @@ library random-api
 library encrypt-api
   import: defaults
   hs-source-dirs: api/encrypt
+  signatures: Implementation
   build-depends: core
-               , keyed-indef
-               , stream-indef
-               , nounce-indef
-               , prim-utils
+               , prim-indef
   exposed-modules: Interface
 
 --------------------  The implementation modules ----------------------------------
@@ -467,10 +428,10 @@ library raaz-indef
                , mac-indef
   hs-source-dirs: indef/sha2
                 , indef/blake2
-  signatures: Blake2b.Implementation
-            , Blake2s.Implementation
-            , Sha256.Implementation
-            , Sha512.Implementation
+ -- signatures: Blake2b.Implementation
+ --           , Blake2s.Implementation
+ --           , Sha256.Implementation
+ --           , Sha512.Implementation
   reexported-modules: Auth.Blake2b
                     , Auth.Blake2s
                     , Digest.Blake2b
@@ -583,7 +544,6 @@ library test-hash
   build-depends: test-core
                , prim-indef
                , digest-api
-               , prim-utils
   exposed-modules: Tests.Digest
                  , Tests.Digest.Compare
   mixins: digest-api (Interface as AlternateInterface) requires (Implementation as Alternate)
@@ -670,14 +630,13 @@ library bench-prim
   import: bench-defaults
   build-depends: bench-types
                , prim-indef
-               , prim-utils
   other-modules: Benchmark.Types
   exposed-modules: Benchmark.Primitive
 
 library bench-csprg
   import: bench-defaults
   build-depends: bench-types
-               , prim-utils
+               , prim-indef
                , random-api
   exposed-modules: Benchmark.CSPRG
   other-modules: Benchmark.Types

@@ -115,6 +115,11 @@ instance Initialisable ChaCha20Mem (BLOCKS ChaCha20) where
     where conv :: BLOCKS ChaCha20 -> WORD
           conv = toEnum . fromEnum
 
+instance Extractable ChaCha20Mem (BLOCKS ChaCha20) where
+  extract = conv <$> withReaderT counterCell extract
+    where conv :: WORD -> BLOCKS ChaCha20
+          conv = toEnum . fromEnum
+
 -- | Initialises key from a buffer. Use this instance if you want to
 -- initialise (only the) key from a secure memory location.
 instance InitialisableFromBuffer ChaCha20Mem where
