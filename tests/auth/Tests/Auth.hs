@@ -1,5 +1,6 @@
 -- Generic tests for hash.
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE MonoLocalBinds   #-}
 module Tests.Auth
        ( authsTo
        ) where

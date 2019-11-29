@@ -7,7 +7,6 @@ module Raaz.Digest.Blake2Spec where
 import           Prelude hiding (replicate)
 
 import           Tests.Core
-import           Raaz.Primitive.Blake2.Internal(Blake2b, Blake2s)
 import           Data.Attoparsec.ByteString.Char8 as AP
 import qualified Data.ByteString                  as BS
 import           Data.Char
