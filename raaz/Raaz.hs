@@ -17,19 +17,21 @@ import Raaz.Auth
 -- $intro$
 --
 -- Raaz is a cryptographic library that provides an easy to use, type
--- safe interface for cryptographic applications. Experience has shown
--- that applications often get compromised because of wrong primitive
--- choice (e.g. RC4 for encryption md5 for message digest). In
--- addition, security is also compromised when tricky issues like
--- nounce reuse are not taken care of. For these reasons, modern
--- libraries tend to give abstract interfaces where the discussion is
--- centred on the underlying operations like encryption, message
--- digest etc rather than the specific primitive used for achieving
--- the goal. The interface exposed from this module is of such a high
--- level nature with the library taking the responsibility of
--- selecting the sane primitives and their correct usages for the
--- user. In addition, raaz makes use of the type system of Haskell to
--- give additional guarantees:
+-- safe interface for cryptographic applications. It is very easy for
+-- applications to get its cryptography wrong and experience has shown
+-- that this is often due to the trick choices that needs to be made
+-- for the cryptographic primitives (e.g. RC4 for encryption md5 for
+-- message digest). This is also compounded by the fact that often
+-- sound choices of the primitives can be compromised due to ignoring
+-- certain implementation issues like nounce reuse.  For these
+-- reasons, modern libraries tend to give abstract interfaces where
+-- the discussion is centred on the underlying operations like
+-- encryption, message digest etc rather than the specific primitive
+-- used for achieving the goal. The interface exposed from this module
+-- is of such a high level nature with the library taking the
+-- responsibility of selecting the sane primitives and their correct
+-- usages for the user. In addition, raaz makes use of the type system
+-- of Haskell to give additional guarantees:
 --
 -- [Type safety:] Instead of representing cryptographic data as plain
 -- strings, raaz uses distinct types for semantically distinct
