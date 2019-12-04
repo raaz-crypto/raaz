@@ -60,22 +60,6 @@ xchacha20Setup (XNounce tup) = do
   where [LE h0,LE h1,LE h2, LE h3, h4,h5] = V.toList $ unsafeToVector tup
         iv  = Nounce $ unsafeFromList [0,h4,h5] :: Nounce ChaCha20
 
--------------------- CSPRG related stuff -------------------------------
--- | The number of blocks of the cipher that is generated in one go
--- encoded as a type level nat.
-type RandomBufferSize = 16
-
-
--- | How many blocks of the primitive to generated before re-seeding.
-reseedAfter :: BLOCKS Prim
-reseedAfter = blocksOf (1024 * 1024 * 1024) (Proxy :: Proxy Prim)
-
-
-randomBlocks :: AlignedPointer BufferAlignment
-             -> BLOCKS Prim
-             -> MT Internals ()
-randomBlocks = runBlockProcess verse_chacha20csprg_c_portable
-
 -------------- Helper function for running an iterator -----------
 runBlockProcess :: ( Ptr buf ->
                      Word64  ->
