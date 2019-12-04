@@ -249,6 +249,13 @@ library indef
   build-depends: core
   hs-source-dirs: indef
   signatures: Implementation
+
+
+library utils
+  import: defaults
+  build-depends: core
+               , indef
+  hs-source-dirs: indef
   exposed-modules: Utils
 
 -------------------- Derived Implementations ----------------------------
@@ -269,6 +276,7 @@ library mac-indef
   signatures: Implementation
   build-depends: core
                , indef
+               , utils
   exposed-modules: Mac.Implementation
 
 -------- API packages ----------------------------------------------
@@ -291,6 +299,7 @@ library digest-api
   signatures: Implementation
   build-depends: core
                , indef
+               , utils
   exposed-modules: Interface
 
 
@@ -300,6 +309,7 @@ library auth-api
   signatures: Implementation
   build-depends: core
                , indef
+               , utils
   exposed-modules: Interface
 
 library random-api
@@ -308,6 +318,7 @@ library random-api
   build-depends: core
                , indef
                , libverse
+               , utils
   signatures: Implementation
             , Entropy
   exposed-modules: Interface
@@ -320,6 +331,7 @@ library encrypt-api
   signatures: Implementation
   build-depends: core
                , indef
+               , utils
   exposed-modules: Interface
 
 --------------------  The implementation modules ----------------------------------
@@ -626,6 +638,7 @@ library bench-prim
   import: bench-defaults
   build-depends: bench-types
                , indef
+               , utils
   other-modules: Benchmark.Types
   exposed-modules: Benchmark.Primitive
 
@@ -633,6 +646,7 @@ library bench-csprg
   import: bench-defaults
   build-depends: bench-types
                , indef
+               , utils
                , random-api
   exposed-modules: Benchmark.CSPRG
   other-modules: Benchmark.Types
