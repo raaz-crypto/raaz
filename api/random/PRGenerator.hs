@@ -27,7 +27,7 @@ import Prelude
 import Raaz.Core
 
 import Implementation
-import Utils
+import Buffer
 
 -- $internals$
 --

@@ -326,8 +326,8 @@ library random-api
   hs-source-dirs: api/random
   build-depends: core
                , indef
+               , buffer
                , libverse
-               , utils
   signatures: Implementation
             , Entropy
   exposed-modules: Interface
