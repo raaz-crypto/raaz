@@ -243,7 +243,7 @@ library libverse
 --   `Interface` signature provided by the `prim-indef` package.
 --
 
-library prim-indef
+library indef
   import: defaults
   visibility: public
   build-depends: core
@@ -268,7 +268,7 @@ library mac-indef
   hs-source-dirs: indef/keyed/hash
   signatures: Implementation
   build-depends: core
-               , prim-indef
+               , indef
   exposed-modules: Mac.Implementation
 
 -------- API packages ----------------------------------------------
@@ -290,7 +290,7 @@ library digest-api
   hs-source-dirs: api/digest/
   signatures: Implementation
   build-depends: core
-               , prim-indef
+               , indef
   exposed-modules: Interface
 
 
@@ -299,14 +299,14 @@ library auth-api
   hs-source-dirs: api/auth
   signatures: Implementation
   build-depends: core
-               , prim-indef
+               , indef
   exposed-modules: Interface
 
 library random-api
   import: defaults
   hs-source-dirs: api/random
   build-depends: core
-               , prim-indef
+               , indef
                , libverse
   signatures: Implementation
             , Entropy
@@ -319,7 +319,7 @@ library encrypt-api
   hs-source-dirs: api/encrypt
   signatures: Implementation
   build-depends: core
-               , prim-indef
+               , indef
   exposed-modules: Interface
 
 --------------------  The implementation modules ----------------------------------
@@ -538,7 +538,7 @@ library test-hash
   import: test-defaults
   hs-source-dirs: tests/message-digest
   build-depends: test-core
-               , prim-indef
+               , indef
                , digest-api
   exposed-modules: Tests.Digest
                  , Tests.Digest.Compare
@@ -549,7 +549,7 @@ library test-auth
   import: test-defaults
   hs-source-dirs: tests/auth
   build-depends: test-core
-               , prim-indef
+               , indef
                , auth-api
   exposed-modules: Tests.Auth
 
@@ -625,14 +625,14 @@ library bench-types
 library bench-prim
   import: bench-defaults
   build-depends: bench-types
-               , prim-indef
+               , indef
   other-modules: Benchmark.Types
   exposed-modules: Benchmark.Primitive
 
 library bench-csprg
   import: bench-defaults
   build-depends: bench-types
-               , prim-indef
+               , indef
                , random-api
   exposed-modules: Benchmark.CSPRG
   other-modules: Benchmark.Types
