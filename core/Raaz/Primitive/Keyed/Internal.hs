@@ -21,7 +21,7 @@ import Raaz.Core
 
 -- | Class of primitives, typically cryptographic hashes, that when
 -- used as a keyed hash gives a safe MAC.
-class (Primitive prim, Storable prim) => KeyedHash prim where
+class KeyedHash prim where
   -- The initialisation used by the hash can depend on the length of
   -- the key used.
   hashInit :: BYTES Int -> prim
