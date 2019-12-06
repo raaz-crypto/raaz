@@ -250,7 +250,7 @@ library indef
   hs-source-dirs: indef
   signatures: Implementation
 
-
+-- Utilities library
 library utils
   import: defaults
   build-depends: core
