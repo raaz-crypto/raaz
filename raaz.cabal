@@ -438,7 +438,7 @@ library implementation
   reexported-modules: Blake2b.CPortable as Blake2b.Implementation
                     , Blake2s.CHandWritten as Blake2s.Implementation
                     , ChaCha20.CPortable   as ChaCha20.Implementation
-                    , ChaCha20.Random.CPortable as ChaCha20.Random.Implementation
+                    , ChaCha20.Random.CPortable as Random.Implementation
                     , Sha256.CPortable     as Sha256.Implementation
                     , Poly1305.CPortable   as Poly1305.Implementation
                     , Sha512.CPortable     as Sha512.Implementation
@@ -517,7 +517,7 @@ library raaz-indef
         , digest-api (Interface as Digest.Sha256)
             requires (Implementation as Sha256.Implementation)
         , random-api (Interface as Random, Internal as Random.Internal)
-            requires (Implementation as ChaCha20.Random.Implementation)
+            requires (Implementation as Random.Implementation)
         -- MAC-ing with blake2b
         , mac-indef (Mac.Implementation as Blake2b.Mac.Implementation)
             requires (Implementation as Blake2b.Implementation)
