@@ -25,7 +25,7 @@ description:
   digesting interface which makes use of the sha256 hash as the digest
   algorithm.
 
-  == Tweaking Implementations
+  == Tweaking Implementations (Only for advanced users)
 
   Despite the high level interface, users who are willing to go down
   the abstraction layers, can even tweak the underlying low level
@@ -120,8 +120,11 @@ description:
   the seed stretcher needs to satisfy the signature
   @raaz:random-api:Implementation@ which both adds some member
   function to the @indef:Implementation@ signature as well as thins
-  it. See the documentation of @raaz:random-api:Implementation@ for
-  details.
+  it. the @raaz:raaz-indef@ component expects its seed stretcher to
+  come from @Random.Implementation@ exposed by @raaz:implementation@
+  (currently a chacha20 based keystream is used for this
+  purpose). This can also be overridden if one wants. See the
+  documentation of @raaz:random-api:Implementation@ for details.
 
 
 homepage: https://github.com/raaz-crypto/raaz
