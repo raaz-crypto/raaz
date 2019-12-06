@@ -26,7 +26,8 @@ processBuffer :: KnownNat n => Buffer n -> MT Internals ()
 processBuffer buf = processBlocks (getBufferPointer buf) $ bufferSize $ pure buf
 
 -- | Process a byte source.
-processByteSource :: (KnownNat BufferAlignment, ByteSource src) => src -> MT Internals ()
+
+processByteSource :: ByteSource src => src -> MT Internals ()
 processByteSource src
   = allocBufferFor blks $
     \ ptr -> processChunks (processBlocks ptr blks) (processLast ptr) src blks (forgetAlignment ptr)

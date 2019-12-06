@@ -2,7 +2,6 @@
 {-# LANGUAGE KindSignatures   #-}
 {-# LANGUAGE DataKinds        #-}
 {-# LANGUAGE MonoLocalBinds   #-}
-{-# LANGUAGE CPP              #-}
 module Buffer
        ( allocBufferFor
        , BufferPtr

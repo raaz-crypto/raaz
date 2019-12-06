@@ -1,7 +1,3 @@
-{-# LANGUAGE DataKinds                   #-}
-{-# LANGUAGE KindSignatures              #-}
-{-# LANGUAGE CPP                         #-}
-
 -- | An implementation of a cryptographic primitive is a method to
 -- process data that is multiples of its block size. Fast
 -- implementations involve other details like the alignment
