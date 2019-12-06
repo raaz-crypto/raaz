@@ -32,6 +32,7 @@ import           Raaz.Core
 import           Raaz.Primitive.Keyed.Internal
 import qualified Implementation        as Base
 import qualified Utils                 as U
+import qualified Buffer                as B
 
 type Prim = Keyed Base.Prim
 
@@ -63,7 +64,7 @@ trim (Key hKey) = BS.take sz hKey
 
 -- | The internal memory used by the implementation.
 data Internals = MACInternals { hashInternals    :: Base.Internals
-                              , keyBuffer        :: U.Buffer 1
+                              , keyBuffer        :: B.Buffer 1
                               , atStart          :: MemoryCell Bool
                                 -- Flag to check whether the key has been processed or not.
                                 -- see the note on Delayed key processing
@@ -81,7 +82,7 @@ processKeyLast :: MT Internals ()
 processKeyLast = withReaderT keyBuffer ask >>=
                  \ buffer ->
                    let bufsz  = inBytes $ blocksOf 1 (Proxy :: Proxy Base.Prim)
-                       bufPtr = U.getBufferPointer buffer
+                       bufPtr = B.getBufferPointer buffer
                    in withReaderT hashInternals $ Base.processLast bufPtr bufsz
 
 
@@ -116,7 +117,7 @@ instance Initialisable Internals (Key (Keyed Base.Prim)) where
            hash0      = hashInit $ Raaz.Core.length kbs
            keyWrite   = padWrite 0 (blocksOf 1 proxyPrim) $ writeByteString kbs
 
-           writeKeyIntoBuffer = unsafeTransfer keyWrite . forgetAlignment . U.getBufferPointer
+           writeKeyIntoBuffer = unsafeTransfer keyWrite . forgetAlignment . B.getBufferPointer
            proxyPrim = Proxy :: Proxy Base.Prim
 
 instance Extractable Internals Prim where
