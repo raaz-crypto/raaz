@@ -1,0 +1,23 @@
+{-# LANGUAGE ConstraintKinds             #-}
+{-# LANGUAGE DataKinds                   #-}
+{-# LANGUAGE KindSignatures              #-}
+{-# LANGUAGE MultiParamTypeClasses       #-}
+{-# LANGUAGE FlexibleInstances           #-}
+{-# LANGUAGE TypeFamilies                #-}
+
+
+signature Implementation where
+
+
+import Raaz.Core
+
+data Prim
+data Internals
+instance Memory Internals
+
+-- | A digest primitive is a message digest if it is a digest and its
+-- internals can be initialised without any key (or equivalently with
+-- `()`.
+
+instance Initialisable Internals ()
+instance Extractable Internals Prim

@@ -8,7 +8,6 @@ module Raaz.Digest.Sha256Spec where
 import           Prelude hiding (replicate)
 
 import           Tests.Core
-import           Raaz.Primitive.Sha2.Internal(Sha256)
 import           Sha256.Digest
 import qualified Sha256.VsHandwritten as VsHW
 

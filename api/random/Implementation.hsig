@@ -14,7 +14,15 @@
 -- The raaz:implementation package uses the ChaCha20 cipher to satisfy
 -- this implementation.
 
-signature Implementation where
+signature Implementation ( Prim
+                         , name
+                         , description
+                         , Internals
+                         , BufferAlignment
+                         , RandomBufferSize
+                         , reseedAfter
+                         , randomBlocks
+                         ) where
 
 import Raaz.Core
 

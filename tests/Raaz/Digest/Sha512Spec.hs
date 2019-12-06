@@ -9,7 +9,6 @@ import           Prelude hiding (replicate)
 
 
 import           Tests.Core
-import           Raaz.Primitive.Sha2.Internal(Sha512)
 import           Sha512.Digest
 import qualified Sha512.VsHandwritten as VsHW
 

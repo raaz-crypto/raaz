@@ -9,7 +9,6 @@ module Tests.Core.Instances where
 import Tests.Core.Imports
 import Tests.Core.Utils
 
-import Raaz.Primitive.ChaCha20.Internal as ChaCha20
 import Raaz.Primitive.Poly1305.Internal as Poly1305
 import Raaz.Core.Types.Internal
 
@@ -54,18 +53,27 @@ instance Arbitrary Base16 where
 instance Arbitrary Base64 where
   arbitrary =  encodeByteString . pack <$> listOf arbitrary
 
------------------- Arbitrary instances for Keys ---------------
+------------------ For ChaCha20 types -------------------------
 
-instance Arbitrary ChaCha20.KEY where
+instance Arbitrary (Key ChaCha20) where
   arbitrary = genEncodable
 
-instance Arbitrary ChaCha20.IV where
+instance Arbitrary (Nounce ChaCha20) where
   arbitrary = genEncodable
 
-instance Arbitrary ChaCha20.Counter where
-  arbitrary = le32ToCtr <$> arbitrary
-    where le32ToCtr :: LE Word32 -> Counter
-          le32ToCtr = fromIntegral
+instance Arbitrary (BLOCKS ChaCha20) where
+  arbitrary = toEnum <$> arbitrary
+
+------------------ For XChaCha20 types -------------------------
+
+instance Arbitrary (Key XChaCha20) where
+  arbitrary = genEncodable
+
+instance Arbitrary (Nounce XChaCha20) where
+  arbitrary = genEncodable
+
+instance Arbitrary (BLOCKS XChaCha20) where
+  arbitrary = toEnum <$> arbitrary
 
 ------------------ Arbitrary instances for Poly1305 -------------
 instance Arbitrary Poly1305.R where
@@ -76,3 +84,6 @@ instance Arbitrary Poly1305.S where
 
 instance Arbitrary Poly1305.Poly1305 where
   arbitrary = genEncodable
+
+instance Arbitrary (Key Poly1305) where
+  arbitrary = Poly1305.Key <$> arbitrary <*> arbitrary

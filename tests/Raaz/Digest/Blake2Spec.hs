@@ -7,7 +7,6 @@ module Raaz.Digest.Blake2Spec where
 import           Prelude hiding (replicate)
 
 import           Tests.Core
-import           Raaz.Primitive.Blake2.Internal(Blake2b, Blake2s)
 import           Data.Attoparsec.ByteString.Char8 as AP
 import qualified Data.ByteString                  as BS
 import           Data.Char
@@ -62,7 +61,7 @@ data B2Test = B2b (Test Blake2b)
             | Skip ByteString
 
 data Test h = HT ByteString h
-            | AT ByteString (HashKey h) (Keyed h)
+            | AT ByteString (Key (Keyed h)) (Keyed h)
 
 toSpec :: B2Test -> Spec
 toSpec tst  =

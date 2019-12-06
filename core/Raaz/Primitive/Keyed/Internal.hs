@@ -1,5 +1,6 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE TypeFamilies               #-}
+{-# LANGUAGE FlexibleInstances          #-}
 
 -- | The keyed version of a primitive (typically cryptographic
 -- hash). Certain hashes like blake2 can be used for message
@@ -10,7 +11,7 @@
 -- the sha2 family of hashes; they require a more complicated HMAC
 -- construction.
 module Raaz.Primitive.Keyed.Internal
-       ( Keyed(..), KeyedHash(..), HashKey(..), unsafeToKeyed, unsafeToPrim
+       ( Keyed(..), KeyedHash(..), Key(..), unsafeToKeyed, unsafeToPrim
        ) where
 
 import Data.ByteString  as BS
@@ -20,7 +21,7 @@ import Raaz.Core
 
 -- | Class of primitives, typically cryptographic hashes, that when
 -- used as a keyed hash gives a safe MAC.
-class (Primitive prim, Storable prim) => KeyedHash prim where
+class KeyedHash prim where
   -- The initialisation used by the hash can depend on the length of
   -- the key used.
   hashInit :: BYTES Int -> prim
@@ -29,21 +30,29 @@ class (Primitive prim, Storable prim) => KeyedHash prim where
 newtype Keyed prim = Keyed prim
                  deriving (Eq, Equality, Storable, EndianStore, Encodable)
 
-newtype HashKey prim = HashKey ByteString
+instance IsString prim => IsString (Keyed prim) where
+  fromString = unsafeToKeyed . fromString
 
-type instance Key (Keyed prim) = HashKey prim
+instance Show prim => Show (Keyed prim) where
+  show = show . unsafeToPrim
 
+instance Primitive prim => Primitive (Keyed prim) where
+  type BlockSize (Keyed prim) = BlockSize prim
 
-instance IsString (HashKey prim) where
-  fromString = HashKey . fromBase16
+--------------- Key used by the keyed prim -----------------------------
 
-instance Show (HashKey prim) where
-  show (HashKey hkey) = showBase16 hkey
+newtype instance Key (Keyed prim) = Key ByteString
 
-instance Encodable (HashKey prim) where
-  toByteString   (HashKey bs) = bs
-  fromByteString              = Just . HashKey
-  unsafeFromByteString        = HashKey
+instance IsString (Key (Keyed prim)) where
+  fromString = Key . fromBase16
+
+instance Show (Key (Keyed prim)) where
+  show (Key hkey) = showBase16 hkey
+
+instance Encodable (Key (Keyed prim)) where
+  toByteString   (Key bs) = bs
+  fromByteString          = Just . Key
+  unsafeFromByteString    = Key
 
 -- | Converts a Keyed value to the corresponding hash value. This
 -- function violates the principle that semantically distinct values
@@ -58,12 +67,3 @@ unsafeToPrim (Keyed p) = p
 -- considered unsafe.
 unsafeToKeyed :: prim -> Keyed prim
 unsafeToKeyed = Keyed
-
-instance IsString prim => IsString (Keyed prim) where
-  fromString = unsafeToKeyed . fromString
-
-instance Show prim => Show (Keyed prim) where
-  show = show . unsafeToPrim
-
-instance Primitive prim => Primitive (Keyed prim) where
-  type BlockSize (Keyed prim) = BlockSize prim

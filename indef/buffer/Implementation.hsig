@@ -1,0 +1,6 @@
+-- | An implementation of a cryptographic primitive is a method to
+-- process data that is multiples of its block size. Fast
+-- implementations involve other details like the alignment
+-- restriction on the input buffer and all that. We package all this
+-- in the following signature.
+signature Implementation( Prim, Internals, BufferAlignment, additionalBlocks ) where

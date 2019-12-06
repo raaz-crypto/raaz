@@ -56,7 +56,6 @@ matrix:
 
   allow_failures:
     - compiler: ghc-head
-    - compiler: ghc-8.8.1
 
 before_install:
   - uname -a
@@ -80,14 +79,14 @@ before_install:
 install:
   - ghc   --version
   - cabal --version
-  - travis_retry cabal v2-update;
+  - travis_retry cabal update;
 
 script:
-  - cabal v2-configure --flags="wipe-memset" --enable-tests  --enable-documentation
-  - cabal v2-build all
-  - cabal v2-test all
-  - cabal v2-bench
-  - cabal v2-haddock
+  - cabal configure --flags="wipe-memset" --enable-tests  --enable-documentation
+  - cabal build
+  - cabal test
+  - cabal bench
+  - cabal haddock
   - $(find ./dist-newstyle -name raaz -type f) info
   # - if [ "$LIQUID_HASKELL" == "yes" ]; then ./scripts/get-lh.sh && ./scripts/run-lh.sh; exit $?; fi
 

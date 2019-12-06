@@ -27,7 +27,6 @@ import Control.Monad.IO.Class
 import Control.Monad.Reader
 import Data.ByteString             ( ByteString             )
 import Data.Int
-import Data.Proxy                  ( Proxy(..)              )
 import Data.Vector.Unboxed  hiding ( replicateM, create     )
 import Data.Word
 
@@ -308,11 +307,19 @@ instance RandomStorable Int64 where
 instance RandomStorable Int where
   fillRandomElements = unsafeFillRandomElements
 
-instance RandomStorable ChaCha20.KEY where
+instance RandomStorable (Key ChaCha20.ChaCha20) where
   fillRandomElements = unsafeFillRandomElements
 
-instance RandomStorable ChaCha20.IV where
+instance RandomStorable (Nounce ChaCha20.ChaCha20) where
   fillRandomElements = unsafeFillRandomElements
+
+
+instance RandomStorable (Key ChaCha20.XChaCha20) where
+  fillRandomElements = unsafeFillRandomElements
+
+instance RandomStorable (Nounce ChaCha20.XChaCha20) where
+  fillRandomElements = unsafeFillRandomElements
+
 
 instance RandomStorable Poly1305.R where
   fillRandomElements n ptr = unsafeFillRandomElements n ptr >> clamp
@@ -395,9 +402,11 @@ instance Random Int16
 instance Random Int32
 instance Random Int64
 
-instance Random ChaCha20.KEY where
+instance Random (Key ChaCha20.ChaCha20) where
+instance Random (Nounce ChaCha20.ChaCha20) where
 
-instance Random ChaCha20.IV where
+instance Random (Key ChaCha20.XChaCha20) where
+instance Random (Nounce ChaCha20.XChaCha20) where
 
 instance Random Poly1305.R where
 

@@ -25,7 +25,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE TypeFamilies               #-}
 module Raaz.Primitive.Poly1305.Internal
-       ( Poly1305(..), R(..), S(..), WORD
+       ( Poly1305(..), R(..), S(..), WORD, Key(..)
        ) where
 
 import Foreign.Storable( Storable )
@@ -68,4 +68,4 @@ instance Show S where
 instance Primitive Poly1305 where
   type BlockSize Poly1305      = 16
 
-type instance Key Poly1305     = (R, S)
+data instance Key Poly1305  = Key R S deriving Show

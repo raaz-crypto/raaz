@@ -13,7 +13,7 @@ module Raaz.Core.Types.Tuple
          Tuple, Dimension, dimension, dimension', initial, diagonal
        , repeatM, zipWith, map
          -- ** Unsafe operations
-       , unsafeFromList, unsafeToVector
+       , unsafeFromList, unsafeFromVector, unsafeToVector
        ) where
 
 import qualified Data.List           as L
@@ -42,6 +42,13 @@ map f = Tuple . V.map f . unTuple
 -- | Convert the tuple to vector.
 unsafeToVector :: Tuple dim a -> V.Vector a
 unsafeToVector = unTuple
+
+-- | Convert vector to tuple. This function is unsafe because it does
+-- not check whether length of the vector matches with the tuple
+-- dimension.
+unsafeFromVector :: V.Vector a -> Tuple dim a
+unsafeFromVector = Tuple
+
 
 instance (V.Unbox a, Equality a) => Equality (Tuple dim a) where
   eq (Tuple u) (Tuple v) = V.foldl' mappend mempty $ V.zipWith eq u v

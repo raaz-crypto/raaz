@@ -1,18 +1,18 @@
 -- Generic tests for hash.
-
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE MonoLocalBinds   #-}
 module Tests.Auth
        ( authsTo
        ) where
 
-
-import Data.ByteString (ByteString)
 import Implementation
 import Interface
 import Tests.Core
 
 
 
-authsTo :: ByteString
+authsTo :: (Show Prim, Show (Key Prim), Eq Prim)
+        => ByteString
         -> Prim
         -> Key Prim
         -> Spec

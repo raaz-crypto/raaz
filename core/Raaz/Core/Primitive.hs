@@ -13,7 +13,7 @@ use a more high level interface.
 
 module Raaz.Core.Primitive
        ( -- * Cryptographic Primtives
-         Primitive(..), Key
+         Primitive(..), Key, Nounce
        ) where
 
 import GHC.TypeLits
@@ -37,6 +37,11 @@ class KnownNat (BlockSize p) => Primitive p where
   -- key par but the nounce too.
   --
 
--- The type family that captures the key of a keyed primitive.
-type family Key p :: *
+-- | The type family that captures the key of a keyed primitive.
+data family Key p :: *
 
+-- | In addition to keys, certain primitives require nounces that can
+-- be public but needs to be distinct across different uses when
+-- sharing the key. The type family that captures the nounce for a
+-- primitive (if it requires one).
+data family Nounce p :: *

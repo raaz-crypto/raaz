@@ -35,9 +35,9 @@ foreign import ccall unsafe
   "raaz/cipher/chacha20/cportable.h raazChaCha20Block"
   c_chacha20_block :: AlignedPointer BufferAlignment -- message
                    -> BLOCKS ChaCha20                -- number of blocks
-                   -> Ptr KEY                        -- key
-                   -> Ptr IV                         -- iv
-                   -> Ptr Counter                    -- Counter value
+                   -> Ptr (Key ChaCha20)             -- key
+                   -> Ptr (Nounce ChaCha20)          -- iv
+                   -> Ptr WORD
                    -> IO ()
 
 processBlocks :: AlignedPointer BufferAlignment

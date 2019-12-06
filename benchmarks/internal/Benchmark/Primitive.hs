@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE MonoLocalBinds   #-}
 module Benchmark.Primitive where
 
 import Control.Monad
@@ -6,7 +7,7 @@ import GHC.TypeLits
 
 import Raaz.Core
 import Implementation
-import Utils
+import Buffer
 import Benchmark.Types
 
 
