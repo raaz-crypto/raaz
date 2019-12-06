@@ -258,6 +258,15 @@ library utils
   hs-source-dirs: indef
   exposed-modules: Utils
 
+-- library exposing a buffer for cryptographic primitives.
+library buffer
+  import: defaults
+  build-depends: core
+               , indef
+  hs-source-dirs: indef/buffer
+  signatures: Implementation
+  exposed-modules: Buffer
+
 -------------------- Derived Implementations ----------------------------
 --
 -- Certain primitives are defined based on other primitive. Given
