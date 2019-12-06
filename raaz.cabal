@@ -38,9 +38,9 @@ description:
   implementations. The `raaz:implementation` package subcomponent
   provides the default implementations for the primitives supported by
   raaz. You can override this selection by providing a module that
-  meet the same signature requirements. As an example, the Blake2b
-  implementation can be overridden (in your packages cabal file) as
-  follows.
+  meet the same signature requirements. Given below is the cabal
+  stanza that you need to add to overide certain default
+  implementations.
 
   >
   > build-depends: raaz:raaz-indef
