@@ -10,37 +10,39 @@ description:
 
   Raaz is a cryptographic library which provides the state of the art
   cryptographic primitives via a high-level, type safe interface. The
-  default interface provided to the user is through the top level module
-  "Raaz" which does not burden the user with low-level details like
-  which of the multitude of primitives or which entropy source etc.
-  Rather it is the cryptographic operation that the user concentrates.
+  default interface provided to the user is through the top level
+  module "Raaz". Rather than bothering the user with with low-level
+  details like which of the multitude of primitives or which entropy
+  source to use, this top level module only talks about the desired
+  cryptographic operation (whether it is message digest or message
+  encryption etc). A standalone application written using probably
+  should stick to using this interface.
 
   Sometimes the selection of primitives is not in our hands --- we may
-  need to interface with other programs written in other languages or using
-  other libraries. For such situation, raaz exposes a primitive specific
-  interface, e.g. "Raaz.Digest.Sha256" gives the message digesting
-  interface which makes use of the sha256 hash as the digest
+  need to interface with other programs written in other languages or
+  using other libraries. For such situation, raaz exposes a primitive
+  specific interface, e.g. "Raaz.Digest.Sha256" gives the message
+  digesting interface which makes use of the sha256 hash as the digest
   algorithm.
 
-  == Tweaking primitive implementations, entropy sources, etc.
+  == Tweaking Implementations
 
-  For users who are willing and able to go down to the trenches, raaz
-  allows a way to even tweak the underlying low level primitives. For
-  example, you might have a custom hardware at your disposal where a
-  particular primitive can be made much more performant, or maybe for
-  the given platform (say in a virtualised environment) you might have
-  a better entropy source than the default. Raaz uses backpack
-  signatures and modules to make it relatively painless to integrate
-  such custom requirements.
+  Despite the high level interface, users who are willing to go down
+  the abstraction layers, can even tweak the underlying low level
+  primitives used by @raaz@. For example, you might have a custom
+  hardware at your disposal where a particular primitive can be made
+  much more performant, or maybe for the given platform (say in a
+  virtualised environment) you might have a better entropy source than
+  the default. Raaz uses backpack signatures and modules to make it
+  relatively painless to integrate such custom requirements.
 
-  The @raaz:raaz-indef@ package gives an interface pretty similar to
-  the top level @raaz@ package that abstracts over the
-  implementations. The `raaz:implementation` package subcomponent
-  provides the default implementations for the primitives supported by
-  raaz. You can override this selection by providing a module that
-  meet the same signature requirements. Given below is the cabal
-  stanza that you need to add to overide certain default
-  implementations.
+  To exploit this facility you need to have some idea on the internal
+  structure of the @raaz@ package which consists of a few components.
+  The @raaz@ library is essentially a wrapper around the
+  @raaz:raaz-indef@ subcomponent mixed in with the default
+  implementations provided by the @raaz:implementation@. For
+  overridding any of the implementations, you can use the following
+  cabal stanza in your cabal package.
 
   >
   > build-depends: raaz:raaz-indef
@@ -48,13 +50,79 @@ description:
   >              , mychacha20
   >              , myentropy
   > mixins: raaz-indef requires (ChaCha20.Implementation as MyChaCha20.Implementation
-  >                              Entropy as MyEntropy.Entropy)
+  >                              Entropy as MyEntropy.Implementation)
   >
 
   In the above cabal stanza, the chacha20 implementation and the
   entropy source have been overridden. However, the rest of the
   implmentations are satisfied by the defaults that are provided by
-  @raaz:implementation@.
+  @raaz:implementation@. The @MyChaCha20.Implementation@ and
+  @MyEntropy.Implementation@ need to satisfy the same signature
+  constraints that the @ChaCha20.Implementation@ and @Entropy@ module
+  Broadly speaking, any implementation of a primitive is provided by
+  mixingin a module, henceforth called an implementation module,
+  satisfying the signature @raaz:indef:Implementation@ signature. In
+  addition, the implementation module also need to satisfy the
+  additional constraints imposed on it due to the nature of the
+  cryptographic operation that is supported by a primitive. For
+  example, an implementation of `Sha512` should satisfy (besides
+  @raaz:indef:Implementation@) the additional constraints imposed by
+  the signature @raaz:digest-api:Implementation@. This is because
+  `Sha512` is used for message digest and the component
+  @raaz:digest-api@ is what provides the message digesting interface
+  in raaz.
+
+  Each cryptographic operation is captured by an api component and it
+  expects a module satisfying the appropriate Implementation
+  signature. The api subcomponent inturn provide the Interface
+  module. The figure below shows the summary of these dependency.
+
+  >
+  >                              raaz
+  >                               |
+  >                               |
+  >                             +---+     +---------------------+
+  >                             | + | <---| raaz:implementation |
+  >                             +---+     +---------------------+
+  >                               ^
+  >                               |
+  >                 +---------------------------------+
+  >                 |     raaz:raaz-indef             |
+  >                 +---------------------------------+
+  >                  /          |                  \
+  >                 /           |                   \
+  >                /            |                    \
+  >       Interface          Interface              Interface
+  >          ^                  ^                     ^
+  >          |                  |                     |
+  >    +------------+    +--------------+       +--------------+
+  >    | digest-api |    |  entropy-api |       |   encryt-api |
+  >    |            |    |              |       |              |
+  >    |            |    |              |       |              |
+  >    +------------+    +--------------+       +--------------+
+  >    |  +digest   |    |  +entropy    |       |  +encrypt    |
+  >    |constraints |    |  constraints |       | constraints  |
+  >    +------------+    +--------------+       +--------------+
+  >              \            |                    /
+  >               \           |                   /
+  >                \          |                  /
+  >                 \         |                 /
+  >                +----------------------------+
+  >                | indef:Implementation.hsig  |
+  >                +----------------------------+
+  >
+
+  == Tweaking randomness.
+
+  There are two components of the CSPRG exposed by @raaz@ --- an
+  entropy source, and a seed stretcher. The entroy source is signature
+  needs to satisfy the signature @raaz:random-api:Entropy@ where as
+  the seed stretcher needs to satisfy the signature
+  @raaz:random-api:Implementation@ which both adds some member
+  function to the @indef:Implementation@ signature as well as thins
+  it. See the documentation of @raaz:random-api:Implementation@ for
+  details.
+
 
 homepage: https://github.com/raaz-crypto/raaz
 
