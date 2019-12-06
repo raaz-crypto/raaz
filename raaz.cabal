@@ -212,36 +212,9 @@ library libverse
 
 ---------------------- Implementation signature packages -------------
 --
--- The first set of indef packages expose an Implementation signature
--- for common block primitives.
---
--- prim-indef: Signature package exposing the signature
---   `Implementation` that captures implementation of a block
---   primitive
---
--- digest-indef: This package adds additional constraints on
---   `prim-indef:Implementation` to capture primitive that produces a
---   digest value at the end of processing data. Examples include
---   cryptographic hashes, MACs, encrypted authenticators etc. In the
---   case of the last one we also encrypt the message (process the
---   input)
---
--- keyed-indef: This package adds additional constraints on
---   `prim-indef:Implementation` to capture primitives that requires a
---   starting (often secret) key. Examples are ciphers, MACs,
---   encrypted authenticators.
---
--- stream-indef: Additional constraints to capture stream primitives.
---   Streams come with nounces and counters. The former can be public
---   and can be used to ensure that the streams with identical keys
---   are distinct and hence ensure safety and the latter is used to
---   skipping blocks and starting at a different offset. This adds
---   additional constraints to the `key-indef:Implementation`.
-
--- prim-util: Exposes some generic utility function for a
---   primitive. Thus the assumption made is only that of the
---   `Interface` signature provided by the `prim-indef` package.
---
+-- The signature package that exposes an implementation of a
+-- primitive.
+---
 
 library indef
   import: defaults
@@ -250,15 +223,14 @@ library indef
   hs-source-dirs: indef
   signatures: Implementation
 
--- Utilities library
-library utils
-  import: defaults
-  build-depends: core
-               , indef
-  hs-source-dirs: indef
-  exposed-modules: Utils
 
--- library exposing a buffer for cryptographic primitives.
+-- Library exposing a buffer for cryptographic primitives. For a
+-- natural number n, a Buffer n is a pointer which has enough to
+-- process n blocks of the primitive at a time. It also takes care of
+-- the alignment requirements for the implementation. Not everything
+-- related to an Implementation is required here and hence it uses a
+-- thinned down version of the Implementation signature.
+
 library buffer
   import: defaults
   build-depends: core
@@ -266,6 +238,16 @@ library buffer
   hs-source-dirs: indef/buffer
   signatures: Implementation
   exposed-modules: Buffer
+
+-- The utility package that defines generic interface that is useful
+-- for all primitives.
+library utils
+  import: defaults
+  build-depends: core
+               , indef
+               , buffer
+  hs-source-dirs: indef
+  exposed-modules: Utils
 
 -------------------- Derived Implementations ----------------------------
 --
@@ -283,7 +265,8 @@ library mac-indef
   import: defaults
   hs-source-dirs: indef/keyed/hash
   signatures: Implementation
-  build-depends: core
+  build-depends: buffer
+               , core
                , indef
                , utils
   exposed-modules: Mac.Implementation
@@ -294,14 +277,8 @@ library mac-indef
 -- cryptographic operations. Typically they depend on one or more of
 -- the implementation modules.
 --
--- hash-indef: Provides cryptographic hashes/message digests
---
--- auth-api: Provides message authentication
---
--- random-api: Provides cryptographically secure pseudo-random
---   generator making use of system entropy for seeding and a suitable
---   primitive (typically a cipher) for stretching the seed.
 
+-- API package for message digest.
 library digest-api
   import: defaults
   hs-source-dirs: api/digest/
@@ -311,7 +288,7 @@ library digest-api
                , utils
   exposed-modules: Interface
 
-
+-- API package for message authenticator.
 library auth-api
   import: defaults
   hs-source-dirs: api/auth
@@ -321,6 +298,9 @@ library auth-api
                , utils
   exposed-modules: Interface
 
+-- API package for random bytes generator. The Implementation
+-- signature captures the primitive that stretches the seed and the
+-- Entroy signature captures entropy sources.
 library random-api
   import: defaults
   hs-source-dirs: api/random
@@ -334,6 +314,7 @@ library random-api
                  , Internal
   other-modules: PRGenerator
 
+-- API package for encryption.
 library encrypt-api
   import: defaults
   hs-source-dirs: api/encrypt
@@ -649,15 +630,14 @@ library bench-prim
   import: bench-defaults
   build-depends: bench-types
                , indef
-               , utils
+               , buffer
   other-modules: Benchmark.Types
   exposed-modules: Benchmark.Primitive
 
 library bench-csprg
   import: bench-defaults
   build-depends: bench-types
-               , indef
-               , utils
+               , buffer
                , random-api
   exposed-modules: Benchmark.CSPRG
   other-modules: Benchmark.Types
@@ -706,4 +686,4 @@ benchmark primitives
           requires (Implementation as Sha512.CHandWritten)
 
         , bench-csprg (Benchmark.CSPRG as Benchmark.CSPRG.CPortable)
-          requires (Implementation as ChaCha20.CPortable)
+          requires (Implementation as ChaCha20.Random.CPortable)
