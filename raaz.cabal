@@ -116,16 +116,16 @@ description:
   == Tweaking randomness.
 
   There are two components of the CSPRG exposed by @raaz@ --- an
-  entropy source, and a seed stretcher. The entroy source is signature
-  needs to satisfy the signature @raaz:random-api:Entropy@ where as
-  the seed stretcher needs to satisfy the signature
-  @raaz:random-api:Implementation@ which both adds some member
-  function to the @indef:Implementation@ signature as well as thins
-  it. the @raaz:raaz-indef@ component expects its seed stretcher to
-  come from @Random.Implementation@ exposed by @raaz:implementation@
-  (currently a chacha20 based keystream is used for this
-  purpose). This can also be overridden if one wants. See the
-  documentation of @raaz:random-api:Implementation@ for details.
+  entropy source, and a seed stretcher. The entroy source needs to
+  satisfy the signature @raaz:random-api:Entropy@ where as the seed
+  stretcher needs to satisfy the signature
+  @raaz:random-api:Implementation@ which adds some member function to
+  the @indef:Implementation@ signature as well as thins it. The
+  @raaz:raaz-indef@ component expects its seed stretcher to come from
+  @Random.Implementation@ exposed by @raaz:implementation@ (currently
+  a chacha20 based keystream is used for this purpose). This can also
+  be overridden if one wants. See the documentation of
+  @raaz:random-api:Implementation@ for details.
 
 
 homepage: https://github.com/raaz-crypto/raaz
