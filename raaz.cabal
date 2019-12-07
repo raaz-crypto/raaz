@@ -498,12 +498,18 @@ library raaz-indef
                , random-api
                , auth-api
                , mac-indef
-  hs-source-dirs: indef/sha2
-                , indef/blake2
- -- signatures: Blake2b.Implementation
- --           , Blake2s.Implementation
- --           , Sha256.Implementation
- --           , Sha512.Implementation
+
+  -- :WARNING: The raaz-indef package can be mixed in with custom
+  -- implementations. If we do not have the signatures below, it would be possible to mixin
+  -- an implementation of Blake2b for an implementation of Sha512 (say).
+  hs-source-dirs: indef/blake2
+                , indef/sha2
+
+  signatures: Blake2b.Implementation
+            , Blake2s.Implementation
+            , Sha256.Implementation
+            , Sha512.Implementation
+
   reexported-modules: Auth.Blake2b
                     , Auth.Blake2s
                     , Digest.Blake2b
