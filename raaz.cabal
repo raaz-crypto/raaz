@@ -15,15 +15,16 @@ description:
   details like which of the multitude of primitives or which entropy
   source to use, this top level module only talks about the desired
   cryptographic operation (whether it is message digest or message
-  encryption etc). A standalone application written using probably
-  should stick to using this interface.
+  encryption etc). A standalone application written using raaz should
+  probably stick to using this interface.
 
   Sometimes the selection of primitives is not in our hands --- we may
   need to interface with other programs written in other languages or
   using other libraries. For such situation, raaz exposes a primitive
-  specific interface, e.g. "Raaz.Digest.Sha256" gives the message
-  digesting interface which makes use of the sha256 hash as the digest
-  algorithm.
+  specific interface. As an example @raaz@ exposes the
+  @Raaz.Digest.Sha256@ module that gives the same interface as that of
+  "Raaz.Digest" but uses sha256 as the underlying cryptographic hash.
+
 
   == Tweaking Implementations (Only for advanced users)
 
