@@ -23,14 +23,14 @@ blake2bSize :: Int
 blake2bSize = Storable.sizeOf (undefined :: Sha512)
 
 monocypher_blake2b_io :: Ptr Word8 -> CStringLen -> IO ()
-monocypher_blake2b_io hshPtr (ptr, l) = do crypto_sha512 hshPtr ptr (toEnum l)
+monocypher_blake2b_io hshPtr (ptr, l) = crypto_sha512 hshPtr ptr (toEnum l)
 
 
 monocypher_blake2b :: ByteString -> Sha512
 monocypher_blake2b bs = unsafeFromByteString $ unsafeCreate blake2bSize creator
-  where creator = \ ptr -> unsafeUseAsCStringLen bs (monocypher_blake2b_io ptr)
+  where creator ptr = unsafeUseAsCStringLen bs (monocypher_blake2b_io ptr)
 
 spec :: Spec
-spec = do
-  prop "vs cyrpto_sha512" $ \ x ->
-    monocypher_blake2b x `shouldBe` Sha512.digest x
+spec = prop "vs cyrpto_sha512" $
+       \ x ->
+         monocypher_blake2b x `shouldBe` Sha512.digest x
