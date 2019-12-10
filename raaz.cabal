@@ -698,6 +698,7 @@ test-suite monocypher
   type: exitcode-stdio-1.0
   main-is: Monocypher.hs
   other-modules: Monocypher.Blake2bSpec
+               , Monocypher.Sha512Spec
   build-depends: raaz
                , test-core
   hs-source-dirs: monocypher-2.0.6/tests
