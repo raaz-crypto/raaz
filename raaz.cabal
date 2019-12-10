@@ -692,6 +692,26 @@ test-suite tests
             requires (Implementation as Blake2b.Implementation)
         , test-auth  (Tests.Auth as Blake2b.Auth) requires (Implementation as Blake2b.Mac.Implementation)
 
+-- Test suits comparing with monocypher.
+test-suite monocypher
+  import: test-defaults
+  type: exitcode-stdio-1.0
+  main-is: Monocypher.hs
+  other-modules: Monocypher.Blake2bSpec
+               , Monocypher.Sha512Spec
+  build-depends: raaz
+               , test-core
+  hs-source-dirs: monocypher-2.0.6/tests
+  c-sources: monocypher-2.0.6/cbits/monocypher.c
+           , monocypher-2.0.6/cbits/optional/sha512.c
+
+  include-dirs: monocypher-2.0.6/cbits/
+              , monocypher-2.0.6/cbits/optional
+
+  includes: monocypher-2.0.6/cbits/optional/sha512.h
+          , monocypher-2.0.6/cbits/monocypher.h
+  build-tool-depends: hspec-discover:hspec-discover
+
 --------------------------- Benchmarkings ---------------------------------------------
 common bench-defaults
  import:defaults
