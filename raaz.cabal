@@ -497,8 +497,8 @@ library raaz-indef
                , digest-api
                , random-api
                , auth-api
+               , encrypt-api
                , mac-indef
-
   -- :WARNING: The raaz-indef package can be mixed in with custom
   -- implementations. If we do not have the signatures below, it would be possible to mixin
   -- an implementation of Blake2b for an implementation of Sha512 (say).
@@ -512,6 +512,7 @@ library raaz-indef
 
   reexported-modules: Auth.Blake2b
                     , Auth.Blake2s
+                    , Encrypt.ChaCha20
                     , Digest.Blake2b
                     , Digest.Blake2s
                     , Digest.Sha256
@@ -526,6 +527,8 @@ library raaz-indef
             requires (Implementation as Sha512.Implementation)
         , digest-api (Interface as Digest.Sha256)
             requires (Implementation as Sha256.Implementation)
+        , encrypt-api (Interface as Encrypt.ChaCha20)
+            requires (Implementation as ChaCha20.Implementation)
         , random-api (Interface as Random, Internal as Random.Internal)
             requires (Implementation as Random.Implementation)
         -- MAC-ing with blake2b
@@ -552,6 +555,7 @@ library
                  , Raaz.Digest
   reexported-modules: Raaz.Auth.Blake2b
                     , Raaz.Auth.Blake2s
+                    , Raaz.Encrypt.ChaCha20
                     , Raaz.Digest.Blake2b
                     , Raaz.Digest.Blake2s
                     , Raaz.Digest.Sha512
@@ -563,6 +567,7 @@ library
   autogen-modules: Paths_raaz
   mixins: raaz-indef ( Auth.Blake2b as Raaz.Auth.Blake2b
                      , Auth.Blake2s       as Raaz.Auth.Blake2s
+                     , Encrypt.ChaCha20   as Raaz.Encrypt.ChaCha20
                      , Digest.Blake2b     as Raaz.Digest.Blake2b
                      , Digest.Blake2s     as Raaz.Digest.Blake2s
                      , Digest.Sha512      as Raaz.Digest.Sha512
