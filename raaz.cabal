@@ -331,7 +331,9 @@ library utils
 --   code. This module exposes the module `Mac.Implementation` which
 --   can be mixed into the auth-api module to satisfy its
 --   requirement of an `Implementation` module.
-
+--
+-- xchacha20-indef: Implementation of the xchacha20 cipher based on an
+--   underlying implementation of chacha20 and hchacha20 hashing.
 
 library mac-indef
   import: defaults
@@ -342,6 +344,14 @@ library mac-indef
                , indef
                , utils
   exposed-modules: Mac.Implementation
+
+library xchacha20-indef
+  import: defaults
+  hs-source-dirs: indef/chacha20
+  signatures: Implementation
+  build-depends: core
+               , indef
+  exposed-modules: XChaCha20.Implementation
 
 -------- API packages ----------------------------------------------
 --
@@ -499,6 +509,7 @@ library raaz-indef
                , auth-api
                , encrypt-api
                , mac-indef
+               , xchacha20-indef
   -- :WARNING: The raaz-indef package can be mixed in with custom
   -- implementations. If we do not have the signatures below, it would be possible to mixin
   -- an implementation of Blake2b for an implementation of Sha512 (say).
@@ -513,6 +524,7 @@ library raaz-indef
   reexported-modules: Auth.Blake2b
                     , Auth.Blake2s
                     , Encrypt.ChaCha20
+                    , Encrypt.XChaCha20
                     , Digest.Blake2b
                     , Digest.Blake2s
                     , Digest.Sha256
@@ -529,6 +541,12 @@ library raaz-indef
             requires (Implementation as Sha256.Implementation)
         , encrypt-api (Interface as Encrypt.ChaCha20)
             requires (Implementation as ChaCha20.Implementation)
+
+        -- XChaCha20 implementation
+        , xchacha20-indef requires (Implementation as ChaCha20.Implementation)
+        , encrypt-api (Interface as Encrypt.XChaCha20)
+            requires (Implementation as XChaCha20.Implementation)
+
         , random-api (Interface as Random, Internal as Random.Internal)
             requires (Implementation as Random.Implementation)
         -- MAC-ing with blake2b
@@ -556,6 +574,7 @@ library
   reexported-modules: Raaz.Auth.Blake2b
                     , Raaz.Auth.Blake2s
                     , Raaz.Encrypt.ChaCha20
+                    , Raaz.Encrypt.XChaCha20
                     , Raaz.Digest.Blake2b
                     , Raaz.Digest.Blake2s
                     , Raaz.Digest.Sha512
@@ -568,6 +587,7 @@ library
   mixins: raaz-indef ( Auth.Blake2b as Raaz.Auth.Blake2b
                      , Auth.Blake2s       as Raaz.Auth.Blake2s
                      , Encrypt.ChaCha20   as Raaz.Encrypt.ChaCha20
+                     , Encrypt.XChaCha20  as Raaz.Encrypt.XChaCha20
                      , Digest.Blake2b     as Raaz.Digest.Blake2b
                      , Digest.Blake2s     as Raaz.Digest.Blake2s
                      , Digest.Sha512      as Raaz.Digest.Sha512
@@ -704,6 +724,7 @@ test-suite monocypher
   main-is: Monocypher.hs
   other-modules: Monocypher.Blake2bSpec
                , Monocypher.Sha512Spec
+               , Monocypher.ChaCha20Spec
   build-depends: raaz
                , test-core
   hs-source-dirs: monocypher-2.0.6/tests
