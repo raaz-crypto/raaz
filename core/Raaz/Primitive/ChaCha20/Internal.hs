@@ -100,6 +100,10 @@ ivCellPtr = withReaderT ivCell getCellPointer
 counterCellPtr :: MT ChaCha20Mem (Ptr WORD)
 counterCellPtr = withReaderT counterCell getCellPointer
 
+instance Initialisable  (MemoryCell (Key ChaCha20)) (Key XChaCha20) where
+  initialise = initialise . coerce
+    where coerce (XKey k) = Key k
+
 instance Memory ChaCha20Mem where
   memoryAlloc     = ChaCha20Mem <$> memoryAlloc <*> memoryAlloc <*> memoryAlloc
   unsafeToPointer = unsafeToPointer . keyCell
