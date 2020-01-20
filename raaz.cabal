@@ -676,6 +676,7 @@ test-suite tests
                , test-auth
                , mac-indef
                , implementation
+               , xchacha20-indef
                , raaz
   build-tool-depends: hspec-discover:hspec-discover
   if !os(windows)
@@ -688,6 +689,7 @@ test-suite tests
                , Raaz.Core.Util.ByteStringSpec
                , Raaz.RandomSpec
                , Raaz.Cipher.ChaCha20Spec
+               , Raaz.Cipher.XChaCha20Spec
                , Raaz.Digest.Sha256Spec
                , Raaz.Digest.Sha512Spec
                , Raaz.Digest.Blake2Spec
@@ -717,6 +719,8 @@ test-suite tests
         , mac-indef (Mac.Implementation as Blake2b.Mac.Implementation)
             requires (Implementation as Blake2b.Implementation)
         , test-auth  (Tests.Auth as Blake2b.Auth) requires (Implementation as Blake2b.Mac.Implementation)
+
+        , xchacha20-indef requires (Implementation as ChaCha20.Implementation)
 
 -- Test suits comparing with monocypher.
 test-suite monocypher
