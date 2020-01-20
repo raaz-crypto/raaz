@@ -42,7 +42,7 @@ instance Initialisable Internals (Nounce XChaCha20) where
   initialise xnounce = do internals  <- ask
                           let dest = destination $ chacha20Internals internals
                               src  = source $ copyOfKey internals
-                            in do liftIO $ Base.copyKey dest src
+                            in liftIO $ Base.copyKey dest src
                           withReaderT chacha20Internals $ Base.xchacha20Setup xnounce
 
 instance Initialisable Internals (BLOCKS XChaCha20) where
