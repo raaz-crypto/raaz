@@ -24,7 +24,7 @@ description = Base.description ++ " This is the XChaCha variant."
 
 type Prim                    = XChaCha20
 data Internals               = XChaCha20Mem
-  { copyOfKey         ::  MemoryCell (Key ChaCha20)
+  { copyOfKey         :: MemoryCell (Key ChaCha20)
   , chacha20Internals :: Base.Internals
   }
 
