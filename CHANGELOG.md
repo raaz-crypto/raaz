@@ -2,6 +2,9 @@
 
 ## [0.3.0] - Pending
 
+  This is a major rewrite of the raaz library with significant change in the
+  API and internals.
+
 * Platform requirements
 
   - Cabal >= 3.0.0.0
@@ -13,8 +16,9 @@
     instead of specific primitives. This release supports the
     following operations
 
-	- message digest
-	- message authentication
+	- message digest provided via Blake2b
+	- message authentication provided via Blake2b
+	- message encryption provided via XChaCha20
 
   - Explicit primitive based interface meant only for interworking
     with other library.
@@ -22,14 +26,14 @@
   - Dropped support for SHA1, SHA224, SHA384, HMAC, and AES-CBC,
 	mainly to concentrate efforts and reach stable release soon.
 
-  - Pluggable interface to implementations and entropy source
-    (recommended only for advanced users)
+  - Pluggable interface for primitive implementations and entropy
+    source (recommended only for advanced users)
 
 * Internal changes.
 
   - Use libverse for the low level FFI implementations. From now on
     newer primitives will be coded up in verse instead of hand written
-    C/assembly.
+    C/assembly. (See https://github.com/raaz-crypto/libverse/>)
 
   - Backpack based modules and signatures instead of classes for
     primitive implementation. Simplifies the library and allows easy
@@ -56,9 +60,11 @@
 
   - Aligned pointer with alignment at type level.
 
-* Licensing:
+* Other changes.
 
-  - Apache-2.0 OR BSD-3-Clause.
+  - Cross testing implementations with the monocypher library
+
+  - Licensing changed to Apache-2.0 OR BSD-3-Clause dual licensing.
 
 
 ## [0.2.1] - 25 March, 2019

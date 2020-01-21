@@ -1,6 +1,5 @@
 {-# LANGUAGE DataKinds                  #-}
 
-
 -- | The portable C-implementation of Blake2b.
 module ChaCha20.CPortable where
 
@@ -42,9 +41,10 @@ processLast :: AlignedPointer BufferAlignment
 processLast buf = processBlocks buf . atLeast
 
 
--- | The HChaCha20 hashing function. It does the following to the internal state
+-- | The xchacha20Setup  does the following to the internal state
 --
--- 1. Replaces the key stored in the keyCell
+-- 1. Replaces the key stored in the keyCell using the hchacah20 hashing function
+--
 -- 2. Initialises the ivcell with the last two words in the xiv value.
 --
 -- As a result the internal state is ready to start encrypting using
@@ -57,8 +57,13 @@ xchacha20Setup (XNounce tup) = do
   -- In the above step, the key gets replaced by the subkey obtained
   -- from the hchacha20 hash. We also set the ivcell appropriately
   withReaderT ivCell $ initialise iv
-  where [LE h0,LE h1,LE h2, LE h3, h4,h5] = V.toList $ unsafeToVector tup
-        iv  = Nounce $ unsafeFromList [0,h4,h5] :: Nounce ChaCha20
+  where [LE h0,LE h1,LE h2, LE h3, h4, h5] = V.toList $ unsafeToVector tup
+        iv  = Nounce $ unsafeFromList [0, h4, h5] :: Nounce ChaCha20
+
+
+-- | Copy the key from the memory cell chacha20Mem.
+copyKey :: Dest ChaCha20Mem -> Src (MemoryCell (Key ChaCha20)) -> IO ()
+copyKey = copyMemory . fmap keyCell
 
 -------------- Helper function for running an iterator -----------
 runBlockProcess :: ( Ptr buf ->

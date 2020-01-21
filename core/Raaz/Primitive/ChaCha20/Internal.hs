@@ -40,9 +40,9 @@ type WORD     = LE Word32
 type KEY      = Tuple 8 WORD
 
 newtype instance Key     ChaCha20 = Key     KEY
-  deriving (Storable, EndianStore)
+  deriving (Storable, EndianStore, Equality, Eq)
 newtype instance Nounce  ChaCha20 = Nounce  (Tuple 3 WORD)
-  deriving (Storable, EndianStore)
+  deriving (Storable, EndianStore, Equality, Eq)
 
 instance Encodable (Key     ChaCha20)
 instance Encodable (Nounce  ChaCha20)
@@ -99,6 +99,10 @@ ivCellPtr = withReaderT ivCell getCellPointer
 
 counterCellPtr :: MT ChaCha20Mem (Ptr WORD)
 counterCellPtr = withReaderT counterCell getCellPointer
+
+instance Initialisable  (MemoryCell (Key ChaCha20)) (Key XChaCha20) where
+  initialise = initialise . coerce
+    where coerce (XKey k) = Key k
 
 instance Memory ChaCha20Mem where
   memoryAlloc     = ChaCha20Mem <$> memoryAlloc <*> memoryAlloc <*> memoryAlloc

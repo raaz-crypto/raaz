@@ -31,6 +31,6 @@ monocypher_blake2b bs = unsafeFromByteString $ unsafeCreate blake2bSize creator
   where creator ptr = unsafeUseAsCStringLen bs (monocypher_blake2b_io ptr)
 
 spec :: Spec
-spec = prop "vs cyrpto_sha512" $
+spec = prop "monocypher vs raaz sha512" $
        \ x ->
          monocypher_blake2b x `shouldBe` Sha512.digest x

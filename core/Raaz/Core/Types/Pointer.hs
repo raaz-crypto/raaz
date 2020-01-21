@@ -173,12 +173,23 @@ atLeast src | r == 0    = u
 -- returns a length @n@ such the length @n@ is big enough to ensure
 -- that there is at least @l@ length of valid buffer starting at the
 -- next pointer aligned at boundary @a@. If the alignment required in
--- @a@ then allocating @l + a - 1 should do the trick.
+-- @a@ then allocating @l + a@ should do the trick.
+--
+-- NOTE: Let us say that the next allocation happens at a pointer ptr
+-- whose address is r mod a. Then if we allocate a buffer of size s,
+-- the buffer will be spanning the address ptr, ptr + 1, ... ptr + s
+-- -1.  Assume that r ≠ 0, then the next address at which our buffer
+-- can start is at ptr + a - r. Therefore the size of the buffer
+-- available at this location is (ptr + s - 1) - (ptr + a - r ) + 1 =
+-- s - a + r, which should at least l. Therefore, we have s - a - r =
+-- l, which means s >= l + a - r. This is maximised when r = 1.  This
+-- analysis means that we need to allocate only l + a - 1 bytes but
+-- that seems to be creating problems for our copy. May be it is a
+-- memcpy vs memmove problem.
 atLeastAligned :: LengthUnit l => l -> Alignment -> BYTES Int
 atLeastAligned l a = n <> pad
   where n    = atLeast l
-        pad  = BYTES  $ unAlignment a - 1
-
+        pad  = BYTES $ unAlignment a
 
 -- | Express length unit @src@ in terms of length unit @dest@ rounding
 -- downwards.
@@ -350,9 +361,7 @@ sizeOf = BYTES . FS.sizeOf . asProxyTypeOf undefined
 
 -- | Size of the buffer to be allocated to store an element of type
 -- @a@ so as to guarantee that there exist enough space to store the
--- element after aligning the pointer. If the size of the element is
--- @s@ and its alignment is @a@ then this quantity is essentially
--- equal to @s + a - 1@. All units measured in word alignment.
+-- element after aligning the pointer.
 alignedSizeOf  :: Storable a => Proxy a -> BYTES Int
 alignedSizeOf aproxy =  atLeastAligned (sizeOf aproxy) $ alignment aproxy
 

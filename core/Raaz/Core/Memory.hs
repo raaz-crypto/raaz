@@ -284,7 +284,7 @@ instance ( Memory ma
   unsafeToPointer (ma,_,_,_) =  unsafeToPointer ma
 
 -- | Copy data from a given memory location to the other. The first
--- argument is destionation and the second argument is source to match
+-- argument is destination and the second argument is source to match
 -- with the convention followed in memcpy.
 copyMemory :: Memory m => Dest m -- ^ Destination
                        -> Src  m -- ^ Source

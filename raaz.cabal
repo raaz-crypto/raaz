@@ -11,12 +11,12 @@ description:
   Raaz is a cryptographic library which provides the state of the art
   cryptographic primitives via a high-level, type safe interface. The
   default interface provided to the user is through the top level
-  module "Raaz". Rather than bothering the user with with low-level
-  details like which of the multitude of primitives or which entropy
-  source to use, this top level module only talks about the desired
-  cryptographic operation (whether it is message digest or message
-  encryption etc). A standalone application written using raaz should
-  probably stick to using this interface.
+  module "Raaz". Rather than bothering the user with low-level details
+  like the selection of primitives or entropy sources, this top level
+  module only talks about the desired cryptographic operation (whether
+  it is message digest or message encryption etc). A standalone
+  application that needs cryptography should should probably stick to
+  using this top level interface interface.
 
   Sometimes the selection of primitives is not in our hands --- we may
   need to interface with other programs written in other languages or
@@ -29,13 +29,14 @@ description:
   == Tweaking Implementations (Only for advanced users)
 
   Despite the high level interface, users who are willing to go down
-  the abstraction layers, can even tweak the underlying low level
-  primitives used by @raaz@. For example, you might have a custom
-  hardware at your disposal where a particular primitive can be made
-  much more performant, or maybe for the given platform (say in a
-  virtualised environment) you might have a better entropy source than
-  the default. Raaz uses backpack signatures and modules to make it
-  relatively painless to integrate such custom requirements.
+  the abstraction layers, can tweak the underlying low level
+  primitives used by @raaz@. For example, one might have a custom
+  hardware where a particular primitive can be made much more
+  performant, or maybe for the given platform (say in a virtualised
+  environment) you might have a better entropy source than the
+  default. Raaz uses backpack signatures and modules to make such
+  customisation relatively painless to integrate into your
+  application.
 
   To exploit this facility you need to have some idea on the internal
   structure of the @raaz@ package which consists of a few components.
@@ -61,12 +62,12 @@ description:
   @MyEntropy.Implementation@ need to satisfy the same signature
   constraints that the @ChaCha20.Implementation@ and @Entropy@ module
   Broadly speaking, any implementation of a primitive is provided by
-  mixingin a module, henceforth called an implementation module,
+  mixing-in a module, henceforth called an implementation module,
   satisfying the signature @raaz:indef:Implementation@ signature. In
   addition, the implementation module also need to satisfy the
-  additional constraints imposed on it due to the nature of the
-  cryptographic operation that is supported by a primitive. For
-  example, an implementation of `Sha512` should satisfy (besides
+  constraints imposed on it due to the nature of the cryptographic
+  operation that is supported by a primitive. For example, an
+  implementation of `Sha512` should satisfy (besides
   @raaz:indef:Implementation@) the additional constraints imposed by
   the signature @raaz:digest-api:Implementation@. This is because
   `Sha512` is used for message digest and the component
@@ -331,7 +332,9 @@ library utils
 --   code. This module exposes the module `Mac.Implementation` which
 --   can be mixed into the auth-api module to satisfy its
 --   requirement of an `Implementation` module.
-
+--
+-- xchacha20-indef: Implementation of the xchacha20 cipher based on an
+--   underlying implementation of chacha20 and hchacha20 hashing.
 
 library mac-indef
   import: defaults
@@ -342,6 +345,14 @@ library mac-indef
                , indef
                , utils
   exposed-modules: Mac.Implementation
+
+library xchacha20-indef
+  import: defaults
+  hs-source-dirs: indef/chacha20
+  signatures: Implementation
+  build-depends: core
+               , indef
+  exposed-modules: XChaCha20.Implementation
 
 -------- API packages ----------------------------------------------
 --
@@ -497,8 +508,9 @@ library raaz-indef
                , digest-api
                , random-api
                , auth-api
+               , encrypt-api
                , mac-indef
-
+               , xchacha20-indef
   -- :WARNING: The raaz-indef package can be mixed in with custom
   -- implementations. If we do not have the signatures below, it would be possible to mixin
   -- an implementation of Blake2b for an implementation of Sha512 (say).
@@ -512,6 +524,8 @@ library raaz-indef
 
   reexported-modules: Auth.Blake2b
                     , Auth.Blake2s
+                    , Encrypt.ChaCha20
+                    , Encrypt.XChaCha20
                     , Digest.Blake2b
                     , Digest.Blake2s
                     , Digest.Sha256
@@ -526,6 +540,14 @@ library raaz-indef
             requires (Implementation as Sha512.Implementation)
         , digest-api (Interface as Digest.Sha256)
             requires (Implementation as Sha256.Implementation)
+        , encrypt-api (Interface as Encrypt.ChaCha20)
+            requires (Implementation as ChaCha20.Implementation)
+
+        -- XChaCha20 implementation
+        , xchacha20-indef requires (Implementation as ChaCha20.Implementation)
+        , encrypt-api (Interface as Encrypt.XChaCha20)
+            requires (Implementation as XChaCha20.Implementation)
+
         , random-api (Interface as Random, Internal as Random.Internal)
             requires (Implementation as Random.Implementation)
         -- MAC-ing with blake2b
@@ -550,8 +572,11 @@ library
   exposed-modules: Raaz
                  , Raaz.Auth
                  , Raaz.Digest
+                 , Raaz.Encrypt
   reexported-modules: Raaz.Auth.Blake2b
                     , Raaz.Auth.Blake2s
+                    , Raaz.Encrypt.ChaCha20
+                    , Raaz.Encrypt.XChaCha20
                     , Raaz.Digest.Blake2b
                     , Raaz.Digest.Blake2s
                     , Raaz.Digest.Sha512
@@ -563,6 +588,8 @@ library
   autogen-modules: Paths_raaz
   mixins: raaz-indef ( Auth.Blake2b as Raaz.Auth.Blake2b
                      , Auth.Blake2s       as Raaz.Auth.Blake2s
+                     , Encrypt.ChaCha20   as Raaz.Encrypt.ChaCha20
+                     , Encrypt.XChaCha20  as Raaz.Encrypt.XChaCha20
                      , Digest.Blake2b     as Raaz.Digest.Blake2b
                      , Digest.Blake2s     as Raaz.Digest.Blake2s
                      , Digest.Sha512      as Raaz.Digest.Sha512
@@ -573,6 +600,7 @@ library
   other-modules: Paths_raaz
                , Raaz.V1.Auth
                , Raaz.V1.Digest
+               , Raaz.V1.Encrypt
 
 
 ---------------------------- Executables -------------------------------------------------
@@ -650,6 +678,7 @@ test-suite tests
                , test-auth
                , mac-indef
                , implementation
+               , xchacha20-indef
                , raaz
   build-tool-depends: hspec-discover:hspec-discover
   if !os(windows)
@@ -662,6 +691,7 @@ test-suite tests
                , Raaz.Core.Util.ByteStringSpec
                , Raaz.RandomSpec
                , Raaz.Cipher.ChaCha20Spec
+               , Raaz.Cipher.XChaCha20Spec
                , Raaz.Digest.Sha256Spec
                , Raaz.Digest.Sha512Spec
                , Raaz.Digest.Blake2Spec
@@ -692,6 +722,8 @@ test-suite tests
             requires (Implementation as Blake2b.Implementation)
         , test-auth  (Tests.Auth as Blake2b.Auth) requires (Implementation as Blake2b.Mac.Implementation)
 
+        , xchacha20-indef requires (Implementation as ChaCha20.Implementation)
+
 -- Test suits comparing with monocypher.
 test-suite monocypher
   import: test-defaults
@@ -699,11 +731,13 @@ test-suite monocypher
   main-is: Monocypher.hs
   other-modules: Monocypher.Blake2bSpec
                , Monocypher.Sha512Spec
+               , Monocypher.ChaCha20Spec
   build-depends: raaz
                , test-core
   hs-source-dirs: monocypher-2.0.6/tests
   c-sources: monocypher-2.0.6/cbits/monocypher.c
            , monocypher-2.0.6/cbits/optional/sha512.c
+           , monocypher-2.0.6/cbits/encrypt.c
 
   include-dirs: monocypher-2.0.6/cbits/
               , monocypher-2.0.6/cbits/optional

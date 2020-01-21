@@ -1,0 +1,30 @@
+{-# LANGUAGE ConstraintKinds             #-}
+{-# LANGUAGE DataKinds                   #-}
+{-# LANGUAGE KindSignatures              #-}
+{-# LANGUAGE MultiParamTypeClasses       #-}
+{-# LANGUAGE FlexibleInstances           #-}
+{-# LANGUAGE TypeFamilies                #-}
+
+-- | An implementation for chacha20 together with hchacha20 hash
+-- implementation.
+signature Implementation where
+
+
+import Raaz.Core
+import Raaz.Primitive.ChaCha20.Internal
+
+-- | The primitive for which the implementation is given
+
+type Prim = ChaCha20
+data Internals
+instance Memory Internals
+
+instance Initialisable Internals (BLOCKS ChaCha20)
+instance Extractable   Internals (BLOCKS ChaCha20)
+
+-- | The function that sets the internal state for the xchacha
+-- variant.
+xchacha20Setup :: Nounce XChaCha20 -> MT Internals ()
+
+-- | Allows copying key from a Memory cell to internal.
+copyKey :: Dest Internals-> Src (MemoryCell (Key ChaCha20)) -> IO ()
