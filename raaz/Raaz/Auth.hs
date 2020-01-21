@@ -34,9 +34,9 @@ import Raaz.V1.Auth
 --
 -- == Warning
 --
--- Message authentication __does not__ provide secrecy of the message
+-- Message authentication __does not__ provide secrecy of the message.
 --
--- @m@.
+
 
 
 -- $specific-auth$
