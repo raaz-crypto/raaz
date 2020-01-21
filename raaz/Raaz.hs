@@ -5,6 +5,7 @@ module Raaz
          -- $intro$
          module Raaz.Digest
        , module Raaz.Auth
+       , module Raaz.Encrypt
          -- * Library information.
        , version
        ) where
@@ -13,6 +14,7 @@ import qualified Paths_raaz as P
 import           Data.Version  (Version)
 import Raaz.Digest
 import Raaz.Auth
+import Raaz.Encrypt
 
 -- $intro$
 --

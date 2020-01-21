@@ -572,6 +572,7 @@ library
   exposed-modules: Raaz
                  , Raaz.Auth
                  , Raaz.Digest
+                 , Raaz.Encrypt
   reexported-modules: Raaz.Auth.Blake2b
                     , Raaz.Auth.Blake2s
                     , Raaz.Encrypt.ChaCha20
@@ -599,6 +600,7 @@ library
   other-modules: Paths_raaz
                , Raaz.V1.Auth
                , Raaz.V1.Digest
+               , Raaz.V1.Encrypt
 
 
 ---------------------------- Executables -------------------------------------------------
