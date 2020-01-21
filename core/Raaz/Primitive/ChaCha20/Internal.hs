@@ -1,5 +1,4 @@
 {-# LANGUAGE DataKinds                        #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving       #-}
 {-# LANGUAGE FlexibleInstances                #-}
 {-# LANGUAGE MultiParamTypeClasses            #-}
 {-# LANGUAGE TypeFamilies                     #-}
