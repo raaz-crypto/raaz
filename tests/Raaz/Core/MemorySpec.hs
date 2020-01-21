@@ -24,4 +24,4 @@ spec = do describe "store and read" $ do
         storeCopyRead x = do withReaderT fst $ initialise x
                              mem <- ask
                              liftIO $ copyMemory (destination $ snd mem) (source $ fst mem)
-                             withReaderT snd $ extract
+                             withReaderT snd extract
