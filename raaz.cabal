@@ -734,16 +734,16 @@ test-suite monocypher
                , Monocypher.ChaCha20Spec
   build-depends: raaz
                , test-core
-  hs-source-dirs: monocypher-2.0.6/tests
-  c-sources: monocypher-2.0.6/cbits/monocypher.c
-           , monocypher-2.0.6/cbits/optional/sha512.c
-           , monocypher-2.0.6/cbits/encrypt.c
+  hs-source-dirs: monocypher/tests
+  c-sources: monocypher/monocypher-2.0.6/monocypher.c
+           , monocypher/monocypher-2.0.6/optional/sha512.c
+           , monocypher/cbits/encrypt.c
 
-  include-dirs: monocypher-2.0.6/cbits/
-              , monocypher-2.0.6/cbits/optional
+  include-dirs: monocypher/monocypher-2.0.6/
+              , monocypher/monocypher-2.0.6/optional
 
-  includes: monocypher-2.0.6/cbits/optional/sha512.h
-          , monocypher-2.0.6/cbits/monocypher.h
+  includes: monocypher/monocypher-2.0.6/optional/sha512.h
+          , monocypher/monocypher-2.0.6/monocypher.h
   build-tool-depends: hspec-discover:hspec-discover
 
 --------------------------- Benchmarkings ---------------------------------------------
