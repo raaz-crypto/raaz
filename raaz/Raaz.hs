@@ -6,6 +6,7 @@ module Raaz
          module Raaz.Digest
        , module Raaz.Auth
        , module Raaz.Encrypt
+       , module Raaz.Random
          -- * Library information.
        , version
        ) where
@@ -15,6 +16,7 @@ import           Data.Version  (Version)
 import Raaz.Digest
 import Raaz.Auth
 import Raaz.Encrypt
+import Raaz.Random
 
 -- $intro$
 --
