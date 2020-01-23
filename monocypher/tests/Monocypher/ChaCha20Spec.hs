@@ -22,27 +22,20 @@ import qualified Raaz.Encrypt.XChaCha20 as XChaCha20
 import           Tests.Core
 
 foreign import ccall unsafe
-    chacha20  :: Ptr Word8  -- key
-              -> Ptr Word8  -- nounce
-              -> Ptr CChar  -- text
-              -> Int        -- Size
-              -> Ptr Word8  -- cipher text
-              -> IO ()
+      crypto_ietf_chacha20 :: Ptr Word8  -- cipher text
+                           -> Ptr CChar  -- plain text
+                           -> Int        -- Size
+                           -> Ptr Word8  -- key
+                           -> Ptr Word8  -- nounce
+                           -> IO ()
 
 foreign import ccall unsafe
-    xchacha20  :: Ptr Word8  -- key
-               -> Ptr Word8  -- nounce
-               -> Ptr CChar  -- text
-               -> Int        -- Size
-               -> Ptr Word8  -- cipher text
-               -> IO ()
-
--- | Generate a nounce with the top 8-bits that are zeros. This is to
--- mimic the djb variant of nounce.
-nounce64 :: Gen (Nounce ChaCha20)
-nounce64 = do nstr <- BS.pack <$> vector 8
-              let pad = BS.replicate 4 (0 :: Word8)
-              return $ unsafeFromByteString $ BS.concat [pad, nstr]
+    crypto_xchacha20 :: Ptr Word8  -- cipher text
+                     -> Ptr CChar  -- plain text
+                     -> Int        -- Size
+                     -> Ptr Word8  -- key
+                     -> Ptr Word8  -- nounce
+                     -> IO ()
 
 monocypher_chacha20_io :: Key ChaCha20
                        -> Nounce ChaCha20
@@ -58,8 +51,7 @@ monocypher_chacha20_io k n cPtr (pPtr, l)
                                  -- The 64 bit nounce is at an offset
                                  -- of 4-bytes recall that the nounce
                                  -- has its top 4-bytes as zeros.
-                                 chacha20 kptr (plusPtr nptr 4) pPtr l cPtr
-
+                                 crypto_ietf_chacha20 cPtr pPtr l kptr nptr
   where kSize = Storable.sizeOf (undefined :: Key ChaCha20)
         nSize = Storable.sizeOf (undefined :: Nounce ChaCha20)
 
@@ -74,8 +66,7 @@ monocypher_xchacha20_io k n cPtr (pPtr, l)
         allocaBytes nSize $ \ nptr ->
                               do store (castPtr kptr) k
                                  store (castPtr nptr) n
-                                 xchacha20 kptr nptr pPtr l cPtr
-
+                                 crypto_xchacha20 cPtr pPtr l kptr nptr
   where kSize = Storable.sizeOf (undefined :: Key XChaCha20)
         nSize = Storable.sizeOf (undefined :: Nounce XChaCha20)
 
@@ -98,9 +89,7 @@ monocypher_xchacha20_encrypt k n bs = unsafeFromByteString $ unsafeCreate l crea
 
 spec :: Spec
 spec = do prop "monocypher vs raaz - chacha20" $
-            \ k x -> forAll nounce64
-                     $ \ n ->
-                         monocypher_chacha20_encrypt k n x `shouldBe` ChaCha20.encrypt k n x
+            \ k n x ->  monocypher_chacha20_encrypt k n x `shouldBe` ChaCha20.encrypt k n x
 
           prop "monocypher vs raaz - xchacha20" $
             \ k n x -> monocypher_xchacha20_encrypt k n x `shouldBe` XChaCha20.encrypt k n x
