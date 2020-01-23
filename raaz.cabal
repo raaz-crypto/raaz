@@ -735,15 +735,14 @@ test-suite monocypher
   build-depends: raaz
                , test-core
   hs-source-dirs: monocypher/tests
-  c-sources: monocypher/monocypher-2.0.6/monocypher.c
-           , monocypher/monocypher-2.0.6/optional/sha512.c
-           , monocypher/cbits/encrypt.c
+  c-sources: monocypher/monocypher-3.0.0/monocypher.c
+           , monocypher/monocypher-3.0.0/optional/monocypher-ed25519.c
 
-  include-dirs: monocypher/monocypher-2.0.6/
-              , monocypher/monocypher-2.0.6/optional
+  include-dirs: monocypher/monocypher-3.0.0/
+              , monocypher/monocypher-3.0.0/optional
 
-  includes: monocypher/monocypher-2.0.6/optional/sha512.h
-          , monocypher/monocypher-2.0.6/monocypher.h
+  includes: monocypher/monocypher-3.0.0/optional/monocypher-ed25519.h
+          , monocypher/monocypher-3.0.0/monocypher.h
   build-tool-depends: hspec-discover:hspec-discover
 
 --------------------------- Benchmarkings ---------------------------------------------
