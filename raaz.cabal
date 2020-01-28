@@ -333,7 +333,7 @@ library utils
 --   can be mixed into the auth-api module to satisfy its
 --   requirement of an `Implementation` module.
 --
--- xchacha20-indef: Implementation of the xchacha20 cipher based on an
+-- xchacha-indef: Implementation of the xchacha20 cipher based on an
 --   underlying implementation of chacha20 and hchacha20 hashing.
 
 library mac-indef
@@ -346,7 +346,7 @@ library mac-indef
                , utils
   exposed-modules: Mac.Implementation
 
-library xchacha20-indef
+library xchacha-indef
   import: defaults
   hs-source-dirs: indef/chacha20
   signatures: Implementation
@@ -510,7 +510,7 @@ library raaz-indef
                , auth-api
                , encrypt-api
                , mac-indef
-               , xchacha20-indef
+               , xchacha-indef
   -- :WARNING: The raaz-indef package can be mixed in with custom
   -- implementations. If we do not have the signatures below, it would be possible to mixin
   -- an implementation of Blake2b for an implementation of Sha512 (say).
@@ -544,7 +544,7 @@ library raaz-indef
             requires (Implementation as ChaCha20.Implementation)
 
         -- XChaCha20 implementation
-        , xchacha20-indef requires (Implementation as ChaCha20.Implementation)
+        , xchacha-indef requires (Implementation as ChaCha20.Implementation)
         , encrypt-api (Interface as Encrypt.XChaCha20)
             requires (Implementation as XChaCha20.Implementation)
 
@@ -678,7 +678,7 @@ test-suite tests
                , test-auth
                , mac-indef
                , implementation
-               , xchacha20-indef
+               , xchacha-indef
                , raaz
   build-tool-depends: hspec-discover:hspec-discover
   if !os(windows)
@@ -722,7 +722,7 @@ test-suite tests
             requires (Implementation as Blake2b.Implementation)
         , test-auth  (Tests.Auth as Blake2b.Auth) requires (Implementation as Blake2b.Mac.Implementation)
 
-        , xchacha20-indef requires (Implementation as ChaCha20.Implementation)
+        , xchacha-indef requires (Implementation as ChaCha20.Implementation)
 
 -- Test suits comparing with monocypher.
 test-suite monocypher
