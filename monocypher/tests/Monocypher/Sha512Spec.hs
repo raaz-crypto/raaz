@@ -19,18 +19,18 @@ foreign import ccall unsafe
                   -> CSize
                   -> IO ()
 
-blake2bSize :: Int
-blake2bSize = Storable.sizeOf (undefined :: Sha512)
+sha512Size :: Int
+sha512Size = Storable.sizeOf (undefined :: Sha512)
 
-monocypher_blake2b_io :: Ptr Word8 -> CStringLen -> IO ()
-monocypher_blake2b_io hshPtr (ptr, l) = crypto_sha512 hshPtr ptr (toEnum l)
+monocypher_sha512_io :: Ptr Word8 -> CStringLen -> IO ()
+monocypher_sha512_io hshPtr (ptr, l) = crypto_sha512 hshPtr ptr (toEnum l)
 
 
-monocypher_blake2b :: ByteString -> Sha512
-monocypher_blake2b bs = unsafeFromByteString $ unsafeCreate blake2bSize creator
-  where creator ptr = unsafeUseAsCStringLen bs (monocypher_blake2b_io ptr)
+monocypher_sha512 :: ByteString -> Sha512
+monocypher_sha512 bs = unsafeFromByteString $ unsafeCreate sha512Size creator
+  where creator ptr = unsafeUseAsCStringLen bs (monocypher_sha512_io ptr)
 
 spec :: Spec
 spec = prop "monocypher vs raaz sha512" $
        \ x ->
-         monocypher_blake2b x `shouldBe` Sha512.digest x
+         monocypher_sha512 x `shouldBe` Sha512.digest x

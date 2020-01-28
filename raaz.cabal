@@ -338,6 +338,7 @@ library utils
 
 library mac-indef
   import: defaults
+  visibility: public
   hs-source-dirs: indef/keyed/hash
   signatures: Implementation
   build-depends: buffer
@@ -348,6 +349,7 @@ library mac-indef
 
 library xchacha-indef
   import: defaults
+  visibility: public
   hs-source-dirs: indef/chacha20
   signatures: Implementation
   build-depends: core
@@ -364,6 +366,7 @@ library xchacha-indef
 -- API package for message digest.
 library digest-api
   import: defaults
+  visibility: public
   hs-source-dirs: api/digest/
   signatures: Implementation
   build-depends: core
@@ -374,6 +377,7 @@ library digest-api
 -- API package for message authenticator.
 library auth-api
   import: defaults
+  visibility: public
   hs-source-dirs: api/auth
   signatures: Implementation
   build-depends: core
@@ -386,6 +390,7 @@ library auth-api
 -- Entroy signature captures entropy sources.
 library random-api
   import: defaults
+  visibility: public
   hs-source-dirs: api/random
   build-depends: core
                , indef
@@ -400,6 +405,7 @@ library random-api
 -- API package for encryption.
 library encrypt-api
   import: defaults
+  visibility: public
   hs-source-dirs: api/encrypt
   signatures: Implementation
   build-depends: core
@@ -734,16 +740,15 @@ test-suite monocypher
                , Monocypher.ChaCha20Spec
   build-depends: raaz
                , test-core
-  hs-source-dirs: monocypher-2.0.6/tests
-  c-sources: monocypher-2.0.6/cbits/monocypher.c
-           , monocypher-2.0.6/cbits/optional/sha512.c
-           , monocypher-2.0.6/cbits/encrypt.c
+  hs-source-dirs: monocypher/tests
+  c-sources: monocypher/monocypher-3.0.0/monocypher.c
+           , monocypher/monocypher-3.0.0/optional/monocypher-ed25519.c
 
-  include-dirs: monocypher-2.0.6/cbits/
-              , monocypher-2.0.6/cbits/optional
+  include-dirs: monocypher/monocypher-3.0.0/
+              , monocypher/monocypher-3.0.0/optional
 
-  includes: monocypher-2.0.6/cbits/optional/sha512.h
-          , monocypher-2.0.6/cbits/monocypher.h
+  includes: monocypher/monocypher-3.0.0/optional/monocypher-ed25519.h
+          , monocypher/monocypher-3.0.0/monocypher.h
   build-tool-depends: hspec-discover:hspec-discover
 
 --------------------------- Benchmarkings ---------------------------------------------

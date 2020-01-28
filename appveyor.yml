@@ -19,13 +19,16 @@ platform:
   - x64
 
 # platform specific installation.
+# Note that for 32-bit version it seems beyond 8.6.5 there is no release.
+# So pinning it instead of using the latest and greatest.
+
 for:
 -
   matrix: { only: [platform: x86] }
   install: [ choco install -y --x86 --version 8.6.5 ghc ]
 
 - matrix: { only: [platform: x64] }
-  install: [ choco install -y --version 8.6.5 ghc ]
+  install: [ choco install -y ghc ]
 
 clone_folder: "c:\\r"
 skip_branch_with_pr: true # Do not build feature branch with open Pull Requests
