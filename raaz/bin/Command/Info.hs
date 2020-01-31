@@ -5,7 +5,6 @@ import           Options.Applicative
 import           Prelude
 import           Raaz
 import qualified Raaz.Core.CpuSupports as CpuSupports
-import           Raaz.Random          (entropySource, csprgName)
 import qualified Raaz.Auth.Blake2b
 import qualified Raaz.Auth.Blake2s
 import qualified Raaz.Digest.Blake2b
