@@ -4,6 +4,7 @@
 {-# LANGUAGE MultiParamTypeClasses       #-}
 {-# LANGUAGE FlexibleInstances           #-}
 {-# LANGUAGE TypeFamilies                #-}
+{-# LANGUAGE CPP                         #-}
 
 -- | An implementation for chacha20 together with hchacha20 hash
 -- implementation.
@@ -12,6 +13,32 @@ signature Implementation where
 
 import Raaz.Core
 import Raaz.Primitive.ChaCha20.Internal
+
+-- NOTE:
+--
+-- With https://gitlab.haskell.org/ghc/ghc/issues/15138 and
+-- https://gitlab.haskell.org/ghc/ghc/issues/15379 fixed I (ppk) had
+-- expected that one can differ the assignment of Buffer
+-- alignment. While this is indeed the case for other implementations,
+-- for some reason it, does not seem to work for the Mac
+-- implementation, probably because of being an indirect constraint;
+-- Mac.Implementation -> Implementation but then is mixed as
+-- Implementation in the auth case. Therefore, I am setting an
+-- artificially large base number here.
+--
+# if MIN_VERSION_base(100,100,0)
+-- # if MIN_VERSION_base(4,13,0)
+import GHC.TypeLits
+
+-- | The alignment requirements on the buffer.
+data BufferAlignment :: Nat
+instance KnownNat BufferAlignment
+
+# else
+-- | The alignment required for buffer (hack around bug
+-- https://ghc.haskell.org/trac/ghc/ticket/15138)
+type BufferAlignment = 32
+#endif
 
 -- | The primitive for which the implementation is given
 
