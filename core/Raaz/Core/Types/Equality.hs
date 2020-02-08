@@ -291,16 +291,16 @@ instance GM.MVector MVector Result where
   basicUnsafeSlice i n (MV_Result v)            = MV_Result $ GM.basicUnsafeSlice i n v
   basicOverlaps (MV_Result v1) (MV_Result v2)   = GM.basicOverlaps v1 v2
 
-  basicUnsafeRead  (MV_Result v) i              = Result `liftM` GM.basicUnsafeRead v i
+  basicUnsafeRead  (MV_Result v) i              = Result <$> GM.basicUnsafeRead v i
   basicUnsafeWrite (MV_Result v) i (Result x)   = GM.basicUnsafeWrite v i x
 
   basicClear (MV_Result v)                      = GM.basicClear v
   basicSet   (MV_Result v)         (Result x)   = GM.basicSet v x
 
-  basicUnsafeNew n                              = MV_Result `liftM` GM.basicUnsafeNew n
-  basicUnsafeReplicate n     (Result x)         = MV_Result `liftM` GM.basicUnsafeReplicate n x
+  basicUnsafeNew n                              = MV_Result <$> GM.basicUnsafeNew n
+  basicUnsafeReplicate n     (Result x)         = MV_Result <$> GM.basicUnsafeReplicate n x
   basicUnsafeCopy (MV_Result v1) (MV_Result v2) = GM.basicUnsafeCopy v1 v2
-  basicUnsafeGrow (MV_Result v)   n             = MV_Result `liftM` GM.basicUnsafeGrow v n
+  basicUnsafeGrow (MV_Result v)   n             = MV_Result <$> GM.basicUnsafeGrow v n
   basicInitialize (MV_Result v)               = GM.basicInitialize v
 
 
@@ -312,11 +312,11 @@ instance G.Vector Vector Result where
   {-# INLINE basicUnsafeSlice #-}
   {-# INLINE basicUnsafeIndexM #-}
   {-# INLINE elemseq #-}
-  basicUnsafeFreeze (MV_Result v)             = V_Result  `liftM` G.basicUnsafeFreeze v
-  basicUnsafeThaw (V_Result v)                = MV_Result `liftM` G.basicUnsafeThaw v
+  basicUnsafeFreeze (MV_Result v)             = V_Result  <$> G.basicUnsafeFreeze v
+  basicUnsafeThaw (V_Result v)                = MV_Result <$> G.basicUnsafeThaw v
   basicLength (V_Result v)                    = G.basicLength v
   basicUnsafeSlice i n (V_Result v)           = V_Result $ G.basicUnsafeSlice i n v
-  basicUnsafeIndexM (V_Result v) i            = Result   `liftM`  G.basicUnsafeIndexM v i
+  basicUnsafeIndexM (V_Result v) i            = Result   <$>  G.basicUnsafeIndexM v i
 
   basicUnsafeCopy (MV_Result mv) (V_Result v) = G.basicUnsafeCopy mv v
   elemseq _ (Result x)                        = G.elemseq (undefined :: Vector a) x

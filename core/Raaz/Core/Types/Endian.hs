@@ -352,16 +352,16 @@ instance Unbox w => GVM.MVector MVector (LE w) where
   basicUnsafeSlice i n (MV_LE v)        = MV_LE $ GVM.basicUnsafeSlice i n v
   basicOverlaps (MV_LE v1) (MV_LE v2)   = GVM.basicOverlaps v1 v2
 
-  basicUnsafeRead  (MV_LE v) i          = LE `liftM` GVM.basicUnsafeRead v i
+  basicUnsafeRead  (MV_LE v) i          = LE <$> GVM.basicUnsafeRead v i
   basicUnsafeWrite (MV_LE v) i (LE x)   = GVM.basicUnsafeWrite v i x
 
   basicClear (MV_LE v)                  = GVM.basicClear v
   basicSet   (MV_LE v)         (LE x)   = GVM.basicSet v x
 
-  basicUnsafeNew n                      = MV_LE `liftM` GVM.basicUnsafeNew n
-  basicUnsafeReplicate n     (LE x)     = MV_LE `liftM` GVM.basicUnsafeReplicate n x
+  basicUnsafeNew n                      = MV_LE <$> GVM.basicUnsafeNew n
+  basicUnsafeReplicate n     (LE x)     = MV_LE <$> GVM.basicUnsafeReplicate n x
   basicUnsafeCopy (MV_LE v1) (MV_LE v2) = GVM.basicUnsafeCopy v1 v2
-  basicUnsafeGrow (MV_LE v)   n         = MV_LE `liftM` GVM.basicUnsafeGrow v n
+  basicUnsafeGrow (MV_LE v)   n         = MV_LE <$> GVM.basicUnsafeGrow v n
   basicInitialize (MV_LE v)           = GVM.basicInitialize v
 
 instance Unbox w => GV.Vector Vector (LE w) where
@@ -371,11 +371,11 @@ instance Unbox w => GV.Vector Vector (LE w) where
   {-# INLINE basicUnsafeSlice #-}
   {-# INLINE basicUnsafeIndexM #-}
   {-# INLINE elemseq #-}
-  basicUnsafeFreeze (MV_LE v)   = V_LE  `liftM` GV.basicUnsafeFreeze v
-  basicUnsafeThaw (V_LE v)      = MV_LE `liftM` GV.basicUnsafeThaw v
+  basicUnsafeFreeze (MV_LE v)   = V_LE  <$> GV.basicUnsafeFreeze v
+  basicUnsafeThaw (V_LE v)      = MV_LE <$> GV.basicUnsafeThaw v
   basicLength (V_LE v)          = GV.basicLength v
   basicUnsafeSlice i n (V_LE v) = V_LE $ GV.basicUnsafeSlice i n v
-  basicUnsafeIndexM (V_LE v) i  = LE   `liftM`  GV.basicUnsafeIndexM v i
+  basicUnsafeIndexM (V_LE v) i  = LE   <$>  GV.basicUnsafeIndexM v i
 
   basicUnsafeCopy (MV_LE mv) (V_LE v) = GV.basicUnsafeCopy mv v
   elemseq _ (LE x)                    = GV.elemseq (undefined :: Vector a) x
@@ -397,16 +397,16 @@ instance Unbox w => GVM.MVector MVector (BE w) where
   basicUnsafeSlice i n (MV_BE v)        = MV_BE $ GVM.basicUnsafeSlice i n v
   basicOverlaps (MV_BE v1) (MV_BE v2)   = GVM.basicOverlaps v1 v2
 
-  basicUnsafeRead  (MV_BE v) i          = BE `liftM` GVM.basicUnsafeRead v i
+  basicUnsafeRead  (MV_BE v) i          = BE <$> GVM.basicUnsafeRead v i
   basicUnsafeWrite (MV_BE v) i (BE x)   = GVM.basicUnsafeWrite v i x
 
   basicClear (MV_BE v)                  = GVM.basicClear v
   basicSet   (MV_BE v)         (BE x)   = GVM.basicSet v x
 
-  basicUnsafeNew n                      = MV_BE `liftM` GVM.basicUnsafeNew n
-  basicUnsafeReplicate n     (BE x)     = MV_BE `liftM` GVM.basicUnsafeReplicate n x
+  basicUnsafeNew n                      = MV_BE <$> GVM.basicUnsafeNew n
+  basicUnsafeReplicate n     (BE x)     = MV_BE <$> GVM.basicUnsafeReplicate n x
   basicUnsafeCopy (MV_BE v1) (MV_BE v2) = GVM.basicUnsafeCopy v1 v2
-  basicUnsafeGrow (MV_BE v)   n         = MV_BE `liftM` GVM.basicUnsafeGrow v n
+  basicUnsafeGrow (MV_BE v)   n         = MV_BE <$> GVM.basicUnsafeGrow v n
   basicInitialize (MV_BE v)           = GVM.basicInitialize v
 
 
@@ -418,11 +418,11 @@ instance Unbox w => GV.Vector Vector (BE w) where
   {-# INLINE basicUnsafeSlice #-}
   {-# INLINE basicUnsafeIndexM #-}
   {-# INLINE elemseq #-}
-  basicUnsafeFreeze (MV_BE v)   = V_BE  `liftM` GV.basicUnsafeFreeze v
-  basicUnsafeThaw (V_BE v)      = MV_BE `liftM` GV.basicUnsafeThaw v
+  basicUnsafeFreeze (MV_BE v)   = V_BE  <$> GV.basicUnsafeFreeze v
+  basicUnsafeThaw (V_BE v)      = MV_BE <$> GV.basicUnsafeThaw v
   basicLength (V_BE v)          = GV.basicLength v
   basicUnsafeSlice i n (V_BE v) = V_BE $ GV.basicUnsafeSlice i n v
-  basicUnsafeIndexM (V_BE v) i  = BE   `liftM`  GV.basicUnsafeIndexM v i
+  basicUnsafeIndexM (V_BE v) i  = BE   <$>  GV.basicUnsafeIndexM v i
 
   basicUnsafeCopy (MV_BE mv) (V_BE v) = GV.basicUnsafeCopy mv v
   elemseq _ (BE x)                    = GV.elemseq (undefined :: Vector a) x

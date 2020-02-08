@@ -302,16 +302,16 @@ instance Unbox w => GVM.MVector MVector (BYTES w) where
   basicUnsafeSlice i n (MV_BYTES v)           = MV_BYTES $ GVM.basicUnsafeSlice i n v
   basicOverlaps (MV_BYTES v1) (MV_BYTES v2)   = GVM.basicOverlaps v1 v2
 
-  basicUnsafeRead  (MV_BYTES v) i             = BYTES `liftM` GVM.basicUnsafeRead v i
+  basicUnsafeRead  (MV_BYTES v) i             = BYTES <$> GVM.basicUnsafeRead v i
   basicUnsafeWrite (MV_BYTES v) i (BYTES x)   = GVM.basicUnsafeWrite v i x
 
   basicClear (MV_BYTES v)                     = GVM.basicClear v
   basicSet   (MV_BYTES v)         (BYTES x)   = GVM.basicSet v x
 
-  basicUnsafeNew n                            = MV_BYTES `liftM` GVM.basicUnsafeNew n
-  basicUnsafeReplicate n     (BYTES x)        = MV_BYTES `liftM` GVM.basicUnsafeReplicate n x
+  basicUnsafeNew n                            = MV_BYTES <$> GVM.basicUnsafeNew n
+  basicUnsafeReplicate n     (BYTES x)        = MV_BYTES <$> GVM.basicUnsafeReplicate n x
   basicUnsafeCopy (MV_BYTES v1) (MV_BYTES v2) = GVM.basicUnsafeCopy v1 v2
-  basicUnsafeGrow (MV_BYTES v)   n            = MV_BYTES `liftM` GVM.basicUnsafeGrow v n
+  basicUnsafeGrow (MV_BYTES v)   n            = MV_BYTES <$> GVM.basicUnsafeGrow v n
   basicInitialize (MV_BYTES v)                = GVM.basicInitialize v
 
 
@@ -323,11 +323,11 @@ instance Unbox w => GV.Vector Vector (BYTES w) where
   {-# INLINE basicUnsafeSlice #-}
   {-# INLINE basicUnsafeIndexM #-}
   {-# INLINE elemseq #-}
-  basicUnsafeFreeze (MV_BYTES v)            = V_BYTES  `liftM` GV.basicUnsafeFreeze v
-  basicUnsafeThaw (V_BYTES v)               = MV_BYTES `liftM` GV.basicUnsafeThaw v
+  basicUnsafeFreeze (MV_BYTES v)            = V_BYTES  <$> GV.basicUnsafeFreeze v
+  basicUnsafeThaw (V_BYTES v)               = MV_BYTES <$> GV.basicUnsafeThaw v
   basicLength (V_BYTES v)                   = GV.basicLength v
   basicUnsafeSlice i n (V_BYTES v)          = V_BYTES $ GV.basicUnsafeSlice i n v
-  basicUnsafeIndexM (V_BYTES v) i           = BYTES   `liftM`  GV.basicUnsafeIndexM v i
+  basicUnsafeIndexM (V_BYTES v) i           = BYTES   <$>  GV.basicUnsafeIndexM v i
 
   basicUnsafeCopy (MV_BYTES mv) (V_BYTES v) = GV.basicUnsafeCopy mv v
   elemseq _ (BYTES x)                       = GV.elemseq (undefined :: Vector a) x
