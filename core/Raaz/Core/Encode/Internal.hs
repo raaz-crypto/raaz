@@ -47,6 +47,20 @@ import Raaz.Core.Util.ByteString(length, withByteString)
 -- instance of `Encodable` because encoding of say `Word32` without
 -- specifying whether the endianness is meaningless.
 --
+--
+-- Laws for encoding
+-- =================
+--
+-- Note that not all byte strings can be valid encodings and
+-- `fromByteString` might fail and return `Nothing` on certain
+-- inputs. However, we require the minimum guarantee that
+-- `fromByteString` for actual encodings of elements, i.e. we require
+-- the instances to satisfy the law.
+--
+-- > fromByteString . toByteString = Just
+--
+-- TODO: Write test cases for encoding laws.
+
 class Encodable a where
   -- | Convert stuff to bytestring
   toByteString          :: a           -> ByteString
