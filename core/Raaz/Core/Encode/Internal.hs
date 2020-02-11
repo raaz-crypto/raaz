@@ -89,6 +89,7 @@ instance Encodable (LE Word32)
 instance Encodable (LE Word64)
 instance Encodable (BE Word32)
 instance Encodable (BE Word64)
+instance Encodable ()
 
 instance Encodable ByteString where
   toByteString         = id
