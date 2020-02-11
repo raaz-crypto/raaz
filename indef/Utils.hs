@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE DataKinds        #-}
 {-# LANGUAGE MonoLocalBinds   #-}
+{-# LANGUAGE CPP              #-}
 module Utils
        ( processBuffer
        , processByteSource

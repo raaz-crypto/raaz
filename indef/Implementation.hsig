@@ -4,24 +4,23 @@
 {-# LANGUAGE MultiParamTypeClasses       #-}
 {-# LANGUAGE FlexibleInstances           #-}
 {-# LANGUAGE TypeFamilies                #-}
+{-# LANGUAGE CPP                         #-}
+
 
 -- | An implementation of a cryptographic primitive is a method to
 -- process data that is multiples of its block size. Fast
 -- implementations involve other details like the alignment
 -- restriction on the input buffer and all that. We package all this
 -- in the following signature.
-signature Implementation
-          ( Prim
-          , name
-          , description
-          , Internals
-          , BufferAlignment
-          , processBlocks
-          , processLast
-          , additionalBlocks
-          ) where
+signature Implementation where
 
 import Raaz.Core
+
+# if MIN_VERSION_base(4,13,0)
+
+import GHC.TypeLits
+
+# endif
 
 -- | The primitive for which the implementation is given
 data Prim
@@ -37,16 +36,17 @@ name :: String
 -- | Description of the implementation.
 description :: String
 
--- -- | The alignment requirements on the buffer.
--- data BufferAlignment :: Nat
--- instance KnownNat BufferAlignment
+# if MIN_VERSION_base(4,13,0)
 
--- | The buffer type for the primitve
+-- | The alignment requirements on the buffer.
+data BufferAlignment :: Nat
+instance KnownNat BufferAlignment
 
-
+# else
 -- | The alignment required for buffer (hack around bug
 -- https://ghc.haskell.org/trac/ghc/ticket/15138)
 type BufferAlignment = 32
+#endif
 
 -- | The additional space required in the buffer for processing the data.
 additionalBlocks :: BLOCKS Prim
