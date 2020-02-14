@@ -413,6 +413,23 @@ library encrypt-api
                , utils
   exposed-modules: Interface
 
+-- API package for aead implementation.
+library aead-api
+  import: defaults
+  visibility: public
+  hs-source-dirs: api/aead
+  build-depends: core
+               , indef
+               , utils
+               , buffer
+  signatures: Cipher.Implementation
+            , Auth.Implementation
+  exposed-modules: Interface
+  mixins: indef requires (Implementation as Cipher.Implementation)
+        , indef requires (Implementation as Auth.Implementation)
+        , utils (Utils as Cipher.Utils) requires (Implementation as Cipher.Implementation)
+        , utils (Utils as Auth.Utils)   requires (Implementation as Auth.Implementation)
+        , buffer (Buffer as Cipher.Buffer) requires (Implementation as Cipher.Implementation)
 --------------------  The implementation modules ----------------------------------
 --
 -- This package exposes all the implementations provided by the raaz
