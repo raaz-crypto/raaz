@@ -23,35 +23,38 @@ import Raaz.Random
 -- Raaz is a cryptographic library that provides an easy to use, type
 -- safe interface for cryptographic applications. It is very easy for
 -- applications to get its cryptography wrong and experience has shown
--- that this is often due to the trick choices that needs to be made
--- for the cryptographic primitives (e.g. RC4 for encryption md5 for
--- message digest). This is also compounded by the fact that often
--- sound choices of the primitives can be compromised due to ignoring
--- certain implementation issues like nounce reuse.  For these
--- reasons, modern libraries tend to give abstract interfaces where
--- the discussion is centred on the underlying operations like
--- encryption, message digest etc rather than the specific primitive
--- used for achieving the goal. The interface exposed from this module
--- is of such a high level nature with the library taking the
--- responsibility of selecting the sane primitives and their correct
--- usages for the user. In addition, raaz makes use of the type system
--- of Haskell to give additional guarantees:
+-- that this is often due to the choices of cryptographic primitives
+-- that is to be made by the (often non-expert) user. Even correct
+-- choices of the primitives can leave the user vulnerable if certain
+-- implementation issues like nounce reuse has not been taken care of.
+-- For these reasons, modern libraries tend to give abstract
+-- interfaces where the discussion is centred on the desired
+-- cryptographic operations like encryption, message digest etc rather
+-- than the specific primitive used for achieving the goal. The
+-- interface exposed from this module is of such a high level nature
+-- with the library taking the responsibility of selecting the sane
+-- primitives and their correct usages for the user. In addition, raaz
+-- makes use of the type system of Haskell to give additional
+-- guarantees:
 --
 -- [Type safety:] Instead of representing cryptographic data as plain
 -- strings, raaz uses distinct types for semantically distinct
 -- cryptographic data. If the user inadvertently compares a
 -- 'Raaz.Sha512.Sha512' digest with a `Raaz.Blake2b.Blake2b` digest,
--- the compiler will flag this as an error.
+-- the compiler will flag this as an error. Compare this with the
+-- situation in many libraries where both these are just 512-bit
+-- quantities.
 --
 -- [Timing safe equality:] All cryptographically sensitive data have
 -- timing safe equality operation `==`. The default comparison is
--- therefore safe. In other libraries one often have to use specific
--- functions to make timing safe comparisons which novice users tend
--- to overlook.
+-- therefore safe and we encourage its use. Compare this with many
+-- other libraries where one has to remember to use specific functions
+-- sanitised timing safe comparisons.
 --
--- [Convenient Encoding:] The Show instance of most types give a
--- base16 encoding which is the convention in most cryptographic
--- literature.  More generally these types are instances of the
+-- [Convenient Encoding:] The `Show` instance of most types like
+-- message digest or the authenticator tag give a base16 encoding
+-- which is the convention in most cryptographic literature.  More
+-- generally these types are instances of the
 -- `Raaz.Core.Encode.Encodable` class and hence can be encoded to any
 -- encoding `Raaz.Core.Encode.Format` supported by Raaz.
 --
@@ -63,13 +66,14 @@ import Raaz.Random
 -- which accepts the base16 encoding of the value. While `show`
 -- function only generate characters [0-9a-f], the
 -- `Data.String.IsString` instances are liberal. Users can use
--- arbitrary combination of lower and upper case hex digest and can
--- also use the spaces and ':' (the colon character) as separators
--- (which are ignored).
+-- arbitrary combination of lower or upper case hex digit. For
+-- readability in source code, long hex strings can be interspersed
+-- with the ' ' (space) and ':' (colon) which the `IsString` instance
+-- ignores. For example, the strings "abc:def" and "Abc dE:f" all give
+-- the same result as string "abcdef".
 --
--- Therefore, unless there is specific interoperability requirements,
--- we encourage the user to just import this top level module and use
--- the high level interface.
+-- With the above points in mind, the recommended approach to use
+-- raaz is by import this top level module.
 --
 -- > module Main where
 -- >

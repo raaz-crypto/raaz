@@ -15,8 +15,8 @@ description:
   like the selection of primitives or entropy sources, this top level
   module only talks about the desired cryptographic operation (whether
   it is message digest or message encryption etc). A standalone
-  application that needs cryptography should should probably stick to
-  using this top level interface interface.
+  application that needs cryptography should stick to using this top
+  level interface.
 
   Sometimes the selection of primitives is not in our hands --- we may
   need to interface with other programs written in other languages or
@@ -117,7 +117,7 @@ description:
   == Tweaking randomness.
 
   There are two components of the CSPRG exposed by @raaz@ --- an
-  entropy source, and a seed stretcher. The entroy source needs to
+  entropy source, and a seed stretcher. The entropy source needs to
   satisfy the signature @raaz:random-api:Entropy@ where as the seed
   stretcher needs to satisfy the signature
   @raaz:random-api:Implementation@ which adds some member function to
