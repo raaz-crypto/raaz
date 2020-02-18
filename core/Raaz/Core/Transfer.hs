@@ -12,6 +12,7 @@ module Raaz.Core.Transfer
        , consume, consumeStorable, consumeParse
        , readBytes, readInto
        , WriteM, WriteIO
+       , writeEncodable
        , write, writeStorable, writeVector, writeStorableVector
        , writeFrom, writeBytes
        , padWrite, prependWrite, glueWrites
@@ -207,6 +208,11 @@ writeStorable a = makeTransfer (sizeOf $ pure a) pokeIt
 -- serialize data for the consumption of the outside world.
 write :: (MonadIO m, EndianStore a) => a -> WriteM m
 write a = makeTransfer (sizeOf $ pure a) $ liftIO . flip (store . castPtr) a
+
+
+-- | Write any encodable elements
+writeEncodable :: (MonadIO m, Encodable a) => a -> WriteM m
+writeEncodable = writeByteString . toByteString
 
 -- | Write many elements from the given buffer
 writeFrom :: (MonadIO m, EndianStore a) => Int -> Src (Ptr a) -> WriteM m
