@@ -610,13 +610,13 @@ library
                  , Raaz.Auth
                  , Raaz.Digest
                  , Raaz.Encrypt
-                 , Raaz.EncryptAuth
+                 , Raaz.AuthEncrypt
   reexported-modules: Raaz.Auth.Blake2b
                     , Raaz.Auth.Blake2s
+                    , Raaz.AuthEncrypt.ChaCha20Poly1305
+                    , Raaz.AuthEncrypt.XChaCha20Poly1305
                     , Raaz.Encrypt.ChaCha20
                     , Raaz.Encrypt.XChaCha20
-                    , Raaz.EncryptAuth.ChaCha20Poly1305
-                    , Raaz.EncryptAuth.XChaCha20Poly1305
                     , Raaz.Digest.Blake2b
                     , Raaz.Digest.Blake2s
                     , Raaz.Digest.Sha512
@@ -628,10 +628,10 @@ library
   autogen-modules: Paths_raaz
   mixins: raaz-indef ( Auth.Blake2b as Raaz.Auth.Blake2b
                      , Auth.Blake2s       as Raaz.Auth.Blake2s
+                     , AuthEncrypt.ChaCha20Poly1305 as Raaz.AuthEncrypt.ChaCha20Poly1305
+                     , AuthEncrypt.XChaCha20Poly1305 as Raaz.AuthEncrypt.XChaCha20Poly1305
                      , Encrypt.ChaCha20   as Raaz.Encrypt.ChaCha20
                      , Encrypt.XChaCha20  as Raaz.Encrypt.XChaCha20
-                     , EncryptAuth.ChaCha20Poly1305 as Raaz.EncryptAuth.ChaCha20Poly1305
-                     , EncryptAuth.XChaCha20Poly1305 as Raaz.EncryptAuth.XChaCha20Poly1305
                      , Digest.Blake2b     as Raaz.Digest.Blake2b
                      , Digest.Blake2s     as Raaz.Digest.Blake2s
                      , Digest.Sha512      as Raaz.Digest.Sha512
@@ -643,7 +643,7 @@ library
                , Raaz.V1.Auth
                , Raaz.V1.Digest
                , Raaz.V1.Encrypt
-               , Raaz.V1.EncryptAuth
+               , Raaz.V1.AuthEncrypt
 
 
 ---------------------------- Executables -------------------------------------------------

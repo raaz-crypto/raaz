@@ -5,6 +5,7 @@ module Raaz
          -- $intro$
          module Raaz.Digest
        , module Raaz.Auth
+       , module Raaz.AuthEncrypt
        , module Raaz.Encrypt
        , module Raaz.Random
          -- * Library information.
@@ -15,6 +16,7 @@ import qualified Paths_raaz as P
 import           Data.Version  (Version)
 import Raaz.Digest
 import Raaz.Auth
+import Raaz.AuthEncrypt
 import Raaz.Encrypt
 import Raaz.Random
 
