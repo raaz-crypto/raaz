@@ -534,6 +534,7 @@ library raaz-indef
                , encrypt-api
                , mac-indef
                , xchacha-indef
+               , aead-api
   -- :WARNING: The raaz-indef package can be mixed in with custom
   -- implementations. If we do not have the signatures below, it would be possible to mixin
   -- an implementation of Blake2b for an implementation of Sha512 (say).
@@ -549,6 +550,8 @@ library raaz-indef
                     , Auth.Blake2s
                     , Encrypt.ChaCha20
                     , Encrypt.XChaCha20
+                    , AuthEncrypt.ChaCha20Poly1305
+                    , AuthEncrypt.XChaCha20Poly1305
                     , Digest.Blake2b
                     , Digest.Blake2s
                     , Digest.Sha256
@@ -565,6 +568,17 @@ library raaz-indef
             requires (Implementation as Sha256.Implementation)
         , encrypt-api (Interface as Encrypt.ChaCha20)
             requires (Implementation as ChaCha20.Implementation)
+
+        -- encrypted-authenticated interface
+        , aead-api (Interface as AuthEncrypt.ChaCha20Poly1305)
+            requires ( Cipher.Implementation as ChaCha20.Implementation
+                     , Auth.Implementation as Poly1305.Implementation
+          )
+
+        , aead-api (Interface as AuthEncrypt.XChaCha20Poly1305)
+            requires ( Cipher.Implementation as XChaCha20.Implementation
+                     , Auth.Implementation as Poly1305.Implementation
+                     )
 
         -- XChaCha20 implementation
         , xchacha-indef requires (Implementation as ChaCha20.Implementation)
@@ -596,10 +610,13 @@ library
                  , Raaz.Auth
                  , Raaz.Digest
                  , Raaz.Encrypt
+                 , Raaz.EncryptAuth
   reexported-modules: Raaz.Auth.Blake2b
                     , Raaz.Auth.Blake2s
                     , Raaz.Encrypt.ChaCha20
                     , Raaz.Encrypt.XChaCha20
+                    , Raaz.EncryptAuth.ChaCha20Poly1305
+                    , Raaz.EncryptAuth.XChaCha20Poly1305
                     , Raaz.Digest.Blake2b
                     , Raaz.Digest.Blake2s
                     , Raaz.Digest.Sha512
@@ -613,6 +630,8 @@ library
                      , Auth.Blake2s       as Raaz.Auth.Blake2s
                      , Encrypt.ChaCha20   as Raaz.Encrypt.ChaCha20
                      , Encrypt.XChaCha20  as Raaz.Encrypt.XChaCha20
+                     , EncryptAuth.ChaCha20Poly1305 as Raaz.EncryptAuth.ChaCha20Poly1305
+                     , EncryptAuth.XChaCha20Poly1305 as Raaz.EncryptAuth.XChaCha20Poly1305
                      , Digest.Blake2b     as Raaz.Digest.Blake2b
                      , Digest.Blake2s     as Raaz.Digest.Blake2s
                      , Digest.Sha512      as Raaz.Digest.Sha512
@@ -624,6 +643,7 @@ library
                , Raaz.V1.Auth
                , Raaz.V1.Digest
                , Raaz.V1.Encrypt
+               , Raaz.V1.EncryptAuth
 
 
 ---------------------------- Executables -------------------------------------------------
