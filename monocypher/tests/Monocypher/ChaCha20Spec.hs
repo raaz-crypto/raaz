@@ -1,4 +1,5 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
+{-# LANGUAGE ScopedTypeVariables      #-}
 -- | These tests compare the implementation of chacha20 of raaz and
 -- that of monocypher. The only challenge here is to adjust the nounce
 -- as raaz implements the ieft variants where as monocypher implements
@@ -19,6 +20,9 @@ import           Foreign.Marshal.Alloc
 import           Raaz.Core
 import qualified Raaz.Encrypt.ChaCha20  as ChaCha20
 import qualified Raaz.Encrypt.XChaCha20 as XChaCha20
+import qualified Raaz.AuthEncrypt.ChaCha20Poly1305  as CP
+import qualified Raaz.AuthEncrypt.XChaCha20Poly1305 as XP
+
 import           Tests.Core
 
 foreign import ccall unsafe
@@ -37,6 +41,46 @@ foreign import ccall unsafe
                      -> Ptr Word8  -- nounce
                      -> IO ()
 
+foreign import ccall unsafe
+    crypto_lock :: Ptr Word8  -- mac
+                -> Ptr Word8  -- cipher_text,
+                -> Ptr Word8  -- key
+                -> Ptr Word8  -- nonce
+                -> Ptr CChar  -- plain_text
+                -> Int        -- text_size
+                -> IO ()
+
+foreign import ccall unsafe
+    crypto_unlock :: Ptr Word8 -- plain
+                  -> Ptr Word8 -- key
+                  -> Ptr Word8 -- nounce
+                  -> Ptr Word8 -- mac
+                  -> Ptr Word8 -- cipher
+                  -> Int       -- size
+                  -> IO Int
+
+foreign import ccall unsafe
+   crypto_lock_aead :: Ptr Word8 -- mac
+                    -> Ptr Word8 -- cipher text
+                    -> Ptr Word8 -- key
+                    -> Ptr Word8 -- nonce
+                    -> Ptr Word8 -- AAD
+                    -> Int       -- aad size
+                    -> Ptr CChar -- plain text
+                    -> Int       -- text size
+                    -> IO ()
+
+foreign import ccall unsafe
+   crypto_unlock_aead :: Ptr Word8 -- plain_text,
+                      -> Ptr Word8 -- key
+                      -> Ptr Word8 -- nounce
+                      -> Ptr Word8 -- mac
+                      -> Ptr Word8 -- aad
+                      -> Int       -- aad size
+                      -> Ptr Word8 -- cipher text
+                      -> Int       -- cipher text size
+                      -> IO Int
+----------------------------------------------------------------------------------
 monocypher_chacha20_io :: Key ChaCha20
                        -> Nounce ChaCha20
                        -> Ptr Word8
@@ -93,3 +137,18 @@ spec = do prop "monocypher vs raaz - chacha20" $
 
           prop "monocypher vs raaz - xchacha20" $
             \ k n x -> monocypher_xchacha20_encrypt k n x `shouldBe` XChaCha20.encrypt k n x
+
+          prop "raaz chacha20poly1305 - lock/unlock are inverse" $
+            \ k n (x :: ByteString) -> CP.unlock k n (CP.lock k n x) `shouldBe` Just x
+
+          prop "raaz xchacha20poly1305 - lock/unlock are inverse" $
+            \ k n (x :: ByteString) -> XP.unlock k n (XP.lock k n x) `shouldBe` Just x
+
+
+          prop "raaz chacha20poly1305 AEAD - lock/unlock are inverse" $
+            \ k n (aad :: ByteString) (x :: ByteString)
+            -> CP.unlockWith aad k n (CP.lockWith aad k n x) `shouldBe` Just x
+
+          prop "raaz xchacha20poly1305 AEAD - lock/unlock are inverse" $
+            \ k n (aad :: ByteString) (x :: ByteString)
+            -> XP.unlockWith aad  k n (XP.lockWith aad k n x) `shouldBe` Just x
