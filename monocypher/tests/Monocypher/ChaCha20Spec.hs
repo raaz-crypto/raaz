@@ -1,5 +1,6 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
 {-# LANGUAGE ScopedTypeVariables      #-}
+{-# LANGUAGE FlexibleContexts         #-}
 -- | These tests compare the implementation of chacha20 of raaz and
 -- that of monocypher. The only challenge here is to adjust the nounce
 -- as raaz implements the ieft variants where as monocypher implements
@@ -81,23 +82,30 @@ foreign import ccall unsafe
                       -> Int       -- cipher text size
                       -> IO Int
 ----------------------------------------------------------------------------------
+
+withKN :: (EndianStore (Key prim), EndianStore (Nounce prim))
+       => Key prim
+       -> Nounce prim
+       -> (Ptr Word8 -> Ptr Word8 -> IO a)
+       -> IO a
+withKN k n action
+  = allocaBytes kSize
+    $ \ kptr ->
+        allocaBytes nSize
+        $ \ nptr ->
+            do store (castPtr kptr) k
+               store (castPtr nptr) n
+               action kptr nptr
+  where kSize = Storable.sizeOf (undefined :: Key ChaCha20)
+        nSize = Storable.sizeOf (undefined :: Nounce ChaCha20)
+
 monocypher_chacha20_io :: Key ChaCha20
                        -> Nounce ChaCha20
                        -> Ptr Word8
                        -> CStringLen     -- plain text
                        -> IO ()
 monocypher_chacha20_io k n cPtr (pPtr, l)
-  = allocaBytes kSize
-    $ \ kptr ->
-        allocaBytes nSize $ \ nptr ->
-                              do store (castPtr kptr) k
-                                 store (castPtr nptr) n
-                                 -- The 64 bit nounce is at an offset
-                                 -- of 4-bytes recall that the nounce
-                                 -- has its top 4-bytes as zeros.
-                                 crypto_ietf_chacha20 cPtr pPtr l kptr nptr
-  where kSize = Storable.sizeOf (undefined :: Key ChaCha20)
-        nSize = Storable.sizeOf (undefined :: Nounce ChaCha20)
+  = withKN k n $ crypto_ietf_chacha20 cPtr pPtr l
 
 monocypher_xchacha20_io :: Key XChaCha20
                         -> Nounce XChaCha20
@@ -105,14 +113,7 @@ monocypher_xchacha20_io :: Key XChaCha20
                         -> CStringLen     -- plain text
                         -> IO ()
 monocypher_xchacha20_io k n cPtr (pPtr, l)
-  = allocaBytes kSize
-    $ \ kptr ->
-        allocaBytes nSize $ \ nptr ->
-                              do store (castPtr kptr) k
-                                 store (castPtr nptr) n
-                                 crypto_xchacha20 cPtr pPtr l kptr nptr
-  where kSize = Storable.sizeOf (undefined :: Key XChaCha20)
-        nSize = Storable.sizeOf (undefined :: Nounce XChaCha20)
+  = withKN k n $ crypto_xchacha20 cPtr pPtr l
 
 monocypher_chacha20_encrypt :: Key ChaCha20
                             -> Nounce ChaCha20
