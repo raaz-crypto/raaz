@@ -9,11 +9,16 @@ module Raaz.V1.AuthEncrypt
   ( lock, unlock
   , lockWith, unlockWith
   , AEAD, Locked
+  , unsafeAEAD
+  , unsafeToCipherText
+  , unsafeToAuthTag
   ) where
 
-import Raaz.Core
+import           Data.ByteString
+
+import           Raaz.Core
 import qualified Raaz.AuthEncrypt.XChaCha20Poly1305 as AE
-import Raaz.AuthEncrypt.XChaCha20Poly1305 (AEAD, Locked, Cipher)
+import           Raaz.AuthEncrypt.XChaCha20Poly1305 (AEAD, Locked, Cipher)
 
 -- | This function takes the plain text and the additional data, and
 -- constructs the AEAD token. A peer who has the right @(key, nounce)@
@@ -67,3 +72,21 @@ unlock :: Encodable plain
        -> Locked plain    -- ^ Locked object that needs unlocking
        -> Maybe plain
 unlock = AE.unlock
+
+
+-- | Get the cipher text part of the Locked/AEAD packet.
+unsafeToCipherText :: AEAD plain aad
+                   -> ByteString
+unsafeToCipherText = AE.unsafeToCipherText
+
+-- | Get the authentication token of the Locked/AEAD packet.
+unsafeToAuthTag :: AEAD plain aad -> AE.Auth
+unsafeToAuthTag = AE.unsafeToAuthTag
+
+
+-- | Construct an AEAD packet out of the authentication token and the
+-- cipher text.
+unsafeAEAD :: AE.Auth
+           -> ByteString
+           -> AEAD plain aad
+unsafeAEAD = AE.unsafeAEAD

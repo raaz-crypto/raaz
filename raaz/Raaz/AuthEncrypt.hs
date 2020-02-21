@@ -13,6 +13,10 @@ module Raaz.AuthEncrypt ( -- ** Message locking
 
                         -- ** Specific Authenticated encryptions
                         -- $specific$
+
+                        -- ** Constructing and Taking apart.
+                        -- $takingapart$
+                        , unsafeAEAD, unsafeToCipherText, unsafeToAuthTag
                         ) where
 
 import Raaz.V1.AuthEncrypt
@@ -83,3 +87,17 @@ import Raaz.V1.AuthEncrypt
 -- nounces can collide and compromise the security. It is however,
 -- slightly faster and is safe to use when there is frequent key
 -- resets as in the case of network protocols.
+
+
+-- $takingapart$
+--
+-- Values belonging to the `Locked` and `AEAD` types are meant to be
+-- used as opaque objects. While unlocking these types, no decryption
+-- till the tag is verified which helps in quickly rejecting fake
+-- packets without wasting time. This improves the security and
+-- resilience to DoS attacks. Taking apart the cipher text and the
+-- token can lead to incorrect handling and hence is __not__
+-- recommended in general. Nonetheless, when implementing protocols
+-- that use AEAD, we might want to build and take apart these
+-- types. We give now give functions for these unsafe operations on
+-- AEAD packets.

@@ -6,7 +6,7 @@
 module Interface( -- * Locking and unlocking stuff
                   Locked, lock, unlock
                   -- ** Additional data.
-                , AEAD, cipherText, authenticator
+                , AEAD, unsafeToCipherText, unsafeToAuthTag, unsafeAEAD
                 , lockWith, unlockWith
                 , AEADMem, Cipher, Auth
                 ) where
@@ -28,9 +28,17 @@ import qualified Cipher.Buffer as CB
 type Cipher = CI.Prim
 type Auth   = AI.Prim
 
-data AEAD plain aad = AEAD { cipherText    :: ByteString
-                           , authenticator :: Auth
+data AEAD plain aad = AEAD { unsafeToAuthTag     :: Auth
+                           , unsafeToCipherText  :: ByteString
                            }
+
+-- | Create an AEAD packet from the underlying authentication tag and
+-- cipher text.
+unsafeAEAD :: Auth        -- ^ the authentication tag
+           -> ByteString  -- ^ the cipher text
+           -> AEAD plain aad
+unsafeAEAD = AEAD
+
 
 type Locked plain   = AEAD plain ()
 
@@ -95,7 +103,7 @@ verify :: Encodable aad
        => aad
        -> AEAD plain aad
        -> MT AEADMem Bool
-verify aad aead = (==) (authenticator aead) <$> computeAuth aad (cipherText aead)
+verify aad aead = (==) (unsafeToAuthTag aead) <$> computeAuth aad (unsafeToCipherText aead)
 
 -- | Encrypt a plain text object.
 encrypt :: Encodable plain
@@ -110,7 +118,7 @@ encrypt = transform . toByteString
 decrypt :: Encodable plain
         => AEAD plain tag
         -> MT AEADMem (Maybe plain)
-decrypt = fmap fromByteString . transform . cipherText
+decrypt = fmap fromByteString . transform . unsafeToCipherText
 
 -- | Compute the padded write of an encodable element and its length.
 padAndLen :: Encodable a => a -> (WriteIO, LE Word64)
@@ -133,7 +141,7 @@ lockWith :: (Encodable plain, Encodable aad)
 lockWith aad k n plain = unsafePerformIO $ insecurely $ do
   initialise (k,n)
   cText <- encrypt plain
-  AEAD cText <$> computeAuth aad cText
+  flip AEAD cText <$> computeAuth aad cText
 
 -- | Unlock an encrypted authenticated version of the data given the
 -- additional data, key, and nounce. An attempt to unlock the element
