@@ -126,6 +126,11 @@ class Storable w => EndianStore w where
                -> IO ()
 
 
+instance EndianStore () where
+  store            = poke
+  load             = peek
+  adjustEndian _ _ = return ()
+
 instance EndianStore Word8 where
   store                  = poke
   load                   = peek

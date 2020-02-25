@@ -6,12 +6,13 @@ module Buffer
        ( allocBufferFor
        , BufferPtr
        , Buffer, getBufferPointer, bufferSize
+       , clearBuffer
        ) where
 
+import Control.Monad.Reader
 import GHC.TypeLits
 
 import Raaz.Core
-
 import Implementation
 
 -- | The pointer type associated with the buffer used by the
@@ -61,3 +62,10 @@ allocBufferFor :: MonadIOCont m
 
 allocBufferFor blks = allocaAligned totalSize
   where totalSize = blks `mappend` additionalBlocks
+
+-- | Set the contents of the buffer to zeros.
+clearBuffer :: KnownNat n => MT (Buffer n) ()
+clearBuffer = do buf <- ask
+                 let sz   = bufferSize $ pure buf
+                     bptr = getBufferPointer buf
+                   in memset (forgetAlignment bptr) 0 sz

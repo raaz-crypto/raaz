@@ -1,0 +1,23 @@
+{-# LANGUAGE ConstraintKinds             #-}
+{-# LANGUAGE MultiParamTypeClasses       #-}
+{-# LANGUAGE FlexibleInstances           #-}
+{-# LANGUAGE FlexibleContexts            #-}
+{-# LANGUAGE TypeFamilies                #-}
+
+-- | Implementation for the cipher part of the AEAD construction.
+signature Cipher.Implementation where
+
+import           Raaz.Core
+
+-- | The primitive
+data Prim
+
+-- | The internal memory used by the implementation.
+data Internals
+instance Memory Internals
+
+instance Initialisable Internals (Key Prim)
+instance Initialisable Internals (Nounce Prim)
+instance Initialisable Internals (BLOCKS Prim) -- To restore/advance
+                                               -- to a particular
+                                               -- block in the stream

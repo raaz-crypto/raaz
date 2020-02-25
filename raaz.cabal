@@ -15,8 +15,8 @@ description:
   like the selection of primitives or entropy sources, this top level
   module only talks about the desired cryptographic operation (whether
   it is message digest or message encryption etc). A standalone
-  application that needs cryptography should should probably stick to
-  using this top level interface interface.
+  application that needs cryptography should stick to using this top
+  level interface.
 
   Sometimes the selection of primitives is not in our hands --- we may
   need to interface with other programs written in other languages or
@@ -117,7 +117,7 @@ description:
   == Tweaking randomness.
 
   There are two components of the CSPRG exposed by @raaz@ --- an
-  entropy source, and a seed stretcher. The entroy source needs to
+  entropy source, and a seed stretcher. The entropy source needs to
   satisfy the signature @raaz:random-api:Entropy@ where as the seed
   stretcher needs to satisfy the signature
   @raaz:random-api:Implementation@ which adds some member function to
@@ -413,6 +413,23 @@ library encrypt-api
                , utils
   exposed-modules: Interface
 
+-- API package for aead implementation.
+library aead-api
+  import: defaults
+  visibility: public
+  hs-source-dirs: api/aead
+  build-depends: core
+               , indef
+               , utils
+               , buffer
+  signatures: Cipher.Implementation
+            , Auth.Implementation
+  exposed-modules: Interface
+  mixins: indef requires (Implementation as Cipher.Implementation)
+        , indef requires (Implementation as Auth.Implementation)
+        , utils (Utils as Cipher.Utils) requires (Implementation as Cipher.Implementation)
+        , utils (Utils as Auth.Utils)   requires (Implementation as Auth.Implementation)
+        , buffer (Buffer as Cipher.Buffer) requires (Implementation as Cipher.Implementation)
 --------------------  The implementation modules ----------------------------------
 --
 -- This package exposes all the implementations provided by the raaz
@@ -517,6 +534,7 @@ library raaz-indef
                , encrypt-api
                , mac-indef
                , xchacha-indef
+               , aead-api
   -- :WARNING: The raaz-indef package can be mixed in with custom
   -- implementations. If we do not have the signatures below, it would be possible to mixin
   -- an implementation of Blake2b for an implementation of Sha512 (say).
@@ -532,6 +550,8 @@ library raaz-indef
                     , Auth.Blake2s
                     , Encrypt.ChaCha20
                     , Encrypt.XChaCha20
+                    , AuthEncrypt.ChaCha20Poly1305
+                    , AuthEncrypt.XChaCha20Poly1305
                     , Digest.Blake2b
                     , Digest.Blake2s
                     , Digest.Sha256
@@ -548,6 +568,17 @@ library raaz-indef
             requires (Implementation as Sha256.Implementation)
         , encrypt-api (Interface as Encrypt.ChaCha20)
             requires (Implementation as ChaCha20.Implementation)
+
+        -- encrypted-authenticated interface
+        , aead-api (Interface as AuthEncrypt.ChaCha20Poly1305)
+            requires ( Cipher.Implementation as ChaCha20.Implementation
+                     , Auth.Implementation as Poly1305.Implementation
+          )
+
+        , aead-api (Interface as AuthEncrypt.XChaCha20Poly1305)
+            requires ( Cipher.Implementation as XChaCha20.Implementation
+                     , Auth.Implementation as Poly1305.Implementation
+                     )
 
         -- XChaCha20 implementation
         , xchacha-indef requires (Implementation as ChaCha20.Implementation)
@@ -579,8 +610,11 @@ library
                  , Raaz.Auth
                  , Raaz.Digest
                  , Raaz.Encrypt
+                 , Raaz.AuthEncrypt
   reexported-modules: Raaz.Auth.Blake2b
                     , Raaz.Auth.Blake2s
+                    , Raaz.AuthEncrypt.ChaCha20Poly1305
+                    , Raaz.AuthEncrypt.XChaCha20Poly1305
                     , Raaz.Encrypt.ChaCha20
                     , Raaz.Encrypt.XChaCha20
                     , Raaz.Digest.Blake2b
@@ -594,6 +628,8 @@ library
   autogen-modules: Paths_raaz
   mixins: raaz-indef ( Auth.Blake2b as Raaz.Auth.Blake2b
                      , Auth.Blake2s       as Raaz.Auth.Blake2s
+                     , AuthEncrypt.ChaCha20Poly1305 as Raaz.AuthEncrypt.ChaCha20Poly1305
+                     , AuthEncrypt.XChaCha20Poly1305 as Raaz.AuthEncrypt.XChaCha20Poly1305
                      , Encrypt.ChaCha20   as Raaz.Encrypt.ChaCha20
                      , Encrypt.XChaCha20  as Raaz.Encrypt.XChaCha20
                      , Digest.Blake2b     as Raaz.Digest.Blake2b
@@ -607,6 +643,7 @@ library
                , Raaz.V1.Auth
                , Raaz.V1.Digest
                , Raaz.V1.Encrypt
+               , Raaz.V1.AuthEncrypt
 
 
 ---------------------------- Executables -------------------------------------------------
