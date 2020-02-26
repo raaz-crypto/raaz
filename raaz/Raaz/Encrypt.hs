@@ -1,4 +1,6 @@
--- | Message encryption in Raaz
+-- | Message encryption in Raaz. Consider using "Raaz.AuthEncrypt"
+-- instead of this module as it also prevents message faking by a
+-- third party.
 module Raaz.Encrypt ( -- ** Message encryption
                       --
                       -- $message-encryption$
@@ -31,8 +33,8 @@ import           Raaz.V1.Encrypt
 --
 -- 1. Encryption alone is almost always not sufficient when the goal
 --    is secure communication between Alice and Bob. If your aim is
---    secure communication, please use the encrypted authenticated
---    mode instead.
+--    secure communication, consider using authenticated encryption
+--    provided by "Raaz.AuthEncrypt".
 --
 -- 2. Under no circumstances should the key, nounce pair be repeated.
 --

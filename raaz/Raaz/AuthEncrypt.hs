@@ -6,7 +6,6 @@ module Raaz.AuthEncrypt ( -- ** Message locking
                           -- ** Locking with additional data
                           -- $aead$
                         , lockWith, unlockWith
-                        , AEAD, Locked
 
                         -- ** Security Assumption
                         -- $security$
@@ -16,6 +15,8 @@ module Raaz.AuthEncrypt ( -- ** Message locking
 
                         -- ** Constructing and Taking apart.
                         -- $takingapart$
+
+                        , AEAD, Locked
                         , unsafeAEAD, unsafeToCipherText, unsafeToAuthTag
                         ) where
 
@@ -34,19 +35,18 @@ import Raaz.V1.AuthEncrypt
 -- xoring it with the keystream @cipher K@, from Bob's point of view
 -- it is impossible to know whether it was some nonsense that Eve sent
 -- or whether it was from Alice who wanted to actually send the
--- message @R ⊕ cipher K@. In many situations, Eve can indeed exploit
--- this and break the communication between Alice and
--- Bob. Authenticated encryption is to solve this issue.
+-- message @R ⊕ cipher K@. In many situations, Eve can exploit this
+-- ability to fake communication and breach the security of the
+-- protocol. Authenticated encryption is to solve this issue.
 --
 -- To send a message @m@ using a key @k@ and a nounce @n@, Alice
--- computes the locked variant @lmesg = `lock` k n m@. At Bobs end, he
--- can unlock it using the function @`unlock` k n lmesg@. It is
--- computationally infeasible for a third party that does not know @K@
--- to produce @`lock` k n x@ for any @x@. Thus for a message @x@ if
--- @`unlock` k n x@ succeeds, then Bob is not only guaranteed of its
--- secrecy but also the fact that the message indeed originated from
--- Alice.
-
+-- computes the locked variant @lmesg = `lock` k n m@ of the
+-- message. At Bobs end, he can unlock this locked message using the
+-- function @`unlock` k n lmesg@. If there has been any tampering of
+-- message on the way from A to B, the unlocking will fail. It is
+-- computationally infeasible to decrypt or fake the authentication
+-- without knowing the key.
+--
 
 -- $aead$
 --
@@ -57,23 +57,23 @@ import Raaz.V1.AuthEncrypt
 
 -- $security$
 --
--- __WARNING:__ The security of the @lock/unlock@ or its AEAD variants @lockWith/unlockWith@ is
--- /compromised/ if one of the following happens
+-- __WARNING:__ The security of the @lock/unlock@ or its AEAD variants
+-- @lockWith/unlockWith@ is /compromised/ if one of the following
+-- happens
 --
 -- 1. The key gets revealed to the attacker.
 --
 -- 2. The same key/nounce pair is used to lock two different messages.
 --
--- For nounces, only uniqueness is required and may be exposed to the
--- attacker. If a single key is shared for multiple messages, Alice
--- and Bob needs to have a strategy to pick the nounces which ensure
--- that a fresh nounce is picked for each message. Some common
--- strategy is to maintain a sequence number (we really do not care
--- about the predictability of the nounce) but with the choice of
--- primitives that we make here, one can just pick nounce at random
--- for each message, thereby making the communication protocol
--- completely stateless.
-
+-- Nounces need not be private and may be exposed to the
+-- attacker. However, if a single key is shared for locking multiple
+-- messages, Alice and Bob should have a strategy to pick unique
+-- nounces for each message. For example one can use a sequence number
+-- to pick nounces. However such a strategy would require the two
+-- peers to maintain a state (the sequence number). The nounce in our
+-- case is large and hence if we pick nounces at random for each
+-- message, the chances of collision is negligible. This makes the
+-- communication protocol completely stateless.
 
 -- $specific$
 --
@@ -92,12 +92,12 @@ import Raaz.V1.AuthEncrypt
 -- $takingapart$
 --
 -- Values belonging to the `Locked` and `AEAD` types are meant to be
--- used as opaque objects. While unlocking these types, no decryption
--- till the tag is verified which helps in quickly rejecting fake
--- packets without wasting time. This improves the security and
--- resilience to DoS attacks. Taking apart the cipher text and the
--- token can lead to incorrect handling and hence is __not__
--- recommended in general. Nonetheless, when implementing protocols
--- that use AEAD, we might want to build and take apart these
--- types. We give now give functions for these unsafe operations on
--- AEAD packets.
+-- used as opaque objects. While unlocking these types, we do not
+-- decrypt untill the tag is verified. This helps in quickly rejecting
+-- fake packets without wasting time on decryption and improves the
+-- security against DoS attacks. Taking apart the cipher text and the
+-- authentication token can lead to incorrect handling and hence is
+-- __not__ recommended in general. Nonetheless, when implementing
+-- protocols that use AEAD, we might want to build and take apart
+-- these types. We give now give functions for these unsafe operations
+-- on AEAD packets.
