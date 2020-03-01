@@ -1,6 +1,7 @@
 Raaz: A secure cryptographic library
 ====================================
 
+[![Apache-2.0 OR BSD-3-Clause][shields-license]](#legal)
 [![Build Staus][travis-status]][travis-raaz]
 [![Build Windows][appveyor-status]][appveyor-raaz]
 [![Hackage][hackage-badge]][hackage]
@@ -50,6 +51,8 @@ The word `Raaz` (&#x0930;&#x093E;&#x095B;) stands for secret in Hindi.
 Legal
 -----
 
+<a name="legal"></a>
+
 Copyright 2012 Piyush P Kurur
 
 The library is licensed under
@@ -92,3 +95,4 @@ LICENSE file.
 [appveyor-status]: <https://ci.appveyor.com/api/projects/status/github/raaz-crypto/raaz?branch=master&svg=true>
 [appveyor-raaz]: <https://ci.appveyor.com/project/raaz-crypto/raaz>
 [stack-backpack]: <https://github.com/commercialhaskell/stack/issues/2540>
+[shields-license]: <https://img.shields.io/badge/License-Apache--2.0%20OR%20BSD--3--Clause-informational.svg>
