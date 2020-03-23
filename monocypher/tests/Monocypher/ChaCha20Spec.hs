@@ -2,10 +2,9 @@
 {-# LANGUAGE ScopedTypeVariables      #-}
 {-# LANGUAGE FlexibleContexts         #-}
 -- | These tests compare the implementation of chacha20 of raaz and
--- that of monocypher. The only challenge here is to adjust the nounce
--- as raaz implements the ieft variants where as monocypher implements
--- the djb variant. The tests therefore works only for nounces that
--- are 64-bit wide.
+-- that of monocypher. Raaz implements the ietf variants and hence
+-- should be tested against crypto_ietf_chacha and not crypto_chacha C
+-- function of Monocyper (>=3.0).
 module Monocypher.ChaCha20Spec where
 
 
