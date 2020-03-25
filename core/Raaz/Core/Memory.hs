@@ -93,9 +93,9 @@ import           Raaz.Core.IOCont
 -- and hence can be swapped out. Consider a memory element @mem@ that
 -- stores some sensitive information, say for example the unencrypted
 -- private key. Suppose we extract this key out of the memory element
--- as a pure value before its encryption and storage into the key
--- file. It is likely that the key is swapped out to the disk as the
--- extracted key is part of the the haskell heap.
+-- as a pure value before its encryption, it is possible that the key
+-- is swapped out to the disk as the extracted key is now part of the
+-- Haskell heap which is not locked.
 --
 -- The `InitialiseFromBuffer` (`ExtractableToBuffer`) class gives an
 -- interface for reading from (writing to) buffers directly minimising
@@ -155,31 +155,6 @@ class MonadMemoryT mT where
 instance Memory mem => MonadMemoryT (ReaderT mem) where
   securely               = withSecureMemory . runReaderT
   insecurely             = withMemory . runReaderT
-
-{--
-  liftMT                 = id
-  onSubMemory proj mtsub = MT $ withReaderunMT mtsub . proj
---}
-
-{--
-------------- Lifting pointer actions -----------------------------
-
-
--- | Run a given memory action in the memory thread.
-execute :: MemoryThread mT => (mem -> IO a) -> mT mem a
-execute = liftMT . MT
-
--- | Perform an IO action inside the memory thread.
-doIO :: MemoryThread mT => IO a -> mT mem a
-doIO = execute . const
-
--- TODO: This is a very general pattern needs more exploration.
-
--- | Get the underlying memory element of the memory thread.
-getMemory :: MemoryThread mT => mT mem mem
-getMemory = execute return
-
---}
 
 ------------------------ A memory allocator -----------------------
 
