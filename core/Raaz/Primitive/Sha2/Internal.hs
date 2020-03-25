@@ -16,6 +16,7 @@ module Raaz.Primitive.Sha2.Internal
        ) where
 
 import           Control.Monad.IO.Class     ( MonadIO      )
+import           Data.Vector.Unboxed        ( Unbox )
 import           Foreign.Storable           ( Storable(..) )
 
 import           Raaz.Core
@@ -28,33 +29,25 @@ import           Raaz.Primitive.HashMemory
 newtype Sha2 w = Sha2 (Tuple 8 w)
                deriving (Eq, Equality, Storable, EndianStore)
 
+instance EndianStore w => Primitive (Sha2 w) where
+  type WordType      (Sha2 w) = w
+  type WordsPerBlock (Sha2 w) = 16 
+
+
+instance (Unbox w, EndianStore w) => Encodable (Sha2 w)
+
+instance (EndianStore w, Unbox w) => IsString (Sha2 w) where
+  fromString = fromBase16
+
+instance (EndianStore w, Unbox w) => Show (Sha2 w) where
+  show =  showBase16
+
+
 -- | The Sha512 cryptographic hash.
 type Sha512 = Sha2 (BE Word64)
 
 -- | The Sha256 cryptographic hash.
 type Sha256 = Sha2 (BE Word32)
-
-instance Encodable Sha512
-instance Encodable Sha256
-
-
-instance IsString Sha512 where
-  fromString = fromBase16
-
-instance IsString Sha256 where
-  fromString = fromBase16
-
-instance Show Sha512 where
-  show =  showBase16
-
-instance Show Sha256 where
-  show =  showBase16
-
-instance Primitive Sha512 where
-  type BlockSize Sha512      = 128
-
-instance Primitive Sha256 where
-  type BlockSize Sha256      = 64
 
 -- | The initial value to start the blake2b hashing. This is equal to
 -- the iv `xor` the parameter block.

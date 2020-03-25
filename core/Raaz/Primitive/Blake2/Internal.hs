@@ -15,6 +15,7 @@ module Raaz.Primitive.Blake2.Internal
        ) where
 
 import           Control.Monad.IO.Class
+import           Data.Vector.Unboxed        ( Unbox )
 import           Foreign.Storable           ( Storable       )
 
 import           Raaz.Core
@@ -27,40 +28,23 @@ import           Raaz.Primitive.Keyed.Internal
 newtype Blake2 w = Blake2 (Tuple 8 w)
                deriving (Eq, Equality, Storable, EndianStore)
 
--- | Word type for Blake2b
-type Word2b = LE Word64
+instance EndianStore w => Primitive (Blake2 w) where
+  type WordType      (Blake2 w) = w
+  type WordsPerBlock (Blake2 w) = 16 
 
--- | Word type for Blake2s
-type Word2s = LE Word32
+instance (Unbox w, EndianStore w) => Encodable (Blake2 w)
+
+instance (EndianStore w, Unbox w) => IsString (Blake2 w) where
+  fromString = fromBase16
+
+instance (EndianStore w, Unbox w) => Show (Blake2 w) where
+  show =  showBase16
 
 -- | The Blake2b hash type.
-type Blake2b = Blake2 Word2b
+type Blake2b = Blake2 (LE Word64)
 
 -- | The Blake2s hash type.
-type Blake2s = Blake2 Word2s
-
-instance Encodable Blake2b
-instance Encodable Blake2s
-
-
-instance IsString Blake2b where
-  fromString = fromBase16
-
-instance IsString Blake2s where
-  fromString = fromBase16
-
-instance Show Blake2b where
-  show =  showBase16
-
-instance Show Blake2s where
-  show =  showBase16
-
-instance Primitive Blake2b where
-  type BlockSize Blake2b      = 128
-
-instance Primitive Blake2s where
-  type BlockSize Blake2s      = 64
-
+type Blake2s = Blake2 (LE Word32)
 
 keyLength :: (Storable prim, Num b) => Proxy prim -> BYTES Int -> b
 keyLength proxy len
