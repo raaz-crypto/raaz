@@ -65,3 +65,37 @@ type Block p   = Tuple (WordsPerBlock p) (WordType p)
 -- | Pointer to a block of the primitive.
 type BlockPtr p = Ptr (Block p)
 
+------------------- Type safe lengths in units of block ----------------
+
+-- | Type safe message length in units of blocks of the primitive.
+-- When dealing with buffer lengths for a primitive, it is often
+-- better to use the type safe units `BLOCKS`. Functions in the raaz
+-- package that take lengths usually allow any type safe length as
+-- long as they can be converted to bytes. This can avoid a lot of
+-- tedious and error prone length calculations.
+newtype BLOCKS p = BLOCKS {unBLOCKS :: Int}
+                 deriving (Show, Eq, Ord, Enum, Storable)
+
+instance Semigroup (BLOCKS p) where
+  (<>) x y = BLOCKS $ unBLOCKS x + unBLOCKS y
+instance Monoid (BLOCKS p) where
+  mempty   = BLOCKS 0
+  mappend  = (<>)
+
+
+instance Primitive p => LengthUnit (BLOCKS p) where
+  inBytes p@(BLOCKS x) = toEnum x * nWords p * wordSize p
+    where wordSize = sizeOf . proxyWT
+          nWords   = toEnum . fromEnum . natVal . proxyWPB
+          proxyWT :: Primitive p => BLOCKS p -> Proxy (WordType p)
+          proxyWT  = const Proxy
+          proxyWPB   :: Primitive p => BLOCKS p -> Proxy (WordsPerBlock p)
+          proxyWPB = const Proxy
+
+
+-- | The expression @n `blocksOf` primProxy@ specifies the message
+-- lengths in units of the block length of the primitive whose proxy
+-- is @primProxy@. This expression is sometimes required to make the
+-- type checker happy.
+blocksOf :: Int -> Proxy p -> BLOCKS p
+blocksOf n _ = BLOCKS n
