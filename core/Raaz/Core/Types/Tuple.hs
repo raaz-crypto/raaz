@@ -90,8 +90,7 @@ dimension' :: Dimension dim => Proxy (Tuple dim a) -> Int
 dimension' = dimensionP Proxy
 
 -- | Get the dimension to parser
-getParseDimension :: (V.Unbox a, Dimension dim)
-                  => Parser (Tuple dim a) -> Int
+getParseDimension :: Dimension dim => Parser (Tuple dim a) -> Int
 getParseDimension = dimension' . getProxy
   where getProxy :: Parser (Tuple dim a) -> Proxy (Tuple dim a)
         getProxy = const Proxy
@@ -131,9 +130,12 @@ instance (V.Unbox a, EndianStore a, Dimension dim)
 
 
 -- | Construct a tuple by repeating a monadic action.
-repeatM :: (Functor m, Monad m, V.Unbox a, Dimension dim) => m a -> m (Tuple dim a)
+repeatM :: ( Monad m, V.Unbox a, Dimension dim) => m a -> m (Tuple dim a)
 repeatM = mkTupM Proxy
-  where mkTupM :: (Functor m, V.Unbox a, Monad m, Dimension dim) => Proxy (Tuple dim a) -> m a -> m (Tuple dim a)
+  where mkTupM :: (Monad m, V.Unbox a, Dimension dim)
+               => Proxy (Tuple dim a)
+               -> m a
+               -> m (Tuple dim a)
         mkTupM uTupProxy action = Tuple <$> V.replicateM (dimension' uTupProxy) action
 
 
