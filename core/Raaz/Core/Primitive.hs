@@ -18,8 +18,8 @@ module Raaz.Core.Primitive
        , BlockCount(..), blocksOf
        ) where
 
+import Data.Vector.Unboxed (Unbox)
 import GHC.TypeLits
-
 import Foreign.Ptr      ( Ptr      )
 import Foreign.Storable ( Storable )
 import Raaz.Core.Prelude
@@ -37,7 +37,10 @@ import Raaz.Core.Types.Tuple
 -- cryptographic primitive.
 --
 
-class (EndianStore (WordType p), KnownNat (WordsPerBlock p)) => Primitive p where
+class ( Unbox (WordType p)
+      , EndianStore (WordType p)
+      , KnownNat (WordsPerBlock p)
+      ) => Primitive p where
 
   -- | The block which is the smallest unit of data that the primitive
   -- processes, is typically considered as an array of a particular
