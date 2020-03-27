@@ -27,7 +27,6 @@ module Raaz.Core.Types.Pointer
        , alignment, alignPtr, movePtr, alignedSizeOf, nextLocation, peekAligned, pokeAligned
          -- ** Allocation functions.
        , allocaBuffer, allocaAligned, allocaSecure
-       , mallocBuffer
          -- ** Some buffer operations
        , memset
        , wipeMemory
@@ -427,18 +426,6 @@ foreign import ccall unsafe "raaz/core/memory.h raazMemorylock"
 
 foreign import ccall unsafe "raaz/core/memory.h raazMemoryunlock"
   c_munlock :: Pointer -> BYTES Int -> IO ()
-
-
-
--- | Creates a memory of given size. It is better to use over
--- @`mallocBytes`@ as it uses typesafe length.
-mallocBuffer :: LengthUnit l
-             => l                    -- ^ buffer length
-             -> IO Pointer
-{-# INLINE mallocBuffer #-}
-mallocBuffer l = mallocBytes bytes
-  where BYTES bytes = inBytes l
-
 
 -------------------- Low level pointer operations ------------------
 
