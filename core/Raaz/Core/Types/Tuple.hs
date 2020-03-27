@@ -161,7 +161,10 @@ initial ::  (V.Unbox a, Dimension dim0)
          => Tuple dim1 a
          -> Tuple dim0 a
 initial = mkTuple Proxy
-  where mkTuple :: (V.Unbox a, Dimension dim0) => Proxy (Tuple dim0 a) -> Tuple dim1 a  -> Tuple dim0 a
+  where mkTuple :: (V.Unbox a, Dimension dim0)
+                => Proxy (Tuple dim0 a)
+                -> Tuple dim1 a
+                -> Tuple dim0 a
         mkTuple uTupProxy tup = Tuple $ V.take (dimension' uTupProxy) $ unTuple tup
 
 -- TODO: Put a constraint that dim0 <= dim1
