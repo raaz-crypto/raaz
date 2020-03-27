@@ -13,6 +13,7 @@
 module Raaz.Core.Types.Pointer
        ( -- * Pointers, offsets, and alignment
          Pointer, AlignedPointer, AlignedPtr(..), onPtr, ptrAlignment, nextAlignedPtr
+       , castAlignedPtr
          -- ** Type safe length units.
        , LengthUnit(..)
        , BYTES(..), BITS(..), inBits
@@ -41,7 +42,7 @@ import           Control.Monad.IO.Class
 
 import           Data.Vector.Unboxed         ( MVector(..), Vector, Unbox )
 import           Foreign.Marshal.Alloc
-import           Foreign.Ptr           ( Ptr                  )
+import           Foreign.Ptr           ( Ptr, castPtr         )
 import qualified Foreign.Ptr           as FP
 import           Foreign.Storable      ( Storable, peek, poke )
 import qualified Foreign.Storable      as FS
@@ -81,6 +82,10 @@ type Pointer = Ptr Byte
 -- | The type @AlignedPtr n@ that captures pointers that are aligned
 -- to @n@ byte boundary.
 newtype AlignedPtr (n :: Nat) a = AlignedPtr { forgetAlignment :: Ptr a}
+
+-- | Change the type of the aligned pointer not its alignment.
+castAlignedPtr :: AlignedPtr n a -> AlignedPtr n b
+castAlignedPtr = AlignedPtr . castPtr . forgetAlignment
 
 type AlignedPointer n = AlignedPtr n Byte
 
