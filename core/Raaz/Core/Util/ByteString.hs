@@ -7,7 +7,6 @@ Some utility function for byte strings.
 {-# LANGUAGE FlexibleContexts #-}
 module Raaz.Core.Util.ByteString
        ( length, replicate
-       , fromByteStringStorable
        , create, createFrom
        , withByteString
        , unsafeCopyToPointer
@@ -70,11 +69,6 @@ unsafeNCopyToPointer n bs cptr = withForeignPtr fptr $
 withByteString :: ByteString -> (Pointer -> IO a) -> IO a
 withByteString bs f = withForeignPtr fptr (f . flip plusPtr off . castPtr)
   where (fptr, off, _) = BI.toForeignPtr bs
-
--- | Get the value from the bytestring using `peek`.
-fromByteStringStorable :: Storable k => ByteString -> k
-fromByteStringStorable str = unsafePerformIO $ withByteString str (peek . castPtr)
-
 
 -- | The action @create l act@ creates a length @l@ bytestring where
 -- the contents are filled using the the @act@ to fill the buffer.
