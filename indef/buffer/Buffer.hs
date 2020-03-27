@@ -15,10 +15,6 @@ import GHC.TypeLits
 import Raaz.Core
 import Implementation
 
--- | The pointer type associated with the buffer used by the
--- implementation.
-type BufferPtr = AlignedPointer BufferAlignment
-
 -- | A memory buffer than can handle up to @n@ blocks of data. This
 -- happens when you need to do some transformation on internal data
 -- using a primitive. An example is using a stream cipher for
@@ -31,7 +27,7 @@ newtype Buffer (n :: Nat) = Buffer { unBuffer :: Pointer }
 
 -- | Get the underlying pointer for the buffer.
 getBufferPointer :: Buffer n -> BufferPtr
-getBufferPointer = nextAlignedPtr . unBuffer
+getBufferPointer = castAlignedPtr . nextAlignedPtr . unBuffer
 
 {-# INLINE bufferSize #-}
 -- | The size of data (measured in blocks) that can be safely
@@ -55,6 +51,7 @@ instance KnownNat n => Memory (Buffer n) where
           sz              = atLeastAligned (actualBufferSize $ bufferProxy allocThisBuffer) algn
 
   unsafeToPointer = unBuffer
+
 
 allocBufferFor :: MonadIOCont m
                => BlockCount Prim
