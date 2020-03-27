@@ -60,6 +60,6 @@ reseedAfter :: BlockCount Prim
 -- ignoring the endian considerations. In particular, if deterministic
 -- generation of random bytes across architectures are what is
 -- desired, this function is not suitable.
-randomBlocks :: AlignedPointer BufferAlignment
+randomBlocks :: AlignedBlockPtr BufferAlignment Prim
              -> BlockCount Prim
              -> MT Internals ()

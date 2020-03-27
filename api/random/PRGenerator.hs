@@ -205,7 +205,7 @@ fillExistingBytes req ptr = do
 -- | Transfer from existing bytes. This is unsafe because no checks is
 -- done to see if there are enough bytes to transfer.
 unsafeWithExisting :: BYTES Int
-                   -> (Pointer -> MT RandomState ())
+                   -> (BlockPtr Prim -> MT RandomState ())
                    -> MT RandomState ()
 unsafeWithExisting m action =  withAuxBuffer $ \ buf -> do
   r <- getRemainingBytes
