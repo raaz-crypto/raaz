@@ -243,11 +243,6 @@ bitsQuot bits = u
         q       = bits `quot` divisor
         u       = toEnum $ fromEnum q
 
--- | The most interesting monoidal action for us.
-instance LengthUnit u => LAction u Pointer where
-  a <.> ptr  = movePtr ptr a
-  {-# INLINE (<.>) #-}
-
 --------------------------
 
 instance Unbox w => Unbox (BYTES w)
