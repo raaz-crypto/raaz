@@ -29,7 +29,9 @@ import           Raaz.Primitive.HashMemory
 newtype Sha2 w = Sha2 (Tuple 8 w)
                deriving (Eq, Equality, Storable, EndianStore)
 
-instance EndianStore w => Primitive (Sha2 w) where
+instance ( Unbox w
+         , EndianStore w
+         ) => Primitive (Sha2 w) where
   type WordType      (Sha2 w) = w
   type WordsPerBlock (Sha2 w) = 16 
 

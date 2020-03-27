@@ -28,7 +28,9 @@ import           Raaz.Primitive.Keyed.Internal
 newtype Blake2 w = Blake2 (Tuple 8 w)
                deriving (Eq, Equality, Storable, EndianStore)
 
-instance EndianStore w => Primitive (Blake2 w) where
+instance ( Unbox w
+         , EndianStore w
+         ) => Primitive (Blake2 w) where
   type WordType      (Blake2 w) = w
   type WordsPerBlock (Blake2 w) = 16 
 
