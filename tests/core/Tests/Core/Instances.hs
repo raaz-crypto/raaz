@@ -61,7 +61,7 @@ instance Arbitrary (Key ChaCha20) where
 instance Arbitrary (Nounce ChaCha20) where
   arbitrary = genEncodable
 
-instance Arbitrary (BLOCKS ChaCha20) where
+instance Arbitrary (BlockCount ChaCha20) where
   arbitrary = toEnum <$> arbitrary
 
 ------------------ For XChaCha20 types -------------------------
@@ -72,7 +72,7 @@ instance Arbitrary (Key XChaCha20) where
 instance Arbitrary (Nounce XChaCha20) where
   arbitrary = genEncodable
 
-instance Arbitrary (BLOCKS XChaCha20) where
+instance Arbitrary (BlockCount XChaCha20) where
   arbitrary = toEnum <$> arbitrary
 
 ------------------ Arbitrary instances for Poly1305 -------------
