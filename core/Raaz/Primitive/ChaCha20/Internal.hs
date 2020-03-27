@@ -115,14 +115,14 @@ instance Initialisable ChaCha20Mem (Key ChaCha20) where
 instance Initialisable ChaCha20Mem (Nounce ChaCha20)  where
   initialise  = withReaderT ivCell . initialise
 
-instance Initialisable ChaCha20Mem (BLOCKS ChaCha20) where
+instance Initialisable ChaCha20Mem (BlockCount ChaCha20) where
   initialise = withReaderT counterCell . initialise . conv
-    where conv :: BLOCKS ChaCha20 -> WORD
+    where conv :: BlockCount ChaCha20 -> WORD
           conv = toEnum . fromEnum
 
-instance Extractable ChaCha20Mem (BLOCKS ChaCha20) where
+instance Extractable ChaCha20Mem (BlockCount ChaCha20) where
   extract = conv <$> withReaderT counterCell extract
-    where conv :: WORD -> BLOCKS ChaCha20
+    where conv :: WORD -> BlockCount ChaCha20
           conv = toEnum . fromEnum
 
 -- | Initialises key from a buffer. Use this instance if you want to

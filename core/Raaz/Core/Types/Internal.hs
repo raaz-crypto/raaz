@@ -24,7 +24,7 @@ module Raaz.Core.Types.Internal
        , module Raaz.Core.Types.Tuple
        ) where
 
-import Raaz.Core.Primitive     ( BLOCKS (..) )
+import Raaz.Core.Primitive     ( BlockCount (..) )
 import Raaz.Core.Types.Endian  ( LE(..), BE(..)          )
 import Raaz.Core.Types.Pointer ( Pointer, AlignedPtr(..)
                                , BITS(..), BYTES(..)

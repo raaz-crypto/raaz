@@ -21,7 +21,7 @@ module Raaz.Core.Types
 
 import Raaz.Core.Types.Equality
 
-import Raaz.Core.Primitive            ( BLOCKS                  )
+import Raaz.Core.Primitive            ( BlockCount                  )
 
 -- Developer note: We want to expose LE and BE without its
 -- constructors. This is a ugly hack for it.

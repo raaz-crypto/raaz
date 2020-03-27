@@ -89,11 +89,11 @@ instance Initialisable Sha512Mem () where
 
 -- | The block compressor for sha256.
 type Compressor256 n =  AlignedPointer n
-                     -> BLOCKS Sha256
+                     -> BlockCount Sha256
                      -> MT Sha256Mem ()
 -- | The block compressor for sha512
 type Compressor512 n =  AlignedPointer n
-                     -> BLOCKS Sha512
+                     -> BlockCount Sha512
                      -> MT Sha512Mem ()
 
 -- | Takes a block processing function for sha256 and gives a last
