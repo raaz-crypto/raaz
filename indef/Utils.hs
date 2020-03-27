@@ -31,7 +31,7 @@ processByteSource :: ByteSource src => src -> MT Internals ()
 processByteSource src
   = allocBufferFor blks $
     \ ptr -> processChunks (processBlocks ptr blks) (processLast ptr) src blks (forgetAlignment ptr)
-  where blks       = atLeast l1Cache :: BLOCKS Prim
+  where blks       = atLeast l1Cache :: BlockCount Prim
 
 transform :: ByteString -> MT Internals ByteString
 transform bs

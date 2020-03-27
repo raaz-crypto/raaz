@@ -46,8 +46,8 @@ type Prim = ChaCha20
 data Internals
 instance Memory Internals
 
-instance Initialisable Internals (BLOCKS ChaCha20)
-instance Extractable   Internals (BLOCKS ChaCha20)
+instance Initialisable Internals (BlockCount ChaCha20)
+instance Extractable   Internals (BlockCount ChaCha20)
 
 -- | The function that sets the internal state for the xchacha
 -- variant.

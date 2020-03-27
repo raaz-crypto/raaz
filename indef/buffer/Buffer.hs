@@ -36,14 +36,14 @@ getBufferPointer = nextAlignedPtr . unBuffer
 {-# INLINE bufferSize #-}
 -- | The size of data (measured in blocks) that can be safely
 -- processed inside this buffer.
-bufferSize :: KnownNat n => Proxy (Buffer n) -> BLOCKS Prim
+bufferSize :: KnownNat n => Proxy (Buffer n) -> BlockCount Prim
 bufferSize = flip blocksOf Proxy . fromIntegral . natVal . nProxy
   where nProxy :: Proxy (Buffer n) -> Proxy n
         nProxy  _ = Proxy
 
 -- | Internal function used by allocation.  WARNING: Not to be exposed
 -- else can be confusing with `bufferSize`.
-actualBufferSize :: KnownNat n => Proxy (Buffer n) -> BLOCKS Prim
+actualBufferSize :: KnownNat n => Proxy (Buffer n) -> BlockCount Prim
 actualBufferSize bproxy = bufferSize bproxy <> additionalBlocks
 
 instance KnownNat n => Memory (Buffer n) where
@@ -57,7 +57,7 @@ instance KnownNat n => Memory (Buffer n) where
   unsafeToPointer = unBuffer
 
 allocBufferFor :: MonadIOCont m
-               => BLOCKS Prim
+               => BlockCount Prim
                -> (BufferPtr  -> m a) -> m a
 
 allocBufferFor blks = allocaAligned totalSize

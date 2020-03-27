@@ -49,12 +49,12 @@ type BufferAlignment = 32
 #endif
 
 -- | The additional space required in the buffer for processing the data.
-additionalBlocks :: BLOCKS Prim
+additionalBlocks :: BlockCount Prim
 
 -- | The function that process bytes in multiples of the block size of
 -- the primitive.
 processBlocks :: AlignedPointer BufferAlignment
-              -> BLOCKS Prim
+              -> BlockCount Prim
               -> MT Internals ()
 
 -- | Process the last bytes of the stream.
