@@ -12,7 +12,7 @@
 -- library.
 module Raaz.Core.Types.Pointer
        ( -- * Pointers, offsets, and alignment
-         Pointer, AlignedPointer, AlignedPtr(..), onPtr, ptrAlignment, nextAlignedPtr
+         Ptr, Pointer, AlignedPointer, AlignedPtr(..), onPtr, ptrAlignment, nextAlignedPtr
        , castAlignedPtr
          -- ** Type safe length units.
        , LengthUnit(..)
@@ -51,7 +51,6 @@ import qualified Data.Vector.Generic         as GV
 import qualified Data.Vector.Generic.Mutable as GVM
 
 import Raaz.Core.Prelude
-import Raaz.Core.MonoidalAction
 import Raaz.Core.Types.Equality
 import Raaz.Core.Types.Copying
 import Raaz.Core.IOCont
@@ -93,13 +92,10 @@ onPtr :: (Ptr a -> b) -> AlignedPtr n a -> b
 onPtr action = action . forgetAlignment
 
 -- | Recover the alignment restriction of the pointer.
-ptrAlignment :: (Storable a, KnownNat n) => Proxy (AlignedPtr n a) -> Alignment
-ptrAlignment aptr = restriction <> alignment (getElementProxy aptr)
+ptrAlignment :: KnownNat n => Proxy (AlignedPtr n a) -> Alignment
+ptrAlignment = toEnum . fromEnum . natVal . getAlignProxy
   where getAlignProxy :: Proxy (AlignedPtr n a) -> Proxy n
         getAlignProxy _ = Proxy
-        getElementProxy :: Proxy (AlignedPtr n a) -> Proxy a
-        getElementProxy _ = Proxy
-        restriction = toEnum $ fromEnum $ natVal $ getAlignProxy aptr
 
 nextAlignedPtr :: (Storable a, KnownNat n) => Ptr a -> AlignedPtr n a
 nextAlignedPtr ptr = thisPtr
@@ -364,13 +360,13 @@ pokeAligned ptr =  poke $ nextLocation ptr
 -- can be specified in any length units.
 allocaBuffer :: (MonadIOCont m, LengthUnit l)
              => l                  -- ^ buffer length
-             -> (Pointer -> m b)  -- ^ the action to run
+             -> (Ptr something -> m b)  -- ^ the action to run
              -> m b
 allocaBuffer l = liftIOCont $ allocaBytes b
     where BYTES b = inBytes l
 
 -- | Similar to `allocaBuffer` but for aligned pointers.
-allocaAligned :: (MonadIOCont m, LengthUnit l, KnownNat n, Storable a)
+allocaAligned :: (MonadIOCont m, LengthUnit l, KnownNat n)
               => l
               -> (AlignedPtr n a -> m b)
               -> m b
@@ -427,7 +423,7 @@ foreign import ccall unsafe "raaz/core/memory.h raazMemoryunlock"
 -- | A version of `hGetBuf` which works for any type safe length units.
 hFillBuf :: LengthUnit bufSize
          => Handle
-         -> Pointer
+         -> Ptr a
          -> bufSize
          -> IO (BYTES Int)
 {-# INLINE hFillBuf #-}
@@ -438,24 +434,24 @@ hFillBuf handle cptr bufSize = BYTES <$> hGetBuf handle cptr bytes
 
 -- | Some common PTR functions abstracted over type safe length.
 foreign import ccall unsafe "string.h memcpy" c_memcpy
-    :: Dest Pointer -> Src Pointer -> BYTES Int -> IO Pointer
+    :: Dest (Ptr dest) -> Src (Ptr src) -> BYTES Int -> IO Pointer
 
 -- | Copy between pointers.
 memcpy :: (MonadIO m, LengthUnit l)
-       => Dest Pointer -- ^ destination
-       -> Src  Pointer -- ^ src
-       -> l            -- ^ Number of Bytes to copy
+       => Dest (Ptr dest) -- ^ destination
+       -> Src  (Ptr src)  -- ^ src
+       -> l               -- ^ Number of Bytes to copy
        -> m ()
 memcpy dest src = liftIO . void . c_memcpy dest src . inBytes
 
 {-# SPECIALIZE memcpy :: Dest Pointer -> Src Pointer -> BYTES Int -> IO () #-}
 
 foreign import ccall unsafe "string.h memset" c_memset
-    :: Pointer -> Word8 -> BYTES Int -> IO Pointer
+    :: Ptr buf -> Word8 -> BYTES Int -> IO Pointer
 
 -- | Sets the given number of Bytes to the specified value.
 memset :: (MonadIO m, LengthUnit l)
-       => Pointer -- ^ Target
+       => Ptr a     -- ^ Target
        -> Word8     -- ^ Value byte to set
        -> l         -- ^ Number of bytes to set
        -> m ()
@@ -463,10 +459,10 @@ memset p w = liftIO . void . c_memset p w . inBytes
 {-# SPECIALIZE memset :: Pointer -> Word8 -> BYTES Int -> IO () #-}
 
 foreign import ccall unsafe "raazWipeMemory" c_wipe_memory
-    :: Pointer -> BYTES Int -> IO Pointer
+    :: Ptr a -> BYTES Int -> IO Pointer
 
 wipeMemory :: (MonadIO m, LengthUnit l)
-            => Pointer -- ^ buffer to wipe
+            => Ptr a   -- ^ buffer to wipe
             -> l       -- ^ buffer length
             -> m ()
 wipeMemory p = liftIO . void . c_wipe_memory p . inBytes
