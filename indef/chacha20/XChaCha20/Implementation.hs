@@ -27,6 +27,7 @@ data Internals               = XChaCha20Mem
   }
 
 type BufferAlignment         = Base.BufferAlignment
+type BufferPtr               = AlignedBlockPtr BufferAlignment Prim
 
 instance Memory Internals where
   memoryAlloc     = XChaCha20Mem <$> memoryAlloc <*> memoryAlloc
@@ -59,15 +60,15 @@ additionalBlocks = coerce Base.additionalBlocks
           coerce = toEnum . fromEnum
 
 
-processBlocks :: AlignedPointer BufferAlignment
+processBlocks :: BufferPtr
               -> BlockCount Prim
               -> MT Internals ()
-processBlocks buf = withReaderT chacha20Internals . Base.processBlocks buf . coerce
+processBlocks buf = withReaderT chacha20Internals . Base.processBlocks (castAlignedPtr buf) . coerce
   where coerce :: BlockCount XChaCha20 -> BlockCount Base.Prim
         coerce = toEnum . fromEnum
 
 -- | Process the last bytes.
-processLast :: AlignedPointer BufferAlignment
+processLast :: BufferPtr
             -> BYTES Int
             -> MT Internals ()
-processLast buf = withReaderT chacha20Internals . Base.processLast buf
+processLast buf = withReaderT chacha20Internals . Base.processLast (castAlignedPtr buf)
