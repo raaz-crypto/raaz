@@ -101,7 +101,7 @@ type RandomBuffer = Buffer RandomBufferSize
 data RandomState = RandomState { internals       :: Internals
                                , auxBuffer       :: RandomBuffer
                                , remainingBytes  :: MemoryCell (BYTES Int)
-                               , blocksGenerated :: MemoryCell (BLOCKS Prim)
+                               , blocksGenerated :: MemoryCell (BlockCount Prim)
                                }
 
 

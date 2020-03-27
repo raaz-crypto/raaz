@@ -18,6 +18,6 @@ instance Memory Internals
 
 instance Initialisable Internals (Key Prim)
 instance Initialisable Internals (Nounce Prim)
-instance Initialisable Internals (BLOCKS Prim) -- To restore/advance
+instance Initialisable Internals (BlockCount Prim) -- To restore/advance
                                                -- to a particular
                                                -- block in the stream
