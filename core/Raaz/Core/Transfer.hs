@@ -156,9 +156,9 @@ transferSize = semiRMonoid
 
 -- | Perform the transfer without checking the bounds.
 unsafeTransfer :: Transfer t m
-               -> Pointer       -- ^ The pointer to the buffer to/from which transfer occurs.
+               -> Ptr a       -- ^ The pointer to the buffer to/from which transfer occurs.
                -> m ()
-unsafeTransfer tr = unTransferM . semiRSpace tr
+unsafeTransfer tr = unTransferM . semiRSpace tr . castPtr
 
 -- | The transfer @skip l@ skip ahead by an offset @l@. If it is a
 -- read, it does not read the next @l@ positions. If it is a write it
@@ -323,7 +323,7 @@ instance MonadIO m => IsString (WriteM m)  where
 
 instance Encodable WriteIO where
   {-# INLINE toByteString #-}
-  toByteString w  = unsafeCreate n $ unsafeTransfer w . castPtr
+  toByteString w  = unsafeCreate n $ unsafeTransfer w
     where BYTES n = transferSize w
 
   {-# INLINE unsafeFromByteString #-}
