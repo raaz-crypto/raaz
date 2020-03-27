@@ -25,7 +25,7 @@ type Internals               = Blake2bMem
 type BufferAlignment         = 32
 
 
-additionalBlocks :: BLOCKS Blake2b
+additionalBlocks :: BlockCount Blake2b
 additionalBlocks = blocksOf 1 Proxy
 
 
@@ -34,7 +34,7 @@ additionalBlocks = blocksOf 1 Proxy
 foreign import ccall unsafe
   "raaz/hash/blake2/common.h raazHashBlake2bPortableBlockCompress"
   c_blake2b_compress  :: AlignedPointer BufferAlignment
-                      -> BLOCKS Prim
+                      -> BlockCount Prim
                       -> Ptr (BYTES Word64)
                       -> Ptr (BYTES Word64)
                       -> Ptr Blake2b
@@ -53,7 +53,7 @@ foreign import ccall unsafe
 
 --
 processBlocks :: AlignedPointer BufferAlignment
-              -> BLOCKS Blake2b
+              -> BlockCount Blake2b
               -> MT Blake2bMem ()
 
 processBlocks buf blks = do uPtr   <- uLengthCellPointer

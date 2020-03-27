@@ -24,7 +24,7 @@ type Internals               = ChaCha20Mem
 type BufferAlignment         = 32
 
 
-additionalBlocks :: BLOCKS ChaCha20
+additionalBlocks :: BlockCount ChaCha20
 additionalBlocks = blocksOf 1 Proxy
 
 
@@ -34,14 +34,14 @@ additionalBlocks = blocksOf 1 Proxy
 foreign import ccall unsafe
   "raaz/cipher/chacha20/cportable.h raazChaCha20Block"
   c_chacha20_block :: AlignedPointer BufferAlignment -- message
-                   -> BLOCKS ChaCha20                -- number of blocks
+                   -> BlockCount ChaCha20                -- number of blocks
                    -> Ptr (Key ChaCha20)             -- key
                    -> Ptr (Nounce ChaCha20)          -- iv
                    -> Ptr (WordType ChaCha20)
                    -> IO ()
 
 processBlocks :: AlignedPointer BufferAlignment
-              -> BLOCKS Prim
+              -> BlockCount Prim
               -> MT Internals ()
 
 processBlocks buf blks =
@@ -62,11 +62,11 @@ type RandomBufferSize = 16
 
 
 -- | How many blocks of the primitive to generated before re-seeding.
-reseedAfter :: BLOCKS Prim
+reseedAfter :: BlockCount Prim
 reseedAfter = blocksOf (1024 * 1024 * 1024) (Proxy :: Proxy Prim)
 
 randomBlocks :: AlignedPointer BufferAlignment
-             -> BLOCKS Prim
+             -> BlockCount Prim
              -> MT Internals ()
 
 randomBlocks  = processBlocks

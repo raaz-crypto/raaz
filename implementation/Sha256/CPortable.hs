@@ -29,12 +29,12 @@ type Internals               = Sha256Mem
 type BufferAlignment         = 32
 
 
-additionalBlocks :: BLOCKS Sha256
+additionalBlocks :: BlockCount Sha256
 additionalBlocks = blocksOf 1 Proxy
 
 -- | The compression algorithm.
 compressBlocks :: AlignedPointer BufferAlignment
-               -> BLOCKS Sha256
+               -> BlockCount Sha256
                -> MT Internals ()
 compressBlocks buf blks = do hPtr <- castPtr <$> hashCellPointer
                              let blkPtr = castPtr $ forgetAlignment buf
@@ -43,7 +43,7 @@ compressBlocks buf blks = do hPtr <- castPtr <$> hashCellPointer
 
 
 processBlocks :: AlignedPointer BufferAlignment
-              -> BLOCKS Sha256
+              -> BlockCount Sha256
               -> MT Internals ()
 processBlocks buf blks = compressBlocks buf blks >> updateLength blks
 

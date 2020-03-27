@@ -29,7 +29,7 @@ type Internals               = Sha256Mem
 type BufferAlignment         = 32
 
 
-additionalBlocks :: BLOCKS Sha256
+additionalBlocks :: BlockCount Sha256
 additionalBlocks = blocksOf 1 Proxy
 
 ------------------------ The foreign function calls  ---------------------
@@ -37,19 +37,19 @@ additionalBlocks = blocksOf 1 Proxy
 foreign import ccall unsafe
   "raaz/hash/sha256/portable.h raazHashSha256PortableCompress"
    c_sha256_compress  :: AlignedPointer BufferAlignment
-                      -> BLOCKS Sha256
+                      -> BlockCount Sha256
                       -> Ptr Sha256
                       -> IO ()
 
 
 compressBlocks :: AlignedPointer BufferAlignment
-               -> BLOCKS Sha256
+               -> BlockCount Sha256
                -> MT Internals ()
 compressBlocks buf blks =  hashCellPointer >>= liftIO . c_sha256_compress buf blks
 
 
 processBlocks :: AlignedPointer BufferAlignment
-              -> BLOCKS Sha256
+              -> BlockCount Sha256
               -> MT Internals ()
 processBlocks buf blks = compressBlocks buf blks >> updateLength blks
 

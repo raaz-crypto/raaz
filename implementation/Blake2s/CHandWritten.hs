@@ -25,7 +25,7 @@ type Internals               = Blake2sMem
 type BufferAlignment         = 32
 
 
-additionalBlocks :: BLOCKS Prim
+additionalBlocks :: BlockCount Prim
 additionalBlocks = blocksOf 1 Proxy
 
 ------------------------- FFI For Blake2s -------------------------------------
@@ -34,7 +34,7 @@ additionalBlocks = blocksOf 1 Proxy
 foreign import ccall unsafe
   "raaz/hash/blake2/common.h raazHashBlake2sPortableBlockCompress"
   c_blake2s_compress  :: AlignedPointer BufferAlignment
-                      -> BLOCKS Blake2s
+                      -> BlockCount Blake2s
                       -> BYTES Word64
                       -> Ptr Prim
                       -> IO ()
@@ -50,7 +50,7 @@ foreign import ccall unsafe
                    -> IO ()
 --
 processBlocks :: AlignedPointer BufferAlignment
-              -> BLOCKS Prim
+              -> BlockCount Prim
               -> MT Internals ()
 
 processBlocks buf blks =

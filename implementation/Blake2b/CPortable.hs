@@ -24,12 +24,12 @@ type Internals               = Blake2bMem
 type BufferAlignment         = 32
 
 
-additionalBlocks :: BLOCKS Blake2b
+additionalBlocks :: BlockCount Blake2b
 additionalBlocks = blocksOf 1 Proxy
 
 
 processBlocks :: AlignedPointer BufferAlignment
-              -> BLOCKS Blake2b
+              -> BlockCount Blake2b
               -> MT Blake2bMem ()
 
 processBlocks buf blks =

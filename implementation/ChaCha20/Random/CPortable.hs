@@ -23,12 +23,12 @@ type RandomBufferSize = 16
 
 
 -- | How many blocks of the primitive to generated before re-seeding.
-reseedAfter :: BLOCKS Prim
+reseedAfter :: BlockCount Prim
 reseedAfter = blocksOf (1024 * 1024 * 1024) (Proxy :: Proxy Prim)
 
 
 
 randomBlocks :: AlignedPointer BufferAlignment
-             -> BLOCKS Prim
+             -> BlockCount Prim
              -> MT Internals ()
 randomBlocks = Base.runBlockProcess verse_chacha20csprg_c_portable

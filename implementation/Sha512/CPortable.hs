@@ -30,11 +30,11 @@ type Internals               = Sha512Mem
 type BufferAlignment         = 32
 
 
-additionalBlocks :: BLOCKS Sha512
+additionalBlocks :: BlockCount Sha512
 additionalBlocks = blocksOf 1 Proxy
 
 compressBlocks :: AlignedPointer BufferAlignment
-               -> BLOCKS Sha512
+               -> BlockCount Sha512
                -> MT Internals ()
 compressBlocks buf blks = do hPtr <- castPtr <$> hashCell128Pointer
                              let blkPtr = castPtr $ forgetAlignment buf
@@ -42,7 +42,7 @@ compressBlocks buf blks = do hPtr <- castPtr <$> hashCell128Pointer
                                in liftIO $ verse_sha512_c_portable blkPtr wBlks hPtr
 
 processBlocks :: AlignedPointer BufferAlignment
-              -> BLOCKS Sha512
+              -> BlockCount Sha512
               -> MT Internals ()
 processBlocks buf blks = compressBlocks buf blks >> updateLength128 blks
 

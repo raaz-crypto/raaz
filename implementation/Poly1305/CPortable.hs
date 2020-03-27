@@ -29,12 +29,12 @@ type Internals               = Mem
 type BufferAlignment         = 32
 
 
-additionalBlocks :: BLOCKS Poly1305
+additionalBlocks :: BlockCount Poly1305
 additionalBlocks = blocksOf 1 Proxy
 
 -- | Incrementally process poly1305 blocks.
 processBlocks :: AlignedPointer BufferAlignment
-              -> BLOCKS Poly1305
+              -> BlockCount Poly1305
               -> MT Internals ()
 processBlocks buf blks = do
   aP <- accumPtr
@@ -45,7 +45,7 @@ processBlocks buf blks = do
 
 -- | Process a message that is exactly a multiple of the blocks.
 blocksMac :: AlignedPointer BufferAlignment
-          -> BLOCKS Poly1305
+          -> BlockCount Poly1305
           -> MT Internals ()
 blocksMac buf blks = runWithRS $ verse_poly1305_c_portable_blockmac bufPtr wBlks
   where bufPtr = castPtr $ forgetAlignment buf
@@ -67,7 +67,7 @@ runWithRS func = do aP <- accumPtr
 -- blocks argument here is the greatest multiple of the block that is
 -- less that the message length.
 partialBlockMac :: AlignedPointer BufferAlignment
-                -> BLOCKS Poly1305
+                -> BlockCount Poly1305
                 -> MT Internals ()
 partialBlockMac buf blks = do
   processBlocks buf blks
@@ -85,8 +85,8 @@ processLast buf nBytes
   | otherwise      = do
       unsafeTransfer pad (forgetAlignment buf)
       partialBlockMac buf blksF
-  where blksC = atLeast nBytes :: BLOCKS Poly1305
-        blksF = atMost  nBytes :: BLOCKS Poly1305
+  where blksC = atLeast nBytes :: BlockCount Poly1305
+        blksF = atMost  nBytes :: BlockCount Poly1305
         pad   = padding nBytes
 
 -- | Poly1305 padding. Call this padding function if and only if the

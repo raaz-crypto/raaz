@@ -24,11 +24,11 @@ type Internals               = ChaCha20Mem
 type BufferAlignment         = 32
 
 
-additionalBlocks :: BLOCKS ChaCha20
+additionalBlocks :: BlockCount ChaCha20
 additionalBlocks = blocksOf 1 Proxy
 
 processBlocks :: AlignedPointer BufferAlignment
-              -> BLOCKS Prim
+              -> BlockCount Prim
               -> MT Internals ()
 
 processBlocks = runBlockProcess verse_chacha20_c_portable
@@ -74,7 +74,7 @@ runBlockProcess :: ( Ptr buf ->
                      IO ()
                    )
                 -> AlignedPointer BufferAlignment
-                -> BLOCKS Prim
+                -> BlockCount Prim
                 -> MT Internals ()
 runBlockProcess func buf blks =
   do keyPtr     <- castPtr <$> keyCellPtr
