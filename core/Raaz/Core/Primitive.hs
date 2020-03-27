@@ -14,7 +14,7 @@ use a more high level interface.
 
 module Raaz.Core.Primitive
        ( -- * Cryptographic Primtives
-         Primitive(..), Key, Nounce, Block, BlockPtr
+         Primitive(..), Key, Nounce, Block, BlockPtr, AlignedBlockPtr
        , BlockCount(..), blocksOf
        ) where
 
@@ -64,9 +64,16 @@ data family Key p :: *
 -- primitive (if it requires one).
 data family Nounce p :: *
 
+-- | A block of the primitive.
 type Block p   = Tuple (WordsPerBlock p) (WordType p)
+
 -- | Pointer to a block of the primitive.
 type BlockPtr p = Ptr (Block p)
+
+-- | Aligned version of block pointers.
+
+type AlignedBlockPtr n p = AlignedPtr n (Block p)
+
 
 ------------------- Type safe lengths in units of block ----------------
 
