@@ -267,7 +267,7 @@ library core
 library libverse
   import: defaults
   build-depends: core
-  hs-source-dirs: libverse
+  hs-source-dirs: verse
   exposed-modules: Raaz.Verse.Chacha20.C.Portable
                  , Raaz.Verse.Sha512.C.Portable
                  , Raaz.Verse.Sha256.C.Portable
