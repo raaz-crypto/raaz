@@ -90,18 +90,18 @@ instance Initialisable Sha512Mem () where
 
 
 -- | The block compressor for sha256.
-type Compressor256 n =  AlignedPointer n
+type Compressor256 n =  AlignedBlockPtr n Sha256
                      -> BlockCount Sha256
                      -> MT Sha256Mem ()
 -- | The block compressor for sha512
-type Compressor512 n =  AlignedPointer n
+type Compressor512 n =  AlignedBlockPtr n Sha512
                      -> BlockCount Sha512
                      -> MT Sha512Mem ()
 
 -- | Takes a block processing function for sha256 and gives a last
 -- bytes processor.
 process256Last :: Compressor256 n    -- ^ block compressor
-               -> AlignedPointer n
+               -> AlignedBlockPtr n Sha256
                -> BYTES Int
                -> MT Sha256Mem ()
 process256Last comp buf nbytes  = do
@@ -114,7 +114,7 @@ process256Last comp buf nbytes  = do
 -- | Takes a block processing function for sha512 and gives a last
 -- bytes processor.
 process512Last :: Compressor512 n
-               -> AlignedPointer n
+               -> AlignedBlockPtr n Sha512
                -> BYTES Int
                -> MT Sha512Mem ()
 process512Last comp buf nbytes  = do

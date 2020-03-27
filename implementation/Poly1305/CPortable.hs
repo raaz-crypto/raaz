@@ -4,6 +4,7 @@
 module Poly1305.CPortable
        ( name, description
        , Prim, Internals, BufferAlignment
+       , BufferPtr
        , additionalBlocks
        , processBlocks
        , processLast
@@ -27,13 +28,13 @@ description = "Poly1305 Implementation in C exposed by libverse"
 type Prim                    = Poly1305
 type Internals               = Mem
 type BufferAlignment         = 32
-
+type BufferPtr               = AlignedBlockPtr BufferAlignment Prim
 
 additionalBlocks :: BlockCount Poly1305
 additionalBlocks = blocksOf 1 Proxy
 
 -- | Incrementally process poly1305 blocks.
-processBlocks :: AlignedPointer BufferAlignment
+processBlocks :: BufferPtr
               -> BlockCount Poly1305
               -> MT Internals ()
 processBlocks buf blks = do
@@ -44,7 +45,7 @@ processBlocks buf blks = do
         wBlks  = toEnum $ fromEnum blks
 
 -- | Process a message that is exactly a multiple of the blocks.
-blocksMac :: AlignedPointer BufferAlignment
+blocksMac :: BufferPtr
           -> BlockCount Poly1305
           -> MT Internals ()
 blocksMac buf blks = runWithRS $ verse_poly1305_c_portable_blockmac bufPtr wBlks
@@ -66,7 +67,7 @@ runWithRS func = do aP <- accumPtr
 -- | Process a message that has its last block incomplete. The total
 -- blocks argument here is the greatest multiple of the block that is
 -- less that the message length.
-partialBlockMac :: AlignedPointer BufferAlignment
+partialBlockMac :: BufferPtr
                 -> BlockCount Poly1305
                 -> MT Internals ()
 partialBlockMac buf blks = do
@@ -77,7 +78,7 @@ partialBlockMac buf blks = do
 
 
 -- | Process the last bytes.
-processLast :: AlignedPointer BufferAlignment
+processLast :: BufferPtr
             -> BYTES Int
             -> MT Internals ()
 processLast buf nBytes

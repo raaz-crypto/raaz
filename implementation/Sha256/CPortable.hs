@@ -4,6 +4,7 @@
 module Sha256.CPortable
        ( name, description
        , Prim, Internals, BufferAlignment
+       , BufferPtr
        , additionalBlocks
        , processBlocks
        , processLast
@@ -27,13 +28,13 @@ description = "Sha256 Implementation in C exposed by libverse"
 type Prim                    = Sha256
 type Internals               = Sha256Mem
 type BufferAlignment         = 32
-
+type BufferPtr               = AlignedBlockPtr BufferAlignment Prim
 
 additionalBlocks :: BlockCount Sha256
 additionalBlocks = blocksOf 1 Proxy
 
 -- | The compression algorithm.
-compressBlocks :: AlignedPointer BufferAlignment
+compressBlocks :: BufferPtr
                -> BlockCount Sha256
                -> MT Internals ()
 compressBlocks buf blks = do hPtr <- castPtr <$> hashCellPointer
@@ -42,13 +43,13 @@ compressBlocks buf blks = do hPtr <- castPtr <$> hashCellPointer
                                in liftIO $ verse_sha256_c_portable blkPtr wBlks hPtr
 
 
-processBlocks :: AlignedPointer BufferAlignment
+processBlocks :: BufferPtr
               -> BlockCount Sha256
               -> MT Internals ()
 processBlocks buf blks = compressBlocks buf blks >> updateLength blks
 
 -- | Process the last bytes.
-processLast :: AlignedPointer BufferAlignment
+processLast :: BufferPtr
             -> BYTES Int
             -> MT Internals ()
 processLast = process256Last processBlocks

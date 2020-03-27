@@ -22,12 +22,12 @@ description = "ChaCha20 Implementation in C exposed by libverse"
 type Prim                    = ChaCha20
 type Internals               = ChaCha20Mem
 type BufferAlignment         = 32
-
+type BufferPtr               = AlignedBlockPtr BufferAlignment Prim
 
 additionalBlocks :: BlockCount ChaCha20
 additionalBlocks = blocksOf 1 Proxy
 
-processBlocks :: AlignedPointer BufferAlignment
+processBlocks :: BufferPtr
               -> BlockCount Prim
               -> MT Internals ()
 
@@ -35,7 +35,7 @@ processBlocks = runBlockProcess verse_chacha20_c_portable
 
 
 -- | Process the last bytes.
-processLast :: AlignedPointer BufferAlignment
+processLast :: BufferPtr
             -> BYTES Int
             -> MT Internals ()
 processLast buf = processBlocks buf . atLeast
@@ -73,7 +73,7 @@ runBlockProcess :: ( Ptr buf ->
                      Ptr c   ->
                      IO ()
                    )
-                -> AlignedPointer BufferAlignment
+                -> BufferPtr
                 -> BlockCount Prim
                 -> MT Internals ()
 runBlockProcess func buf blks =

@@ -4,6 +4,7 @@
 module Sha512.CPortable
        ( name, description
        , Prim, Internals, BufferAlignment
+       , BufferPtr
        , additionalBlocks
        , processBlocks
        , processLast
@@ -28,12 +29,12 @@ description = "Sha512 Implementation in C exposed by libverse"
 type Prim                    = Sha512
 type Internals               = Sha512Mem
 type BufferAlignment         = 32
-
+type BufferPtr               = AlignedBlockPtr BufferAlignment Prim
 
 additionalBlocks :: BlockCount Sha512
 additionalBlocks = blocksOf 1 Proxy
 
-compressBlocks :: AlignedPointer BufferAlignment
+compressBlocks :: BufferPtr
                -> BlockCount Sha512
                -> MT Internals ()
 compressBlocks buf blks = do hPtr <- castPtr <$> hashCell128Pointer
@@ -41,7 +42,7 @@ compressBlocks buf blks = do hPtr <- castPtr <$> hashCell128Pointer
                                  wBlks  = toEnum $ fromEnum blks
                                in liftIO $ verse_sha512_c_portable blkPtr wBlks hPtr
 
-processBlocks :: AlignedPointer BufferAlignment
+processBlocks :: BufferPtr
               -> BlockCount Sha512
               -> MT Internals ()
 processBlocks buf blks = compressBlocks buf blks >> updateLength128 blks
@@ -49,7 +50,7 @@ processBlocks buf blks = compressBlocks buf blks >> updateLength128 blks
 
 
 -- | Process the last bytes.
-processLast :: AlignedPointer BufferAlignment
+processLast :: BufferPtr
             -> BYTES Int
             -> MT Internals ()
 processLast = process512Last processBlocks

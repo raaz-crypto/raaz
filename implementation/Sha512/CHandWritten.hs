@@ -5,6 +5,7 @@
 module Sha512.CHandWritten
        ( name, description
        , Prim, Internals, BufferAlignment
+       , BufferPtr
        , additionalBlocks
        , processBlocks
        , processLast
@@ -27,7 +28,7 @@ description = "Hand written Sha512 Implementation using portable C and Haskell F
 type Prim                    = Sha512
 type Internals               = Sha512Mem
 type BufferAlignment         = 32
-
+type BufferPtr               = AlignedBlockPtr BufferAlignment Prim
 
 additionalBlocks :: BlockCount Sha512
 additionalBlocks = blocksOf 1 Proxy
@@ -36,26 +37,26 @@ additionalBlocks = blocksOf 1 Proxy
 
 foreign import ccall unsafe
   "raaz/hash/sha512/portable.h raazHashSha512PortableCompress"
-  c_sha512_compress  :: AlignedPointer BufferAlignment
+  c_sha512_compress  :: BufferPtr
                      -> BlockCount Sha512
                      -> Ptr Sha512
                      -> IO ()
 
 
-compressBlocks :: AlignedPointer BufferAlignment
+compressBlocks :: BufferPtr
                -> BlockCount Sha512
                -> MT Internals ()
 compressBlocks buf blks =  hashCell128Pointer
                            >>= liftIO . c_sha512_compress buf blks
 
 
-processBlocks :: AlignedPointer BufferAlignment
+processBlocks :: BufferPtr
               -> BlockCount Sha512
               -> MT Internals ()
 processBlocks buf blks = compressBlocks buf blks >> updateLength128 blks
 
 -- | Process the last bytes.
-processLast :: AlignedPointer BufferAlignment
+processLast :: BufferPtr
             -> BYTES Int
             -> MT Internals ()
 processLast = process512Last processBlocks

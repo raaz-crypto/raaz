@@ -23,7 +23,7 @@ description = "Hand written Blake2b Implementation in portable C and Haskell FFI
 type Prim                    = Blake2b
 type Internals               = Blake2bMem
 type BufferAlignment         = 32
-
+type BufferPtr               = AlignedBlockPtr BufferAlignment Prim
 
 additionalBlocks :: BlockCount Blake2b
 additionalBlocks = blocksOf 1 Proxy
@@ -33,7 +33,7 @@ additionalBlocks = blocksOf 1 Proxy
 
 foreign import ccall unsafe
   "raaz/hash/blake2/common.h raazHashBlake2bPortableBlockCompress"
-  c_blake2b_compress  :: AlignedPointer BufferAlignment
+  c_blake2b_compress  :: BufferPtr
                       -> BlockCount Prim
                       -> Ptr (BYTES Word64)
                       -> Ptr (BYTES Word64)
@@ -42,7 +42,7 @@ foreign import ccall unsafe
 
 foreign import ccall unsafe
   "raaz/hash/blake2/common.h raazHashBlake2bPortableLastBlock"
-  c_blake2b_last   :: Pointer
+  c_blake2b_last   :: BlockPtr Prim
                    -> BYTES Int
                    -> BYTES Word64
                    -> BYTES Word64
@@ -52,7 +52,7 @@ foreign import ccall unsafe
                    -> IO ()
 
 --
-processBlocks :: AlignedPointer BufferAlignment
+processBlocks :: BufferPtr
               -> BlockCount Blake2b
               -> MT Blake2bMem ()
 
@@ -62,7 +62,7 @@ processBlocks buf blks = do uPtr   <- uLengthCellPointer
                             liftIO $ c_blake2b_compress buf blks uPtr lPtr hshPtr
 
 -- | Process the last bytes.
-processLast :: AlignedPointer BufferAlignment
+processLast :: BufferPtr
             -> BYTES Int
             -> MT Blake2bMem ()
 processLast buf nbytes  = do
