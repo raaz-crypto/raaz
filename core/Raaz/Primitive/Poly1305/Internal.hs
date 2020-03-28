@@ -66,6 +66,7 @@ instance Show S where
   show = showBase16
 
 instance Primitive Poly1305 where
-  type BlockSize Poly1305      = 16
+  type WordType      Poly1305  = Word8
+  type WordsPerBlock Poly1305  = 16
 
 data instance Key Poly1305  = Key R S deriving Show

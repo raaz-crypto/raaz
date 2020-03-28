@@ -101,7 +101,7 @@ type RandomBuffer = Buffer RandomBufferSize
 data RandomState = RandomState { internals       :: Internals
                                , auxBuffer       :: RandomBuffer
                                , remainingBytes  :: MemoryCell (BYTES Int)
-                               , blocksGenerated :: MemoryCell (BLOCKS Prim)
+                               , blocksGenerated :: MemoryCell (BlockCount Prim)
                                }
 
 
@@ -205,7 +205,7 @@ fillExistingBytes req ptr = do
 -- | Transfer from existing bytes. This is unsafe because no checks is
 -- done to see if there are enough bytes to transfer.
 unsafeWithExisting :: BYTES Int
-                   -> (Pointer -> MT RandomState ())
+                   -> (BlockPtr Prim -> MT RandomState ())
                    -> MT RandomState ()
 unsafeWithExisting m action =  withAuxBuffer $ \ buf -> do
   r <- getRemainingBytes

@@ -22,14 +22,14 @@ description = "Blake2b Implementation in C exposed by libverse"
 type Prim                    = Blake2b
 type Internals               = Blake2bMem
 type BufferAlignment         = 32
+type BufferPtr               = AlignedBlockPtr BufferAlignment Prim
 
-
-additionalBlocks :: BLOCKS Blake2b
+additionalBlocks :: BlockCount Blake2b
 additionalBlocks = blocksOf 1 Proxy
 
 
-processBlocks :: AlignedPointer BufferAlignment
-              -> BLOCKS Blake2b
+processBlocks :: BufferPtr
+              -> BlockCount Blake2b
               -> MT Blake2bMem ()
 
 processBlocks buf blks =
@@ -59,7 +59,7 @@ processBlocks buf blks =
 --    compression function at the last block using the finalisation
 --    flags.
 --
-processLast :: AlignedPointer BufferAlignment
+processLast :: BufferPtr
             -> BYTES Int
             -> MT Blake2bMem ()
 processLast buf nbytes  = do

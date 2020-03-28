@@ -37,7 +37,8 @@ instance Show prim => Show (Keyed prim) where
   show = show . unsafeToPrim
 
 instance Primitive prim => Primitive (Keyed prim) where
-  type BlockSize (Keyed prim) = BlockSize prim
+  type WordType      (Keyed prim)  = WordType prim
+  type WordsPerBlock (Keyed prim)  = WordsPerBlock prim 
 
 --------------- Key used by the keyed prim -----------------------------
 

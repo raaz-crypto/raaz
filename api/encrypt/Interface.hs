@@ -29,7 +29,7 @@ encrypt key nounce = encryptAt key nounce mempty
 -- | Same as encrypt but first advances so many blocks.
 encryptAt :: Key Prim
           -> Nounce Prim
-          -> BLOCKS Prim
+          -> BlockCount Prim
           -> ByteString
           -> ByteString
 encryptAt key nounce blk bs = unsafePerformIO $ insecurely $ do
@@ -41,7 +41,7 @@ encryptAt key nounce blk bs = unsafePerformIO $ insecurely $ do
 -- | Same as decrypt but first advance so many blocks.
 decryptAt :: Key Prim
           -> Nounce Prim
-          -> BLOCKS Prim
+          -> BlockCount Prim
           -> ByteString
           -> ByteString
 decryptAt = encryptAt

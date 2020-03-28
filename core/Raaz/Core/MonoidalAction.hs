@@ -14,7 +14,7 @@ module Raaz.Core.MonoidalAction
 
 import Control.Arrow
 import Raaz.Core.Prelude
-
+import Raaz.Core.Types.Pointer
 
 ------------------ Actions and Monoidal actions -----------------------
 
@@ -230,3 +230,8 @@ instance (Arrow arrow, LAction m space) => LActionF m (WrappedArrow arrow space)
   {-# INLINE (<<.>>) #-}
 
 instance (Arrow arrow, LAction m space) => DistributiveF m (WrappedArrow arrow space)
+
+-- | The most interesting monoidal action for us.
+instance LengthUnit u => LAction u Pointer where
+  a <.> ptr  = movePtr ptr a
+  {-# INLINE (<.>) #-}

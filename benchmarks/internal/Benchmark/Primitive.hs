@@ -13,6 +13,9 @@ import Benchmark.Types
 
 bench :: KnownNat BufferAlignment => RaazBench
 bench = (nm, toBenchmarkable $ action . fromIntegral)
-  where action count = allocBufferFor sz $ \ ptr -> insecurely $ replicateM_ count $ processBlocks ptr sz
+  where action count = allocBufferFor sz
+                       $ \ ptr -> insecurely
+                                  $ replicateM_ count
+                                  $ processBlocks ptr sz
         nm = name
         sz = atLeast nBytes

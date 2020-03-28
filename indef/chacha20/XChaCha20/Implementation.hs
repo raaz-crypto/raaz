@@ -27,6 +27,7 @@ data Internals               = XChaCha20Mem
   }
 
 type BufferAlignment         = Base.BufferAlignment
+type BufferPtr               = AlignedBlockPtr BufferAlignment Prim
 
 instance Memory Internals where
   memoryAlloc     = XChaCha20Mem <$> memoryAlloc <*> memoryAlloc
@@ -43,31 +44,31 @@ instance Initialisable Internals (Nounce XChaCha20) where
                             in liftIO $ Base.copyKey dest src
                           withReaderT chacha20Internals $ Base.xchacha20Setup xnounce
 
-instance Initialisable Internals (BLOCKS XChaCha20) where
+instance Initialisable Internals (BlockCount XChaCha20) where
   initialise = withReaderT chacha20Internals . initialise . coerce
-    where coerce :: BLOCKS XChaCha20 -> BLOCKS ChaCha20
+    where coerce :: BlockCount XChaCha20 -> BlockCount ChaCha20
           coerce = toEnum . fromEnum
 
-instance Extractable Internals (BLOCKS XChaCha20) where
+instance Extractable Internals (BlockCount XChaCha20) where
   extract = coerce <$> withReaderT chacha20Internals extract
-    where coerce :: BLOCKS ChaCha20 -> BLOCKS XChaCha20
+    where coerce :: BlockCount ChaCha20 -> BlockCount XChaCha20
           coerce = toEnum . fromEnum
 
-additionalBlocks :: BLOCKS XChaCha20
+additionalBlocks :: BlockCount XChaCha20
 additionalBlocks = coerce Base.additionalBlocks
-    where coerce :: BLOCKS Base.Prim -> BLOCKS XChaCha20
+    where coerce :: BlockCount Base.Prim -> BlockCount XChaCha20
           coerce = toEnum . fromEnum
 
 
-processBlocks :: AlignedPointer BufferAlignment
-              -> BLOCKS Prim
+processBlocks :: BufferPtr
+              -> BlockCount Prim
               -> MT Internals ()
-processBlocks buf = withReaderT chacha20Internals . Base.processBlocks buf . coerce
-  where coerce :: BLOCKS XChaCha20 -> BLOCKS Base.Prim
+processBlocks buf = withReaderT chacha20Internals . Base.processBlocks (castAlignedPtr buf) . coerce
+  where coerce :: BlockCount XChaCha20 -> BlockCount Base.Prim
         coerce = toEnum . fromEnum
 
 -- | Process the last bytes.
-processLast :: AlignedPointer BufferAlignment
+processLast :: BufferPtr
             -> BYTES Int
             -> MT Internals ()
-processLast buf = withReaderT chacha20Internals . Base.processLast buf
+processLast buf = withReaderT chacha20Internals . Base.processLast (castAlignedPtr buf)

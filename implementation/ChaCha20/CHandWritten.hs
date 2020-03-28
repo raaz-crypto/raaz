@@ -22,9 +22,9 @@ description = "Hand written ChaCha20 Implementation using portable C"
 type Prim                    = ChaCha20
 type Internals               = ChaCha20Mem
 type BufferAlignment         = 32
+type BufferPtr               = AlignedBlockPtr BufferAlignment Prim
 
-
-additionalBlocks :: BLOCKS ChaCha20
+additionalBlocks :: BlockCount ChaCha20
 additionalBlocks = blocksOf 1 Proxy
 
 
@@ -33,15 +33,15 @@ additionalBlocks = blocksOf 1 Proxy
 -- | Chacha20 block transformation.
 foreign import ccall unsafe
   "raaz/cipher/chacha20/cportable.h raazChaCha20Block"
-  c_chacha20_block :: AlignedPointer BufferAlignment -- message
-                   -> BLOCKS ChaCha20                -- number of blocks
+  c_chacha20_block :: BufferPtr -- message
+                   -> BlockCount ChaCha20                -- number of blocks
                    -> Ptr (Key ChaCha20)             -- key
                    -> Ptr (Nounce ChaCha20)          -- iv
-                   -> Ptr WORD
+                   -> Ptr (WordType ChaCha20)
                    -> IO ()
 
-processBlocks :: AlignedPointer BufferAlignment
-              -> BLOCKS Prim
+processBlocks :: BufferPtr
+              -> BlockCount Prim
               -> MT Internals ()
 
 processBlocks buf blks =
@@ -51,7 +51,7 @@ processBlocks buf blks =
      liftIO     $ c_chacha20_block buf blks keyPtr ivPtr counterPtr
 
 -- | Process the last bytes.
-processLast :: AlignedPointer BufferAlignment
+processLast :: BufferPtr
             -> BYTES Int
             -> MT Internals ()
 processLast buf = processBlocks buf . atLeast
@@ -62,11 +62,11 @@ type RandomBufferSize = 16
 
 
 -- | How many blocks of the primitive to generated before re-seeding.
-reseedAfter :: BLOCKS Prim
+reseedAfter :: BlockCount Prim
 reseedAfter = blocksOf (1024 * 1024 * 1024) (Proxy :: Proxy Prim)
 
-randomBlocks :: AlignedPointer BufferAlignment
-             -> BLOCKS Prim
+randomBlocks :: BufferPtr
+             -> BlockCount Prim
              -> MT Internals ()
 
 randomBlocks  = processBlocks

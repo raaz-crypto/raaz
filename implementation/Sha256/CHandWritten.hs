@@ -5,6 +5,7 @@
 module Sha256.CHandWritten
        ( name, description
        , Prim, Internals, BufferAlignment
+       , BufferPtr
        , additionalBlocks
        , processBlocks
        , processLast
@@ -27,34 +28,34 @@ description = "Hand written Sha256 Implementation using portable C and Haskell F
 type Prim                    = Sha256
 type Internals               = Sha256Mem
 type BufferAlignment         = 32
+type BufferPtr               = AlignedBlockPtr BufferAlignment Prim
 
-
-additionalBlocks :: BLOCKS Sha256
+additionalBlocks :: BlockCount Sha256
 additionalBlocks = blocksOf 1 Proxy
 
 ------------------------ The foreign function calls  ---------------------
 
 foreign import ccall unsafe
   "raaz/hash/sha256/portable.h raazHashSha256PortableCompress"
-   c_sha256_compress  :: AlignedPointer BufferAlignment
-                      -> BLOCKS Sha256
+   c_sha256_compress  :: BufferPtr
+                      -> BlockCount Sha256
                       -> Ptr Sha256
                       -> IO ()
 
 
-compressBlocks :: AlignedPointer BufferAlignment
-               -> BLOCKS Sha256
+compressBlocks :: BufferPtr
+               -> BlockCount Sha256
                -> MT Internals ()
 compressBlocks buf blks =  hashCellPointer >>= liftIO . c_sha256_compress buf blks
 
 
-processBlocks :: AlignedPointer BufferAlignment
-              -> BLOCKS Sha256
+processBlocks :: BufferPtr
+              -> BlockCount Sha256
               -> MT Internals ()
 processBlocks buf blks = compressBlocks buf blks >> updateLength blks
 
 -- | Process the last bytes.
-processLast :: AlignedPointer BufferAlignment
+processLast :: BufferPtr
             -> BYTES Int
             -> MT Internals ()
 processLast = process256Last processBlocks

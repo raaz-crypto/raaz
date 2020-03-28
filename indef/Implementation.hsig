@@ -48,16 +48,20 @@ instance KnownNat BufferAlignment
 type BufferAlignment = 32
 #endif
 
+-- | The pointer type associated with the buffer used by the
+-- implementation.
+type BufferPtr = AlignedBlockPtr BufferAlignment Prim
+
 -- | The additional space required in the buffer for processing the data.
-additionalBlocks :: BLOCKS Prim
+additionalBlocks :: BlockCount Prim
 
 -- | The function that process bytes in multiples of the block size of
 -- the primitive.
-processBlocks :: AlignedPointer BufferAlignment
-              -> BLOCKS Prim
+processBlocks :: BufferPtr
+              -> BlockCount Prim
               -> MT Internals ()
 
 -- | Process the last bytes of the stream.
-processLast :: AlignedPointer BufferAlignment
+processLast :: BufferPtr
             -> BYTES Int
             -> MT Internals ()

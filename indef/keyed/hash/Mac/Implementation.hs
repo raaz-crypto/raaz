@@ -20,6 +20,7 @@ module Mac.Implementation
           , description
           , Internals
           , BufferAlignment
+          , BufferPtr
           , processBlocks
           , processLast
           , additionalBlocks
@@ -47,15 +48,16 @@ description = "Implementation of a MAC based on simple keyed hashing that makes 
               ++ " implementation."
 
 type BufferAlignment = Base.BufferAlignment
+type BufferPtr       = AlignedBlockPtr BufferAlignment Prim
 
-toKeyedBlocks :: BLOCKS Base.Prim -> BLOCKS Prim
+toKeyedBlocks :: BlockCount Base.Prim -> BlockCount Prim
 toKeyedBlocks = toEnum . fromEnum
 
-fromKeyedBlocks :: BLOCKS Prim -> BLOCKS Base.Prim
+fromKeyedBlocks :: BlockCount Prim -> BlockCount Base.Prim
 fromKeyedBlocks = toEnum . fromEnum
 
 -- | The additional space required in the buffer for processing the data.
-additionalBlocks :: BLOCKS Prim
+additionalBlocks :: BlockCount Prim
 additionalBlocks = toKeyedBlocks Base.additionalBlocks
 
 trim ::  Key (Keyed Base.Prim) -> BS.ByteString
@@ -129,17 +131,17 @@ instance Extractable Internals Prim where
 
 -- | The function that process bytes in multiples of the block size of
 -- the primitive.
-processBlocks :: AlignedPointer BufferAlignment
-              -> BLOCKS Prim
+processBlocks :: BufferPtr
+              -> BlockCount Prim
               -> MT Internals ()
 processBlocks aptr blks = do
   start <- withReaderT atStart extract
   when start $ do processKey
                   withReaderT atStart $ initialise False
-  withReaderT hashInternals $ Base.processBlocks aptr $ fromKeyedBlocks blks
+  withReaderT hashInternals $ Base.processBlocks (castAlignedPtr aptr) $ fromKeyedBlocks blks
 
 -- | Process the last bytes of the stream.
-processLast :: AlignedPointer BufferAlignment
+processLast :: BufferPtr
             -> BYTES Int
             -> MT Internals ()
 processLast aptr sz = do
@@ -147,4 +149,4 @@ processLast aptr sz = do
 
   if start && sz == 0 then processKeyLast
     else do when start processKey
-            withReaderT hashInternals $ Base.processLast aptr sz
+            withReaderT hashInternals $ Base.processLast (castAlignedPtr aptr) sz

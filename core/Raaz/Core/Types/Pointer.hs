@@ -12,10 +12,11 @@
 -- library.
 module Raaz.Core.Types.Pointer
        ( -- * Pointers, offsets, and alignment
-         Pointer, AlignedPointer, AlignedPtr(..), onPtr, ptrAlignment, nextAlignedPtr
+         Ptr, Pointer, AlignedPointer, AlignedPtr(..), onPtr, ptrAlignment, nextAlignedPtr
+       , castAlignedPtr
          -- ** Type safe length units.
        , LengthUnit(..)
-       , BYTES(..), BITS(..), BLOCKS(..), blocksOf, inBits
+       , BYTES(..), BITS(..), inBits
        , sizeOf
          -- *** Some length arithmetic
        , bitsQuotRem, bytesQuotRem
@@ -26,7 +27,6 @@ module Raaz.Core.Types.Pointer
        , alignment, alignPtr, movePtr, alignedSizeOf, nextLocation, peekAligned, pokeAligned
          -- ** Allocation functions.
        , allocaBuffer, allocaAligned, allocaSecure
-       , mallocBuffer
          -- ** Some buffer operations
        , memset
        , wipeMemory
@@ -41,7 +41,7 @@ import           Control.Monad.IO.Class
 
 import           Data.Vector.Unboxed         ( MVector(..), Vector, Unbox )
 import           Foreign.Marshal.Alloc
-import           Foreign.Ptr           ( Ptr                  )
+import           Foreign.Ptr           ( Ptr, castPtr         )
 import qualified Foreign.Ptr           as FP
 import           Foreign.Storable      ( Storable, peek, poke )
 import qualified Foreign.Storable      as FS
@@ -51,8 +51,6 @@ import qualified Data.Vector.Generic         as GV
 import qualified Data.Vector.Generic.Mutable as GVM
 
 import Raaz.Core.Prelude
-import Raaz.Core.Primitive
-import Raaz.Core.MonoidalAction
 import Raaz.Core.Types.Equality
 import Raaz.Core.Types.Copying
 import Raaz.Core.IOCont
@@ -83,6 +81,10 @@ type Pointer = Ptr Byte
 -- to @n@ byte boundary.
 newtype AlignedPtr (n :: Nat) a = AlignedPtr { forgetAlignment :: Ptr a}
 
+-- | Change the type of the aligned pointer not its alignment.
+castAlignedPtr :: AlignedPtr n a -> AlignedPtr n b
+castAlignedPtr = AlignedPtr . castPtr . forgetAlignment
+
 type AlignedPointer n = AlignedPtr n Byte
 
 -- | Run a pointer action on the associated aligned pointer.
@@ -90,13 +92,10 @@ onPtr :: (Ptr a -> b) -> AlignedPtr n a -> b
 onPtr action = action . forgetAlignment
 
 -- | Recover the alignment restriction of the pointer.
-ptrAlignment :: (Storable a, KnownNat n) => Proxy (AlignedPtr n a) -> Alignment
-ptrAlignment aptr = restriction <> alignment (getElementProxy aptr)
+ptrAlignment :: KnownNat n => Proxy (AlignedPtr n a) -> Alignment
+ptrAlignment = toEnum . fromEnum . natVal . getAlignProxy
   where getAlignProxy :: Proxy (AlignedPtr n a) -> Proxy n
         getAlignProxy _ = Proxy
-        getElementProxy :: Proxy (AlignedPtr n a) -> Proxy a
-        getElementProxy _ = Proxy
-        restriction = toEnum $ fromEnum $ natVal $ getAlignProxy aptr
 
 nextAlignedPtr :: (Storable a, KnownNat n) => Ptr a -> AlignedPtr n a
 nextAlignedPtr ptr = thisPtr
@@ -240,46 +239,6 @@ bitsQuot bits = u
         q       = bits `quot` divisor
         u       = toEnum $ fromEnum q
 
--- | The most interesting monoidal action for us.
-instance LengthUnit u => LAction u Pointer where
-  a <.> ptr  = movePtr ptr a
-  {-# INLINE (<.>) #-}
-
-
-------------------- Type safe lengths in units of block ----------------
-
--- | Type safe message length in units of blocks of the primitive.
--- When dealing with buffer lengths for a primitive, it is often
--- better to use the type safe units `BLOCKS`. Functions in the raaz
--- package that take lengths usually allow any type safe length as
--- long as they can be converted to bytes. This can avoid a lot of
--- tedious and error prone length calculations.
-newtype BLOCKS p = BLOCKS {unBLOCKS :: Int}
-                 deriving (Show, Eq, Ord, Enum, Storable)
-
-instance Semigroup (BLOCKS p) where
-  (<>) x y = BLOCKS $ unBLOCKS x + unBLOCKS y
-instance Monoid (BLOCKS p) where
-  mempty   = BLOCKS 0
-  mappend  = (<>)
-
-
-instance Primitive p => LengthUnit (BLOCKS p) where
-  inBytes p@(BLOCKS x) = scale * blockSize p
-    where scale = BYTES x
-          getProxy :: BLOCKS p -> Proxy (BlockSize p)
-          getProxy _ = Proxy
-          blockSize :: Primitive prim => BLOCKS prim -> BYTES Int
-          blockSize  = toEnum . fromEnum . natVal . getProxy
-
-
--- | The expression @n `blocksOf` primProxy@ specifies the message
--- lengths in units of the block length of the primitive whose proxy
--- is @primProxy@. This expression is sometimes required to make the
--- type checker happy.
-blocksOf :: Int -> Proxy p -> BLOCKS p
-blocksOf n _ = BLOCKS n
-
 --------------------------
 
 instance Unbox w => Unbox (BYTES w)
@@ -401,13 +360,13 @@ pokeAligned ptr =  poke $ nextLocation ptr
 -- can be specified in any length units.
 allocaBuffer :: (MonadIOCont m, LengthUnit l)
              => l                  -- ^ buffer length
-             -> (Pointer -> m b)  -- ^ the action to run
+             -> (Ptr something -> m b)  -- ^ the action to run
              -> m b
 allocaBuffer l = liftIOCont $ allocaBytes b
     where BYTES b = inBytes l
 
 -- | Similar to `allocaBuffer` but for aligned pointers.
-allocaAligned :: (MonadIOCont m, LengthUnit l, KnownNat n, Storable a)
+allocaAligned :: (MonadIOCont m, LengthUnit l, KnownNat n)
               => l
               -> (AlignedPtr n a -> m b)
               -> m b
@@ -459,24 +418,12 @@ foreign import ccall unsafe "raaz/core/memory.h raazMemorylock"
 foreign import ccall unsafe "raaz/core/memory.h raazMemoryunlock"
   c_munlock :: Pointer -> BYTES Int -> IO ()
 
-
-
--- | Creates a memory of given size. It is better to use over
--- @`mallocBytes`@ as it uses typesafe length.
-mallocBuffer :: LengthUnit l
-             => l                    -- ^ buffer length
-             -> IO Pointer
-{-# INLINE mallocBuffer #-}
-mallocBuffer l = mallocBytes bytes
-  where BYTES bytes = inBytes l
-
-
 -------------------- Low level pointer operations ------------------
 
 -- | A version of `hGetBuf` which works for any type safe length units.
 hFillBuf :: LengthUnit bufSize
          => Handle
-         -> Pointer
+         -> Ptr a
          -> bufSize
          -> IO (BYTES Int)
 {-# INLINE hFillBuf #-}
@@ -487,24 +434,24 @@ hFillBuf handle cptr bufSize = BYTES <$> hGetBuf handle cptr bytes
 
 -- | Some common PTR functions abstracted over type safe length.
 foreign import ccall unsafe "string.h memcpy" c_memcpy
-    :: Dest Pointer -> Src Pointer -> BYTES Int -> IO Pointer
+    :: Dest (Ptr dest) -> Src (Ptr src) -> BYTES Int -> IO Pointer
 
 -- | Copy between pointers.
 memcpy :: (MonadIO m, LengthUnit l)
-       => Dest Pointer -- ^ destination
-       -> Src  Pointer -- ^ src
-       -> l            -- ^ Number of Bytes to copy
+       => Dest (Ptr dest) -- ^ destination
+       -> Src  (Ptr src)  -- ^ src
+       -> l               -- ^ Number of Bytes to copy
        -> m ()
 memcpy dest src = liftIO . void . c_memcpy dest src . inBytes
 
 {-# SPECIALIZE memcpy :: Dest Pointer -> Src Pointer -> BYTES Int -> IO () #-}
 
 foreign import ccall unsafe "string.h memset" c_memset
-    :: Pointer -> Word8 -> BYTES Int -> IO Pointer
+    :: Ptr buf -> Word8 -> BYTES Int -> IO Pointer
 
 -- | Sets the given number of Bytes to the specified value.
 memset :: (MonadIO m, LengthUnit l)
-       => Pointer -- ^ Target
+       => Ptr a     -- ^ Target
        -> Word8     -- ^ Value byte to set
        -> l         -- ^ Number of bytes to set
        -> m ()
@@ -512,10 +459,10 @@ memset p w = liftIO . void . c_memset p w . inBytes
 {-# SPECIALIZE memset :: Pointer -> Word8 -> BYTES Int -> IO () #-}
 
 foreign import ccall unsafe "raazWipeMemory" c_wipe_memory
-    :: Pointer -> BYTES Int -> IO Pointer
+    :: Ptr a -> BYTES Int -> IO Pointer
 
 wipeMemory :: (MonadIO m, LengthUnit l)
-            => Pointer -- ^ buffer to wipe
+            => Ptr a   -- ^ buffer to wipe
             -> l       -- ^ buffer length
             -> m ()
 wipeMemory p = liftIO . void . c_wipe_memory p . inBytes

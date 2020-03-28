@@ -50,7 +50,7 @@ type RandomBufferSize = 16
 
 
 -- | How many blocks of the primitive to generated before re-seeding.
-reseedAfter :: BLOCKS Prim
+reseedAfter :: BlockCount Prim
 
 -- | Generate pseudo-random data in multiples of the blocks.  The sole
 -- purpose of this function is to stretch a fixed size seed (the key
@@ -60,6 +60,6 @@ reseedAfter :: BLOCKS Prim
 -- ignoring the endian considerations. In particular, if deterministic
 -- generation of random bytes across architectures are what is
 -- desired, this function is not suitable.
-randomBlocks :: AlignedPointer BufferAlignment
-             -> BLOCKS Prim
+randomBlocks :: AlignedBlockPtr BufferAlignment Prim
+             -> BlockCount Prim
              -> MT Internals ()

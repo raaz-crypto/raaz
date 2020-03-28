@@ -42,6 +42,9 @@ matrix:
     - compiler: ghc-8.8.1
       addons: {apt: {packages: [cabal-install-3.0 ,ghc-8.8.1], sources: [hvr-ghc]}}
 
+    - compiler: ghc-8.10.1
+      addons: {apt: {packages: [cabal-install-3.0 ,ghc-8.10.1], sources: [hvr-ghc]}}
+
     - compiler: ghc-head
       addons: {apt: {packages: [cabal-install-head ,ghc-head], sources: [hvr-ghc]}}
 

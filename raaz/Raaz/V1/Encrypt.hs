@@ -31,7 +31,7 @@ encrypt = XChaCha20.encrypt
 -- | Encryption starting at a given block offset.
 encryptAt :: Key Cipher    -- ^
           -> Nounce Cipher
-          -> BLOCKS Cipher
+          -> BlockCount Cipher
           -> ByteString
           -> ByteString
 encryptAt = XChaCha20.encryptAt
@@ -39,7 +39,7 @@ encryptAt = XChaCha20.encryptAt
 -- | Same as decryption but starting at a given offset.
 decryptAt :: Key Cipher
           -> Nounce Cipher
-          -> BLOCKS Cipher
+          -> BlockCount Cipher
           -> ByteString
           -> ByteString
 decryptAt = XChaCha20.decryptAt

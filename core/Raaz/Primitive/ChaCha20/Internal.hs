@@ -9,7 +9,6 @@
 -- (4-byte) counter and 96-bit (12-byte) IV.
 module Raaz.Primitive.ChaCha20.Internal
        ( ChaCha20(..), XChaCha20(..)
-       , WORD
        , Key(..), Nounce(..)
        , ChaCha20Mem(..)
        , keyCellPtr, ivCellPtr, counterCellPtr
@@ -28,19 +27,21 @@ data ChaCha20 = ChaCha20
 -- | The type associated with the XChaCha20 variant.
 data XChaCha20 = XChaCha20
 
-
-instance Primitive ChaCha20 where
-  type BlockSize ChaCha20      = 64
-
-instance Primitive XChaCha20 where
-  type BlockSize XChaCha20     = 64
-
--- | The word type
 type WORD     = LE Word32
 type KEY      = Tuple 8 WORD
 
-newtype instance Key     ChaCha20 = Key     KEY
+instance Primitive ChaCha20 where
+  type WordType      ChaCha20 = WORD
+  type WordsPerBlock ChaCha20 = 16
+
+instance Primitive XChaCha20 where
+  type WordType      XChaCha20  = WORD
+  type WordsPerBlock XChaCha20  = 16
+
+
+newtype instance Key     ChaCha20 = Key KEY
   deriving (Storable, EndianStore, Equality, Eq)
+
 newtype instance Nounce  ChaCha20 = Nounce  (Tuple 3 WORD)
   deriving (Storable, EndianStore, Equality, Eq)
 
@@ -62,7 +63,7 @@ instance IsString (Nounce ChaCha20) where
   fromString = fromBase16
 
 
-newtype instance Key     XChaCha20 = XKey     KEY
+newtype instance Key     XChaCha20 = XKey KEY
   deriving (Storable, EndianStore)
 newtype instance Nounce  XChaCha20 = XNounce  (Tuple 6 WORD)
   deriving (Storable, EndianStore)
@@ -114,14 +115,14 @@ instance Initialisable ChaCha20Mem (Key ChaCha20) where
 instance Initialisable ChaCha20Mem (Nounce ChaCha20)  where
   initialise  = withReaderT ivCell . initialise
 
-instance Initialisable ChaCha20Mem (BLOCKS ChaCha20) where
+instance Initialisable ChaCha20Mem (BlockCount ChaCha20) where
   initialise = withReaderT counterCell . initialise . conv
-    where conv :: BLOCKS ChaCha20 -> WORD
+    where conv :: BlockCount ChaCha20 -> WORD
           conv = toEnum . fromEnum
 
-instance Extractable ChaCha20Mem (BLOCKS ChaCha20) where
+instance Extractable ChaCha20Mem (BlockCount ChaCha20) where
   extract = conv <$> withReaderT counterCell extract
-    where conv :: WORD -> BLOCKS ChaCha20
+    where conv :: WORD -> BlockCount ChaCha20
           conv = toEnum . fromEnum
 
 -- | Initialises key from a buffer. Use this instance if you want to

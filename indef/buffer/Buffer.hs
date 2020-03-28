@@ -15,10 +15,6 @@ import GHC.TypeLits
 import Raaz.Core
 import Implementation
 
--- | The pointer type associated with the buffer used by the
--- implementation.
-type BufferPtr = AlignedPointer BufferAlignment
-
 -- | A memory buffer than can handle up to @n@ blocks of data. This
 -- happens when you need to do some transformation on internal data
 -- using a primitive. An example is using a stream cipher for
@@ -31,19 +27,19 @@ newtype Buffer (n :: Nat) = Buffer { unBuffer :: Pointer }
 
 -- | Get the underlying pointer for the buffer.
 getBufferPointer :: Buffer n -> BufferPtr
-getBufferPointer = nextAlignedPtr . unBuffer
+getBufferPointer = castAlignedPtr . nextAlignedPtr . unBuffer
 
 {-# INLINE bufferSize #-}
 -- | The size of data (measured in blocks) that can be safely
 -- processed inside this buffer.
-bufferSize :: KnownNat n => Proxy (Buffer n) -> BLOCKS Prim
+bufferSize :: KnownNat n => Proxy (Buffer n) -> BlockCount Prim
 bufferSize = flip blocksOf Proxy . fromIntegral . natVal . nProxy
   where nProxy :: Proxy (Buffer n) -> Proxy n
         nProxy  _ = Proxy
 
 -- | Internal function used by allocation.  WARNING: Not to be exposed
 -- else can be confusing with `bufferSize`.
-actualBufferSize :: KnownNat n => Proxy (Buffer n) -> BLOCKS Prim
+actualBufferSize :: KnownNat n => Proxy (Buffer n) -> BlockCount Prim
 actualBufferSize bproxy = bufferSize bproxy <> additionalBlocks
 
 instance KnownNat n => Memory (Buffer n) where
@@ -56,8 +52,9 @@ instance KnownNat n => Memory (Buffer n) where
 
   unsafeToPointer = unBuffer
 
+
 allocBufferFor :: MonadIOCont m
-               => BLOCKS Prim
+               => BlockCount Prim
                -> (BufferPtr  -> m a) -> m a
 
 allocBufferFor blks = allocaAligned totalSize

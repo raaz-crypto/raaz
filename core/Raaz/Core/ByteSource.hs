@@ -16,8 +16,7 @@ import qualified Data.ByteString      as B
 import qualified Data.ByteString.Lazy as L
 
 import           Raaz.Core.Prelude
-import           Raaz.Core.MonoidalAction
-import           Raaz.Core.Types      (BYTES, Pointer, LengthUnit (..))
+import           Raaz.Core.Types      (BYTES, Ptr, LengthUnit (..), movePtr)
 import           Raaz.Core.Util.ByteString( unsafeCopyToPointer
                                           , unsafeNCopyToPointer
                                           , length
@@ -74,7 +73,7 @@ class ByteSource src where
   -- | Fills a buffer from the source.
   fillBytes :: BYTES Int  -- ^ Buffer size
             -> src        -- ^ The source to fill.
-            -> Pointer    -- ^ Buffer pointer
+            -> Ptr a      -- ^ Buffer pointer
             -> IO (FillResult src)
 
 -- | A version of fillBytes that takes type safe lengths as input.
@@ -83,7 +82,7 @@ fill :: ( LengthUnit len
         )
      => len
      -> src
-     -> Pointer
+     -> Ptr a
      -> IO (FillResult src)
 fill = fillBytes . inBytes
 {-# INLINE fill #-}
@@ -94,7 +93,7 @@ processChunks :: ( MonadIO m, LengthUnit chunkSize, ByteSource src)
               -> (BYTES Int -> m b)  -- action on the last partial chunk,
               -> src                 -- the source
               -> chunkSize           -- size of the chunksize
-              -> Pointer             -- buffer to fill the chunk in
+              -> Ptr something       -- buffer to fill the chunk in
               -> m b
 processChunks mid end source csz ptr = go source
   where fillChunk src = liftIO $ fill csz src ptr
@@ -148,7 +147,7 @@ instance ByteSource src => ByteSource [src] where
     result <- fillBytes sz x cptr
     case result of
       Remaining nx     -> return $ Remaining $ nx:xs
-      Exhausted bytesX -> let nptr              = bytesX <.> cptr
+      Exhausted bytesX -> let nptr              = movePtr cptr bytesX
                               whenXSExhausted bytesXS = return $ Exhausted $ bytesX + bytesXS
                               whenXSRemains           = return . Remaining
                            in fillBytes (sz - bytesX) xs nptr
