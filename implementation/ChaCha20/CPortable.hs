@@ -11,7 +11,7 @@ import qualified Data.Vector.Unboxed as V
 import           Raaz.Core
 import           Raaz.Core.Types.Internal
 import           Raaz.Primitive.ChaCha20.Internal
-import           Raaz.Verse.Chacha20.C.Portable
+import           Raaz.Verse.ChaCha20.C.Portable
 
 name :: String
 name = "chacha20-libverse-c"

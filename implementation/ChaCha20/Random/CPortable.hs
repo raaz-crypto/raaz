@@ -7,7 +7,7 @@ module ChaCha20.Random.CPortable
 import           Raaz.Core
 import qualified ChaCha20.CPortable as Base
 import           ChaCha20.CPortable (Prim, Internals, BufferAlignment, BufferPtr, additionalBlocks)
-import           Raaz.Verse.Chacha20.C.Portable
+import           Raaz.Verse.ChaCha20.C.Portable
 
 name :: String
 name = "chacha20-libverse-csprg"
