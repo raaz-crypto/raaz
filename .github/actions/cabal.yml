@@ -7,23 +7,23 @@ steps:
       ghc --version
       cabal --version
 
-  - name: Get the Repository
-    uses: actions/checkout@v2
+  - name: Submodules
+    run: git submodule update --init
 
-  - name: Cabal Update
-    runs: cabal update
+  - name: Update
+    run: cabal update
 
   - name: Build
-    runs: cabal build
+    run: cabal build
 
   - name: Test
-    runs: cabal test
+    run: cabal test
 
   - name: Benchmarks
-    runs: cabal bench
+    run: cabal bench
 
   - name: Documentation
-    runs: cabal haddock
+    run: cabal haddock
 
   - name: Raaz information
     run: cabal exec raaz -- info
