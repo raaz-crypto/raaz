@@ -16,10 +16,9 @@ jobs:
 
       - name: 'Setup'
         run: |
-          sudo apt-get install "ghc-$GHCVER"
-          sudo apt-get install "cabal-install-3.0"
+          sudo apt-get install "ghc-$GHCVER" -y
+          sudo apt-get install "cabal-install-3.0" -y
           export PATH="/opt/ghc/bin:$PATH"
-
         env:
           GHCVER: ${{ matrix.ghc }}
 
