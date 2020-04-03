@@ -5,8 +5,35 @@ jobs:
     name: 'MacOS'
     runs-on: macos-latest
     steps:
+
+      - name: 'Setup'
+        run: |
+          brew update
+          brew install ghc cabal-install
+          brew info ghc cabal-install
+
+      - name: Information
+        run: |
+          ghc --version
+          cabal --version
+
       - name: Get the Repository
         uses: actions/checkout@v2
-      - name: 'Setup'
-        uses: ./.github/actions/setup-mac
-      - uses: ./.github/actions/cabal
+
+      - name: Submodules
+        run: git submodule update --init libverse
+
+      - name Updating Cabal packages
+        run: cabal update
+
+      - name: Build
+        run: |
+          cabal build
+          cabal test
+          cabal bench
+
+      - name: Documentation
+        run: cabal haddock
+
+      - name: Raaz information
+        run: cabal exec raaz -- info
