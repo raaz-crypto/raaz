@@ -1,6 +1,9 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
 {-# LANGUAGE ScopedTypeVariables      #-}
 {-# LANGUAGE FlexibleContexts         #-}
+
+{- HLINT ignore "Use camelCase" -}
+
 -- | These tests compare the implementation of chacha20 of raaz and
 -- that of monocypher. Raaz implements the ietf variants and hence
 -- should be tested against crypto_ietf_chacha and not crypto_chacha C
