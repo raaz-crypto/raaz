@@ -1,6 +1,52 @@
 name: Building and testing
 on: [push, pull_request]
 jobs:
+  linux:
+    name: 'Linux'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ghc: [ 8.4.4 , 8.6.5, 8.8.1, 8.10.1, head]
+    steps:
+
+      - name: 'Enable ppa:hvr/ghc'
+        run: |
+          sudo add-apt-repository ppa:hvr/ghc -y
+          sudo apt-get update -y
+
+      - name: 'Setup'
+        run: |
+          sudo apt-get install "ghc-$GHCVER"
+          sudo apt-get install "cabal-install-3.0"
+          export PATH="/opt/ghc/bin:$PATH"
+
+        env:
+          GHCVER: ${{ matrix.ghc }}
+
+      - name: Information
+        run: |
+          ghc --version
+          cabal --version
+
+      - name: Get the Repository
+        uses: actions/checkout@v2
+
+      - name: Submodules
+        run: git submodule update --init libverse
+
+      - name: Updating Cabal packages
+        run: cabal update
+
+      - name: Build
+        run: |
+          cabal build
+          cabal test
+          cabal bench
+          cabal haddock
+
+      - name: Raaz information
+        run: cabal exec raaz -- info
+
   macos:
     name: 'MacOS'
     runs-on: macos-latest
