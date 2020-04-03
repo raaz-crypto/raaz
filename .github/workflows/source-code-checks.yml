@@ -1,9 +1,9 @@
-name: Linting of source code
+name: Source checks
 on: [pull_request]
 jobs:
 
   hlint:
-    name: Hlint on all haskell source
+    name: Hlint
     runs-on: ubuntu-latest
     steps:
 
