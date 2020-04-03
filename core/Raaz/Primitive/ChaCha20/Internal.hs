@@ -4,6 +4,8 @@
 {-# LANGUAGE MultiParamTypeClasses            #-}
 {-# LANGUAGE TypeFamilies                     #-}
 
+{- HLINT ignore "Unused LANGUAGE pragma" -}
+
 -- | The internals of ChaCha20 ciphers. The variant of Chacha20 that
 -- we implement is the IETF version described in RFC 7538 with 32-bit
 -- (4-byte) counter and 96-bit (12-byte) IV.
