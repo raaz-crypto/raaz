@@ -38,7 +38,7 @@ instance Show prim => Show (Keyed prim) where
 
 instance Primitive prim => Primitive (Keyed prim) where
   type WordType      (Keyed prim)  = WordType prim
-  type WordsPerBlock (Keyed prim)  = WordsPerBlock prim 
+  type WordsPerBlock (Keyed prim)  = WordsPerBlock prim
 
 --------------- Key used by the keyed prim -----------------------------
 

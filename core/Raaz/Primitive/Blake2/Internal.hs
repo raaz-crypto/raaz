@@ -32,7 +32,7 @@ instance ( Unbox w
          , EndianStore w
          ) => Primitive (Blake2 w) where
   type WordType      (Blake2 w) = w
-  type WordsPerBlock (Blake2 w) = 16 
+  type WordsPerBlock (Blake2 w) = 16
 
 instance (Unbox w, EndianStore w) => Encodable (Blake2 w)
 

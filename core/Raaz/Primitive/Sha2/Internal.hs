@@ -33,7 +33,7 @@ instance ( Unbox w
          , EndianStore w
          ) => Primitive (Sha2 w) where
   type WordType      (Sha2 w) = w
-  type WordsPerBlock (Sha2 w) = 16 
+  type WordsPerBlock (Sha2 w) = 16
 
 
 instance (Unbox w, EndianStore w) => Encodable (Sha2 w)
