@@ -23,7 +23,7 @@ jobs:
       - name: Submodules
         run: git submodule update --init libverse
 
-      - name Updating Cabal packages
+      - name: Updating Cabal packages
         run: cabal update
 
       - name: Build
@@ -31,9 +31,7 @@ jobs:
           cabal build
           cabal test
           cabal bench
-
-      - name: Documentation
-        run: cabal haddock
+          cabal haddock
 
       - name: Raaz information
         run: cabal exec raaz -- info
