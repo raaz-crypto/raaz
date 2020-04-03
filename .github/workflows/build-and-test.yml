@@ -22,7 +22,7 @@ jobs:
           export PATH=/opt/cabal/"$CABALVER"/bin:/opt/ghc/"$GHCVER"/bin:$PATH;
         env:
           GHCVER:  ${{ matrix.ghc }}
-          CABALVER: 3.0
+          CABALVER: '3.0'
       - name: Information
         run: |
           echo $PATH
