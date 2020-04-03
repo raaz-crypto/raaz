@@ -7,5 +7,4 @@ jobs:
     steps:
       - name: 'Setup'
         uses:./.github/actions/setup-mac
-      - name: 'Build and Test'
         uses:./.github/actions/cabal
