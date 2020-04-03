@@ -1,23 +1,16 @@
 name: Source checks
 on: [pull_request]
 jobs:
-
-  whitespace:
-    name: Finding Trailing whitespaces
+  checks:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: harupy/find-trailing-whitespace@master
-
-  hlint:
-    name: Hlint
-    runs-on: ubuntu-latest
-    steps:
-      - name: Installing curl
-        run: |
-          sudo apt-get install curl -y
       - name: Get the Repository
         uses: actions/checkout@v2
+
+      - name: 'Trailing white spaces ?'
+        uses: harupy/find-trailing-whitespace@master
+
       - name: Running hlint
         run: |
+          sudo apt-get install curl -y
           curl -sSL https://raw.github.com/ndmitchell/hlint/master/misc/run.sh | sh -s .
