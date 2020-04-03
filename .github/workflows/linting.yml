@@ -1,0 +1,13 @@
+name: Linting of source code
+on: [pull_request]
+jobs:
+  hlint:
+    name: Hlint on all haskell source
+    runs-on: ubuntu:latest
+    steps:
+      - name: Installing curl
+        run: |
+          sudo apt-get install curl -y
+      - name: Running hlint
+        run: |
+          curl -sSL https://raw.github.com/ndmitchell/hlint/master/misc/run.sh | sh -s .
