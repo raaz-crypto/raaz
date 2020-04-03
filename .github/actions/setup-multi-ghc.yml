@@ -1,0 +1,15 @@
+name: 'setup ghc and cabal-install of given versions'
+description: 'Sets up an Ubuntu image with a given ghc and cabal-install using ppa:hvr/ghc'
+author: 'Piyush P Kurur'
+inputs:
+  ghc_version:
+    description: 'version of the ghc compiler to use for the build'
+    default: 8.8.1
+  cabal_version:
+    description: 'version of the cabal-install to use'
+    default: 3.0
+
+run: |
+  sudo add-apt-repository ppa:hvr/ghc -y
+  sudo apt-get update -y
+  sudo apt-get install "ghc-$INPUT_GHC_VERSION" "cabal-install-$INPUT_CABAL_VERSION" -y
