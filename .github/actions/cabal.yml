@@ -1,4 +1,4 @@
-name: 'Cabal Build'
+name: 'Cabal build and test'
 description: 'Uses cabal-install to build test benchmark haddock and raaz repository'
 author: 'Piyush P Kurur'
 runs: |
