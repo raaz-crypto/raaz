@@ -1,0 +1,10 @@
+name: 'Cabal Build'
+description: 'Uses cabal-install to build test benchmark haddock and raaz repository'
+author: 'Piyush P Kurur'
+runs: |
+  cabal configure --flags="wipe-memset" --enable-tests  --enable-documentation
+  cabal build
+  cabal test
+  cabal bench
+  cabal haddock
+  $(find ./dist-newstyle -name raaz -type f) info
