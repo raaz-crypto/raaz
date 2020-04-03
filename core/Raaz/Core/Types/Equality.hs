@@ -160,8 +160,9 @@ instance Equality Word16 where
 instance Equality Word32 where
   eq w1 w2 = Result $ fromIntegral $ xor w1 w2
 
-
+#ifndef __HLINT__
 #include "MachDeps.h"
+#endif
 instance Equality Word64 where
 -- It assumes that Word size is atleast 32 Bits
 #if WORD_SIZE_IN_BITS < 64

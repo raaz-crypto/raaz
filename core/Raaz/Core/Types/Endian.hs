@@ -33,7 +33,9 @@ import           Raaz.Core.Types.Copying
 import           Raaz.Core.Types.Pointer
 import           Raaz.Core.Types.Equality
 
+#ifndef __HLINT__
 #include "MachDeps.h"
+#endif
 
 -- $endianness$
 --
