@@ -1,5 +1,5 @@
 name: Source checks
-on: [pull_request]
+on: [push, pull_request]
 jobs:
   checks:
     runs-on: ubuntu-latest
