@@ -1,5 +1,10 @@
 name: Building and testing
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
+  schedule:
+    # Daily build.
+    - cron: '30 8 * * *'
 jobs:
   linux:
     name: 'Linux'
