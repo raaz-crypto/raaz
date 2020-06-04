@@ -20,9 +20,6 @@ import qualified Data.ByteString.Internal as BI
 import           Data.Word
 import           Foreign.ForeignPtr (withForeignPtr)
 import           Foreign.Ptr        (castPtr, plusPtr)
-import           Foreign.Storable   (peek, Storable)
-
-import           System.IO.Unsafe   (unsafePerformIO)
 
 import           Raaz.Core.Types.Pointer
 import           Raaz.Core.Types.Copying
