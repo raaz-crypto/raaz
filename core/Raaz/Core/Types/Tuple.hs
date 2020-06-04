@@ -5,7 +5,6 @@
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
-{-# LANGUAGE TypeOperators         #-}
 
 -- | Tuples of unboxed values with type level length encoding.
 module Raaz.Core.Types.Tuple
