@@ -6,10 +6,11 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        ghc: [ 8.4.4 , 8.6.5, 8.8.1, 8.10.1]
+        ghc: [ '8.4.4' , '8.6.5', '8.8.1', '8.10.1' , 'head' ]
+        cabal: ['3.0', 'head']
     env:
       GHCVER:  ${{ matrix.ghc }}
-      CABALVER: '3.0'
+      CABALVER: ${{ matrix.cabal }}
     steps:
       - name: 'Enable ppa:hvr/ghc'
         run: |
