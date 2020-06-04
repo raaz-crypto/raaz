@@ -86,7 +86,7 @@ install:
   - travis_retry cabal update;
 
 script:
-  - cabal configure --flags="wipe-memset" --enable-tests  --enable-documentation
+  - cabal configure --flags="wipe-memset"
   - cabal build
   - cabal test
   - cabal bench
