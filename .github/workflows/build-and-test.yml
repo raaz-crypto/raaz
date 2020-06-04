@@ -6,7 +6,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        ghc: [ '8.4.4' , '8.6.5', '8.8.1', '8.10.1' , 'head' ]
+        ghc: [ '8.4.4' , '8.6.5', '8.8.1', '8.10.1']
         cabal: ['3.0', 'head']
     env:
       GHCVER:  ${{ matrix.ghc }}
