@@ -34,13 +34,13 @@ instance Encodable Base16 where
   toByteString          = hex . unBase16
 
   fromByteString bs
-    | B.length bs `mod` 2 /= 0 = Nothing
-    | validInput bs            = Just $ Base16 $ unsafeFromHex bs
-    | otherwise                = Nothing
+    | odd (B.length bs) = Nothing
+    | validInput bs     = Just $ Base16 $ unsafeFromHex bs
+    | otherwise         = Nothing
     where validInput  = C8.all isHexDigit
   unsafeFromByteString bs
-    | B.length bs `mod` 2 /= 0 = error "base16 encoding is always of even size"
-    | otherwise                = Base16 $ unsafeFromHex bs
+    | odd (B.length bs) = error "base16 encoding is always of even size"
+    | otherwise         = Base16 $ unsafeFromHex bs
 
 instance Show Base16 where
   show = C8.unpack . toByteString
