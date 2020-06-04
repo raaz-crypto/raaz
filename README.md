@@ -2,6 +2,7 @@ Raaz: A secure cryptographic library
 ====================================
 
 [![Apache-2.0 OR BSD-3-Clause][shields-license]](#legal)
+[![][ci-badge]][github-actions]
 [![Build Staus][travis-status]][travis-raaz]
 [![Build Windows][appveyor-status]][appveyor-raaz]
 [![Hackage][hackage-badge]][hackage]
@@ -82,11 +83,6 @@ LICENSE file.
 [waffle-inprogress]: <https://badge.waffle.io/raaz-crypto/raaz.svg?label=waffle%3Ain%20progress&title=In%20Progress>
 [travis-status]: <https://secure.travis-ci.org/raaz-crypto/raaz.png> "Build status"
 [travis-raaz]: <https://travis-ci.org/raaz-crypto/raaz>
-[stackage-lts-raaz]: <https://www.stackage.org/lts/package/raaz>
-[stackage-nightly-raaz]: <https://www.stackage.org/nightly/package/raaz>
-
-[stackage-lts-raaz-badge]: <https://www.stackage.org/package/raaz/badge/lts>
-[stackage-nightly-raaz-badge]: <https://www.stackage.org/package/raaz/badge/nightly>
 
 [hackage]:       <https://hackage.haskell.org/package/raaz>
 [hackage-badge]: <https://img.shields.io/hackage/v/raaz.svg>
@@ -94,5 +90,6 @@ LICENSE file.
 [hackage-deps]: <https://packdeps.haskellers.com/feed?needle=raaz>
 [appveyor-status]: <https://ci.appveyor.com/api/projects/status/github/raaz-crypto/raaz?branch=master&svg=true>
 [appveyor-raaz]: <https://ci.appveyor.com/project/raaz-crypto/raaz>
-[stack-backpack]: <https://github.com/commercialhaskell/stack/issues/2540>
 [shields-license]: <https://img.shields.io/badge/License-Apache--2.0%20OR%20BSD--3--Clause-informational.svg>
+[ci-badge]: <https://github.com/raaz-crypto/raaz/workflows/CI/badge.svg> "Building source"
+[github-actions]: <https://github.com/raaz-crypto/raaz/actions> "Github actions"
