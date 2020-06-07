@@ -1,4 +1,4 @@
-name: Source checks
+name: checks
 on: [push, pull_request]
 jobs:
   checks:
