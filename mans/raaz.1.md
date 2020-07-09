@@ -51,43 +51,42 @@ sub-commands which fall into the following categories.
 
 **raaz** **entropy** [BYTES_TO_GENERATE]
 
-With no arguments these command generates a never ending stream of
-cryptographically secure random bytes. For a non-negative integral
-argument **N**, this command generates exactly **N** bytes of random
-data.
 
-The essential difference in these two variants is this: The **rand**
-variant of the command generates cryptographically secure
+The **rand** variant of the command generates cryptographically secure
 pseudo-random bytes starting with a seed picked using the system
 entropy generator, whereas the **entropy** variant directly outputs
-bytes from the system entropy pool. By the system entropy pool, we
-mean the best source of entropy on the given platform, e.g. getrandom
-on recent Linux kernels, arc4random on openbsd etc.
+bytes from the system entropy pool.  With no arguments these command
+generates a never ending stream of cryptographically secure random
+bytes. For a non-negative integral argument **N**, this command
+generates exactly **N** bytes of random data. By the system entropy
+pool, we mean the best source of entropy on the given platform,
+e.g. getrandom on recent Linux kernels, arc4random on openbsd etc.
+
+A user *should* use the **rand** variant and should never even
+consider using the **entropy** variant even if it *sounds* more
+random.
+
+The algorithm behind the **rand** command is essentially the same as
+that of the **arc4random** call available on OpenBSD/NetBSD system. It
+uses the chacha20 cipher to expand the seed (which is picked from the
+system entropy pool) and stretches it into a stream of pseudo-random
+bytes using the *Fast Key Erasure* technique as described in the blog
+post <https://blog.cr.yp.to/20170723-random.html>. It is very likely
+that the system **entropy** command also uses the same algorithm (at
+least if you are on OpenBSD/NetBSD/Latest Linux) the seed for which
+comes from known sources of randomness in the operating system. In
+terms of quality, there is no reason to choose the **entropy**
+variant.  The **rand** variant is often faster than the **entroy**
+variant due to lesser system calls overhead.
 
 
-There is *no* reason whatsoever to prefer **entropy** over **rand**
-just because it sounds more random. Note that essentially all sources
-of randomness in a system is ultimately pseudo-random and so is the
-source behind the **entropy** command. The algorithm behind the **raaz
-rand** command is essentially the same as that of the arc4random call
-available on OpenBSD/NetBSD system. It is very well likely that the
-system **entropy** command also uses the same algorithm, i.e. there is
-not really much to chose from the two command as far as quality of
-randomness is concerned. Besides the **entropy** variant is almost
-always slower than the **rand** variant due to overheads of system
-calls.  A user _should_ therefore use the **rand** variant.
+Why then do we expose the **entropy** variant ? It is mainly to check
+the quality of the entropy used in the raaz library using statistical
+tests like die-harder. Such statistical tests _do not_ give any
+assurance on the cryptographic safety of the generator. However, they
+can often reveal silly mistakes in the code base (like forgetting to
+seed).
 
-The only reason that this command provides the **entropy** variant is
-to check the quality of the system entropy pool using statistical
-tests like die-harder. Although such statistical tests _do not_ give
-any assurance on the cryptographic safety of the generator, they act
-as sanity checks against silly mistakes in the raaz code base that collects
-system entropy.
-
-The **raaz rand** command uses the chacha20 cipher to expand the
-starting stream into a stream of pseudo-random bytes. It uses the
-*Fast Key Erasure* technique as described in the blog post
-<https://blog.cr.yp.to/20170723-random.html>.
 
 ## File checksums
 
