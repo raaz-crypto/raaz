@@ -59,9 +59,11 @@ additionalBlocks :: BlockCount Prim
 -- the primitive.
 processBlocks :: BufferPtr
               -> BlockCount Prim
-              -> MT Internals ()
+              -> Internals
+              -> IO ()
 
 -- | Process the last bytes of the stream.
 processLast :: BufferPtr
             -> BYTES Int
-            -> MT Internals ()
+            -> Internals
+            -> IO ()

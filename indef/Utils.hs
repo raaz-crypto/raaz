@@ -8,7 +8,6 @@ module Utils
        , transform
        ) where
 
-import Control.Monad.IO.Class          (liftIO)
 import Data.ByteString          as B
 import Data.ByteString.Internal as IB
 import GHC.TypeLits
@@ -21,26 +20,28 @@ import Buffer
 
 -- | Process the data in the buffer.
 {-# INLINE processBuffer #-}
-processBuffer :: KnownNat n => Buffer n -> MT Internals ()
+processBuffer :: KnownNat n => Buffer n -> Internals -> IO ()
 processBuffer buf = processBlocks (getBufferPointer buf) $ bufferSize $ pure buf
 
 -- | Process a byte source.
 
-processByteSource :: ByteSource src => src -> MT Internals ()
-processByteSource src
+processByteSource :: ByteSource src => src -> Internals -> IO ()
+processByteSource src imem
   = allocBufferFor blks $
-    \ ptr -> processChunks (processBlocks ptr blks) (processLast ptr) src blks
+    \ ptr -> processChunks (processBlocks ptr blks imem)
+             (\ sz -> processLast ptr sz imem)
+             src blks
              $ forgetAlignment ptr
   where blks       = atLeast l1Cache :: BlockCount Prim
 
-transform :: ByteString -> MT Internals ByteString
-transform bs
+transform :: ByteString -> Internals -> IO ByteString
+transform bs imem
   = allocBufferFor bufSz $
     \ buf ->
       let bufPtr = forgetAlignment buf
-      in do liftIO $ unsafeCopyToPointer bs bufPtr -- Copy the input to buffer.
-            processLast buf strSz
-            liftIO $ IB.create sbytes $
+      in do unsafeCopyToPointer bs bufPtr -- Copy the input to buffer.
+            processLast buf strSz imem
+            IB.create sbytes $
               \ ptr -> Raaz.Core.memcpy (destination ptr) (source bufPtr) strSz
   where strSz           = Raaz.Core.length bs
         BYTES sbytes    = strSz
