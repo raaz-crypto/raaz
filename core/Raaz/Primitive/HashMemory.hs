@@ -10,7 +10,6 @@ module Raaz.Primitive.HashMemory
        ) where
 
 
-import Control.Monad.Reader       ( withReaderT   )
 import Foreign.Storable           ( Storable(..)  )
 import Foreign.Ptr                ( Ptr           )
 import Raaz.Core
@@ -33,59 +32,67 @@ data HashMemory128 h = HashMemory128 { hashCell128 :: MemoryCell h
 
 
 -- | Get the length.
-getLength :: MT (HashMemory64 h) (BYTES Word64)
-getLength =  withReaderT lengthCell extract
+getLength :: HashMemory64 h -> IO (BYTES Word64)
+getLength = extract . lengthCell
 
 -- | Get the higher order 64-bits.
-getULength :: MT (HashMemory128 h) (BYTES Word64)
-getULength = withReaderT uLengthCell extract
+getULength :: HashMemory128 h -> IO (BYTES Word64)
+getULength = extract . uLengthCell
 
 -- | Get the lower order 64-bits
-getLLength :: MT (HashMemory128 h)(BYTES Word64)
-getLLength = withReaderT lLengthCell extract
+getLLength :: HashMemory128 h -> IO (BYTES Word64)
+getLLength =  extract . lLengthCell
 
 
 -- | Get the pointer to the hash.
 hashCellPointer :: Storable h
-                => MT (HashMemory64 h)(Ptr h)
-hashCellPointer = withReaderT hashCell getCellPointer
+                => HashMemory64 h
+                -> Ptr h
+hashCellPointer = getCellPointer . hashCell
 -- | Get the pointer to the array which stores the digest
 hashCell128Pointer :: Storable h
-                  => MT (HashMemory128 h) (Ptr h)
-hashCell128Pointer = withReaderT hashCell128 getCellPointer
+                  => HashMemory128 h
+                  -> Ptr h
+hashCell128Pointer = getCellPointer . hashCell128
 
 
 
 -- | Get the pointer to upper half of the length bytes.
 lengthCellPointer :: Storable h
-                   => MT (HashMemory64 h) (Ptr (BYTES Word64))
-lengthCellPointer = withReaderT lengthCell getCellPointer
+                   => HashMemory64 h
+                   -> Ptr (BYTES Word64)
+lengthCellPointer = getCellPointer . lengthCell
 
 -- | Get the pointer to upper half of the length bytes.
 uLengthCellPointer :: Storable h
-                   => MT (HashMemory128 h) (Ptr (BYTES Word64))
-uLengthCellPointer = withReaderT uLengthCell getCellPointer
+                   => HashMemory128 h
+                   -> Ptr (BYTES Word64)
+uLengthCellPointer = getCellPointer . uLengthCell
 
 -- | Get the pointer to the lower half of the length bytes.
 lLengthCellPointer :: Storable h
-                   => MT (HashMemory128 h) (Ptr (BYTES Word64))
-lLengthCellPointer = withReaderT lLengthCell getCellPointer
+                   => HashMemory128 h
+                   -> Ptr (BYTES Word64)
+lLengthCellPointer = getCellPointer . lLengthCell
 
 
 -- | Update the length stored.
 updateLength128 :: LengthUnit len
                 => len
-                -> MT (HashMemory128 h) ()
-updateLength128 len =
-  do l <- getLLength
-     withReaderT lLengthCell $ initialise  (l + lenBytes)
-     when (l > maxBound - lenBytes) $ withReaderT uLengthCell $ modify (+(1 :: BYTES Word64))
+                -> HashMemory128 h
+                -> IO ()
+updateLength128 len hmem =
+  do l <- getLLength hmem
+     initialise (l + lenBytes) $ lLengthCell hmem
+     when (l > maxBound - lenBytes) $
+       modifyMem (+(1 :: BYTES Word64)) $ uLengthCell hmem
   where lenBytes = fromIntegral $ inBytes len
 
 updateLength :: LengthUnit len
              => len
-             -> MT (HashMemory64 h) ()
-updateLength len = withReaderT lengthCell $ modify (+lenBytes)
+             -> HashMemory64 h
+             -> IO ()
+updateLength len = modifyMem (+lenBytes) . lengthCell
   where lenBytes = fromIntegral $ inBytes len :: BYTES Word64
 
 instance Storable h  => Memory (HashMemory128 h) where
@@ -97,18 +104,18 @@ instance Storable h  => Memory (HashMemory64 h) where
   unsafeToPointer = unsafeToPointer . hashCell
 
 instance Storable h => Initialisable (HashMemory128 h) h where
-  initialise h = do withReaderT hashCell128 $ initialise h
-                    withReaderT uLengthCell $ initialise (0 :: BYTES Word64)
-                    withReaderT lLengthCell $ initialise (0 :: BYTES Word64)
+  initialise h hmem = do initialise h $ hashCell128 hmem
+                         initialise (0 :: BYTES Word64) $ uLengthCell hmem
+                         initialise (0 :: BYTES Word64) $ lLengthCell hmem
 
 
 instance Storable h => Initialisable (HashMemory64 h) h where
-  initialise h = do withReaderT hashCell $ initialise h
-                    withReaderT lengthCell $ initialise (0 :: BYTES Word64)
+  initialise h hmem = do initialise h $ hashCell hmem
+                         initialise (0 :: BYTES Word64) $ lengthCell hmem
 
 
 instance Storable h => Extractable (HashMemory128 h) h where
-  extract = withReaderT hashCell128 extract
+  extract = extract . hashCell128
 
 instance Storable h => Extractable (HashMemory64 h) h where
-  extract = withReaderT hashCell extract
+  extract = extract . hashCell

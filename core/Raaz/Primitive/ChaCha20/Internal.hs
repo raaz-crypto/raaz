@@ -16,7 +16,6 @@ module Raaz.Primitive.ChaCha20.Internal
        , keyCellPtr, ivCellPtr, counterCellPtr
        ) where
 
-import Control.Monad.Reader ( withReaderT   )
 import Foreign.Storable
 import Foreign.Ptr                ( Ptr  )
 
@@ -94,14 +93,14 @@ data ChaCha20Mem = ChaCha20Mem { keyCell      :: MemoryCell (Key     ChaCha20)
                                , counterCell  :: MemoryCell WORD
                                }
 
-keyCellPtr :: MT ChaCha20Mem (Ptr (Key ChaCha20))
-keyCellPtr = withReaderT keyCell getCellPointer
+keyCellPtr :: ChaCha20Mem -> Ptr (Key ChaCha20)
+keyCellPtr = getCellPointer . keyCell
 
-ivCellPtr :: MT ChaCha20Mem (Ptr (Nounce ChaCha20))
-ivCellPtr = withReaderT ivCell getCellPointer
+ivCellPtr :: ChaCha20Mem -> Ptr (Nounce ChaCha20)
+ivCellPtr = getCellPointer . ivCell
 
-counterCellPtr :: MT ChaCha20Mem (Ptr WORD)
-counterCellPtr = withReaderT counterCell getCellPointer
+counterCellPtr :: ChaCha20Mem -> Ptr WORD
+counterCellPtr = getCellPointer . counterCell
 
 instance Initialisable  (MemoryCell (Key ChaCha20)) (Key XChaCha20) where
   initialise = initialise . coerce
@@ -112,22 +111,22 @@ instance Memory ChaCha20Mem where
   unsafeToPointer = unsafeToPointer . keyCell
 
 instance Initialisable ChaCha20Mem (Key ChaCha20) where
-  initialise  = withReaderT keyCell . initialise
+  initialise key = initialise key . keyCell
 
 instance Initialisable ChaCha20Mem (Nounce ChaCha20)  where
-  initialise  = withReaderT ivCell . initialise
+  initialise nounce = initialise nounce . ivCell
 
 instance Initialisable ChaCha20Mem (BlockCount ChaCha20) where
-  initialise = withReaderT counterCell . initialise . conv
+  initialise bcount = initialise (conv bcount) . counterCell
     where conv :: BlockCount ChaCha20 -> WORD
           conv = toEnum . fromEnum
 
 instance Extractable ChaCha20Mem (BlockCount ChaCha20) where
-  extract = conv <$> withReaderT counterCell extract
+  extract = fmap conv . extract  . counterCell
     where conv :: WORD -> BlockCount ChaCha20
           conv = toEnum . fromEnum
 
 -- | Initialises key from a buffer. Use this instance if you want to
 -- initialise (only the) key from a secure memory location.
 instance InitialisableFromBuffer ChaCha20Mem where
-  initialiser = liftTransfer (withReaderT keyCell) . initialiser . keyCell
+  initialiser = initialiser . keyCell
