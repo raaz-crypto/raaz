@@ -11,7 +11,6 @@ module Raaz.Core
 import Raaz.Core.ByteSource as X
 import Raaz.Core.Constants  as X
 import Raaz.Core.Encode     as X
-import Raaz.Core.IOCont     as X
 import Raaz.Core.Memory     as X
 import Raaz.Core.Prelude    as X
 import Raaz.Core.Primitive  as X

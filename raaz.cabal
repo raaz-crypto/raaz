@@ -247,7 +247,6 @@ library core
                , Raaz.Core.Encode.Internal
                , Raaz.Core.Encode.Base16
                , Raaz.Core.Encode.Base64
-               , Raaz.Core.IOCont
                , Raaz.Core.Util.ByteString
                , Raaz.Core.Types.Pointer
                , Raaz.Core.Types.Tuple
