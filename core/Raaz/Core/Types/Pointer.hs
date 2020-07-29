@@ -38,7 +38,6 @@ module Raaz.Core.Types.Pointer
 
 
 import           Control.Exception     ( bracket )
-import           Control.Monad.IO.Class
 
 import           Data.Vector.Unboxed         ( MVector(..), Vector, Unbox )
 import           Foreign.Marshal.Alloc
@@ -54,7 +53,6 @@ import qualified Data.Vector.Generic.Mutable as GVM
 import Raaz.Core.Prelude
 import Raaz.Core.Types.Equality
 import Raaz.Core.Types.Copying
-import Raaz.Core.IOCont
 
 -- $basics$
 --
@@ -359,24 +357,24 @@ pokeAligned ptr =  poke $ nextLocation ptr
 
 -- | Allocate a buffer for an action that expects a pointer. Length
 -- can be specified in any length units.
-allocaBuffer :: (MonadIOCont m, LengthUnit l)
+allocaBuffer :: LengthUnit l
              => l                  -- ^ buffer length
-             -> (Ptr something -> m b)  -- ^ the action to run
-             -> m b
-allocaBuffer l = liftIOCont $ allocaBytes b
+             -> (Ptr something -> IO b)  -- ^ the action to run
+             -> IO b
+allocaBuffer l = allocaBytes b
     where BYTES b = inBytes l
 
 -- | Similar to `allocaBuffer` but for aligned pointers.
-allocaAligned :: (MonadIOCont m, LengthUnit l, KnownNat n)
+allocaAligned :: (LengthUnit l, KnownNat n)
               => l
-              -> (AlignedPtr n a -> m b)
-              -> m b
+              -> (AlignedPtr n a -> IO b)
+              -> IO b
 
-allocaAligned l action = liftIOCont (allocaBytesAligned b algn) $ action . AlignedPtr
-    where getProxy :: (AlignedPtr n a -> m b) -> Proxy (AlignedPtr n a)
-          getProxy _      = Proxy
-          BYTES     b     = inBytes l
-          Alignment algn  = ptrAlignment $ getProxy action
+allocaAligned l action = allocaBytesAligned b algn $ action . AlignedPtr
+  where getProxy :: (AlignedPtr n a -> IO b) -> Proxy (AlignedPtr n a)
+        getProxy _      = Proxy
+        BYTES     b     = inBytes l
+        Alignment algn  = ptrAlignment $ getProxy action
 
 -- | This function allocates a chunk of "secure" memory of a given
 -- size and runs the action. The memory (1) exists for the duration of
@@ -392,13 +390,13 @@ allocaAligned l action = liftIOCont (allocaBytesAligned b algn) $ action . Align
 -- <https://ghc.haskell.org/trac/ghc/ticket/13891> on this problem and
 -- possible workarounds.
 --
-allocaSecure :: (MonadIOCont m, LengthUnit l)
+allocaSecure :: LengthUnit l
              => l
-             -> (Pointer -> m a)
-             -> m a
+             -> (Pointer -> IO a)
+             -> IO a
 
-allocaSecure l action = liftIOCont (allocaBuffer l) actualAction
-    where actualAction cptr = liftIOCont (bracket (lockIt cptr) releaseIt) action
+allocaSecure l action = allocaBuffer l actualAction
+    where actualAction cptr = bracket (lockIt cptr) releaseIt action
           sz                = inBytes l
           lockIt  cptr      = do c <- c_mlock cptr sz
                                  when (c /= 0) $ fail "secure memory: unable to lock memory"
@@ -438,12 +436,12 @@ foreign import ccall unsafe "string.h memcpy" c_memcpy
     :: Dest (Ptr dest) -> Src (Ptr src) -> BYTES Int -> IO Pointer
 
 -- | Copy between pointers.
-memcpy :: (MonadIO m, LengthUnit l)
+memcpy :: LengthUnit l
        => Dest (Ptr dest) -- ^ destination
        -> Src  (Ptr src)  -- ^ src
        -> l               -- ^ Number of Bytes to copy
-       -> m ()
-memcpy dest src = liftIO . void . c_memcpy dest src . inBytes
+       -> IO ()
+memcpy dest src = void . c_memcpy dest src . inBytes
 
 {-# SPECIALIZE memcpy :: Dest Pointer -> Src Pointer -> BYTES Int -> IO () #-}
 
@@ -451,19 +449,19 @@ foreign import ccall unsafe "string.h memset" c_memset
     :: Ptr buf -> Word8 -> BYTES Int -> IO Pointer
 
 -- | Sets the given number of Bytes to the specified value.
-memset :: (MonadIO m, LengthUnit l)
+memset :: LengthUnit l
        => Ptr a     -- ^ Target
        -> Word8     -- ^ Value byte to set
        -> l         -- ^ Number of bytes to set
-       -> m ()
-memset p w = liftIO . void . c_memset p w . inBytes
+       -> IO ()
+memset p w = void . c_memset p w . inBytes
 {-# SPECIALIZE memset :: Pointer -> Word8 -> BYTES Int -> IO () #-}
 
 foreign import ccall unsafe "raazWipeMemory" c_wipe_memory
     :: Ptr a -> BYTES Int -> IO Pointer
 
-wipeMemory :: (MonadIO m, LengthUnit l)
+wipeMemory :: LengthUnit l
             => Ptr a   -- ^ buffer to wipe
             -> l       -- ^ buffer length
-            -> m ()
-wipeMemory p = liftIO . void . c_wipe_memory p . inBytes
+            -> IO ()
+wipeMemory p = void . c_wipe_memory p . inBytes
