@@ -51,7 +51,7 @@ instance Extractable   Internals (BlockCount ChaCha20)
 
 -- | The function that sets the internal state for the xchacha
 -- variant.
-xchacha20Setup :: Nounce XChaCha20 -> MT Internals ()
+xchacha20Setup :: Nounce XChaCha20 -> Internals -> IO ()
 
 -- | Allows copying key from a Memory cell to internal.
 copyKey :: Dest Internals-> Src (MemoryCell (Key ChaCha20)) -> IO ()

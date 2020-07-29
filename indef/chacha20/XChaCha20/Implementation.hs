@@ -3,11 +3,6 @@
 
 module XChaCha20.Implementation where
 
-
-
-import           Control.Monad.Reader       ( withReaderT, ask )
-import           Control.Monad.IO.Class     ( liftIO       )
-
 import           Raaz.Core
 import           Raaz.Primitive.ChaCha20.Internal
 
@@ -35,22 +30,22 @@ instance Memory Internals where
 
 
 instance Initialisable Internals (Key XChaCha20) where
-  initialise xkey = withReaderT copyOfKey $ initialise xkey
+  initialise xkey = initialise xkey . copyOfKey
 
 instance Initialisable Internals (Nounce XChaCha20) where
-  initialise xnounce = do internals  <- ask
-                          let dest = destination $ chacha20Internals internals
-                              src  = source $ copyOfKey internals
-                            in liftIO $ Base.copyKey dest src
-                          withReaderT chacha20Internals $ Base.xchacha20Setup xnounce
+  initialise xnounce imem = do
+    let dest = destination $ chacha20Internals imem
+        src  = source $ copyOfKey imem
+      in Base.copyKey dest src
+    Base.xchacha20Setup xnounce $ chacha20Internals imem
 
 instance Initialisable Internals (BlockCount XChaCha20) where
-  initialise = withReaderT chacha20Internals . initialise . coerce
-    where coerce :: BlockCount XChaCha20 -> BlockCount ChaCha20
-          coerce = toEnum . fromEnum
+  initialise bcount = initialise bcountP . chacha20Internals
+    where bcountP :: BlockCount ChaCha20
+          bcountP = toEnum $ fromEnum bcount
 
 instance Extractable Internals (BlockCount XChaCha20) where
-  extract = coerce <$> withReaderT chacha20Internals extract
+  extract = fmap coerce . extract . chacha20Internals
     where coerce :: BlockCount ChaCha20 -> BlockCount XChaCha20
           coerce = toEnum . fromEnum
 
@@ -62,13 +57,16 @@ additionalBlocks = coerce Base.additionalBlocks
 
 processBlocks :: BufferPtr
               -> BlockCount Prim
-              -> MT Internals ()
-processBlocks buf = withReaderT chacha20Internals . Base.processBlocks (castAlignedPtr buf) . coerce
+              -> Internals
+              -> IO ()
+processBlocks buf bcount =
+  Base.processBlocks (castPointer buf) (coerce bcount) . chacha20Internals
   where coerce :: BlockCount XChaCha20 -> BlockCount Base.Prim
         coerce = toEnum . fromEnum
 
 -- | Process the last bytes.
 processLast :: BufferPtr
             -> BYTES Int
-            -> MT Internals ()
-processLast buf = withReaderT chacha20Internals . Base.processLast (castAlignedPtr buf)
+            -> Internals
+            -> IO ()
+processLast buf nbytes = Base.processLast (castPointer buf) nbytes . chacha20Internals
