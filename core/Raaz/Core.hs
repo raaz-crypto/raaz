@@ -16,8 +16,6 @@ import Raaz.Core.Prelude    as X
 import Raaz.Core.Primitive  as X
 import Raaz.Core.Transfer   as X
 import Raaz.Core.Types      as X
-import Raaz.Core.Util       as X
-
-
+import Raaz.Core.Util.ByteString as X
 
 {-# ANN module "HLint: ignore Use import/export shortcut" #-}

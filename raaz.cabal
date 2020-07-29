@@ -196,7 +196,6 @@ common defaults
                , bytestring              >= 0.10 &&  < 0.12
                , deepseq                 >= 1.4  &&  < 1.5
                , vector                  >= 0.12 &&  < 0.13
-               , mtl
 
   ------------------------ Compiler optimisation flags -------------------------------------
   if flag(native) { cc-options: -march=native  }
@@ -242,7 +241,6 @@ library core
                , Raaz.Core.MonoidalAction
                , Raaz.Core.Parse.Applicative
                , Raaz.Core.Primitive
-               , Raaz.Core.Util
                , Raaz.Core.Constants
                , Raaz.Core.Encode.Internal
                , Raaz.Core.Encode.Base16
