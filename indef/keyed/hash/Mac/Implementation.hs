@@ -6,8 +6,8 @@
 {-# LANGUAGE FlexibleContexts            #-}
 
 -- | An implementation for simple MAC which is based on a
--- cryptographic hash. This construction is safe only for safe for
--- certain hashes like blake2 and therefore should not be used
+-- cryptographic hash. This construction is safe only for certain
+-- hashes like blake2 and therefore should not be used
 -- indiscriminately. In particular, sha2 hashes should not be used in
 -- this mode as they are prone to length extension attack.
 --
@@ -26,10 +26,9 @@ module Mac.Implementation
           , additionalBlocks
           ) where
 
-import           Control.Monad.Reader
-
 import           Data.ByteString       as BS
 import           Raaz.Core
+import           Raaz.Core.Transfer.Unsafe
 import           Raaz.Primitive.Keyed.Internal
 import qualified Implementation        as Base
 import qualified Utils                 as U
@@ -75,19 +74,15 @@ data Internals = MACInternals { hashInternals    :: Base.Internals
 
 -- | Process the key inside the buffer with the process Buffer
 -- function.
-processKey :: MT Internals ()
-processKey = withReaderT keyBuffer ask
-             >>= withReaderT hashInternals . U.processBuffer
+processKey :: Internals -> IO ()
+processKey imem = U.processBuffer (keyBuffer imem) $ hashInternals imem
 
 
 -- | Process the key in the buffer with the processLast function.
-processKeyLast :: MT Internals ()
-processKeyLast = withReaderT keyBuffer ask >>=
-                 \ buffer ->
-                   let bufsz  = inBytes $ blocksOf 1 (Proxy :: Proxy Base.Prim)
-                       bufPtr = B.getBufferPointer buffer
-                   in withReaderT hashInternals $ Base.processLast bufPtr bufsz
-
+processKeyLast :: Internals -> IO ()
+processKeyLast imem = Base.processLast bufPtr bufsz (hashInternals imem)
+  where bufPtr = B.unsafeGetBufferPointer $ keyBuffer imem
+        bufsz  = inBytes $ blocksOf 1 (Proxy :: Proxy Base.Prim)
 
 
 instance Memory Internals where
@@ -111,42 +106,41 @@ instance Memory Internals where
 -- initialisation and then proceed from there on.
 
 instance Initialisable Internals (Key (Keyed Base.Prim)) where
-  initialise hKey = do withReaderT hashInternals $ initialise hash0
-                       withReaderT keyBuffer ask >>= writeKeyIntoBuffer
-                       withReaderT atStart $ initialise True
+  initialise hKey imem
+    = do initialise hash0 $ hashInternals imem
+         writeKeyIntoBuffer $ keyBuffer imem
+         initialise True $ atStart imem
+           where kbs        = trim hKey
+                 hash0      :: Base.Prim
+                 hash0      = hashInit $ Raaz.Core.length kbs
+                 keyWrite   = padWrite 0 (blocksOf 1 proxyPrim) $ writeByteString kbs
 
-     where kbs        = trim hKey
-           hash0      :: Base.Prim
-           hash0      = hashInit $ Raaz.Core.length kbs
-           keyWrite   = padWrite 0 (blocksOf 1 proxyPrim) $ writeByteString kbs
-
-           writeKeyIntoBuffer = unsafeTransfer keyWrite . forgetAlignment . B.getBufferPointer
-           proxyPrim = Proxy :: Proxy Base.Prim
+                 writeKeyIntoBuffer = unsafeTransfer keyWrite . B.unsafeGetBufferPointer
+                 proxyPrim = Proxy :: Proxy Base.Prim
 
 instance Extractable Internals Prim where
-  extract = unsafeToKeyed <$> withReaderT hashInternals extractIt
-    where extractIt :: MT Base.Internals Base.Prim
-          extractIt = extract
+  extract = fmap unsafeToKeyed . extract . hashInternals
 
 
 -- | The function that process bytes in multiples of the block size of
 -- the primitive.
 processBlocks :: BufferPtr
               -> BlockCount Prim
-              -> MT Internals ()
-processBlocks aptr blks = do
-  start <- withReaderT atStart extract
-  when start $ do processKey
-                  withReaderT atStart $ initialise False
-  withReaderT hashInternals $ Base.processBlocks (castAlignedPtr aptr) $ fromKeyedBlocks blks
+              -> Internals
+              -> IO ()
+processBlocks aptr blks imem = do
+  start <- extract $ atStart imem
+  when start $ do processKey imem
+                  initialise False $ atStart imem
+  Base.processBlocks (castPointer aptr) (fromKeyedBlocks blks) $ hashInternals imem
 
 -- | Process the last bytes of the stream.
 processLast :: BufferPtr
             -> BYTES Int
-            -> MT Internals ()
-processLast aptr sz = do
-  start <- withReaderT atStart extract
-
-  if start && sz == 0 then processKeyLast
-    else do when start processKey
-            withReaderT hashInternals $ Base.processLast (castAlignedPtr aptr) sz
+            -> Internals
+            -> IO ()
+processLast aptr sz imem = do
+  start <- extract $ atStart imem
+  if start && sz == 0 then processKeyLast imem
+    else do when start $ processKey imem
+            Base.processLast (castPointer aptr) sz $ hashInternals imem
