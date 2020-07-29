@@ -3,7 +3,13 @@
 -- implementations involve other details like the alignment
 -- restriction on the input buffer and all that. We package all this
 -- in the following signature.
-signature Implementation( Prim, Internals
-                        , BufferAlignment
-                        , BufferPtr
-                        , additionalBlocks ) where
+signature Implementation ( Prim, Internals
+                         , BufferPtr, BufferAlignment
+                         , additionalBlocks
+                         ) where
+
+import Raaz.Core
+data Prim
+data Internals
+instance Primitive Prim
+instance Memory Internals
