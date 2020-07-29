@@ -8,7 +8,7 @@
 -- | The implementation of the authenticator part of the construction.
 signature Auth.Implementation where
 
-import           Raaz.Core
+import Raaz.Core
 
 data Prim
 data Internals
@@ -16,5 +16,5 @@ data Internals
 instance Eq Prim
 instance Equality Prim
 instance Memory Internals
-instance InitialisableFromBuffer Internals
+instance Accessible Internals
 instance Extractable Internals Prim

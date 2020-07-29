@@ -45,10 +45,10 @@ authSource :: ByteSource src
 {-# SPECIALIZE authSource :: Key Auth -> L.ByteString -> IO Auth #-}
 {-# SPECIALIZE authSource :: Key Auth -> Handle       -> IO Auth #-}
 
-authSource key src = insecurely $ do
-  initialise key
-  processByteSource src
-  extract
+authSource key src = withMemory $ \ mem -> do
+  initialise key mem
+  processByteSource src mem
+  extract mem
 
 
 -- | Textual name of the authenticator implementation.

@@ -1,3 +1,12 @@
+-- |
+--
+-- Module      : digest-api: Interface
+-- Description : Generic interface to message digest.
+-- Copyright   : (c) Piyush P Kurur, 2019
+-- License     : Apache-2.0 OR BSD-3-Clause
+-- Maintainer  : Piyush P Kurur <ppk@iitpkd.ac.in>
+-- Stability   : experimental
+--
 module Interface ( Digest
                  , digest
                  , digestFile
@@ -40,10 +49,10 @@ digestSource :: ByteSource src
 {-# SPECIALIZE digestSource :: L.ByteString -> IO Digest #-}
 {-# SPECIALIZE digestSource :: Handle       -> IO Digest #-}
 
-digestSource src = insecurely $ do
-  initialise ()
-  processByteSource src
-  extract
+digestSource src = withMemory $ \ mem -> do
+  initialise () mem
+  processByteSource src mem
+  extract mem
 
 -- | Textual name of the digest implementation.
 name :: String

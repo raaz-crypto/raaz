@@ -32,11 +32,11 @@ encryptAt :: Key Prim
           -> BlockCount Prim
           -> ByteString
           -> ByteString
-encryptAt key nounce blk bs = unsafePerformIO $ insecurely $ do
-  initialise key
-  initialise nounce
-  initialise blk
-  U.transform bs
+encryptAt key nounce blk bs = unsafePerformIO $ withMemory $ \ mem -> do
+  initialise key mem
+  initialise nounce mem
+  initialise blk mem
+  U.transform bs mem
 
 -- | Same as decrypt but first advance so many blocks.
 decryptAt :: Key Prim

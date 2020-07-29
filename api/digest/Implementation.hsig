@@ -11,7 +11,10 @@ signature Implementation where
 
 import Raaz.Core
 
+-- | The primitive.
 data Prim
+
+-- | The internal memory used by the primitive.
 data Internals
 instance Memory Internals
 
