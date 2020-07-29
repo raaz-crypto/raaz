@@ -21,140 +21,24 @@ module Raaz.Core.Memory
        -- $memorysubsystem$
 
        -- ** Memory elements.
-         Memory(..), VoidMemory, copyMemory, withMemoryPtr
+         Memory(..), withMemory, withSecureMemory,
+         VoidMemory, copyMemory, withMemoryPtr
        -- *** Initialisation and Extraction.
        -- $init-extract$
-       , Initialisable(..), Extractable(..)
+       , Initialisable(..), Extractable(..), modifyMem
        , InitialisableFromBuffer(..), ExtractableToBuffer(..)
        -- *** A basic memory cell.
        , MemoryCell, withCellPointer, getCellPointer
-
-       -- ** MemoryMonad .
-       , MonadMemoryT (..), modify
-       , MT
        -- ** Memory allocation
        ,  Alloc, pointerAlloc
        ) where
 
-import           Control.Monad.Reader
 import           Foreign.Storable            ( Storable )
 import           Foreign.Ptr                 ( castPtr, Ptr )
 import           Raaz.Core.Prelude
 import           Raaz.Core.MonoidalAction
 import           Raaz.Core.Transfer
 import           Raaz.Core.Types
-import           Raaz.Core.IOCont
-
--- $memorysubsystem$
---
--- Cryptographic operations often need to keep sensitive information
--- like private keys in its memory space. Such sensitive information
--- can leak to the external would if the memory where the data is
--- stored is swapped out to a disk. What makes this particularly
--- dangerous is that the data can reside on the disk almost
--- permanently and might even survive when the hardware is
--- scrapped. The primary purpose of the memory subsystem is to provide
--- a way to allocate and manage /secure memory/, i.e. memory that will
--- not be swapped out as long as the memory is used and will be wiped
--- clean after use. It consists of the following components:
---
--- [The `Memory` type class:] A memory element is some type that holds
--- an internal buffer inside it.
---
--- [The `Alloc` type:] Memory elements need to be allocated and this
--- is involves a lot of low lever pointer arithmetic. The `Alloc`
--- types gives a high level interface for memory allocation. For a
--- memory type `mem`, the type `Alloc mem` can be seen as the
--- _allocation strategy_ for mem. For example, one of the things that
--- it keeps track of is the space required to create an memory element
--- of type `mem`. There is a natural applicative instance for `Alloc`
--- which helps build the allocation strategy for a compound memory
--- type from its components in a modular fashion _without_ explicit
--- size calculation or offset computation.
---
--- [`MemoryThread`s:] Instances of this class are actions that use
--- some kind of memory elements inside it. Such a thread can be run
--- using the combinator `securely` or the combinator `insecurely`. If
--- one use the combinator `securely`, then the allocation of the
--- memory element to be used by the action is done using a locked
--- memory pool which is wiped clean before de-allocation.
-
--- $init-extract$
---
--- Memory elements often needs to be initialised. Similarly data needs
--- to be extracted out of memory. An instance declaration
--- @`Initialisable` mem a@ for the memory type @mem@ indicates that it
--- can be initialised with the pure value @a@. Similary, if values of
--- type @b@ can be extracted out of a memory element @mem@, we can
--- indicate it with an instance of @`Extractable` mem a@.
---
--- There is an inherent danger in initialising and extracting pure
--- values out of memory. Pure values are stored on the Haskell heap
--- and hence can be swapped out. Consider a memory element @mem@ that
--- stores some sensitive information, say for example the unencrypted
--- private key. Suppose we extract this key out of the memory element
--- as a pure value before its encryption, it is possible that the key
--- is swapped out to the disk as the extracted key is now part of the
--- Haskell heap which is not locked.
---
--- The `InitialiseFromBuffer` (`ExtractableToBuffer`) class gives an
--- interface for reading from (writing to) buffers directly minimising
--- the chances of inadvertent exposure of sensitive information from
--- the Haskell heap due to swapping.
-
-
--- | An action of type @`MT` mem a@ is an action that uses internally
--- a single memory object of type @mem@ and returns a result of type
--- @a@. All the actions are performed on a single memory element and
--- hence the side effects persist. It is analogues to the @ST@ monad.
-type MT mem = ReaderT mem IO
-
--- | A class that captures abstract "memory threads". A memory thread
--- can either be run `securely` or `insecurely`. Pure IO actions can
--- be run inside a memory thread using the @runIO@.  However, the IO
--- action that is being run /must not/ directly or indirectly run a
--- `secure` action ever. In particular, the following code is bad.
---
--- > -- BAD EXAMPLE: DO NOT USE.
--- > runIO $ securely $ foo
--- >
---
--- On the other hand the following code is fine
---
--- >
--- > runIO $ insecurely $ someMemoryAction
--- >
---
--- As to why this is dangerous, it has got to do with the fact that
--- @mlock@ and @munlock@ do not nest correctly. A single @munlock@ can
--- unlock multiple calls of @mlock@ on the same page.  Whether a given
--- @IO@ action unlocks memory is difficult to keep track of; for all
--- you know, it might be a FFI call that does an @memunlock@. Hence,
--- currently there is no easy way to enforce this.
---
-
-class MonadMemoryT mT where
-  -- | Run a memory action with the internal memory allocated from a
-  -- locked memory buffer. This memory buffer will never be swapped
-  -- out by the operating system and will be wiped clean before
-  -- releasing.
-  --
-  -- Memory locking is an expensive operation and usually there would be
-  -- a limit to how much locked memory can be allocated. Nonetheless,
-  -- actions that work with sensitive information like passwords should
-  -- use this to run an memory action.
-  securely   :: MonadIOCont m => mT m a -> m a
-
-  -- | Run a memory action with the internal memory used by the action
-  -- being allocated from unlocked memory. Use this function when you
-  -- work with data that is not sensitive to security considerations
-  -- (for example, when you want to verify checksums of files).
-  insecurely :: MonadIOCont m => mT m a -> m a
-
-
-instance Memory mem => MonadMemoryT (ReaderT mem) where
-  securely               = withSecureMemory . runReaderT
-  insecurely             = withMemory . runReaderT
 
 ------------------------ A memory allocator -----------------------
 
@@ -273,13 +157,11 @@ copyMemory dmem smem = memcpy (unsafeToPointer <$> dmem) (unsafeToPointer <$> sm
 -- memory.
 withMemoryPtr :: Memory m
               => (BYTES Int -> Pointer -> IO a)
-              -> MT m a
-withMemoryPtr action = do
-  mem <- ask
-  let sz = twistMonoidValue $ getAlloc mem
-      getAlloc :: Memory m => m -> Alloc m
-      getAlloc _ = memoryAlloc
-    in liftIO $ action sz $ unsafeToPointer mem
+              -> m -> IO a
+withMemoryPtr action mem = action sz $ unsafeToPointer mem
+  where sz = twistMonoidValue $ getAlloc mem
+        getAlloc :: Memory m => m -> Alloc m
+        getAlloc _ = memoryAlloc
 
 -- | Perform an action which makes use of this memory. The memory
 -- allocated will automatically be freed when the action finishes
@@ -287,9 +169,9 @@ withMemoryPtr action = do
 -- this method might be more efficient as the memory might be
 -- allocated from the stack directly and will have very little GC
 -- overhead.
-withMemory   :: MonadIOCont m => Memory mem => (mem -> m a) -> m a
+withMemory   :: Memory mem => (mem -> IO a) -> IO a
 withMemory   = withM memoryAlloc
-  where withM :: MonadIOCont m => Alloc mem -> (mem -> m a) -> m a
+  where withM :: Alloc mem -> (mem -> IO a) -> IO a
         withM alctr action = allocaBuffer sz actualAction
           where sz                 = twistMonoidValue alctr
                 getM               = computeField $ twistFunctorValue alctr
@@ -304,7 +186,7 @@ withMemory   = withM memoryAlloc
 -- of Haskell threads, if the main thread exists before the child
 -- thread is done with its job, sensitive data can leak. This is
 -- essentially a limitation of the bracket which is used internally.
-withSecureMemory :: (MonadIOCont m, Memory mem) => (mem -> m a) -> m a
+withSecureMemory :: Memory mem => (mem -> IO a) -> IO a
 withSecureMemory = withSM memoryAlloc
   where -- withSM :: Memory m => Alloc m -> (m -> IO a) -> IO a
         withSM alctr action = allocaSecure sz $ action . getM
@@ -322,12 +204,12 @@ withSecureMemory = withSM memoryAlloc
 --
 
 class Memory m => Initialisable m v where
-  initialise :: v -> MT m ()
+  initialise :: v -> m -> IO ()
 
 -- | Memories from which pure values can be extracted. Once a pure value is
 -- extracted,
 class Memory m => Extractable m v where
-  extract  :: MT m v
+  extract  :: m -> IO v
 
 
 -- | Apply the given function to the value in the cell. For a function @f :: b -> a@,
@@ -335,23 +217,23 @@ class Memory m => Extractable m v where
 -- memory element, applies @f@ to it and puts the result back into the
 -- memory.
 --
--- > modify f = do b          <- extract
--- >               initialise $  f b
+-- > modifyMem f mem = do b          <- extract mem
+-- >                      initialise (f b) mem
 --
-modify :: (Initialisable mem a, Extractable mem b) =>  (b -> a) -> MT mem ()
-modify f = extract >>= initialise . f
+modifyMem :: (Initialisable mem a, Extractable mem b) =>  (b -> a) -> mem -> IO ()
+modifyMem f mem = extract mem >>= flip initialise mem . f
 
 -- | A memory type that can be initialised from a pointer buffer. The initialisation performs
 -- a direct copy from the input buffer and hence the chances of the
 -- initialisation value ending up in the swap is minimised.
 class Memory m => InitialisableFromBuffer m where
-  initialiser :: m -> ReadM (MT m)
+  initialiser :: m -> ReadIO
 
 -- | A memory type that can extract bytes into a buffer. The extraction will perform
 -- a direct copy and hence the chances of the extracted value ending
 -- up in the swap space is minimised.
 class Memory m => ExtractableToBuffer m where
-  extractor :: m -> WriteM (MT m)
+  extractor :: m -> WriteIO
 
 --------------------- Some instances of Memory --------------------
 
@@ -370,31 +252,25 @@ instance Storable a => Memory (MemoryCell a) where
 
 -- | The location where the actual storing of element happens. This
 -- pointer is guaranteed to be aligned to the alignment restriction of @a@
-actualCellPtr :: Storable a => MemoryCell a -> Ptr a
-actualCellPtr = nextLocation . unMemoryCell
+getCellPointer :: Storable a => MemoryCell a -> Ptr a
+getCellPointer = nextLocation . unMemoryCell
 
 -- | Work with the underlying pointer of the memory cell. Useful while
 -- working with ffi functions.
-withCellPointer :: Storable a => (Ptr a -> IO b) -> MT (MemoryCell a) b
+withCellPointer :: Storable a => (Ptr a -> IO b) -> MemoryCell a -> IO b
 {-# INLINE withCellPointer #-}
-withCellPointer action = ReaderT $ action . actualCellPtr
-
-
--- | Get the pointer associated with the given memory cell.
-getCellPointer :: Storable a => MT (MemoryCell a) (Ptr a)
-{-# INLINE getCellPointer #-}
-getCellPointer = asks actualCellPtr
+withCellPointer action = action . getCellPointer
 
 instance Storable a => Initialisable (MemoryCell a) a where
-  initialise a = ReaderT $ flip pokeAligned a . unMemoryCell
+  initialise a = flip pokeAligned a . unMemoryCell
   {-# INLINE initialise #-}
 
 instance Storable a => Extractable (MemoryCell a) a where
-  extract = ReaderT $ peekAligned . unMemoryCell
+  extract = peekAligned . unMemoryCell
   {-# INLINE extract #-}
 
 instance EndianStore a => InitialisableFromBuffer (MemoryCell a) where
-  initialiser  = readInto 1 . destination . actualCellPtr
+  initialiser  = readInto 1 . destination . getCellPointer
 
 instance EndianStore a => ExtractableToBuffer (MemoryCell a) where
-  extractor  = writeFrom 1 . source . actualCellPtr
+  extractor  = writeFrom 1 . source . getCellPointer
