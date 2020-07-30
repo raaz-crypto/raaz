@@ -24,12 +24,12 @@ import           Raaz.Core.Util.ByteString (createFrom, length, withByteString)
 
 
 type BytesMonoid   = BYTES Int
-type ParseAction   = FieldM IO Pointer
+type ParseAction   = FieldM IO (Ptr Word8)
 
 -- | An applicative parser type for reading data from a pointer.
 type Parser = TwistRF ParseAction BytesMonoid
 
-makeParser :: LengthUnit l => l -> (Pointer -> IO a) -> Parser a
+makeParser :: LengthUnit l => l -> (Ptr Word8 -> IO a) -> Parser a
 makeParser l action = TwistRF (liftToFieldM action) $ inBytes l
 
 -- | Skip over some data.
@@ -53,7 +53,7 @@ runParser pr bs
   | otherwise                 = Just $ unsafePerformIO $ withByteString bs $ unsafeRunParser pr
 
 -- | Run the parser without checking the length constraints.
-unsafeRunParser :: Parser a -> Pointer -> IO a
+unsafeRunParser :: Parser a -> Ptr Word8 -> IO a
 unsafeRunParser = runFieldM . twistFunctorValue
 
 -- | The primary purpose of this function is to satisfy type checkers.

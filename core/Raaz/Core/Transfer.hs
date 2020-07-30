@@ -83,7 +83,7 @@ instance Monad m => Monoid (TransferM t m) where
 
 -- | A action that transfers bytes from its input pointer. Transfer
 -- could either be writing or reading.
-type TransferAction t m = Pointer -> TransferM t m
+type TransferAction t m = Ptr Word8 -> TransferM t m
 
 instance LAction (BYTES Int) (TransferAction t m) where
   offset <.> action = action . (offset<.>)
@@ -141,7 +141,7 @@ type WriteIO      = WriteM IO
 type ReadIO       = ReadM IO
 
 -- | Make an explicit transfer action given.
-makeTransfer :: LengthUnit u => u -> (Pointer -> m ()) -> Transfer t m
+makeTransfer :: LengthUnit u => u -> (Ptr Word8 -> m ()) -> Transfer t m
 {-# INLINE makeTransfer #-}
 makeTransfer sz action = SemiR (TransferM . action) $ inBytes sz
 
@@ -298,7 +298,7 @@ writeByteString bs = makeTransfer (BU.length bs) $ liftIO  . BU.unsafeCopyToPoin
 -- data if and when the read action is executed.
 readBytes :: ( LengthUnit sz, MonadIO m)
           => sz             -- ^ how much to read.
-          -> Dest Pointer   -- ^ buffer to read the bytes into
+          -> Dest (Ptr Word8)   -- ^ buffer to read the bytes into
           -> ReadM m
 readBytes sz dest = makeTransfer sz
                     $ \ ptr -> liftIO  $ memcpy dest (source ptr) sz

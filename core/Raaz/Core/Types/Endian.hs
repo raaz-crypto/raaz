@@ -201,7 +201,7 @@ loadFrom ptr = load . movePtr ptr
 
 copyFromBytes :: EndianStore w
               => Dest (Ptr w)
-              -> Src  Pointer
+              -> Src  (Ptr Word8)
               -> Int          -- ^ How many items.
               -> IO ()
 copyFromBytes dest@(Dest ptr) src n =  memcpy (castPtr <$> dest) src (sz dest Proxy)
@@ -212,8 +212,8 @@ copyFromBytes dest@(Dest ptr) src n =  memcpy (castPtr <$> dest) src (sz dest Pr
 -- | Similar to @copyFromBytes@ but the transfer is done in the other direction. The copy takes
 -- care of performing the appropriate endian encoding.
 copyToBytes :: EndianStore w
-            => Dest Pointer
-            -> Src (Ptr w)
+            => Dest (Ptr Word8)
+            -> Src  (Ptr w)
             -> Int
             -> IO ()
 copyToBytes dest@(Dest dptr) src n =  memcpy dest  (castPtr <$> src) (sz src undefined)

@@ -43,7 +43,7 @@ import           Raaz.Core.Types
 ------------------------ A memory allocator -----------------------
 
 
-type AllocField = Field Pointer
+type AllocField = Field (Ptr Word8)
 
 -- | A memory allocator for the memory type @mem@. The `Applicative`
 -- instance of @Alloc@ can be used to build allocations for
@@ -51,11 +51,11 @@ type AllocField = Field Pointer
 type Alloc mem = TwistRF AllocField (BYTES Int) mem
 
 -- | Make an allocator for a given memory type.
-makeAlloc :: LengthUnit l => l -> (Pointer -> mem) -> Alloc mem
+makeAlloc :: LengthUnit l => l -> (Ptr Word8 -> mem) -> Alloc mem
 makeAlloc l memCreate = TwistRF (WrapArrow memCreate) $ atLeast l
 
 -- | Allocates a buffer of size @l@ and returns the pointer to it pointer.
-pointerAlloc :: LengthUnit l => l -> Alloc Pointer
+pointerAlloc :: LengthUnit l => l -> Alloc (Ptr Word8)
 pointerAlloc l = makeAlloc l id
 
 ---------------------------------------------------------------------
@@ -88,11 +88,11 @@ class Memory m where
   memoryAlloc     :: Alloc m
 
   -- | Returns the pointer to the underlying buffer.
-  unsafeToPointer :: m -> Pointer
+  unsafeToPointer :: m -> Ptr Word8
 
 
 -- | A memory element that holds nothing.
-newtype VoidMemory = VoidMemory { unVoidMemory :: Pointer  }
+newtype VoidMemory = VoidMemory { unVoidMemory :: Ptr Word8  }
 
 --
 -- DEVELOPER NOTE:
@@ -156,7 +156,7 @@ copyMemory dmem smem = memcpy (unsafeToPointer <$> dmem) (unsafeToPointer <$> sm
 -- | Apply some low level action on the underlying buffer of the
 -- memory.
 withMemoryPtr :: Memory m
-              => (BYTES Int -> Pointer -> IO a)
+              => (BYTES Int -> Ptr Word8 -> IO a)
               -> m -> IO a
 withMemoryPtr action mem = action sz $ unsafeToPointer mem
   where sz = twistMonoidValue $ getAlloc mem

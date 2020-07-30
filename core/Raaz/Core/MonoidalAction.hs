@@ -233,6 +233,6 @@ instance (Arrow arrow, LAction m space) => LActionF m (WrappedArrow arrow space)
 instance (Arrow arrow, LAction m space) => DistributiveF m (WrappedArrow arrow space)
 
 -- | The most interesting monoidal action for us.
-instance LengthUnit u => LAction u Pointer where
+instance LengthUnit u => LAction u (Ptr a) where
   a <.> ptr  = movePtr ptr a
   {-# INLINE (<.>) #-}
