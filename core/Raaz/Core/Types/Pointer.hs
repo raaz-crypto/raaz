@@ -16,14 +16,13 @@ module Raaz.Core.Types.Pointer
          -- $basics$
          -- ** Type safe length units.
          LengthUnit(..)
-       , BYTES(..), BITS(..), inBits
+       , BYTES(..)
        , Pointer, Ptr
        , AlignedPtr(..), onPtr, ptrAlignment, nextAlignedPtr, movePtr
        , castAlignedPtr
        , sizeOf
          -- *** Some length arithmetic
-       , bitsQuotRem, bytesQuotRem
-       , bitsQuot, bytesQuot
+       , bytesQuotRem, bytesQuot
        , atLeast, atLeastAligned, atMost,
          -- ** Alignment aware functions.
          alignedSizeOf, nextLocation, peekAligned, pokeAligned
@@ -70,9 +69,6 @@ import Raaz.Core.Types.Copying
 -- type level. This helps in to avoid a lot of length conversion
 -- errors.
 
--- | A newtype declaration so as to avoid orphan instances.
-newtype Byte = BYTE Word8 deriving Storable
-
 -- | The pointer type used by raaz.
 type Pointer = Ptr Byte
 
@@ -84,8 +80,6 @@ newtype AlignedPtr (n :: Nat) a = AlignedPtr { forgetAlignment :: Ptr a}
 -- | Change the type of the aligned pointer not its alignment.
 castAlignedPtr :: AlignedPtr n a -> AlignedPtr n b
 castAlignedPtr = AlignedPtr . castPtr . forgetAlignment
-
-type AlignedPointer n = AlignedPtr n Byte
 
 -- | Run a pointer action on the associated aligned pointer.
 onPtr :: (Ptr a -> b) -> AlignedPtr n a -> b
@@ -131,12 +125,6 @@ newtype BYTES a  = BYTES a
                  , Real, Num, Storable, Bounded, Bits
                  )
 
--- | Type safe lengths/offsets in units of bits.
-newtype BITS  a  = BITS  a
-        deriving ( Show, Eq, Equality, Ord, Enum, Integral
-                 , Real, Num, Storable, Bounded
-                 )
-
 instance Num a => Semigroup (BYTES a) where
   (<>) = (+)
 
@@ -147,11 +135,6 @@ instance Num a => Monoid (BYTES a) where
 instance LengthUnit (BYTES Int) where
   inBytes = id
   {-# INLINE inBytes #-}
-
--- | Express the length units in bits.
-inBits  :: LengthUnit u => u -> BITS Word64
-inBits u = BITS $ 8 * fromIntegral by
-  where BYTES by = inBytes u
 
 -- | Express length unit @src@ in terms of length unit @dest@ rounding
 -- upwards.
@@ -218,25 +201,6 @@ bytesQuot :: LengthUnit u
 bytesQuot bytes = u
   where divisor = inBytes (toEnum 1 `asTypeOf` u)
         q       = bytes `quot` divisor
-        u       = toEnum $ fromEnum q
-
-
--- | Function similar to `bytesQuotRem` but works with bits instead.
-bitsQuotRem :: LengthUnit u
-            => BITS Word64
-            -> (u , BITS Word64)
-bitsQuotRem bits = (u , r)
-  where divisor = inBits (toEnum 1 `asTypeOf` u)
-        (q, r)  = bits `quotRem` divisor
-        u       = toEnum $ fromEnum q
-
--- | Function similar to `bitsQuotRem` but returns only the quotient.
-bitsQuot :: LengthUnit u
-         => BITS Word64
-         -> u
-bitsQuot bits = u
-  where divisor = inBits (toEnum 1 `asTypeOf` u)
-        q       = bits `quot` divisor
         u       = toEnum $ fromEnum q
 
 --------------------------

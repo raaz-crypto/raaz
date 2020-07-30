@@ -99,13 +99,6 @@ instance Encodable ByteString where
   unsafeFromByteString = id
   {-# INLINE unsafeFromByteString #-}
 
-instance Encodable a => Encodable (BITS a) where
-  toByteString (BITS a) = toByteString a
-  fromByteString        = fmap BITS . fromByteString
-  unsafeFromByteString  = BITS      . unsafeFromByteString
-
-
-
 instance Encodable a => Encodable (BYTES a) where
   toByteString         (BYTES a) = toByteString a
   fromByteString        = fmap BYTES . fromByteString
