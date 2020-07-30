@@ -17,5 +17,5 @@ import Entropy
 -- die-harder. The function is going to be less safe (due to the low
 -- level nature of the function) and slower (due to system call
 -- overheads).
-fillSystemEntropy :: LengthUnit l => l -> Pointer -> IO (BYTES Int)
+fillSystemEntropy :: LengthUnit l => l -> Ptr Word8 -> IO (BYTES Int)
 fillSystemEntropy = getEntropy . inBytes

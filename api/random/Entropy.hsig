@@ -45,4 +45,4 @@ entropySource :: String
 -- | Read the given amount of random bytes from the entropy pool. Do
 -- not over use this function as it is meant to be used just to seed a
 -- PRG.
-getEntropy :: BYTES Int -> Pointer -> IO (BYTES Int)
+getEntropy :: BYTES Int -> Ptr Word8 -> IO (BYTES Int)
