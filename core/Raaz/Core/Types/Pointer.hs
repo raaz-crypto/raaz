@@ -13,19 +13,20 @@
 -- library.
 module Raaz.Core.Types.Pointer
        ( -- * Pointers, offsets, and alignment
-         Ptr, Pointer, AlignedPointer, AlignedPtr(..), onPtr, ptrAlignment, nextAlignedPtr
-       , castAlignedPtr
+         -- $basics$
          -- ** Type safe length units.
-       , LengthUnit(..)
+         LengthUnit(..)
        , BYTES(..), BITS(..), inBits
+       , Pointer, Ptr
+       , AlignedPtr(..), onPtr, ptrAlignment, nextAlignedPtr, movePtr
+       , castAlignedPtr
        , sizeOf
          -- *** Some length arithmetic
        , bitsQuotRem, bytesQuotRem
        , bitsQuot, bytesQuot
-       , atLeast, atLeastAligned, atMost
-         -- ** Types measuring alignment
-       , Alignment, wordAlignment
-       , alignment, alignPtr, movePtr, alignedSizeOf, nextLocation, peekAligned, pokeAligned
+       , atLeast, atLeastAligned, atMost,
+         -- ** Alignment aware functions.
+         alignedSizeOf, nextLocation, peekAligned, pokeAligned
          -- ** Allocation functions.
        , allocaBuffer, allocaAligned, allocaSecure
          -- ** Some buffer operations
@@ -297,12 +298,6 @@ instance Unbox w => GV.Vector Vector (BYTES w) where
 newtype Alignment = Alignment { unAlignment :: Int }
         deriving ( Show, Eq, Ord, Enum)
 
--- | The default alignment to use is word boundary.
-wordAlignment :: Alignment
-wordAlignment = alignment (Proxy :: Proxy Word8)
-
-
-
 instance Semigroup Alignment where
   (<>) a b = Alignment $ lcm (unAlignment a) (unAlignment b)
 
@@ -330,8 +325,6 @@ alignment =  Alignment . FS.alignment . asProxyTypeOf undefined
 -- | Align a pointer to the appropriate alignment.
 alignPtr :: Ptr a -> Alignment -> Ptr a
 alignPtr ptr = FP.alignPtr ptr . unAlignment
-
-
 
 -- | Move the given pointer with a specific offset.
 movePtr :: LengthUnit l => Ptr a -> l -> Ptr a
