@@ -22,29 +22,33 @@ module Raaz.Core.Memory
          --
          -- 1. copyMemory
 
-       -- * The Memory subsystem.
        -- $memorysubsystem$
 
-       -- ** Memory elements.
-         Memory(..), withMemory, withSecureMemory,
-         VoidMemory, withMemoryPtr
+       -- * The memory class
 
-       -- *** Initialisation and Extraction.
+         Alloc, Memory(..)
+       , VoidMemory, withMemoryPtr
+       , withMemory, withSecureMemory
+       , pointerAlloc
+
+       -- * Initialisation and Extraction.
        -- $init-extract$
+
        , Initialisable(..), Extractable(..), modifyMem
-       , InitialisableFromBuffer(..), ExtractableToBuffer(..)
-       -- *** A basic memory cell.
+       , Access(..), Accessible(..), copyAccessible
+       , unsafeCopyToAccess, unsafeCopyFromAccess
+
+       -- * A basic memory cell.
        , MemoryCell, withCellPointer, getCellPointer
-       -- ** Memory allocation
-       ,  Alloc, pointerAlloc
+
        ) where
 
 import           Foreign.Storable            ( Storable )
 import           Foreign.Ptr                 ( castPtr, Ptr )
 import           Raaz.Core.Prelude
 import           Raaz.Core.MonoidalAction
-import           Raaz.Core.Transfer
 import           Raaz.Core.Types
+import           Raaz.Core.Types.Copying     ( unDest )
 
 -------------- BANNED FEATURES ---------------------------------------
 --
@@ -82,8 +86,18 @@ import           Raaz.Core.Types
 -- pointer. Clearly a memcpy from the associated raw pointers will
 -- mean that the initial segment of A is lost to B.
 
------------------------- A memory allocator -----------------------
 
+
+
+-- $memorysubsystem$
+--
+-- The memory subsytem of raaz is captured by the `Memory` class which
+-- intern has an `Alloc` strategy. The goal of this module is to give
+-- a relatively abstract interface to these that hides the low level
+-- size calculation and pointer arithmetic.
+
+
+------------------------ A memory allocator -----------------------
 
 type AllocField = Field (Ptr Word8)
 
@@ -228,6 +242,21 @@ withSecureMemory = withSM memoryAlloc
 
 ----------------------- Initialising and Extracting stuff ----------------------
 
+-- $init-extract$
+--
+-- Memories often allow initialisation with and extraction of values
+-- in the Haskell world. The `Initialisable` and `Extractable` class
+-- captures this interface. One should, however, refrain
+-- initialising/extracting sensitive values as such values reside in
+-- the Haskell heap which is not locked and are often relocated during
+-- garbage collection phases.
+--
+-- Protocols often need to setup a key in a particular memory cell and
+-- then use that key for say encryption.  To handle such cases,
+-- certain memory elements provide an `Access` into its memory
+-- pointer.  Writing into and reading from these can then be achieved
+-- by using memcpy.
+
 -- | Memories that can be initialised with a pure value. The pure
 -- value resides in the Haskell heap and hence can potentially be
 -- swapped. Therefore, this class should be avoided if compromising
@@ -255,17 +284,56 @@ class Memory m => Extractable m v where
 modifyMem :: (Initialisable mem a, Extractable mem b) =>  (b -> a) -> mem -> IO ()
 modifyMem f mem = extract mem >>= flip initialise mem . f
 
--- | A memory type that can be initialised from a pointer buffer. The initialisation performs
--- a direct copy from the input buffer and hence the chances of the
--- initialisation value ending up in the swap is minimised.
-class Memory m => InitialisableFromBuffer m where
-  initialiser :: m -> ReadIO
 
--- | A memory type that can extract bytes into a buffer. The extraction will perform
--- a direct copy and hence the chances of the extracted value ending
--- up in the swap space is minimised.
-class Memory m => ExtractableToBuffer m where
-  extractor :: m -> WriteIO
+
+-- | An access into a memory is a buffer that points to the actual
+-- data together with an endian adjustment action. If data needs to be
+-- transferred to the outside world, or bytes are to be read from the
+-- outside world, the accessAdjust action should be run.
+data Access = Access { accessPtr    :: Ptr Word8
+                     , accessSize   :: BYTES Int
+                     , accessAdjust :: IO ()
+                     }
+
+-- | Fill the access buffer from a source pointer. This function is unsafe because
+-- it does not check whether there is enough data on the source side.
+unsafeCopyToAccess :: Access
+                   -> Src (Ptr a)
+                   -> IO ()
+unsafeCopyToAccess acc sptr = do
+  memcpy dptr sptr sz
+  accessAdjust acc
+  where sz   = accessSize acc
+        dptr = destination $ accessPtr acc
+
+unsafeCopyFromAccess :: Dest (Ptr a)
+                     -> Access
+                     -> IO ()
+unsafeCopyFromAccess dptr acc = do
+  accessAdjust acc    -- adjust before transfer
+  memcpy dptr sptr sz
+  accessAdjust acc    -- adjust it back after completion.
+  where sz   = accessSize acc
+        sptr = source $ accessPtr acc
+
+
+-- | Memories that have an access mechanism. Instances should ensure
+-- that the size of the access buffer is independent of the value
+-- stored in the buffer so that copying would work.
+class Memory mem => Accessible mem where
+  -- | Get access into the memory's buffer
+  access :: mem -> Access
+
+-- | This action is only available for accessible memory not general memories.
+copyAccessible :: Accessible mem => Dest mem -> Src mem -> IO ()
+copyAccessible dest src = memcpy dptr sptr sz
+  -- NOTE: no adjustment is needs as both contain values of the same
+  -- type.
+  where dacc = access <$> dest
+        sacc = access <$> src
+        dptr = accessPtr <$> dacc
+        sptr = accessPtr <$> sacc
+        sz   = accessSize $ unDest dacc
 
 --------------------- Some instances of Memory --------------------
 
@@ -301,8 +369,12 @@ instance Storable a => Extractable (MemoryCell a) a where
   extract = peekAligned . unMemoryCell
   {-# INLINE extract #-}
 
-instance EndianStore a => InitialisableFromBuffer (MemoryCell a) where
-  initialiser  = readInto 1 . destination . getCellPointer
-
-instance EndianStore a => ExtractableToBuffer (MemoryCell a) where
-  extractor  = writeFrom 1 . source . getCellPointer
+instance EndianStore a => Accessible (MemoryCell a) where
+  access mem = Access { accessPtr    = castPtr bufPtr
+                      , accessSize   = sz
+                      , accessAdjust = adjustEndian bufPtr 1
+                      }
+    where getProxy   :: MemoryCell a -> Proxy a
+          getProxy _ =  Proxy
+          sz         = sizeOf $ getProxy mem
+          bufPtr     = getCellPointer mem
