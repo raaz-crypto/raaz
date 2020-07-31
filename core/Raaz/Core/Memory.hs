@@ -17,12 +17,18 @@ reason to look into this module.
 {-# LANGUAGE DataKinds                  #-}
 module Raaz.Core.Memory
        (
+
+         -- BANNED combinators
+         --
+         -- 1. copyMemory
+
        -- * The Memory subsystem.
        -- $memorysubsystem$
 
        -- ** Memory elements.
          Memory(..), withMemory, withSecureMemory,
-         VoidMemory, copyMemory, withMemoryPtr
+         VoidMemory, withMemoryPtr
+
        -- *** Initialisation and Extraction.
        -- $init-extract$
        , Initialisable(..), Extractable(..), modifyMem
@@ -39,6 +45,42 @@ import           Raaz.Core.Prelude
 import           Raaz.Core.MonoidalAction
 import           Raaz.Core.Transfer
 import           Raaz.Core.Types
+
+-------------- BANNED FEATURES ---------------------------------------
+--
+-- This module has a lot of low level pointer gymnastics and hence
+-- should be dealt with care. The following features are BANNED
+-- and hence should never be exposed. Often they are subtle and can
+-- be easily missed. Hence it is documented here.
+--
+-- * COPY BUG
+--
+-- ** Combinator:
+--
+-- >
+-- > `copyMemory :: Memory mem => Dest mem -> Src mem -> IO ()
+-- >
+--
+-- ** THE BUG. At first it looks like a useful, general function to
+-- have which is just a memcpy on the underlying pointers. For a
+-- memory element we can easily get its pointer and size. However this
+-- has a very subtle bug. The actual data in certain memory elements
+-- like MemoryCell's have a runtime dependent offset from its raw
+-- pointer and can defer from one element to another. As an example
+-- consider two MemoryCells A and B of type `MemoryCell Word64` and
+-- let us assume that the alignment restriction for both these is
+-- 8-byte boundary. The Allocation strategy for MemoryCell is the following.
+--
+-- (1) The size is 16 (using the atleastAligned function)
+-- (2) The starting pointer is the next 8-byte aligned pointer from the
+--     given pointer.
+--
+-- It is very well possible that on allocation A gets an 8-byte
+-- aligned memory pointer internally and the nextAligned pointer would
+-- be itself. However, B might not be aligned and hence the actual
+-- pointer for B might have a non-zero offset from its raw
+-- pointer. Clearly a memcpy from the associated raw pointers will
+-- mean that the initial segment of A is lost to B.
 
 ------------------------ A memory allocator -----------------------
 
@@ -142,16 +184,6 @@ instance ( Memory ma
 
   unsafeToPointer (ma,_,_,_) =  unsafeToPointer ma
 
--- | Copy data from a given memory location to the other. The first
--- argument is destination and the second argument is source to match
--- with the convention followed in memcpy.
-copyMemory :: Memory m => Dest m -- ^ Destination
-                       -> Src  m -- ^ Source
-                       -> IO ()
-copyMemory dmem smem = memcpy (unsafeToPointer <$> dmem) (unsafeToPointer <$> smem) sz
-  where sz       = twistMonoidValue $ getAlloc smem
-        getAlloc :: Memory m => Src m -> Alloc m
-        getAlloc _ = memoryAlloc
 
 -- | Apply some low level action on the underlying buffer of the
 -- memory.
