@@ -52,9 +52,6 @@ class ( Unbox (WordType p)
   -- `WORD p`.
   type WordsPerBlock p :: Nat
 
-
--- type BlockPtr p = Ptr (Tuple (BlockArraySize p) (WORD p)
-
 -- | The type family that captures the key of a keyed primitive.
 data family Key p :: *
 
