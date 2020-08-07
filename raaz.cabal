@@ -224,6 +224,7 @@ library core
   hs-source-dirs: core
   exposed-modules: Raaz.Core
                  , Raaz.Core.CpuSupports
+                 , Raaz.Core.Memory
                  , Raaz.Core.Prelude
                  , Raaz.Core.Transfer
                  , Raaz.Core.Types
@@ -237,7 +238,6 @@ library core
 
   other-modules: Raaz.Core.ByteSource
                , Raaz.Core.Encode
-               , Raaz.Core.Memory
                , Raaz.Core.MonoidalAction
                , Raaz.Core.Parse.Applicative
                , Raaz.Core.Primitive
