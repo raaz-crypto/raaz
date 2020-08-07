@@ -29,7 +29,6 @@ import           Data.ByteString.Internal  (unsafeCreate)
 
 
 import qualified Data.Vector.Generic       as G
-import           Foreign.Ptr               (castPtr, Ptr)
 import           Foreign.Storable          ( Storable, poke )
 
 import           Raaz.Core.Prelude
@@ -155,10 +154,12 @@ transferSize :: Transfer t m -> BYTES Int
 transferSize = semiRMonoid
 
 -- | Perform the transfer without checking the bounds.
-unsafeTransfer :: Transfer t m
-               -> Ptr a       -- ^ The pointer to the buffer to/from which transfer occurs.
+unsafeTransfer :: Pointer ptr
+               => Transfer t m
+               -> ptr a       -- ^ The pointer to the buffer to/from which transfer occurs.
                -> m ()
-unsafeTransfer tr = unTransferM . semiRSpace tr . castPtr
+unsafeTransfer tr = transferIt . unsafeRawPtr
+  where transferIt = unTransferM . semiRSpace tr . castPointer
 
 -- | The transfer @skip l@ skip ahead by an offset @l@. If it is a
 -- read, it does not read the next @l@ positions. If it is a write it
@@ -200,14 +201,14 @@ consumeStorable = consumeParse parseStorable
 -- endianness use the `write` combinator.
 writeStorable :: (MonadIO m, Storable a) => a -> WriteM m
 writeStorable a = makeTransfer (sizeOf $ pure a) pokeIt
-  where pokeIt = liftIO . flip poke a . castPtr
+  where pokeIt = liftIO . flip poke a . castPointer
 -- | The expression @`write` a@ gives a write action that stores a
 -- value @a@. One needs the type of the value @a@ to be an instance of
 -- `EndianStore`. Proper endian conversion is done irrespective of
 -- what the machine endianness is. The man use of this write is to
 -- serialize data for the consumption of the outside world.
 write :: (MonadIO m, EndianStore a) => a -> WriteM m
-write a = makeTransfer (sizeOf $ pure a) $ liftIO . flip (store . castPtr) a
+write a = makeTransfer (sizeOf $ pure a) $ liftIO . flip (store . castPointer) a
 
 
 -- | Write any encodable elements

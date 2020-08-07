@@ -17,6 +17,8 @@ module Raaz.Primitive.Sha2.Internal
 
 import           Data.Vector.Unboxed        ( Unbox )
 import           Foreign.Storable           ( Storable(..) )
+import           GHC.TypeLits
+
 
 import           Raaz.Core
 import           Raaz.Core.Types.Internal
@@ -99,7 +101,8 @@ type Compressor512 n =  AlignedBlockPtr n Sha512
 
 -- | Takes a block processing function for sha256 and gives a last
 -- bytes processor.
-process256Last :: Compressor256 n    -- ^ block compressor
+process256Last :: KnownNat n
+               => Compressor256 n    -- ^ block compressor
                -> AlignedBlockPtr n Sha256
                -> BYTES Int
                -> Sha256Mem
@@ -109,11 +112,12 @@ process256Last comp buf nbytes sha256mem = do
   totalBytes  <- getLength sha256mem
   let pad      = padding256 nbytes totalBytes
       blocks   = atMost $ transferSize pad
-    in unsafeTransfer pad (forgetAlignment buf) >> comp buf blocks sha256mem
+    in unsafeTransfer pad buf >> comp buf blocks sha256mem
 
 -- | Takes a block processing function for sha512 and gives a last
 -- bytes processor.
-process512Last :: Compressor512 n
+process512Last :: KnownNat n
+               => Compressor512 n
                -> AlignedBlockPtr n Sha512
                -> BYTES Int
                -> Sha512Mem
@@ -124,7 +128,7 @@ process512Last comp buf nbytes sha512mem = do
   lLen  <- getLLength sha512mem
   let pad      = padding512 nbytes uLen lLen
       blocks   = atMost $ transferSize pad
-      in unsafeTransfer pad (forgetAlignment buf) >> comp buf blocks sha512mem
+      in unsafeTransfer pad buf >> comp buf blocks sha512mem
 
 -- | The padding for sha256 as a writer.
 padding256 :: BYTES Int    -- Data in buffer.

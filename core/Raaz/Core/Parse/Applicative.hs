@@ -12,7 +12,6 @@ module Raaz.Core.Parse.Applicative
 
 import           Data.ByteString           (ByteString)
 import           Data.Vector.Generic       (Vector, generateM)
-import           Foreign.Ptr               (castPtr)
 import           Foreign.Storable          (Storable, peek, peekElemOff)
 import           System.IO.Unsafe          (unsafePerformIO)
 
@@ -53,8 +52,12 @@ runParser pr bs
   | otherwise                 = Just $ unsafePerformIO $ withByteString bs $ unsafeRunParser pr
 
 -- | Run the parser without checking the length constraints.
-unsafeRunParser :: Parser a -> Ptr Word8 -> IO a
-unsafeRunParser = runFieldM . twistFunctorValue
+unsafeRunParser :: Pointer ptr
+                => Parser a
+                -> ptr b
+                -> IO a
+unsafeRunParser prsr = runIt prsr . unsafeRawPtr . castPointer
+  where runIt = runFieldM . twistFunctorValue
 
 -- | The primary purpose of this function is to satisfy type checkers.
 parserToProxy   :: Parser a -> Proxy a
@@ -66,7 +69,7 @@ parserToProxy _ = Proxy
 -- `Storable` instance.
 parseStorable :: Storable a => Parser a
 parseStorable = pa
-  where pa = makeParser (sizeOf $ parserToProxy pa) (peek . castPtr)
+  where pa = makeParser (sizeOf $ parserToProxy pa) (peek . castPointer)
 
 -- | Parse a crypto value. Endian safety is take into account
 -- here. This is what you would need when you parse packets from an
@@ -74,7 +77,7 @@ parseStorable = pa
 -- function in a complicated `EndianStore` instance.
 parse :: EndianStore a => Parser a
 parse = pa
-  where pa = makeParser (sizeOf $ parserToProxy pa) (load . castPtr)
+  where pa = makeParser (sizeOf $ parserToProxy pa) (load . castPointer)
 
 -- | Parses a strict bytestring of a given length.
 parseByteString :: LengthUnit l => l -> Parser ByteString
@@ -88,7 +91,7 @@ unsafeParseStorableVector :: (Storable a, Vector v a) => Int -> Parser (v a)
 unsafeParseStorableVector n = pvec
   where pvec      = makeParser  width $ \ cptr -> generateM n (getA cptr)
         width     = fromIntegral n * sizeOf (thisProxy pvec)
-        getA      = peekElemOff . castPtr
+        getA      = peekElemOff . castPointer
         thisProxy    :: Storable a => Parser (v a) -> Proxy a
         thisProxy _ = Proxy
 
@@ -98,7 +101,7 @@ unsafeParseStorableVector n = pvec
 -- the length parameter is non-negative.
 unsafeParseVector :: (EndianStore a, Vector v a) => Int -> Parser (v a)
 unsafeParseVector n = pvec
-  where pvec     = makeParser  width $ \ cptr -> generateM n (loadFromIndex (castPtr cptr))
+  where pvec     = makeParser  width $ \ cptr -> generateM n (loadFromIndex (castPointer cptr))
         width    = fromIntegral n * sizeOf (thisProxy pvec)
         thisProxy    :: Storable a => Parser (v a) -> Proxy a
         thisProxy _ = Proxy

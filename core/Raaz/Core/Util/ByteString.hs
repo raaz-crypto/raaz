@@ -36,8 +36,9 @@ replicate l = B.replicate sz
 -- | Copy the bytestring to the crypto buffer. This operation leads to
 -- undefined behaviour if the crypto pointer points to an area smaller
 -- than the size of the byte string.
-unsafeCopyToPointer :: ByteString   -- ^ The source.
-                    -> Ptr a        -- ^ The destination.
+unsafeCopyToPointer :: Pointer ptr
+                    => ByteString   -- ^ The source.
+                    -> ptr a        -- ^ The destination.
                     -> IO ()
 unsafeCopyToPointer bs cptr =  withForeignPtr fptr $
            \ p -> memcpy (destination cptr) (source $ p `plusPtr` offset) (BYTES n)

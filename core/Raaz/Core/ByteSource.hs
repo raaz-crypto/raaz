@@ -21,7 +21,7 @@ import           Raaz.Core.Util.ByteString( unsafeCopyToPointer
                                           , unsafeNCopyToPointer
                                           , length
                                           )
-import           Raaz.Core.Types.Pointer  (hFillBuf)
+import           Raaz.Core.Types.Pointer  (hFillBuf, Pointer, unsafeWithPointer)
 
 -- $bytesource$
 --
@@ -77,23 +77,24 @@ class ByteSource src where
             -> IO (FillResult src)
 
 -- | A version of fillBytes that takes type safe lengths as input.
-fill :: ( LengthUnit len
+fill :: ( Pointer ptr
+        , LengthUnit len
         , ByteSource src
         )
      => len
      -> src
-     -> Ptr a
+     -> ptr a
      -> IO (FillResult src)
-fill = fillBytes . inBytes
+fill len src = unsafeWithPointer $ fillBytes (inBytes len) src
 {-# INLINE fill #-}
 
 -- | Process data from a source in chunks of a particular size.
-processChunks :: ( MonadIO m, LengthUnit chunkSize, ByteSource src)
+processChunks :: ( Pointer ptr, MonadIO m, LengthUnit chunkSize, ByteSource src)
               => m a                 -- action on a complete chunk,
               -> (BYTES Int -> m b)  -- action on the last partial chunk,
               -> src                 -- the source
               -> chunkSize           -- size of the chunksize
-              -> Ptr something       -- buffer to fill the chunk in
+              -> ptr something       -- buffer to fill the chunk in
               -> m b
 processChunks mid end source csz ptr = go source
   where fillChunk src = liftIO $ fill csz src ptr
