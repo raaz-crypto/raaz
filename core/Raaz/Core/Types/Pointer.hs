@@ -321,7 +321,7 @@ wipeMemory :: (LengthUnit l, Pointer ptr)
             => ptr a   -- ^ buffer to wipe
             -> l       -- ^ buffer length
             -> IO ()
-wipeMemory p = void . c_wipe_memory (unsafeRawPtr p) . inBytes
+wipeMemory p = void . withRawPtr c_wipe_memory p . inBytes
 
 {-# SPECIALIZE memlock    :: Ptr a -> BYTES Int -> IO Int  #-}
 {-# SPECIALIZE memunlock  :: Ptr a -> BYTES Int -> IO ()   #-}
@@ -368,7 +368,7 @@ memset :: (LengthUnit l, Pointer ptr)
        -> Word8     -- ^ Value byte to set
        -> l         -- ^ Number of bytes to set
        -> IO ()
-memset p w = void . c_memset (unsafeRawPtr p) w . inBytes
+memset p w = void . withRawPtr c_memset p w . inBytes
 {-# SPECIALIZE memset :: Ptr a -> Word8 -> BYTES Int -> IO () #-}
 
 -- | The type @AlignedPtr n@ that captures pointers that are aligned
