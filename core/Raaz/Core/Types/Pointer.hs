@@ -27,7 +27,7 @@ module Raaz.Core.Types.Pointer
 
          -- ** The class of pointer types.
        , Pointer(..)
-       , AlignedPtr(..), ptrAlignment, nextAlignedPtr
+       , AlignedPtr, ptrAlignment, nextAlignedPtr
        , allocaBuffer, allocaSecure
          -- ** Some low level pointer actions
        , wipeMemory
