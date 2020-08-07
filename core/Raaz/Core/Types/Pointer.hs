@@ -26,7 +26,7 @@ module Raaz.Core.Types.Pointer
        , peekAligned, pokeAligned
 
          -- ** The class of pointer types.
-       , Pointer(..)
+       , Pointer(..), unsafeWithPointer
        , AlignedPtr, ptrAlignment, nextAlignedPtr
        , allocaBuffer, allocaSecure
          -- ** Some low level pointer actions
@@ -252,8 +252,8 @@ instance Pointer Ptr where
   allocaPointer (BYTES sz) = allocaBytes sz
 
 -- | Lifts raw pointer actions to the given pointer type.
-withRawPtr :: Pointer ptr => (Ptr a -> b) -> ptr a -> b
-withRawPtr action = action . unsafeRawPtr
+unsafeWithPointer :: Pointer ptr => (Ptr a -> b) -> ptr a -> b
+unsafeWithPointer action = action . unsafeRawPtr
 
 -- | Allocate a buffer for an action that expects a generic
 -- pointer. Length can be specified in any length units.
@@ -306,13 +306,13 @@ memlock :: (LengthUnit l, Pointer ptr)
         => ptr a
         -> l
         -> IO Int
-memlock   ptr = withRawPtr c_mlock ptr . inBytes
+memlock   ptr = unsafeWithPointer c_mlock ptr . inBytes
 
 memunlock :: (LengthUnit l, Pointer ptr)
           => ptr a
           -> l
           -> IO ()
-memunlock ptr = withRawPtr c_munlock ptr . inBytes
+memunlock ptr = unsafeWithPointer c_munlock ptr . inBytes
 
 -- | Cleanup the given pointer of any sensitive data. This is a tricky
 -- function to write as compilers are known to optimise this away. In
@@ -321,7 +321,7 @@ wipeMemory :: (LengthUnit l, Pointer ptr)
             => ptr a   -- ^ buffer to wipe
             -> l       -- ^ buffer length
             -> IO ()
-wipeMemory p = void . withRawPtr c_wipe_memory p . inBytes
+wipeMemory p = void . unsafeWithPointer c_wipe_memory p . inBytes
 
 {-# SPECIALIZE memlock    :: Ptr a -> BYTES Int -> IO Int  #-}
 {-# SPECIALIZE memunlock  :: Ptr a -> BYTES Int -> IO ()   #-}
@@ -368,7 +368,7 @@ memset :: (LengthUnit l, Pointer ptr)
        -> Word8     -- ^ Value byte to set
        -> l         -- ^ Number of bytes to set
        -> IO ()
-memset p w = void . withRawPtr c_memset p w . inBytes
+memset p w = void . unsafeWithPointer c_memset p w . inBytes
 {-# SPECIALIZE memset :: Ptr a -> Word8 -> BYTES Int -> IO () #-}
 
 -- | The type @AlignedPtr n@ that captures pointers that are aligned
