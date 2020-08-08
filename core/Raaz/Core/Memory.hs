@@ -15,6 +15,7 @@ reason to look into this module.
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE DataKinds                  #-}
+{-# LANGUAGE RecordWildCards            #-}
 module Raaz.Core.Memory
        (
 
@@ -35,7 +36,7 @@ module Raaz.Core.Memory
        -- $init-extract$
 
        , Initialisable(..), Extractable(..), modifyMem
-       , Access(..), Accessible(..), copyAccessible, accessToRead
+       , Access(..), Accessible(..), copyAccessible, accessReader, accessWriter
        , unsafeCopyToAccess, unsafeCopyFromAccess
 
        -- * A basic memory cell.
@@ -51,7 +52,7 @@ import           Raaz.Core.Prelude
 import           Raaz.Core.MonoidalAction
 import           Raaz.Core.Types    hiding   ( zipWith       )
 import           Raaz.Core.Types.Copying     ( unDest, unSrc )
-
+import           Raaz.Core.Transfer
 -------------- BANNED FEATURES ---------------------------------------
 --
 -- This module has a lot of low level pointer gymnastics and hence
@@ -297,10 +298,19 @@ data Access = Access { accessPtr    :: Ptr Word8
                      , accessAdjust :: IO ()
                      }
 
--- | Convert an access into a reader.
-accessToReader :: Access -> ReadIO
-accessToReader acc = readInto (accessSize acc) (destination accessPtr)
-                     <> interleave (accessAdjust acc)
+-- | The reader action that reads bytes from the input buffer to the
+-- access buffer.
+accessReader :: Access -> ReadIO
+accessReader Access{..}
+  = readIntoPtr accessSize (destination accessPtr)
+    <> interleave accessAdjust
+
+-- | The writer action that writes into input buffer from the access
+-- buffer.
+accessWriter :: Access -> WriteIO
+accessWriter Access{..}  = interleave accessAdjust
+                           <> writeFromPtr accessSize (source accessPtr)
+                           <> interleave accessAdjust
 
 -- | Fill the access buffer from a source pointer. This function is unsafe because
 -- it does not check whether there is enough data on the source side.
