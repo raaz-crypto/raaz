@@ -34,7 +34,7 @@ module Raaz.Core.Types.Internal
 
 import Raaz.Core.Primitive     ( BlockCount (..) )
 import Raaz.Core.Types.Endian  ( LE(..), BE(..)          )
-import Raaz.Core.Types.Pointer ( Pointer, AlignedPtr
+import Raaz.Core.Types.Pointer ( Pointer, AlignedPtr (..)
                                , BYTES(..)
                                )
 import Raaz.Core.Types.Copying ( Src(..), Dest(..)       )
