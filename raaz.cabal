@@ -308,8 +308,8 @@ library buffer
   build-depends: core
                , indef
   hs-source-dirs: indef/buffer
-  signatures: Implementation
   exposed-modules: Buffer
+                 , Context
 
 -- The utility package that defines generic interface that is useful
 -- for all primitives.
