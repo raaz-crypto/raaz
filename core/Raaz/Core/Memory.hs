@@ -43,12 +43,14 @@ module Raaz.Core.Memory
 
        ) where
 
-import           Foreign.Storable            ( Storable )
 import           Foreign.Ptr                 ( castPtr, Ptr )
+import           Foreign.Storable            ( Storable )
+import qualified Data.List             as List
+
 import           Raaz.Core.Prelude
 import           Raaz.Core.MonoidalAction
-import           Raaz.Core.Types
-import           Raaz.Core.Types.Copying     ( unDest )
+import           Raaz.Core.Types    hiding   ( zipWith       )
+import           Raaz.Core.Types.Copying     ( unDest, unSrc )
 
 -------------- BANNED FEATURES ---------------------------------------
 --
@@ -317,23 +319,33 @@ unsafeCopyFromAccess dptr acc = do
         sptr = source $ accessPtr acc
 
 
--- | Memories that have an access mechanism. Instances should ensure
--- that the size of the access buffer is independent of the value
--- stored in the buffer so that copying would work.
+-- | Memories that have an access mechanism.
 class Memory mem => Accessible mem where
-  -- | Get access into the memory's buffer
-  access :: mem -> Access
+  -- | Get access into the memory's buffer. Instances should ensure
+  -- the following.
+  --
+  -- 1. The number of elements in the access list  and,
+  -- 2. The sizes of each element in the access lists
+  --
+  -- should be independent of the value stored in the memory. All the
+  -- basic memory elements exposed from raaz library satisfy the above
+  -- property. Any other memory element of interest are products of
+  -- such simple memory element and hence a concatenation of their
+  -- access list will satisfy the property.
+  accessList :: mem -> [Access]
 
 -- | This action is only available for accessible memory not general memories.
 copyAccessible :: Accessible mem => Dest mem -> Src mem -> IO ()
-copyAccessible dest src = memcpy dptr sptr sz
+copyAccessible dest src = sequence_ $ List.zipWith cp dAlist sAlist
   -- NOTE: no adjustment is needs as both contain values of the same
   -- type.
-  where dacc = access <$> dest
-        sacc = access <$> src
-        dptr = accessPtr <$> dacc
-        sptr = accessPtr <$> sacc
-        sz   = accessSize $ unDest dacc
+    where dAlist = map destination $ accessList $ unDest dest
+          sAlist = map source      $ accessList $ unSrc  src
+          cp   :: Dest Access -> Src Access -> IO ()
+          cp dA sA = memcpy dptr sptr sz
+            where sz   = accessSize $ unDest dA
+                  dptr = accessPtr <$> dA
+                  sptr = accessPtr <$> sA
 
 --------------------- Some instances of Memory --------------------
 
@@ -370,10 +382,11 @@ instance Storable a => Extractable (MemoryCell a) a where
   {-# INLINE extract #-}
 
 instance EndianStore a => Accessible (MemoryCell a) where
-  access mem = Access { accessPtr    = castPtr bufPtr
-                      , accessSize   = sz
-                      , accessAdjust = adjustEndian bufPtr 1
-                      }
+  accessList mem = [ Access { accessPtr    = castPtr bufPtr
+                            , accessSize   = sz
+                            , accessAdjust = adjustEndian bufPtr 1
+                            }
+                   ]
     where getProxy   :: MemoryCell a -> Proxy a
           getProxy _ =  Proxy
           sz         = sizeOf $ getProxy mem

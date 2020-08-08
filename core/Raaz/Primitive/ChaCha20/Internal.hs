@@ -129,4 +129,4 @@ instance Extractable ChaCha20Mem (BlockCount ChaCha20) where
 -- | Initialises key from a buffer. Use this instance if you want to
 -- initialise (only the) key from a secure memory location.
 instance Accessible ChaCha20Mem where
-  access = access . keyCell
+  accessList = accessList . keyCell
