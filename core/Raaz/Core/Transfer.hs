@@ -10,11 +10,11 @@ module Raaz.Core.Transfer
          -- $transfer$
          ReadM, ReadIO
        , consume, consumeStorable, consumeParse
-       , readBytes, readInto
+       , readIntoPtr, readInto
        , WriteM, WriteIO
        , writeEncodable
        , write, writeStorable, writeVector, writeStorableVector
-       , writeFrom, writeBytes
+       , writeFrom, writeBytes, writeFromPtr
        , padWrite, prependWrite, glueWrites
        , writeByteString
        , transferSize
@@ -247,9 +247,12 @@ writeVector = G.foldl' foldFunc mempty
 {- TODO: Same as in writeStorableVector -}
 
 
--- | The combinator @writeBytes n b@ writes @b@ as the next @n@
+-- | The combinator @writeBytes b n@ writes @b@ as the next @n@
 -- consecutive bytes.
-writeBytes :: (LengthUnit n, MonadIO m) => Word8 -> n -> WriteM m
+writeBytes :: (LengthUnit n, MonadIO m)
+           => Word8   -- ^ Byte to write
+           -> n       -- ^ How much to write
+           -> WriteM m
 writeBytes w8 n = makeTransfer n memsetIt
   where memsetIt cptr = liftIO $ memset cptr w8 n
 
@@ -287,22 +290,38 @@ padWrite :: ( LengthUnit n, MonadIO m)
          -> WriteM m
 padWrite w8 n = flip (glueWrites w8 n) mempty
 
--------------  Reading and writing byte strings -----------------------------------
+
 -- | Writes a strict bytestring.
 writeByteString :: MonadIO m => ByteString -> WriteM m
 writeByteString bs = makeTransfer (BU.length bs) $ liftIO  . BU.unsafeCopyToPointer bs
 
--- | The action @readBytes sz dptr@ gives a read action, which if run on
--- an input buffer, will transfers @sz@ to the destination buffer
--- pointed by @dptr@. Note that it is the responsibility of the user
--- to make sure that @dptr@ has enough space to receive @sz@ units of
--- data if and when the read action is executed.
-readBytes :: ( LengthUnit sz, MonadIO m)
-          => sz             -- ^ how much to read.
-          -> Dest (Ptr Word8)   -- ^ buffer to read the bytes into
-          -> ReadM m
-readBytes sz dest = makeTransfer sz
-                    $ \ ptr -> liftIO  $ memcpy dest (source ptr) sz
+-- | The action @writeFromPtr sz sptr@ gives a write action, which if
+-- run on an input buffer @buf@, will transfers @sz@ bytes from the
+-- source pointer @sptr@ to the given buffer. Note that it is the
+-- responsibility of the user to make sure that the input buffer @buf@
+-- has enough space to receive @sz@ units of data if and when the read
+-- action is executed.
+--
+writeFromPtr :: ( Pointer ptr, LengthUnit sz, MonadIO m)
+             => sz
+             -> Src (ptr Word8)
+             -> WriteM m
+writeFromPtr sz src = makeTransfer sz
+                      $ \ ptr -> liftIO  $ memcpy (destination ptr) src sz
+
+-------------  Reading stuff  -----------------------------------
+
+-- | The action @readIntoPtr sz dptr@ gives a read action, which if
+-- run on an input buffer, will transfers @sz@ bytes to the
+-- destination pointer @dptr@. Note that it is the responsibility of
+-- the user to make sure that @dptr@ has enough space to receive @sz@
+-- units of data if and when the read action is executed.
+readIntoPtr :: ( Pointer ptr, LengthUnit sz, MonadIO m)
+            => sz               -- ^ how much to read.
+            -> Dest (ptr Word8) -- ^ buffer to read the bytes into
+            -> ReadM m
+readIntoPtr sz dest = makeTransfer sz
+                      $ \ ptr -> liftIO  $ memcpy dest (source ptr) sz
 
 -- | The action @readInto n dptr@ gives a read action which if run on an
 -- input buffer, will transfers @n@ elements of type @a@ into the
