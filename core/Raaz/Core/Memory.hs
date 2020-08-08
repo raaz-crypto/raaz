@@ -35,7 +35,7 @@ module Raaz.Core.Memory
        -- $init-extract$
 
        , Initialisable(..), Extractable(..), modifyMem
-       , Access(..), Accessible(..), copyAccessible
+       , Access(..), Accessible(..), copyAccessible, accessToRead
        , unsafeCopyToAccess, unsafeCopyFromAccess
 
        -- * A basic memory cell.
@@ -296,6 +296,11 @@ data Access = Access { accessPtr    :: Ptr Word8
                      , accessSize   :: BYTES Int
                      , accessAdjust :: IO ()
                      }
+
+-- | Convert an access into a reader.
+accessToReader :: Access -> ReadIO
+accessToReader acc = readInto (accessSize acc) (destination accessPtr)
+                     <> interleave (accessAdjust acc)
 
 -- | Fill the access buffer from a source pointer. This function is unsafe because
 -- it does not check whether there is enough data on the source side.
