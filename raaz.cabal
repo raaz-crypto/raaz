@@ -239,7 +239,9 @@ library core
   other-modules: Raaz.Core.ByteSource
                , Raaz.Core.Encode
                , Raaz.Core.MonoidalAction
-               , Raaz.Core.Parse.Applicative
+               , Raaz.Core.Transfer.Unsafe
+               , Raaz.Core.Parse
+               , Raaz.Core.Parse.Unsafe
                , Raaz.Core.Primitive
                , Raaz.Core.Constants
                , Raaz.Core.Encode.Internal

@@ -26,7 +26,9 @@ import Raaz.Core.Prelude          hiding     ( map          )
 import Raaz.Core.Types.Equality
 import Raaz.Core.Types.Endian
 import Raaz.Core.Transfer
-import Raaz.Core.Parse.Applicative
+import Raaz.Core.Transfer.Unsafe
+import Raaz.Core.Parse.Unsafe
+
 
 -- | Tuples that encode their length in their types. For tuples, we call
 -- the length its dimension.

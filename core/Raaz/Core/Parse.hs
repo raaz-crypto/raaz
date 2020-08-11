@@ -1,48 +1,32 @@
 -- | An applicative version of parser. This provides a restricted
 -- parser which has only an applicative instance.
-module Raaz.Core.Parse.Applicative
+module Raaz.Core.Parse
        ( Parser, parseWidth, parseError, runParser
-       , unsafeRunParser
        , parse, parseStorable
        , parseVector, parseStorableVector
-       , unsafeParseVector, unsafeParseStorableVector
        , parseByteString
        , skip
        ) where
 
 import           Data.ByteString           (ByteString)
-import           Data.Vector.Generic       (Vector, generateM)
-import           Foreign.Storable          (Storable, peek, peekElemOff)
+import           Data.Vector.Generic       (Vector)
+import           Foreign.Storable          (Storable, peek)
 import           System.IO.Unsafe          (unsafePerformIO)
 
+import           Raaz.Core.Parse.Unsafe
 import           Raaz.Core.Prelude
-import           Raaz.Core.MonoidalAction
 import           Raaz.Core.Types.Endian
 import           Raaz.Core.Types.Pointer
 import           Raaz.Core.Util.ByteString (createFrom, length, withByteString)
 
-
-type BytesMonoid   = BYTES Int
-type ParseAction   = FieldM IO (Ptr Word8)
-
--- | An applicative parser type for reading data from a pointer.
-type Parser = TwistRF ParseAction BytesMonoid
-
-makeParser :: LengthUnit l => l -> (Ptr Word8 -> IO a) -> Parser a
-makeParser l action = TwistRF (liftToFieldM action) $ inBytes l
-
 -- | Skip over some data.
 skip :: LengthUnit u => u -> Parser ()
-skip = flip makeParser $ const $ return ()
+skip = flip unsafeMakeParser doNothing
+  where doNothing = const $ return ()
 
 -- | A parser that fails with a given error message.
 parseError  :: String -> Parser a
-parseError msg = makeParser (0 :: BYTES Int) $ \ _ -> fail msg
-
--- | Return the bytes that this parser will read.
-parseWidth :: Parser a -> BYTES Int
-parseWidth =  twistMonoidValue
-
+parseError msg = unsafeMakeParser (0 :: BYTES Int) $ \ _ -> fail msg
 
 -- | Runs a parser on a byte string. It returns `Nothing` if the byte string is smaller than
 -- what the parser would consume.
@@ -50,14 +34,6 @@ runParser :: Parser a -> ByteString -> Maybe a
 runParser pr bs
   | length bs < parseWidth pr = Nothing
   | otherwise                 = Just $ unsafePerformIO $ withByteString bs $ unsafeRunParser pr
-
--- | Run the parser without checking the length constraints.
-unsafeRunParser :: Pointer ptr
-                => Parser a
-                -> ptr b
-                -> IO a
-unsafeRunParser prsr = runIt prsr . unsafeRawPtr . castPointer
-  where runIt = runFieldM . twistFunctorValue
 
 -- | The primary purpose of this function is to satisfy type checkers.
 parserToProxy   :: Parser a -> Proxy a
@@ -69,7 +45,7 @@ parserToProxy _ = Proxy
 -- `Storable` instance.
 parseStorable :: Storable a => Parser a
 parseStorable = pa
-  where pa = makeParser (sizeOf $ parserToProxy pa) (peek . castPointer)
+  where pa = unsafeMakeParser (sizeOf $ parserToProxy pa) (peek . castPointer)
 
 -- | Parse a crypto value. Endian safety is take into account
 -- here. This is what you would need when you parse packets from an
@@ -77,34 +53,11 @@ parseStorable = pa
 -- function in a complicated `EndianStore` instance.
 parse :: EndianStore a => Parser a
 parse = pa
-  where pa = makeParser (sizeOf $ parserToProxy pa) (load . castPointer)
+  where pa = unsafeMakeParser (sizeOf $ parserToProxy pa) (load . castPointer)
 
 -- | Parses a strict bytestring of a given length.
 parseByteString :: LengthUnit l => l -> Parser ByteString
-parseByteString l = makeParser l $ createFrom l
-
--- | Similar to @parseStorableVector@ but is expected to be slightly
--- faster. It does not check whether the length parameter is
--- non-negative and hence is unsafe. Use it only if you can prove that
--- the length parameter is non-negative.
-unsafeParseStorableVector :: (Storable a, Vector v a) => Int -> Parser (v a)
-unsafeParseStorableVector n = pvec
-  where pvec      = makeParser  width $ \ cptr -> generateM n (getA cptr)
-        width     = fromIntegral n * sizeOf (thisProxy pvec)
-        getA      = peekElemOff . castPointer
-        thisProxy    :: Storable a => Parser (v a) -> Proxy a
-        thisProxy _ = Proxy
-
--- | Similar to @parseVector@ but is expected to be slightly
--- faster. It does not check whether the length parameter is
--- non-negative and hence is unsafe. Use it only if you can prove that
--- the length parameter is non-negative.
-unsafeParseVector :: (EndianStore a, Vector v a) => Int -> Parser (v a)
-unsafeParseVector n = pvec
-  where pvec     = makeParser  width $ \ cptr -> generateM n (loadFromIndex (castPointer cptr))
-        width    = fromIntegral n * sizeOf (thisProxy pvec)
-        thisProxy    :: Storable a => Parser (v a) -> Proxy a
-        thisProxy _ = Proxy
+parseByteString l = unsafeMakeParser l $ createFrom l
 
 -- | Similar to `parseVector` but parses according to the host
 -- endian. This function is essentially used to define storable
