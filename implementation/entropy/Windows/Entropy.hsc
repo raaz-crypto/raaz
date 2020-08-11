@@ -37,7 +37,7 @@ foreign import WINDOWS_CCONV unsafe "Wincrypt.h CryptReleaseContext"
     c_CryptReleaseContext :: HCRYPTPROV -> Word32 -> IO Bool
 
 -- | Get cryptographically random bytes from the system.
-getEntropy :: BYTES Int -> Pointer -> IO (BYTES Int)
+getEntropy :: BYTES Int -> Ptr Word8 -> IO (BYTES Int)
 getEntropy l ptr = allocaBuffer ptrSize $ \ctx ->
     do let addr = castPtr ctx
        ctx_ok <- c_CryptAcquireContext addr nullPtr nullPtr

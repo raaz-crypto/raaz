@@ -30,5 +30,6 @@ reseedAfter = blocksOf (1024 * 1024 * 1024) (Proxy :: Proxy Prim)
 
 randomBlocks :: BufferPtr
              -> BlockCount Prim
-             -> MT Internals ()
+             -> Internals
+             -> IO ()
 randomBlocks = Base.runBlockProcess verse_chacha20csprg_c_portable

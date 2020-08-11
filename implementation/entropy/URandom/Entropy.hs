@@ -14,5 +14,6 @@ entropySource = "/dev/urandom(generic posix)"
 -- | Get random bytes from the system. Do not over use this function
 -- as it is meant to be used by a PRG. This function reads bytes from
 -- '/dev/urandom'.
-getEntropy :: BYTES Int -> Pointer -> IO (BYTES Int)
-getEntropy l ptr = withBinaryFile "/dev/urandom" ReadMode $ \ hand -> hFillBuf hand ptr l
+getEntropy ::  BYTES Int -> Ptr Word8 -> IO (BYTES Int)
+getEntropy l ptr = withBinaryFile "/dev/urandom" ReadMode
+                   $ \ hand -> hFillBuf hand ptr l

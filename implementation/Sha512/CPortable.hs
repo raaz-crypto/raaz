@@ -11,7 +11,6 @@ module Sha512.CPortable
        ) where
 
 import Foreign.Ptr                ( castPtr      )
-import Control.Monad.IO.Class     ( liftIO       )
 
 import Raaz.Core
 import Raaz.Primitive.HashMemory
@@ -36,21 +35,24 @@ additionalBlocks = blocksOf 1 Proxy
 
 compressBlocks :: BufferPtr
                -> BlockCount Sha512
-               -> MT Internals ()
-compressBlocks buf blks = do hPtr <- castPtr <$> hashCell128Pointer
-                             let blkPtr = castPtr $ forgetAlignment buf
-                                 wBlks  = toEnum $ fromEnum blks
-                               in liftIO $ verse_sha512_c_portable blkPtr wBlks hPtr
+               -> Internals
+               -> IO ()
+compressBlocks buf blks mem = let hPtr = castPtr $ hashCell128Pointer mem
+                                  blkPtr = castPtr $ forgetAlignment buf
+                                  wBlks  = toEnum $ fromEnum blks
+                               in verse_sha512_c_portable blkPtr wBlks hPtr
 
 processBlocks :: BufferPtr
               -> BlockCount Sha512
-              -> MT Internals ()
-processBlocks buf blks = compressBlocks buf blks >> updateLength128 blks
+              -> Internals
+              -> IO ()
+processBlocks buf blks mem = compressBlocks buf blks mem >> updateLength128 blks mem
 
 
 
 -- | Process the last bytes.
 processLast :: BufferPtr
             -> BYTES Int
-            -> MT Internals ()
+            -> Internals
+            -> IO ()
 processLast = process512Last processBlocks

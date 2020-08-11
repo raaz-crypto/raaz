@@ -12,9 +12,8 @@ module Poly1305.Memory
        , accumPtr
        ) where
 
-import           Control.Monad.Reader
 import qualified Data.Vector.Unboxed as V
-import           Foreign.Ptr                        ( Ptr, castPtr )
+import           Foreign.Ptr                        ( castPtr )
 import           Raaz.Core
 import qualified Raaz.Core.Types.Internal        as TI
 import           Raaz.Primitive.Poly1305.Internal
@@ -41,8 +40,8 @@ data Mem = Mem { accCell :: MemoryCell Element
                }
 
 -- | Clearing the accumulator.
-clearAcc :: MT Mem ()
-clearAcc = withReaderT accCell $ initialise zero
+clearAcc :: Mem -> IO ()
+clearAcc = initialise zero . accCell
   where zero :: Element
         zero = unsafeFromList [0,0,0]
 
@@ -52,38 +51,37 @@ instance Memory Mem where
 
 
 -- | Get the pointer to the array holding the key fragment r.
-rKeyPtr  :: MT Mem  (Ptr (Tuple 2 Word64))
-rKeyPtr  = castPtr  <$> withReaderT rCell getCellPointer
+rKeyPtr  :: Mem  -> Ptr (Tuple 2 Word64)
+rKeyPtr  = castPtr . unsafeGetCellPointer . rCell
 
 -- | Get the pointer to the array holding the key fragment s.
-sKeyPtr  :: MT Mem (Ptr (Tuple 2 Word64))
-sKeyPtr  = castPtr <$> withReaderT sCell getCellPointer
+sKeyPtr  :: Mem -> Ptr (Tuple 2 Word64)
+sKeyPtr  = castPtr . unsafeGetCellPointer . sCell
 
 -- | Get the pointer to the accumulator array.
-accumPtr :: MT Mem (Ptr Element)
-accumPtr = withReaderT accCell getCellPointer
+accumPtr :: Mem -> Ptr Element
+accumPtr = castPtr . unsafeGetCellPointer .  accCell
+
+-- |  The clamping function on pointer
+clampPtr :: Ptr (Tuple 2 Word64) -> IO ()
+clampPtr = flip verse_poly1305_c_portable_clamp 1
 
 -- | The clamping operation
-clamp :: MT Mem ()
-clamp = rKeyPtr >>= liftIO . flip verse_poly1305_c_portable_clamp 1
+clamp :: Mem -> IO ()
+clamp =  clampPtr . rKeyPtr
 
 instance Initialisable Mem (Key Poly1305) where
-  initialise (Key r s) = do clearAcc
-                            withReaderT rCell   $ initialise r
-                            withReaderT sCell   $ initialise s
-                            clamp
+  initialise (Key r s) mem = do clearAcc mem
+                                initialise r $ rCell mem
+                                initialise s $ sCell mem
+                                clamp mem
 
 instance Extractable Mem Poly1305 where
-    extract = toPoly1305 <$> withReaderT accCell extract
+    extract = fmap toPoly1305 . extract . accCell
       where toPoly1305 = Poly1305 . TI.map littleEndian . project
             project :: Tuple 3 Word64 -> Tuple 2 Word64
             project = initial
 
-instance InitialisableFromBuffer Mem where
-  initialiser mem = interleave clearAcc
-                    `mappend` liftInit rCell mem
-                    `mappend` liftInit sCell mem
-                    `mappend` interleave clamp
-
-    where liftRead f = liftTransfer (withReaderT f)
-          liftInit f = liftRead f . initialiser . f
+instance Accessible Mem where
+  confidentialAccess mem = rAccessC mem  ++ confidentialAccess (sCell mem)
+    where rAccessC = map (unsafeClampAccess clampPtr) . confidentialAccess . rCell
