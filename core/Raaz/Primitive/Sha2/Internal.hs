@@ -21,6 +21,7 @@ import           GHC.TypeLits
 
 
 import           Raaz.Core
+import           Raaz.Core.Transfer.Unsafe
 import           Raaz.Core.Types.Internal
 import           Raaz.Primitive.HashMemory
 
@@ -133,7 +134,7 @@ process512Last comp buf nbytes sha512mem = do
 -- | The padding for sha256 as a writer.
 padding256 :: BYTES Int    -- Data in buffer.
            -> BYTES Word64 -- Message length
-           -> WriteIO
+           -> WriteTo
 padding256 bufSize msgLen  =
   glueWrites 0 boundary (padBit1 bufSize) lengthWrite
   where boundary    = blocksOf 1 (Proxy :: Proxy Sha256)
@@ -144,7 +145,7 @@ padding256 bufSize msgLen  =
 padding512 :: BYTES Int    -- Data in buffer.
            -> BYTES Word64 -- Message length higher
            -> BYTES Word64 -- Message length lower
-           -> WriteIO
+           -> WriteTo
 padding512 bufSize uLen lLen  = glueWrites 0 boundary (padBit1 bufSize) lengthWrite
   where boundary    = blocksOf 1 (Proxy :: Proxy Sha512)
         lengthWrite = write (bigEndian up) `mappend` write (bigEndian lp)
@@ -154,5 +155,5 @@ padding512 bufSize uLen lLen  = glueWrites 0 boundary (padBit1 bufSize) lengthWr
 
 -- | Pad the message with a 1-bit.
 padBit1 :: BYTES Int -- ^ message length
-        -> WriteIO
+        -> WriteTo
 padBit1  sz = skip sz <> writeStorable (0x80 :: Word8)

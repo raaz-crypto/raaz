@@ -14,7 +14,6 @@ module Raaz.Primitive.Blake2.Internal
        , blake2Pad
        ) where
 
-import           Control.Monad.IO.Class
 import           Data.Vector.Unboxed        ( Unbox )
 import           Foreign.Storable           ( Storable       )
 
@@ -99,10 +98,10 @@ instance Initialisable Blake2sMem () where
 -- exception is the empty message which should generate a single block
 -- of zeros.
 --
-blake2Pad :: (Primitive prim, MonadIO m)
+blake2Pad :: Primitive prim
           => Proxy prim  -- ^ the primitive (Blake2b or Blake2s).
           -> BYTES Int   -- ^ length of the message
-          -> WriteM m
+          -> WriteTo
 blake2Pad primProxy m
   | m == 0    = writeBytes 0 $ blocksOf 1 primProxy -- empty message
   | otherwise = padWrite 0 (blocksOf 1 primProxy) $ skip m
