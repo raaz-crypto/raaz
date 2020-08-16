@@ -1,4 +1,4 @@
-{-# OPTIONS_HADDOCK hide show-extensions #-}
+{-# OPTIONS_HADDOCK hide #-}
 -- |
 --
 -- Module      : Raaz.Core.Types.Copying

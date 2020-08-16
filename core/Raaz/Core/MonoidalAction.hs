@@ -1,3 +1,4 @@
+{-# OPTIONS_HADDOCK hide                #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE FlexibleInstances          #-}
 -- | A module that abstracts out monoidal actions.

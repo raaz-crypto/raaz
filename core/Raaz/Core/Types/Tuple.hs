@@ -1,3 +1,4 @@
+{-# OPTIONS_HADDOCK hide           #-}
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE MultiParamTypeClasses #-}

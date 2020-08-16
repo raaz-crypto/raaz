@@ -1,3 +1,4 @@
+{-# OPTIONS_HADDOCK hide #-}
 -- | Some constants used by raaz.
 module Raaz.Core.Constants
        ( l1Cache
