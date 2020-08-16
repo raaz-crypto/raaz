@@ -1,6 +1,17 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
+{-# OPTIONS_HADDOCK show-extensions #-}
 
--- | This module gives functions that check at runtime whether the
+
+-- |
+--
+-- Module      : Raaz.Core.CpuSupports
+-- Description : Checks support for various cpu features like AVX2
+-- Copyright   : (c) Piyush P Kurur, 2017
+-- License     : Apache-2.0 OR BSD-3-Clause
+-- Maintainer  : Piyush P Kurur <ppk@iitpkd.ac.in>
+-- Stability   : experimental
+--
+-- This module gives functions that check at runtime whether the
 -- underlying cpu supports given features. CPU features are
 -- architecture specific. However, functions from this module are
 -- guaranteed to be defined always -- they return `False` for

@@ -1,4 +1,12 @@
--- | Encoding and decoding values to formats.
+-- |
+--
+-- Module      : Raaz.Core.Encode
+-- Description : Encoding and decoding values to formats.
+-- Copyright   : (c) Piyush P Kurur, 2015
+-- License     : Apache-2.0 OR BSD-3-Clause
+-- Maintainer  : Piyush P Kurur <ppk@iitpkd.ac.in>
+-- Stability   : experimental
+--
 module Raaz.Core.Encode
        ( -- * Encoding of binary data.
          -- $encodable$

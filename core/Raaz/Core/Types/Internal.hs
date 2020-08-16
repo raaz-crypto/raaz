@@ -1,5 +1,13 @@
--- | This internal module lets you access the constructors of some
--- types that are crucial for for the type safety of Raaz.
+{-# OPTIONS_HADDOCK how-extensions #-}
+-- |
+--
+-- Module      : Raaz.Core.Types.Internal
+-- Description : Exposes the constructors which are otherwise hidden.
+-- Copyright   : (c) Piyush P Kurur, 2018
+-- License     : Apache-2.0 OR BSD-3-Clause
+-- Maintainer  : Piyush P Kurur <ppk@iitpkd.ac.in>
+-- Stability   : experimental
+--
 --
 -- __WARNING:__ There is very little reason for importing this
 -- module even if you are a developer of raaz let alone a user. The one

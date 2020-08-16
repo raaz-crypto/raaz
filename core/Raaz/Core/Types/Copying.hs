@@ -1,4 +1,13 @@
--- | Types to avoid source destination confusion while copying.
+{-# OPTIONS_HADDOCK hide show-extensions #-}
+-- |
+--
+-- Module      : Raaz.Core.Types.Copying
+-- Description : Avoid confusion between source and destination while copying.
+-- Copyright   : (c) Piyush P Kurur, 2016
+-- License     : Apache-2.0 OR BSD-3-Clause
+-- Maintainer  : Piyush P Kurur <ppk@iitpkd.ac.in>
+-- Stability   : experimental
+--
 module Raaz.Core.Types.Copying
        (
          -- * Copying.
@@ -8,41 +17,35 @@ module Raaz.Core.Types.Copying
 
 import Raaz.Core.Prelude
 
--- $copyconvention$
+-- | The source of a copy operation. Besides the `source` smart
+-- constructor, the functor instance allows to transform the internal
+-- type using the `fmap` (e.g. given an @sptr :: Src (Ptr Word8)@
+-- shift it by an offset).
 --
--- Consider a copy operation that involves copying data between two
--- entities of the same type. If the source and target is confused
--- this can lead to bugs. The types `Src` and `Dest` helps in avoiding
--- this confusion. The convention that we follow is that copy function
--- mark its destination and source explicitly at the type level. The
--- actual constructors for the type `Src` and `Dest` are not available
--- to users of the library. Instead they use the smart constructors
--- `source` and `destination` when passing arguments to these
--- functions.
---
--- The developers of the raaz library do have access to the
--- constructors. However, it is unlikely one would need it. Since both
--- `Src` and `Dest` derive the underlying `Storable` instance, one can
--- mark `Src` and `Dest` in calls to `FFI` functions as well.
-
-
--- | The source of a copy operation.
+-- For FFI use: One can use this type directly in FFI interface by
+-- importing "Raaz.Core.Types.Internal" to get access to the
+-- constructor.
 newtype Src  a = Src { unSrc :: a }
 
--- | smart constructor for source
+-- | Smart constructor for `Src`. Copying functions
 source :: a -> Src a
 source = Src
 
 instance Functor Src where
   fmap f = Src . f . unSrc
 
--- | The destination of a copy operation.
+-- | The destination of a copy operation. Besides the `destination`
+-- smart constructor, the functor instance allows to transform the
+-- internal type using the `fmap` (e.g. given an @dptr :: Dest (Ptr
+-- Word8)@ shift it by an offset).
 --
--- Note to Developers of Raaz: One can use this type in
--- foreign functions.
+-- For FFI use: One can use this type directly in FFI interface by
+-- importing "Raaz.Core.Types.Internal" to get access to the
+-- constructor.
+
 newtype Dest a = Dest { unDest :: a }
 
--- | smart constructor for destionation.
+-- | Smart constructor for `Dest`.
 destination :: a -> Dest a
 destination = Dest
 
