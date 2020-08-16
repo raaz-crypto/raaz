@@ -60,7 +60,7 @@ description:
   implmentations are satisfied by the defaults that are provided by
   @raaz:implementation@. The @MyChaCha20.Implementation@ and
   @MyEntropy.Implementation@ need to satisfy the same signature
-  constraints that the @ChaCha20.Implementation@ and @Entropy@ module
+  constraints that the @ChaCha20.Implementation@ and @Entropy@ module.
   Broadly speaking, any implementation of a primitive is provided by
   mixing-in a module, henceforth called an implementation module,
   satisfying the signature @raaz:indef:Implementation@ signature. In
@@ -224,6 +224,7 @@ library core
   hs-source-dirs: core
   exposed-modules: Raaz.Core
                  , Raaz.Core.CpuSupports
+                 , Raaz.Core.Encode
                  , Raaz.Core.Memory
                  , Raaz.Core.Prelude
                  , Raaz.Core.Transfer
@@ -237,7 +238,6 @@ library core
                  , Raaz.Primitive.Keyed.Internal
 
   other-modules: Raaz.Core.ByteSource
-               , Raaz.Core.Encode
                , Raaz.Core.MonoidalAction
                , Raaz.Core.Transfer.Unsafe
                , Raaz.Core.Parse

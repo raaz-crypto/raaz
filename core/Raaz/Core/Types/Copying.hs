@@ -9,10 +9,7 @@
 -- Stability   : experimental
 --
 module Raaz.Core.Types.Copying
-       (
-         -- * Copying.
-         -- $copyconvention$
-         Src(..), Dest(..), source, destination
+       ( Src(..), Dest(..), source, destination
        ) where
 
 import Raaz.Core.Prelude
