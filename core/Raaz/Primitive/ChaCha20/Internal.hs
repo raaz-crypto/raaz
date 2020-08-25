@@ -17,8 +17,6 @@ module Raaz.Primitive.ChaCha20.Internal
        ) where
 
 import Foreign.Storable
-import Foreign.Ptr                ( Ptr  )
-
 import Raaz.Core
 
 

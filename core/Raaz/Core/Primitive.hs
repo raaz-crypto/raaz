@@ -20,7 +20,6 @@ module Raaz.Core.Primitive
 
 import Data.Vector.Unboxed (Unbox)
 import GHC.TypeLits
-import Foreign.Ptr      ( Ptr      )
 import Foreign.Storable ( Storable )
 import Raaz.Core.Prelude
 import Raaz.Core.Types.Endian

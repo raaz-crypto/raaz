@@ -44,7 +44,7 @@ module Raaz.Core.Memory
 
        ) where
 
-import           Foreign.Ptr                 ( castPtr, Ptr )
+import           Foreign.Ptr                 ( castPtr )
 import           Foreign.Storable            ( Storable )
 import qualified Data.List             as List
 

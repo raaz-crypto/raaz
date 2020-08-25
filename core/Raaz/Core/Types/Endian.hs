@@ -23,7 +23,7 @@ module Raaz.Core.Types.Endian
 import           Control.DeepSeq             ( NFData)
 import           Data.Typeable
 import           Data.Vector.Unboxed         ( MVector(..), Vector, Unbox )
-import           Foreign.Ptr                 ( castPtr, Ptr )
+import           Foreign.Ptr                 ( castPtr )
 import           Foreign.Storable            ( Storable, peek, poke )
 
 import qualified Data.Vector.Generic         as GV

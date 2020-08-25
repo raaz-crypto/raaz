@@ -11,7 +11,6 @@ module Raaz.Primitive.HashMemory
 
 
 import Foreign.Storable           ( Storable(..)  )
-import Foreign.Ptr                ( Ptr           )
 import Raaz.Core
 
 
