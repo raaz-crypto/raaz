@@ -14,3 +14,5 @@ cabal.sandbox.config
 .liquid
 *.s
 *.pdf
+mans/raaz.1.gz
+.hlint-*
