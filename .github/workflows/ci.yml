@@ -53,6 +53,36 @@ jobs:
 
       - name: Raaz information
         run: cabal exec raaz -- info
+  windows:
+    name: Windows
+    runs-on: windows-latest
+    steps:
+      - name: 'Setup'
+        uses: actions/setup-haskell@v1.1
+
+      - name: Information
+        run: |
+          ghc --version
+          cabal --version
+
+      - name: Get the Repository
+        uses: actions/checkout@v2
+
+      - name: Submodules
+        run: git submodule update --init libverse
+
+      - name: Updating Cabal packages
+        run: cabal update
+
+      - name: Build
+        run: |
+          cabal build
+          cabal test
+          cabal bench
+          cabal haddock
+
+      - name: Raaz information
+        run: cabal exec raaz -- info
 
   macos:
     name: 'MacOS'
