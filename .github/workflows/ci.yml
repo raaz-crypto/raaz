@@ -12,22 +12,11 @@ jobs:
     strategy:
       matrix:
         ghc: [ '8.4.4' , '8.6.5', '8.8.1', '8.10.1']
-        cabal: ['3.0', 'head']
-    env:
-      GHCVER:  ${{ matrix.ghc }}
-      CABALVER: ${{ matrix.cabal }}
     steps:
-      - name: 'Enable ppa:hvr/ghc'
-        run: |
-          sudo add-apt-repository ppa:hvr/ghc -y
-          sudo apt-get update -y
-
       - name: 'Setup'
-        run: |
-          sudo apt-get install "ghc-$GHCVER" -y
-          sudo apt-get install "cabal-install-$CABALVER" -y
-          echo "::add-path::/opt/cabal/$CABALVER/bin"
-          echo "::add-path::/opt/ghc/$GHCVER/bin"
+        uses: actions/setup-haskell@v1.1
+        with:
+          ghc: ${{ matrix.ghc }}
 
       - name: Information
         run: |
