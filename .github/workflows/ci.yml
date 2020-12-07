@@ -14,7 +14,7 @@ jobs:
         ghc: [ 'latest',  '8.4.4' , '8.6.5', '8.8.1', '8.10.1']
     steps:
       - name: 'Setup'
-        uses: actions/setup-haskell@v1.1
+        uses: actions/setup-haskell@v1.1.4
         with:
           ghc: ${{ matrix.ghc }}
 
@@ -47,7 +47,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: 'Setup'
-        uses: actions/setup-haskell@v1.1
+        uses: actions/setup-haskell@v1.1.4
 
       - name: Information
         run: |
