@@ -31,6 +31,7 @@ for:
   install: [ choco install -y ghc ]
 
 clone_folder: "c:\\r"
+image: Visual Studio 2017
 skip_branch_with_pr: true # Do not build feature branch with open Pull Requests
 
 before_test:
