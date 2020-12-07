@@ -1,7 +1,0 @@
-name: 'Setup Mac'
-description: 'Sets up a mac environment to test raaz package'
-author: 'Piyush P Kurur'
-runs: |
-  brew update
-  brew install ghc cabal-install
-  brew info ghc cabal-install
