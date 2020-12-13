@@ -41,6 +41,10 @@ toBenchmarkable :: (Int64 -> IO ()) -> Benchmarkable
 toBenchmarkable = Benchmarkable
 #endif
 
+#if MIN_VERSION_base(4,11,0)
+import Prelude hiding ((<>))
+#endif
+
 -- The total data processed
 nBytes :: BYTES Int
 nBytes = 32 * 1024
