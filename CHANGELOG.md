@@ -1,5 +1,11 @@
 # Change log for [raaz].
 
+## [0.2.2] - 13 December, 2020
+
+This is a minor release just update package dependencies.
+
+* Get raaz to work with the latest ghcs.
+
 ## [0.2.1] - 25 March, 2019
 
 This is a minor release just to get the latest ghc.
@@ -74,4 +80,5 @@ This release comes with very little changes.
 [0.1.1]: <http://github.com/raaz-crypto/raaz/releases/tag/v0.1.1>
 [0.2.0]: <http://github.com/raaz-crypto/raaz/releases/tag/v0.2.0>
 [0.2.1]: <http://github.com/raaz-crypto/raaz/releases/tag/v0.2.1>
+[0.2.2]: <http://github.com/raaz-crypto/raaz/releases/tag/v0.2.2>
 [raaz]:  <http://github.com/raaz-crypto/raaz/>
