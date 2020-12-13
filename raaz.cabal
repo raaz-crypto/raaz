@@ -365,7 +365,8 @@ benchmark blaze-vs-write
   build-depends: base
                , blaze-builder
                , bytestring
-               , criterion >= 1.0
+               , criterion >= 1.5.0.0
+               , criterion-measurement
                , raaz
 
 
@@ -386,7 +387,8 @@ benchmark bench-ciphers
   build-depends: base
                , blaze-builder
                , bytestring
-               , criterion >= 1.0
+               , criterion >= 1.5.0.0
+               , criterion-measurement
                , raaz
 
 -------------------------------- Benchmarking all primitives --------------------------------
@@ -406,6 +408,7 @@ benchmark primitives
   build-depends: base
                , blaze-builder
                , bytestring
-               , criterion >= 1.0
+               , criterion >= 1.5.0.0
+               , criterion-measurement
                , pretty
                , raaz
