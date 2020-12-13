@@ -2,7 +2,7 @@
 build: off
 cache:
   - C:\ProgramData\chocolatey\bin -> appveyor.yml
-  - C:\qProgramData\chocolatey\lib -> appveyor.yml
+  - C:\ProgramData\chocolatey\lib -> appveyor.yml
 
 environment:
   global:
