@@ -26,9 +26,6 @@ jobs:
       - name: Get the Repository
         uses: actions/checkout@v2
 
-      - name: Submodules
-        run: git submodule update --init libverse
-
       - name: Updating Cabal packages
         run: |
           cabal update
@@ -56,9 +53,6 @@ jobs:
 
       - name: Get the Repository
         uses: actions/checkout@v2
-
-      - name: Submodules
-        run: git submodule update --init libverse
 
       - name: Updating Cabal packages
         run: cabal update
@@ -91,9 +85,6 @@ jobs:
 
       - name: Get the Repository
         uses: actions/checkout@v2
-
-      - name: Submodules
-        run: git submodule update --init libverse
 
       - name: Updating Cabal packages
         run: cabal update
