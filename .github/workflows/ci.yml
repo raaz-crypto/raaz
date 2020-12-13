@@ -38,7 +38,7 @@ jobs:
           cabal haddock
 
       - name: Raaz information
-        run: cabal exec raaz -- info
+        run: cabal exec raaz -- cpuinfo
   windows:
     name: Windows
     runs-on: windows-latest
@@ -65,7 +65,7 @@ jobs:
           cabal haddock
 
       - name: Raaz information
-        run: cabal exec raaz -- info
+        run: cabal exec raaz -- cpuinfo
 
   macos:
     name: 'MacOS'
@@ -97,4 +97,4 @@ jobs:
           cabal haddock
 
       - name: Raaz information
-        run: cabal exec raaz -- info
+        run: cabal exec raaz -- cpuinfo
