@@ -1,11 +1,9 @@
 Raaz: A secure cryptographic library
 ------------------------------------
 
-[![Build Staus][travis-status]][travis-raaz]
+[![][ci-build]][github-actions]
+[![][ci-checks]][github-actions]
 [![Build Windows][appveyor-status]][appveyor-raaz]
-[![In Progress][waffle-inprogress]][waffle-raaz]
-[![Stackage LTS][stackage-lts-raaz-badge]][stackage-lts-raaz]
-[![Stackage Nightly][stackage-nightly-raaz-badge]][stackage-nightly-raaz]
 [![Hackage][hackage-badge]][hackage]
 [![Hackage Dependencies][hackage-deps-badge]][hackage-deps]
 
@@ -53,15 +51,6 @@ problems.
 [repo]: <https://github.com/raaz-crypto/raaz> "Raaz on github"
 
 [emailgroups]: <https://groups.google.com/forum/#!forum/hraaz> "Raaz on Google groups"
-[waffle-raaz]:   <http://waffle.io/raaz-crypto/raaz>
-[waffle-inprogress]: <https://badge.waffle.io/raaz-crypto/raaz.svg?label=waffle%3Ain%20progress&title=In%20Progress>
-[travis-status]: <https://secure.travis-ci.org/raaz-crypto/raaz.png> "Build status"
-[travis-raaz]: <https://travis-ci.org/raaz-crypto/raaz>
-[stackage-lts-raaz]: <http://stackage.org/lts/package/raaz>
-[stackage-nightly-raaz]: <http://stackage.org/nightly/package/raaz>
-
-[stackage-lts-raaz-badge]: <http://stackage.org/package/raaz/badge/lts>
-[stackage-nightly-raaz-badge]: <http://stackage.org/package/raaz/badge/nightly>
 
 [hackage]:       <https://hackage.haskell.org/package/raaz>
 [hackage-badge]: <https://img.shields.io/hackage/v/raaz.svg>
@@ -69,3 +58,6 @@ problems.
 [hackage-deps]: <http://packdeps.haskellers.com/feed?needle=raaz>
 [appveyor-status]: <https://ci.appveyor.com/api/projects/status/github/raaz-crypto/raaz?branch=master&svg=true>
 [appveyor-raaz]: <https://ci.appveyor.com/project/raaz-crypto/raaz>
+[ci-build]: <https://github.com/raaz-crypto/raaz/workflows/Build/badge.svg> "Building source"
+[ci-checks]: <https://github.com/raaz-crypto/raaz/workflows/Checks/badge.svg> "Source code checks"
+[github-actions]: <https://github.com/raaz-crypto/raaz/actions> "Github actions"
