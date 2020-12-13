@@ -1,0 +1,109 @@
+name: Build
+on:
+  push:
+  pull_request:
+  schedule:
+    # Daily build.
+    - cron: '30 8 * * *'
+jobs:
+  linux:
+    name: 'Linux'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ghc: [ 'latest', '8.4' , '8.6', '8.8', '8.10' ]
+    steps:
+      - name: 'Setup'
+        uses: actions/setup-haskell@v1.1.4
+        with:
+          ghc: ${{ matrix.ghc }}
+
+      - name: Information
+        run: |
+          ghc --version
+          cabal --version
+
+      - name: Get the Repository
+        uses: actions/checkout@v2
+
+      - name: Submodules
+        run: git submodule update --init libverse
+
+      - name: Updating Cabal packages
+        run: |
+          cabal update
+
+      - name: Build
+        run: |
+          cabal build
+          cabal test
+          cabal bench
+          cabal haddock
+
+      - name: Raaz information
+        run: cabal exec raaz -- info
+  windows:
+    name: Windows
+    runs-on: windows-latest
+    steps:
+      - name: 'Setup'
+        uses: actions/setup-haskell@v1.1.4
+
+      - name: Information
+        run: |
+          ghc --version
+          cabal --version
+
+      - name: Get the Repository
+        uses: actions/checkout@v2
+
+      - name: Submodules
+        run: git submodule update --init libverse
+
+      - name: Updating Cabal packages
+        run: cabal update
+
+      - name: Build
+        run: |
+          cabal build
+          cabal test
+          cabal bench
+          cabal haddock
+
+      - name: Raaz information
+        run: cabal exec raaz -- info
+
+  macos:
+    name: 'MacOS'
+    runs-on: macos-latest
+    steps:
+
+      - name: 'Setup'
+        run: |
+          brew update
+          brew install ghc cabal-install
+          brew info ghc cabal-install
+
+      - name: Information
+        run: |
+          ghc --version
+          cabal --version
+
+      - name: Get the Repository
+        uses: actions/checkout@v2
+
+      - name: Submodules
+        run: git submodule update --init libverse
+
+      - name: Updating Cabal packages
+        run: cabal update
+
+      - name: Build
+        run: |
+          cabal build
+          cabal test
+          cabal bench
+          cabal haddock
+
+      - name: Raaz information
+        run: cabal exec raaz -- info
