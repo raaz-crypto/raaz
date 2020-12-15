@@ -68,6 +68,12 @@
   - Licensing changed to Apache-2.0 OR BSD-3-Clause dual licensing.
 
 
+## [0.2.2] - 13 December, 2020
+
+This is a minor release just update package dependencies.
+
+* Get raaz to work with the latest ghcs.
+
 ## [0.2.1] - 25 March, 2019
 
 This is a minor release just to get the latest ghc.
