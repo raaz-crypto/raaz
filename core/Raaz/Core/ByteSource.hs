@@ -90,13 +90,13 @@ fill len src = unsafeWithPointer $ fillBytes (inBytes len) src
 
 -- | Process data from a source in chunks of a particular size.
 processChunks :: ( Pointer ptr, MonadIO m, LengthUnit chunkSize, ByteSource src)
-              => m a                 -- action on a complete chunk,
-              -> (BYTES Int -> m b)  -- action on the last partial chunk,
-              -> src                 -- the source
-              -> chunkSize           -- size of the chunksize
-              -> ptr something       -- buffer to fill the chunk in
+              => m a                 -- ^ action on a complete chunk,
+              -> (BYTES Int -> m b)  -- ^ action on the last partial chunk,
+              -> src                 -- ^ the source
+              -> ptr something       -- ^ buffer to fill the chunk in
+              -> chunkSize           -- ^ size of the chunksize
               -> m b
-processChunks mid end source csz ptr = go source
+processChunks mid end source ptr csz = go source
   where fillChunk src = liftIO $ fill csz src ptr
         step src      = mid >> go src
         go src        = fillChunk src >>= withFillResult step end

@@ -32,6 +32,8 @@ unsafeRunParser prsr = runIt prsr . unsafeRawPtr . castPointer
 parseWidth :: Parser a -> BYTES Int
 parseWidth =  twistMonoidValue
 
+-- | Make an parser out of its action and the length of the buffer
+-- that it acts on.
 unsafeMakeParser :: LengthUnit l => l -> (Ptr Word8 -> IO a) -> Parser a
 unsafeMakeParser l action = TwistRF (liftToFieldM action) $ inBytes l
 
