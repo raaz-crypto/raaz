@@ -6,11 +6,21 @@
 
 {- HLINT ignore "Unused LANGUAGE pragma" -}
 
--- | The internals of ChaCha20 ciphers. The variant of Chacha20 that
--- we implement is the IETF version described in RFC 7538 with 32-bit
--- (4-byte) counter and 96-bit (12-byte) IV.
+
+-- |
+--
+-- Module      : Raaz.Primitive.ChaCha20.Internal
+-- Description : Internal module for ChaCha20 cipher.
+-- Copyright   : (c) Piyush P Kurur, 2019
+-- License     : Apache-2.0 OR BSD-3-Clause
+-- Maintainer  : Piyush P Kurur <ppk@iitpkd.ac.in>
+-- Stability   : experimental
+--
+
 module Raaz.Primitive.ChaCha20.Internal
-       ( ChaCha20(..), XChaCha20(..)
+       ( -- * ChaCha20 cipher
+         -- $chacha20$
+         ChaCha20(..), XChaCha20(..)
        , Key(..), Nounce(..)
        , ChaCha20Mem(..)
        , keyCellPtr, ivCellPtr, counterCellPtr
@@ -19,6 +29,12 @@ module Raaz.Primitive.ChaCha20.Internal
 import Foreign.Storable
 import Raaz.Core
 
+-- $chacha20$
+--
+-- This module defines the ChaCha20 ciphers and the memory element
+-- used by a typical implementation. The variant of Chacha20 that we
+-- support is the IETF version described in RFC 7538 with 32-bit
+-- (4-byte) counter and 96-bit (12-byte) IV.
 
 -- | The type associated with the ChaCha20 cipher.
 data ChaCha20 = ChaCha20
@@ -91,12 +107,15 @@ data ChaCha20Mem = ChaCha20Mem { keyCell      :: MemoryCell (Key     ChaCha20)
                                , counterCell  :: MemoryCell WORD
                                }
 
+-- | The pointer into the chacha memory where the key is stored.
 keyCellPtr :: ChaCha20Mem -> Ptr (Key ChaCha20)
 keyCellPtr = getCellPointer . keyCell
 
+-- | The pointer into the chacha memory where the iv is stored.
 ivCellPtr :: ChaCha20Mem -> Ptr (Nounce ChaCha20)
 ivCellPtr = getCellPointer . ivCell
 
+-- | The pointer in the chacha memory where the counter is stored.
 counterCellPtr :: ChaCha20Mem -> Ptr WORD
 counterCellPtr = getCellPointer . counterCell
 

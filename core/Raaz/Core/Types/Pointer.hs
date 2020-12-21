@@ -387,7 +387,8 @@ instance KnownNat n => Pointer (AlignedPtr n) where
           getProxy :: (AlignedPtr n a -> IO b) -> Proxy n
           getProxy _ = Proxy
 
-
+-- | Given a raw pointer (i.e. element of type `Ptr`), returns the
+-- next pointer aligned to @n@-bytes boundary.
 nextAlignedPtr :: (Storable a, KnownNat n) => Ptr a -> AlignedPtr n a
 nextAlignedPtr = alignIt
   where alignIt ptr = AlignedPtr

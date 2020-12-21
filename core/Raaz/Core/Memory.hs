@@ -1,13 +1,12 @@
-{-|
-
-The memory subsystem associated with raaz.
-
-
-__Warning:__ This module is pretty low level and should not be needed in typical
-use cases. Only developers of protocols and primitives might have a
-reason to look into this module.
-
--}
+-- |
+--
+-- Module      : Raaz.Core.Memory
+-- Description : Explicit, typesafe, low-level memory management in raaz
+-- Copyright   : (c) Piyush P Kurur, 2019
+-- License     : Apache-2.0 OR BSD-3-Clause
+-- Maintainer  : Piyush P Kurur <ppk@iitpkd.ac.in>
+-- Stability   : experimental
+--
 
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE GADTs                      #-}
@@ -23,13 +22,16 @@ module Raaz.Core.Memory
          --
          -- 1. copyMemory
 
-       -- $memorysubsystem$
 
-       -- * The memory class
+         -- * Low level memory management in raaz.
+         -- $memorysubsystem$
 
-         Alloc, Memory(..)
+         -- ** The memory class
+         Memory(..)
        , VoidMemory, withMemoryPtr
        , withMemory, withSecureMemory
+         -- ** The allocator
+       , Alloc
        , pointerAlloc
 
        -- * Initialisation and Extraction.
@@ -94,10 +96,17 @@ import           Raaz.Core.Transfer.Unsafe
 
 -- $memorysubsystem$
 --
--- The memory subsytem of raaz is captured by the `Memory` class which
--- intern has an `Alloc` strategy. The goal of this module is to give
--- a relatively abstract interface to these that hides the low level
--- size calculation and pointer arithmetic.
+-- __Warning:__ This module is pretty low level and should not be
+-- needed in typical use cases. Only developers of protocols and
+-- primitives might have a reason to look into this module.
+--
+-- The memory subsytem of raaz gives a relatively abstract and type
+-- safe interface for performing low level size calculations and
+-- pointer arithmetic. The two main components of this subsystem
+-- is the class `Memory` whose instances are essentially memory buffers that
+-- are distinguished at the type level, and the type `Alloc` that captures
+-- the allocation strategies for these types.
+--
 
 
 ------------------------ A memory allocator -----------------------
@@ -106,7 +115,8 @@ type AllocField = Field (Ptr Word8)
 
 -- | A memory allocator for the memory type @mem@. The `Applicative`
 -- instance of @Alloc@ can be used to build allocations for
--- complicated memory elements from simpler ones.
+-- complicated memory elements from simpler ones and takes care of
+-- handling the size/offset calculations involved.
 type Alloc mem = TwistRF AllocField (BYTES Int) mem
 
 -- | Make an allocator for a given memory type.
@@ -323,6 +333,10 @@ unsafeCopyToAccess acc sptr = do
   where sz   = accessSize acc
         dptr = destination $ accessPtr acc
 
+-- | The action @unsafeCopyFromAccess dest acc@ copies data from @acc
+-- : Access@ to the destination pointer dest. The function is unsafe
+-- because it does not check whether the destination pointer has
+-- enough size to receive data from the access.
 unsafeCopyFromAccess :: Dest (Ptr a)
                      -> Access
                      -> IO ()
@@ -386,7 +400,7 @@ getCellPointer = nextLocation . unMemoryCell
 -- working with ffi functions.
 withCellPointer :: Storable a => (Ptr a -> IO b) -> MemoryCell a -> IO b
 {-# INLINE withCellPointer #-}
-withCellPointer action = action . getCellPointer
+withCellPointer action = action . unsafeGetCellPointer
 
 instance Storable a => Initialisable (MemoryCell a) a where
   initialise a = flip pokeAligned a . unMemoryCell
@@ -405,4 +419,4 @@ instance EndianStore a => Accessible (MemoryCell a) where
     where getProxy   :: MemoryCell a -> Proxy a
           getProxy _ =  Proxy
           sz         = sizeOf $ getProxy mem
-          bufPtr     = getCellPointer mem
+          bufPtr     = unsafeGetCellPointer mem

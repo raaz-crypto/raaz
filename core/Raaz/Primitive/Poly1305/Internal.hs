@@ -1,4 +1,30 @@
--- | This module exposes the types required to implement the the
+
+{-# LANGUAGE DataKinds                  #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE TypeFamilies               #-}
+
+-- |
+--
+-- Module      : Raaz.Primitive.Poly1305.Internal
+-- Description : Internals of the poly1305 message authenticator.
+-- Copyright   : (c) Piyush P Kurur, 2019
+-- License     : Apache-2.0 OR BSD-3-Clause
+-- Maintainer  : Piyush P Kurur <ppk@iitpkd.ac.in>
+-- Stability   : experimental
+--
+
+module Raaz.Primitive.Poly1305.Internal
+       ( -- * The Poly1305 MAC
+         -- $poly1305$
+         Poly1305(..), R(..), S(..), WORD, Key(..)
+       ) where
+
+import Foreign.Storable( Storable )
+import Raaz.Core
+
+-- $poly1305$
+--
+-- This module exposes the types required to implement the the
 -- poly1305 message authenticator. The poly1305 is a function that
 -- takes two parameters `r` and `s` and for an input message `m`
 -- computes the function.
@@ -12,7 +38,7 @@
 -- protocols should never repeat the nonce `n` for otherwise there
 -- will be compromise in the security.  The RFC7539 uses a variant
 -- that uses the chacha20 cipher instead of AES.
-
+--
 -- As can be seen from the above discussion the actual mechanism for
 -- selecting the `r` and `s` differs depending on the
 -- situation. Hence, this module only provide the "raw" Poly1305
@@ -21,17 +47,7 @@
 -- but is used by actual protocols to implement message
 -- authentication.
 
-{-# LANGUAGE DataKinds                  #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE TypeFamilies               #-}
-module Raaz.Primitive.Poly1305.Internal
-       ( Poly1305(..), R(..), S(..), WORD, Key(..)
-       ) where
-
-import Foreign.Storable( Storable )
-import Raaz.Core
-
-
+-- | A Poly1305 word is a 128-bit numbers in little-endian.
 type WORD = Tuple 2 (LE Word64)
 
 -- | The datatype that captures the Poly1305 authenticator tag.

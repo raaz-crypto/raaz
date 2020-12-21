@@ -1,11 +1,11 @@
-{-|
-
-Generic cryptographic block primtives and their implementations. This
-module exposes low-level generic code used in the raaz system. Most
-likely, one would not need to stoop so low and it might be better to
-use a more high level interface.
-
--}
+-- |
+--
+-- Module      : Raaz.Core.Primitive
+-- Copyright   : (c) Piyush P Kurur, 2019
+-- License     : Apache-2.0 OR BSD-3-Clause
+-- Maintainer  : Piyush P Kurur <ppk@iitpkd.ac.in>
+-- Stability   : experimental
+--
 
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE TypeFamilies                #-}

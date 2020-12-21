@@ -1,5 +1,13 @@
--- | An applicative version of parser. This provides a restricted
--- parser which has only an applicative instance.
+-- |
+--
+-- Module      : Raaz.Core.Parse
+-- Description : Applicative parsing from buffers.
+-- Copyright   : (c) Piyush P Kurur, 2019
+-- License     : Apache-2.0 OR BSD-3-Clause
+-- Maintainer  : Piyush P Kurur <ppk@iitpkd.ac.in>
+-- Stability   : experimental
+--
+
 module Raaz.Core.Parse
        ( Parser, parseWidth, parseError, runParser
        , parse, parseStorable

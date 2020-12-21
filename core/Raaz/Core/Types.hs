@@ -1,12 +1,12 @@
--- | This module exposes some core types used through out the Raaz
--- library. One of the major goals of the raaz cryptographic library
--- is to use the type safety of Haskell to catch some common
--- bugs at compile time.
+-- |
 --
--- __WARNING:__ If you are just a user of this library, it is unlikely
--- that you will need to import this module. It is only required if
--- you are a developer and want to define a new cryptographic data
--- type.
+-- Module      : Raaz.Core.Types
+-- Description : The core types of raaz
+-- Copyright   : (c) Piyush P Kurur, 2019
+-- License     : Apache-2.0 OR BSD-3-Clause
+-- Maintainer  : Piyush P Kurur <ppk@iitpkd.ac.in>
+-- Stability   : experimental
+--
 
 module Raaz.Core.Types
        ( -- * Overview.
@@ -35,6 +35,11 @@ import Raaz.Core.Types.Copying( Src, Dest, source, destination)
 
 
 -- $overview$
+--
+-- __WARNING:__ If you are just a user of this library, it is unlikely
+-- that you will need to import this module. It is only required if
+-- you are a developer and want to define a new cryptographic data
+-- type.
 --
 -- A lot of cryptographic code is low level and involves quite a bit
 -- of boilerplate and are therefore fertile grounds for bugs. This

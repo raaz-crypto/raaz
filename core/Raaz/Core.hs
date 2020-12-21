@@ -1,8 +1,12 @@
-{-|
-
-Core functions, data types and classes of the raaz package.
-
--}
+-- |
+--
+-- Module      : Raaz.Core
+-- Description : Core functions, data types and classes of the raaz package.
+-- Copyright   : (c) Piyush P Kurur, 2019
+-- License     : Apache-2.0 OR BSD-3-Clause
+-- Maintainer  : Piyush P Kurur <ppk@iitpkd.ac.in>
+-- Stability   : experimental
+--
 
 module Raaz.Core
        ( module X

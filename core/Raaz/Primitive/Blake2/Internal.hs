@@ -6,7 +6,15 @@
 {-# LANGUAGE FlexibleContexts           #-}
 {-# CFILES raaz/hash/sha1/portable.c    #-}
 
--- | Internal types and function for blake2 hashes.
+-- |
+--
+-- Module      : Raaz.Primitive.Blake2.Internal
+-- Description : Internal modules for Blake2 hashes.
+-- Copyright   : (c) Piyush P Kurur, 2019
+-- License     : Apache-2.0 OR BSD-3-Clause
+-- Maintainer  : Piyush P Kurur <ppk@iitpkd.ac.in>
+-- Stability   : experimental
+--
 module Raaz.Primitive.Blake2.Internal
        ( -- * The blake2 types
          Blake2b, Blake2s
@@ -81,8 +89,10 @@ instance KeyedHash Blake2s where
 
 
 ---------------------------------- Memory element for Blake2b -----------------------
-
+-- | The memory element for blake2b hash.
 type Blake2bMem = HashMemory128 Blake2b
+
+-- | The memory element for blake2s hash.
 type Blake2sMem = HashMemory64 Blake2s
 
 instance Initialisable Blake2bMem () where

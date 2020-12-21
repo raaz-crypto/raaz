@@ -1,8 +1,11 @@
-{-|
-
-Some utility function for byte strings.
-
--}
+-- |
+--
+-- Module      : Raaz.Core.Util.ByteString
+-- Copyright   : (c) Piyush P Kurur, 2019
+-- License     : Apache-2.0 OR BSD-3-Clause
+-- Maintainer  : Piyush P Kurur <ppk@iitpkd.ac.in>
+-- Stability   : experimental
+--
 
 {-# LANGUAGE FlexibleContexts #-}
 module Raaz.Core.Util.ByteString

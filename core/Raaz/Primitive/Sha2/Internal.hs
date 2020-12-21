@@ -6,7 +6,15 @@
 {-# LANGUAGE FlexibleContexts           #-}
 {-# CFILES raaz/hash/sha1/portable.c    #-}
 
--- | Internal types and function for sha2 hashes.
+-- |
+--
+-- Module      : Raaz.Primitive.Sha2.Internal
+-- Description : Internal modules for sha2 family of hashes.
+-- Copyright   : (c) Piyush P Kurur, 2019
+-- License     : Apache-2.0 OR BSD-3-Clause
+-- Maintainer  : Piyush P Kurur <ppk@iitpkd.ac.in>
+-- Stability   : experimental
+--
 module Raaz.Primitive.Sha2.Internal
        ( -- * The sha2 types
          Sha512, Sha256
@@ -81,7 +89,10 @@ sha256Init = Sha2 $ unsafeFromList [ 0x6a09e667
 
 ---------------------------------- Memory element for Sha512 -----------------------
 
+-- | The memory used by sha512 implementations.
 type Sha512Mem = HashMemory128 Sha512
+
+-- | The memory used bha sha256 implementations.
 type Sha256Mem = HashMemory64 Sha256
 
 instance Initialisable Sha256Mem () where

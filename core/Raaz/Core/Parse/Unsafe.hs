@@ -1,4 +1,12 @@
--- | The parser and the unsafe combinators for it.
+-- |
+--
+-- Module      : Raaz.Core.Parse.Unsafe
+-- Copyright   : (c) Piyush P Kurur, 2019
+-- License     : Apache-2.0 OR BSD-3-Clause
+-- Maintainer  : Piyush P Kurur <ppk@iitpkd.ac.in>
+-- Stability   : experimental
+--
+
 module Raaz.Core.Parse.Unsafe
        ( Parser, parseWidth
        , unsafeMakeParser

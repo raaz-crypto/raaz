@@ -1,9 +1,17 @@
--- | Module to reading from and writing into buffers.
 {-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE DataKinds                  #-}
 {-# LANGUAGE KindSignatures             #-}
+
+-- |
+--
+-- Module      : Raaz.Core.Transfer.Unsafe
+-- Copyright   : (c) Piyush P Kurur, 2019
+-- License     : Apache-2.0 OR BSD-3-Clause
+-- Maintainer  : Piyush P Kurur <ppk@iitpkd.ac.in>
+-- Stability   : experimental
+--
 
 module Raaz.Core.Transfer.Unsafe
        ( -- * Transfer actions.
