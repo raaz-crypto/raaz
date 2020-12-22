@@ -42,7 +42,7 @@ module Raaz.Core.Memory
        -- * Accessing the bytes directly
        -- $access$
        --
-       , Access(..), accessReader, accessWriter
+       , Access(..), accessReader, accessWriter, unsafeClampAccess
        , unsafeCopyToAccess, unsafeCopyFromAccess
        , Accessible(..), copyConfidential
 
@@ -314,27 +314,47 @@ modifyMem f mem = extract mem >>= flip initialise mem . f
 -- memory which provide an access to the internal buffer.
 
 -- | An access into a memory is a buffer that points to the actual
--- data together with an endian adjustment action. If data needs to be
--- transferred to the outside world, or bytes are to be read from the
--- outside world, the accessAdjust action should be run.
-data Access = Access { accessPtr    :: Ptr Word8
-                     , accessSize   :: BYTES Int
-                     , accessAdjust :: IO ()
-                     }
+-- data together with an endian adjustment action. Before reading the
+-- contents to the outside world, we might need to clamp certain bits
+-- and adjust for endian mismatch . Similarly, after writing the
+-- contents from the outside world, we might have adjust the endian
+-- and then possibly clamp some bits. These action are captured by the
+-- members `accessBeforeRead` and `accessAfterWrite` fields of this
+-- record.
 
--- | The reader action that reads bytes from the input buffer to the
--- access buffer.
+data Access = Access
+  { accessPtr         :: Ptr Word8
+    -- ^ The buffer pointer associated with this access.
+  , accessSize        :: BYTES Int
+    -- ^ The size of this access buffer.
+  , accessBeforeRead  :: IO ()
+    -- ^ Adjustments to be carried out on the buffer before reading from it.
+  , accessAfterWrite :: IO ()
+    -- ^ Adjustment to be carried out on the buffer after writing.
+  }
+
+-- | Often we need to add some clamping functions to the before read
+-- and after write action. This function updates the access function
+-- with clamping. Sane clamping functions should be idempotent.
+unsafeClampAccess :: (Ptr a -> IO ()) -- ^ The clamping action (should be idempotent)
+                  -> Access
+                  -> Access
+unsafeClampAccess clamp acc@Access{..}
+  = acc { accessBeforeRead = clamp (castPtr accessPtr) >> accessBeforeRead
+        , accessAfterWrite = accessAfterWrite >> clamp (castPtr accessPtr)
+        }
+
 accessReader :: Access -> ReadFrom
 accessReader Access{..}
   = unsafeReadIntoPtr accessSize (destination accessPtr)
-    <> unsafeInterleave accessAdjust
+    <> unsafeInterleave accessAfterWrite
 
 -- | The writer action that writes into input buffer from the access
 -- buffer.
 accessWriter :: Access -> WriteTo
-accessWriter Access{..}  = unsafeInterleave accessAdjust
+accessWriter Access{..}  = unsafeInterleave accessBeforeRead
                            <> unsafeWriteFromPtr accessSize (source accessPtr)
-                           <> unsafeInterleave accessAdjust
+                           <> unsafeInterleave accessAfterWrite
 
 -- | Fill the access buffer from a source pointer. This function is unsafe because
 -- it does not check whether there is enough data on the source side.
@@ -343,7 +363,7 @@ unsafeCopyToAccess :: Access
                    -> IO ()
 unsafeCopyToAccess acc sptr = do
   memcpy dptr sptr sz
-  accessAdjust acc
+  accessAfterWrite acc
   where sz   = accessSize acc
         dptr = destination $ accessPtr acc
 
@@ -355,9 +375,9 @@ unsafeCopyFromAccess :: Dest (Ptr a)
                      -> Access
                      -> IO ()
 unsafeCopyFromAccess dptr acc = do
-  accessAdjust acc    -- adjust before transfer
+  accessBeforeRead acc    -- adjust before transfer
   memcpy dptr sptr sz
-  accessAdjust acc    -- adjust it back after completion.
+  accessAfterWrite acc    -- adjust it back after completion.
   where sz   = accessSize acc
         sptr = source $ accessPtr acc
 
@@ -436,7 +456,8 @@ instance Storable a => Extractable (MemoryCell a) a where
 instance EndianStore a => Accessible (MemoryCell a) where
   confidentialAccess mem = [ Access { accessPtr    = castPtr bufPtr
                                     , accessSize   = sz
-                                    , accessAdjust = adjustEndian bufPtr 1
+                                    , accessBeforeRead = adjustEndian bufPtr 1
+                                    , accessAfterWrite = adjustEndian bufPtr 1
                                     }
                            ]
     where getProxy   :: MemoryCell a -> Proxy a
