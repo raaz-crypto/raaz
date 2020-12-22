@@ -38,8 +38,13 @@ module Raaz.Core.Memory
        -- $init-extract$
 
        , Initialisable(..), Extractable(..), modifyMem
-       , Access(..), Accessible(..), copyAccessible, accessReader, accessWriter
+
+       -- * Accessing the bytes directly
+       -- $access$
+       --
+       , Access(..), accessReader, accessWriter
        , unsafeCopyToAccess, unsafeCopyFromAccess
+       , Accessible(..), copyConfidential
 
        -- * A basic memory cell.
        , MemoryCell, withCellPointer, unsafeGetCellPointer
@@ -107,7 +112,6 @@ import           Raaz.Core.Transfer.Unsafe
 -- are distinguished at the type level, and the type `Alloc` that captures
 -- the allocation strategies for these types.
 --
-
 
 ------------------------ A memory allocator -----------------------
 
@@ -297,7 +301,17 @@ class Memory m => Extractable m v where
 modifyMem :: (Initialisable mem a, Extractable mem b) =>  (b -> a) -> mem -> IO ()
 modifyMem f mem = extract mem >>= flip initialise mem . f
 
-
+-- $access$
+--
+-- Transferring data from one memory to another can indeed be achieved
+-- by the mechanism provided through the `Initialisable` and
+-- `Extractable` type classes. However, such a transfer is done via a
+-- pure value that is stored in the Haskell heap which can leak to a
+-- disk during swapping. Furthermore, a generational GC moves a pure
+-- value around making the chances of such a swap higher. The `Access`
+-- data type provides an access into the raw bytes associated with the
+-- memory elements. The `Accessible` type class captures instances of
+-- memory which provide an access to the internal buffer.
 
 -- | An access into a memory is a buffer that points to the actual
 -- data together with an endian adjustment action. If data needs to be
@@ -348,28 +362,37 @@ unsafeCopyFromAccess dptr acc = do
         sptr = source $ accessPtr acc
 
 
--- | Memories that have an access mechanism.
+-- | Memories with an access mechanism given by the member
+-- `confidentialAccess`. Instances should satisfy the following
+-- properties.
+--
+-- 1. Instances should ensure that the number of elements in this list
+-- and their individual sizes are only dependent on the type `mem` and
+-- not the actual value stored. Moreover, the endian adjustment should
+-- not be needed when copying between the corresponding accesses.
+--
+-- 2. Each of the elements in the `confidentialAccess` should give
+-- access to non-overlapping sections of the buffer associated with
+-- the memory. As a corollary, the total size of this list of accesses
+-- should be less than the allocation size for the given memory.
+--
+-- Only those portions of the memory that are critical for the safety
+-- need to be represented in the list. For example, in the memory
+-- associated with a cipher, only the portion that stores the key and
+-- not the nounce need to be included in the nounce list.
+--
 class Memory mem => Accessible mem where
-  -- | Get access into the memory's buffer. Instances should ensure
-  -- the following.
-  --
-  -- 1. The number of elements in the access list  and,
-  -- 2. The sizes of each element in the access lists
-  --
-  -- should be independent of the value stored in the memory. All the
-  -- basic memory elements exposed from raaz library satisfy the above
-  -- property. Any other memory element of interest are products of
-  -- such simple memory element and hence a concatenation of their
-  -- access list will satisfy the property.
-  accessList :: mem -> [Access]
+  -- | The list of confidential accesses into the buffer associated
+  -- with the memory element.
+  confidentialAccess :: mem -> [Access]
 
 -- | This action is only available for accessible memory not general memories.
-copyAccessible :: Accessible mem => Dest mem -> Src mem -> IO ()
-copyAccessible dest src = sequence_ $ List.zipWith cp dAlist sAlist
+copyConfidential :: Accessible mem => Dest mem -> Src mem -> IO ()
+copyConfidential dest src = sequence_ $ List.zipWith cp dAlist sAlist
   -- NOTE: no adjustment is needs as both contain values of the same
   -- type.
-    where dAlist = map destination $ accessList $ unDest dest
-          sAlist = map source      $ accessList $ unSrc  src
+    where dAlist = map destination $ confidentialAccess $ unDest dest
+          sAlist = map source      $ confidentialAccess $ unSrc  src
           cp   :: Dest Access -> Src Access -> IO ()
           cp dA sA = memcpy dptr sptr sz
             where sz   = accessSize $ unDest dA
@@ -411,11 +434,11 @@ instance Storable a => Extractable (MemoryCell a) a where
   {-# INLINE extract #-}
 
 instance EndianStore a => Accessible (MemoryCell a) where
-  accessList mem = [ Access { accessPtr    = castPtr bufPtr
-                            , accessSize   = sz
-                            , accessAdjust = adjustEndian bufPtr 1
-                            }
-                   ]
+  confidentialAccess mem = [ Access { accessPtr    = castPtr bufPtr
+                                    , accessSize   = sz
+                                    , accessAdjust = adjustEndian bufPtr 1
+                                    }
+                           ]
     where getProxy   :: MemoryCell a -> Proxy a
           getProxy _ =  Proxy
           sz         = sizeOf $ getProxy mem
