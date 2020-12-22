@@ -228,6 +228,7 @@ library core
                  , Raaz.Core.Memory
                  , Raaz.Core.Prelude
                  , Raaz.Core.Transfer
+                 , Raaz.Core.Transfer.Unsafe
                  , Raaz.Core.Types
                  , Raaz.Core.Types.Internal
                  , Raaz.Primitive.Blake2.Internal
@@ -239,7 +240,6 @@ library core
 
   other-modules: Raaz.Core.ByteSource
                , Raaz.Core.MonoidalAction
-               , Raaz.Core.Transfer.Unsafe
                , Raaz.Core.Parse
                , Raaz.Core.Parse.Unsafe
                , Raaz.Core.Primitive
