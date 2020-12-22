@@ -42,7 +42,7 @@ module Raaz.Core.Memory
        , unsafeCopyToAccess, unsafeCopyFromAccess
 
        -- * A basic memory cell.
-       , MemoryCell, withCellPointer, getCellPointer
+       , MemoryCell, withCellPointer, unsafeGetCellPointer
 
        ) where
 
@@ -393,8 +393,8 @@ instance Storable a => Memory (MemoryCell a) where
 
 -- | The location where the actual storing of element happens. This
 -- pointer is guaranteed to be aligned to the alignment restriction of @a@
-getCellPointer :: Storable a => MemoryCell a -> Ptr a
-getCellPointer = nextLocation . unMemoryCell
+unsafeGetCellPointer :: Storable a => MemoryCell a -> Ptr a
+unsafeGetCellPointer = nextLocation . unMemoryCell
 
 -- | Work with the underlying pointer of the memory cell. Useful while
 -- working with ffi functions.

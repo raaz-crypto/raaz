@@ -109,15 +109,15 @@ data ChaCha20Mem = ChaCha20Mem { keyCell      :: MemoryCell (Key     ChaCha20)
 
 -- | The pointer into the chacha memory where the key is stored.
 keyCellPtr :: ChaCha20Mem -> Ptr (Key ChaCha20)
-keyCellPtr = getCellPointer . keyCell
+keyCellPtr = unsafeGetCellPointer . keyCell
 
 -- | The pointer into the chacha memory where the iv is stored.
 ivCellPtr :: ChaCha20Mem -> Ptr (Nounce ChaCha20)
-ivCellPtr = getCellPointer . ivCell
+ivCellPtr = unsafeGetCellPointer . ivCell
 
 -- | The pointer in the chacha memory where the counter is stored.
 counterCellPtr :: ChaCha20Mem -> Ptr WORD
-counterCellPtr = getCellPointer . counterCell
+counterCellPtr = unsafeGetCellPointer . counterCell
 
 instance Initialisable  (MemoryCell (Key ChaCha20)) (Key XChaCha20) where
   initialise = initialise . coerce

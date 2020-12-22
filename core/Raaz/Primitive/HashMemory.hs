@@ -56,12 +56,12 @@ getLLength =  extract . lLengthCell
 hashCellPointer :: Storable h
                 => HashMemory64 h
                 -> Ptr h
-hashCellPointer = getCellPointer . hashCell
+hashCellPointer = unsafeGetCellPointer . hashCell
 -- | Get the pointer to the array which stores the digest
 hashCell128Pointer :: Storable h
                   => HashMemory128 h
                   -> Ptr h
-hashCell128Pointer = getCellPointer . hashCell128
+hashCell128Pointer = unsafeGetCellPointer . hashCell128
 
 
 
@@ -69,19 +69,19 @@ hashCell128Pointer = getCellPointer . hashCell128
 lengthCellPointer :: Storable h
                    => HashMemory64 h
                    -> Ptr (BYTES Word64)
-lengthCellPointer = getCellPointer . lengthCell
+lengthCellPointer = unsafeGetCellPointer . lengthCell
 
 -- | Get the pointer to upper half of the length bytes.
 uLengthCellPointer :: Storable h
                    => HashMemory128 h
                    -> Ptr (BYTES Word64)
-uLengthCellPointer = getCellPointer . uLengthCell
+uLengthCellPointer = unsafeGetCellPointer . uLengthCell
 
 -- | Get the pointer to the lower half of the length bytes.
 lLengthCellPointer :: Storable h
                    => HashMemory128 h
                    -> Ptr (BYTES Word64)
-lLengthCellPointer = getCellPointer . lLengthCell
+lLengthCellPointer = unsafeGetCellPointer . lLengthCell
 
 
 -- | Update the 128 bit length stored in the hash memory.
