@@ -33,7 +33,7 @@ unsafeRunParser :: Pointer ptr
                 => Parser a
                 -> ptr b
                 -> IO a
-unsafeRunParser prsr = runIt prsr . unsafeRawPtr . castPointer
+unsafeRunParser prsr = unsafeWithPointerCast $ runIt prsr
   where runIt = runFieldM . twistFunctorValue
 
 -- | Return the bytes that this parser will read.

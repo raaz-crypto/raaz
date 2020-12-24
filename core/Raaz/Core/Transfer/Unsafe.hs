@@ -120,8 +120,8 @@ unsafeTransfer :: Pointer ptr
                => Transfer t
                -> ptr a       -- ^ The pointer to the buffer to/from which transfer occurs.
                -> IO ()
-unsafeTransfer tr = transferIt . unsafeRawPtr
-  where transferIt = unTransferM . semiRSpace tr . castPointer
+unsafeTransfer tr = unsafeWithPointerCast transferIt
+  where transferIt = unTransferM . semiRSpace tr
 
 
 ------------------------  Read action ----------------------------

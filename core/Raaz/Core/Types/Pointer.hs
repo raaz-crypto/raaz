@@ -26,7 +26,7 @@ module Raaz.Core.Types.Pointer
        , peekAligned, pokeAligned
 
          -- ** The class of pointer types.
-       , Pointer(..), unsafeWithPointer
+       , Pointer(..), unsafeWithPointer, unsafeWithPointerCast
        , AlignedPtr (..) , ptrAlignment, nextAlignedPtr
        , allocaBuffer, allocaSecure
          -- ** Some low level pointer actions
@@ -254,6 +254,10 @@ instance Pointer Ptr where
 -- | Lifts raw pointer actions to the given pointer type.
 unsafeWithPointer :: Pointer ptr => (Ptr a -> b) -> ptr a -> b
 unsafeWithPointer action = action . unsafeRawPtr
+
+-- | Lifts raw pointer actions to a pointer action of a different type.
+unsafeWithPointerCast :: Pointer ptr => (Ptr a -> b) -> ptr something -> b
+unsafeWithPointerCast action = unsafeWithPointer action . castPointer
 
 -- | Allocate a buffer for an action that expects a generic
 -- pointer. Length can be specified in any length units.
