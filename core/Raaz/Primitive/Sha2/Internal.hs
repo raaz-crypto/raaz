@@ -30,7 +30,6 @@ import           GHC.TypeLits
 
 import           Raaz.Core
 import           Raaz.Core.Transfer.Unsafe
-import           Raaz.Core.Types.Internal
 import           Raaz.Primitive.HashMemory
 
 ----------------------------- The blake2 type ---------------------------------
@@ -121,7 +120,7 @@ process256Last :: KnownNat n
                -> IO ()
 process256Last comp buf nbytes sha256mem = do
   updateLength nbytes sha256mem
-  totalBytes  <- getLength sha256mem
+  totalBytes  <- fmap bigEndian <$> getLength sha256mem
   let pad      = padding256 nbytes totalBytes
       blocks   = atMost $ transferSize pad
     in unsafeTransfer pad buf >> comp buf blocks sha256mem
@@ -136,32 +135,31 @@ process512Last :: KnownNat n
                -> IO ()
 process512Last comp buf nbytes sha512mem = do
   updateLength128 nbytes sha512mem
-  uLen  <- getULength sha512mem
-  lLen  <- getLLength sha512mem
+  uLen  <- fmap bigEndian <$> getULength sha512mem
+  lLen  <- fmap bigEndian <$> getLLength sha512mem
   let pad      = padding512 nbytes uLen lLen
       blocks   = atMost $ transferSize pad
       in unsafeTransfer pad buf >> comp buf blocks sha512mem
 
 -- | The padding for sha256 as a writer.
-padding256 :: BYTES Int    -- Data in buffer.
-           -> BYTES Word64 -- Message length
+padding256 :: BYTES Int         -- Data in buffer.
+           -> BYTES (BE Word64) -- Message length
            -> WriteTo
 padding256 bufSize msgLen  =
   glueWrites 0 boundary (padBit1 bufSize) lengthWrite
   where boundary    = blocksOf 1 (Proxy :: Proxy Sha256)
-        lengthWrite = write $ bigEndian (shiftL w 3)
-        BYTES w     = msgLen
+        lengthWrite = write $ shiftL msgLen 3
 
 -- | The padding for sha512 as a writer.
-padding512 :: BYTES Int    -- Data in buffer.
-           -> BYTES Word64 -- Message length higher
-           -> BYTES Word64 -- Message length lower
+padding512 :: BYTES Int         -- Data in buffer.
+           -> BYTES (BE Word64) -- Message length higher
+           -> BYTES (BE Word64) -- Message length lower
            -> WriteTo
 padding512 bufSize uLen lLen  = glueWrites 0 boundary (padBit1 bufSize) lengthWrite
   where boundary    = blocksOf 1 (Proxy :: Proxy Sha512)
-        lengthWrite = write (bigEndian up) `mappend` write (bigEndian lp)
-        BYTES up    = shiftL uLen 3 .|. shiftR lLen 61
-        BYTES lp    = shiftL lLen 3
+        lengthWrite = write up `mappend` write lp
+        up          = shiftL uLen 3 .|. shiftR lLen 61
+        lp          = shiftL lLen 3
 
 
 -- | Pad the message with a 1-bit.
