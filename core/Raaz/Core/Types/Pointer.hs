@@ -100,6 +100,9 @@ newtype BYTES a  = BYTES a
                  , Real, Num, Storable, Bounded, Bits
                  )
 
+instance Functor BYTES where
+   fmap f (BYTES x) = BYTES (f x)
+
 instance Num a => Semigroup (BYTES a) where
   (<>) = (+)
 
