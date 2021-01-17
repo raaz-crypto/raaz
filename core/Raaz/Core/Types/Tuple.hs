@@ -11,7 +11,7 @@
 module Raaz.Core.Types.Tuple
        ( -- * Length encoded tuples
          Tuple, Dimension, dimension, dimension', initial, diagonal
-       , repeatM, zipWith, map
+       , repeatM, zipWith, map, generateIO
          -- ** Unsafe operations
        , unsafeFromList, unsafeFromVector, unsafeToVector
        ) where
@@ -186,3 +186,9 @@ zipWith :: (V.Unbox a, V.Unbox b, V.Unbox c)
         -> Tuple dim b
         -> Tuple dim c
 zipWith f (Tuple at) (Tuple bt)= Tuple $ V.zipWith f at bt
+
+-- | Generate using the given action.
+generateIO :: (Dimension dim, V.Unbox a) => IO a -> IO (Tuple dim a)
+generateIO action = gen action Proxy
+  where gen :: (Dimension dim, V.Unbox a) => IO a -> Proxy (Tuple dim a) -> IO (Tuple dim a)
+        gen act pxy  = Tuple <$> V.generateM (dimension' pxy) (const act)
