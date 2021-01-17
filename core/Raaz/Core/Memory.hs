@@ -45,7 +45,7 @@ module Raaz.Core.Memory
        , Access(..), accessReader, accessWriter, unsafeClampAccess
        , unsafeCopyToAccess, unsafeCopyFromAccess
        , Accessible(..), copyConfidential
-
+       , confidentialReader, confidentialWriter
        -- * A basic memory cell.
        , MemoryCell, withCellPointer, unsafeGetCellPointer
 
@@ -418,6 +418,17 @@ copyConfidential dest src = sequence_ $ List.zipWith cp dAlist sAlist
             where sz   = accessSize $ unDest dA
                   dptr = accessPtr <$> dA
                   sptr = accessPtr <$> sA
+
+-- | Get a reader that reads into the memory through its confidential
+-- access.
+confidentialReader :: Accessible mem => mem -> ReadFrom
+confidentialReader = mconcat . map accessReader . confidentialAccess
+
+
+-- | Get a Writer that writes out from the memory through its
+-- confidential access.
+confidentialWriter :: Accessible mem => mem -> WriteTo
+confidentialWriter = mconcat . map accessWriter . confidentialAccess
 
 --------------------- Some instances of Memory --------------------
 
