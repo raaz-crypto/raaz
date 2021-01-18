@@ -51,5 +51,5 @@ keyStreamIs expected (key, nounce, ctr) = it msg $ result `shouldBe` decoded
 
 zeros :: BYTES Int -> ByteString
 zeros = toByteString . writeZero
-  where writeZero :: LengthUnit u => u -> WriteIO
+  where writeZero :: LengthUnit u => u -> WriteTo
         writeZero = writeBytes 0

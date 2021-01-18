@@ -5,7 +5,7 @@ import Raaz.Core.Types.Internal ( BYTES(..) )
 import Tests.Core.Imports hiding (length, replicate)
 import Prelude                   (length, replicate)
 
-import Foreign.Ptr           ( castPtr, Ptr    )
+import Foreign.Ptr           ( castPtr )
 import Data.ByteString as B  (concat)
 
 -- | Run a spec with a give key.

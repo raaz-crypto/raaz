@@ -14,9 +14,9 @@ import           Raaz.Primitive.Poly1305.Internal (Key(..))
 randomClamping :: Spec
 randomClamping = it "randomly generated R values should be clamped"
        $ checkClamped `shouldReturn` True
-  where randR :: RandM R
+  where randR :: RandomState -> IO R
         randR = random
-        checkClamped = insecurely $ isClamped <$> randR
+        checkClamped = withRandomState (\ state -> isClamped <$> randR state)
 
 
 -- | Check whether the given value of r is clamped.

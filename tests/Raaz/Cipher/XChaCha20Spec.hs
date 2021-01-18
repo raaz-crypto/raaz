@@ -5,28 +5,33 @@
 
 module Raaz.Cipher.XChaCha20Spec where
 
-import           Control.Monad.Reader
 import           Tests.Core
 import qualified XChaCha20.Implementation as XI
 import qualified ChaCha20.CPortable as CP
 import           System.IO.Unsafe( unsafePerformIO )
 
 
+unsafeRun :: Memory mem => (mem -> IO a) -> a
+unsafeRun = unsafePerformIO . withMemory
 
 setup :: Key ChaCha20
       -> Nounce XChaCha20
       -> (Key ChaCha20, Nounce ChaCha20)
-setup k n = unsafePerformIO $ insecurely $ do initialise k
-                                              CP.xchacha20Setup n
-                                              (,) <$> withReaderT keyCell extract
-                                                  <*> withReaderT ivCell  extract
+setup k n = unsafeRun setupMem
+  where setupMem :: CP.Internals -> IO (Key ChaCha20, Nounce ChaCha20)
+        setupMem mem = do initialise k mem
+                          CP.xchacha20Setup n mem
+                          (,) <$> extract (keyCell mem)
+                              <*> extract (ivCell mem)
 xinit :: Key XChaCha20
       -> Nounce XChaCha20
       -> (Key ChaCha20, Nounce ChaCha20)
-xinit k n = unsafePerformIO $ insecurely $ do initialise k
-                                              initialise n
-                                              (,) <$> withReaderT (keyCell . XI.chacha20Internals) extract
-                                                  <*> withReaderT (ivCell . XI.chacha20Internals) extract
+xinit k n = unsafeRun xinitMem
+  where xinitMem :: XI.Internals -> IO (Key ChaCha20, Nounce ChaCha20)
+        xinitMem mem = do initialise k mem
+                          initialise n mem
+                          (,) <$> extract (keyCell $ XI.chacha20Internals mem)
+                              <*> extract (ivCell  $ XI.chacha20Internals mem)
 
 mesg :: (Show k, Show n, Show kp, Show iv)
      => k -> n -> kp -> iv -> String

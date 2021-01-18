@@ -8,7 +8,7 @@ module Raaz.Cipher.ChaCha20Spec where
 import           Tests.Core
 import qualified Tests.Cipher as C
 
-writeZeros :: BYTES Int -> WriteIO
+writeZeros :: BYTES Int -> WriteTo
 writeZeros = writeBytes 0
 
 zeroIV :: Nounce ChaCha20
