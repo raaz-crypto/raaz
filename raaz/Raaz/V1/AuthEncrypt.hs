@@ -86,7 +86,7 @@ unsafeToAuthTag = AE.unsafeToAuthTag
 
 -- | Construct an AEAD packet out of the authentication token and the
 -- cipher text.
-unsafeAEAD :: AE.Auth
-           -> ByteString
+unsafeAEAD :: ByteString
+           -> AE.Auth
            -> AEAD plain aad
 unsafeAEAD = AE.unsafeAEAD
