@@ -344,6 +344,8 @@ unsafeClampAccess clamp acc@Access{..}
         , accessAfterWrite = accessAfterWrite >> clamp (castPtr accessPtr)
         }
 
+-- | The reader action that reads from the input buffer and transfers
+-- to the access buffer.
 accessReader :: Access -> ReadFrom
 accessReader Access{..}
   = unsafeReadIntoPtr accessSize (destination accessPtr)
