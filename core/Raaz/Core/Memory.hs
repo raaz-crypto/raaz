@@ -42,10 +42,8 @@ module Raaz.Core.Memory
        -- * Accessing the bytes directly
        -- $access$
        --
-       , Access(..), accessReader, accessWriter, unsafeClampAccess
-       , unsafeCopyToAccess, unsafeCopyFromAccess
-       , Accessible(..), copyConfidential
-       , confidentialReader, confidentialWriter
+       , Access(..)
+       , ReadAccessible(..), WriteAccessible(..), memTransfer
        -- * A basic memory cell.
        , MemoryCell, copyCell, withCellPointer, unsafeGetCellPointer
 
@@ -53,13 +51,13 @@ module Raaz.Core.Memory
 
 import           Foreign.Ptr                 ( castPtr )
 import           Foreign.Storable            ( Storable )
-import qualified Data.List             as List
+
 
 import           Raaz.Core.Prelude
 import           Raaz.Core.MonoidalAction
 import           Raaz.Core.Types    hiding   ( zipWith       )
-import           Raaz.Core.Types.Copying     ( unDest, unSrc )
-import           Raaz.Core.Transfer.Unsafe
+import           Raaz.Core.Types.Internal
+
 -------------- BANNED FEATURES ---------------------------------------
 --
 -- This module has a lot of low level pointer gymnastics and hence
@@ -263,39 +261,44 @@ withSecureMemory = withSM memoryAlloc
 --
 -- Memories often allow initialisation with and extraction of values
 -- in the Haskell world. The `Initialisable` and `Extractable` class
--- captures this interface. One should, however, refrain
--- initialising/extracting sensitive values as such values reside in
--- the Haskell heap which is not locked and are often relocated during
--- garbage collection phases.
+-- captures this interface.
 --
--- Protocols often need to setup a key in a particular memory cell and
--- then use that key for say encryption.  To handle such cases,
--- certain memory elements provide an `Access` into its memory
--- pointer.  Writing into and reading from these can then be achieved
--- by using memcpy.
+-- == Explicit Pointer
+--
+-- Using the `Initialisable` and `Extractable` for sensitive data
+-- interface defeats one important purpose of the memory subsystem
+-- namely providing memory locking. Using these interfaces means
+-- keeping the sensitive information as pure values in the Haskell
+-- heap which impossible to lock. Worse still, the GC often move the
+-- data around spreading it all around the memory. One should use
+-- direct byte transfer via `memcpy` for effecting these
+-- initialisation. An interface to facilitate these is the type
+-- classes `ReadAccessible` and `WriteAccessble` where direct access
+-- is given (via the `Access` buffer) to the portions of the internal
+-- memory where sensitive data is kept.
 
 -- | Memories that can be initialised with a pure value. The pure
 -- value resides in the Haskell heap and hence can potentially be
 -- swapped. Therefore, this class should be avoided if compromising
--- the initialisation value can be dangerous. Consider using
--- `InitialiseableFromBuffer`
---
-
+-- the initialisation value can be dangerous. Look into the type class
+-- `WriteAccessible` instead.
 class Memory m => Initialisable m v where
   initialise :: v -> m -> IO ()
 
--- | Memories from which pure values can be extracted. Once a pure value is
--- extracted,
+-- | Memories from which pure values can be extracted. Much like the
+-- case of the `Initialisable` class, avoid using this interface if
+-- you do not want the data extracted to be swapped. Use the
+-- `ReadAccessible` class instead.
 class Memory m => Extractable m v where
   extract  :: m -> IO v
 
 
--- | Apply the given function to the value in the cell. For a function @f :: b -> a@,
--- the action @modify f@ first extracts a value of type @b@ from the
--- memory element, applies @f@ to it and puts the result back into the
--- memory.
+-- | Apply the given function to the value in the cell. For a function
+-- @f :: b -> a@, the action @modify f@ first extracts a value of type
+-- @b@ from the memory element, applies @f@ to it and puts the result
+-- back into the memory.
 --
--- > modifyMem f mem = do b          <- extract mem
+-- > modifyMem f mem = do b <- extract mem
 -- >                      initialise (f b) mem
 --
 modifyMem :: (Initialisable mem a, Extractable mem b) =>  (b -> a) -> mem -> IO ()
@@ -303,134 +306,89 @@ modifyMem f mem = extract mem >>= flip initialise mem . f
 
 -- $access$
 --
--- Transferring data from one memory to another can indeed be achieved
--- by the mechanism provided through the `Initialisable` and
--- `Extractable` type classes. However, such a transfer is done via a
--- pure value that is stored in the Haskell heap which can leak to a
--- disk during swapping. Furthermore, a generational GC moves a pure
--- value around making the chances of such a swap higher. The `Access`
--- data type provides an access into the raw bytes associated with the
--- memory elements. The `Accessible` type class captures instances of
--- memory which provide an access to the internal buffer.
+-- To avoid the problems associated with the `Initialisable` and
+-- `Extractable` interface, certain memory types give access to the
+-- associated buffers directly via the `Access` buffer. Data then
+-- needs to be transferred between these memories directly via
+-- `memcpy` making use of the `Access` buffers thereby avoiding a copy
+-- in the Haskell heap where it is prone to leak.
+--
+-- [`ReadAccessible`:] Instances of these class are memories that are
+-- on the source side of the transfer. Examples include the memory
+-- element that is used to implement a Diffie-Hellman key
+-- exchange. The exchanged key is in the memory which can then be used
+-- to initialise a cipher for the actual transfer of encrypted data .
+--
+-- [`WriteAccessible`:] Instances of these classes are memories that
+-- are on the destination side of the transfer. The memory element
+-- that stores the key for a cipher is an example of such a element.
 
--- | An access into a memory is a buffer that points to the actual
--- data together with an endian adjustment action. Before reading the
--- contents to the outside world, we might need to clamp certain bits
--- and adjust for endian mismatch . Similarly, after writing the
--- contents from the outside world, we might have adjust the endian
--- and then possibly clamp some bits. These action are captured by the
--- members `accessBeforeRead` and `accessAfterWrite` fields of this
--- record.
-
+-- | Data type that gives an access buffer to portion of the memory.
 data Access = Access
   { accessPtr         :: Ptr Word8
     -- ^ The buffer pointer associated with this access.
   , accessSize        :: BYTES Int
-    -- ^ The size of this access buffer.
-  , accessBeforeRead  :: IO ()
-    -- ^ Adjustments to be carried out on the buffer before reading from it.
-  , accessAfterWrite :: IO ()
-    -- ^ Adjustment to be carried out on the buffer after writing.
+    -- ^ Its size
   }
 
--- | Often we need to add some clamping functions to the before read
--- and after write action. This function updates the access function
--- with clamping. Sane clamping functions should be idempotent.
-unsafeClampAccess :: (Ptr a -> IO ()) -- ^ The clamping action (should be idempotent)
-                  -> Access
-                  -> Access
-unsafeClampAccess clamp acc@Access{..}
-  = acc { accessBeforeRead = clamp (castPtr accessPtr) >> accessBeforeRead
-        , accessAfterWrite = accessAfterWrite >> clamp (castPtr accessPtr)
-        }
-
--- | The reader action that reads from the input buffer and transfers
--- to the access buffer.
-accessReader :: Access -> ReadFrom
-accessReader Access{..}
-  = unsafeReadIntoPtr accessSize (destination accessPtr)
-    <> unsafeInterleave accessAfterWrite
-
--- | The writer action that writes into input buffer from the access
--- buffer.
-accessWriter :: Access -> WriteTo
-accessWriter Access{..}  = unsafeInterleave accessBeforeRead
-                           <> unsafeWriteFromPtr accessSize (source accessPtr)
-                           <> unsafeInterleave accessAfterWrite
-
--- | Fill the access buffer from a source pointer. This function is unsafe because
--- it does not check whether there is enough data on the source side.
-unsafeCopyToAccess :: Access
-                   -> Src (Ptr a)
-                   -> IO ()
-unsafeCopyToAccess acc sptr = do
-  memcpy dptr sptr sz
-  accessAfterWrite acc
-  where sz   = accessSize acc
-        dptr = destination $ accessPtr acc
-
--- | The action @unsafeCopyFromAccess dest acc@ copies data from @acc
--- : Access@ to the destination pointer dest. The function is unsafe
--- because it does not check whether the destination pointer has
--- enough size to receive data from the access.
-unsafeCopyFromAccess :: Dest (Ptr a)
-                     -> Access
-                     -> IO ()
-unsafeCopyFromAccess dptr acc = do
-  accessBeforeRead acc    -- adjust before transfer
-  memcpy dptr sptr sz
-  accessAfterWrite acc    -- adjust it back after completion.
-  where sz   = accessSize acc
-        sptr = source $ accessPtr acc
+-- | Transfer the bytes from the source memory to the destination
+-- memory. The total bytes transferred is the minimum of the bytes
+-- available at the source and the space available at the destination.
+memTransfer :: (ReadAccessible src, WriteAccessible dest)
+            => Dest dest
+            -> Src src
+            -> IO ()
+memTransfer dest src = do
+  let dmem = unDest dest
+      smem = unSrc src
+      in do beforeReadAdjustment smem
+            copyAccessList (writeAccess dmem) (readAccess smem)
+            afterWriteAdjustment dmem
 
 
--- | Memories with an access mechanism given by the member
--- `confidentialAccess`. Instances should satisfy the following
--- properties.
---
--- 1. Instances should ensure that the number of elements in this list
--- and their individual sizes are only dependent on the type `mem` and
--- not the actual value stored. Moreover, the endian adjustment should
--- not be needed when copying between the corresponding accesses.
---
--- 2. Each of the elements in the `confidentialAccess` should give
--- access to non-overlapping sections of the buffer associated with
--- the memory. As a corollary, the total size of this list of accesses
--- should be less than the allocation size for the given memory.
---
--- Only those portions of the memory that are critical for the safety
--- need to be represented in the list. For example, in the memory
--- associated with a cipher, only the portion that stores the key and
--- not the nounce need to be included in the nounce list.
---
-class Memory mem => Accessible mem where
-  -- | The list of confidential accesses into the buffer associated
-  -- with the memory element.
-  confidentialAccess :: mem -> [Access]
+-- | Copy access list, Internal function.
+copyAccessList :: [Access] -> [Access] -> IO ()
+copyAccessList (da:ds) (sa:ss)
+  | dsize > ssize = tAct >> copyAccessList (da' : ds) ss
+  | ssize > dsize = tAct >> copyAccessList ds         (sa' : ss)
+  | otherwise     = tAct >> copyAccessList ds ss
+    where dsize = accessSize da
+          ssize = accessSize sa
+          trans = min dsize ssize
+          dptr  = accessPtr da
+          sptr  = accessPtr sa
+          da'   = Access (accessPtr da `movePtr` trans) (dsize - trans)
+          sa'   = Access (accessPtr sa `movePtr` trans) (ssize - trans)
+          tAct  = memcpy (destination dptr) (source sptr) trans
+copyAccessList _ _ = return ()
 
--- | This action is only available for accessible memory not general memories.
-copyConfidential :: Accessible mem => Dest mem -> Src mem -> IO ()
-copyConfidential dest src = sequence_ $ List.zipWith cp dAlist sAlist
-  -- NOTE: no adjustment is needs as both contain values of the same
-  -- type.
-    where dAlist = map destination $ confidentialAccess $ unDest dest
-          sAlist = map source      $ confidentialAccess $ unSrc  src
-          cp   :: Dest Access -> Src Access -> IO ()
-          cp dA sA = memcpy dptr sptr sz
-            where sz   = accessSize $ unDest dA
-                  dptr = accessPtr <$> dA
-                  sptr = accessPtr <$> sA
+-- | This class captures memories from which bytes can be extracted
+-- directly from (portions of) its buffer.
+class Memory mem => ReadAccessible mem where
+  -- | Internal organisation of the data might need adjustment due to
+  -- host machine having a different endian than the standard byte
+  -- order of the associated type. This action perform the necessary
+  -- adjustment before the bytes can be read-off from the associated
+  -- `readAccess` adjustments.
+  beforeReadAdjustment :: mem -> IO ()
 
--- | Get a reader that reads into the memory through its confidential
--- access.
-confidentialReader :: Accessible mem => mem -> ReadFrom
-confidentialReader = mconcat . map accessReader . confidentialAccess
+  -- | The ordered access buffers for the memory through which bytes
+  -- may be read off (after running `beforeReadAdjustment` of course)
+  readAccess :: mem -> [Access]
 
+-- | This class captures memories that can be initialised by writing
+-- bytes to (portions of) its buffer.
+class Memory mem => WriteAccessible mem where
 
--- | Get a Writer that writes out from the memory through its
--- confidential access.
-confidentialWriter :: Accessible mem => mem -> WriteTo
-confidentialWriter = mconcat . map accessWriter . confidentialAccess
+  -- | The ordered access to buffers through which bytes may be
+  -- written into the memory.
+  writeAccess :: mem -> [Access]
+
+  -- | After writing data into the buffer, the memory might need
+  -- further adjustments before it is considered "initialised" with
+  -- the sensitive data.
+  --
+  afterWriteAdjustment :: mem -> IO ()
 
 --------------------- Some instances of Memory --------------------
 
@@ -465,8 +423,6 @@ copyCell dest src = memcpy (unsafeGetCellPointer <$> dest) (unsafeGetCellPointer
         getProxy _ = Proxy
         sz = sizeOf (getProxy dest)
 
-
-
 instance Storable a => Initialisable (MemoryCell a) a where
   initialise a = flip pokeAligned a . unMemoryCell
   {-# INLINE initialise #-}
@@ -475,14 +431,26 @@ instance Storable a => Extractable (MemoryCell a) a where
   extract = peekAligned . unMemoryCell
   {-# INLINE extract #-}
 
-instance EndianStore a => Accessible (MemoryCell a) where
-  confidentialAccess mem = [ Access { accessPtr    = castPtr bufPtr
-                                    , accessSize   = sz
-                                    , accessBeforeRead = adjustEndian bufPtr 1
-                                    , accessAfterWrite = adjustEndian bufPtr 1
-                                    }
-                           ]
+instance EndianStore a => ReadAccessible (MemoryCell a) where
+  beforeReadAdjustment mem = adjustEndian (unsafeGetCellPointer mem) 1
+  readAccess mem = [ Access { accessPtr    = castPtr bufPtr
+                            , accessSize   = sz
+                            }
+                   ]
     where getProxy   :: MemoryCell a -> Proxy a
           getProxy _ =  Proxy
           sz         = sizeOf $ getProxy mem
           bufPtr     = unsafeGetCellPointer mem
+
+
+instance EndianStore a => WriteAccessible (MemoryCell a) where
+  writeAccess mem = [ Access { accessPtr    = castPtr bufPtr
+                             , accessSize   = sz
+                             }
+                    ]
+    where getProxy   :: MemoryCell a -> Proxy a
+          getProxy _ =  Proxy
+          sz         = sizeOf $ getProxy mem
+          bufPtr     = unsafeGetCellPointer mem
+
+  afterWriteAdjustment mem = adjustEndian (unsafeGetCellPointer mem) 1
