@@ -265,7 +265,7 @@ unsafeWithPointerCast action = unsafeWithPointer action . castPointer
 -- | Allocate a buffer for an action that expects a generic
 -- pointer. Length can be specified in any length units.
 allocaBuffer :: ( LengthUnit l, Pointer ptr)
-             => l                  -- ^ buffer length
+             => l                        -- ^ buffer length
              -> (ptr something -> IO b)  -- ^ the action to run
              -> IO b
 allocaBuffer = allocaPointer . inBytes
