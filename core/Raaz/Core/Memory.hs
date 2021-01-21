@@ -47,7 +47,7 @@ module Raaz.Core.Memory
        , Accessible(..), copyConfidential
        , confidentialReader, confidentialWriter
        -- * A basic memory cell.
-       , MemoryCell, withCellPointer, unsafeGetCellPointer
+       , MemoryCell, copyCell, withCellPointer, unsafeGetCellPointer
 
        ) where
 
@@ -457,6 +457,15 @@ unsafeGetCellPointer = nextLocation . unMemoryCell
 withCellPointer :: Storable a => (Ptr a -> IO b) -> MemoryCell a -> IO b
 {-# INLINE withCellPointer #-}
 withCellPointer action = action . unsafeGetCellPointer
+
+-- | Copy the contents of one memory cell to another.
+copyCell :: Storable a => Dest (MemoryCell a) -> Src (MemoryCell a) -> IO ()
+copyCell dest src = memcpy (unsafeGetCellPointer <$> dest) (unsafeGetCellPointer <$> src) sz
+  where getProxy :: Dest (MemoryCell a) -> Proxy a
+        getProxy _ = Proxy
+        sz = sizeOf (getProxy dest)
+
+
 
 instance Storable a => Initialisable (MemoryCell a) a where
   initialise a = flip pokeAligned a . unMemoryCell
