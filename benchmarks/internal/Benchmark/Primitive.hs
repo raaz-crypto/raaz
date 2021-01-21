@@ -7,15 +7,17 @@ import GHC.TypeLits
 
 import Raaz.Core
 import Implementation
-import Buffer
 import Benchmark.Types
 
+-- | Number of blocks.
+nblocks :: BlockCount Prim
+nblocks = atLeast nBytes
+
+allocAndRun  :: (BufferPtr -> IO ()) -> IO ()
+allocAndRun  = allocaBuffer (nblocks <> additionalBlocks)
 
 bench :: KnownNat BufferAlignment => RaazBench
 bench = (nm, toBenchmarkable $ action . fromIntegral)
-  where action count = allocBufferFor sz
-                       $ \ ptr -> insecurely
-                                  $ replicateM_ count
-                                  $ processBlocks ptr sz
+  where action count = allocAndRun $ doit count
         nm = name
-        sz = atLeast nBytes
+        doit count ptr = withMemory $ \ mem -> replicateM_ count (processBlocks ptr nblocks mem)
