@@ -101,7 +101,9 @@ instance IsString (Nounce XChaCha20) where
   fromString = fromBase16
 
 ---------- Memory for ChaCha20 implementations  ------------------
--- | chacha20 memory
+-- | The memory element used by chacha20. This memory is an instance
+-- of `WriteAccessible` where the key portion of the memory can be
+-- written into.
 data ChaCha20Mem = ChaCha20Mem { keyCell      :: MemoryCell (Key     ChaCha20)
                                , ivCell       :: MemoryCell (Nounce  ChaCha20)
                                , counterCell  :: MemoryCell WORD
@@ -143,7 +145,7 @@ instance Extractable ChaCha20Mem (BlockCount ChaCha20) where
     where conv :: WORD -> BlockCount ChaCha20
           conv = toEnum . fromEnum
 
--- | Initialises key from a buffer. Use this instance if you want to
--- initialise (only the) key from a secure memory location.
-instance Accessible ChaCha20Mem where
-  confidentialAccess = confidentialAccess . keyCell
+-- | Writes into the key portion.
+instance WriteAccessible ChaCha20Mem where
+  writeAccess = writeAccess . keyCell
+  afterWriteAdjustment = afterWriteAdjustment . keyCell

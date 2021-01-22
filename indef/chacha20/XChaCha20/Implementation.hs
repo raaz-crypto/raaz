@@ -32,6 +32,10 @@ instance Memory Internals where
 instance Initialisable Internals (Key XChaCha20) where
   initialise xkey = initialise xkey . copyOfKey
 
+instance WriteAccessible Internals where
+  writeAccess = writeAccess . copyOfKey
+  afterWriteAdjustment = afterWriteAdjustment . copyOfKey
+
 instance Initialisable Internals (Nounce XChaCha20) where
   initialise xnounce imem = do
     let dest = destination $ chacha20Internals imem
