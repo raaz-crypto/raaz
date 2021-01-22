@@ -76,17 +76,20 @@ instance KnownNat n => Memory (Buffer n) where
   unsafeToPointer = unBuffer
 
 
-instance KnownNat n => Accessible (Buffer n) where
-  confidentialAccess buf = [ Access { accessPtr    = castPointer bufPtr
-                                    , accessSize   = inBytes $ bufferSize $ pure buf
-                                    , accessBeforeRead = adjustAction
-                                    , accessAfterWrite = adjustAction
-                                    }
-                           ]
-       where getProxy :: Buffer n -> Proxy n
-             getProxy _ = Proxy
-             nelems     = fromEnum $ natVal $ getProxy buf
-             bufPtr     = unsafeRawPtr $ unsafeGetBufferPointer buf
-             adjustAction = adjust (Proxy :: Proxy Prim) bufPtr nelems
-             adjust     :: Primitive prim => Proxy prim -> BlockPtr prim -> Int -> IO ()
-             adjust _   = adjustEndian
+instance KnownNat n => ReadAccessible (Buffer n) where
+  readAccess buf = unsafeWithPointerCast makeAccess $ unsafeGetBufferPointer buf
+    where makeAccess bptr = [ Access bptr $ inBytes $ bufferSize $ pure buf ]
+
+
+  beforeReadAdjustment buf = unsafeWithPointer (adjust (Proxy :: Proxy Prim) nelems)
+                                 $ unsafeGetBufferPointer buf
+    where getProxy :: Buffer n -> Proxy n
+          getProxy _ = Proxy
+          nelems     = fromEnum $ natVal $ getProxy buf
+          adjust     :: Primitive prim => Proxy prim -> Int -> BlockPtr prim  -> IO ()
+          adjust _ n ptr  = adjustEndian ptr n
+
+
+instance KnownNat n => WriteAccessible (Buffer n) where
+  writeAccess = readAccess
+  afterWriteAdjustment = beforeReadAdjustment
