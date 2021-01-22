@@ -55,7 +55,7 @@ skip = flip unsafeMakeTransfer doNothing
 -- from the input buffer passing it to the action act.
 consumeParse ::  Parser a -> (a -> IO b) -> ReadFrom
 consumeParse p action = unsafeMakeTransfer (parseWidth p) $
-                        \ ptr -> unsafeRunParser p ptr >>= void . action
+                        unsafeRunParser p >=> void . action
 
 -- | Reads @a@ from the buffer and supplies it to the action. The
 -- value read is independent of the endianness of the underlying.

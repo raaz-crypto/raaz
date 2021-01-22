@@ -183,7 +183,7 @@ zeroBlocks = 0 `blocksOf` Proxy
 
 
 unsafeRandomBytes :: BYTES Int
-                  -> (Dest (Ptr Word8))
+                  -> Dest (Ptr Word8)
                   -> RandomState -> IO ()
 unsafeRandomBytes sz destPtr rstate@RandomState{..}
   = go sz destPtr
@@ -191,7 +191,7 @@ unsafeRandomBytes sz destPtr rstate@RandomState{..}
           | n <= 0 = return ()
           | otherwise = do trfed <- unsafeWriteTo n ptr randomCxt
                            let more    = n - trfed
-                               nextPtr = fmap (flip  movePtr trfed) ptr
+                               nextPtr = (`movePtr` trfed) <$> ptr
                              in when (more > 0) $ sample rstate >> go more nextPtr
 
 -- | Fill a buffer pointed by the given pointer with random bytes.
@@ -200,7 +200,7 @@ fillRandomBytes :: (LengthUnit l, Pointer ptr)
                 -> Dest (ptr a)
                 -> RandomState
                 -> IO ()
-fillRandomBytes l ptr rstate = unsafeRandomBytes (inBytes l) wptr rstate
+fillRandomBytes l ptr = unsafeRandomBytes (inBytes l) wptr
   where wptr = fmap (castPtr . unsafeRawPtr) ptr
 
 instance ByteSource RandomState where

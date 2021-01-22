@@ -14,7 +14,6 @@
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE DataKinds                  #-}
-{-# LANGUAGE RecordWildCards            #-}
 module Raaz.Core.Memory
        (
 

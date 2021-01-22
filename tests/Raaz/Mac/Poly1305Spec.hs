@@ -16,7 +16,7 @@ randomClamping = it "randomly generated R values should be clamped"
        $ checkClamped `shouldReturn` True
   where randR :: RandomState -> IO R
         randR = random
-        checkClamped = withRandomState (\ state -> isClamped <$> randR state)
+        checkClamped = withRandomState (fmap isClamped . randR)
 
 
 -- | Check whether the given value of r is clamped.

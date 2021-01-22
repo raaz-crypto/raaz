@@ -2,7 +2,6 @@
 {-# LANGUAGE DataKinds        #-}
 {-# LANGUAGE MonoLocalBinds   #-}
 {-# LANGUAGE CPP              #-}
-{-# LANGUAGE RecordWildCards  #-}
 
 -- |
 --
