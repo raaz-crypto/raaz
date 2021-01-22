@@ -26,7 +26,6 @@ import           Data.ByteString
 import           System.IO.Unsafe ( unsafePerformIO )
 
 import           Raaz.Core
-import           Raaz.Core.Transfer.Unsafe
 import qualified Cipher.Implementation as CI
 import qualified Auth.Implementation   as AI
 
@@ -52,7 +51,8 @@ lockWith :: (Encodable plain, Encodable aad)
          -> plain            -- ^ the unencrypted object
          -> AEAD plain aad
 lockWith aad k n plain = unsafePerformIO $ withMemory $ \ mem -> do
-  initialise (k,n) mem
+  initialise k mem
+  initialise n mem
   cText <- encrypt plain mem
   AEAD cText <$> computeAuth aad cText mem
 
@@ -77,7 +77,8 @@ unlockWith :: (Encodable plain, Encodable aad)
            -> AEAD plain aad   -- ^ The encrypted authenticated version of the data.
            -> Maybe plain
 unlockWith aad k n aead = unsafePerformIO $ withMemory $ \ mem -> do
-  initialise (k,n) mem
+  initialise k mem
+  initialise n mem
   isSuccess <- verify aad aead mem
   if isSuccess then decrypt aead mem else return Nothing
 
@@ -118,7 +119,16 @@ unsafeAEAD :: ByteString
 unsafeAEAD = AEAD
 
 
--- | The internal memory used for computing the AEAD packet.
+-- | The internal memory used for computing the AEAD packet. When using
+-- this memory for packet computation, it is important to initalise the
+-- memory in the following order.
+--
+-- 1. Initialise with key either using the `initialise` function or, by using
+--    the `WriteAccessible` instance using the `mem.
+-- 2. Initialise the nounce
+--
+-- We are then all set to go.
+--
 data AEADMem = AEADMem { cipherInternals :: CI.Internals
                        , authInternals   :: AI.Internals
                        , internBuffer    :: CB.Buffer 1
@@ -128,12 +138,17 @@ instance Memory AEADMem where
   memoryAlloc     = AEADMem <$> memoryAlloc <*> memoryAlloc <*> memoryAlloc
   unsafeToPointer = unsafeToPointer . cipherInternals
 
-instance Initialisable AEADMem (Key Cipher, Nounce Cipher) where
-  initialise (k, n) AEADMem{..} = do
-    --
-    -- Initialise the Cipher with key and nounce.
-    --
-    initialise k cipherInternals
+-- | Initialise with the key of the cipher.
+instance Initialisable AEADMem (Key Cipher) where
+  initialise k = initialise k . cipherInternals
+
+instance WriteAccessible AEADMem where
+  writeAccess = writeAccess . cipherInternals
+  afterWriteAdjustment = afterWriteAdjustment . cipherInternals
+
+-- | Initialise after the key is already initialised.
+instance Initialisable AEADMem (Nounce Cipher) where
+  initialise n AEADMem{..} = do
     initialise n cipherInternals
     let zeroCount = 0 `blocksOf` (Proxy :: Proxy Cipher)
       in initialise zeroCount cipherInternals
@@ -146,7 +161,7 @@ instance Initialisable AEADMem (Key Cipher, Nounce Cipher) where
     --
     -- Initialise the authenticator from the keystream.
     --
-    CB.unsafeWithBufferPtr (unsafeTransfer $ confidentialReader authInternals) internBuffer
+    memTransfer (destination authInternals) (source internBuffer)
 
 --------------------- Internal functions ---------------------------------
 ---

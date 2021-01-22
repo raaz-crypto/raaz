@@ -44,7 +44,7 @@ description :: String
 -- the pseudo-random bytes generated in the past.
 data Internals
 instance Memory Internals
-instance Accessible Internals
+instance WriteAccessible Internals
 
 -- | The alignment required for buffer (hack around bug
 -- https://ghc.haskell.org/trac/ghc/ticket/15138)

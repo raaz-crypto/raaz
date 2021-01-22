@@ -14,7 +14,6 @@ module Interface
        -- ** Generating secure random data
        -- $securerandom$
        , withSecureRandomState
-       , randomiseAccess
        , randomiseMemory
        -- ** Types that can be generated randomly
        , Random(..), RandomStorable(..)
@@ -114,15 +113,11 @@ fillRandom :: (RandomStorable a, Pointer ptr)
            -> IO ()
 fillRandom n ptr rstate = unsafeWithPointer (\ rawPtr -> fillRandomElements n rawPtr rstate) ptr
 
--- | Randomise the contents of an access buffer.
-randomiseAccess :: Access -> RandomState -> IO ()
-randomiseAccess Access{..} rstate = do
-  fillRandomBytes accessSize (destination accessPtr) rstate
-  accessAfterWrite
 
 -- | Randomise the contents of an accessible memory.
-randomiseMemory :: Accessible mem => mem -> RandomState -> IO ()
-randomiseMemory mem rstate = mapM_ (flip randomiseAccess rstate) $ confidentialAccess mem
+randomiseMemory :: WriteAccessible mem => mem -> RandomState -> IO ()
+randomiseMemory mem rstate = mapM_ randomise $ writeAccess mem
+  where randomise Access{..} = fillRandomBytes accessSize (destination accessPtr) rstate
 
 -- TOTHINK:
 -- -------

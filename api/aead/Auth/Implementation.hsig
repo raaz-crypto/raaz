@@ -16,5 +16,5 @@ data Internals
 instance Eq Prim
 instance Equality Prim
 instance Memory Internals
-instance Accessible Internals
+instance WriteAccessible Internals
 instance Extractable Internals Prim

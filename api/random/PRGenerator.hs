@@ -109,9 +109,10 @@ instance Memory RandomState where
   memoryAlloc     = RandomState <$> memoryAlloc <*> memoryAlloc
   unsafeToPointer = unsafeToPointer . randomCxt
 
--- | Gives access into the internals of the
-instance Accessible RandomState where
-  confidentialAccess = confidentialAccess . cxtInternals . randomCxt
+-- | Gives access into the internals of the associated cipher.
+instance WriteAccessible RandomState where
+  writeAccess          = writeAccess . cxtInternals . randomCxt
+  afterWriteAdjustment = afterWriteAdjustment . cxtInternals . randomCxt
 
 -- | Execute an action that takes the CSPRG state.
 withRandomState :: (RandomState -> IO a) -> IO a
@@ -162,7 +163,7 @@ generateRandom rstate@RandomState{..} = do
 
 -- | Initialise the internals from the entropy source.
 unsafeInitWithEntropy :: RandomState -> IO ()
-unsafeInitWithEntropy = mapM_ initWithEntropy . confidentialAccess
+unsafeInitWithEntropy = mapM_ initWithEntropy . writeAccess
   where initWithEntropy Access{..} = getEntropy accessSize accessPtr
 
 -- | Initialise the internals from the already generated blocks. CSPRG
@@ -171,7 +172,7 @@ unsafeInitWithEntropy = mapM_ initWithEntropy . confidentialAccess
 -- is enough data left to give out for subsequent calls. Otherwise
 -- each sampling will result in a infinite loop.
 unsafeInitFromBuffer :: RandomState -> IO ()
-unsafeInitFromBuffer rstate@RandomState{..} = mapM_ initFromBuffer $ confidentialAccess rstate
+unsafeInitFromBuffer rstate@RandomState{..} = mapM_ initFromBuffer $ writeAccess rstate
   where initFromBuffer Access{..}
           = unsafeWriteTo accessSize (destination accessPtr) randomCxt
 
