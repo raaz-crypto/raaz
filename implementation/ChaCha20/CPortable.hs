@@ -63,7 +63,7 @@ xchacha20Setup (XNounce tup) mem = do
 
 -- | Copy the key from the memory cell chacha20Mem.
 copyKey :: Dest ChaCha20Mem -> Src (MemoryCell (Key ChaCha20)) -> IO ()
-copyKey = copyConfidential . fmap keyCell
+copyKey = copyCell . fmap keyCell
 
 -------------- Helper function for running an iterator -----------
 runBlockProcess :: ( Ptr buf ->

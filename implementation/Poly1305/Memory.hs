@@ -82,6 +82,10 @@ instance Extractable Mem Poly1305 where
             project :: Tuple 3 Word64 -> Tuple 2 Word64
             project = initial
 
-instance Accessible Mem where
-  confidentialAccess mem = rAccessC mem  ++ confidentialAccess (sCell mem)
-    where rAccessC = map (unsafeClampAccess clampPtr) . confidentialAccess . rCell
+instance WriteAccessible Mem where
+  writeAccess mem          = writeAccess (rCell mem) ++ writeAccess (sCell mem)
+  afterWriteAdjustment mem = do
+    clearAcc mem
+    afterWriteAdjustment $ rCell mem
+    afterWriteAdjustment $ sCell mem
+    clamp mem
