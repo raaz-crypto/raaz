@@ -30,6 +30,12 @@ import Raaz.Core
 data Prim
 instance Primitive Prim
 
+-- | The name of the implementation.
+name :: String
+
+-- | The description of the implementation.
+description :: String
+
 -- | The internal memory. It should be possible to initialise the
 -- contents of the internal memory from a buffer. After generating
 -- some pseudo-random bytes, we use this ability to achieve the /fast
@@ -38,7 +44,7 @@ instance Primitive Prim
 -- the pseudo-random bytes generated in the past.
 data Internals
 instance Memory Internals
-instance InitialisableFromBuffer Internals
+instance WriteAccessible Internals
 
 -- | The alignment required for buffer (hack around bug
 -- https://ghc.haskell.org/trac/ghc/ticket/15138)
@@ -62,4 +68,5 @@ reseedAfter :: BlockCount Prim
 -- desired, this function is not suitable.
 randomBlocks :: AlignedBlockPtr BufferAlignment Prim
              -> BlockCount Prim
-             -> MT Internals ()
+             -> Internals
+             -> IO ()

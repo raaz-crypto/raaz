@@ -5,10 +5,8 @@
 -- | The portable C-implementation of Blake2b.
 module Blake2b.CHandWritten where
 
-import Foreign.Ptr                ( Ptr          )
-import Control.Monad.IO.Class     ( liftIO       )
-
 import Raaz.Core
+import Raaz.Core.Transfer.Unsafe
 import Raaz.Core.Types.Internal
 import Raaz.Primitive.HashMemory
 import Raaz.Primitive.Blake2.Internal
@@ -54,27 +52,31 @@ foreign import ccall unsafe
 --
 processBlocks :: BufferPtr
               -> BlockCount Blake2b
-              -> MT Blake2bMem ()
+              -> Blake2bMem
+              -> IO ()
 
-processBlocks buf blks = do uPtr   <- uLengthCellPointer
-                            lPtr   <- lLengthCellPointer
-                            hshPtr <- hashCell128Pointer
-                            liftIO $ c_blake2b_compress buf blks uPtr lPtr hshPtr
+processBlocks buf blks b2bmem =
+  let uPtr = uLengthCellPointer b2bmem
+      lPtr = lLengthCellPointer b2bmem
+      hshPtr = hashCell128Pointer b2bmem
+  in c_blake2b_compress buf blks uPtr lPtr hshPtr
 
 -- | Process the last bytes.
 processLast :: BufferPtr
             -> BYTES Int
-            -> MT Blake2bMem ()
-processLast buf nbytes  = do
-  unsafeTransfer padding $ forgetAlignment buf  -- pad the message
-  processBlocks buf nBlocks                     -- process all but the last block
+            -> Blake2bMem
+            -> IO ()
+processLast buf nbytes b2bmem  = do
+  unsafeTransfer padding buf         -- pad the message
+  processBlocks buf nBlocks b2bmem   -- process all but the last block
   --
   -- Handle the last block
   --
-  u      <- getULength
-  l      <- getLLength
-  hshPtr <- hashCell128Pointer
-  liftIO $ c_blake2b_last lastBlockPtr remBytes u l f0 f1 hshPtr
+  let
+      hshPtr = hashCell128Pointer b2bmem
+    in  do u <- getULength b2bmem
+           l <- getLLength b2bmem
+           c_blake2b_last lastBlockPtr remBytes u l f0 f1 hshPtr
 
   where padding      = blake2Pad (Proxy :: Proxy Blake2b) nbytes
         nBlocks      = atMost (transferSize padding) `mappend` toEnum (-1)

@@ -1,3 +1,4 @@
+{-# OPTIONS_HADDOCK hide                #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE FlexibleInstances          #-}
 -- | A module that abstracts out monoidal actions.
@@ -30,8 +31,8 @@ import Raaz.Core.Types.Pointer
 -- We start with setting up some terminology.  Our setting here is a
 -- space of points (captured by the type @space@) on which a monoid
 -- (captured by the type @m@) acts. The space which we are most
--- interested in is the space of `CryptoPtr` and the monoid that act
--- on it can be any instance of `LengthUnit` as described above.
+-- interested in is the space of pointers and the monoid that act on
+-- it can be any instance of `LengthUnit` as described above.
 --
 -- In this module, we consider /left/ actions of monoids, although
 -- right actions can be analogously defined as well. For applications
@@ -180,13 +181,13 @@ instance DistributiveF m f => Applicative (TwistRF f m) where
 -- The main goal behind looking at monoidal actions are to captures
 -- concrete objects of interest to us like parsers, serialisers and
 -- memory allocators. These are essentially functions with domain
--- `CryptoPtr`. For example, a parser is a function that takes a
--- `CryptoPtr`, reads @n@ bytes say and produces a result a. To
--- sequence the next parse we need to essentially keep track of this
--- @n@. If we abstract this out to the general setting we need to
--- consider functions whose domain is the space of points. We use the
--- physicist's terminology and call them fields. The action of the
--- monoid on a space of points naturally extends to fields on them
+-- `Ptr`. For example, a parser is a function that takes a `Ptr`,
+-- reads @n@ bytes say and produces a result a. To sequence the next
+-- parse we need to essentially keep track of this @n@. If we abstract
+-- this out to the general setting we need to consider functions whose
+-- domain is the space of points. We use the physicist's terminology
+-- and call them fields. The action of the monoid on a space of points
+-- naturally extends to fields on them
 --
 -- @F^g   = λ x -> F (x^g) @
 --
@@ -232,6 +233,6 @@ instance (Arrow arrow, LAction m space) => LActionF m (WrappedArrow arrow space)
 instance (Arrow arrow, LAction m space) => DistributiveF m (WrappedArrow arrow space)
 
 -- | The most interesting monoidal action for us.
-instance LengthUnit u => LAction u Pointer where
+instance LengthUnit u => LAction u (Ptr a) where
   a <.> ptr  = movePtr ptr a
   {-# INLINE (<.>) #-}

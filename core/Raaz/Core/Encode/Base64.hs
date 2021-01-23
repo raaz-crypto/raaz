@@ -1,5 +1,6 @@
--- | Base 64 encoding of objects.
+{-# OPTIONS_HADDOCK hide                #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+-- | Base 64 encoding of objects.
 module Raaz.Core.Encode.Base64( Base64 ) where
 
 import Data.Char

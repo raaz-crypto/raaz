@@ -5,9 +5,6 @@
 -- | The portable C-implementation of Blake2b.
 module ChaCha20.CHandWritten where
 
-import Control.Monad.IO.Class     ( liftIO       )
-import Foreign.Ptr                ( Ptr          )
-
 import Raaz.Core
 import Raaz.Core.Types.Internal
 import Raaz.Primitive.ChaCha20.Internal
@@ -42,18 +39,20 @@ foreign import ccall unsafe
 
 processBlocks :: BufferPtr
               -> BlockCount Prim
-              -> MT Internals ()
+              -> Internals
+              -> IO ()
 
-processBlocks buf blks =
-  do keyPtr     <- keyCellPtr
-     ivPtr      <- ivCellPtr
-     counterPtr <- counterCellPtr
-     liftIO     $ c_chacha20_block buf blks keyPtr ivPtr counterPtr
+processBlocks buf blks mem =
+  let keyPtr     = keyCellPtr mem
+      ivPtr      = ivCellPtr mem
+      counterPtr = counterCellPtr mem
+  in c_chacha20_block buf blks keyPtr ivPtr counterPtr
 
 -- | Process the last bytes.
 processLast :: BufferPtr
             -> BYTES Int
-            -> MT Internals ()
+            -> Internals
+            -> IO ()
 processLast buf = processBlocks buf . atLeast
 
 -- | The number of blocks of the cipher that is generated in one go
@@ -67,6 +66,7 @@ reseedAfter = blocksOf (1024 * 1024 * 1024) (Proxy :: Proxy Prim)
 
 randomBlocks :: BufferPtr
              -> BlockCount Prim
-             -> MT Internals ()
+             -> Internals
+             -> IO ()
 
 randomBlocks  = processBlocks

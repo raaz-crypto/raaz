@@ -4,7 +4,6 @@ Raaz: A secure cryptographic library
 [![Apache-2.0 OR BSD-3-Clause][shields-license]](#legal)
 [![][ci-build]][github-actions]
 [![][ci-checks]][github-actions]
-[![Build Windows][appveyor-status]][appveyor-raaz]
 [![Hackage][hackage-badge]][hackage]
 [![Hackage Dependencies][hackage-deps-badge]][hackage-deps]
 
@@ -83,8 +82,6 @@ LICENSE file.
 [hackage-badge]: <https://img.shields.io/hackage/v/raaz.svg>
 [hackage-deps-badge]: <https://img.shields.io/hackage-deps/v/raaz.svg>
 [hackage-deps]: <https://packdeps.haskellers.com/feed?needle=raaz>
-[appveyor-status]: <https://ci.appveyor.com/api/projects/status/github/raaz-crypto/raaz?branch=master&svg=true>
-[appveyor-raaz]: <https://ci.appveyor.com/project/raaz-crypto/raaz>
 [shields-license]: <https://img.shields.io/badge/License-Apache--2.0%20OR%20BSD--3--Clause-informational.svg>
 [ci-build]: <https://github.com/raaz-crypto/raaz/workflows/Build/badge.svg> "Building source"
 [ci-checks]: <https://github.com/raaz-crypto/raaz/workflows/Checks/badge.svg> "Source code checks"

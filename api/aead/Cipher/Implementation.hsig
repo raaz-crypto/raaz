@@ -4,7 +4,15 @@
 {-# LANGUAGE FlexibleContexts            #-}
 {-# LANGUAGE TypeFamilies                #-}
 
--- | Implementation for the cipher part of the AEAD construction.
+-- | Implementation for the cipher part of the AEAD construction. It is assumed that
+-- the initialisation of the cipher `Internals` is done in the following order.
+--
+-- 1. Initialise the key either using initialise or using the `WriteAccessable` interface
+--
+-- 2. Initialise the nounce
+--
+-- 3. Initialise the BlockCount
+--
 signature Cipher.Implementation where
 
 import           Raaz.Core
@@ -17,7 +25,10 @@ data Internals
 instance Memory Internals
 
 instance Initialisable Internals (Key Prim)
+
+-- | Write access to key is provided.
+instance WriteAccessible Internals
 instance Initialisable Internals (Nounce Prim)
 instance Initialisable Internals (BlockCount Prim) -- To restore/advance
-                                               -- to a particular
-                                               -- block in the stream
+                                                   -- to a particular
+                                                   -- block in the stream

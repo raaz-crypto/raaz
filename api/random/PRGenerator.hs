@@ -5,29 +5,34 @@
 -- underlying algorithm used in systems like OpenBSD in their
 -- implementation of arc4random.
 --
--- __Note:__ These details are only for developers and reviewers and a
--- casual user is discouraged from looking into this or worse tweaking
--- stuff here.
+-- __WARNING:__ These details are only for developers and reviewers of
+-- raaz the library. A casual user should not be looking into this
+-- module this let alone tweaking the code here.
 --
 
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE DataKinds        #-}
+{-# LANGUAGE RecordWildCards   #-}
+-- {-# LANGUAGE NamedFieldPun    #-}
+
 module PRGenerator
        ( -- * Pseudo-random generator
          -- $internals$
-         RandomState, reseed, fillRandomBytes
+         RandomState, reseed, fillRandomBytes,
+         withRandomState, withSecureRandomState
          -- ** Information about the cryptographic generator.
        , entropySource, csprgName, csprgDescription
        ) where
 
-import Control.Monad.Reader
+import Foreign.Ptr ( castPtr )
 import Entropy
 import Prelude
 
 import Raaz.Core
+import Raaz.Core.Memory
 
 import Implementation
-import Buffer
+import Context
 
 -- $internals$
 --
@@ -43,9 +48,9 @@ import Buffer
 -- supports the generation of multiple blocks of data once its
 -- internals are set. The overall idea is to set the internals from a
 -- truly random source and then use the primitive to expand the
--- internal state into pseudo-random bytes. However there are tricky
+-- internal state into pseudo-random bytes. However, there are tricky
 -- issues regarding forward security that will make such a simplistic
--- algorithm insecure. Besides where do we get our truly random seed
+-- algorithm insecure. Besides, where do we get our truly random seed
 -- to begin the process?
 --
 -- We more or less follow the /fast key erasure technique/
@@ -56,9 +61,9 @@ import Buffer
 -- [Seeding:] Setting the internal state of a primitive. We use the
 -- `getEntropy` function for this purposes.
 --
--- [Sampling:] Pre-computing a few random blocks using the
--- `randomBlocks` function of in an auxiliary buffer which in turn is
--- used to satisfy the requests for random bytes.
+-- [Sampling:] Pre-computing a few blocks using `randomBlocks` that
+-- will later on be used to satisfy satisfy the requests for random
+-- bytes.
 --
 -- Instead of running the `randomBlocks` for every request, we
 -- generate `RandomBufferSize` blocks of random blocks in an auxiliary
@@ -94,132 +99,110 @@ csprgName = name
 csprgDescription :: String
 csprgDescription = description
 
--- | The buffer to store randomness.
-type RandomBuffer = Buffer RandomBufferSize
-
 -- | Memory for storing the csprg state.
-data RandomState = RandomState { internals       :: Internals
-                               , auxBuffer       :: RandomBuffer
-                               , remainingBytes  :: MemoryCell (BYTES Int)
-                               , blocksGenerated :: MemoryCell (BlockCount Prim)
+data RandomState = RandomState { randomCxt       :: Cxt RandomBufferSize
+                               , randomGenBlocks :: MemoryCell (BlockCount Prim)
                                }
 
 
 instance Memory RandomState where
-  memoryAlloc     = RandomState <$> memoryAlloc <*> memoryAlloc <*> memoryAlloc <*> memoryAlloc
-  unsafeToPointer = unsafeToPointer  . internals
+  memoryAlloc     = RandomState <$> memoryAlloc <*> memoryAlloc
+  unsafeToPointer = unsafeToPointer . randomCxt
+
+-- | Gives access into the internals of the associated cipher.
+instance WriteAccessible RandomState where
+  writeAccess          = writeAccess . cxtInternals . randomCxt
+  afterWriteAdjustment = afterWriteAdjustment . cxtInternals . randomCxt
+
+-- | Execute an action that takes the CSPRG state.
+withRandomState :: (RandomState -> IO a) -> IO a
+withRandomState action = withMemory (\ rstate -> reseed rstate >> action rstate)
+
+-- | Execute an action that takes a memory element and random state
+-- such that all the memory allocated for both of them is locked.
+withSecureRandomState :: Memory mem => (mem -> RandomState -> IO a) -> IO a
+withSecureRandomState action = withSecureMemory (uncurry actionP)
+  where actionP mem rstate = reseed rstate >> action mem rstate
 
 -------------------------------- The PRG operations ---------------------------------------------
 
--- | This function generates new random bytes just like
--- `newSample`. However, it fills the state with entropy form the
--- system if required.
-sampleWithSeedIfReq :: MT RandomState ()
-sampleWithSeedIfReq = do
-  nGenBlocks <- getGenBlocks
-  if nGenBlocks >= reseedAfter
-    then clearBlocks >> reseed
-    else newSample
-  where getGenBlocks = withReaderT blocksGenerated extract
-        clearBlocks = withReaderT blocksGenerated $ initialise (blocksOf 0 (Proxy :: Proxy Prim))
+-- | Generate a new sample, i.e. fill the context with psrg.
+sample :: RandomState -> IO ()
+sample rstate@RandomState{..} = do
+  genBlocks <- extract randomGenBlocks
+  if genBlocks >= reseedAfter then reseed rstate
+    else generateRandom rstate
 
--- | Reseed the prg from the system entropy pool.
-reseed :: MT RandomState ()
-reseed = runOnInternals initFromEntropyPool >> newSample
-  where initFromEntropyPool = withMemoryPtr getEntropy
-
--- | This fills in the auxiliary buffer with some generated bytes. A
--- portion of this generated bytes is used to re-initialise the
--- Internal memory with key that an accidental revelation of the state
--- will not compromise the past bytes that are generated.
-newSample :: MT RandomState ()
-newSample = generateRandom >> reInitStateFromBuffer
-
--- | Generate random bytes into the buffer in one go which will then
--- be slowly released to the outside world. We need to do some book
--- keeping here namely, updating the total bytes remaining and the
--- total number of blocks of the primitive generated.
-generateRandom :: MT RandomState ()
-generateRandom = withAuxBuffer csprgBuf
-                 >> updateGenBlocks
-                 >> setRemainingBytes howMuch
-  where csprgBuf bufPtr = withReaderT internals $ randomBlocks bufPtr howMuch
-        updateGenBlocks = withReaderT blocksGenerated $ modify (mappend howMuch)
-        howMuch         = bufferSize (Proxy :: Proxy RandomBuffer)
+-- | Reseed the state from the system entropy pool. The CSPRG
+-- interface automatically takes care of reseeding from the entropy
+-- pool at regular intervals and the user almost never needs to use
+-- this.
+reseed :: RandomState -> IO ()
+reseed rstate@RandomState{..} = do
+  unsafeInitWithEntropy rstate
+  initialise zeroBlocks randomGenBlocks
+  generateRandom rstate
 
 
--- | Re-initialise the internal state from the auxiliary buffer.
-reInitStateFromBuffer :: MT RandomState ()
-reInitStateFromBuffer = do
-  rdr <- initialiser <$> runOnInternals ask
-  let nbytes = transferSize rdr
-    in unsafeWithExisting nbytes (runOnInternals . unsafeTransfer rdr)
+-- | Generate random bytes into the context in one go which will then
+-- be slowly released to the outside world. We also keep track of how
+-- much blocks is generated which will be used to check when to reseed
+-- the generator from system entropy.
+generateRandom :: RandomState -> IO ()
+generateRandom rstate@RandomState{..} = do
+  unsafeGenerateBlocks randomBlocks randomCxt
+  modifyMem (mappend $ cxtBlockCount $ pure randomCxt) randomGenBlocks
+  unsafeInitFromBuffer rstate
 
--------------------------- Some helper functions on random state -------------------
+------------------------------ DANGEROUS ACCESS manipulation ------------------------
 
--- | Run an action on the auxilary buffer.
-withAuxBuffer :: (BufferPtr -> MT RandomState a) -> MT RandomState a
-withAuxBuffer action = askBufferPointer >>= action
-  where askBufferPointer = asks $ getBufferPointer . auxBuffer
+--
+-- These are highly unsafe code do not export. All hell breaks loose
+-- otherwise.
+--
 
-runOnInternals :: MT Internals a -> MT RandomState a
-runOnInternals = withReaderT internals
+-- | Initialise the internals from the entropy source.
+unsafeInitWithEntropy :: RandomState -> IO ()
+unsafeInitWithEntropy = mapM_ initWithEntropy . writeAccess
+  where initWithEntropy Access{..} = getEntropy accessSize accessPtr
 
--- | Get the number of bytes in the buffer.
-getRemainingBytes :: MT RandomState (BYTES Int)
-getRemainingBytes = withReaderT remainingBytes extract
-
--- | Set the number of remaining bytes.
-setRemainingBytes :: LengthUnit l => l -> MT RandomState ()
-setRemainingBytes = withReaderT remainingBytes . initialise . inBytes
-
-
-
---------------------------- DANGEROUS CODE ---------------------------------------
-
--- NONTRIVIALITY: Picking up the newSample is important when we first
--- reseed.
-
--- | The function to generate random bytes. Fills from existing bytes
--- and continues if not enough bytes are obtained.
-fillRandomBytes :: LengthUnit l => l -> Pointer -> MT RandomState ()
-fillRandomBytes l = go (inBytes l)
-  where go m ptr
-          | m > 0     = do mGot <- fillExistingBytes m ptr   -- Fill from the already generated buffer.
-                           when (mGot <= 0) sampleWithSeedIfReq
-                           go (m - mGot) $ movePtr ptr mGot  -- Get the remaining.
-          | otherwise = return ()   -- Nothing to do
+-- | Initialise the internals from the already generated blocks. CSPRG
+-- implementations should ensure that the context is large enough to
+-- hold enough bytes so even after initialising the internals, there
+-- is enough data left to give out for subsequent calls. Otherwise
+-- each sampling will result in a infinite loop.
+unsafeInitFromBuffer :: RandomState -> IO ()
+unsafeInitFromBuffer rstate@RandomState{..} = mapM_ initFromBuffer $ writeAccess rstate
+  where initFromBuffer Access{..}
+          = unsafeWriteTo accessSize (destination accessPtr) randomCxt
 
 
--- | Fill from already existing bytes. Returns the number of bytes
--- filled. Let remaining bytes be r. Then fillExistingBytes will fill
--- min(r,m) bytes into the buffer, and return the number of bytes
--- filled.
-fillExistingBytes :: BYTES Int -> Pointer -> MT RandomState (BYTES Int)
-fillExistingBytes req ptr = do
-  r <- getRemainingBytes
-  let m = min r req
-    in do unsafeWithExisting m (\ sPtr -> memcpy (destination ptr) (source sPtr) m)
-          return m
+-- | Zero blocks of the primitive
+zeroBlocks :: BlockCount Prim
+zeroBlocks = 0 `blocksOf` Proxy
 
--- | Transfer from existing bytes. This is unsafe because no checks is
--- done to see if there are enough bytes to transfer.
-unsafeWithExisting :: BYTES Int
-                   -> (BlockPtr Prim -> MT RandomState ())
-                   -> MT RandomState ()
-unsafeWithExisting m action =  withAuxBuffer $ \ buf -> do
-  r <- getRemainingBytes
-  let sptr    = forgetAlignment buf --
-      l       = r - m               -- leftovers
-      tailPtr = movePtr sptr l
-      in do
-    -- Fills the source ptr from the end.
-    --  sptr                tailPtr
-    --   |                  |
-    --   V                  V
-    --   -----------------------------------------------------
-    --   |   l              |    m                           |
-    --   -----------------------------------------------------
-    action tailPtr          -- run the transfer action from the tail.
-    wipeMemory tailPtr m    -- wipe the bytes already transfered.
-    setRemainingBytes l     -- set leftover bytes.
+
+unsafeRandomBytes :: BYTES Int
+                  -> Dest (Ptr Word8)
+                  -> RandomState -> IO ()
+unsafeRandomBytes sz destPtr rstate@RandomState{..}
+  = go sz destPtr
+  where go n ptr
+          | n <= 0 = return ()
+          | otherwise = do trfed <- unsafeWriteTo n ptr randomCxt
+                           let more    = n - trfed
+                               nextPtr = (`movePtr` trfed) <$> ptr
+                             in when (more > 0) $ sample rstate >> go more nextPtr
+
+-- | Fill a buffer pointed by the given pointer with random bytes.
+fillRandomBytes :: (LengthUnit l, Pointer ptr)
+                => l
+                -> Dest (ptr a)
+                -> RandomState
+                -> IO ()
+fillRandomBytes l ptr = unsafeRandomBytes (inBytes l) wptr
+  where wptr = fmap (castPtr . unsafeRawPtr) ptr
+
+instance ByteSource RandomState where
+  fillBytes n rstate ptr
+    = unsafeRandomBytes n (destination (castPtr ptr)) rstate >> return (Remaining rstate)

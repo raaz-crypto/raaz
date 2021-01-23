@@ -1,5 +1,8 @@
--- | Base 16 or hexadecimal encoding of objects.
+{-# OPTIONS_HADDOCK hide                #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+
+-- | Base 16 or hexadecimal encoding of objects.
+
 module Raaz.Core.Encode.Base16
        ( Base16
        , fromBase16, showBase16

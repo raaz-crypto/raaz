@@ -21,7 +21,7 @@ entropySource = "getrandom(linux)"
 foreign import ccall unsafe
   "syscall"
   c_syscall :: CLong
-            -> Pointer      -- Message
+            -> Ptr Word8    -- Message
             -> BYTES Int    -- number of bytes to be read.
             -> Int          -- flags
             -> IO (BYTES Int)
@@ -32,5 +32,5 @@ sysGETRANDOM = #const SYS_getrandom
 -- | Get random bytes from using the @getrandom@ system call on
 -- linux. This is only used to seed the PRG and not intended for call
 -- by others.
-getEntropy :: BYTES Int -> Pointer -> IO (BYTES Int)
+getEntropy :: BYTES Int -> Ptr Word8 -> IO (BYTES Int)
 getEntropy l ptr = c_syscall sysGETRANDOM ptr l 0

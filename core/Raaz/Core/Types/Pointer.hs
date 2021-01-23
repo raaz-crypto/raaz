@@ -1,3 +1,4 @@
+{-# OPTIONS_HADDOCK hide                #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE FlexibleInstances          #-}
@@ -12,32 +13,32 @@
 -- library.
 module Raaz.Core.Types.Pointer
        ( -- * Pointers, offsets, and alignment
-         Ptr, Pointer, AlignedPointer, AlignedPtr(..), onPtr, ptrAlignment, nextAlignedPtr
-       , castAlignedPtr
+         -- $basics$
          -- ** Type safe length units.
-       , LengthUnit(..)
-       , BYTES(..), BITS(..), inBits
-       , sizeOf
-         -- *** Some length arithmetic
-       , bitsQuotRem, bytesQuotRem
-       , bitsQuot, bytesQuot
+         LengthUnit(..)
+       , BYTES(..)
+         -- *** Some length functions.
        , atLeast, atLeastAligned, atMost
-         -- ** Types measuring alignment
-       , Alignment, wordAlignment
-       , alignment, alignPtr, movePtr, alignedSizeOf, nextLocation, peekAligned, pokeAligned
-         -- ** Allocation functions.
-       , allocaBuffer, allocaAligned, allocaSecure
-         -- ** Some buffer operations
-       , memset
+       --  ** Type safe functions on Ptr
+       , Ptr
+       , sizeOf, alignment, alignedSizeOf
+       , movePtr, alignPtr, nextLocation
+       , peekAligned, pokeAligned
+
+         -- ** The class of pointer types.
+       , Pointer(..), unsafeWithPointer, unsafeWithPointerCast
+       , AlignedPtr (..) , ptrAlignment, nextAlignedPtr
+       , allocaBuffer, allocaSecure
+         -- ** Some low level pointer actions
        , wipeMemory
+       , memset
        , memcpy
        , hFillBuf
        ) where
 
 
 
-import           Control.Exception     ( bracket )
-import           Control.Monad.IO.Class
+import           Control.Exception     ( bracket_ )
 
 import           Data.Vector.Unboxed         ( MVector(..), Vector, Unbox )
 import           Foreign.Marshal.Alloc
@@ -53,7 +54,6 @@ import qualified Data.Vector.Generic.Mutable as GVM
 import Raaz.Core.Prelude
 import Raaz.Core.Types.Equality
 import Raaz.Core.Types.Copying
-import Raaz.Core.IOCont
 
 -- $basics$
 --
@@ -69,37 +69,6 @@ import Raaz.Core.IOCont
 -- `Pointer` and distinguish between different length units at the
 -- type level. This helps in to avoid a lot of length conversion
 -- errors.
-
--- | A newtype declaration so as to avoid orphan instances.
-newtype Byte = BYTE Word8 deriving Storable
-
--- | The pointer type used by raaz.
-type Pointer = Ptr Byte
-
-
--- | The type @AlignedPtr n@ that captures pointers that are aligned
--- to @n@ byte boundary.
-newtype AlignedPtr (n :: Nat) a = AlignedPtr { forgetAlignment :: Ptr a}
-
--- | Change the type of the aligned pointer not its alignment.
-castAlignedPtr :: AlignedPtr n a -> AlignedPtr n b
-castAlignedPtr = AlignedPtr . castPtr . forgetAlignment
-
-type AlignedPointer n = AlignedPtr n Byte
-
--- | Run a pointer action on the associated aligned pointer.
-onPtr :: (Ptr a -> b) -> AlignedPtr n a -> b
-onPtr action = action . forgetAlignment
-
--- | Recover the alignment restriction of the pointer.
-ptrAlignment :: KnownNat n => Proxy (AlignedPtr n a) -> Alignment
-ptrAlignment = toEnum . fromEnum . natVal . getAlignProxy
-  where getAlignProxy :: Proxy (AlignedPtr n a) -> Proxy n
-        getAlignProxy _ = Proxy
-
-nextAlignedPtr :: (Storable a, KnownNat n) => Ptr a -> AlignedPtr n a
-nextAlignedPtr ptr = thisPtr
-  where thisPtr = AlignedPtr $ alignPtr ptr $ ptrAlignment $ pure thisPtr
 
 -------------------------- Length Units --------- -------------------
 
@@ -131,11 +100,8 @@ newtype BYTES a  = BYTES a
                  , Real, Num, Storable, Bounded, Bits
                  )
 
--- | Type safe lengths/offsets in units of bits.
-newtype BITS  a  = BITS  a
-        deriving ( Show, Eq, Equality, Ord, Enum, Integral
-                 , Real, Num, Storable, Bounded
-                 )
+instance Functor BYTES where
+   fmap f (BYTES x) = BYTES (f x)
 
 instance Num a => Semigroup (BYTES a) where
   (<>) = (+)
@@ -144,14 +110,62 @@ instance Num a => Monoid (BYTES a) where
   mempty  = 0
   mappend = (<>)
 
+------------------------ Alignment --------------------------------
+
+-- | Types to measure alignment in units of bytes.
+newtype Alignment = Alignment { unAlignment :: Int }
+        deriving ( Show, Eq, Ord, Enum)
+
+instance Semigroup Alignment where
+  (<>) a b = Alignment $ lcm (unAlignment a) (unAlignment b)
+
+instance Monoid Alignment where
+  mempty  = Alignment 1
+  mappend = (<>)
+
+---------- Type safe versions of some pointer functions -----------------
+
+-- | Compute the size of a storable element.
+sizeOf :: Storable a => Proxy a -> BYTES Int
+sizeOf = BYTES . FS.sizeOf . asProxyTypeOf undefined
+
+-- | Compute the alignment for a storable object.
+alignment :: Storable a => Proxy a -> Alignment
+alignment =  Alignment . FS.alignment . asProxyTypeOf undefined
+
+-- | Move the given pointer with a specific offset.
+movePtr :: LengthUnit l => Ptr a -> l -> Ptr a
+movePtr ptr l = FP.plusPtr ptr offset
+  where BYTES offset = inBytes l
+
+-- | Align pointer to the next alignment
+alignPtr :: Storable a => Ptr a -> Alignment -> Ptr a
+alignPtr ptr = FP.alignPtr ptr . unAlignment
+
+-- | Size of the buffer to be allocated to store an element of type
+-- @a@ so as to guarantee that there exist enough space to store the
+-- element after aligning the pointer.
+alignedSizeOf  :: Storable a => Proxy a -> BYTES Int
+alignedSizeOf aproxy =  atLeastAligned (sizeOf aproxy) $ alignment aproxy
+
+-- | Compute the next aligned pointer starting from the given pointer
+-- location.
+nextLocation :: Storable a => Ptr a -> Ptr a
+nextLocation ptr = alignPtr ptr $ alignment $ getProxy ptr
+  where getProxy :: Ptr b -> Proxy b
+        getProxy  = const Proxy
+
+-- | Peek the element from the next aligned location.
+peekAligned :: Storable a => Ptr a -> IO a
+peekAligned = peek . nextLocation
+
+-- | Poke the element from the next aligned location.
+pokeAligned     :: Storable a => Ptr a -> a -> IO ()
+pokeAligned ptr =  poke $ nextLocation ptr
+
 instance LengthUnit (BYTES Int) where
   inBytes = id
   {-# INLINE inBytes #-}
-
--- | Express the length units in bits.
-inBits  :: LengthUnit u => u -> BITS Word64
-inBits u = BITS $ 8 * fromIntegral by
-  where BYTES by = inBytes u
 
 -- | Express length unit @src@ in terms of length unit @dest@ rounding
 -- upwards.
@@ -211,34 +225,191 @@ bytesQuotRem bytes = (u , r)
         (BYTES q, r)  = bytes `quotRem` divisor
         u             = toEnum q
 
--- | Function similar to `bytesQuotRem` but returns only the quotient.
-bytesQuot :: LengthUnit u
-          => BYTES Int
-          -> u
-bytesQuot bytes = u
-  where divisor = inBytes (toEnum 1 `asTypeOf` u)
-        q       = bytes `quot` divisor
-        u       = toEnum $ fromEnum q
+-- | Depending on the constraints of various pointers, raaz expose a
+-- variety of pointer types. This type class capturing such types. The
+-- main operation of interest to use is casting and allocation. All of
+-- these types have an underlying pointer which you can also be
+-- accessed.
+class Pointer (ptr :: * -> *) where
+
+  -- | Convert pointers of one type to another.
+  castPointer  :: ptr a -> ptr b
 
 
--- | Function similar to `bytesQuotRem` but works with bits instead.
-bitsQuotRem :: LengthUnit u
-            => BITS Word64
-            -> (u , BITS Word64)
-bitsQuotRem bits = (u , r)
-  where divisor = inBits (toEnum 1 `asTypeOf` u)
-        (q, r)  = bits `quotRem` divisor
-        u       = toEnum $ fromEnum q
+  -- | The `alloca` variant for this pointer type. The action
+  -- @allocaPointer l action@ allocates a buffer of size @l@ and
+  -- passes it on to @action@. No explicit de-allocation is required
+  -- just like in the case of `alloca`
+  allocaPointer :: BYTES Int        -- size to allocate
+                -> (ptr a  -> IO b) -- action to run
+                -> IO b
+  --
+  -- | Recover the underlying raw pointer.
+  unsafeRawPtr :: ptr a -> Ptr a
 
--- | Function similar to `bitsQuotRem` but returns only the quotient.
-bitsQuot :: LengthUnit u
-         => BITS Word64
-         -> u
-bitsQuot bits = u
-  where divisor = inBits (toEnum 1 `asTypeOf` u)
-        q       = bits `quot` divisor
-        u       = toEnum $ fromEnum q
+instance Pointer Ptr where
+  unsafeRawPtr             = id
+  {-# INLINE  unsafeRawPtr #-}
+  castPointer              = castPtr
+  {-# INLINE castPointer   #-}
+  allocaPointer (BYTES sz) = allocaBytes sz
 
+-- | Lifts raw pointer actions to the given pointer type.
+unsafeWithPointer :: Pointer ptr => (Ptr a -> b) -> ptr a -> b
+unsafeWithPointer action = action . unsafeRawPtr
+
+-- | Lifts raw pointer actions to a pointer action of a different type.
+unsafeWithPointerCast :: Pointer ptr => (Ptr a -> b) -> ptr something -> b
+unsafeWithPointerCast action = unsafeWithPointer action . castPointer
+
+-- | Allocate a buffer for an action that expects a generic
+-- pointer. Length can be specified in any length units.
+allocaBuffer :: ( LengthUnit l, Pointer ptr)
+             => l                        -- ^ buffer length
+             -> (ptr something -> IO b)  -- ^ the action to run
+             -> IO b
+allocaBuffer = allocaPointer . inBytes
+
+
+----------------- Secure allocation ---------------------------------
+
+-- | Variant of `allocaBuffer` that allocates a locked buffer of a
+-- given size and runs the action. The associated memory (1) exists
+-- for the duration of the action (2) will not be swapped during the
+-- action as guaranteed by the memlock function of the operating
+-- system and (3) will be wiped clean and deallocated when the action
+-- terminates either directly or indirectly via errors. While this is
+-- mostly secure, there are still edge cases in multi-threaded
+-- applications where the memory will not be cleaned. For example, if
+-- you run a crypto-sensitive action inside a child thread and the
+-- main thread gets exists, then the child thread is killed (due to
+-- the demonic nature of threads in GHC haskell) immediately and might
+-- not give it chance to wipe the memory clean. See
+-- <https://ghc.haskell.org/trac/ghc/ticket/13891> on this problem and
+-- possible workarounds.
+--
+allocaSecure :: ( LengthUnit l, Pointer ptr)
+             => l
+             -> (ptr a -> IO b)
+             -> IO b
+allocaSecure l action = allocaBuffer l actual
+    where actual ptr    = bracket_ (lockIt ptr) (releaseIt ptr) $ action ptr
+          lockIt ptr    = do c <- memlock ptr l
+                             when (c /= 0) $ fail "secure memory: unable to lock memory"
+                             -- TODO: Is this the best way to fail
+                             -- when no secure memory is available ?
+          releaseIt ptr = wipeMemory ptr l >>  memunlock ptr l
+
+foreign import ccall unsafe "raaz/core/memory.h raazMemorylock"
+  c_mlock :: Ptr a -> BYTES Int -> IO Int
+
+foreign import ccall unsafe "raaz/core/memory.h raazMemoryunlock"
+  c_munlock :: Ptr a -> BYTES Int -> IO ()
+
+foreign import ccall unsafe "raazWipeMemory" c_wipe_memory
+    :: Ptr a -> BYTES Int -> IO ()
+
+memlock :: (LengthUnit l, Pointer ptr)
+        => ptr a
+        -> l
+        -> IO Int
+memlock   ptr = unsafeWithPointer c_mlock ptr . inBytes
+
+memunlock :: (LengthUnit l, Pointer ptr)
+          => ptr a
+          -> l
+          -> IO ()
+memunlock ptr = unsafeWithPointer c_munlock ptr . inBytes
+
+-- | Cleanup the given pointer of any sensitive data. This is a tricky
+-- function to write as compilers are known to optimise this away. In
+-- our case we try to use the platform specific one if it exists.
+wipeMemory :: (LengthUnit l, Pointer ptr)
+            => ptr a   -- ^ buffer to wipe
+            -> l       -- ^ buffer length
+            -> IO ()
+wipeMemory p = void . unsafeWithPointer c_wipe_memory p . inBytes
+
+{-# SPECIALIZE memlock    :: Ptr a -> BYTES Int -> IO Int  #-}
+{-# SPECIALIZE memunlock  :: Ptr a -> BYTES Int -> IO ()   #-}
+{-# SPECIALISE wipeMemory :: Ptr a -> BYTES Int -> IO ()   #-}
+
+
+
+-------------------- Low level pointer operations ------------------
+
+-- | A version of `hGetBuf` which works for any type safe length units.
+hFillBuf :: (LengthUnit bufSize, Pointer ptr)
+         => Handle
+         -> ptr a
+         -> bufSize
+         -> IO (BYTES Int)
+{-# INLINE hFillBuf #-}
+hFillBuf handle ptr bufSize = BYTES <$> hGetBuf handle (unsafeRawPtr ptr) bytes
+  where BYTES bytes = inBytes bufSize
+
+------------------- Copy move and set contents ----------------------------
+
+-- | Some common PTR functions abstracted over type safe length.
+foreign import ccall unsafe "string.h memcpy" c_memcpy
+    :: Dest (Ptr dest) -> Src (Ptr src) -> BYTES Int -> IO (Ptr ())
+
+-- | Copy between pointers.
+memcpy :: (LengthUnit l, Pointer ptrS, Pointer ptrD)
+       => Dest (ptrD dest) -- ^ destination
+       -> Src  (ptrS src)  -- ^ src
+       -> l               -- ^ Number of Bytes to copy
+       -> IO ()
+memcpy dest src = void . c_memcpy destRaw srcRaw . inBytes
+  where destRaw = unsafeRawPtr <$> dest
+        srcRaw  = unsafeRawPtr <$> src
+
+{-# SPECIALIZE memcpy :: Dest (Ptr dest) -> Src (Ptr src) -> BYTES Int -> IO () #-}
+
+foreign import ccall unsafe "string.h memset" c_memset
+    :: Ptr buf -> Word8 -> BYTES Int -> IO (Ptr ())
+
+-- | Sets the given number of Bytes to the specified value.
+memset :: (LengthUnit l, Pointer ptr)
+       => ptr a     -- ^ Target
+       -> Word8     -- ^ Value byte to set
+       -> l         -- ^ Number of bytes to set
+       -> IO ()
+memset p w = void . unsafeWithPointer c_memset p w . inBytes
+{-# SPECIALIZE memset :: Ptr a -> Word8 -> BYTES Int -> IO () #-}
+
+-- | The type @AlignedPtr n@ that captures pointers that are aligned
+-- to @n@ byte boundary.
+newtype AlignedPtr (n :: Nat) a = AlignedPtr { forgetAlignment :: Ptr a}
+
+instance KnownNat n => Pointer (AlignedPtr n) where
+  unsafeRawPtr  = forgetAlignment
+  {-# INLINE unsafeRawPtr #-}
+  castPointer   = AlignedPtr . castPtr . forgetAlignment
+  {-# INLINE castPointer #-}
+
+  allocaPointer (BYTES sz) action =
+    allocaBytesAligned sz algn (action . AlignedPtr)
+    where algn  = fromEnum $ natVal $ getProxy action
+          getProxy :: (AlignedPtr n a -> IO b) -> Proxy n
+          getProxy _ = Proxy
+
+-- | Given a raw pointer (i.e. element of type `Ptr`), returns the
+-- next pointer aligned to @n@-bytes boundary.
+nextAlignedPtr :: (Storable a, KnownNat n) => Ptr a -> AlignedPtr n a
+nextAlignedPtr = alignIt
+  where alignIt ptr = AlignedPtr
+                      $ alignPtr ptr
+                      $ ptrAlignment
+                      $ getProxy alignIt
+        getProxy :: (Ptr a -> AlignedPtr n a) -> Proxy (AlignedPtr n a)
+        getProxy _  = Proxy
+
+-- | Compute the alignment restriction.
+ptrAlignment :: KnownNat n => Proxy (AlignedPtr n a) -> Alignment
+ptrAlignment = Alignment . fromEnum . natVal . coerce
+  where coerce :: Proxy (AlignedPtr n a) -> Proxy n
+        coerce = const Proxy
 --------------------------
 
 instance Unbox w => Unbox (BYTES w)
@@ -290,179 +461,3 @@ instance Unbox w => GV.Vector Vector (BYTES w) where
 
   basicUnsafeCopy (MV_BYTES mv) (V_BYTES v) = GV.basicUnsafeCopy mv v
   elemseq _ (BYTES x)                       = GV.elemseq (undefined :: Vector a) x
-
-
------------------------- Alignment --------------------------------
-
--- | Types to measure alignment in units of bytes.
-newtype Alignment = Alignment { unAlignment :: Int }
-        deriving ( Show, Eq, Ord, Enum)
-
--- | The default alignment to use is word boundary.
-wordAlignment :: Alignment
-wordAlignment = alignment (Proxy :: Proxy Word8)
-
-
-
-instance Semigroup Alignment where
-  (<>) a b = Alignment $ lcm (unAlignment a) (unAlignment b)
-
-instance Monoid Alignment where
-  mempty  = Alignment 1
-  mappend = (<>)
-
-
----------- Type safe versions of some pointer functions -----------------
-
--- | Compute the size of a storable element.
-sizeOf :: Storable a => Proxy a -> BYTES Int
-sizeOf = BYTES . FS.sizeOf . asProxyTypeOf undefined
-
--- | Size of the buffer to be allocated to store an element of type
--- @a@ so as to guarantee that there exist enough space to store the
--- element after aligning the pointer.
-alignedSizeOf  :: Storable a => Proxy a -> BYTES Int
-alignedSizeOf aproxy =  atLeastAligned (sizeOf aproxy) $ alignment aproxy
-
--- | Compute the alignment for a storable object.
-alignment :: Storable a => Proxy a -> Alignment
-alignment =  Alignment . FS.alignment . asProxyTypeOf undefined
-
--- | Align a pointer to the appropriate alignment.
-alignPtr :: Ptr a -> Alignment -> Ptr a
-alignPtr ptr = FP.alignPtr ptr . unAlignment
-
-
-
--- | Move the given pointer with a specific offset.
-movePtr :: LengthUnit l => Ptr a -> l -> Ptr a
-movePtr ptr l = FP.plusPtr ptr offset
-  where BYTES offset = inBytes l
-
--- | Compute the next aligned pointer starting from the given pointer
--- location.
-nextLocation :: Storable a => Ptr a -> Ptr a
-nextLocation ptr = alignPtr ptr $ alignment $ getProxy ptr
-  where getProxy :: Ptr b -> Proxy b
-        getProxy  = const Proxy
-
--- | Peek the element from the next aligned location.
-peekAligned :: Storable a => Ptr a -> IO a
-peekAligned = peek . nextLocation
-
--- | Poke the element from the next aligned location.
-pokeAligned     :: Storable a => Ptr a -> a -> IO ()
-pokeAligned ptr =  poke $ nextLocation ptr
-
--------------------------- Lifting pointer actions  ---------------------------
-
--- | Allocate a buffer for an action that expects a pointer. Length
--- can be specified in any length units.
-allocaBuffer :: (MonadIOCont m, LengthUnit l)
-             => l                  -- ^ buffer length
-             -> (Ptr something -> m b)  -- ^ the action to run
-             -> m b
-allocaBuffer l = liftIOCont $ allocaBytes b
-    where BYTES b = inBytes l
-
--- | Similar to `allocaBuffer` but for aligned pointers.
-allocaAligned :: (MonadIOCont m, LengthUnit l, KnownNat n)
-              => l
-              -> (AlignedPtr n a -> m b)
-              -> m b
-
-allocaAligned l action = liftIOCont (allocaBytesAligned b algn) $ action . AlignedPtr
-    where getProxy :: (AlignedPtr n a -> m b) -> Proxy (AlignedPtr n a)
-          getProxy _      = Proxy
-          BYTES     b     = inBytes l
-          Alignment algn  = ptrAlignment $ getProxy action
-
--- | This function allocates a chunk of "secure" memory of a given
--- size and runs the action. The memory (1) exists for the duration of
--- the action (2) will not be swapped during the action and (3) will
--- be wiped clean and deallocated when the action terminates either
--- directly or indirectly via errors. While this is mostly secure,
--- there are still edge cases in multi-threaded applications where the
--- memory will not be cleaned. For example, if you run a
--- crypto-sensitive action inside a child thread and the main thread
--- gets exists, then the child thread is killed (due to the demonic
--- nature of threads in GHC haskell) immediately and might not give it
--- chance to wipe the memory clean. See
--- <https://ghc.haskell.org/trac/ghc/ticket/13891> on this problem and
--- possible workarounds.
---
-allocaSecure :: (MonadIOCont m, LengthUnit l)
-             => l
-             -> (Pointer -> m a)
-             -> m a
-
-allocaSecure l action = liftIOCont (allocaBuffer l) actualAction
-    where actualAction cptr = liftIOCont (bracket (lockIt cptr) releaseIt) action
-          sz                = inBytes l
-          lockIt  cptr      = do c <- c_mlock cptr sz
-                                 when (c /= 0) $ fail "secure memory: unable to lock memory"
-                                 return cptr
-
-          releaseIt cptr    = wipeMemory cptr l >>  c_munlock cptr sz
-
-
-
-
-
-
------------------ Secure allocation ---------------------------------
-
-foreign import ccall unsafe "raaz/core/memory.h raazMemorylock"
-  c_mlock :: Pointer -> BYTES Int -> IO Int
-
-foreign import ccall unsafe "raaz/core/memory.h raazMemoryunlock"
-  c_munlock :: Pointer -> BYTES Int -> IO ()
-
--------------------- Low level pointer operations ------------------
-
--- | A version of `hGetBuf` which works for any type safe length units.
-hFillBuf :: LengthUnit bufSize
-         => Handle
-         -> Ptr a
-         -> bufSize
-         -> IO (BYTES Int)
-{-# INLINE hFillBuf #-}
-hFillBuf handle cptr bufSize = BYTES <$> hGetBuf handle cptr bytes
-  where BYTES bytes = inBytes bufSize
-
-------------------- Copy move and set contents ----------------------------
-
--- | Some common PTR functions abstracted over type safe length.
-foreign import ccall unsafe "string.h memcpy" c_memcpy
-    :: Dest (Ptr dest) -> Src (Ptr src) -> BYTES Int -> IO Pointer
-
--- | Copy between pointers.
-memcpy :: (MonadIO m, LengthUnit l)
-       => Dest (Ptr dest) -- ^ destination
-       -> Src  (Ptr src)  -- ^ src
-       -> l               -- ^ Number of Bytes to copy
-       -> m ()
-memcpy dest src = liftIO . void . c_memcpy dest src . inBytes
-
-{-# SPECIALIZE memcpy :: Dest Pointer -> Src Pointer -> BYTES Int -> IO () #-}
-
-foreign import ccall unsafe "string.h memset" c_memset
-    :: Ptr buf -> Word8 -> BYTES Int -> IO Pointer
-
--- | Sets the given number of Bytes to the specified value.
-memset :: (MonadIO m, LengthUnit l)
-       => Ptr a     -- ^ Target
-       -> Word8     -- ^ Value byte to set
-       -> l         -- ^ Number of bytes to set
-       -> m ()
-memset p w = liftIO . void . c_memset p w . inBytes
-{-# SPECIALIZE memset :: Pointer -> Word8 -> BYTES Int -> IO () #-}
-
-foreign import ccall unsafe "raazWipeMemory" c_wipe_memory
-    :: Ptr a -> BYTES Int -> IO Pointer
-
-wipeMemory :: (MonadIO m, LengthUnit l)
-            => Ptr a   -- ^ buffer to wipe
-            -> l       -- ^ buffer length
-            -> m ()
-wipeMemory p = liftIO . void . c_wipe_memory p . inBytes

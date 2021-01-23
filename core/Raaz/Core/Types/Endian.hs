@@ -1,3 +1,4 @@
+{-# OPTIONS_HADDOCK hide                #-}
 {-# LANGUAGE CPP                        #-}
 {-# LANGUAGE ForeignFunctionInterface   #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
@@ -22,7 +23,7 @@ module Raaz.Core.Types.Endian
 import           Control.DeepSeq             ( NFData)
 import           Data.Typeable
 import           Data.Vector.Unboxed         ( MVector(..), Vector, Unbox )
-import           Foreign.Ptr                 ( castPtr, Ptr )
+import           Foreign.Ptr                 ( castPtr )
 import           Foreign.Storable            ( Storable, peek, poke )
 
 import qualified Data.Vector.Generic         as GV
@@ -200,7 +201,7 @@ loadFrom ptr = load . movePtr ptr
 
 copyFromBytes :: EndianStore w
               => Dest (Ptr w)
-              -> Src  Pointer
+              -> Src  (Ptr Word8)
               -> Int          -- ^ How many items.
               -> IO ()
 copyFromBytes dest@(Dest ptr) src n =  memcpy (castPtr <$> dest) src (sz dest Proxy)
@@ -211,8 +212,8 @@ copyFromBytes dest@(Dest ptr) src n =  memcpy (castPtr <$> dest) src (sz dest Pr
 -- | Similar to @copyFromBytes@ but the transfer is done in the other direction. The copy takes
 -- care of performing the appropriate endian encoding.
 copyToBytes :: EndianStore w
-            => Dest Pointer
-            -> Src (Ptr w)
+            => Dest (Ptr Word8)
+            -> Src  (Ptr w)
             -> Int
             -> IO ()
 copyToBytes dest@(Dest dptr) src n =  memcpy dest  (castPtr <$> src) (sz src undefined)

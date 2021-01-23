@@ -5,10 +5,8 @@
 -- | The portable C-implementation of Blake2s.
 module Blake2s.CHandWritten where
 
-import Foreign.Ptr                ( Ptr          )
-import Control.Monad.IO.Class     ( liftIO       )
-
 import Raaz.Core
+import Raaz.Core.Transfer.Unsafe
 import Raaz.Core.Types.Internal
 import Raaz.Primitive.HashMemory
 import Raaz.Primitive.Blake2.Internal
@@ -51,28 +49,30 @@ foreign import ccall unsafe
 --
 processBlocks :: BufferPtr
               -> BlockCount Prim
-              -> MT Internals ()
+              -> Internals
+              -> IO ()
 
-processBlocks buf blks =
-  do l      <- getLength
-     hashCellPointer >>= liftIO . c_blake2s_compress buf blks l
-     updateLength blks
+processBlocks buf blks b2smem =
+  let hshPtr = hashCellPointer b2smem
+  in do l      <- getLength b2smem
+        c_blake2s_compress buf blks l hshPtr
+        updateLength blks b2smem
 
 -- | Process the last bytes.
 processLast :: BufferPtr
             -> BYTES Int
-            -> MT Internals ()
-processLast buf nbytes  = do
+            -> Internals
+            -> IO ()
+processLast buf nbytes  b2smem = do
   unsafeTransfer padding $ forgetAlignment buf  -- pad the message
-  processBlocks buf nBlocks                  -- process all but the last block
+  processBlocks buf nBlocks b2smem              -- process all but the last block
   --
   -- Handle the last block
   --
-  l      <- getLength
-  hshPtr <- hashCellPointer
-  liftIO $ c_blake2s_last lastBlockPtr remBytes l f0 f1 hshPtr
-
-  where padding      = blake2Pad (Proxy :: Proxy Prim) nbytes
+  l      <- getLength b2smem
+  c_blake2s_last lastBlockPtr remBytes l f0 f1 hshPtr
+  where hshPtr = hashCellPointer b2smem
+        padding      = blake2Pad (Proxy :: Proxy Prim) nbytes
         nBlocks      = atMost (transferSize padding) `mappend` toEnum (-1)
                        -- all but the last block
         remBytes     = nbytes - inBytes nBlocks

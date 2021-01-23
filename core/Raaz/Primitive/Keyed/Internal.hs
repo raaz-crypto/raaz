@@ -2,22 +2,37 @@
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE FlexibleInstances          #-}
 
--- | The keyed version of a primitive (typically cryptographic
--- hash). Certain hashes like blake2 can be used for message
--- authentication where the message is essentially appended to the key
--- and hashed. This module is meant to handle such keyed primitives.
--- Note that this naive message authentication is vulnerable to length
--- extension attack when combined with a Merkel-Damgrad like hash like
--- the sha2 family of hashes; they require a more complicated HMAC
--- construction.
+-- |
+--
+-- Module      : Raaz.Primitive.Keyed.Internal
+-- Description : Keyed hashing primitives.
+-- Copyright   : (c) Piyush P Kurur, 2019
+-- License     : Apache-2.0 OR BSD-3-Clause
+-- Maintainer  : Piyush P Kurur <ppk@iitpkd.ac.in>
+-- Stability   : experimental
+--
+
 module Raaz.Primitive.Keyed.Internal
-       ( Keyed(..), KeyedHash(..), Key(..), unsafeToKeyed, unsafeToPrim
+       ( -- * Keyed Hashing.
+         -- $keyedhash$
+         --
+         Keyed(..), KeyedHash(..), Key(..), unsafeToKeyed, unsafeToPrim
        ) where
 
 import Data.ByteString  as BS
 import Foreign.Storable ( Storable )
 
 import Raaz.Core
+
+-- $keyedhash$
+--
+-- The keyed version of a cryptographic hash. Certain hashes like
+-- blake2 can be used for message authentication where the message is
+-- essentially appended to the key and hashed. This module is meant to
+-- handle such keyed primitives.  Note that this naive message
+-- authentication is vulnerable to length extension attack when
+-- combined with a Merkel-Damgrad like hash like the sha2 family of
+-- hashes; they require a more complicated HMAC construction.
 
 -- | Class of primitives, typically cryptographic hashes, that when
 -- used as a keyed hash gives a safe MAC.

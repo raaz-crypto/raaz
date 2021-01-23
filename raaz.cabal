@@ -60,7 +60,7 @@ description:
   implmentations are satisfied by the defaults that are provided by
   @raaz:implementation@. The @MyChaCha20.Implementation@ and
   @MyEntropy.Implementation@ need to satisfy the same signature
-  constraints that the @ChaCha20.Implementation@ and @Entropy@ module
+  constraints that the @ChaCha20.Implementation@ and @Entropy@ module.
   Broadly speaking, any implementation of a primitive is provided by
   mixing-in a module, henceforth called an implementation module,
   satisfying the signature @raaz:indef:Implementation@ signature. In
@@ -196,7 +196,6 @@ common defaults
                , bytestring              >= 0.10 &&  < 0.12
                , deepseq                 >= 1.4  &&  < 1.5
                , vector                  >= 0.12 &&  < 0.13
-               , mtl
 
   ------------------------ Compiler optimisation flags -------------------------------------
   if flag(native) { cc-options: -march=native  }
@@ -225,8 +224,11 @@ library core
   hs-source-dirs: core
   exposed-modules: Raaz.Core
                  , Raaz.Core.CpuSupports
+                 , Raaz.Core.Encode
+                 , Raaz.Core.Memory
                  , Raaz.Core.Prelude
                  , Raaz.Core.Transfer
+                 , Raaz.Core.Transfer.Unsafe
                  , Raaz.Core.Types
                  , Raaz.Core.Types.Internal
                  , Raaz.Primitive.Blake2.Internal
@@ -237,17 +239,14 @@ library core
                  , Raaz.Primitive.Keyed.Internal
 
   other-modules: Raaz.Core.ByteSource
-               , Raaz.Core.Encode
-               , Raaz.Core.Memory
                , Raaz.Core.MonoidalAction
-               , Raaz.Core.Parse.Applicative
+               , Raaz.Core.Parse
+               , Raaz.Core.Parse.Unsafe
                , Raaz.Core.Primitive
-               , Raaz.Core.Util
                , Raaz.Core.Constants
                , Raaz.Core.Encode.Internal
                , Raaz.Core.Encode.Base16
                , Raaz.Core.Encode.Base64
-               , Raaz.Core.IOCont
                , Raaz.Core.Util.ByteString
                , Raaz.Core.Types.Pointer
                , Raaz.Core.Types.Tuple
@@ -309,8 +308,8 @@ library buffer
   build-depends: core
                , indef
   hs-source-dirs: indef/buffer
-  signatures: Implementation
   exposed-modules: Buffer
+                 , Context
 
 -- The utility package that defines generic interface that is useful
 -- for all primitives.

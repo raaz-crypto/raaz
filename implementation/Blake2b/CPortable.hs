@@ -4,10 +4,10 @@
 module Blake2b.CPortable where
 
 
-import Control.Monad.IO.Class     ( liftIO       )
 import Foreign.Ptr                ( castPtr      )
 
 import Raaz.Core
+import Raaz.Core.Transfer.Unsafe
 import Raaz.Core.Types.Internal
 import Raaz.Primitive.HashMemory
 import Raaz.Primitive.Blake2.Internal
@@ -30,16 +30,19 @@ additionalBlocks = blocksOf 1 Proxy
 
 processBlocks :: BufferPtr
               -> BlockCount Blake2b
-              -> MT Blake2bMem ()
+              -> Blake2bMem
+              -> IO ()
 
-processBlocks buf blks =
-  do uPtr   <- castPtr <$> uLengthCellPointer
-     lPtr   <- castPtr <$>lLengthCellPointer
-     hshPtr <- castPtr <$> hashCell128Pointer
-     let wblks  = toEnum  $ fromEnum blks
-         blkPtr = castPtr $ forgetAlignment buf
-       in liftIO $
-          verse_blake2b_c_portable_iter blkPtr wblks uPtr lPtr hshPtr
+processBlocks buf blks b2bmem =
+  let uPtr   = castPtr $ uLengthCellPointer b2bmem
+      lPtr   = castPtr $ lLengthCellPointer b2bmem
+      hshPtr = castPtr $ hashCell128Pointer b2bmem
+      --
+      -- Type coersions to the appropriate type.
+      --
+      wblks  = toEnum  $ fromEnum blks
+      blkPtr = castPtr $ forgetAlignment buf
+  in verse_blake2b_c_portable_iter blkPtr wblks uPtr lPtr hshPtr
 
 
 -- | Process the last bytes. The last block of the message (whether it
@@ -61,17 +64,18 @@ processBlocks buf blks =
 --
 processLast :: BufferPtr
             -> BYTES Int
-            -> MT Blake2bMem ()
-processLast buf nbytes  = do
+            -> Blake2bMem
+            -> IO ()
+processLast buf nbytes b2bmem = do
   unsafeTransfer padding $ forgetAlignment buf  -- pad the message
-  processBlocks buf nBlocks                     -- process all but the last block
+  processBlocks buf nBlocks b2bmem              -- process all but the last block
   --
   -- Handle the last block
   --
-  BYTES u  <- getULength
-  BYTES l  <- getLLength
-  hshPtr <- castPtr <$> hashCell128Pointer
-  liftIO $ verse_blake2b_c_portable_last lastBlockPtr remBytes u l f0 f1 hshPtr
+  BYTES u  <- getULength b2bmem
+  BYTES l  <- getLLength b2bmem
+  let hshPtr = castPtr $ hashCell128Pointer b2bmem
+    in verse_blake2b_c_portable_last lastBlockPtr remBytes u l f0 f1 hshPtr
 
   where padding      = blake2Pad (Proxy :: Proxy Blake2b) nbytes
         nBlocks      = atMost (transferSize padding) `mappend` toEnum (-1)

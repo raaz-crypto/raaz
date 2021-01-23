@@ -6,7 +6,6 @@
 module Command.Rand ( rand ) where
 
 
-import Control.Monad.IO.Class(liftIO)
 import Options.Applicative
 import Raaz.Core
 import Raaz.Random
@@ -20,7 +19,6 @@ bufSize = 32 * 1024
 
 
 rand :: Parser (IO ())
-
 rand = subparser $ mconcat [ commandGroup "Randomness"
                            , metavar "RANDOMNESS"
                            , randCmd
@@ -36,7 +34,7 @@ randCmd = command "rand"
                     , header "raaz rand - Cryptographically secure pseudo random bytes."
                     , progDesc "output cryptographically secure pseudo random bytes."
                     ]
-  where randOpts = opts insecurely emitRand
+  where randOpts = opts infiniteRand finiteRand
 
 entropyCmd :: Mod CommandFields (IO ())
 entropyCmd = command "entropy"
@@ -45,49 +43,63 @@ entropyCmd = command "entropy"
                        , header "raaz entropy - System entropy."
                        , progDesc "emit data from the system entropy pool."
                        ]
-  where entropyOpts = opts id emitEntropy
+  where entropyOpts = opts infiniteEntropy finiteEntropy
 
-opts :: Monad m
-     => (m () -> IO ())                -- ^ The runner
-     -> (BYTES Int -> Pointer -> m ()) -- ^ The filler
+opts :: (Ptr Word8 -> IO ())
+     -> (BYTES Int -> Ptr Word8 -> IO ())
      -> Parser (IO ())
-opts runner filler = nRandomBytes . toEnum <$> argument auto (metavar "NUMBER_OF_BYTES")
-                     <|> pure infinteBytes
-  where nRandomBytes n = withBuffer $ runner . genBytes filler n
-        infinteBytes   = withBuffer $ runner . genInfiniteBytes filler
+opts inf fin  = nRandomBytes . toEnum <$> argument auto (metavar "NUMBER_OF_BYTES")
+                <|> pure infinteBytes
+  where nRandomBytes n = withBuffer (fin n)
+        infinteBytes   = withBuffer inf
         withBuffer     = allocaBuffer bufSize
 
 
 
+------------- Rand functions ----------------------------------------------
 
-genInfiniteBytes :: Monad m
-                 => (BYTES Int -> Pointer -> m ()) -- ^ The filler function
-                 -> Pointer  -- ^ the buffer to fill
-                 -> m ()
-genInfiniteBytes filler ptr = goForEver
-  where goForEver = filler bufSize ptr >> goForEver
+emitRand :: BYTES Int
+         -> Ptr Word8
+         -> RandomState
+         -> IO ()
+emitRand m ptr rstate = do
+  fillRandomBytes m (destination ptr) rstate
+  hPutBuf stdout ptr $ fromIntegral m
+
+infiniteRand :: Ptr Word8
+             -> IO ()
+infiniteRand buf = withRandomState goForEver
+  where goForEver rstate = go
+          where go = emitRand bufSize buf rstate >> go
+
+finiteRand :: BYTES Int
+           -> Ptr Word8
+           -> IO ()
+finiteRand n buf = withRandomState goFinite
+  where goFinite rstate = go n
+          where go m | m >= bufSize = do emitRand bufSize buf rstate ; go (m - bufSize)
+                     | otherwise    =    emitRand m buf rstate
 
 
--- Generate so many bytes.
 
-genBytes :: Monad m
-         => (BYTES Int -> Pointer -> m ())
-         -> BYTES Int
-         -> Pointer
-         -> m ()
-genBytes filler n ptr = go n
-  where go m | m >= bufSize = do filler bufSize ptr; go (m - bufSize)
-             | otherwise    =    filler m ptr
+-----------------  Entropy functions ------------------------------------------
 
-
--- Emit so may random bytes.
-
-emitRand :: BYTES Int -> Pointer-> RandM ()
-emitRand m ptr = do
-  void   $ fillRandomBytes m ptr
-  liftIO $ hPutBuf stdout ptr $ fromIntegral m
-
-emitEntropy :: BYTES Int -> Pointer -> IO ()
+emitEntropy :: BYTES Int
+            -> Ptr Word8
+            -> IO ()
 emitEntropy m ptr = do
   void $ fillSystemEntropy m ptr
   hPutBuf stdout ptr $ fromIntegral m
+
+
+infiniteEntropy ::  Ptr Word8
+                -> IO ()
+infiniteEntropy buf = go
+  where go = emitEntropy bufSize buf >> go
+
+finiteEntropy:: BYTES Int
+             -> Ptr Word8
+             -> IO ()
+finiteEntropy n buf = go n
+  where go m | m >= bufSize = do emitEntropy bufSize buf ; go (m - bufSize)
+             | otherwise    =    emitEntropy m buf

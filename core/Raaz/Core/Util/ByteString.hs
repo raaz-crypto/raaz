@@ -1,8 +1,11 @@
-{-|
-
-Some utility function for byte strings.
-
--}
+-- |
+--
+-- Module      : Raaz.Core.Util.ByteString
+-- Copyright   : (c) Piyush P Kurur, 2019
+-- License     : Apache-2.0 OR BSD-3-Clause
+-- Maintainer  : Piyush P Kurur <ppk@iitpkd.ac.in>
+-- Stability   : experimental
+--
 
 {-# LANGUAGE FlexibleContexts #-}
 module Raaz.Core.Util.ByteString
@@ -36,8 +39,9 @@ replicate l = B.replicate sz
 -- | Copy the bytestring to the crypto buffer. This operation leads to
 -- undefined behaviour if the crypto pointer points to an area smaller
 -- than the size of the byte string.
-unsafeCopyToPointer :: ByteString   -- ^ The source.
-                    -> Ptr a        -- ^ The destination.
+unsafeCopyToPointer :: Pointer ptr
+                    => ByteString   -- ^ The source.
+                    -> ptr a        -- ^ The destination.
                     -> IO ()
 unsafeCopyToPointer bs cptr =  withForeignPtr fptr $
            \ p -> memcpy (destination cptr) (source $ p `plusPtr` offset) (BYTES n)

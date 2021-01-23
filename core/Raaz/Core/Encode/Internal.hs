@@ -1,3 +1,4 @@
+{-# OPTIONS_HADDOCK hide       #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE DefaultSignatures #-}
 {-# LANGUAGE FlexibleContexts  #-}
@@ -47,9 +48,7 @@ import Raaz.Core.Util.ByteString(length, withByteString)
 -- instance of `Encodable` because encoding of say `Word32` without
 -- specifying whether the endianness is meaningless.
 --
---
--- Laws for encoding
--- =================
+-- === Laws for encoding
 --
 -- Note that not all byte strings can be valid encodings and
 -- `fromByteString` might fail and return `Nothing` on certain
@@ -98,13 +97,6 @@ instance Encodable ByteString where
   {-# INLINE fromByteString #-}
   unsafeFromByteString = id
   {-# INLINE unsafeFromByteString #-}
-
-instance Encodable a => Encodable (BITS a) where
-  toByteString (BITS a) = toByteString a
-  fromByteString        = fmap BITS . fromByteString
-  unsafeFromByteString  = BITS      . unsafeFromByteString
-
-
 
 instance Encodable a => Encodable (BYTES a) where
   toByteString         (BYTES a) = toByteString a

@@ -10,10 +10,8 @@ module Poly1305.CPortable
        , processLast
        ) where
 
-import Foreign.Ptr                ( castPtr, Ptr  )
-import Control.Monad.IO.Class     ( liftIO        )
-
 import Raaz.Core
+import Raaz.Core.Transfer.Unsafe
 import Raaz.Primitive.Poly1305.Internal
 import Poly1305.Memory
 
@@ -33,59 +31,70 @@ type BufferPtr               = AlignedBlockPtr BufferAlignment Prim
 additionalBlocks :: BlockCount Poly1305
 additionalBlocks = blocksOf 1 Proxy
 
+
 -- | Incrementally process poly1305 blocks.
 processBlocks :: BufferPtr
               -> BlockCount Poly1305
-              -> MT Internals ()
-processBlocks buf blks = do
-  aP <- accumPtr
-  rP <- rKeyPtr
-  liftIO $ verse_poly1305_c_portable_incremental bufPtr wBlks aP rP
-  where bufPtr = castPtr $ forgetAlignment buf
-        wBlks  = toEnum $ fromEnum blks
+              -> Internals
+              -> IO ()
+processBlocks buf blks = withAccumR $ runWithBlocks verse_poly1305_c_portable_incremental buf blks
 
 -- | Process a message that is exactly a multiple of the blocks.
 blocksMac :: BufferPtr
           -> BlockCount Poly1305
-          -> MT Internals ()
-blocksMac buf blks = runWithRS $ verse_poly1305_c_portable_blockmac bufPtr wBlks
-  where bufPtr = castPtr $ forgetAlignment buf
-        wBlks  = toEnum  $ fromEnum blks
+          -> Internals
+          -> IO ()
+blocksMac buf blks = withAccumRS $ runWithBlocks verse_poly1305_c_portable_blockmac buf blks
 
 -- | Run an IO action with the pointers to the element, r and s cells.
-runWithRS :: ( Ptr Element ->
-               Ptr (Tuple 2 Word64) ->
-               Ptr (Tuple 2 Word64) ->
-               IO ()
-             )
-          -> MT Internals ()
-runWithRS func = do aP <- accumPtr
-                    rP <- rKeyPtr
-                    sKeyPtr >>= liftIO . func aP rP
+withAccumRS :: ( Ptr Element ->
+                 Ptr (Tuple 2 Word64) ->
+                 Ptr (Tuple 2 Word64) ->
+                 a
+               )
+            -> Internals
+            -> a
+withAccumRS func mem = withAccumR func mem $ sKeyPtr mem
 
+withAccumR :: ( Ptr Element ->
+                Ptr (Tuple 2 Word64) ->
+                a
+              )
+           -> Internals
+           -> a
+withAccumR func mem = func (accumPtr mem) $ rKeyPtr mem
+
+runWithBlocks :: ( Ptr a ->
+                   Word64 ->
+                   b
+                 )
+              -> BufferPtr
+              -> BlockCount Poly1305
+              -> b
+runWithBlocks func buf = unsafeWithPointerCast func buf . toEnum . fromEnum
 
 -- | Process a message that has its last block incomplete. The total
 -- blocks argument here is the greatest multiple of the block that is
 -- less that the message length.
 partialBlockMac :: BufferPtr
                 -> BlockCount Poly1305
-                -> MT Internals ()
-partialBlockMac buf blks = do
-  processBlocks buf blks
-  runWithRS $ verse_poly1305_c_portable_partialmac lastBlockPtr
-  where bufPtr       = castPtr $ forgetAlignment buf
-        lastBlockPtr = bufPtr `movePtr` blks
-
+                -> Internals
+                -> IO ()
+partialBlockMac buf blks mem = do
+  processBlocks buf blks mem
+  withAccumRS (unsafeWithPointerCast partialMac buf) mem
+  where partialMac bufPtr = verse_poly1305_c_portable_partialmac (bufPtr `movePtr` blks)
 
 -- | Process the last bytes.
 processLast :: BufferPtr
             -> BYTES Int
-            -> MT Internals ()
-processLast buf nBytes
-  | blksC == blksF = blocksMac buf blksC
+            -> Internals
+            -> IO ()
+processLast buf nBytes mem
+  | blksC == blksF = blocksMac buf blksC mem
   | otherwise      = do
       unsafeTransfer pad (forgetAlignment buf)
-      partialBlockMac buf blksF
+      partialBlockMac buf blksF mem
   where blksC = atLeast nBytes :: BlockCount Poly1305
         blksF = atMost  nBytes :: BlockCount Poly1305
         pad   = padding nBytes
@@ -93,7 +102,7 @@ processLast buf nBytes
 -- | Poly1305 padding. Call this padding function if and only if the
 -- message is not a multiple of the block length.
 padding :: BYTES Int    -- Data in buffer.
-        -> WriteM (MT Internals)
+        -> WriteTo
 padding mLen = padWrite 0 boundary $ skip mLen `mappend` one
   where one         = writeStorable (1::Word8)
         boundary    = blocksOf 1 (Proxy :: Proxy Poly1305)

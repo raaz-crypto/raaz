@@ -11,9 +11,6 @@ module Sha256.CHandWritten
        , processLast
        ) where
 
-import Foreign.Ptr                ( Ptr          )
-import Control.Monad.IO.Class     ( liftIO       )
-
 import Raaz.Core
 import Raaz.Core.Types.Internal
 import Raaz.Primitive.HashMemory
@@ -45,17 +42,20 @@ foreign import ccall unsafe
 
 compressBlocks :: BufferPtr
                -> BlockCount Sha256
-               -> MT Internals ()
-compressBlocks buf blks =  hashCellPointer >>= liftIO . c_sha256_compress buf blks
+               -> Internals
+               -> IO ()
+compressBlocks buf blks = c_sha256_compress buf blks . hashCellPointer
 
 
 processBlocks :: BufferPtr
               -> BlockCount Sha256
-              -> MT Internals ()
-processBlocks buf blks = compressBlocks buf blks >> updateLength blks
+              -> Internals
+              -> IO ()
+processBlocks buf blks mem = compressBlocks buf blks mem >> updateLength blks mem
 
 -- | Process the last bytes.
 processLast :: BufferPtr
             -> BYTES Int
-            -> MT Internals ()
+            -> Internals
+            -> IO ()
 processLast = process256Last processBlocks

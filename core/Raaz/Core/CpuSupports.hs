@@ -5,7 +5,6 @@
 -- |
 --
 -- Module      : Raaz.Core.CpuSupports
--- Description : Checks support for various cpu features like AVX2
 -- Copyright   : (c) Piyush P Kurur, 2017
 -- License     : Apache-2.0 OR BSD-3-Clause
 -- Maintainer  : Piyush P Kurur <ppk@iitpkd.ac.in>

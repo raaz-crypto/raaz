@@ -6,7 +6,15 @@
 {-# LANGUAGE FlexibleContexts           #-}
 {-# CFILES raaz/hash/sha1/portable.c    #-}
 
--- | Internal types and function for blake2 hashes.
+-- |
+--
+-- Module      : Raaz.Primitive.Blake2.Internal
+-- Description : Internal modules for Blake2 hashes.
+-- Copyright   : (c) Piyush P Kurur, 2019
+-- License     : Apache-2.0 OR BSD-3-Clause
+-- Maintainer  : Piyush P Kurur <ppk@iitpkd.ac.in>
+-- Stability   : experimental
+--
 module Raaz.Primitive.Blake2.Internal
        ( -- * The blake2 types
          Blake2b, Blake2s
@@ -14,7 +22,6 @@ module Raaz.Primitive.Blake2.Internal
        , blake2Pad
        ) where
 
-import           Control.Monad.IO.Class
 import           Data.Vector.Unboxed        ( Unbox )
 import           Foreign.Storable           ( Storable       )
 
@@ -82,8 +89,10 @@ instance KeyedHash Blake2s where
 
 
 ---------------------------------- Memory element for Blake2b -----------------------
-
+-- | The memory element for blake2b hash.
 type Blake2bMem = HashMemory128 Blake2b
+
+-- | The memory element for blake2s hash.
 type Blake2sMem = HashMemory64 Blake2s
 
 instance Initialisable Blake2bMem () where
@@ -99,10 +108,10 @@ instance Initialisable Blake2sMem () where
 -- exception is the empty message which should generate a single block
 -- of zeros.
 --
-blake2Pad :: (Primitive prim, MonadIO m)
+blake2Pad :: Primitive prim
           => Proxy prim  -- ^ the primitive (Blake2b or Blake2s).
           -> BYTES Int   -- ^ length of the message
-          -> WriteM m
+          -> WriteTo
 blake2Pad primProxy m
   | m == 0    = writeBytes 0 $ blocksOf 1 primProxy -- empty message
   | otherwise = padWrite 0 (blocksOf 1 primProxy) $ skip m

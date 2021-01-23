@@ -1,11 +1,11 @@
-{-|
-
-Generic cryptographic block primtives and their implementations. This
-module exposes low-level generic code used in the raaz system. Most
-likely, one would not need to stoop so low and it might be better to
-use a more high level interface.
-
--}
+-- |
+--
+-- Module      : Raaz.Core.Primitive
+-- Copyright   : (c) Piyush P Kurur, 2019
+-- License     : Apache-2.0 OR BSD-3-Clause
+-- Maintainer  : Piyush P Kurur <ppk@iitpkd.ac.in>
+-- Stability   : experimental
+--
 
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE TypeFamilies                #-}
@@ -20,7 +20,6 @@ module Raaz.Core.Primitive
 
 import Data.Vector.Unboxed (Unbox)
 import GHC.TypeLits
-import Foreign.Ptr      ( Ptr      )
 import Foreign.Storable ( Storable )
 import Raaz.Core.Prelude
 import Raaz.Core.Types.Endian
@@ -51,9 +50,6 @@ class ( Unbox (WordType p)
   -- block can be seen as an array of size `BlockArraySize p` of type
   -- `WORD p`.
   type WordsPerBlock p :: Nat
-
-
--- type BlockPtr p = Ptr (Tuple (BlockArraySize p) (WORD p)
 
 -- | The type family that captures the key of a keyed primitive.
 data family Key p :: *

@@ -21,10 +21,6 @@ instance Arbitrary w => Arbitrary (BE w) where
 instance Arbitrary w => Arbitrary (BYTES w) where
   arbitrary = BYTES <$> arbitrary
 
-
-instance Arbitrary w => Arbitrary (BITS w) where
-  arbitrary = BITS <$> arbitrary
-
 instance Arbitrary ByteString where
   arbitrary = pack <$> arbitrary
 

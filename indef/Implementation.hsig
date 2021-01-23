@@ -6,10 +6,21 @@
 {-# LANGUAGE TypeFamilies                #-}
 {-# LANGUAGE CPP                         #-}
 
-
--- | An implementation of a cryptographic primitive is a method to
--- process data that is multiples of its block size. Fast
--- implementations involve other details like the alignment
+-- |
+--
+-- Module      : indef:Implementation
+-- Copyright   : (c) Piyush P Kurur, 2019
+-- License     : Apache-2.0 OR BSD-3-Clause
+-- Maintainer  : Piyush P Kurur <ppk@iitpkd.ac.in>
+-- Stability   : experimental
+--
+-- This signature give the interface through which a cryptographic
+-- bulk primitive, like cryptographic hash or a cipher is
+-- implemented. The main interface is through the `processBlocks`
+-- which gives the method to process data that is multiples of its
+-- block size. The last chuck of data might not be a full multiple of
+-- blocks in which case the `processLast` takes care of handling
+-- it. Fast implementations involve other details like the alignment
 -- restriction on the input buffer and all that. We package all this
 -- in the following signature.
 signature Implementation where
@@ -22,19 +33,22 @@ import GHC.TypeLits
 
 # endif
 
--- | The primitive for which the implementation is given
-data Prim
--- | The internal memory used by the implementation.
-data Internals
-
-instance Primitive Prim
-instance Memory Internals
 
 -- | Name of the implementation.
 name :: String
 
 -- | Description of the implementation.
 description :: String
+
+-- | The primitive for which the implementation is given
+data Prim
+
+-- | The internal memory used by the implementation.
+data Internals
+
+instance Primitive Prim
+instance Memory Internals
+
 
 # if MIN_VERSION_base(4,13,0)
 
@@ -52,16 +66,25 @@ type BufferAlignment = 32
 -- implementation.
 type BufferPtr = AlignedBlockPtr BufferAlignment Prim
 
--- | The additional space required in the buffer for processing the data.
+-- | The additional space other than the payload that required in the
+-- buffer for processing the data. There are multiple reasons for
+-- having this additional space. The most important case is for
+-- handling padding when processing the last block. Some fast
+-- implementations, particularly those which use SIMD instructions,
+-- handle data that is often a multiple of the block size. In such
+-- cases, it make sense to have additional blocks in such cases to
+-- make the overall implementation simple.
 additionalBlocks :: BlockCount Prim
 
 -- | The function that process bytes in multiples of the block size of
 -- the primitive.
 processBlocks :: BufferPtr
               -> BlockCount Prim
-              -> MT Internals ()
+              -> Internals
+              -> IO ()
 
 -- | Process the last bytes of the stream.
 processLast :: BufferPtr
             -> BYTES Int
-            -> MT Internals ()
+            -> Internals
+            -> IO ()

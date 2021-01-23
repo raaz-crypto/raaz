@@ -1,8 +1,7 @@
-{-# OPTIONS_HADDOCK how-extensions #-}
+{-# OPTIONS_HADDOCK show-extensions #-}
 -- |
 --
 -- Module      : Raaz.Core.Types.Internal
--- Description : Exposes the constructors which are otherwise hidden.
 -- Copyright   : (c) Piyush P Kurur, 2018
 -- License     : Apache-2.0 OR BSD-3-Clause
 -- Maintainer  : Piyush P Kurur <ppk@iitpkd.ac.in>
@@ -34,8 +33,8 @@ module Raaz.Core.Types.Internal
 
 import Raaz.Core.Primitive     ( BlockCount (..) )
 import Raaz.Core.Types.Endian  ( LE(..), BE(..)          )
-import Raaz.Core.Types.Pointer ( Pointer, AlignedPtr(..)
-                               , BITS(..), BYTES(..)
+import Raaz.Core.Types.Pointer ( AlignedPtr (..)
+                               , BYTES(..)
                                )
 import Raaz.Core.Types.Copying ( Src(..), Dest(..)       )
 import Raaz.Core.Types.Tuple

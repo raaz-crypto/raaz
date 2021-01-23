@@ -6,7 +6,15 @@
 {-# LANGUAGE FlexibleContexts           #-}
 {-# CFILES raaz/hash/sha1/portable.c    #-}
 
--- | Internal types and function for sha2 hashes.
+-- |
+--
+-- Module      : Raaz.Primitive.Sha2.Internal
+-- Description : Internal modules for sha2 family of hashes.
+-- Copyright   : (c) Piyush P Kurur, 2019
+-- License     : Apache-2.0 OR BSD-3-Clause
+-- Maintainer  : Piyush P Kurur <ppk@iitpkd.ac.in>
+-- Stability   : experimental
+--
 module Raaz.Primitive.Sha2.Internal
        ( -- * The sha2 types
          Sha512, Sha256
@@ -15,12 +23,13 @@ module Raaz.Primitive.Sha2.Internal
        , process256Last
        ) where
 
-import           Control.Monad.IO.Class     ( MonadIO      )
 import           Data.Vector.Unboxed        ( Unbox )
 import           Foreign.Storable           ( Storable(..) )
+import           GHC.TypeLits
+
 
 import           Raaz.Core
-import           Raaz.Core.Types.Internal
+import           Raaz.Core.Transfer.Unsafe
 import           Raaz.Primitive.HashMemory
 
 ----------------------------- The blake2 type ---------------------------------
@@ -79,7 +88,10 @@ sha256Init = Sha2 $ unsafeFromList [ 0x6a09e667
 
 ---------------------------------- Memory element for Sha512 -----------------------
 
+-- | The memory used by sha512 implementations.
 type Sha512Mem = HashMemory128 Sha512
+
+-- | The memory used bha sha256 implementations.
 type Sha256Mem = HashMemory64 Sha256
 
 instance Initialisable Sha256Mem () where
@@ -92,63 +104,65 @@ instance Initialisable Sha512Mem () where
 -- | The block compressor for sha256.
 type Compressor256 n =  AlignedBlockPtr n Sha256
                      -> BlockCount Sha256
-                     -> MT Sha256Mem ()
+                     -> Sha256Mem -> IO ()
 -- | The block compressor for sha512
 type Compressor512 n =  AlignedBlockPtr n Sha512
                      -> BlockCount Sha512
-                     -> MT Sha512Mem ()
+                     -> Sha512Mem -> IO ()
 
 -- | Takes a block processing function for sha256 and gives a last
 -- bytes processor.
-process256Last :: Compressor256 n    -- ^ block compressor
+process256Last :: KnownNat n
+               => Compressor256 n    -- ^ block compressor
                -> AlignedBlockPtr n Sha256
                -> BYTES Int
-               -> MT Sha256Mem ()
-process256Last comp buf nbytes  = do
-  updateLength nbytes
-  totalBytes  <- getLength
+               -> Sha256Mem
+               -> IO ()
+process256Last comp buf nbytes sha256mem = do
+  updateLength nbytes sha256mem
+  totalBytes  <- fmap bigEndian <$> getLength sha256mem
   let pad      = padding256 nbytes totalBytes
       blocks   = atMost $ transferSize pad
-    in unsafeTransfer pad (forgetAlignment buf) >> comp buf blocks
+    in unsafeTransfer pad buf >> comp buf blocks sha256mem
 
 -- | Takes a block processing function for sha512 and gives a last
 -- bytes processor.
-process512Last :: Compressor512 n
+process512Last :: KnownNat n
+               => Compressor512 n
                -> AlignedBlockPtr n Sha512
                -> BYTES Int
-               -> MT Sha512Mem ()
-process512Last comp buf nbytes  = do
-  updateLength128 nbytes
-  uLen  <- getULength
-  lLen  <- getLLength
+               -> Sha512Mem
+               -> IO ()
+process512Last comp buf nbytes sha512mem = do
+  updateLength128 nbytes sha512mem
+  uLen  <- fmap bigEndian <$> getULength sha512mem
+  lLen  <- fmap bigEndian <$> getLLength sha512mem
   let pad      = padding512 nbytes uLen lLen
       blocks   = atMost $ transferSize pad
-      in unsafeTransfer pad (forgetAlignment buf) >> comp buf blocks
+      in unsafeTransfer pad buf >> comp buf blocks sha512mem
 
 -- | The padding for sha256 as a writer.
-padding256 :: BYTES Int    -- Data in buffer.
-           -> BYTES Word64 -- Message length
-           -> WriteM (MT Sha256Mem)
+padding256 :: BYTES Int         -- Data in buffer.
+           -> BYTES (BE Word64) -- Message length
+           -> WriteTo
 padding256 bufSize msgLen  =
   glueWrites 0 boundary (padBit1 bufSize) lengthWrite
   where boundary    = blocksOf 1 (Proxy :: Proxy Sha256)
-        lengthWrite = write $ bigEndian (shiftL w 3)
-        BYTES w     = msgLen
+        lengthWrite = write $ shiftL msgLen 3
 
 -- | The padding for sha512 as a writer.
-padding512 :: BYTES Int    -- Data in buffer.
-           -> BYTES Word64 -- Message length higher
-           -> BYTES Word64 -- Message length lower
-           -> WriteM (MT Sha512Mem)
+padding512 :: BYTES Int         -- Data in buffer.
+           -> BYTES (BE Word64) -- Message length higher
+           -> BYTES (BE Word64) -- Message length lower
+           -> WriteTo
 padding512 bufSize uLen lLen  = glueWrites 0 boundary (padBit1 bufSize) lengthWrite
   where boundary    = blocksOf 1 (Proxy :: Proxy Sha512)
-        lengthWrite = write (bigEndian up) `mappend` write (bigEndian lp)
-        BYTES up    = shiftL uLen 3 .|. shiftR lLen 61
-        BYTES lp    = shiftL lLen 3
+        lengthWrite = write up `mappend` write lp
+        up          = shiftL uLen 3 .|. shiftR lLen 61
+        lp          = shiftL lLen 3
 
 
 -- | Pad the message with a 1-bit.
-padBit1 :: MonadIO m
-        => BYTES Int -- ^ message length
-        -> WriteM m
+padBit1 :: BYTES Int -- ^ message length
+        -> WriteTo
 padBit1  sz = skip sz <> writeStorable (0x80 :: Word8)
