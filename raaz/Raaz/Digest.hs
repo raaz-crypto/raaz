@@ -6,6 +6,10 @@ module Raaz.Digest
          -- $messagedigest$
 
          Digest, digest, digestFile, digestSource
+
+         -- ** Incremental processing.
+         -- $incremental$
+       , start, update, finalise
          --
          -- *** Specific message digests.
          -- $specific-digest$
@@ -54,6 +58,24 @@ import Raaz.V1.Digest
 --
 -- Message digests __DO NOT__ provide any authentication, use the
 -- message authenticator `Auth` instead.
+
+
+-- $incremental$
+--
+-- Message digest can also be computed incrementally using a digest
+-- context captured by the `Cxt` data type. The three functions
+-- relevant for this style of operation are `start`, `update`, and
+-- `finalise` which respectively prepares the context for a new
+-- incremental processing, updates the context with an additional
+-- chunk of data, and finalises the context to recover the digest.
+-- The `Cxt` type being a memory can be run using the `withMemory` or
+-- even `withSecureMemory`
+--
+-- It is very likely that you have the entire input with you as a fine
+-- or a string.  In which case you should not be using this interface
+-- as it is considered low level; you may forget the start step for
+-- example.
+
 
 -- $specific-digest$
 --
