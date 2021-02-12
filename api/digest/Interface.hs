@@ -12,6 +12,7 @@ module Interface ( Digest
                  , digest
                  , digestFile
                  , digestSource
+                 , Cxt
                  , start
                  , update
                  , finalise
