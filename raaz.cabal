@@ -370,6 +370,7 @@ library digest-api
   signatures: Implementation
   build-depends: core
                , indef
+               , buffer
                , utils
   exposed-modules: Interface
 

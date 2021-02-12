@@ -1,3 +1,4 @@
+{-# LANGUAGE RecordWildCards       #-}
 -- |
 --
 -- Module      : digest-api: Interface
@@ -11,9 +12,14 @@ module Interface ( Digest
                  , digest
                  , digestFile
                  , digestSource
+                 , start
+                 , update
+                 , finalise
                  , name
                  , description
                  ) where
+
+import GHC.TypeLits
 
 import qualified Data.ByteString      as B
 import qualified Data.ByteString.Lazy as L
@@ -23,6 +29,7 @@ import           System.IO.Unsafe     (unsafePerformIO)
 import           Raaz.Core
 import qualified Implementation
 import           Utils
+import           Context
 
 type Digest = Implementation.Prim
 
@@ -61,3 +68,24 @@ name = Implementation.name
 -- | Description of the implementation
 description :: String
 description = Implementation.description
+
+-- | Prepare the context to (re)start a session of incremental
+-- processing.
+start :: KnownNat n => Cxt n -> IO ()
+start cxt@Cxt{..} = do initialise () cxtInternals
+                       unsafeSetCxtEmpty cxt
+
+
+-- | Add some more data into the context, in this case the entirety of
+-- the byte source src.
+update :: (KnownNat n, ByteSource src)
+       => src
+       -> Cxt n
+       -> IO ()
+update = updateCxt
+
+-- | Finalise the context to get hold of the digest.
+finalise :: KnownNat n
+         => Cxt n
+         -> IO Digest
+finalise cxt@Cxt{..} = finaliseCxt cxt >> extract cxtInternals
