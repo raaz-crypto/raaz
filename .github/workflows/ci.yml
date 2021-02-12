@@ -6,24 +6,31 @@ on:
     # Daily build.
     - cron: '30 8 * * *'
 jobs:
-  linux:
-    name: 'Linux'
-    runs-on: ubuntu-latest
+  build:
+    runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.continue-on-error }}
     strategy:
       matrix:
+        os: [ubuntu-latest]
         ghc: [ '8.4' , '8.6', '8.8', '8.10']
+        continue-on-error: false
         include:
-          - ghc: 'latest'
+          - os: ubuntu-latest
+            ghc: 'latest'
             continue-on-error: true
-          - ghc: '9.0'
+          - os: ubuntu-latest
+            ghc: '9.0'
+            continue-on-error: true
+          - os: windows-latest
+            continue-on-error: true
+          - os: macos-latest
             continue-on-error: true
 
-    continue-on-error: ${{ matrix.continue-on-error }}
     steps:
       - name: 'Setup'
         uses: haskell/actions/setup@v1
         with:
-          ghc: ${{ matrix.ghc }}
+          ghc-version: ${{ matrix.ghc }}
 
       - name: Information
         run: |
@@ -39,68 +46,6 @@ jobs:
       - name: Updating Cabal packages
         run: |
           cabal update
-
-      - name: Build
-        run: |
-          cabal build
-          cabal test
-          cabal bench
-          cabal haddock
-
-      - name: Raaz information
-        run: cabal exec raaz -- info
-  windows:
-    name: Windows
-    runs-on: windows-latest
-    steps:
-      - name: 'Setup'
-        uses: haskell/actions/setup@v1
-
-      - name: Information
-        run: |
-          ghc --version
-          cabal --version
-
-      - name: Get the Repository
-        uses: actions/checkout@v2
-
-      - name: Submodules
-        run: git submodule update --init libverse
-
-      - name: Updating Cabal packages
-        run: cabal update
-
-      - name: Build
-        run: |
-          cabal build
-          cabal test
-          cabal bench
-          cabal haddock
-
-      - name: Raaz information
-        run: cabal exec raaz -- info
-
-  macos:
-    name: 'MacOS'
-    runs-on: macos-latest
-    steps:
-
-      - name: 'Setup'
-        uses: haskell/actions/setup@v1
-
-      - name: Information
-        run: |
-          ghc --version
-          cabal --version
-
-      - name: Get the Repository
-        uses: actions/checkout@v2
-
-      - name: Submodules
-        run: git submodule update --init libverse
-
-      - name: Updating Cabal packages
-        run: cabal update
 
       - name: Build
         run: |
