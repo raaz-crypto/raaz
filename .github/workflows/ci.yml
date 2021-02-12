@@ -11,7 +11,14 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        ghc: [ 'latest', '8.4' , '8.6', '8.8', '8.10', '9.0' ]
+        ghc: [ '8.4' , '8.6', '8.8', '8.10']
+        include:
+          - ghc: 'latest'
+            continue-on-error: true
+          - ghc: '9.0'
+            continue-on-error: true
+
+    continue-on-error: ${{ matrix.continue-on-error }}
     steps:
       - name: 'Setup'
         uses: haskell/actions/setup@v1
