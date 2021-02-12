@@ -10,10 +10,13 @@ module Raaz
        , module Raaz.Random
          -- * Library information.
        , version
+       , withMemory, withSecureMemory
        ) where
 
 import qualified Paths_raaz as P
 import           Data.Version  (Version)
+
+import Raaz.Core
 import Raaz.Digest
 import Raaz.Auth
 import Raaz.AuthEncrypt
