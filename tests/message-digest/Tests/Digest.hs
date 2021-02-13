@@ -41,9 +41,9 @@ incrDigestList bsL = withMemory $ \ (cxt :: Cxt 1) ->
      finalise cxt
 
 incrementalVsFull :: Spec
-incrementalVsFull = do
-  prop "incremental vs full" $
+incrementalVsFull = describe "Incremental vs Full digest" $ do
+  prop "for single source" $
     \ bs -> incrDigest bs `shouldReturn` digest bs
 
-  prop "incremental vs full on list" $
+  prop "for multiple source" $
     \ bsL -> incrDigestList bsL `shouldReturn` digest bsL

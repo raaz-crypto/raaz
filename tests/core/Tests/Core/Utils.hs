@@ -45,7 +45,7 @@ pokeAdjustAndLoad a
 
 basicEndianSpecs :: ( EndianStore a, Show a, Eq a, Arbitrary a)
                   => a -> Spec
-basicEndianSpecs a = do
+basicEndianSpecs a = describe "Endian Checks" $ do
   prop "store followed by load returns original value" $ \ x ->
     storeAndThenLoad (x `asTypeOf` a) `shouldReturn` x
 
