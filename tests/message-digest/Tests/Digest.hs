@@ -37,7 +37,7 @@ incrDigestList :: [ByteString]
                -> IO Prim
 incrDigestList bsL = withMemory $ \ (cxt :: Cxt 1) ->
   do start cxt
-     mapM_ (flip update cxt) bsL
+     mapM_ (`update` cxt) bsL
      finalise cxt
 
 incrementalVsFull :: Spec
