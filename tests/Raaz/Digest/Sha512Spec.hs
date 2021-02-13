@@ -15,9 +15,11 @@ import qualified Sha512.VsHandwritten as VsHW
 
 spec :: Spec
 spec =  do
+  basicEndianSpecs (undefined :: Sha512)
+  incrementalVsFull
   VsHW.specCompare
 
-  basicEndianSpecs (undefined :: Sha512)
+
 
   --
   -- Some unit tests

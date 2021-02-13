@@ -6,12 +6,23 @@ module Raaz.Digest
          -- $messagedigest$
 
          Digest, digest, digestFile, digestSource
+
+         -- ** Incremental processing.
+         -- $incremental$
+       , Cxt
+       , start, update, finalise
          --
          -- *** Specific message digests.
          -- $specific-digest$
+
+         -- ** Meta information
+       , name, description
        ) where
 
-import Raaz.V1.Digest
+import GHC.TypeLits
+import Raaz.Core
+
+import qualified Raaz.V1.Digest as Digest
 
 -- $messagedigest$
 --
@@ -55,6 +66,24 @@ import Raaz.V1.Digest
 -- Message digests __DO NOT__ provide any authentication, use the
 -- message authenticator `Auth` instead.
 
+
+-- $incremental$
+--
+-- Message digest can also be computed incrementally using a digest
+-- context captured by the `Cxt` data type. The three functions
+-- relevant for this style of operation are `start`, `update`, and
+-- `finalise` which respectively prepares the context for a new
+-- incremental processing, updates the context with an additional
+-- chunk of data, and finalises the context to recover the digest.
+-- The `Cxt` type being a memory can be run using the `withMemory` or
+-- even `withSecureMemory`
+--
+-- It is very likely that you have the entire input with you as a fine
+-- or a string.  In which case you should not be using this interface
+-- as it is considered low level; you may forget the start step for
+-- example.
+
+
 -- $specific-digest$
 --
 -- To inter-operate with other libraries and applications, one might
@@ -74,3 +103,62 @@ import Raaz.V1.Digest
 -- >
 -- > main = getArgs >>= digestFile . head >>= print
 -- >
+
+type Digest = Digest.Digest
+
+-- | The context type used for incremental processing of
+-- input. Incremental processing first collects data into the context
+-- and when the context buffer is full, processes it in one go using
+-- the digest compression routine.  parameter @n@ measures how many
+-- blocks of data can be held in the context till the compression
+-- routine is invoked.
+type Cxt n  = Digest.Cxt n
+
+-- | Compute the digest of a pure byte source like, `B.ByteString`.
+digest :: PureByteSource src
+       => src  -- ^ Message
+       -> Digest
+digest = Digest.digest
+
+-- | Compute the digest of file.
+digestFile :: FilePath  -- ^ File to be digested
+           -> IO Digest
+digestFile = Digest.digestFile
+
+
+-- | Compute the digest of an arbitrary byte source.
+digestSource :: ByteSource src
+             => src
+             -> IO Digest
+
+digestSource = Digest.digestSource
+
+-- | Textual name of the implementation.
+name :: String
+name = Digest.name
+
+-- | Description of the implementation
+description :: String
+description = Digest.description
+
+-- | Prepare the context to (re)start a session of incremental
+-- processing.
+start :: KnownNat n
+      => Cxt n
+      -> IO ()
+start = Digest.start
+
+
+-- | Add some more data into the context, in this case the entirety of
+-- the byte source src.
+update :: (KnownNat n, ByteSource src)
+       => src
+       -> Cxt n
+       -> IO ()
+update = Digest.update
+
+-- | Finalise the context to get hold of the digest.
+finalise :: KnownNat n
+         => Cxt n
+         -> IO Digest
+finalise = Digest.finalise

@@ -28,12 +28,14 @@ import qualified Blake2s.VsHandwritten as VsB2sHW
 
 spec :: Spec
 spec = do
-  describe "BLAKE2" $ do
+  describe "BLAKE2b" $ do
     basicEndianSpecs (undefined :: Blake2b)
+    B2b.incrementalVsFull
     VsB2bHW.specCompare
 
   describe "BLAKE2s" $ do
     basicEndianSpecs (undefined :: Blake2s)
+    B2s.incrementalVsFull
     VsB2sHW.specCompare
 
   -- | Running the standard test cases.

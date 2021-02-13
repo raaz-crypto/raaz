@@ -1,8 +1,10 @@
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE KindSignatures   #-}
-{-# LANGUAGE DataKinds        #-}
-{-# LANGUAGE MonoLocalBinds   #-}
-{-# LANGUAGE RecordWildCards  #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE KindSignatures        #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE MonoLocalBinds        #-}
+{-# LANGUAGE RecordWildCards       #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-|
 
 Contexts are useful when computing message digests of streaming input,
@@ -15,6 +17,8 @@ track of the total number of data that is remaining.
 module Context ( Cxt(..)
                , cxtSize
                , cxtBlockCount
+               , unsafeSetCxtEmpty
+               , unsafeSetCxtFull
                , unsafeGenerateBlocks
                , unsafeConsumeBlocks
                , unsafeWriteTo
@@ -51,6 +55,21 @@ instance KnownNat n => Memory (Cxt n) where
   memoryAlloc     = Cxt <$> memoryAlloc <*> memoryAlloc <*> memoryAlloc
   unsafeToPointer = unsafeToPointer . cxtBuf
 
+{--
+
+-- Unfortunately this require UndecidableInstances so we suppress
+-- these instances.
+
+instance (KnownNat n, Initialisable Internals v) =>
+  Initialisable (Cxt n) v where
+  initialise v cxt@Cxt{..} = initialise v cxtInternals
+                             >> unsafeSetCxtEmpty cxt
+
+instance (KnownNat n, Extractable Internals v) =>
+  Extractable (Cxt n) v where
+  extract = extract . cxtInternals
+
+--}
 -- | Gives the number of blocks that can fit in the context.
 cxtBlockCount :: KnownNat n => Proxy (Cxt n) -> BlockCount Prim
 cxtBlockCount = bufferSize . fmap cxtBuf
@@ -69,12 +88,12 @@ setBytes :: BYTES Int -> Cxt n -> IO ()
 setBytes nbytes = initialise nbytes . cxtAvailableBytes
 
 -- | Set the context to the empty state.
-setCxtEmpty :: Cxt n -> IO ()
-setCxtEmpty Cxt{..} = initialise (0 :: BYTES Int) cxtAvailableBytes
+unsafeSetCxtEmpty :: Cxt n -> IO ()
+unsafeSetCxtEmpty Cxt{..} = initialise (0 :: BYTES Int) cxtAvailableBytes
 
 -- | Set the context to the full state.
-setCxtFull :: KnownNat n => Cxt n -> IO ()
-setCxtFull cxt@Cxt{..} = initialise (cxtSize $ pure cxt) cxtAvailableBytes
+unsafeSetCxtFull :: KnownNat n => Cxt n -> IO ()
+unsafeSetCxtFull cxt@Cxt{..} = initialise (cxtSize $ pure cxt) cxtAvailableBytes
 
 ------------------ NOTES ----------------------------------------------
 --
@@ -120,7 +139,7 @@ unsafeGenerateBlocks :: KnownNat n
                      -- ^ Blocks generator
                      -> Cxt n
                      -> IO ()
-unsafeGenerateBlocks genBlocks cxt = unsafeProcessBlocks genBlocks cxt >> setCxtFull cxt
+unsafeGenerateBlocks genBlocks cxt = unsafeProcessBlocks genBlocks cxt >> unsafeSetCxtFull cxt
 
 
 -- | Typically used in the Hashing mode, this combinator assumes that
@@ -131,7 +150,7 @@ unsafeConsumeBlocks :: KnownNat n
                     => (BufferPtr -> BlockCount Prim -> Internals -> IO ())
                     -> Cxt n
                     -> IO ()
-unsafeConsumeBlocks action cxt = unsafeProcessBlocks action cxt >> setCxtEmpty cxt
+unsafeConsumeBlocks action cxt = unsafeProcessBlocks action cxt >> unsafeSetCxtEmpty cxt
 
 --------------------------- DANGEROUS CODE ---------------------------------------
 --
@@ -213,7 +232,7 @@ unsafeFillFrom src cxt = do
   let vacant  = cxtSize (pure cxt) - ava
       destPtr = startPtr cxt `movePtr` ava
       srcExhausted trfed = setBytes (ava + trfed) cxt >> return (Exhausted trfed)
-      srcRemaining remSrc = setCxtFull cxt >> return (Remaining remSrc)
+      srcRemaining remSrc = unsafeSetCxtFull cxt >> return (Remaining remSrc)
     in fillBytes vacant src destPtr >>= withFillResult srcRemaining srcExhausted
 
 

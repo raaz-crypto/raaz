@@ -13,6 +13,9 @@ import Raaz.Core
 
 -- | The primitive.
 data Prim
+instance Show Prim
+instance Eq Prim
+instance Equality Prim
 
 -- | The internal memory used by the primitive.
 data Internals

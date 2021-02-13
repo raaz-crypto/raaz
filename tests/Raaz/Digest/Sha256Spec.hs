@@ -13,10 +13,9 @@ import qualified Sha256.VsHandwritten as VsHW
 
 spec :: Spec
 spec =  do
-
-  VsHW.specCompare
-
   basicEndianSpecs (undefined :: Sha256)
+  incrementalVsFull
+  VsHW.specCompare
 
   --
   -- Some unit tests
