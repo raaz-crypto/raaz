@@ -28,11 +28,22 @@ digestsTo str h = it msg (digest str `shouldBe` h)
 
 incrDigest :: ByteString
            -> IO Prim
-incrDigest bs = withMemory $ \ (cxt :: Cxt 16) ->
+incrDigest bs = withMemory $ \ (cxt :: Cxt 1) ->
   do start cxt
      update bs cxt
      finalise cxt
 
+incrDigestList :: [ByteString]
+               -> IO Prim
+incrDigestList bsL = withMemory $ \ (cxt :: Cxt 1) ->
+  do start cxt
+     mapM_ (flip update cxt) bsL
+     finalise cxt
+
 incrementalVsFull :: Spec
-incrementalVsFull = prop "incremental vs full" $
-  \ bs -> incrDigest bs `shouldReturn` digest bs
+incrementalVsFull = do
+  prop "incremental vs full" $
+    \ bs -> incrDigest bs `shouldReturn` digest bs
+
+  prop "incremental vs full on list" $
+    \ bsL -> incrDigestList bsL `shouldReturn` digest bsL
