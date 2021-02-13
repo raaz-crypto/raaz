@@ -47,7 +47,7 @@ jobs:
 
       - name: Build
         run: |
-          cabal build
+          cabal build --minimize-conflict-set
           cabal test
           cabal bench
           cabal haddock
