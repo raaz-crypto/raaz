@@ -8,23 +8,21 @@ on:
 jobs:
   build:
     runs-on: ${{ matrix.os }}
-    continue-on-error: ${{ matrix.continue-on-error }}
     strategy:
       matrix:
         os: [ubuntu-latest]
         ghc: [ '8.4' , '8.6', '8.8', '8.10']
-        continue-on-error: false
         include:
-          - os: ubuntu-latest
-            ghc: 'latest'
-            continue-on-error: true
-          - os: ubuntu-latest
-            ghc: '9.0'
-            continue-on-error: true
+          # - os: ubuntu-latest
+          #   ghc: 'latest'
+          #   experimental: true
+          # - os: ubuntu-latest
+          #   ghc: '9.0'
+          #   experimental: true
           - os: windows-latest
-            continue-on-error: true
+            ghc: '8.10'
           - os: macos-latest
-            continue-on-error: true
+            ghc: '8.10'
 
     steps:
       - name: 'Setup'
