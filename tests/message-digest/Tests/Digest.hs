@@ -1,9 +1,12 @@
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE MonoLocalBinds   #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE MonoLocalBinds      #-}
+{-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 -- Generic tests for hash.
 
 module Tests.Digest
        ( digestsTo
+       , incrementalVsFull
        ) where
 
 import Implementation
@@ -13,8 +16,7 @@ import Tests.Core
 
 
 
-digestsTo :: (Show Prim, Eq Prim)
-          => ByteString
+digestsTo :: ByteString
           -> Prim
           -> Spec
 digestsTo str h = it msg (digest str `shouldBe` h)
@@ -23,3 +25,14 @@ digestsTo str h = it msg (digest str `shouldBe` h)
                         , "to"
                         , shortened $ show h
                         ]
+
+incrDigest :: ByteString
+           -> IO Prim
+incrDigest bs = withMemory $ \ (cxt :: Cxt 16) ->
+  do start cxt
+     update bs cxt
+     finalise cxt
+
+incrementalVsFull :: Spec
+incrementalVsFull = prop "incremental vs full" $
+  \ bs -> incrDigest bs `shouldReturn` digest bs
