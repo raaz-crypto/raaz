@@ -702,10 +702,27 @@ library test-hash
 library test-auth
   import: test-defaults
   hs-source-dirs: tests/auth
+  signatures: Implementation
   build-depends: test-core
                , indef
                , auth-api
   exposed-modules: Tests.Auth
+
+
+library test-auth-implementation
+  import: test-defaults
+  hs-source-dirs: tests/auth/implementation
+  build-depends: test-core
+               , implementation
+               , mac-indef
+  mixins: mac-indef (Mac.Implementation as Blake2s.Mac.Implementation)
+            requires (Implementation as Blake2s.Implementation)
+        , mac-indef (Mac.Implementation as Blake2b.Mac.Implementation)
+            requires (Implementation as Blake2b.Implementation)
+
+  exposed-modules: Auth.Poly1305
+                 , Auth.Mac.Blake2s
+                 , Auth.Mac.Blake2b
 
 -------------------------- The test suits -------------------------
 
@@ -720,7 +737,7 @@ test-suite tests
                , test-cipher
                , test-hash
                , test-auth
-               , mac-indef
+               , test-auth-implementation
                , implementation
                , xchacha-indef
                , raaz
@@ -756,15 +773,10 @@ test-suite tests
           requires (Implementation as Blake2s.Implementation, Alternate as Blake2s.CHandWritten)
 
 
-        , test-auth (Tests.Auth as Poly1305.Auth)     requires (Implementation as Poly1305.Implementation)
+       , test-auth (Tests.Auth as Poly1305.Auth) requires (Implementation as Auth.Poly1305)
 
-        , mac-indef (Mac.Implementation as Blake2s.Mac.Implementation)
-            requires (Implementation as Blake2s.Implementation)
-        , test-auth  (Tests.Auth as Blake2s.Auth) requires (Implementation as Blake2s.Mac.Implementation)
-
-        , mac-indef (Mac.Implementation as Blake2b.Mac.Implementation)
-            requires (Implementation as Blake2b.Implementation)
-        , test-auth  (Tests.Auth as Blake2b.Auth) requires (Implementation as Blake2b.Mac.Implementation)
+       , test-auth (Tests.Auth as Blake2s.Auth)  requires (Implementation as Auth.Mac.Blake2s)
+       , test-auth (Tests.Auth as Blake2b.Auth)  requires (Implementation as Auth.Mac.Blake2b)
 
         , xchacha-indef requires (Implementation as ChaCha20.Implementation)
 

@@ -14,9 +14,9 @@ import           Raaz.Primitive.Keyed.Internal
 import           Paths_raaz
 
 import qualified Blake2b.Digest as B2b
-import qualified Blake2b.Auth   as B2b
+import qualified Blake2b.Auth   as B2bAuth
 import qualified Blake2s.Digest as B2s
-import qualified Blake2s.Auth   as B2s
+import qualified Blake2s.Auth   as B2sAuth
 
 
 
@@ -24,18 +24,18 @@ import qualified Blake2b.VsHandwritten as VsB2bHW
 import qualified Blake2s.VsHandwritten as VsB2sHW
 
 
-
-
 spec :: Spec
 spec = do
   describe "BLAKE2b" $ do
     basicEndianSpecs (undefined :: Blake2b)
     B2b.incrementalVsFull
+    B2bAuth.incrementalVsFull
     VsB2bHW.specCompare
 
   describe "BLAKE2s" $ do
     basicEndianSpecs (undefined :: Blake2s)
     B2s.incrementalVsFull
+    B2sAuth.incrementalVsFull
     VsB2sHW.specCompare
 
   -- | Running the standard test cases.
@@ -69,9 +69,9 @@ toSpec :: B2Test -> Spec
 toSpec tst  =
   case tst of
     B2b (HT bs h)     -> context "with blake2b" $ B2b.digestsTo bs h
-    B2b (AT bs k tag) -> withKey "blake2b" k    $ bs `B2b.authsTo` tag
+    B2b (AT bs k tag) -> withKey "blake2b" k    $ bs `B2bAuth.authsTo` tag
     B2s (HT bs h)     -> context "with blake2s" $ B2s.digestsTo bs h
-    B2s (AT bs k tag) -> withKey "blake2s" k    $ bs `B2s.authsTo` tag
+    B2s (AT bs k tag) -> withKey "blake2s" k    $ bs `B2sAuth.authsTo` tag
     _                 -> return ()
   where withKey hsh key = context (unwords ["with key", shortened $ show key, hsh]) . with key
 

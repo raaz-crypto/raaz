@@ -8,6 +8,7 @@ module Poly1305.CPortable
        , additionalBlocks
        , processBlocks
        , processLast
+       , Key(..)
        ) where
 
 import Raaz.Core

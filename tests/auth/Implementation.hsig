@@ -1,0 +1,16 @@
+{-# LANGUAGE FlexibleInstances #-}
+
+-- This signature adds additional constraints on the primitive and its
+-- key so that we can give authenticator tests.
+signature Implementation where
+
+import Raaz.Core
+import Test.QuickCheck.Arbitrary
+
+data Prim
+
+
+instance Eq Prim
+instance Show (Prim)
+instance Show (Key Prim)
+instance Arbitrary (Key Prim)

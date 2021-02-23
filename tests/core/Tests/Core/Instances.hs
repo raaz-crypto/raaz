@@ -11,6 +11,8 @@ import Tests.Core.Utils
 
 import Raaz.Primitive.Poly1305.Internal as Poly1305
 import Raaz.Core.Types.Internal
+import Raaz.Primitive.Keyed.Internal as Keyed
+
 
 instance Arbitrary w => Arbitrary (LE w) where
   arbitrary = littleEndian <$> arbitrary
@@ -64,6 +66,9 @@ instance Arbitrary (BlockCount ChaCha20) where
 
 instance Arbitrary (Key XChaCha20) where
   arbitrary = genEncodable
+
+instance Arbitrary (Key (Keyed prim)) where
+  arbitrary = Keyed.Key <$> arbitrary
 
 instance Arbitrary (Nounce XChaCha20) where
   arbitrary = genEncodable

@@ -24,6 +24,7 @@ module Mac.Implementation
           , processBlocks
           , processLast
           , additionalBlocks
+          , Key (..)
           ) where
 
 import           Data.ByteString       as BS
