@@ -8,12 +8,25 @@ module Raaz.Auth
        , auth
        , authFile
        , authSource
+
+         -- ** Incremental processing.
+         -- $incremental$
+       , AuthCxt
+       , startAuth, updateAuth, finaliseAuth
+
          --
          -- *** Specific message authentication algorithms
          -- $specific-auth$
          --
        ) where
-import Raaz.V1.Auth
+
+import GHC.TypeLits
+import Raaz.Core
+
+import qualified Raaz.V1.Auth as Auth
+
+
+
 
 -- $messageauth$
 --
@@ -34,9 +47,70 @@ import Raaz.V1.Auth
 --
 -- == Warning
 --
--- Message authentication __does not__ provide secrecy of the message.
+-- Message authentication __does not__ provide secrecy of the message,
+-- use encrypted authenticator instead "Raaz.AuthEncrypt".
 --
+type Auth  = Auth.Auth
 
+-- | Compute the authenticator of a pure byte source like,
+-- `B.ByteString`.
+auth :: PureByteSource src
+     => Key Auth
+     -> src  -- ^ Message
+     -> Auth
+auth = Auth.auth
+
+-- | Compute the authenticator for a file.
+authFile :: Key Auth
+         -> FilePath  -- ^ File to be authed
+         -> IO Auth
+authFile = Auth.authFile
+
+-- | Compute the authenticator of an arbitrary byte source.
+authSource :: ByteSource src
+           => Key Auth
+           -> src
+           -> IO Auth
+authSource = Auth.authSource
+
+-- $incremental$
+--
+-- Message authenticator can also be computed incrementally using a
+-- authenticator context captured by the `AuthCxt` data type. The
+-- three functions relevant for this style of operation are
+-- `startAuth`, `updateAuth`, and `finaliseAuth` which respectively
+-- prepares the context for a new incremental processing, updates the
+-- context with an additional chunk of data, and finalises the context
+-- to recover the digest.  The `AuthCxt` type being a memory can be
+-- run using the `withMemory` or even `withSecureMemory`
+--
+-- If the entire input is with you either as a file or a string, the
+-- `auth` and `authFile` is a much more high level interface and
+-- should be preferred.
+
+type AuthCxt = Auth.AuthCxt
+
+-- | Prepare the context to (re)start a session of incremental
+-- processing.
+startAuth :: KnownNat n
+          => Key Auth   -- ^ The key to be used
+          -> AuthCxt n
+          -> IO ()
+startAuth = Auth.startAuth
+
+-- | Add some more data into the context, in this case the entirety of
+-- the byte source src.
+updateAuth :: (KnownNat n, ByteSource src)
+           => src
+           -> AuthCxt n
+           -> IO ()
+updateAuth = Auth.updateAuth
+
+-- | Finalise the context to get hold of the digest.
+finaliseAuth :: KnownNat n
+             => AuthCxt n
+             -> IO Auth
+finaliseAuth = Auth.finaliseAuth
 
 
 -- $specific-auth$

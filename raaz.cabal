@@ -383,6 +383,7 @@ library auth-api
   build-depends: core
                , indef
                , utils
+               , buffer
   exposed-modules: Interface
 
 -- API package for random bytes generator. The Implementation
