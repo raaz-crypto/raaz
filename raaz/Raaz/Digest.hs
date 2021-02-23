@@ -9,14 +9,11 @@ module Raaz.Digest
 
          -- ** Incremental processing.
          -- $incremental$
-       , Cxt
-       , start, update, finalise
+       , DigestCxt
+       , startDigest, updateDigest, finaliseDigest
          --
          -- *** Specific message digests.
          -- $specific-digest$
-
-         -- ** Meta information
-       , name, description
        ) where
 
 import GHC.TypeLits
@@ -63,25 +60,29 @@ import qualified Raaz.V1.Digest as Digest
 --
 -- == Warning
 --
--- Message digests __DO NOT__ provide any authentication, use the
--- message authenticator `Auth` instead.
+-- Message digests __DO NOT__ provide any authentication; any one
+-- could have compute the digest of a given message `m` and hence says
+-- nothing about the peer from whom the digest has been received. If
+-- you want some guarantee on who the digest came from consider using
+-- a message authenticator (see "Raaz.Auth"). In addition if you also
+-- want secrecy consider using encrypted authenticator (see
+-- "Raaz.AuthEncrypt")
 
 
 -- $incremental$
 --
 -- Message digest can also be computed incrementally using a digest
--- context captured by the `Cxt` data type. The three functions
--- relevant for this style of operation are `start`, `update`, and
--- `finalise` which respectively prepares the context for a new
--- incremental processing, updates the context with an additional
--- chunk of data, and finalises the context to recover the digest.
--- The `Cxt` type being a memory can be run using the `withMemory` or
--- even `withSecureMemory`
+-- context captured by the `DigestCxt` data type. The three functions
+-- relevant for this style of operation are `startDigest`,
+-- `updateDigest`, and `finaliseDigest` which respectively prepares
+-- the context for a new incremental processing, updates the context
+-- with an additional chunk of data, and finalises the context to
+-- recover the digest.  The `DigestCxt` type being a memory can be run
+-- using the `withMemory` or even `withSecureMemory`
 --
--- It is very likely that you have the entire input with you as a fine
--- or a string.  In which case you should not be using this interface
--- as it is considered low level; you may forget the start step for
--- example.
+-- If the entire input is with you either as a file or a string, the
+-- `digest` and `digestFile` is a much more high level interface and
+-- should be preferred.
 
 
 -- $specific-digest$
@@ -112,7 +113,7 @@ type Digest = Digest.Digest
 -- the digest compression routine.  parameter @n@ measures how many
 -- blocks of data can be held in the context till the compression
 -- routine is invoked.
-type Cxt n  = Digest.Cxt n
+type DigestCxt n  = Digest.DigestCxt n
 
 -- | Compute the digest of a pure byte source like, `B.ByteString`.
 digest :: PureByteSource src
@@ -133,32 +134,24 @@ digestSource :: ByteSource src
 
 digestSource = Digest.digestSource
 
--- | Textual name of the implementation.
-name :: String
-name = Digest.name
-
--- | Description of the implementation
-description :: String
-description = Digest.description
-
 -- | Prepare the context to (re)start a session of incremental
 -- processing.
-start :: KnownNat n
-      => Cxt n
-      -> IO ()
-start = Digest.start
+startDigest :: KnownNat n
+            => DigestCxt n
+            -> IO ()
+startDigest = Digest.startDigest
 
 
 -- | Add some more data into the context, in this case the entirety of
 -- the byte source src.
-update :: (KnownNat n, ByteSource src)
-       => src
-       -> Cxt n
-       -> IO ()
-update = Digest.update
+updateDigest :: (KnownNat n, ByteSource src)
+             => src
+             -> DigestCxt n
+             -> IO ()
+updateDigest = Digest.updateDigest
 
 -- | Finalise the context to get hold of the digest.
-finalise :: KnownNat n
-         => Cxt n
-         -> IO Digest
-finalise = Digest.finalise
+finaliseDigest :: KnownNat n
+               => DigestCxt n
+               -> IO Digest
+finaliseDigest = Digest.finaliseDigest

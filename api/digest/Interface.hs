@@ -12,10 +12,10 @@ module Interface ( Digest
                  , digest
                  , digestFile
                  , digestSource
-                 , Cxt
-                 , start
-                 , update
-                 , finalise
+                 , DigestCxt
+                 , startDigest
+                 , updateDigest
+                 , finaliseDigest
                  , name
                  , description
                  ) where
@@ -32,8 +32,8 @@ import qualified Implementation
 import           Utils
 import           Context
 
-type Digest = Implementation.Prim
-
+type Digest    = Implementation.Prim
+type DigestCxt = Cxt
 -- | Compute the digest of a pure byte source like, `B.ByteString`.
 digest :: PureByteSource src
        => src  -- ^ Message
@@ -72,21 +72,21 @@ description = Implementation.description
 
 -- | Prepare the context to (re)start a session of incremental
 -- processing.
-start :: KnownNat n => Cxt n -> IO ()
-start cxt@Cxt{..} = do initialise () cxtInternals
-                       unsafeSetCxtEmpty cxt
+startDigest :: KnownNat n => Cxt n -> IO ()
+startDigest cxt@Cxt{..} = do initialise () cxtInternals
+                             unsafeSetCxtEmpty cxt
 
 
 -- | Add some more data into the context, in this case the entirety of
 -- the byte source src.
-update :: (KnownNat n, ByteSource src)
+updateDigest :: (KnownNat n, ByteSource src)
        => src
        -> Cxt n
        -> IO ()
-update = updateCxt
+updateDigest = updateCxt
 
 -- | Finalise the context to get hold of the digest.
-finalise :: KnownNat n
-         => Cxt n
-         -> IO Digest
-finalise cxt@Cxt{..} = finaliseCxt cxt >> extract cxtInternals
+finaliseDigest :: KnownNat n
+               => Cxt n
+               -> IO Digest
+finaliseDigest cxt@Cxt{..} = finaliseCxt cxt >> extract cxtInternals
