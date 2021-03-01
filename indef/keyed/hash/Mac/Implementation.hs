@@ -4,7 +4,7 @@
 {-# LANGUAGE TypeFamilies                #-}
 {-# LANGUAGE DataKinds                   #-}
 {-# LANGUAGE FlexibleContexts            #-}
-
+{-# LANGUAGE RecordWildCards             #-}
 -- | An implementation for simple MAC which is based on a
 -- cryptographic hash. This construction is safe only for certain
 -- hashes like blake2 and therefore should not be used
@@ -76,13 +76,13 @@ data Internals = MACInternals { hashInternals    :: Base.Internals
 -- | Process the key inside the buffer with the process Buffer
 -- function.
 processKey :: Internals -> IO ()
-processKey imem = U.processBuffer (keyBuffer imem) $ hashInternals imem
+processKey MACInternals{..} = U.processBuffer keyBuffer hashInternals
 
 
 -- | Process the key in the buffer with the processLast function.
 processKeyLast :: Internals -> IO ()
-processKeyLast imem = Base.processLast bufPtr bufsz (hashInternals imem)
-  where bufPtr = B.unsafeGetBufferPointer $ keyBuffer imem
+processKeyLast MACInternals{..} = Base.processLast bufPtr bufsz hashInternals
+  where bufPtr = B.unsafeGetBufferPointer keyBuffer
         bufsz  = inBytes $ blocksOf 1 (Proxy :: Proxy Base.Prim)
 
 
@@ -129,19 +129,19 @@ processBlocks :: BufferPtr
               -> BlockCount Prim
               -> Internals
               -> IO ()
-processBlocks aptr blks imem = do
-  start <- extract $ atStart imem
+processBlocks aptr blks imem@MACInternals{..} = do
+  start <- extract atStart
   when start $ do processKey imem
-                  initialise False $ atStart imem
-  Base.processBlocks (castPointer aptr) (fromKeyedBlocks blks) $ hashInternals imem
+                  initialise False atStart
+  Base.processBlocks (castPointer aptr) (fromKeyedBlocks blks) hashInternals
 
 -- | Process the last bytes of the stream.
 processLast :: BufferPtr
             -> BYTES Int
             -> Internals
             -> IO ()
-processLast aptr sz imem = do
-  start <- extract $ atStart imem
+processLast aptr sz imem@MACInternals{..} = do
+  start <- extract atStart
   if start && sz == 0 then processKeyLast imem
     else do when start $ processKey imem
-            Base.processLast (castPointer aptr) sz $ hashInternals imem
+            Base.processLast (castPointer aptr) sz hashInternals
