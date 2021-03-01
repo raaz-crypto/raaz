@@ -68,7 +68,7 @@ instance Arbitrary (Key XChaCha20) where
   arbitrary = genEncodable
 
 instance Arbitrary (Key (Keyed prim)) where
-  arbitrary = Keyed.Key <$> arbitrary
+  arbitrary = Keyed.Key . pack <$> listOf1 arbitrary
 
 instance Arbitrary (Nounce XChaCha20) where
   arbitrary = genEncodable
