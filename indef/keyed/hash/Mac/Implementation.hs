@@ -102,8 +102,8 @@ instance Memory Internals where
 -- block. At initialisation we cannot predict whether the message we
 -- are about to see is empty or not. So we keep everything ready
 -- (i.e. write the key into the keybuffer) and mark a flag that says
--- we at the start of the message processing. The first time we call
--- processBlocks or processLast, will have to do the appropriate
+-- we are at the start of the message processing. The first time we
+-- call processBlocks or processLast, will have to do the appropriate
 -- initialisation and then proceed from there on.
 
 instance Initialisable Internals (Key (Keyed Base.Prim)) where
