@@ -4,8 +4,9 @@
 {-# LANGUAGE FlexibleContexts            #-}
 {-# LANGUAGE TypeFamilies                #-}
 
--- | Implementation for the cipher part of the AEAD construction. It is assumed that
--- the initialisation of the cipher `Internals` is done in the following order.
+-- | Implementation for the cipher part of the AEAD construction. It
+-- is assumed that the initialisation of the cipher `Internals` is
+-- done in the following order.
 --
 -- 1. Initialise the key either using initialise or using the `WriteAccessable` interface
 --
