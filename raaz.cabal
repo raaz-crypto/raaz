@@ -38,63 +38,44 @@ description:
   customisation relatively painless to integrate into your
   application.
 
-  To exploit this facility you need to have some idea on the internal
+  To exploit this facility, you need to have some idea on the internal
   structure of the @raaz@ package which consists of a few components.
-  The @raaz@ library is essentially a wrapper around the
-  @raaz:raaz-indef@ subcomponent mixed in with the default
-  implementations provided by the @raaz:implementation@. For
-  overridding any of the implementations, you can use the following
-  cabal stanza in your cabal package.
-
-  >
-  > build-depends: raaz:raaz-indef
-  >              , raaz:implementation
-  >              , mychacha20
-  >              , myentropy
-  > mixins: raaz-indef requires (ChaCha20.Implementation as MyChaCha20.Implementation
-  >                              Entropy as MyEntropy.Implementation)
-  >
-
-  In the above cabal stanza, the chacha20 implementation and the
-  entropy source have been overridden. However, the rest of the
-  implmentations are satisfied by the defaults that are provided by
-  @raaz:implementation@. The @MyChaCha20.Implementation@ and
-  @MyEntropy.Implementation@ need to satisfy the same signature
-  constraints that the @ChaCha20.Implementation@ and @Entropy@ module.
-  Broadly speaking, any implementation of a primitive is provided by
-  mixing-in a module, henceforth called an implementation module,
-  satisfying the signature @raaz:indef:Implementation@ signature. In
-  addition, the implementation module also need to satisfy the
-  constraints imposed on it due to the nature of the cryptographic
-  operation that is supported by a primitive. For example, an
-  implementation of `Sha512` should satisfy (besides
-  @raaz:indef:Implementation@) the additional constraints imposed by
-  the signature @raaz:digest-api:Implementation@. This is because
-  `Sha512` is used for message digest and the component
-  @raaz:digest-api@ is what provides the message digesting interface
-  in raaz.
-
   Each cryptographic operation is captured by an api component and it
-  expects a module satisfying the appropriate Implementation
-  signature. The api subcomponent inturn provide the Interface
-  module. The figure below shows the summary of these dependency.
+  expects a module satisfying the appropriate @Implementation@
+  signature. The api subcomponent in turn provide the @Interface@
+  module which is what the user of the @raaz@ library sees. So as far
+  as changing the implementation is concerned, one needs to change the
+  @Implementation@ provided to the api subcomponent.
+
+  The @raaz:implementation@ subcomponent, as the name suggests exposes
+  a set of implementations of each primitive supported. When there are
+  multiple implementations for a given primitive, it also has a
+  default implementation selected.  For example, there might be two
+  different implementation for chacha20 cipher say foo and bar.  The
+  implementation subcomponent in that case has the modules
+  @ChaCha20.Foo@ and @ChaCha20.Bar@. Furthermore, if the foo
+  implementation is the prefered one, @raaz:implementation@ also
+  reexport @ChaCha20.Foo@ as @ChaCha20.Implementation@. The raaz
+  library just mixes in the implementation subcomponent and hence the
+  requirement for chacha20 implementation is taken care of by
+  @ChaCha20.Implementation@ (which is actually @ChaCha20.Foo@ in the
+  above example).
+
 
   >
-  >                              raaz
-  >                               |
-  >                               |
-  >                             +---+     +---------------------+
-  >                             | + | <---| raaz:implementation |
-  >                             +---+     +---------------------+
-  >                               ^
-  >                               |
-  >                 +---------------------------------+
-  >                 |     raaz:raaz-indef             |
-  >                 +---------------------------------+
-  >                  /          |                  \
-  >                 /           |                   \
-  >                /            |                    \
-  >       Interface          Interface              Interface
+  >                           raaz
+  >                             |
+  >                             |       +---------------------+
+  >                             +<------| raaz:implementation |
+  >                             |       +---------------------+
+  >                           +---+
+  >                ---------->| + |<-------------
+  >               /           +---+              \
+  >              /              ^                 \
+  >             /               |                  \
+  >            /                |                   \
+  >           /                 |                    \
+  >       Interface          Interface            Interface
   >          ^                  ^                     ^
   >          |                  |                     |
   >    +------------+    +--------------+       +--------------+
