@@ -6,7 +6,6 @@ module Raaz
          module Raaz.Digest
        , module Raaz.Auth
        , module Raaz.AuthEncrypt
-       , module Raaz.Encrypt
        , module Raaz.Random
          -- * Library information.
        , version
@@ -20,7 +19,6 @@ import Raaz.Core
 import Raaz.Digest
 import Raaz.Auth
 import Raaz.AuthEncrypt
-import Raaz.Encrypt
 import Raaz.Random
 
 -- $intro$

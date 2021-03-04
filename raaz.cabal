@@ -431,6 +431,7 @@ library aead-api
         , utils (Utils as Cipher.Utils) requires (Implementation as Cipher.Implementation)
         , utils (Utils as Auth.Utils)   requires (Implementation as Auth.Implementation)
         , buffer (Buffer as Cipher.Buffer) requires (Implementation as Cipher.Implementation)
+
 --------------------  The implementation modules ----------------------------------
 --
 -- This package exposes all the implementations provided by the raaz
@@ -520,130 +521,89 @@ library implementation
         reexported-modules: URandom.Entropy as Entropy
 
 
--------------------- The raaz indef package ------------------------
---
--- This is the indef package to use if you want to get an interface
--- similar to raaz and want to override the implementations.
-
-library raaz-indef
-  import: defaults
-  visibility: public
-  build-depends: core
-               , digest-api
-               , random-api
-               , auth-api
-               , encrypt-api
-               , mac-indef
-               , xchacha-indef
-               , aead-api
-  -- :WARNING: The raaz-indef package can be mixed in with custom
-  -- implementations. If we do not have the signatures below, it would be possible to mixin
-  -- an implementation of Blake2b for an implementation of Sha512 (say).
-  hs-source-dirs: indef/blake2
-                , indef/sha2
-
-  signatures: Blake2b.Implementation
-            , Blake2s.Implementation
-            , Sha256.Implementation
-            , Sha512.Implementation
-
-  reexported-modules: Auth.Blake2b
-                    , Auth.Blake2s
-                    , Encrypt.ChaCha20
-                    , Encrypt.XChaCha20
-                    , AuthEncrypt.ChaCha20Poly1305
-                    , AuthEncrypt.XChaCha20Poly1305
-                    , Digest.Blake2b
-                    , Digest.Blake2s
-                    , Digest.Sha256
-                    , Digest.Sha512
-                    , Random
-                    , Random.Internal
-  mixins: digest-api (Interface as Digest.Blake2b)
-            requires (Implementation as Blake2b.Implementation)
-        , digest-api (Interface as Digest.Blake2s)
-            requires (Implementation as Blake2s.Implementation)
-        , digest-api (Interface as Digest.Sha512)
-            requires (Implementation as Sha512.Implementation)
-        , digest-api (Interface as Digest.Sha256)
-            requires (Implementation as Sha256.Implementation)
-        , encrypt-api (Interface as Encrypt.ChaCha20)
-            requires (Implementation as ChaCha20.Implementation)
-
-        -- encrypted-authenticated interface
-        , aead-api (Interface as AuthEncrypt.ChaCha20Poly1305)
-            requires ( Cipher.Implementation as ChaCha20.Implementation
-                     , Auth.Implementation as Poly1305.Implementation
-          )
-
-        , aead-api (Interface as AuthEncrypt.XChaCha20Poly1305)
-            requires ( Cipher.Implementation as XChaCha20.Implementation
-                     , Auth.Implementation as Poly1305.Implementation
-                     )
-
-        -- XChaCha20 implementation
-        , xchacha-indef requires (Implementation as ChaCha20.Implementation)
-        , encrypt-api (Interface as Encrypt.XChaCha20)
-            requires (Implementation as XChaCha20.Implementation)
-
-        , random-api (Interface as Random, Internal as Random.Internal)
-            requires (Implementation as Random.Implementation)
-        -- MAC-ing with blake2b
-        , mac-indef (Mac.Implementation as Blake2b.Mac.Implementation)
-            requires (Implementation as Blake2b.Implementation)
-        , auth-api (Interface as Auth.Blake2b) requires (Implementation as Blake2b.Mac.Implementation)
-
-        -- MAC-ing with blake2s
-        , mac-indef (Mac.Implementation as Blake2s.Mac.Implementation)
-            requires (Implementation as Blake2s.Implementation)
-        , auth-api (Interface as Auth.Blake2s) requires (Implementation as Blake2s.Mac.Implementation)
-
-
 -------------------------------- The main raaz library -------------------------------------
 
 library
   import: defaults
   hs-source-dirs: raaz
   build-depends: core
+               , mac-indef
+               , xchacha-indef
+               , aead-api
+               , auth-api
+               , digest-api
+               , random-api
                , implementation
-               , raaz-indef
+
   exposed-modules: Raaz
                  , Raaz.Auth
-                 , Raaz.Digest
-                 , Raaz.Encrypt
                  , Raaz.AuthEncrypt
+                 , Raaz.Digest
+
   reexported-modules: Raaz.Auth.Blake2b
                     , Raaz.Auth.Blake2s
-                    , Raaz.AuthEncrypt.ChaCha20Poly1305
                     , Raaz.AuthEncrypt.XChaCha20Poly1305
-                    , Raaz.Encrypt.ChaCha20
-                    , Raaz.Encrypt.XChaCha20
+                    , Raaz.AuthEncrypt.ChaCha20Poly1305
                     , Raaz.Digest.Blake2b
                     , Raaz.Digest.Blake2s
                     , Raaz.Digest.Sha512
                     , Raaz.Digest.Sha256
                     , Raaz.Random
                     , Raaz.Random.Internal
-                    , Raaz.Core
+
+  mixins:
+        --
+        -- Message digests
+        --
+          digest-api (Interface as Raaz.Digest.Blake2b)
+            requires (Implementation as Blake2b.Implementation)
+        , digest-api (Interface as Raaz.Digest.Blake2s)
+            requires (Implementation as Blake2s.Implementation)
+        , digest-api (Interface as Raaz.Digest.Sha512)
+            requires (Implementation as Sha512.Implementation)
+        , digest-api (Interface as Raaz.Digest.Sha256)
+            requires (Implementation as Sha256.Implementation)
+
+        --
+        -- Message Authentication
+        --
+        , mac-indef (Mac.Implementation as Blake2b.Mac.Implementation)
+            requires (Implementation as Blake2b.Implementation)
+        , mac-indef (Mac.Implementation as Blake2s.Mac.Implementation)
+            requires (Implementation as Blake2s.Implementation)
+
+        , auth-api (Interface as Raaz.Auth.Blake2b) requires (Implementation as Blake2b.Mac.Implementation)
+        , auth-api (Interface as Raaz.Auth.Blake2s) requires (Implementation as Blake2s.Mac.Implementation)
+
+
+        --
+        -- Encrypted authentication
+        --
+        , xchacha-indef requires (Implementation as ChaCha20.Implementation)
+        , aead-api (Interface as Raaz.AuthEncrypt.XChaCha20Poly1305)
+            requires ( Cipher.Implementation as XChaCha20.Implementation
+                     , Auth.Implementation as Poly1305.Implementation
+                     )
+
+        -- Using Chacha20
+        , aead-api (Interface as Raaz.AuthEncrypt.ChaCha20Poly1305)
+            requires ( Cipher.Implementation as ChaCha20.Implementation
+                     , Auth.Implementation as Poly1305.Implementation
+          )
+
+        --
+        -- Cryptographic randomness
+        --
+        , random-api (Interface as Raaz.Random, Internal as Raaz.Random.Internal)
+             requires (Implementation as Random.Implementation)
+
+
+  reexported-modules: Raaz.Core
                     , Raaz.Core.Types
   autogen-modules: Paths_raaz
-  mixins: raaz-indef ( Auth.Blake2b as Raaz.Auth.Blake2b
-                     , Auth.Blake2s       as Raaz.Auth.Blake2s
-                     , AuthEncrypt.ChaCha20Poly1305 as Raaz.AuthEncrypt.ChaCha20Poly1305
-                     , AuthEncrypt.XChaCha20Poly1305 as Raaz.AuthEncrypt.XChaCha20Poly1305
-                     , Encrypt.ChaCha20   as Raaz.Encrypt.ChaCha20
-                     , Encrypt.XChaCha20  as Raaz.Encrypt.XChaCha20
-                     , Digest.Blake2b     as Raaz.Digest.Blake2b
-                     , Digest.Blake2s     as Raaz.Digest.Blake2s
-                     , Digest.Sha512      as Raaz.Digest.Sha512
-                     , Digest.Sha256      as Raaz.Digest.Sha256
-                     , Random             as Raaz.Random
-                     , Random.Internal    as Raaz.Random.Internal
-                     )
   other-modules: Paths_raaz
                , Raaz.V1.Auth
                , Raaz.V1.Digest
-               , Raaz.V1.Encrypt
                , Raaz.V1.AuthEncrypt
 
 
