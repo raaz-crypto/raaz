@@ -751,6 +751,9 @@ test-suite monocypher
                , Monocypher.ChaCha20Spec
   build-depends: raaz
                , test-core
+               , xchacha-indef
+               , encrypt-api
+               , implementation
   hs-source-dirs: monocypher/tests
   c-sources: monocypher/monocypher-3.0.0/monocypher.c
            , monocypher/monocypher-3.0.0/optional/monocypher-ed25519.c
@@ -761,6 +764,13 @@ test-suite monocypher
   includes: monocypher/monocypher-3.0.0/optional/monocypher-ed25519.h
           , monocypher/monocypher-3.0.0/monocypher.h
   build-tool-depends: hspec-discover:hspec-discover
+  mixins: xchacha-indef requires (Implementation as ChaCha20.Implementation)
+        , encrypt-api (Interface as Raaz.Encrypt.ChaCha20)
+            requires (Implementation as ChaCha20.Implementation)
+
+        , encrypt-api (Interface as Raaz.Encrypt.XChaCha20)
+            requires (Implementation as XChaCha20.Implementation)
+
 
 --------------------------- Benchmarkings ---------------------------------------------
 common bench-defaults
