@@ -5,6 +5,21 @@
 {-# LANGUAGE FlexibleInstances           #-}
 {-# LANGUAGE TypeFamilies                #-}
 
+-- | This signature imposes additional constraints on the primitive to
+-- make it possible to use it as a message digest. Here is the list.
+--
+-- 1. The `Prim` type captures the message digest and hence should be
+--    instances of `Eq`, so that we can compare messages by checking
+--    the digest, and `Equality`, so that the equality comparison can
+--    be made timing safe when part of a compound data.
+--
+-- 2. To start the process of computing the message digest the
+--    `Internal` state of the implementation should use initialised by
+--    @()@.
+--
+-- 3. At the end of the message, the digest, which recall is captured
+--    by the type `Prim` should be extracted from the internal state.
+--
 
 signature Implementation where
 
@@ -13,7 +28,7 @@ import Raaz.Core
 
 -- | The primitive.
 data Prim
-instance Show Prim
+
 instance Eq Prim
 instance Equality Prim
 
@@ -21,9 +36,6 @@ instance Equality Prim
 data Internals
 instance Memory Internals
 
--- | A digest primitive is a message digest if it is a digest and its
--- internals can be initialised without any key (or equivalently with
--- `()`.
 
 instance Initialisable Internals ()
 instance Extractable Internals Prim

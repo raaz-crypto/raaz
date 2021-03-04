@@ -1,0 +1,10 @@
+{-# LANGUAGE FlexibleInstances #-}
+
+-- This signature adds additional constraints on the primitive and its
+-- key so that we can give digest tests.
+signature Implementation where
+
+import Raaz.Core
+
+data Prim
+instance Show Prim

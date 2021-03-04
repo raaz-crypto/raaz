@@ -688,9 +688,10 @@ library test-cipher
                , encrypt-api
   exposed-modules: Tests.Cipher
 
-library test-hash
+library test-digest
   import: test-defaults
   hs-source-dirs: tests/message-digest
+  signatures: Implementation
   build-depends: test-core
                , indef
                , digest-api
@@ -735,7 +736,7 @@ test-suite tests
                , attoparsec
                , test-core
                , test-cipher
-               , test-hash
+               , test-digest
                , test-auth
                , test-auth-implementation
                , implementation
@@ -760,16 +761,16 @@ test-suite tests
                , Paths_raaz
 
   mixins: test-cipher requires (Implementation as ChaCha20.Implementation)
-        , test-hash (Tests.Digest as Sha256.Digest, Tests.Digest.Compare as Sha256.VsHandwritten)
+        , test-digest (Tests.Digest as Sha256.Digest, Tests.Digest.Compare as Sha256.VsHandwritten)
           requires (Implementation as Sha256.Implementation, Alternate as Sha256.CHandWritten)
 
-        , test-hash (Tests.Digest as Sha512.Digest, Tests.Digest.Compare as Sha512.VsHandwritten)
+        , test-digest (Tests.Digest as Sha512.Digest, Tests.Digest.Compare as Sha512.VsHandwritten)
           requires (Implementation as Sha512.Implementation, Alternate as Sha512.CHandWritten)
 
-        , test-hash (Tests.Digest as Blake2b.Digest, Tests.Digest.Compare as Blake2b.VsHandwritten)
+        , test-digest (Tests.Digest as Blake2b.Digest, Tests.Digest.Compare as Blake2b.VsHandwritten)
           requires (Implementation as Blake2b.Implementation, Alternate as Blake2b.CHandWritten)
 
-        , test-hash (Tests.Digest as Blake2s.Digest, Tests.Digest.Compare as Blake2s.VsHandwritten)
+        , test-digest (Tests.Digest as Blake2s.Digest, Tests.Digest.Compare as Blake2s.VsHandwritten)
           requires (Implementation as Blake2s.Implementation, Alternate as Blake2s.CHandWritten)
 
 
