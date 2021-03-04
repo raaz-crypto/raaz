@@ -10,7 +10,6 @@ import Test.QuickCheck.Arbitrary
 data Prim
 
 
-instance Eq Prim
 instance Show (Prim)
 instance Show (Key Prim)
 instance Arbitrary (Key Prim)

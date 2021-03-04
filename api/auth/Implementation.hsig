@@ -5,19 +5,35 @@
 {-# LANGUAGE FlexibleInstances           #-}
 {-# LANGUAGE TypeFamilies                #-}
 
+-- | This signature imposes additional constraints on the primitive to
+-- make it possible to use it as a message authenticator. Here is the list.
+--
+-- 1. The `Prim` type captures the message authentication code and
+--    hence should be instances of `Eq`, so that we can compare
+--    messages by checking the digest, and `Equality`, so that the
+--    equality comparison can be made timing safe when part of a
+--    compound data.
+--
+-- 2. To start the process of computing the message authentication,
+--    the `Internal` state of the implementation should be initialised
+--    using the secret key.
+--
+-- 3. At the end of the message, the authentication code, which recall
+--    is captured by the type `Prim` should be extractable from the
+--    internal state.
+--
 
 signature Implementation where
-
 
 import Raaz.Core
 
 data Prim
 data Internals
+
+
+instance Equality Prim
+instance Eq Prim
+
 instance Memory Internals
-
--- | The constraints below say that for a message authenticator, one
--- should able to initialise with the secrete Key and then after
--- processing extract out the digest.
-
 instance Initialisable Internals (Key Prim)
 instance Extractable Internals Prim
