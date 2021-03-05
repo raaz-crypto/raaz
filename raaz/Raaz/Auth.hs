@@ -23,6 +23,7 @@ module Raaz.Auth
 import GHC.TypeLits
 import Raaz.Core
 
+
 import qualified Raaz.V1.Auth as Auth
 
 
@@ -81,8 +82,9 @@ authSource = Auth.authSource
 -- `startAuth`, `updateAuth`, and `finaliseAuth` which respectively
 -- prepares the context for a new incremental processing, updates the
 -- context with an additional chunk of data, and finalises the context
--- to recover the digest.  The `AuthCxt` type being a memory can be
--- run using the `withMemory` or even `withSecureMemory`
+-- to recover the digest. The type `AuthCxt` is an instance of the
+-- class `Memory` and hence any IO action that requires a `AuthCxt` as
+-- argument can be run using the `withMemory` combinator.
 --
 -- If the entire input is with you either as a file or a string, the
 -- `auth` and `authFile` is a much more high level interface and

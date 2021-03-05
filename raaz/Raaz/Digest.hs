@@ -77,8 +77,9 @@ import qualified Raaz.V1.Digest as Digest
 -- `updateDigest`, and `finaliseDigest` which respectively prepares
 -- the context for a new incremental processing, updates the context
 -- with an additional chunk of data, and finalises the context to
--- recover the digest.  The `DigestCxt` type being a memory can be run
--- using the `withMemory` or even `withSecureMemory`
+-- recover the digest. The type `DigestCxt` is an instance of the
+-- class `Memory` and hence any IO action that requires a `DigestCxt`
+-- as argument can be run using `withMemory`.
 --
 -- If the entire input is with you either as a file or a string, the
 -- `digest` and `digestFile` is a much more high level interface and
@@ -115,7 +116,7 @@ type Digest = Digest.Digest
 -- routine is invoked.
 type DigestCxt n  = Digest.DigestCxt n
 
--- | Compute the digest of a pure byte source like, `B.ByteString`.
+-- | Compute the digest of a pure byte source like `B.ByteString`.
 digest :: PureByteSource src
        => src  -- ^ Message
        -> Digest
