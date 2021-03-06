@@ -1,5 +1,0 @@
--- | An implementation of sha256.
-signature Sha256.Implementation where
-
-import Raaz.Primitive.Sha2.Internal ( Sha256 )
-type Prim = Sha256

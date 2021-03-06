@@ -18,7 +18,6 @@
 
 	- message digest provided via Blake2b
 	- message authentication provided via Blake2b
-	- message encryption provided via XChaCha20
 	- authenticated encryption via XChaCha20Poly1305
 
   - Explicit primitive based interface meant only for interworking

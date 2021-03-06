@@ -38,63 +38,44 @@ description:
   customisation relatively painless to integrate into your
   application.
 
-  To exploit this facility you need to have some idea on the internal
+  To exploit this facility, you need to have some idea on the internal
   structure of the @raaz@ package which consists of a few components.
-  The @raaz@ library is essentially a wrapper around the
-  @raaz:raaz-indef@ subcomponent mixed in with the default
-  implementations provided by the @raaz:implementation@. For
-  overridding any of the implementations, you can use the following
-  cabal stanza in your cabal package.
-
-  >
-  > build-depends: raaz:raaz-indef
-  >              , raaz:implementation
-  >              , mychacha20
-  >              , myentropy
-  > mixins: raaz-indef requires (ChaCha20.Implementation as MyChaCha20.Implementation
-  >                              Entropy as MyEntropy.Implementation)
-  >
-
-  In the above cabal stanza, the chacha20 implementation and the
-  entropy source have been overridden. However, the rest of the
-  implmentations are satisfied by the defaults that are provided by
-  @raaz:implementation@. The @MyChaCha20.Implementation@ and
-  @MyEntropy.Implementation@ need to satisfy the same signature
-  constraints that the @ChaCha20.Implementation@ and @Entropy@ module.
-  Broadly speaking, any implementation of a primitive is provided by
-  mixing-in a module, henceforth called an implementation module,
-  satisfying the signature @raaz:indef:Implementation@ signature. In
-  addition, the implementation module also need to satisfy the
-  constraints imposed on it due to the nature of the cryptographic
-  operation that is supported by a primitive. For example, an
-  implementation of `Sha512` should satisfy (besides
-  @raaz:indef:Implementation@) the additional constraints imposed by
-  the signature @raaz:digest-api:Implementation@. This is because
-  `Sha512` is used for message digest and the component
-  @raaz:digest-api@ is what provides the message digesting interface
-  in raaz.
-
   Each cryptographic operation is captured by an api component and it
-  expects a module satisfying the appropriate Implementation
-  signature. The api subcomponent inturn provide the Interface
-  module. The figure below shows the summary of these dependency.
+  expects a module satisfying the appropriate @Implementation@
+  signature. The api subcomponent in turn provide the @Interface@
+  module which is what the user of the @raaz@ library sees. So as far
+  as changing the implementation is concerned, one needs to change the
+  @Implementation@ provided to the api subcomponent.
+
+  The @raaz:implementation@ subcomponent, as the name suggests exposes
+  a set of implementations of each primitive supported. When there are
+  multiple implementations for a given primitive, it also has a
+  default implementation selected.  For example, there might be two
+  different implementation for chacha20 cipher say foo and bar.  The
+  implementation subcomponent in that case has the modules
+  @ChaCha20.Foo@ and @ChaCha20.Bar@. Furthermore, if the foo
+  implementation is the prefered one, @raaz:implementation@ also
+  reexport @ChaCha20.Foo@ as @ChaCha20.Implementation@. The raaz
+  library just mixes in the implementation subcomponent and hence the
+  requirement for chacha20 implementation is taken care of by
+  @ChaCha20.Implementation@ (which is actually @ChaCha20.Foo@ in the
+  above example).
+
 
   >
-  >                              raaz
-  >                               |
-  >                               |
-  >                             +---+     +---------------------+
-  >                             | + | <---| raaz:implementation |
-  >                             +---+     +---------------------+
-  >                               ^
-  >                               |
-  >                 +---------------------------------+
-  >                 |     raaz:raaz-indef             |
-  >                 +---------------------------------+
-  >                  /          |                  \
-  >                 /           |                   \
-  >                /            |                    \
-  >       Interface          Interface              Interface
+  >                           raaz
+  >                             |
+  >                             |       +---------------------+
+  >                             +<------| raaz:implementation |
+  >                             |       +---------------------+
+  >                           +---+
+  >                ---------->| + |<-------------
+  >               /           +---+              \
+  >              /              ^                 \
+  >             /               |                  \
+  >            /                |                   \
+  >           /                 |                    \
+  >       Interface          Interface            Interface
   >          ^                  ^                     ^
   >          |                  |                     |
   >    +------------+    +--------------+       +--------------+
@@ -431,6 +412,7 @@ library aead-api
         , utils (Utils as Cipher.Utils) requires (Implementation as Cipher.Implementation)
         , utils (Utils as Auth.Utils)   requires (Implementation as Auth.Implementation)
         , buffer (Buffer as Cipher.Buffer) requires (Implementation as Cipher.Implementation)
+
 --------------------  The implementation modules ----------------------------------
 --
 -- This package exposes all the implementations provided by the raaz
@@ -520,130 +502,89 @@ library implementation
         reexported-modules: URandom.Entropy as Entropy
 
 
--------------------- The raaz indef package ------------------------
---
--- This is the indef package to use if you want to get an interface
--- similar to raaz and want to override the implementations.
-
-library raaz-indef
-  import: defaults
-  visibility: public
-  build-depends: core
-               , digest-api
-               , random-api
-               , auth-api
-               , encrypt-api
-               , mac-indef
-               , xchacha-indef
-               , aead-api
-  -- :WARNING: The raaz-indef package can be mixed in with custom
-  -- implementations. If we do not have the signatures below, it would be possible to mixin
-  -- an implementation of Blake2b for an implementation of Sha512 (say).
-  hs-source-dirs: indef/blake2
-                , indef/sha2
-
-  signatures: Blake2b.Implementation
-            , Blake2s.Implementation
-            , Sha256.Implementation
-            , Sha512.Implementation
-
-  reexported-modules: Auth.Blake2b
-                    , Auth.Blake2s
-                    , Encrypt.ChaCha20
-                    , Encrypt.XChaCha20
-                    , AuthEncrypt.ChaCha20Poly1305
-                    , AuthEncrypt.XChaCha20Poly1305
-                    , Digest.Blake2b
-                    , Digest.Blake2s
-                    , Digest.Sha256
-                    , Digest.Sha512
-                    , Random
-                    , Random.Internal
-  mixins: digest-api (Interface as Digest.Blake2b)
-            requires (Implementation as Blake2b.Implementation)
-        , digest-api (Interface as Digest.Blake2s)
-            requires (Implementation as Blake2s.Implementation)
-        , digest-api (Interface as Digest.Sha512)
-            requires (Implementation as Sha512.Implementation)
-        , digest-api (Interface as Digest.Sha256)
-            requires (Implementation as Sha256.Implementation)
-        , encrypt-api (Interface as Encrypt.ChaCha20)
-            requires (Implementation as ChaCha20.Implementation)
-
-        -- encrypted-authenticated interface
-        , aead-api (Interface as AuthEncrypt.ChaCha20Poly1305)
-            requires ( Cipher.Implementation as ChaCha20.Implementation
-                     , Auth.Implementation as Poly1305.Implementation
-          )
-
-        , aead-api (Interface as AuthEncrypt.XChaCha20Poly1305)
-            requires ( Cipher.Implementation as XChaCha20.Implementation
-                     , Auth.Implementation as Poly1305.Implementation
-                     )
-
-        -- XChaCha20 implementation
-        , xchacha-indef requires (Implementation as ChaCha20.Implementation)
-        , encrypt-api (Interface as Encrypt.XChaCha20)
-            requires (Implementation as XChaCha20.Implementation)
-
-        , random-api (Interface as Random, Internal as Random.Internal)
-            requires (Implementation as Random.Implementation)
-        -- MAC-ing with blake2b
-        , mac-indef (Mac.Implementation as Blake2b.Mac.Implementation)
-            requires (Implementation as Blake2b.Implementation)
-        , auth-api (Interface as Auth.Blake2b) requires (Implementation as Blake2b.Mac.Implementation)
-
-        -- MAC-ing with blake2s
-        , mac-indef (Mac.Implementation as Blake2s.Mac.Implementation)
-            requires (Implementation as Blake2s.Implementation)
-        , auth-api (Interface as Auth.Blake2s) requires (Implementation as Blake2s.Mac.Implementation)
-
-
 -------------------------------- The main raaz library -------------------------------------
 
 library
   import: defaults
   hs-source-dirs: raaz
   build-depends: core
+               , mac-indef
+               , xchacha-indef
+               , aead-api
+               , auth-api
+               , digest-api
+               , random-api
                , implementation
-               , raaz-indef
+
   exposed-modules: Raaz
                  , Raaz.Auth
-                 , Raaz.Digest
-                 , Raaz.Encrypt
                  , Raaz.AuthEncrypt
+                 , Raaz.Digest
+
   reexported-modules: Raaz.Auth.Blake2b
                     , Raaz.Auth.Blake2s
-                    , Raaz.AuthEncrypt.ChaCha20Poly1305
                     , Raaz.AuthEncrypt.XChaCha20Poly1305
-                    , Raaz.Encrypt.ChaCha20
-                    , Raaz.Encrypt.XChaCha20
+                    , Raaz.AuthEncrypt.ChaCha20Poly1305
                     , Raaz.Digest.Blake2b
                     , Raaz.Digest.Blake2s
                     , Raaz.Digest.Sha512
                     , Raaz.Digest.Sha256
                     , Raaz.Random
                     , Raaz.Random.Internal
-                    , Raaz.Core
+
+  mixins:
+        --
+        -- Message digests
+        --
+          digest-api (Interface as Raaz.Digest.Blake2b)
+            requires (Implementation as Blake2b.Implementation)
+        , digest-api (Interface as Raaz.Digest.Blake2s)
+            requires (Implementation as Blake2s.Implementation)
+        , digest-api (Interface as Raaz.Digest.Sha512)
+            requires (Implementation as Sha512.Implementation)
+        , digest-api (Interface as Raaz.Digest.Sha256)
+            requires (Implementation as Sha256.Implementation)
+
+        --
+        -- Message Authentication
+        --
+        , mac-indef (Mac.Implementation as Blake2b.Mac.Implementation)
+            requires (Implementation as Blake2b.Implementation)
+        , mac-indef (Mac.Implementation as Blake2s.Mac.Implementation)
+            requires (Implementation as Blake2s.Implementation)
+
+        , auth-api (Interface as Raaz.Auth.Blake2b) requires (Implementation as Blake2b.Mac.Implementation)
+        , auth-api (Interface as Raaz.Auth.Blake2s) requires (Implementation as Blake2s.Mac.Implementation)
+
+
+        --
+        -- Encrypted authentication
+        --
+        , xchacha-indef requires (Implementation as ChaCha20.Implementation)
+        , aead-api (Interface as Raaz.AuthEncrypt.XChaCha20Poly1305)
+            requires ( Cipher.Implementation as XChaCha20.Implementation
+                     , Auth.Implementation as Poly1305.Implementation
+                     )
+
+        -- Using Chacha20
+        , aead-api (Interface as Raaz.AuthEncrypt.ChaCha20Poly1305)
+            requires ( Cipher.Implementation as ChaCha20.Implementation
+                     , Auth.Implementation as Poly1305.Implementation
+          )
+
+        --
+        -- Cryptographic randomness
+        --
+        , random-api (Interface as Raaz.Random, Internal as Raaz.Random.Internal)
+             requires (Implementation as Random.Implementation)
+
+
+  reexported-modules: Raaz.Core
                     , Raaz.Core.Types
   autogen-modules: Paths_raaz
-  mixins: raaz-indef ( Auth.Blake2b as Raaz.Auth.Blake2b
-                     , Auth.Blake2s       as Raaz.Auth.Blake2s
-                     , AuthEncrypt.ChaCha20Poly1305 as Raaz.AuthEncrypt.ChaCha20Poly1305
-                     , AuthEncrypt.XChaCha20Poly1305 as Raaz.AuthEncrypt.XChaCha20Poly1305
-                     , Encrypt.ChaCha20   as Raaz.Encrypt.ChaCha20
-                     , Encrypt.XChaCha20  as Raaz.Encrypt.XChaCha20
-                     , Digest.Blake2b     as Raaz.Digest.Blake2b
-                     , Digest.Blake2s     as Raaz.Digest.Blake2s
-                     , Digest.Sha512      as Raaz.Digest.Sha512
-                     , Digest.Sha256      as Raaz.Digest.Sha256
-                     , Random             as Raaz.Random
-                     , Random.Internal    as Raaz.Random.Internal
-                     )
   other-modules: Paths_raaz
                , Raaz.V1.Auth
                , Raaz.V1.Digest
-               , Raaz.V1.Encrypt
                , Raaz.V1.AuthEncrypt
 
 
@@ -791,6 +732,9 @@ test-suite monocypher
                , Monocypher.ChaCha20Spec
   build-depends: raaz
                , test-core
+               , xchacha-indef
+               , encrypt-api
+               , implementation
   hs-source-dirs: monocypher/tests
   c-sources: monocypher/monocypher-3.0.0/monocypher.c
            , monocypher/monocypher-3.0.0/optional/monocypher-ed25519.c
@@ -801,6 +745,13 @@ test-suite monocypher
   includes: monocypher/monocypher-3.0.0/optional/monocypher-ed25519.h
           , monocypher/monocypher-3.0.0/monocypher.h
   build-tool-depends: hspec-discover:hspec-discover
+  mixins: xchacha-indef requires (Implementation as ChaCha20.Implementation)
+        , encrypt-api (Interface as Raaz.Encrypt.ChaCha20)
+            requires (Implementation as ChaCha20.Implementation)
+
+        , encrypt-api (Interface as Raaz.Encrypt.XChaCha20)
+            requires (Implementation as XChaCha20.Implementation)
+
 
 --------------------------- Benchmarkings ---------------------------------------------
 common bench-defaults

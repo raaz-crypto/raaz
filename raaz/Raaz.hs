@@ -6,22 +6,24 @@ module Raaz
          module Raaz.Digest
        , module Raaz.Auth
        , module Raaz.AuthEncrypt
-       , module Raaz.Encrypt
        , module Raaz.Random
+         -- ** Running memory action.
+         -- $memory$
+       , module Raaz.Core
          -- * Library information.
        , version
-       , withMemory, withSecureMemory
        ) where
 
 import qualified Paths_raaz as P
 import           Data.Version  (Version)
 
-import Raaz.Core
+import Raaz.Core ( withMemory, withSecureMemory)
 import Raaz.Digest
 import Raaz.Auth
 import Raaz.AuthEncrypt
-import Raaz.Encrypt
 import Raaz.Random
+
+
 
 -- $intro$
 --
@@ -55,6 +57,20 @@ import Raaz.Random
 -- therefore safe and we encourage its use. Compare this with many
 -- other libraries where one has to remember to use specific functions
 -- sanitised timing safe comparisons.
+--
+-- [Locked memory:] The interface to locked memory is provided through
+-- the combinators `withMemory` and `withSecureMemory`. These
+-- combinators take any IO action that expects a memory element
+-- (captured by the class `Memory`) and runs it by providing such an
+-- element. The underlying memory buffer is zeroed at the end of the
+-- action. In addition, `withSecureMeory` ensures that the memory
+-- allocated for the memory element is locked (and hence not swapped
+-- out). This gives a relatively higher level interface for locked
+-- memory. A word of caution though. Interfaces that directly deal
+-- with memory elements are considered low level and are certain
+-- usages, particularly if it involves reading pure values out of the
+-- memory element, are problematic and a lot of caution needs to be
+-- employed when using this interface.
 --
 -- [Convenient Encoding:] The `Show` instance of most types like
 -- message digest or the authenticator tag give a base16 encoding
@@ -91,6 +107,12 @@ import Raaz.Random
 -- appropriate modules given below (see the module specific
 -- documentation for the detailed interface for each operation).
 
+-- $memory$
+--
+-- Actions that require a memory element can be executed using the two
+-- combinators `withMemory` and `withSecureMemory`. Examples include
+-- memory elements for incremental processing like `DigestCxt`,
+-- `AuthCxt` etc.
 
 -- | Raaz library version number.
 version :: Version
