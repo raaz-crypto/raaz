@@ -554,8 +554,10 @@ library
         , mac-indef (Mac.Implementation as Blake2s.Mac.Implementation)
             requires (Implementation as Blake2s.Implementation)
 
-        , auth-api (Interface as Raaz.Auth.Blake2b) requires (Implementation as Blake2b.Mac.Implementation)
-        , auth-api (Interface as Raaz.Auth.Blake2s) requires (Implementation as Blake2s.Mac.Implementation)
+        , auth-api (Interface as Raaz.Auth.Blake2b)
+             requires (Implementation as Blake2b.Mac.Implementation)
+        , auth-api (Interface as Raaz.Auth.Blake2s)
+             requires (Implementation as Blake2s.Mac.Implementation)
 
 
         --
