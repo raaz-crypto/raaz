@@ -188,24 +188,24 @@ spec = do
       \ k n x -> monocypher_xchacha20_encrypt k n x `shouldBe` XChaCha20.encrypt k n x
 
     prop "raaz lock and monocypher unlock are inverses" $
-      \ k n (x :: ByteString) -> monocypher_unlock k n (XP.lock k n x) `shouldBe` Just x
+      \ k n (x :: ByteString) -> monocypher_unlock k n (XP.unsafeLock k n x) `shouldBe` Just x
 
     prop "raaz lockWith vs monocypher unlockAead are inverses" $
       \ k n (aad :: ByteString) (x :: ByteString)
-      -> monocypher_unlock_aead aad k n (XP.lockWith aad k n x) `shouldBe` Just x
+      -> monocypher_unlock_aead aad k n (XP.unsafeLockWith aad k n x) `shouldBe` Just x
 
   describe "raaz - lock/unlock are inverses" $ do
 
     prop "chacha20poly1305 " $
-      \ k n (x :: ByteString) -> CP.unlock k n (CP.lock k n x) `shouldBe` Just x
+      \ k n (x :: ByteString) -> CP.unlock k (CP.unsafeLock k n x) `shouldBe` Just x
 
     prop "xchacha20poly1305" $
-      \ k n (x :: ByteString) -> XP.unlock k n (XP.lock k n x) `shouldBe` Just x
+      \ k n (x :: ByteString) -> XP.unlock k (XP.unsafeLock k n x) `shouldBe` Just x
 
     prop "chacha20poly1305-aead" $
       \ k n (aad :: ByteString) (x :: ByteString)
-      -> CP.unlockWith aad k n (CP.lockWith aad k n x) `shouldBe` Just x
+      -> CP.unlockWith aad k (CP.unsafeLockWith aad k n x) `shouldBe` Just x
 
     prop "xchacha20poly1305-aead" $
       \ k n (aad :: ByteString) (x :: ByteString)
-      -> XP.unlockWith aad  k n (XP.lockWith aad k n x) `shouldBe` Just x
+      -> XP.unlockWith aad  k (XP.unsafeLockWith aad k n x) `shouldBe` Just x
