@@ -141,7 +141,8 @@ source-repository head
 flag linux-getrandom
 
      Description: Use the getrandom for system entropy instead of
-       /dev/urandom. Enabled by default but disable this when building for kernel < 3.17.
+       /dev/urandom. Enabled by default but disable this when building
+       for kernel < 3.17.
 
      Default: True
      Manual: True
