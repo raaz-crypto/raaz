@@ -1,11 +1,15 @@
 -- | Authenticated encryption.
-module Raaz.AuthEncrypt ( -- ** Message locking
+module Raaz.AuthEncrypt ( -- ** Authenticated encryption
                           --
                           -- $locking$
                           lock, unlock
+
                           -- ** Locking with additional data
                           -- $aead$
                         , lockWith, unlockWith
+
+                          -- ** Locking with explicit nounces
+                        , unsafeLock, unsafeLockWith
 
                         -- ** Security Assumption
                         -- $security$
@@ -32,21 +36,31 @@ import Raaz.V1.AuthEncrypt
 -- possible for Eve to forge message and pretend that it has
 -- originated from Alice. Consider a string @R@ that Bob receives
 -- purportedly from Alice. Since stream ciphers encrypt message @M@ by
--- xoring it with the keystream @cipher K@, from Bob's point of view
--- it is impossible to know whether it was some nonsense that Eve sent
--- or whether it was from Alice who wanted to actually send the
--- message @R ⊕ cipher K@. In many situations, Eve can exploit this
--- ability to fake communication and breach the security of the
--- protocol. Authenticated encryption is to solve this issue.
+-- xoring it with the keystream @KS@ generated using the key @K@, from
+-- Bob's point of view it is impossible to know whether it was some
+-- nonsense that Eve sent or whether it was from Alice who wanted to
+-- actually send the message @R ⊕ KS@. In many situations, Eve can
+-- exploit this ability to fake communication and breach the security
+-- of the protocol. Authenticated encryption is to solve this issue.
 --
--- To send a message @m@ using a key @k@ and a nounce @n@, Alice
--- computes the locked variant @lmesg = `lock` k n m@ of the
--- message. At Bobs end, he can unlock this locked message using the
--- function @`unlock` k n lmesg@. If there has been any tampering of
--- message on the way from A to B, the unlocking will fail. It is
--- computationally infeasible to decrypt or fake the authentication
--- without knowing the key.
+-- == Authenticated encryption via message locking
 --
+-- To send a message @m@ using a key @k@, Alice computes the locked
+-- variant using the function `lock`. At Bobs end, he can unlock this
+-- locked message using the function `unlock`. If there has been any
+-- tampering of message on the way from A to B, the unlocking will
+-- fail. It is computationally infeasible to decrypt or fake the
+-- authentication without knowing the key. Sometimes the protocol
+-- requires additional authenticated data. The `lockWith` and the
+-- `unlockWith` variants are used for this purpose.
+--
+-- == Key reuse.
+--
+-- Authenticated encryption needs not just a key but also a
+-- nounce. Under the hood, both `lock` and `lockWith` uses randomly
+-- generated nounce for each invocation (hence the result is an @IO@
+-- type). This ensures that the key-nounce pair is never reused. It is
+-- therefore safe to lock multiple messages with the same key.
 
 -- $aead$
 --
@@ -57,23 +71,16 @@ import Raaz.V1.AuthEncrypt
 
 -- $security$
 --
--- __WARNING:__ The security of the @lock/unlock@ or its AEAD variants
--- @lockWith/unlockWith@ is /compromised/ if one of the following
--- happens
+-- __WARNING:__ The security of the interface is compromised if
 --
--- 1. The key gets revealed to the attacker.
+-- 1. The key gets revealed to the attacker or
 --
--- 2. The same key/nounce pair is used to lock two different messages.
+-- 2. In the case of the unsafe versions (`unsafeLock` and
+--    `unsafeLockWith`) which uses explicit nounce, if the same
+--    key/nounce pair is used to lock two different messages.
 --
--- Nounces need not be private and may be exposed to the
--- attacker. However, if a single key is shared for locking multiple
--- messages, Alice and Bob should have a strategy to pick unique
--- nounces for each message. For example one can use a sequence number
--- to pick nounces. However such a strategy would require the two
--- peers to maintain a state (the sequence number). The nounce in our
--- case is large and hence if we pick nounces at random for each
--- message, the chances of collision is negligible. This makes the
--- communication protocol completely stateless.
+-- Nounces need not be private and may be exposed to the attacker. In
+-- fact we pack the nounce into the AEAD structure.
 
 -- $specific$
 --
@@ -82,11 +89,15 @@ import Raaz.V1.AuthEncrypt
 -- * Raaz.AuthEncrypt.ChaCha20Poly1305
 -- * Raaz.AuthEncrypt.XChaCha20Poly1305
 --
--- In the case of the former, one needs to be careful with the nounce
--- as it is small (96-bits). There is a chance that randomly picked
--- nounces can collide and compromise the security. It is however,
--- slightly faster and is safe to use when there is frequent key
--- resets as in the case of network protocols.
+-- of which the latter (XChaCha20Poly1305) is used by default. Both of
+-- these modules only provide the unsafe version. In the case of the
+-- former (ChaCha20Poly1305), the nounce is a bit too small (96-bits)
+-- and random generation has a nontrivial chance of collison. It is
+-- however, slightly faster and is safe to use when there is frequent
+-- key resets as in the case of network protocols. As with other cases
+-- we recommend the use of the default interface instead of the
+-- specific one when ever possible.
+
 
 
 -- $takingapart$

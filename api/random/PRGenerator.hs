@@ -18,8 +18,7 @@
 module PRGenerator
        ( -- * Pseudo-random generator
          -- $internals$
-         RandomState, reseed, fillRandomBytes,
-         withRandomState, withSecureRandomState
+         RandomState, reseed, fillRandomBytes
          -- ** Information about the cryptographic generator.
        , entropySource, csprgName, csprgDescription
        ) where
@@ -113,16 +112,6 @@ instance Memory RandomState where
 instance WriteAccessible RandomState where
   writeAccess          = writeAccess . cxtInternals . randomCxt
   afterWriteAdjustment = afterWriteAdjustment . cxtInternals . randomCxt
-
--- | Execute an action that takes the CSPRG state.
-withRandomState :: (RandomState -> IO a) -> IO a
-withRandomState action = withMemory (\ rstate -> reseed rstate >> action rstate)
-
--- | Execute an action that takes a memory element and random state
--- such that all the memory allocated for both of them is locked.
-withSecureRandomState :: Memory mem => (mem -> RandomState -> IO a) -> IO a
-withSecureRandomState action = withSecureMemory (uncurry actionP)
-  where actionP mem rstate = reseed rstate >> action mem rstate
 
 -------------------------------- The PRG operations ---------------------------------------------
 
