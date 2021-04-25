@@ -6,6 +6,8 @@
 {-# LANGUAGE DataKinds                  #-}
 {-# LANGUAGE ConstraintKinds            #-}
 {-# LANGUAGE TypeFamilies               #-}
+{-# LANGUAGE CPP                        #-}
+
 
 -- | This module exposes types that builds in type safety into some of
 -- the low level pointer operations. The functions here are pretty low
@@ -230,7 +232,7 @@ bytesQuotRem bytes = (u , r)
 -- main operation of interest to use is casting and allocation. All of
 -- these types have an underlying pointer which you can also be
 -- accessed.
-class Pointer (ptr :: * -> *) where
+class Pointer (ptr :: Type -> Type) where
 
   -- | Convert pointers of one type to another.
   castPointer  :: ptr a -> ptr b

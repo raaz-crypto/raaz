@@ -44,7 +44,7 @@ class ( Unbox (WordType p)
   -- | The block which is the smallest unit of data that the primitive
   -- processes, is typically considered as an array of a particular
   -- word which is captured by the following associated type.
-  type WordType p :: *
+  type WordType p :: Type
 
   -- | The size of the array that forms the block. In particular, the
   -- block can be seen as an array of size `BlockArraySize p` of type
@@ -52,13 +52,13 @@ class ( Unbox (WordType p)
   type WordsPerBlock p :: Nat
 
 -- | The type family that captures the key of a keyed primitive.
-data family Key p :: *
+data family Key p :: Type
 
 -- | In addition to keys, certain primitives require nounces that can
 -- be public but needs to be distinct across different uses when
 -- sharing the key. The type family that captures the nounce for a
 -- primitive (if it requires one).
-data family Nounce p :: *
+data family Nounce p :: Type
 
 -- | A block of the primitive.
 type Block p   = Tuple (WordsPerBlock p) (WordType p)

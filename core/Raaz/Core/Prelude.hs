@@ -17,6 +17,7 @@ import Control.Monad                as X
 import Data.Bits                    as X
 import Data.ByteString.Char8           ()
 import Data.ByteString.Lazy.Char8      ()
+import Data.Kind                    as X
 import Data.Maybe                   as X
 import Data.Proxy                   as X
 
