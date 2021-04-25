@@ -14,6 +14,7 @@ reason to look into this module.
 {-# LANGUAGE RankNTypes                 #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE FlexibleInstances          #-}
+{-# LANGUAGE CPP                        #-}
 
 module Raaz.Core.Memory
        (
@@ -42,7 +43,11 @@ module Raaz.Core.Memory
 
 import           Control.Applicative
 import           Control.Monad.IO.Class
+
+#if MIN_VERSION_base(4,9,0)
 import           Data.Kind
+#endif
+
 import           Foreign.Storable            ( Storable )
 import           Foreign.Ptr                 ( castPtr, Ptr )
 import           Raaz.Core.MonoidalAction
@@ -154,7 +159,14 @@ instance MonadIO (MT mem) where
 -- currently there is no easy way to enforce this.
 --
 
+
+#if MIN_VERSION_base(4,9,0)
 class MemoryThread (mT :: Type -> Type -> Type) where
+#else
+class MemoryThread (mT :: * -> * -> *) where
+#endif
+
+
   -- | Run a memory action with the internal memory allocated from a
   -- locked memory buffer. This memory buffer will never be swapped
   -- out by the operating system and will be wiped clean before

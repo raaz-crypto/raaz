@@ -23,6 +23,11 @@ module Raaz.Core.Primitives
        ) where
 
 import Data.Monoid
+
+#if MIN_VERSION_base(4,9,0)
+import           Data.Kind
+#endif
+
 import Prelude
 
 import Raaz.Core.Types
@@ -60,7 +65,11 @@ class BlockAlgorithm (Implementation p) => Primitive p where
 
   -- | Associated type that captures an implementation of this
   -- primitive.
+#if MIN_VERSION_base(4,9,0)
+  type Implementation p :: Type
+#else
   type Implementation p :: *
+#endif
 
 -- | Primitives that have a recommended implementations.
 class Primitive p => Recommendation p where
@@ -80,7 +89,11 @@ allocBufferFor imp  = allocaAligned $ bufferStartAlignment imp
 -- | Some primitives like ciphers have an encryption/decryption key. This
 -- type family captures the key associated with a primitive if it has
 -- any.
+#if MIN_VERSION_base(4,9,0)
+type family  Key prim :: Type
+#else
 type family  Key prim :: *
+#endif
 
 ------------------- Type safe lengths in units of block ----------------
 
