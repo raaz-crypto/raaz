@@ -48,6 +48,3 @@ jobs:
           cabal test
           cabal bench
           cabal haddock
-
-      - name: Raaz information
-        run: cabal exec raaz -- info
