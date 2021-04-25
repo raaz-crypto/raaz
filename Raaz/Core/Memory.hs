@@ -42,6 +42,7 @@ module Raaz.Core.Memory
 
 import           Control.Applicative
 import           Control.Monad.IO.Class
+import           Data.Kind
 import           Foreign.Storable            ( Storable )
 import           Foreign.Ptr                 ( castPtr, Ptr )
 import           Raaz.Core.MonoidalAction
@@ -153,7 +154,7 @@ instance MonadIO (MT mem) where
 -- currently there is no easy way to enforce this.
 --
 
-class MemoryThread (mT :: * -> * -> *) where
+class MemoryThread (mT :: Type -> Type -> Type) where
   -- | Run a memory action with the internal memory allocated from a
   -- locked memory buffer. This memory buffer will never be swapped
   -- out by the operating system and will be wiped clean before
