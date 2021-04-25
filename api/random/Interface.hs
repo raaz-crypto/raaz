@@ -10,10 +10,12 @@ module Interface
          RandomState, withRandomState
        , randomByteString
        , fillRandomBytes
-       -- ** Generating secure random data
-       -- $securerandom$
-       , withSecureRandomState
        , randomiseMemory
+       , withRandomisedMemory
+       -- ** Generating secure random data and randomising memory cells.
+       -- $securerandom$
+       , withSecureRandomisedMemory
+       , withSecureRandomState
        -- ** Types that can be generated randomly
        , Random(..), RandomStorable(..)
        , fillRandom, unsafeFillRandomElements
@@ -40,8 +42,6 @@ import           Raaz.Core
 import           Raaz.Core.Memory( Access(..) )
 import           PRGenerator ( entropySource, csprgName, csprgDescription, RandomState
                              , fillRandomBytes
-                             , withRandomState
-                             , withSecureRandomState
                              , reseed
                              )
 import qualified Raaz.Primitive.ChaCha20.Internal as ChaCha20
@@ -52,41 +52,50 @@ import           Raaz.Verse.Poly1305.C.Portable   ( verse_poly1305_c_portable_cl
 --
 -- This module provides cryptographically secure pseudo-random
 -- bytes. The state of the csprg is kept track in the memory element
--- `RandomState` and /should/ be run using either the
--- `withRandomState` or `withSecureRandomState`.
+-- `RandomState` and /should/ be run using `withRandomState`.
 --
 
 -- $securerandom$
 --
--- When generating sensitive data like long term assymetric keys for
--- one should use the `withSecureRandomState` function so that private
--- information is not swapped to disk. However, merely using it will
--- is not enough. Sensitive data can be swapped from the Haskell heap
--- if we do not pay enough attention. Consider the following code
--- fragment.
+-- Sensitive data like long term asymmetric keys need to be handled
+-- with care as they may be inadvertently leaked into permanent
+-- storage when memory is swapped out. Most of the time such keys are
+-- generated using cryptographically pseudo-random bytes. However, a
+-- direct approach, namely using `random`, to generate them hides a
+-- subtle bug. For example the code below is unsafe.
 --
 -- >
 -- > -- WARNING: Not safe from swapping
 -- > main     :: withSecureRandomState myAction
 -- > myAction ::  MySecretMem -> RandomState -> IO ()
 -- > myAction mySecMem rstate = do secret <- random rstate
+-- >                                 -- the pure value secret is in
+-- >                                 -- the haskell heap and therefore
+-- >                                 -- escapes locking
 -- >                               initialise secret mysecmem
 -- >                               doSomething
 --
+-- The `random` interface gives a pure Haskell value and is stored in
+-- the Haskell heap. Although memory locking is often available on
+-- modern operating systems, it is impossible to lock this value as
+-- the garbage collector keeps moving values around.
 --
--- The intention of the programmer when using the above code was to
--- randomise the contents of the mySecMem memory element. However,
--- having read the @secret@ as a pure value meant that the value is
--- stored in the Haskell heap. There is know easy way to lock the
--- entire Haskell heap and the garbage collector often moves values
--- around.
+-- How can we work around this problem ? The intention of the
+-- programmer when using the above code was to randomise the contents
+-- of the mySecMem memory element. We recommend converting the above
+-- code to the following
 --
--- Instead, the correct way to randomise the content is through the
--- `randomiseMemory` combinator. It also explains why the
--- `withSecureRandomState` combinator takes as input an action that
--- has an additional memory argument; without an additional memory
--- element to transfer the random bytes to, there is very little one
--- can do keep the generated pure value from being swapped out.
+-- >
+-- > main = withSecureRandomisedMemory action
+-- > myAction ::  MySecretMem -> RandomState -> IO ()
+-- > myAction mySecMem rstate = do randomiseMemory mySecMem
+-- >                               doSomething
+--
+-- The above code, though correct, is fragile as missing out on the
+-- randomiseMemory call can jeopardise the safety of the code. Often
+-- the randomisation is required only at the beginning of the task and
+-- in this case it is better to use the safer alternative
+-- `withSecureRandomisedMemory`
 
 -- | Subclass of `Storable` which can be randomly generated. It might
 -- appear that all instances of the class `Storable` should be
@@ -112,11 +121,59 @@ fillRandom :: (RandomStorable a, Pointer ptr)
            -> IO ()
 fillRandom n ptr rstate = unsafeWithPointer (\ rawPtr -> fillRandomElements n rawPtr rstate) ptr
 
+{-
+
+mem -> IO a
+
+randomiseMemory -> (mem,RandomState) -> IO ()
+
+withSecureMemory (randomiseMemory action)
+
+-}
+
+
+-- | Execute an action that takes the CSPRG state.
+withRandomState :: (RandomState -> IO a) -- ^ The action that requires csprg state.
+                -> IO a
+withRandomState action = withMemory actionP
+  where actionP rstate = do reseed rstate
+                            action rstate
+
+-- | Execute an action that takes a memory element and random state
+-- such that all the memory allocated for both of them is locked.
+withSecureRandomState :: Memory mem
+                      => (mem -> RandomState -> IO a) -- ^ The action that requires random state
+                      -> IO a
+withSecureRandomState action = withSecureMemory actionP
+  where actionP (mem,rstate) = do reseed rstate
+                                  action mem rstate
 
 -- | Randomise the contents of an accessible memory.
 randomiseMemory :: WriteAccessible mem => mem -> RandomState -> IO ()
 randomiseMemory mem rstate = mapM_ randomise $ writeAccess mem
   where randomise Access{..} = fillRandomBytes accessSize (destination accessPtr) rstate
+
+-- | Run a memory action which is passed a memory cell whose contents
+-- are randomised with cryptographically secure pseudo-random bytes.
+withRandomisedMemory :: WriteAccessible mem
+                     => (mem -> IO a) -- ^ memory action
+                     -> IO a
+withRandomisedMemory action = withMemory actionP
+  where actionP (mem,rstate) = do
+          reseed rstate
+          randomiseMemory mem rstate
+          action mem
+
+-- | Similar to `withRandomisedMemory` but all memory allocation is
+-- locked. Use this when the randomised content is to be protected
+-- from swapping.
+withSecureRandomisedMemory :: WriteAccessible mem
+                           => (mem -> IO a) -- ^ memory action
+                           -> IO a
+withSecureRandomisedMemory action = withSecureRandomState actionP
+  where actionP mem rstate = do randomiseMemory mem rstate
+                                action mem
+
 
 -- TOTHINK:
 -- -------
