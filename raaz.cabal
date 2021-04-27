@@ -26,89 +26,91 @@ description:
   "Raaz.Digest" but uses sha256 as the underlying cryptographic hash.
 
 
-  == Tweaking Implementations (Only for advanced users)
+  -- Uncomment this part of the doucmentation when the visibility field is
+  -- supported
 
-  Despite the high level interface, users who are willing to go down
-  the abstraction layers, can tweak the underlying low level
-  primitives used by @raaz@. For example, one might have a custom
-  hardware where a particular primitive can be made much more
-  performant, or maybe for the given platform (say in a virtualised
-  environment) you might have a better entropy source than the
-  default. Raaz uses backpack signatures and modules to make such
-  customisation relatively painless to integrate into your
-  application.
+  -- == Tweaking Implementations (Only for advanced users)
 
-  To exploit this facility, you need to have some idea on the internal
-  structure of the @raaz@ package which consists of a few components.
-  Each cryptographic operation is captured by an api component and it
-  expects a module satisfying the appropriate @Implementation@
-  signature. The api subcomponent in turn provide the @Interface@
-  module which is what the user of the @raaz@ library sees. So as far
-  as changing the implementation is concerned, one needs to change the
-  @Implementation@ provided to the api subcomponent.
+  -- Despite the high level interface, users who are willing to go down
+  -- the abstraction layers, can tweak the underlying low level
+  -- primitives used by @raaz@. For example, one might have a custom
+  -- hardware where a particular primitive can be made much more
+  -- performant, or maybe for the given platform (say in a virtualised
+  -- environment) you might have a better entropy source than the
+  -- default. Raaz uses backpack signatures and modules to make such
+  -- customisation relatively painless to integrate into your
+  -- application.
 
-  The @raaz:implementation@ subcomponent, as the name suggests exposes
-  a set of implementations of each primitive supported. When there are
-  multiple implementations for a given primitive, it also has a
-  default implementation selected.  For example, there might be two
-  different implementation for chacha20 cipher say foo and bar.  The
-  implementation subcomponent in that case has the modules
-  @ChaCha20.Foo@ and @ChaCha20.Bar@. Furthermore, if the foo
-  implementation is the prefered one, @raaz:implementation@ also
-  reexport @ChaCha20.Foo@ as @ChaCha20.Implementation@. The raaz
-  library just mixes in the implementation subcomponent and hence the
-  requirement for chacha20 implementation is taken care of by
-  @ChaCha20.Implementation@ (which is actually @ChaCha20.Foo@ in the
-  above example).
+  -- To exploit this facility, you need to have some idea on the internal
+  -- structure of the @raaz@ package which consists of a few components.
+  -- Each cryptographic operation is captured by an api component and it
+  -- expects a module satisfying the appropriate @Implementation@
+  -- signature. The api subcomponent in turn provide the @Interface@
+  -- module which is what the user of the @raaz@ library sees. So as far
+  -- as changing the implementation is concerned, one needs to change the
+  -- @Implementation@ provided to the api subcomponent.
+
+  -- The @raaz:implementation@ subcomponent, as the name suggests exposes
+  -- a set of implementations of each primitive supported. When there are
+  -- multiple implementations for a given primitive, it also has a
+  -- default implementation selected.  For example, there might be two
+  -- different implementation for chacha20 cipher say foo and bar.  The
+  -- implementation subcomponent in that case has the modules
+  -- @ChaCha20.Foo@ and @ChaCha20.Bar@. Furthermore, if the foo
+  -- implementation is the prefered one, @raaz:implementation@ also
+  -- reexport @ChaCha20.Foo@ as @ChaCha20.Implementation@. The raaz
+  -- library just mixes in the implementation subcomponent and hence the
+  -- requirement for chacha20 implementation is taken care of by
+  -- @ChaCha20.Implementation@ (which is actually @ChaCha20.Foo@ in the
+  -- above example).
 
 
-  >
-  >                           raaz
-  >                             |
-  >                             |       +---------------------+
-  >                             +<------| raaz:implementation |
-  >                             |       +---------------------+
-  >                           +---+
-  >                ---------->| + |<-------------
-  >               /           +---+              \
-  >              /              ^                 \
-  >             /               |                  \
-  >            /                |                   \
-  >           /                 |                    \
-  >       Interface          Interface            Interface
-  >          ^                  ^                     ^
-  >          |                  |                     |
-  >    +------------+    +--------------+       +--------------+
-  >    | digest-api |    |  entropy-api |       |   encryt-api |
-  >    |            |    |              |       |              |
-  >    |            |    |              |       |              |
-  >    +------------+    +--------------+       +--------------+
-  >    |  +digest   |    |  +entropy    |       |  +encrypt    |
-  >    |constraints |    |  constraints |       | constraints  |
-  >    +------------+    +--------------+       +--------------+
-  >              \            |                    /
-  >               \           |                   /
-  >                \          |                  /
-  >                 \         |                 /
-  >                +----------------------------+
-  >                | indef:Implementation.hsig  |
-  >                +----------------------------+
-  >
+  -- >
+  -- >                           raaz
+  -- >                             |
+  -- >                             |       +---------------------+
+  -- >                             +<------| raaz:implementation |
+  -- >                             |       +---------------------+
+  -- >                           +---+
+  -- >                ---------->| + |<-------------
+  -- >               /           +---+              \
+  -- >              /              ^                 \
+  -- >             /               |                  \
+  -- >            /                |                   \
+  -- >           /                 |                    \
+  -- >       Interface          Interface            Interface
+  -- >          ^                  ^                     ^
+  -- >          |                  |                     |
+  -- >    +------------+    +--------------+       +--------------+
+  -- >    | digest-api |    |  entropy-api |       |   encryt-api |
+  -- >    |            |    |              |       |              |
+  -- >    |            |    |              |       |              |
+  -- >    +------------+    +--------------+       +--------------+
+  -- >    |  +digest   |    |  +entropy    |       |  +encrypt    |
+  -- >    |constraints |    |  constraints |       | constraints  |
+  -- >    +------------+    +--------------+       +--------------+
+  -- >              \            |                    /
+  -- >               \           |                   /
+  -- >                \          |                  /
+  -- >                 \         |                 /
+  -- >                +----------------------------+
+  -- >                | indef:Implementation.hsig  |
+  -- >                +----------------------------+
+  -- >
 
-  == Tweaking randomness.
+  -- == Tweaking randomness.
 
-  There are two components of the CSPRG exposed by @raaz@ --- an
-  entropy source, and a seed stretcher. The entropy source needs to
-  satisfy the signature @raaz:random-api:Entropy@ where as the seed
-  stretcher needs to satisfy the signature
-  @raaz:random-api:Implementation@ which adds some member function to
-  the @indef:Implementation@ signature as well as thins it. The
-  @raaz:raaz-indef@ component expects its seed stretcher to come from
-  @Random.Implementation@ exposed by @raaz:implementation@ (currently
-  a chacha20 based keystream is used for this purpose). This can also
-  be overridden if one wants. See the documentation of
-  @raaz:random-api:Implementation@ for details.
-
+  -- There are two components of the CSPRG exposed by @raaz@ --- an
+  -- entropy source, and a seed stretcher. The entropy source needs to
+  -- satisfy the signature @raaz:random-api:Entropy@ where as the seed
+  -- stretcher needs to satisfy the signature
+  -- @raaz:random-api:Implementation@ which adds some member function to
+  -- the @indef:Implementation@ signature as well as thins it. The
+  -- @raaz:raaz-indef@ component expects its seed stretcher to come from
+  -- @Random.Implementation@ exposed by @raaz:implementation@ (currently
+  -- a chacha20 based keystream is used for this purpose). This can also
+  -- be overridden if one wants. See the documentation of
+  -- @raaz:random-api:Implementation@ for details.
 
 homepage: https://github.com/raaz-crypto/raaz
 
@@ -202,7 +204,7 @@ common defaults
 ----------------------------- The core library ------------------------------------------------
 library core
   import: defaults
-  visibility: public
+  -- visibility: public
   hs-source-dirs: core
   exposed-modules: Raaz.Core
                  , Raaz.Core.CpuSupports
@@ -272,7 +274,7 @@ library libverse
 
 library indef
   import: defaults
-  visibility: public
+  -- visibility: public
   build-depends: core
   hs-source-dirs: indef
   signatures: Implementation
@@ -319,7 +321,7 @@ library utils
 
 library mac-indef
   import: defaults
-  visibility: public
+  -- visibility: public
   hs-source-dirs: indef/keyed/hash
   signatures: Implementation
   build-depends: buffer
@@ -330,7 +332,7 @@ library mac-indef
 
 library xchacha-indef
   import: defaults
-  visibility: public
+  -- visibility: public
   hs-source-dirs: indef/chacha20
   signatures: Implementation
   build-depends: core
@@ -347,7 +349,7 @@ library xchacha-indef
 -- API package for message digest.
 library digest-api
   import: defaults
-  visibility: public
+  -- visibility: public
   hs-source-dirs: api/digest/
   signatures: Implementation
   build-depends: core
@@ -359,7 +361,7 @@ library digest-api
 -- API package for message authenticator.
 library auth-api
   import: defaults
-  visibility: public
+  -- visibility: public
   hs-source-dirs: api/auth
   signatures: Implementation
   build-depends: core
@@ -373,7 +375,7 @@ library auth-api
 -- Entroy signature captures entropy sources.
 library random-api
   import: defaults
-  visibility: public
+  -- visibility: public
   hs-source-dirs: api/random
   build-depends: core
                , indef
@@ -388,7 +390,7 @@ library random-api
 -- API package for encryption.
 library encrypt-api
   import: defaults
-  visibility: public
+  -- visibility: public
   hs-source-dirs: api/encrypt
   signatures: Implementation
   build-depends: core
@@ -399,7 +401,7 @@ library encrypt-api
 -- API package for aead implementation.
 library aead-api
   import: defaults
-  visibility: public
+  -- visibility: public
   hs-source-dirs: api/aead
   build-depends: core
                , indef
@@ -438,7 +440,7 @@ library aead-api
 
 library implementation
   import: defaults
-  visibility: public
+  -- visibility: public
   build-depends: core
                , libverse
   hs-source-dirs: implementation, implementation/entropy
