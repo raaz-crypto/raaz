@@ -1,7 +1,7 @@
 {-# LANGUAGE ForeignFunctionInterface         #-}
 
 -- | Entropy based on arc4random_buf (OpenBSD/NetBSD etc).
-module ARC4Random.Entropy( getEntropy, entropySource ) where
+module Entropy( getEntropy, entropySource ) where
 
 import Raaz.Core
 import Raaz.Core.Types.Internal

@@ -1,6 +1,6 @@
 {-# LANGUAGE ForeignFunctionInterface         #-}
 -- | Entropy based on the getrandom system call on Linux.
-module GetRandom.Entropy( getEntropy, entropySource ) where
+module Entropy( getEntropy, entropySource ) where
 
 import Foreign.C             ( CLong(..) )
 

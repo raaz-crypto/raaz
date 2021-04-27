@@ -1,5 +1,5 @@
 {-# LANGUAGE CPP #-}
-module Windows.Entropy( getEntropy, entropySource ) where
+module Entropy( getEntropy, entropySource ) where
 
 #include <Windows.h>
 #include <Wincrypt.h>

@@ -1,5 +1,5 @@
 -- | Entropy based on `/dev/urandom`.
-module URandom.Entropy( getEntropy, entropySource ) where
+module Entropy( getEntropy, entropySource ) where
 
 import System.IO
 import Raaz.Core

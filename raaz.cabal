@@ -443,7 +443,8 @@ library implementation
   -- visibility: public
   build-depends: core
                , libverse
-  hs-source-dirs: implementation, implementation/entropy
+  hs-source-dirs: implementation
+
   exposed-modules: Blake2b.CPortable
                  , Sha256.CPortable
                  , ChaCha20.CPortable
@@ -491,19 +492,16 @@ library implementation
   -- doing)
 
   if os(windows)
-     exposed-modules: Windows.Entropy
-     reexported-modules: Windows.Entropy as Entropy
+     hs-source-dirs: implementation/entropy/windows/
   else
-     exposed-modules: URandom.Entropy
      if os(openbsd) || os(netbsd)
-        exposed-modules: ARC4Random.Entropy
-        reexported-modules: ARC4Random.Entropy as Entropy
-    elif os(linux)   && flag(linux-getrandom)
-        exposed-modules: GetRandom.Entropy
-        reexported-modules: GetRandom.Entropy as Entropy
-    else
-        reexported-modules: URandom.Entropy as Entropy
+        hs-source-dirs: implementation/entropy/arc4random/
+     elif os(linux)   && flag(linux-getrandom)
+        hs-source-dirs: implementation/entropy/getrandom/
+     else
+        hs-source-dirs: implementation/entropy/urandom/
 
+  exposed-modules: Entropy
 
 -------------------------------- The main raaz library -------------------------------------
 
