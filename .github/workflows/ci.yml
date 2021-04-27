@@ -51,6 +51,6 @@ jobs:
           cabal test
           cabal bench
           cabal haddock
-
+	  cabal sdist
       - name: Raaz information
         run: cabal exec raaz -- info
