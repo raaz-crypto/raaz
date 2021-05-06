@@ -1,6 +1,6 @@
 # Change log for [raaz].
 
-## [0.3.0] - Pending
+## [0.3.0] - May 10, 2021
 
   This is a major rewrite of the raaz library with significant change in the
   API and internals.
@@ -146,4 +146,7 @@ This release comes with very little changes.
 [0.1.0]: <http://github.com/raaz-crypto/raaz/releases/tag/v0.1.0>
 [0.1.1]: <http://github.com/raaz-crypto/raaz/releases/tag/v0.1.1>
 [0.2.0]: <http://github.com/raaz-crypto/raaz/releases/tag/v0.2.0>
+[0.2.1]: <http://github.com/raaz-crypto/raaz/releases/tag/v0.2.1>
+[0.2.2]: <http://github.com/raaz-crypto/raaz/releases/tag/v0.2.2>
+[0.3.0]: <http://github.com/raaz-crypto/raaz/releases/tag/v0.3.0>
 [raaz]:  <http://github.com/raaz-crypto/raaz/>
