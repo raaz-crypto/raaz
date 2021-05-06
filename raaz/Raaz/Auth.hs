@@ -51,6 +51,9 @@ import qualified Raaz.V1.Auth as Auth
 -- Message authentication __does not__ provide secrecy of the message,
 -- use encrypted authenticator instead "Raaz.AuthEncrypt".
 --
+
+
+-- | The type of authentication tag.
 type Auth  = Auth.Auth
 
 -- | Compute the authenticator of a pure byte source like,
@@ -90,6 +93,8 @@ authSource = Auth.authSource
 -- `auth` and `authFile` is a much more high level interface and
 -- should be preferred.
 
+-- | The authentication context for incremental computation of auth
+-- tag.
 type AuthCxt = Auth.AuthCxt
 
 -- | Prepare the context to (re)start a session of incremental

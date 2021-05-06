@@ -106,6 +106,7 @@ import qualified Raaz.V1.Digest as Digest
 -- > main = getArgs >>= digestFile . head >>= print
 -- >
 
+-- | The digest type.
 type Digest = Digest.Digest
 
 -- | The context type used for incremental processing of
