@@ -1,4 +1,12 @@
--- | Raaz: High level, typesafe cryptographic library.
+-- |
+--
+-- Module      : Raaz
+-- Description : High level, type safe, cryptographic library
+-- Copyright   : (c) Piyush P Kurur, 2016
+-- License     : Apache-2.0 OR BSD-3-Clause
+-- Maintainer  : Piyush P Kurur <ppk@iitpkd.ac.in>
+-- Stability   : experimental
+--
 module Raaz
        (
          -- * Getting started

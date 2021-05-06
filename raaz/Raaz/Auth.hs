@@ -1,4 +1,11 @@
--- | Message authentication in Raaz.
+-- |
+-- Module      : Raaz.Auth
+-- Description : Message authentication
+-- Copyright   : (c) Piyush P Kurur, 2016
+-- License     : Apache-2.0 OR BSD-3-Clause
+-- Maintainer  : Piyush P Kurur <ppk@iitpkd.ac.in>
+-- Stability   : experimental
+--
 module Raaz.Auth
        ( -- ** Message authentication.
          --
@@ -95,6 +102,7 @@ authSource = Auth.authSource
 
 -- | The authentication context for incremental computation of auth
 -- tag.
+
 type AuthCxt = Auth.AuthCxt
 
 -- | Prepare the context to (re)start a session of incremental
