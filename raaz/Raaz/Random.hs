@@ -56,6 +56,7 @@ import           PRGenerator ( entropySource, csprgName, csprgDescription, Rando
                              )
 import qualified Raaz.Primitive.ChaCha20.Internal as ChaCha20
 import qualified Raaz.Primitive.Poly1305.Internal as Poly1305
+import           Raaz.Primitive.Keyed.Internal ( Keyed )
 import           Raaz.Verse.Poly1305.C.Portable   ( verse_poly1305_c_portable_clamp)
 
 -- $randomness$
@@ -350,6 +351,13 @@ instance Random (Nounce ChaCha20.ChaCha20) where
 
 instance Random (Key ChaCha20.XChaCha20) where
 instance Random (Nounce ChaCha20.XChaCha20) where
+
+instance Storable prim => Random (Key (Keyed prim))  where
+  random state = randKY
+    where randKY   = unsafeFromByteString <$> randomByteString sz state
+          sz         = sizeOf $ getProxy randKY
+          getProxy :: IO (Key (Keyed p)) -> Proxy p
+          getProxy _ = Proxy
 
 instance Random Poly1305.R where
 
