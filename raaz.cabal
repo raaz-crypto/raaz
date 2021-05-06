@@ -380,12 +380,10 @@ library random-api
   build-depends: core
                , indef
                , buffer
-               , libverse
   signatures: Implementation
             , Entropy
-  exposed-modules: Interface
-                 , Internal
-  other-modules: PRGenerator
+  exposed-modules: Internal
+                 , PRGenerator
 
 -- API package for encryption.
 library encrypt-api
@@ -514,6 +512,7 @@ library
                , aead-api
                , auth-api
                , digest-api
+               , libverse
                , random-api
                , implementation
 
@@ -521,7 +520,7 @@ library
                  , Raaz.Auth
                  , Raaz.AuthEncrypt
                  , Raaz.Digest
-
+                 , Raaz.Random
   reexported-modules: Raaz.Auth.Blake2b
                     , Raaz.Auth.Blake2s
                     , Raaz.AuthEncrypt.XChaCha20Poly1305
@@ -530,7 +529,6 @@ library
                     , Raaz.Digest.Blake2s
                     , Raaz.Digest.Sha512
                     , Raaz.Digest.Sha256
-                    , Raaz.Random
                     , Raaz.Random.Internal
 
   mixins:
@@ -578,7 +576,7 @@ library
         --
         -- Cryptographic randomness
         --
-        , random-api (Interface as Raaz.Random, Internal as Raaz.Random.Internal)
+        , random-api (PRGenerator, Internal as Raaz.Random.Internal)
              requires (Implementation as Random.Implementation)
 
 

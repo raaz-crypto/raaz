@@ -4,22 +4,24 @@
 {-# LANGUAGE RecordWildCards            #-}
 -- | Interface for cryptographically secure random byte generators
 -- using a stream cipher for stream expansion.
-module Interface
+module Raaz.Random
        ( -- * Cryptographically secure randomness.
          -- $randomness$
-         RandomState, withRandomState
+         RandomState
+       , withRandomState
        , randomByteString
-       , fillRandomBytes
+       , Random(..)
+       -- ** Generating sensitive data
+       -- $securerandom$
        , randomiseMemory
        , withRandomisedMemory
-       -- ** Generating secure random data and randomising memory cells.
-       -- $securerandom$
        , withSecureRandomisedMemory
        , withSecureRandomState
-       -- ** Types that can be generated randomly
-       , Random(..), RandomStorable(..)
-       , fillRandom, unsafeFillRandomElements
-       -- ** Reseeding from entropy pool
+         -- ** Low level code
+       , fillRandomBytes
+       , RandomStorable(..)
+       , fillRandom
+       , unsafeFillRandomElements
        , reseed
        -- * Information
        , entropySource
