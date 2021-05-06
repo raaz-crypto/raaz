@@ -17,9 +17,10 @@
 module Interface( -- * Locking and unlocking stuff
                   Locked, unsafeLock, unlock
                   -- ** Additional data.
-                , AEAD, unsafeToNounce, unsafeToCipherText, unsafeToAuthTag, unsafeAEAD
+                , AEAD, AuthTag, Cipher
+                , unsafeToNounce, unsafeToCipherText, unsafeToAuthTag, unsafeAEAD
                 , unsafeLockWith, unlockWith
-                , AEADMem, Cipher, Auth
+                , AEADMem
                 ) where
 
 import           Data.ByteString
@@ -38,7 +39,7 @@ import qualified Cipher.Buffer as CB
 type Cipher = CI.Prim
 
 -- | The message authenticator used with the AEAD computation.
-type Auth   = AI.Prim
+type AuthTag = AI.Prim
 
 -- | This function takes the plain text and the additional data, and
 -- constructs the AEAD token. A peer who has the right @(key, nounce)@
@@ -109,7 +110,7 @@ data AEAD plain aad = AEAD
                         -- ^ The nounce use to compute this packet.
   , unsafeToCipherText  :: ByteString
                         -- ^ The associated cipher text.
-  , unsafeToAuthTag     :: Auth
+  , unsafeToAuthTag     :: AuthTag
                         -- ^ The associated authentication tag.
   }
 
@@ -117,7 +118,7 @@ data AEAD plain aad = AEAD
 -- cipher text.
 unsafeAEAD :: Nounce Cipher
            -> ByteString
-           -> Auth        -- ^ the authentication tag
+           -> AuthTag        -- ^ the authentication tag
            -> AEAD plain aad
 unsafeAEAD = AEAD
 
@@ -186,7 +187,7 @@ computeAuth :: Encodable aad
                                  -- to be authenticated
             -> ByteString        -- ^ The cipher text.
             -> AEADMem
-            -> IO Auth
+            -> IO AuthTag
 computeAuth aad cText aeadmem =
   AU.processByteSource (toByteString authWr) authMem >> extract authMem
   where (aadWr, lAAD) = padAndLen aad
@@ -226,4 +227,4 @@ padAndLen a = (padWrite 0 pL aWr, len)
   where aWr   = writeEncodable a
         len   = toLen (transferSize aWr)
         toLen = toEnum . fromEnum
-        pL    = 1 `blocksOf` (Proxy :: Proxy Auth)
+        pL    = 1 `blocksOf` (Proxy :: Proxy AuthTag)
