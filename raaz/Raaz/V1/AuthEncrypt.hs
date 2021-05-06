@@ -8,7 +8,7 @@
 module Raaz.V1.AuthEncrypt
   ( lock, unlock
   , lockWith, unlockWith
-  , AEAD, Locked
+  , AEAD, Locked, Cipher, AuthTag, Key, Nounce
     -- * Unsafe interfaces
     -- $unsafeinterface$
   , unsafeLock, unsafeLockWith
@@ -21,7 +21,7 @@ import           Data.ByteString
 
 import           Raaz.Core
 import qualified Raaz.AuthEncrypt.XChaCha20Poly1305 as AE
-import           Raaz.AuthEncrypt.XChaCha20Poly1305 (AEAD, Locked, Cipher)
+import           Raaz.AuthEncrypt.XChaCha20Poly1305 (AEAD, Locked, Cipher, AuthTag)
 import           Raaz.Random                        (random, withRandomState)
 
 -- | This function locks a plain text message together with and
@@ -129,7 +129,7 @@ unsafeToCipherText :: AEAD plain aad
 unsafeToCipherText = AE.unsafeToCipherText
 
 -- | Get the authentication token of the Locked/AEAD packet.
-unsafeToAuthTag :: AEAD plain aad -> AE.Auth
+unsafeToAuthTag :: AEAD plain aad -> AE.AuthTag
 unsafeToAuthTag = AE.unsafeToAuthTag
 
 
@@ -137,6 +137,6 @@ unsafeToAuthTag = AE.unsafeToAuthTag
 -- cipher text.
 unsafeAEAD :: Nounce Cipher
            -> ByteString
-           -> AE.Auth
+           -> AE.AuthTag
            -> AEAD plain aad
 unsafeAEAD = AE.unsafeAEAD

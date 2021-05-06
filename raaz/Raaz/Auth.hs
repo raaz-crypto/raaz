@@ -11,7 +11,7 @@ module Raaz.Auth
          --
          -- $messageauth$
          --
-         Auth
+         Auth, Key
        , auth
        , authFile
        , authSource

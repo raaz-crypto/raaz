@@ -27,7 +27,7 @@ module Raaz.AuthEncrypt ( -- ** Authenticated encryption
                         -- ** Constructing and Taking apart.
                         -- $takingapart$
 
-                        , AEAD, Locked
+                        , AEAD, Locked, Cipher, AuthTag, Key, Nounce
                         , unsafeAEAD, unsafeToCipherText, unsafeToAuthTag
                         ) where
 
