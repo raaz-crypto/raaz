@@ -67,8 +67,9 @@ import Raaz.Random
 -- allocated for the memory element is locked (and hence not swapped
 -- out). This gives a relatively higher level interface for locked
 -- memory. A word of caution though. Interfaces that directly deal
--- with memory elements are considered low level and are certain
--- usages, particularly if it involves reading pure values out of the
+-- with memory elements should be considered low-level code and should
+-- better be left to advanced users. Furthermore certain usages,
+-- particularly those that involve reading pure values out of the
 -- memory element, are problematic and a lot of caution needs to be
 -- employed when using this interface.
 --
