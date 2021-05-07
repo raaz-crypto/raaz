@@ -25,22 +25,19 @@ Building
 --------
 
 The recommended way to install raaz is through `cabal-install` version
-3.0 or above. We also require `ghc` version 8.4 or above.
+3.0 or above. Starting from version 0.3.0 we need a version of GHC
+that requires backpack support (for details refer to our
+[CI-builds][github-actions]).
 
     cabal build
 	cabal test
 	cabal install
 
-Hacking and Discussion
-----------------------
+Online documentation
+--------------------
 
-* For hacking see our [github repository][repo].
-
-* For discussion see our [google groups][emailgroups] mailing list.
-
-* Hangout on irc.freenode.net (channel: #haskell-raaz).
-
-For details please refer to [our wiki][wiki].
+- [Latest release][doc-latest]
+- [Release candidate][doc-candidate]
 
 About the name
 --------------
@@ -86,3 +83,5 @@ LICENSE file.
 [ci-build]: <https://github.com/raaz-crypto/raaz/workflows/Build/badge.svg> "Building source"
 [ci-checks]: <https://github.com/raaz-crypto/raaz/workflows/Checks/badge.svg> "Source code checks"
 [github-actions]: <https://github.com/raaz-crypto/raaz/actions> "Github actions"
+[doc-latest]: <https://hackage.haskell.org/package/raaz>
+[doc-candidate]: <https://hackage.haskell.org/package/raaz-0.3.0/candidate>
