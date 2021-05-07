@@ -63,7 +63,7 @@ import Raaz.V1.AuthEncrypt
 --
 -- == Key reuse.
 --
--- Authenticated encryption needs not just a key but also a
+-- Authenticated encryption needs, not just a key, but also a
 -- nounce. Under the hood, both `lock` and `lockWith` uses randomly
 -- generated nounce for each invocation (hence the result is an @IO@
 -- type). This ensures that the key-nounce pair is never reused. It is
