@@ -25,14 +25,13 @@ import           Raaz.AuthEncrypt.XChaCha20Poly1305 (AEAD, Locked, Cipher, AuthT
 import           Raaz.Random                        (random, withRandomState)
 
 -- | This function locks a plain text message together with and
--- additional authenticated data to produce an constructs the AEAD
--- token. A peer who has the right @key@ and the additional
--- authenticated data can recover the unencrypted object using the
--- `unlockWith` function.
+-- additional authenticated data to produce an AEAD token. A peer
+-- who has the right @key@ and the additional authenticated data can
+-- recover the unencrypted object using the `unlockWith` function.
 --
 -- Unlike `unsafeLockWith`, this function does not require a nounce as
 -- internally a random nounce is generated and used each time. As a
--- result we do not put any restriction on the key used ; it is safe
+-- result we do not put any restriction on the key used; it is safe
 -- to use the same key multiple times.
 
 lockWith :: (Encodable plain, Encodable aad)
