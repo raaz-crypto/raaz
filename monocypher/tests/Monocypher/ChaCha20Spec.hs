@@ -24,8 +24,8 @@ import           System.IO.Unsafe  (unsafePerformIO)
 import           Raaz.Core
 import qualified Raaz.Encrypt.ChaCha20  as ChaCha20
 import qualified Raaz.Encrypt.XChaCha20 as XChaCha20
-import qualified Raaz.AuthEncrypt.ChaCha20Poly1305  as CP
-import qualified Raaz.AuthEncrypt.XChaCha20Poly1305 as XP
+import qualified Raaz.AuthEncrypt.Unsafe.ChaCha20Poly1305  as CP
+import qualified Raaz.AuthEncrypt.Unsafe.XChaCha20Poly1305 as XP
 
 import           Tests.Core
 
