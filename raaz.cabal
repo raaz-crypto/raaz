@@ -519,12 +519,13 @@ library
   exposed-modules: Raaz
                  , Raaz.Auth
                  , Raaz.AuthEncrypt
+                 , Raaz.AuthEncrypt.Unsafe
                  , Raaz.Digest
                  , Raaz.Random
   reexported-modules: Raaz.Auth.Blake2b
                     , Raaz.Auth.Blake2s
-                    , Raaz.AuthEncrypt.XChaCha20Poly1305
-                    , Raaz.AuthEncrypt.ChaCha20Poly1305
+                    , Raaz.AuthEncrypt.Unsafe.XChaCha20Poly1305
+                    , Raaz.AuthEncrypt.Unsafe.ChaCha20Poly1305
                     , Raaz.Digest.Blake2b
                     , Raaz.Digest.Blake2s
                     , Raaz.Digest.Sha512
@@ -562,13 +563,13 @@ library
         -- Encrypted authentication
         --
         , xchacha-indef requires (Implementation as ChaCha20.Implementation)
-        , aead-api (Interface as Raaz.AuthEncrypt.XChaCha20Poly1305)
+        , aead-api (Interface as Raaz.AuthEncrypt.Unsafe.XChaCha20Poly1305)
             requires ( Cipher.Implementation as XChaCha20.Implementation
                      , Auth.Implementation as Poly1305.Implementation
                      )
 
         -- Using Chacha20
-        , aead-api (Interface as Raaz.AuthEncrypt.ChaCha20Poly1305)
+        , aead-api (Interface as Raaz.AuthEncrypt.Unsafe.ChaCha20Poly1305)
             requires ( Cipher.Implementation as ChaCha20.Implementation
                      , Auth.Implementation as Poly1305.Implementation
           )
@@ -584,10 +585,12 @@ library
                     , Raaz.Core.Types
   autogen-modules: Paths_raaz
   other-modules: Paths_raaz
+               -- Will be exposed when we hit V2.
+               --
                , Raaz.V1.Auth
                , Raaz.V1.Digest
                , Raaz.V1.AuthEncrypt
-
+               , Raaz.V1.AuthEncrypt.Unsafe
 
 ---------------------------- Executables -------------------------------------------------
 

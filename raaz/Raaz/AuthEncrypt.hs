@@ -6,29 +6,14 @@
 -- Maintainer  : Piyush P Kurur <ppk@iitpkd.ac.in>
 -- Stability   : experimental
 --
-module Raaz.AuthEncrypt ( -- ** Authenticated encryption
+module Raaz.AuthEncrypt ( -- * Authenticated encryption
                           --
                           -- $locking$
                           lock, unlock
-
                           -- ** Locking with additional data
                           -- $aead$
                         , lockWith, unlockWith
-
-                          -- ** Locking with explicit nounces
-                        , unsafeLock, unsafeLockWith
-
-                        -- ** Security Assumption
-                        -- $security$
-
-                        -- ** Specific Authenticated encryptions
-                        -- $specific$
-
-                        -- ** Constructing and Taking apart.
-                        -- $takingapart$
-
-                        , AEAD, Locked, Cipher, AuthTag, Key, Nounce
-                        , unsafeAEAD, unsafeToCipherText, unsafeToAuthTag
+                        , AEAD, Locked, Cipher, Key
                         ) where
 
 import Raaz.V1.AuthEncrypt
