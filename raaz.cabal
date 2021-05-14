@@ -719,10 +719,10 @@ test-suite tests
           requires (Implementation as Blake2s.Implementation, Alternate as Blake2s.CHandWritten)
 
 
-       , test-auth (Tests.Auth as Poly1305.Auth) requires (Implementation as Auth.Poly1305)
+        , test-auth (Tests.Auth as Poly1305.Auth) requires (Implementation as Auth.Poly1305)
 
-       , test-auth (Tests.Auth as Blake2s.Auth)  requires (Implementation as Auth.Mac.Blake2s)
-       , test-auth (Tests.Auth as Blake2b.Auth)  requires (Implementation as Auth.Mac.Blake2b)
+        , test-auth (Tests.Auth as Blake2s.Auth)  requires (Implementation as Auth.Mac.Blake2s)
+        , test-auth (Tests.Auth as Blake2b.Auth)  requires (Implementation as Auth.Mac.Blake2b)
 
         , xchacha-indef requires (Implementation as ChaCha20.Implementation)
 
