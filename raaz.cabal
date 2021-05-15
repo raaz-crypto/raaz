@@ -726,6 +726,37 @@ test-suite tests
 
         , xchacha-indef requires (Implementation as ChaCha20.Implementation)
 
+-- Testing Interfaces with all implementations.
+test-suite tests-comparative
+  import: test-defaults
+  type: exitcode-stdio-1.0
+  hs-source-dirs: tests/comparative
+  main-is: Main.hs
+  build-depends: implementation
+               , digest-api
+               , test-core
+  other-modules: Compare
+               , Digest
+               , Digest.Blake2bSpec
+               , Digest.Sha512Spec
+               , Digest.Sha256Spec
+  mixins: digest-api (Interface as Digest.Blake2b.CHandWritten)
+            requires (Implementation as Blake2b.CHandWritten)
+        , digest-api (Interface as Digest.Blake2b.CPortable)
+            requires (Implementation as Blake2b.CPortable)
+
+        , digest-api (Interface as Digest.Sha512.CHandWritten)
+            requires (Implementation as Sha512.CHandWritten)
+        , digest-api (Interface as Digest.Sha512.CPortable)
+            requires (Implementation as Sha512.CPortable)
+
+        , digest-api (Interface as Digest.Sha256.CHandWritten)
+            requires (Implementation as Sha256.CHandWritten)
+        , digest-api (Interface as Digest.Sha256.CPortable)
+            requires (Implementation as Sha256.CPortable)
+
+  build-tool-depends: hspec-discover:hspec-discover
+
 -- Test suits comparing with monocypher.
 test-suite monocypher
   import: test-defaults
