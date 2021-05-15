@@ -734,12 +734,17 @@ test-suite tests-comparative
   main-is: Main.hs
   build-depends: implementation
                , digest-api
+               , encrypt-api
                , test-core
+
   other-modules: Compare
                , Digest
                , Digest.Blake2bSpec
                , Digest.Sha512Spec
                , Digest.Sha256Spec
+               , Encrypt
+               , Encrypt.ChaCha20Spec
+
   mixins: digest-api (Interface as Digest.Blake2b.CHandWritten)
             requires (Implementation as Blake2b.CHandWritten)
         , digest-api (Interface as Digest.Blake2b.CPortable)
@@ -754,6 +759,11 @@ test-suite tests-comparative
             requires (Implementation as Sha256.CHandWritten)
         , digest-api (Interface as Digest.Sha256.CPortable)
             requires (Implementation as Sha256.CPortable)
+
+        , encrypt-api (Interface as Encrypt.ChaCha20.CHandWritten)
+            requires (Implementation as ChaCha20.CHandWritten)
+        , encrypt-api (Interface as Encrypt.ChaCha20.CPortable)
+            requires (Implementation as ChaCha20.CPortable)
 
   build-tool-depends: hspec-discover:hspec-discover
 

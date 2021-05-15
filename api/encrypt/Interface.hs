@@ -5,10 +5,13 @@
 -- is that it allows rewinding/advancing the stream before encrypting
 -- and decryption. This interface also supports such
 -- rewinding/advancing.
-module Interface( encrypt
+module Interface( Cipher
+                , encrypt
                 , decrypt
                 , encryptAt
                 , decryptAt
+                , name
+                , description
                 ) where
 
 import           Data.ByteString
@@ -18,6 +21,8 @@ import           Raaz.Core
 import           Implementation
 
 import qualified Utils as U
+
+type Cipher = Implementation.Prim
 
 -- | Encrypt using the cipher.
 encrypt :: Key Prim     -- ^ The key for the stream cipher
