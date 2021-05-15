@@ -25,7 +25,7 @@ module Raaz
 import qualified Paths_raaz as P
 import           Data.Version  (Version)
 
-import Raaz.Core ( withMemory, withSecureMemory)
+import Raaz.Core ( withMemory, withSecureMemory, Key, Nounce)
 import Raaz.Digest
 import Raaz.Auth
 import Raaz.AuthEncrypt
