@@ -6,17 +6,17 @@
 -- Stability   : experimental
 --
 module Raaz.V1.AuthEncrypt.Unsafe
-       ( Locked, AEAD
+       ( Locked
        , unsafeLock, unsafeLockWith
        , Cipher, AuthTag
        , unsafeToCipherText, unsafeToAuthTag
-       , unsafeAEAD
+       , unsafeLocked
        ) where
 
 import           Data.ByteString
 import           Raaz.Core
 import qualified Raaz.AuthEncrypt.Unsafe.XChaCha20Poly1305 as AE
-import           Raaz.AuthEncrypt.Unsafe.XChaCha20Poly1305 ( AEAD, Locked, Cipher, AuthTag
+import           Raaz.AuthEncrypt.Unsafe.XChaCha20Poly1305 ( Locked, Cipher, AuthTag
                                                            )
 
 -- | Similar to `lockWith` but an explicit nounce is taken as
@@ -32,7 +32,7 @@ unsafeLockWith :: ( Encodable plain, Encodable aad)
                -> Key Cipher
                -> Nounce Cipher
                -> plain
-               -> AEAD plain aad
+               -> Locked
 unsafeLockWith = AE.unsafeLockWith
 
 -- | Locks a given message but needs an explicit nounce. Reusing the
@@ -47,26 +47,26 @@ unsafeLock :: Encodable plain
            => Key Cipher        -- ^ The key
            -> Nounce Cipher     -- ^ The nounce
            -> plain             -- ^ The object to be locked.
-           -> Locked plain
+           -> Locked
 unsafeLock = AE.unsafeLock
 
 
 
 
--- | Get the cipher text part of the Locked/AEAD packet.
-unsafeToCipherText :: AEAD plain aad
+-- | Get the cipher text part of the Locked message.
+unsafeToCipherText :: Locked
                    -> ByteString
 unsafeToCipherText = AE.unsafeToCipherText
 
--- | Get the authentication token of the Locked/AEAD packet.
-unsafeToAuthTag :: AEAD plain aad -> AE.AuthTag
+-- | Get the authentication token of the Locked message.
+unsafeToAuthTag :: Locked -> AE.AuthTag
 unsafeToAuthTag = AE.unsafeToAuthTag
 
 
--- | Construct an AEAD packet out of the authentication token and the
--- cipher text.
-unsafeAEAD :: Nounce Cipher
-           -> ByteString
-           -> AE.AuthTag
-           -> AEAD plain aad
-unsafeAEAD = AE.unsafeAEAD
+-- | Construct the locked message out of the nounce, cipher text, and the
+-- authentication tag.
+unsafeLocked :: Nounce Cipher  -- ^ The nounce used for locking this message
+             -> ByteString     -- ^ The cipher text
+             -> AE.AuthTag     -- ^ the Authentication tag
+             -> Locked
+unsafeLocked = AE.unsafeLocked

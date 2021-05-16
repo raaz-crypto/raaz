@@ -16,7 +16,7 @@ module Raaz.V1.AuthEncrypt
     -- For documentation refer the module "Raaz.AuthEncrypt".
     lock, unlock
   , lockWith, unlockWith
-  , AEAD, Locked, Cipher, Key
+  , Locked, Cipher, Key
   ) where
 
 import           Raaz.Core
@@ -38,7 +38,7 @@ lockWith :: (Encodable plain, Encodable aad)
          => aad              -- ^ the authenticated additional data.
          -> Key Cipher       -- ^ The key
          -> plain            -- ^ the unencrypted object
-         -> IO (AEAD plain aad)
+         -> IO Locked
 lockWith aad key plain =
   withRandomState $ \ rstate -> do
   nounce <- random rstate
@@ -52,9 +52,10 @@ lockWith aad key plain =
 --
 -- 2. The Authenticated additional data (@aad@) is incorrect
 --
--- 3. The AEAD is of the wrong type and hence the fromByteString failed
+-- 3. The cipher text is of the wrong type and hence the
+--    `fromByteString` failed
 --
--- 4. The AEAD value has been tampered with by the adversary
+-- 4. The Locked message has been tampered with by the adversary
 --
 -- The interface provided does not indicate which of the above
 -- failures had happened. This is a deliberate design as revealing the
@@ -63,7 +64,7 @@ lockWith aad key plain =
 unlockWith :: (Encodable plain, Encodable aad)
            => aad              -- ^ the authenticated additional data.
            -> Key Cipher       -- ^ The key for the stream cipher
-           -> AEAD plain aad   -- ^ The encrypted authenticated version of the data.
+           -> Locked          -- ^ The message to unlock
            -> Maybe plain
 unlockWith = AE.unlockWith
 
@@ -76,13 +77,13 @@ unlockWith = AE.unlockWith
 lock :: Encodable plain
      => Key Cipher        -- ^ The key
      -> plain             -- ^ The object to be locked.
-     -> IO (Locked plain)
+     -> IO Locked
 lock = lockWith ()
 
 -- | Unlock the locked version of an object. You will need the exact
 -- same key that was used to lock the object.
 unlock :: Encodable plain
-       => Key Cipher      -- ^ The key
-       -> Locked plain    -- ^ Locked object that needs unlocking
+       => Key Cipher   -- ^ The key
+       -> Locked       -- ^ Locked object that needs unlocking
        -> Maybe plain
 unlock = AE.unlock

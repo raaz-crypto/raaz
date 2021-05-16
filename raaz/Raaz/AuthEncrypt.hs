@@ -13,7 +13,7 @@ module Raaz.AuthEncrypt ( -- * Authenticated encryption
                           -- ** Locking with additional data
                           -- $aead$
                         , lockWith, unlockWith
-                        , AEAD, Locked, Cipher, Key
+                        , Locked, Cipher, Key
                         ) where
 
 import Raaz.V1.AuthEncrypt
@@ -51,8 +51,10 @@ import Raaz.V1.AuthEncrypt
 -- Authenticated encryption needs, not just a key, but also a
 -- nounce. Under the hood, both `lock` and `lockWith` uses randomly
 -- generated nounce for each invocation (hence the result is an @IO@
--- type). This ensures that the key-nounce pair is never reused. It is
--- therefore safe to lock multiple messages with the same key.
+-- type). This ensures that the key-nounce pair is never reused. The
+-- nounce is packed together with the cipher text and tag so that at
+-- the receiving end, the packet can be unlocked. It is therefore safe
+-- to lock multiple messages with the same key.
 
 -- $aead$
 --
@@ -72,7 +74,8 @@ import Raaz.V1.AuthEncrypt
 --    key/nounce pair is used to lock two different messages.
 --
 -- Nounces need not be private and may be exposed to the attacker. In
--- fact we pack the nounce into the AEAD structure.
+-- fact, we pack the nounce with the locked message to make recovery
+-- at the receiving end simple.
 
 -- $specific$
 --

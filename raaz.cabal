@@ -215,6 +215,7 @@ library core
                  , Raaz.Core.Transfer.Unsafe
                  , Raaz.Core.Types
                  , Raaz.Core.Types.Internal
+                 , Raaz.Primitive.AEAD.Internal
                  , Raaz.Primitive.Blake2.Internal
                  , Raaz.Primitive.Sha2.Internal
                  , Raaz.Primitive.ChaCha20.Internal
@@ -583,6 +584,7 @@ library
 
   reexported-modules: Raaz.Core
                     , Raaz.Core.Types
+                    , Raaz.Core.Encode
   autogen-modules: Paths_raaz
   other-modules: Paths_raaz
                -- Will be exposed when we hit V2.

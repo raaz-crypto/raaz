@@ -15,11 +15,12 @@
 -- | The interface for an aead construction using a stream cipher like
 -- chacha20 and authenticator like poly1305.
 module Interface( -- * Locking and unlocking stuff
-                  Locked, unsafeLock, unlock
+                  unsafeLock, unlock
                   -- ** Additional data.
-                , AEAD, AuthTag, Cipher
-                , unsafeToNounce, unsafeToCipherText, unsafeToAuthTag, unsafeAEAD
+                , Locked, AuthTag, Cipher
                 , unsafeLockWith, unlockWith
+                , unsafeToNounce, unsafeToCipherText, unsafeToAuthTag
+                , unsafeLocked
                 , AEADMem
                 ) where
 
@@ -27,6 +28,7 @@ import           Data.ByteString
 import           System.IO.Unsafe ( unsafePerformIO )
 
 import           Raaz.Core
+import           Raaz.Primitive.AEAD.Internal
 import qualified Cipher.Implementation as CI
 import qualified Auth.Implementation   as AI
 
@@ -35,22 +37,25 @@ import qualified Auth.Utils as AU
 
 import qualified Cipher.Buffer as CB
 
--- | The cipher associated with the AEAD computation.
+-- | The associated cipher.
 type Cipher = CI.Prim
 
--- | The message authenticator used with the AEAD computation.
+-- | The associated message authenticator.
 type AuthTag = AI.Prim
 
+-- | The locked message.
+type Locked  = AEAD Cipher AuthTag
+
 -- | This function takes the plain text and the additional data, and
--- constructs the AEAD token. A peer who has the right @(key, nounce)@
--- pair and the `aad` can recover the unencrypted object using the
--- `unlockWith` function.
+-- constructs the associated Locked message. A peer who has the right
+-- @(key, nounce)@ pair and the `aad` can recover the unencrypted
+-- object using the `unlockWith` function.
 unsafeLockWith :: (Encodable plain, Encodable aad)
                => aad              -- ^ the authenticated additional data.
                -> Key Cipher       -- ^ The key for the stream cipher
                -> Nounce Cipher    -- ^ The nounce used by the stream cipher.
                -> plain            -- ^ the unencrypted object
-               -> AEAD plain aad
+               -> Locked
 unsafeLockWith aad k n plain = unsafePerformIO $ withMemory $ \ mem -> do
   initialise k mem
   initialise n mem
@@ -61,20 +66,25 @@ unsafeLockWith aad k n plain = unsafePerformIO $ withMemory $ \ mem -> do
 -- additional data, key, and nounce. An attempt to unlock the element
 -- can result in `Nothing` if either of the following is true.
 --
--- 1. The key, nounce pair used to encrypt the data is incorrect
--- 2. The Authenticated additional data (@aad@) is incorrect
--- 3. The AEAD is of the wrong type and hence the fromByteString failed
--- 4. The AEAD value has been tampered with by the adversery
+-- 1. The key, nounce pair used to encrypt the data is incorrect.
+--
+-- 2. The Authenticated additional data (@aad@) is incorrect.
+--
+-- 3. The Locked message is of the wrong type and hence the
+-- `fromByteString` failed.
+--
+-- 4. The Locked message has been tampered.
 --
 -- The interface provided above makes it impossible to know which of
--- the above three error has happened. This is a deliberate design as
--- revealing the nature of the failure can leak information to a potential
+-- the above errors occurred. This is a deliberate design as revealing
+-- the nature of the failure can leak information to a potential
 -- attacker.
 --
 unlockWith :: (Encodable plain, Encodable aad)
             => aad              -- ^ the authenticated additional data.
             -> Key Cipher       -- ^ The key for the stream cipher
-            -> AEAD plain aad   -- ^ The encrypted authenticated version of the data.
+            -> Locked
+                                -- ^ The encrypted authenticated version of the data.
             -> Maybe plain
 unlockWith aad k aead = unsafePerformIO $ withMemory $ \ mem -> do
   initialise k mem
@@ -89,39 +99,16 @@ unsafeLock :: Encodable plain
            => Key Cipher
            -> Nounce Cipher
            -> plain
-           -> Locked plain
+           -> Locked
 unsafeLock = unsafeLockWith ()
 
 
 -- | Unlock the encrypted packet.
 unlock :: Encodable plain
        => Key Cipher
-       -> Locked plain
+       -> Locked
        -> Maybe plain
 unlock = unlockWith ()
-
--- | The locked package containing a payload of type @plain@.
-type Locked plain   = AEAD plain ()
-
--- | An authenticated encrypted packet containing a payload of type
--- @plain@ and additional authenticated data of type @aad@.
-data AEAD plain aad = AEAD
-  { unsafeToNounce      :: Nounce Cipher
-                        -- ^ The nounce use to compute this packet.
-  , unsafeToCipherText  :: ByteString
-                        -- ^ The associated cipher text.
-  , unsafeToAuthTag     :: AuthTag
-                        -- ^ The associated authentication tag.
-  }
-
--- | Create an AEAD packet from the underlying authentication tag and
--- cipher text.
-unsafeAEAD :: Nounce Cipher
-           -> ByteString
-           -> AuthTag        -- ^ the authentication tag
-           -> AEAD plain aad
-unsafeAEAD = AEAD
-
 
 -- | The internal memory used for computing the AEAD packet. When using
 -- this memory for packet computation, it is important to initalise the
@@ -198,7 +185,7 @@ computeAuth aad cText aeadmem =
 
 verify :: Encodable aad
        => aad
-       -> AEAD plain aad
+       -> Locked
        -> AEADMem
        -> IO Bool
 verify aad aead = fmap matchTag . computeAuth aad (unsafeToCipherText aead)
@@ -216,7 +203,7 @@ encrypt plain = transform $ toByteString plain
 -- cipher and hence transform is the encryption and decryption
 -- routine.
 decrypt :: Encodable plain
-        => AEAD plain tag
+        => Locked
         -> AEADMem
         -> IO (Maybe plain)
 decrypt aead = fmap fromByteString . transform (unsafeToCipherText aead)
@@ -228,3 +215,11 @@ padAndLen a = (padWrite 0 pL aWr, len)
         len   = toLen (transferSize aWr)
         toLen = toEnum . fromEnum
         pL    = 1 `blocksOf` (Proxy :: Proxy AuthTag)
+
+-- | Create the locked message from the associated Nounce, cipher
+-- text, and the authentication tag.
+unsafeLocked :: Nounce Cipher
+             -> ByteString
+             -> AuthTag
+             -> Locked
+unsafeLocked = AEAD
