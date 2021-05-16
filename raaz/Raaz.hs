@@ -11,13 +11,20 @@ module Raaz
        (
          -- * Getting started
          -- $intro$
+
+
+         -- * Supported Cryptographic operations
+         -- $operations$
+         --
          module Raaz.Digest
        , module Raaz.Auth
        , module Raaz.AuthEncrypt
        , module Raaz.Random
-         -- ** Running memory action.
-         -- $memory$
-       , module Raaz.Core
+         -- ** Textual and Binary representation
+         -- $textual$
+       , module Raaz.Core.Encode
+         -- ** Core types and operations of raaz
+       , Key, Nounce, withMemory, withSecureMemory, withRandomState
          -- * Library information.
        , version
        ) where
@@ -25,7 +32,8 @@ module Raaz
 import qualified Paths_raaz as P
 import           Data.Version  (Version)
 
-import Raaz.Core ( withMemory, withSecureMemory, Key, Nounce)
+import Raaz.Core        ( Key, Nounce, withMemory, withSecureMemory)
+import Raaz.Core.Encode
 import Raaz.Digest
 import Raaz.Auth
 import Raaz.AuthEncrypt
@@ -36,21 +44,23 @@ import Raaz.Random
 -- $intro$
 --
 -- Raaz is a cryptographic library that provides an easy to use, type
--- safe interface for cryptographic applications. It is very easy for
--- applications to get its cryptography wrong and experience has shown
--- that this is often due to the choices of cryptographic primitives
--- that is to be made by the (often non-expert) user. Even correct
--- choices of the primitives can leave the user vulnerable if certain
--- implementation issues like nounce reuse has not been taken care of.
--- For these reasons, modern libraries tend to give abstract
--- interfaces where the discussion is centred on the desired
--- cryptographic operations like encryption, message digest etc rather
--- than the specific primitive used for achieving the goal. The
--- interface exposed from this module is of such a high level nature
--- with the library taking the responsibility of selecting the sane
--- primitives and their correct usages for the user. In addition, raaz
--- makes use of the type system of Haskell to give additional
--- guarantees:
+-- safe interface for cryptographic applications. Applications can get
+-- their cryptography wrong and this can have disastrous consequences.
+-- This can be due to the wrong choices of the underlying
+-- cryptographic primitives, or due to ignoring certain implementation
+-- details (reusing the key, nounce pair). To prevent this kind of
+-- issues, raaz, like other modern libraries, give a very high level
+-- interface with the library taking the responsibility of selecting
+-- sane primitives and their correct usages. The recommended usage
+-- there is to import the top level module and get going.
+--
+-- > module Main where
+-- >
+-- > import Raaz
+-- >
+--
+-- In addition, raaz makes use of the type system of Haskell to give
+-- additional guarantees:
 --
 -- [Type safety:] Instead of representing cryptographic data as plain
 -- strings, raaz uses distinct types for semantically distinct
@@ -81,47 +91,56 @@ import Raaz.Random
 -- memory element, are problematic and a lot of caution needs to be
 -- employed when using this interface.
 --
--- [Convenient Encoding:] The `Show` instance of most types like
--- message digest or the authenticator tag give a base16 encoding
--- which is the convention in most cryptographic literature.  More
--- generally these types are instances of the
--- `Raaz.Core.Encode.Encodable` class and hence can be encoded to any
--- encoding `Raaz.Core.Encode.Format` supported by Raaz.
---
--- [`IsString` instances:] Although /not recommended/ due to errors
--- being thrown at runtime, there are often instances where one would
--- like to represent cryptographic values in program source
--- code. Typical examples are unit tests involving exact value of the
--- primitives. Most primitives have an `Data.String.IsString` instance
--- which accepts the base16 encoding of the value. While `show`
--- function only generate characters [0-9a-f], the
--- `Data.String.IsString` instances are liberal. Users can use
--- arbitrary combination of lower or upper case hex digit. For
--- readability in source code, long hex strings can be interspersed
--- with the ' ' (space) and ':' (colon) which the `IsString` instance
--- ignores. For example, the strings "abc:def" and "Abc dE:f" all give
--- the same result as string "abcdef".
---
--- With the above points in mind, the recommended approach to use
--- raaz is by import this top level module.
---
--- > module Main where
--- >
--- > import Raaz
--- >
---
--- The top level module "Raaz" exposes all the cryptographic
--- operations supported by this library.  Applications that only need
--- specific cryptographic operations can selectively import the
--- appropriate modules given below (see the module specific
--- documentation for the detailed interface for each operation).
 
--- $memory$
+
+-- $operations$
 --
--- Actions that require a memory element can be executed using the two
--- combinators `withMemory` and `withSecureMemory`. Examples include
--- memory elements for incremental processing like `DigestCxt`,
--- `AuthCxt` etc.
+-- The raaz library provides the following cryptographic operations.
+--
+-- [Message Digest:] Compute a short summary of a message that can act
+-- as an integrity check for the message. A computationally bound
+-- adversary cannot create two distinct messages with the same
+-- digest. It /does not/ ensure authentication.
+--
+-- [Message Authentication:] In addition to integrity, we often want
+-- to ensure that a particular message has indeed come from a know
+-- peer (with whom we share a secret). Message authentication is for
+-- this purpose. It however, does not ensure privacy
+--
+-- [Message Locking:] In addition to authentication, often we want to
+-- ensure that the message is private, i.e. no one other than the
+-- originator (with whom we share a secret) should be able to know the
+-- contents of our communication. Message lock (via authenticated encryption)
+-- is for this purpose.
+--
+-- [Cryptographically secure random data:] We also have an interface to
+-- provide cryptographically secure bytes/data.
+--
+-- For detailed information on the api supported, please consult the
+-- documentation of the individual modules.
+
+
+-- $textual$
+--
+-- Many cryptographic types exposed from this library like hashes,
+-- message authentication, keys and nounces can be converted from/to
+-- their textual representation (via the `Show`, `IsString` instances)
+-- as well as binary representation (via their `Encodable` instance).
+--
+-- == WARNING: textual/binary encoding are not type safe
+--
+-- A user of the raaz library should use the explicit data types
+-- instead of their encodings. There are a few security consequences
+-- of violating this principle
+--
+-- 1. The `IsString` instance means that we represent values as string
+--    within program source (via OverloadedStrings). Do not do this unless
+--    it is to write unit tests as this can result in runtime bugs.
+--
+-- 2. Timing safe comparison will get compromised if one compares the
+--    encodings (bytestring) instead of the types themselves
+
+
 
 -- | Raaz library version number.
 version :: Version
