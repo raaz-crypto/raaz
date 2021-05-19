@@ -10,16 +10,12 @@ import           Prelude hiding (replicate)
 
 import           Tests.Core
 import           Sha512.Digest
-import qualified Sha512.VsHandwritten as VsHW
 
 
 spec :: Spec
 spec =  do
   basicEndianSpecs (undefined :: Sha512)
   incrementalVsFull
-  VsHW.specCompare
-
-
 
   --
   -- Some unit tests

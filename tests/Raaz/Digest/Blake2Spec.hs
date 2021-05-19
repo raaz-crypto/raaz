@@ -18,25 +18,17 @@ import qualified Blake2b.Auth   as B2bAuth
 import qualified Blake2s.Digest as B2s
 import qualified Blake2s.Auth   as B2sAuth
 
-
-
-import qualified Blake2b.VsHandwritten as VsB2bHW
-import qualified Blake2s.VsHandwritten as VsB2sHW
-
-
 spec :: Spec
 spec = do
   describe "BLAKE2b" $ do
     basicEndianSpecs (undefined :: Blake2b)
     B2b.incrementalVsFull
     B2bAuth.incrementalVsFull
-    VsB2bHW.specCompare
 
   describe "BLAKE2s" $ do
     basicEndianSpecs (undefined :: Blake2s)
     B2s.incrementalVsFull
     B2sAuth.incrementalVsFull
-    VsB2sHW.specCompare
 
   -- | Running the standard test cases.
   let process hand = parseWith (slurp hand) tests BS.empty

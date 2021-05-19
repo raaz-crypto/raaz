@@ -643,9 +643,6 @@ library test-digest
                , indef
                , digest-api
   exposed-modules: Tests.Digest
-                 , Tests.Digest.Compare
-  mixins: digest-api (Interface as AlternateInterface) requires (Implementation as Alternate)
-        , digest-api
 
 library test-auth
   import: test-defaults
@@ -708,17 +705,17 @@ test-suite tests
                , Paths_raaz
 
   mixins: test-cipher requires (Implementation as ChaCha20.Implementation)
-        , test-digest (Tests.Digest as Sha256.Digest, Tests.Digest.Compare as Sha256.VsHandwritten)
-          requires (Implementation as Sha256.Implementation, Alternate as Sha256.CHandWritten)
+        , test-digest (Tests.Digest as Sha256.Digest)
+          requires (Implementation as Sha256.Implementation)
 
-        , test-digest (Tests.Digest as Sha512.Digest, Tests.Digest.Compare as Sha512.VsHandwritten)
-          requires (Implementation as Sha512.Implementation, Alternate as Sha512.CHandWritten)
+        , test-digest (Tests.Digest as Sha512.Digest)
+          requires (Implementation as Sha512.Implementation)
 
-        , test-digest (Tests.Digest as Blake2b.Digest, Tests.Digest.Compare as Blake2b.VsHandwritten)
-          requires (Implementation as Blake2b.Implementation, Alternate as Blake2b.CHandWritten)
+        , test-digest (Tests.Digest as Blake2b.Digest)
+          requires (Implementation as Blake2b.Implementation)
 
-        , test-digest (Tests.Digest as Blake2s.Digest, Tests.Digest.Compare as Blake2s.VsHandwritten)
-          requires (Implementation as Blake2s.Implementation, Alternate as Blake2s.CHandWritten)
+        , test-digest (Tests.Digest as Blake2s.Digest)
+          requires (Implementation as Blake2s.Implementation)
 
 
         , test-auth (Tests.Auth as Poly1305.Auth) requires (Implementation as Auth.Poly1305)

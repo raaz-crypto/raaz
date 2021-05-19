@@ -9,13 +9,11 @@ import           Prelude hiding (replicate)
 
 import           Tests.Core
 import           Sha256.Digest
-import qualified Sha256.VsHandwritten as VsHW
 
 spec :: Spec
 spec =  do
   basicEndianSpecs (undefined :: Sha256)
   incrementalVsFull
-  VsHW.specCompare
 
   --
   -- Some unit tests
