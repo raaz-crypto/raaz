@@ -24,7 +24,7 @@ module Raaz
          -- $textual$
        , module Raaz.Core.Encode
          -- ** Core types and operations of raaz
-       , Key, Nounce, withMemory, withSecureMemory, withRandomState
+       , Key, Nounce, withMemory, withSecureMemory
          -- * Library information.
        , version
        ) where

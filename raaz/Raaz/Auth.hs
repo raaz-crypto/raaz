@@ -11,7 +11,7 @@ module Raaz.Auth
          --
          -- $messageauth$
          --
-         Auth, Key
+         Auth
        , auth
        , authFile
        , authSource
@@ -32,9 +32,6 @@ import Raaz.Core
 
 
 import qualified Raaz.V1.Auth as Auth
-
-
-
 
 -- $messageauth$
 --

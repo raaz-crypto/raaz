@@ -13,7 +13,7 @@ module Raaz.AuthEncrypt ( -- * Authenticated encryption
                           -- ** Locking with additional data
                           -- $aead$
                         , lockWith, unlockWith
-                        , Locked, Cipher, Key
+                        , Locked, Cipher
                         ) where
 
 import Raaz.V1.AuthEncrypt

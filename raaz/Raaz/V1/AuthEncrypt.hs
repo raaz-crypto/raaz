@@ -16,7 +16,7 @@ module Raaz.V1.AuthEncrypt
     -- For documentation refer the module "Raaz.AuthEncrypt".
     lock, unlock
   , lockWith, unlockWith
-  , Locked, Cipher, Key
+  , Locked, Cipher
   ) where
 
 import           Raaz.Core
