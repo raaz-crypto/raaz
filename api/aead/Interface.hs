@@ -22,6 +22,8 @@ module Interface( -- * Locking and unlocking stuff
                 , unsafeToNounce, unsafeToCipherText, unsafeToAuthTag
                 , unsafeLocked
                 , AEADMem
+                , name
+                , description
                 ) where
 
 import           Data.ByteString
@@ -223,3 +225,9 @@ unsafeLocked :: Nounce Cipher
              -> AuthTag
              -> Locked
 unsafeLocked = AEAD
+
+name :: String
+name = unwords [CI.name,"+", AI.name]
+
+description :: String
+description = unwords [ "AEAD implementation based on",name]
