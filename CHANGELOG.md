@@ -1,6 +1,6 @@
 # Change log for [raaz].
 
-## [0.3.0] - May 10, 2021
+## [0.3.0] - May 19, 2021
 
   This is a major rewrite of the raaz library with significant change in the
   API and internals.
@@ -65,6 +65,10 @@
   - Cross testing implementations with the monocypher library
 
   - Licensing changed to Apache-2.0 OR BSD-3-Clause dual licensing.
+
+## [0.2.3] - 25 April, 2021
+
+This is a minor release just update package dependencies.
 
 
 ## [0.2.2] - 13 December, 2020
