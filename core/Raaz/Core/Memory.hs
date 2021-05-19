@@ -430,26 +430,19 @@ instance Storable a => Extractable (MemoryCell a) a where
   extract = peekAligned . unMemoryCell
   {-# INLINE extract #-}
 
+
+memCellToAccess :: EndianStore a => MemoryCell a -> [Access]
+memCellToAccess mem = [ Access { accessPtr  = castPtr $ unsafeGetCellPointer mem
+                               , accessSize = sizeOf  $ getProxy mem
+                               }
+                      ]
+  where getProxy   :: MemoryCell a -> Proxy a
+        getProxy _ =  Proxy
+
 instance EndianStore a => ReadAccessible (MemoryCell a) where
   beforeReadAdjustment mem = adjustEndian (unsafeGetCellPointer mem) 1
-  readAccess mem = [ Access { accessPtr    = castPtr bufPtr
-                            , accessSize   = sz
-                            }
-                   ]
-    where getProxy   :: MemoryCell a -> Proxy a
-          getProxy _ =  Proxy
-          sz         = sizeOf $ getProxy mem
-          bufPtr     = unsafeGetCellPointer mem
-
+  readAccess               = memCellToAccess
 
 instance EndianStore a => WriteAccessible (MemoryCell a) where
-  writeAccess mem = [ Access { accessPtr    = castPtr bufPtr
-                             , accessSize   = sz
-                             }
-                    ]
-    where getProxy   :: MemoryCell a -> Proxy a
-          getProxy _ =  Proxy
-          sz         = sizeOf $ getProxy mem
-          bufPtr     = unsafeGetCellPointer mem
-
+  writeAccess              = memCellToAccess
   afterWriteAdjustment mem = adjustEndian (unsafeGetCellPointer mem) 1
