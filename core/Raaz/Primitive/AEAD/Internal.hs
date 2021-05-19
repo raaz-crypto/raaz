@@ -1,7 +1,6 @@
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE DataKinds                  #-}
-{-# LANGUAGE RecordWildCards            #-}
 -- |
 --
 -- Module      : Raaz.Primitive.AEAD.Internal
