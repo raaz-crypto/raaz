@@ -737,6 +737,7 @@ test-suite tests-comparative
   build-depends: implementation
                , digest-api
                , encrypt-api
+               , aead-api
                , test-core
 
   other-modules: Compare
@@ -746,6 +747,8 @@ test-suite tests-comparative
                , Digest.Sha256Spec
                , Encrypt
                , Encrypt.ChaCha20Spec
+               , AuthEncrypt
+               , AuthEncrypt.ChaCha20Poly1305Spec
 
   mixins: digest-api (Interface as Digest.Blake2b.CHandWritten)
             requires (Implementation as Blake2b.CHandWritten)
@@ -766,6 +769,17 @@ test-suite tests-comparative
             requires (Implementation as ChaCha20.CHandWritten)
         , encrypt-api (Interface as Encrypt.ChaCha20.CPortable)
             requires (Implementation as ChaCha20.CPortable)
+
+        , aead-api (Interface as AuthEncrypt.ChaCha20Poly1305.CHandWritten)
+            requires ( Cipher.Implementation as ChaCha20.CHandWritten
+                     , Auth.Implementation as Poly1305.Implementation
+                     )
+
+        , aead-api (Interface as  AuthEncrypt.ChaCha20Poly1305.CPortable)
+            requires ( Cipher.Implementation as ChaCha20.CPortable
+                     , Auth.Implementation as Poly1305.Implementation
+                     )
+
 
   build-tool-depends: hspec-discover:hspec-discover
 
