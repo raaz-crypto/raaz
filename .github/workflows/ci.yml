@@ -55,4 +55,4 @@ jobs:
           cabal check
 
       - name: Raaz information
-        run: cabal exec raaz -- info
+        run: cabal run raaz -- info
