@@ -152,7 +152,7 @@ monocypher_unlock_io cText k n mac outPtr
 
 monocypher_unlock      :: Key XChaCha20
                        -> Nounce XChaCha20
-                       -> XP.Locked ByteString
+                       -> XP.Locked
                        -> Maybe ByteString
 monocypher_unlock k n locked =
   let cText = XP.unsafeToCipherText locked
@@ -166,7 +166,7 @@ monocypher_unlock k n locked =
 monocypher_unlock_aead :: ByteString        -- aad
                        -> Key XChaCha20
                        -> Nounce XChaCha20
-                       -> XP.AEAD ByteString ByteString
+                       -> XP.Locked
                        -> Maybe ByteString
 monocypher_unlock_aead aad k n aead =
   let cText = XP.unsafeToCipherText aead
