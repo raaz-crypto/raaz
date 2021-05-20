@@ -33,7 +33,7 @@
 
   - Use libverse for the low level FFI implementations. From now on
     newer primitives will be coded up in verse instead of hand written
-    C/assembly. (See https://github.com/raaz-crypto/libverse/>)
+    C/assembly. (See <https://github.com/raaz-crypto/libverse/>)
 
   - Backpack based modules and signatures instead of classes for
     primitive implementation. Simplifies the library and allows easy
@@ -152,5 +152,6 @@ This release comes with very little changes.
 [0.2.0]: <http://github.com/raaz-crypto/raaz/releases/tag/v0.2.0>
 [0.2.1]: <http://github.com/raaz-crypto/raaz/releases/tag/v0.2.1>
 [0.2.2]: <http://github.com/raaz-crypto/raaz/releases/tag/v0.2.2>
+[0.2.3]: <http://github.com/raaz-crypto/raaz/releases/tag/v0.2.3>
 [0.3.0]: <http://github.com/raaz-crypto/raaz/releases/tag/v0.3.0>
 [raaz]:  <http://github.com/raaz-crypto/raaz/>
