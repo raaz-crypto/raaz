@@ -25,8 +25,8 @@ Building
 --------
 
 The recommended way to install raaz is through `cabal-install` version
-3.0 or above. Starting from version 0.3.0 we need a version of GHC
-that requires backpack support (for details refer to our
+3.0 or above. We also need a version of GHC that supports backpack
+(for details on which version of GHC is supported, refer to our
 [CI-builds][github-actions]).
 
     cabal build
