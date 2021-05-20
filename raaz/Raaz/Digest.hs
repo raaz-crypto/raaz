@@ -36,8 +36,7 @@ import qualified Raaz.V1.Digest as Digest
 -- digest if all you care about is integrity: If @d@ is the digest of
 -- a message @m@, then a computationally bound adversary cannot
 -- produce another message @m'@ for which the digest is also
--- @d@. Typically, cryptographic hash functions are what are used as
--- message digest.
+-- @d@.
 --
 -- Here is a simple application for computing and verifying the digest
 -- of a file.
