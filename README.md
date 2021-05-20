@@ -48,8 +48,6 @@ The word `Raaz` (&#x0930;&#x093E;&#x095B;) stands for secret in Hindi.
 Legal
 -----
 
-<a name="legal"></a>
-
 Copyright 2012 Piyush P Kurur
 
 The library is licensed under
