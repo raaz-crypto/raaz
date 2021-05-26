@@ -2,6 +2,11 @@
 
 ## [0.4.0] - Pending
 
+* New Cryptographic operations [PENDING]
+
+  - [ ] Key Exchange     (via X25519)
+  - [ ] Signature scheme (via ED25519)
+
 ## [0.3.0] - May 20, 2021
 
   This is a major rewrite of the raaz library with significant change in the
