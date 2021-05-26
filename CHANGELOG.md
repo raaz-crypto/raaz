@@ -1,5 +1,7 @@
 # Change log for [raaz].
 
+## [0.4.0] - Pending
+
 ## [0.3.0] - May 20, 2021
 
   This is a major rewrite of the raaz library with significant change in the
