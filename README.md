@@ -30,8 +30,8 @@ The recommended way to install raaz is through `cabal-install` version
 [CI-builds][github-actions]).
 
     cabal build
-	cabal test
-	cabal install
+    cabal test
+    cabal install
 
 Online documentation
 --------------------
