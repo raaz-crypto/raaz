@@ -480,15 +480,8 @@ library implementation
 
   -------------------------- Implementation of system entropy ----------------------------
   --
-  -- The next conditionals perform the following configuration tasks.
+  -- Exposing the most suitable source of entropy in the system.
   --
-  -- 1. Expose *all* the available sources of entropy.
-  --
-  -- 2. Reexport the most desirable source as the module Entropy. This
-  -- way by mixing in the implementation component, the correct
-  -- entropy source is used (which can be overridden by the user if
-  -- they so wish -- do not try that unless you know what you are
-  -- doing)
 
   if os(windows)
      hs-source-dirs: implementation/entropy/windows/
