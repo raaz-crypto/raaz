@@ -14,15 +14,25 @@
 -- Maintainer  : Piyush P Kurur <ppk@iitpkd.ac.in>
 -- Stability   : experimental
 --
--- This signature give the interface through which a cryptographic
--- bulk primitive, like cryptographic hash or a cipher is
--- implemented. The main interface is through the `processBlocks`
--- which gives the method to process data that is multiples of its
--- block size. The last chuck of data might not be a full multiple of
--- blocks in which case the `processLast` takes care of handling
--- it. Fast implementations involve other details like the alignment
--- restriction on the input buffer and all that. We package all this
--- in the following signature.
+-- Implementation of a low level cryptographic bulk primitive, like a
+-- cryptographic hash or a cipher, essentially consists of of two
+-- functions.
+--
+-- [@`processBlocks`@:] Processes multiple blocks of data till we have
+-- the last chuck of data which may not end at a block boundary in which
+-- case switch to
+--
+-- [@`processLast`@:] Completes processing the input.
+--
+-- Any padding or special processing that is required at the end has
+-- to be handled by `processLast`.
+--
+-- Besides these, fast implementations involve other details like the
+-- alignment restriction on the input buffer, additional space
+-- required at the end of the buffer for padding etc. This signature
+-- captures all such details.
+--
+
 signature Implementation where
 
 import Raaz.Core
