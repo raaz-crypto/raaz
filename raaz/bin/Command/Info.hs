@@ -28,8 +28,7 @@ information = subparser $ mconcat [ commandGroup "Information"
                             ]
 
         opts = pure $ sequence_ [ field "Library Version" $ showVersion version
-                                , field "Entropy" entropySource
-                                , field "CSPRG"  csprgName
+                                , algorithmInfo
                                 , implementationInfo
                                 , cpuCapabilities
                                 ]
@@ -44,9 +43,19 @@ section title lns = do
   mapM_ indent lns
   where indent = putStrLn . (++) "    "
 
+algorithmInfo :: IO ()
+algorithmInfo = section "Algorithm Selection" $ map unwords
+  [ [ "digest:",  digestAlgorithm]
+  , [ "message authentication:", authAlgorithm]
+  , [ "authenticated encryption:", authEncryptAlgorithm]
+  , [ "entropy:" , entropySource]
+  , [ "csprg:", csprgName]
+  ]
+
 implementationInfo :: IO ()
 implementationInfo = section "Implementation Info" $ map unwords
-  [ [ "auth (blake2b):", Raaz.Auth.Blake2b.name]
+
+    [ [ "auth (blake2b):", Raaz.Auth.Blake2b.name]
   , [ "auth (blake2s):", Raaz.Auth.Blake2s.name]
   , [ "blake2b:", Raaz.Digest.Blake2b.name ]
   , [ "blake2s:", Raaz.Digest.Blake2s.name ]
