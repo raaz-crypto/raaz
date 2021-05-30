@@ -17,6 +17,7 @@ module Raaz.V1.AuthEncrypt
     lock, unlock
   , lockWith, unlockWith
   , Locked, Cipher
+  , authEncryptAlgorithm
   ) where
 
 import           Raaz.Core
@@ -87,3 +88,7 @@ unlock :: Encodable plain
        -> Locked       -- ^ Locked object that needs unlocking
        -> Maybe plain
 unlock = AE.unlock
+
+-- | Algorithm used for authenticated encryption
+authEncryptAlgorithm :: String
+authEncryptAlgorithm = AE.primName

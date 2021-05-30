@@ -25,6 +25,9 @@ module Raaz.Auth
          -- *** Specific message authentication algorithms
          -- $specific-auth$
          --
+
+         -- *** Meta information
+       , authAlgorithm
        ) where
 
 import GHC.TypeLits
@@ -32,6 +35,7 @@ import Raaz.Core
 
 
 import qualified Raaz.V1.Auth as Auth
+import           Raaz.V1.Auth    ( authAlgorithm )
 
 -- $messageauth$
 --

@@ -5,7 +5,15 @@
 --
 -- For documentation refer to the module "Raaz.Digest".
 
-module Raaz.V1.Digest (
-   module Raaz.Digest.Blake2b
+module Raaz.V1.Digest
+  (
+    module Raaz.Digest.Blake2b
+  , digestAlgorithm
   ) where
+
+import Raaz.Core
 import Raaz.Digest.Blake2b
+
+-- | Algorithm used for message digest
+digestAlgorithm :: String
+digestAlgorithm = primName

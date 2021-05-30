@@ -14,6 +14,10 @@ module Raaz.AuthEncrypt ( -- * Authenticated encryption
                           -- $aead$
                         , lockWith, unlockWith
                         , Locked, Cipher
+
+                          -- ** Meta information
+                        , authEncryptAlgorithm
+
                         ) where
 
 import Raaz.V1.AuthEncrypt

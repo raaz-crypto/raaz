@@ -22,12 +22,16 @@ module Raaz.Digest
          --
          -- *** Specific message digests.
          -- $specific-digest$
+
+         -- *** Meta Information
+       , digestAlgorithm
        ) where
 
 import GHC.TypeLits
 import Raaz.Core
 
 import qualified Raaz.V1.Digest as Digest
+import           Raaz.V1.Digest ( digestAlgorithm )
 
 -- $messagedigest$
 --

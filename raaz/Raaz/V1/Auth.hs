@@ -6,5 +6,11 @@
 -- For documentation refer the module "Raaz.Auth".
 
 module Raaz.V1.Auth ( module Raaz.Auth.Blake2b
+                    , authAlgorithm
                     ) where
+import Raaz.Core
 import Raaz.Auth.Blake2b
+
+-- | The algorithm used for message authentication.
+authAlgorithm :: String
+authAlgorithm = primName
