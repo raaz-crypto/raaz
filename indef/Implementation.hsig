@@ -43,9 +43,11 @@ import GHC.TypeLits
 
 # endif
 
-
 -- | Name of the implementation.
 name :: String
+
+-- | Name of the primitive
+primName :: String
 
 -- | Description of the implementation.
 description :: String
