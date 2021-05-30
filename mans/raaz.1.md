@@ -1,7 +1,7 @@
 ---
-title: RAAZ(1) The Raaz Cryptographic Library | Version 0.3
+title: RAAZ(1) The Raaz Cryptographic Library | Version 0.4
 author: Piyush P Kurur
-date: June 22, 2017
+date: 30 May, 2021
 ---
 
 # NAME
