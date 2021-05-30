@@ -25,11 +25,12 @@ nBytes = 32 * 1024
 nRuns :: Int64
 nRuns = 10000
 
-type RaazBench         = (String, Benchmarkable)
+type RaazBench         = (String, String, Benchmarkable)
 
 header :: Doc
 header = hsep $ punctuate comma $ map text
-         [ "Implementation"
+         [ "Primitive"
+         , "Implementation"
          , "time"
          , "cycles"
          , "rate (bits/sec)"
@@ -39,9 +40,9 @@ header = hsep $ punctuate comma $ map text
 
 -- | Execute a benchmark and writeout the results.
 runRaazBench :: RaazBench -> IO Doc
-runRaazBench (nm, bm) = do
+runRaazBench (prNm, nm, bm) = do
   (memt,_) <- measure bm nRuns
-  return $ hsep $ punctuate comma $ text nm : pprMeasured memt
+  return $ hsep $ punctuate comma $ text prNm : text nm : pprMeasured memt
 
 
 ------------------------ Helper functions ------------------------

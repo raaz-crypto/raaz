@@ -17,7 +17,7 @@ allocAndRun  :: (BufferPtr -> IO ()) -> IO ()
 allocAndRun  = allocaBuffer (nblocks <> additionalBlocks)
 
 bench :: KnownNat BufferAlignment => RaazBench
-bench = (nm, toBenchmarkable $ action . fromIntegral)
+bench = (primName, nm, toBenchmarkable $ action . fromIntegral)
   where action count = allocAndRun $ doit count
         nm = name
         doit count ptr = withMemory $ \ mem -> replicateM_ count (processBlocks ptr nblocks mem)
