@@ -17,6 +17,7 @@ module Interface ( Digest
                  , updateDigest
                  , finaliseDigest
                  , name
+                 , primName
                  , description
                  ) where
 
@@ -65,6 +66,10 @@ digestSource src = withMemory $ \ mem -> do
 -- | Textual name of the digest implementation.
 name :: String
 name = Implementation.name
+
+-- | Textual name of the primitive
+primName :: String
+primName = Implementation.primName
 
 -- | Description of the implementation
 description :: String

@@ -23,6 +23,7 @@ module Interface( -- * Locking and unlocking stuff
                 , unsafeLocked
                 , AEADMem
                 , name
+                , primName
                 , description
                 ) where
 
@@ -228,6 +229,10 @@ unsafeLocked = AEAD
 
 name :: String
 name = unwords [CI.name,"+", AI.name]
+
+-- | Name of the primitive
+primName :: String
+primName = CI.primName ++ "-" ++ AI.primName
 
 description :: String
 description = unwords [ "AEAD implementation based on",name]

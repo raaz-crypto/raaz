@@ -8,6 +8,7 @@ module Interface ( Auth
                  , updateAuth
                  , finaliseAuth
                  , name
+                 , primName
                  , description
                  ) where
 
@@ -86,6 +87,10 @@ finaliseAuth cxt@Cxt{..} = finaliseCxt cxt >> extract cxtInternals
 -- | Textual name of the authenticator implementation.
 name :: String
 name = Implementation.name
+
+-- | Textual name of the associated primitive.
+primName :: String
+primName = Implementation.primName
 
 -- | Description of the implementation
 description :: String
