@@ -10,7 +10,10 @@ import           Raaz.Primitive.ChaCha20.Internal
 import qualified Implementation as Base
 
 name :: String
-name = "x" ++ Base.name
+name = Base.name
+
+primName :: String
+primName = "xchacha20"
 
 description :: String
 description = Base.description ++ " This is the XChaCha variant."

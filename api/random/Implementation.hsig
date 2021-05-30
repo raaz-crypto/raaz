@@ -16,6 +16,7 @@
 
 signature Implementation ( Prim
                          , name
+                         , primName
                          , description
                          , Internals
                          , BufferAlignment
@@ -32,6 +33,9 @@ instance Primitive Prim
 
 -- | The name of the implementation.
 name :: String
+
+-- | The name of the primitive used as the seed stretcher
+primName :: String
 
 -- | The description of the implementation.
 description :: String

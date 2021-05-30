@@ -17,6 +17,7 @@
 module Mac.Implementation
           ( Prim
           , name
+          , primName
           , description
           , Internals
           , BufferAlignment
@@ -39,11 +40,16 @@ type Prim = Keyed Base.Prim
 
 -- | Name of the implementation.
 name :: String
-name = Base.name ++ "-keyed-hash"
+name = Base.name
+
+-- | Primitive name.
+primName :: String
+primName = "keyed-" ++ Base.primName
+
 
 -- | Description of the implementation.
 description :: String
-description = "Implementation of a MAC based on simple keyed hashing that makes use of "
+description = "Implementation of " ++ primName ++ " that makes use of "
               ++ Base.name
               ++ " implementation."
 
