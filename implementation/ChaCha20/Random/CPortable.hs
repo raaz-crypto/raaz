@@ -1,6 +1,6 @@
 {-# LANGUAGE DataKinds #-}
 module ChaCha20.Random.CPortable
-  ( name, description, RandomBufferSize, reseedAfter, randomBlocks
+  ( name, primName, description, RandomBufferSize, reseedAfter, randomBlocks
   , module ChaCha20.CPortable
   ) where
 
@@ -10,7 +10,10 @@ import           ChaCha20.CPortable (Prim, Internals, BufferAlignment, BufferPtr
 import           Raaz.Verse.ChaCha20.C.Portable
 
 name :: String
-name = "chacha20-libverse-csprg"
+name = "libverse-c"
+
+primName :: String
+primName = "chacha20-csprg"
 
 description :: String
 description = "ChaCha20 based CSPRG written in C exposed by libverse"

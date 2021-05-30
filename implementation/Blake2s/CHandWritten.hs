@@ -13,7 +13,10 @@ import Raaz.Primitive.Blake2.Internal
 
 
 name :: String
-name = "blake2s-c-handwritten"
+name = "handwritten-c"
+
+primName :: String
+primName = "blake2s"
 
 description :: String
 description = "Hand written Blake2s Implementation using portable C and Haskell FFI"

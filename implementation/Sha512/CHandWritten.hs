@@ -3,7 +3,7 @@
 
 -- | The portable C-implementation of Sha512.
 module Sha512.CHandWritten
-       ( name, description
+       ( name, primName, description
        , Prim, Internals, BufferAlignment
        , BufferPtr
        , additionalBlocks
@@ -17,7 +17,10 @@ import Raaz.Primitive.HashMemory
 import Raaz.Primitive.Sha2.Internal (Sha512, Sha512Mem, process512Last)
 
 name :: String
-name = "sha512-c-handwritten"
+name = "handwritten-c"
+
+primName :: String
+primName = "sha512"
 
 description :: String
 description = "Hand written Sha512 Implementation using portable C and Haskell FFI"

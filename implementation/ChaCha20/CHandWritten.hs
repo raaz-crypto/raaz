@@ -11,7 +11,10 @@ import Raaz.Primitive.ChaCha20.Internal
 
 
 name :: String
-name = "chacha20-c-handwritten"
+name = "handwritten-c"
+
+primName :: String
+primName = "chacha20"
 
 description :: String
 description = "Hand written ChaCha20 Implementation using portable C"

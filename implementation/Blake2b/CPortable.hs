@@ -14,7 +14,10 @@ import Raaz.Primitive.Blake2.Internal
 import Raaz.Verse.Blake2b.C.Portable
 
 name :: String
-name = "blake2b-libverse-c"
+name = "libverse-c"
+
+primName :: String
+primName = "blake2b"
 
 description :: String
 description = "Blake2b Implementation in C exposed by libverse"

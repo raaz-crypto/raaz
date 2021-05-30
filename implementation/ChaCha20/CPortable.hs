@@ -12,7 +12,10 @@ import           Raaz.Primitive.ChaCha20.Internal
 import           Raaz.Verse.ChaCha20.C.Portable
 
 name :: String
-name = "chacha20-libverse-c"
+name = "libverse-c"
+
+primName :: String
+primName = "chacha20"
 
 description :: String
 description = "ChaCha20 Implementation in C exposed by libverse"

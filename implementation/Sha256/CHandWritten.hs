@@ -3,7 +3,7 @@
 
 -- | The portable C-implementation of Sha256.
 module Sha256.CHandWritten
-       ( name, description
+       ( name, primName, description
        , Prim, Internals, BufferAlignment
        , BufferPtr
        , additionalBlocks
@@ -17,7 +17,10 @@ import Raaz.Primitive.HashMemory
 import Raaz.Primitive.Sha2.Internal (Sha256, Sha256Mem, process256Last)
 
 name :: String
-name = "sha256-c-handwritten"
+name = "handwritten-c"
+
+primName :: String
+primName = "sha256"
 
 description :: String
 description = "Hand written Sha256 Implementation using portable C and Haskell FFI"

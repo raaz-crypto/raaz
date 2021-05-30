@@ -2,7 +2,7 @@
 
 -- | The portable C-implementation of Poly1305.
 module Poly1305.CPortable
-       ( name, description
+       ( name, primName, description
        , Prim, Internals, BufferAlignment
        , BufferPtr
        , additionalBlocks
@@ -19,7 +19,10 @@ import Poly1305.Memory
 import Raaz.Verse.Poly1305.C.Portable
 
 name :: String
-name = "poly1305-libverse-c"
+name = "libverse-c"
+
+primName :: String
+primName = "poly1305"
 
 description :: String
 description = "Poly1305 Implementation in C exposed by libverse"

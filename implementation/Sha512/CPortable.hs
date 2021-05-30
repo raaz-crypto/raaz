@@ -2,7 +2,7 @@
 
 -- | The portable C-implementation of Sha512.
 module Sha512.CPortable
-       ( name, description
+       ( name, primName, description
        , Prim, Internals, BufferAlignment
        , BufferPtr
        , additionalBlocks
@@ -20,7 +20,10 @@ import Raaz.Verse.Sha512.C.Portable
 
 
 name :: String
-name = "sha512-libverse-c"
+name = "libverse-c"
+
+primName :: String
+primName = "sha512"
 
 description :: String
 description = "Sha512 Implementation in C exposed by libverse"

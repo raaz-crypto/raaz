@@ -2,7 +2,7 @@
 
 -- | The portable C-implementation of Sha256.
 module Sha256.CPortable
-       ( name, description
+       ( name, primName, description
        , Prim, Internals, BufferAlignment
        , BufferPtr
        , additionalBlocks
@@ -19,7 +19,10 @@ import Raaz.Primitive.Sha2.Internal (Sha256, Sha256Mem, process256Last)
 import Raaz.Verse.Sha256.C.Portable
 
 name :: String
-name = "sha256-libverse-c"
+name = "libverse-c"
+
+primName :: String
+primName = "sha256"
 
 description :: String
 description = "Sha256 Implementation in C exposed by libverse"

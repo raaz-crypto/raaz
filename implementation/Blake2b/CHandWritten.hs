@@ -13,10 +13,13 @@ import Raaz.Primitive.Blake2.Internal
 
 
 name :: String
-name = "blake2b-c-handwritten"
+name = "handwritten-c"
+
+primName :: String
+primName = "blake2b"
 
 description :: String
-description = "Hand written Blake2b Implementation in portable C and Haskell FFI"
+description = "Hand written Blake2b Implementation in portable C"
 
 type Prim                    = Blake2b
 type Internals               = Blake2bMem
