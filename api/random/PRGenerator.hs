@@ -20,7 +20,7 @@ module PRGenerator
          -- $internals$
          RandomState, reseed, fillRandomBytes
          -- ** Information about the cryptographic generator.
-       , entropySource, csprgName, csprgDescription
+       , entropySource, csprgName, csprgImpl, csprgDescription
        ) where
 
 import Foreign.Ptr ( castPtr )
@@ -90,9 +90,13 @@ import Context
 --
 
 
--- | Name of the csprg used for stretching the seed.
+-- | The csprg algorithm used for stretching the seed.
 csprgName :: String
-csprgName = name
+csprgName = primName
+
+-- | The implementation name used.
+csprgImpl :: String
+csprgImpl = name
 
 -- | A short description of the csprg.
 csprgDescription :: String

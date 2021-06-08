@@ -16,7 +16,7 @@ primName :: String
 primName = "chacha20-csprg"
 
 description :: String
-description = "ChaCha20 based CSPRG written in C exposed by libverse"
+description = "ChaCha20 based CSPRG (machine endian version) written in C exposed by libverse."
 
 
 -------------------- CSPRG related stuff -------------------------------

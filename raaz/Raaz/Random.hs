@@ -33,7 +33,7 @@ module Raaz.Random
        , reseed
        -- * Information
        , entropySource
-       , csprgName, csprgDescription
+       , csprgName, csprgImpl, csprgDescription
        ) where
 
 import Control.Applicative
@@ -50,7 +50,7 @@ import Prelude
 
 import           Raaz.Core
 import           Raaz.Core.Memory( Access(..) )
-import           PRGenerator ( entropySource, csprgName, csprgDescription, RandomState
+import           PRGenerator ( entropySource, csprgName, csprgImpl, csprgDescription, RandomState
                              , fillRandomBytes
                              , reseed
                              )
