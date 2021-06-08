@@ -61,6 +61,7 @@ implementationInfo = section "Implementation Info" $ map unwords
   , [ "blake2s:", Raaz.Digest.Blake2s.name ]
   , [ "sha512:", Raaz.Digest.Sha512.name ]
   , [ "sha256:", Raaz.Digest.Sha256.name ]
+  , [ "csprg:",  csprgImpl   ]
   ]
 
 
