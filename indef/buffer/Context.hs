@@ -249,7 +249,8 @@ unsafeUpdate action src cxt =
   where doNothing      = const $ return ()
         process remSrc = unsafeConsumeBlocks action cxt >> unsafeContinue action remSrc cxt
 
-
+-- | Finalise the internals with what ever is available in the
+-- buffer. There are the last bytes of the stream.
 unsafeFinalise :: KnownNat n
                => (BufferPtr -> BYTES Int -> Internals -> IO ())
                -> Cxt n
