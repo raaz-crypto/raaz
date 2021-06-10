@@ -127,19 +127,23 @@ instance WriteAccessible RandomState where
 sample :: RandomState -> IO ()
 sample rstate@RandomState{..} = do
   genBlocks <- extract randomGenBlocks
-  if genBlocks >= reseedAfter then reseed rstate
-    else generateRandom rstate
+  when (genBlocks >= reseedAfter) $ seedInternals rstate
+  generateRandom rstate
+
+
+-- | This function seeds the random state from the entropy source.
+seedInternals :: RandomState -> IO ()
+seedInternals rstate@RandomState{..} = do
+  unsafeInitWithEntropy rstate
+  initialise zeroBlocks randomGenBlocks
 
 -- | Reseed the state from the system entropy pool. The CSPRG
 -- interface automatically takes care of reseeding from the entropy
 -- pool at regular intervals and the user almost never needs to use
 -- this.
 reseed :: RandomState -> IO ()
-reseed rstate@RandomState{..} = do
-  unsafeInitWithEntropy rstate
-  initialise zeroBlocks randomGenBlocks
-  generateRandom rstate
-
+reseed rstate = do seedInternals rstate
+                   generateRandom rstate
 
 -- | Generate random bytes into the context in one go which will then
 -- be slowly released to the outside world. We also keep track of how
