@@ -10,10 +10,10 @@
 -- module this let alone tweaking the code here.
 --
 
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE DataKinds        #-}
-{-# LANGUAGE RecordWildCards   #-}
--- {-# LANGUAGE NamedFieldPun    #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE RecordWildCards       #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 
 module PRGenerator
        ( -- * Pseudo-random generator
@@ -111,6 +111,10 @@ data RandomState = RandomState { randomCxt       :: Cxt RandomBufferSize
 instance Memory RandomState where
   memoryAlloc     = RandomState <$> memoryAlloc <*> memoryAlloc
   unsafeToPointer = unsafeToPointer . randomCxt
+
+-- | Reseeds from system entropy
+instance Initialisable RandomState () where
+  initialise _ = reseed
 
 -- | Gives access into the internals of the associated cipher.
 instance WriteAccessible RandomState where
