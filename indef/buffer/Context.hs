@@ -237,24 +237,6 @@ unsafeFillFrom src cxt = do
       srcRemaining remSrc = unsafeSetCxtFull cxt >> return (Remaining remSrc)
     in fillBytes vacant src destPtr >>= withFillResult srcRemaining srcExhausted
 
-
--- | Starting with an empty context, run the given action on the src
--- reading a full buffer at a time. Ends when the src is
--- exhausted. The last chunk of bytes that is read is not processed
--- and is left in the buffer for later processing when more bytes are
--- added or when finalising the context.
-unsafeContinue :: (KnownNat n, ByteSource src)
-               => (BufferPtr -> BlockCount Prim -> Internals -> IO ())
-               -> src
-               -> Cxt n
-               -> IO ()
-unsafeContinue action src cxt = processChunks actFilled lastChunk src bufPtr bufSize
-  where actFilled = unsafeProcessBlocks action cxt
-        lastChunk nbytes = setBytes nbytes cxt
-        bufPtr           = startPtr cxt
-        bufSize          = cxtSize $ pure cxt
-
-
 -- | Update the context with data coming from the byte source. Used
 -- typically in the digest mode.
 unsafeUpdate :: (KnownNat n, ByteSource src)
@@ -275,3 +257,27 @@ unsafeFinalise :: KnownNat n
 unsafeFinalise action cxt@Cxt{..} = do
   ava <- getCxtBytes cxt
   unsafeWithBufferPtr action cxtBuf ava cxtInternals
+
+
+
+-- | This is similar to unsafeUpdate but we assume that we are
+-- starting with an empty context. We try to update the entire buffer
+-- each time. The last chunk might not be able to completely fill the
+-- buffer so the remaining bytes are left.
+unsafeContinue :: (KnownNat n, ByteSource src)
+               => (BufferPtr -> BlockCount Prim -> Internals -> IO ())
+               -> src
+               -> Cxt n
+               -> IO ()
+unsafeContinue action src cxt = processChunks
+  actFilled  -- When the source is not exhausted after filling the buffer
+             -- process the entire buffer
+  lastChunk  -- When the source is exhausted, update the count leaving the
+             -- bytes in the context for future calls.
+  src        -- the src
+  bufPtr     -- the buffer pointer
+  bufSize    -- and the size of the buffer.
+  where actFilled = unsafeProcessBlocks action cxt
+        lastChunk nbytes = setBytes nbytes cxt
+        bufPtr           = startPtr cxt
+        bufSize          = cxtSize $ pure cxt
