@@ -55,10 +55,11 @@ instance KnownNat n => Memory (Cxt n) where
   memoryAlloc     = Cxt <$> memoryAlloc <*> memoryAlloc <*> memoryAlloc
   unsafeToPointer = unsafeToPointer . cxtBuf
 
-{--
+{-- WILL NOT IMPLEMENT:
 
--- Unfortunately this require UndecidableInstances so we suppress
--- these instances.
+We would want to initialise the context and extract stuff from the
+context directly but this require UndecidableInstances so we suppress
+these instances.
 
 instance (KnownNat n, Initialisable Internals v) =>
   Initialisable (Cxt n) v where
@@ -70,6 +71,7 @@ instance (KnownNat n, Extractable Internals v) =>
   extract = extract . cxtInternals
 
 --}
+
 -- | Gives the number of blocks that can fit in the context.
 cxtBlockCount :: KnownNat n => Proxy (Cxt n) -> BlockCount Prim
 cxtBlockCount = bufferSize . fmap cxtBuf
