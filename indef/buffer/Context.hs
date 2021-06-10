@@ -201,7 +201,7 @@ unsafeWriteTo :: KnownNat n
               -> Cxt n
               -> IO (BYTES Int)
 unsafeWriteTo req dbuf cxt = do
-  ava <- getCxtBytes cxt           -- bytes available in the context
+  ava <- getCxtBytes cxt        -- bytes available in the context
   let satisfy  = min req ava    -- how much of the demand can be satisfied.
       leftover = ava - satisfy  -- the leftover bytes.
       srcPtr   = startPtr cxt `movePtr` leftover
