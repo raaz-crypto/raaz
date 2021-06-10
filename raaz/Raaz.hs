@@ -51,8 +51,8 @@ import Raaz.Random
 -- details (reusing the key, nounce pair). To prevent this kind of
 -- issues, raaz, like other modern libraries, give a very high level
 -- interface with the library taking the responsibility of selecting
--- sane primitives and their correct usages. The recommended usage
--- there is to import the top level module and get going.
+-- sane primitives and their correct usages. The recommended usage is
+-- to import the top level module and get going.
 --
 -- > module Main where
 -- >
@@ -72,26 +72,22 @@ import Raaz.Random
 --
 -- [Timing safe equality:] All cryptographically sensitive data have
 -- timing safe equality operation `==`. The default comparison is
--- therefore safe and we encourage its use. Compare this with many
--- other libraries where one has to remember to use specific functions
--- sanitised timing safe comparisons.
+-- therefore safe and we encourage its use. The situation in many
+-- other libraries on the other hand is that there are specific
+-- functions that the user has to use to get timing safe
+-- comparisons. Needless to say, this fact is often overlooked leading
+-- to disastrous bugs.
 --
--- [Locked memory:] The interface to locked memory is provided through
--- the combinators `withMemory` and `withSecureMemory`. These
+-- [Locked memory:] An interface to locked memory elements is provided
+-- through the combinators `withMemory` and `withSecureMemory`. These
 -- combinators take any IO action that expects a memory element
 -- (captured by the class `Memory`) and runs it by providing such an
 -- element. The underlying memory buffer is zeroed at the end of the
 -- action. In addition, `withSecureMeory` ensures that the memory
 -- allocated for the memory element is locked (and hence not swapped
 -- out). This gives a relatively higher level interface for locked
--- memory. A word of caution though. Interfaces that directly deal
--- with memory elements should be considered low-level code and should
--- better be left to advanced users. Furthermore certain usages,
--- particularly those that involve reading pure values out of the
--- memory element, are problematic and a lot of caution needs to be
--- employed when using this interface.
---
-
+-- memory. It is best however to avoid dealing with memory elements
+-- directly.
 
 -- $operations$
 --
