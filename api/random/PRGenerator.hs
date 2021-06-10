@@ -61,8 +61,7 @@ import Context
 -- `getEntropy` function for this purposes.
 --
 -- [Sampling:] Pre-computing a few blocks using `randomBlocks` that
--- will later on be used to satisfy satisfy the requests for random
--- bytes.
+-- will later on be used to satisfy the requests for random bytes.
 --
 -- Instead of running the `randomBlocks` for every request, we
 -- generate `RandomBufferSize` blocks of random blocks in an auxiliary
@@ -146,14 +145,28 @@ reseed rstate = do seedInternals rstate
                    generateRandom rstate
 
 -- | Generate random bytes into the context in one go which will then
--- be slowly released to the outside world. We also keep track of how
--- much blocks is generated which will be used to check when to reseed
--- the generator from system entropy.
+-- be slowly released to the outside world. Two additional steps that
+-- we do here are:
+--
+-- [Internal state erasure:] The internal random state with the
+--    initial few bytes. This ensures makes sure that no one is able
+--    to figure out which internal state (typically cipher key +
+--    counter) was used to generate the previous chunk of data (part
+--    of which may have been given out to say generate some sensitive
+--    information.
+--
+-- [Bookkeeping:] We do keep track of how much random bytes are
+--    generated since the last seeding. We update this. Note that
+--    when this crosses a given limit reseeding will take place.
+
 generateRandom :: RandomState -> IO ()
 generateRandom rstate@RandomState{..} = do
-  unsafeGenerateBlocks randomBlocks randomCxt
-  modifyMem (mappend $ cxtBlockCount $ pure randomCxt) randomGenBlocks
-  unsafeInitFromBuffer rstate
+  unsafeGenerateBlocks randomBlocks randomCxt -- generate bytes.
+  unsafeInitFromBuffer rstate                 -- rewrite internal state
+  -- Finally book keeping.
+  let incrGenBlocks = mappend $ cxtBlockCount $ pure randomCxt
+      in modifyMem incrGenBlocks randomGenBlocks
+
 
 ------------------------------ DANGEROUS ACCESS manipulation ------------------------
 
