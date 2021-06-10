@@ -17,14 +17,20 @@ module Raaz.Random
          -- $randomness$
          RandomState
        , withRandomState
+
        , randomByteString
        , Random(..)
        -- ** Generating sensitive data
        -- $securerandom$
        , randomiseMemory
-       , withRandomisedMemory
-       , withSecureRandomisedMemory
        , withSecureRandomState
+       --
+       -- ** One time randomisation of Memory
+       -- $onetimerandom$
+       --
+       , withSecureRandomisedMemory
+       , withRandomisedMemory
+
          -- ** Low level code
        , fillRandomBytes
        , RandomStorable(..)
@@ -102,11 +108,15 @@ import           Raaz.Verse.Poly1305.C.Portable   ( verse_poly1305_c_portable_cl
 -- > myAction mySecMem rstate = do randomiseMemory mySecMem
 -- >                               doSomething
 --
--- The above code, though correct, is fragile as missing out on the
--- randomiseMemory call can jeopardise the safety of the code. Often
--- the randomisation is required only at the beginning of the task and
--- in this case it is better to use the safer alternative
--- `withSecureRandomisedMemory`
+
+-- $onetimerandom$
+--
+-- Often the randomisation is required only at the beginning of a task
+-- task and in this case it is better to use
+-- `withSecureRandomisedMemory` than using the fragile mecanism of
+-- using explicit `randomiseMemory`.
+--
+
 
 -- | Subclass of `Storable` which can be randomly generated. It might
 -- appear that all instances of the class `Storable` should be
@@ -132,17 +142,6 @@ fillRandom :: (RandomStorable a, Pointer ptr)
            -> IO ()
 fillRandom n ptr rstate = unsafeWithPointer (\ rawPtr -> fillRandomElements n rawPtr rstate) ptr
 
-{-
-
-mem -> IO a
-
-randomiseMemory -> (mem,RandomState) -> IO ()
-
-withSecureMemory (randomiseMemory action)
-
--}
-
-
 -- | Execute an action that takes the CSPRG state.
 withRandomState :: (RandomState -> IO a) -- ^ The action that requires csprg state.
                 -> IO a
@@ -150,8 +149,22 @@ withRandomState action = withMemory actionP
   where actionP rstate = do reseed rstate
                             action rstate
 
+
+
 -- | Execute an action that takes a memory element and random state
 -- such that all the memory allocated for both of them is locked.
+--
+-- WARNING
+-- ======
+--
+-- Using `withSecureRandomState` alone /does not/ prevent sensitive
+-- data eventually leaking from the locked memory. This particularly
+-- true when you read out pure Haskell values from the memory
+-- element. You may need a more nuanced approach by making use
+-- `randomiseMemory`. In cases where you just want to randomise the
+-- contents of a memory element once, consider using
+-- `withSecureRandomisedMemory`.
+--
 withSecureRandomState :: Memory mem
                       => (mem -> RandomState -> IO a) -- ^ The action that requires random state
                       -> IO a
@@ -159,13 +172,17 @@ withSecureRandomState action = withSecureMemory actionP
   where actionP (mem,rstate) = do reseed rstate
                                   action mem rstate
 
--- | Randomise the contents of an accessible memory.
+-- | Randomise the contents of an accessible memory. The random data
+-- is directly generated into the buffer associated with the memory
+-- element. This ensures that no part of it will be swapped. Use this
+-- together with `withSecureRandomState`.
 randomiseMemory :: WriteAccessible mem => mem -> RandomState -> IO ()
 randomiseMemory mem rstate = mapM_ randomise $ writeAccess mem
   where randomise Access{..} = fillRandomBytes accessSize (destination accessPtr) rstate
 
 -- | Run a memory action which is passed a memory cell whose contents
--- are randomised with cryptographically secure pseudo-random bytes.
+-- are randomised with cryptographically secure pseudo-random bytes. This code is
+-- equivalent to
 withRandomisedMemory :: WriteAccessible mem
                      => (mem -> IO a) -- ^ memory action
                      -> IO a
