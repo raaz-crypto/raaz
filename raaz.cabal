@@ -200,6 +200,8 @@ common defaults
      extra-libraries: Advapi32, Kernel32
      build-tool-depends: hsc2hs:hsc2hs
 
+  if arch(x86_64)
+     cc-options: -DARCH_X86_64
 
 ----------------------------- The core library ------------------------------------------------
 library core
