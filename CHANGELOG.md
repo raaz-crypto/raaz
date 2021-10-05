@@ -1,5 +1,11 @@
 # Change log for [raaz].
 
+## [0.3.1] - Oct 6, 2021
+
+This release ensures that missing verse.h C header files. Without that
+the version on hackage was unbuildable.
+
+
 ## [0.3.0] - May 20, 2021
 
   This is a major rewrite of the raaz library with significant change in the

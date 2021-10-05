@@ -1,7 +1,7 @@
 cabal-version: 3.0
 
 name:    raaz
-version: 0.3.0
+version: 0.3.1
 stability: experimental
 
 synopsis: Fast and type safe cryptography.
@@ -264,7 +264,8 @@ library libverse
            , libverse/poly1305/c/portable.c
            , libverse/verse.c
   include-dirs: libverse
-  includes: libverse/verse.h
+  includes: verse.h
+  install-includes: verse.h
 
 
 ---------------------- Implementation signature packages -------------
