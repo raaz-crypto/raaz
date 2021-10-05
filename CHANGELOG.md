@@ -1,5 +1,9 @@
 # Change log for [raaz].
 
+## [0.3.2] - Oct 6, 2021
+
+Yet another missing header file sets.
+
 ## [0.3.1] - Oct 6, 2021
 
 This release ensures that missing verse.h C header files. Without that
@@ -160,4 +164,6 @@ This release comes with very little changes.
 [0.2.2]: <http://github.com/raaz-crypto/raaz/releases/tag/v0.2.2>
 [0.2.3]: <http://github.com/raaz-crypto/raaz/releases/tag/v0.2.3>
 [0.3.0]: <http://github.com/raaz-crypto/raaz/releases/tag/v0.3.0>
+[0.3.1]: <http://github.com/raaz-crypto/raaz/releases/tag/v0.3.1>
+[0.3.2]: <http://github.com/raaz-crypto/raaz/releases/tag/v0.3.2>
 [raaz]:  <http://github.com/raaz-crypto/raaz/>

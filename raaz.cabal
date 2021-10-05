@@ -1,7 +1,7 @@
 cabal-version: 3.0
 
 name:    raaz
-version: 0.3.1
+version: 0.3.2
 stability: experimental
 
 synopsis: Fast and type safe cryptography.
@@ -129,6 +129,8 @@ data-files: tests/standard-test-vectors/blake2/tests.json
 
 extra-source-files: CHANGELOG.md
                   , README.md
+                  , monocypher/monocypher-3.0.0/optional/monocypher-ed25519.h
+                  , monocypher/monocypher-3.0.0/monocypher.h
 
 bug-reports: https://github.com/raaz-crypto/raaz/issues
 
@@ -200,6 +202,8 @@ common defaults
      extra-libraries: Advapi32, Kernel32
      build-tool-depends: hsc2hs:hsc2hs
 
+  if arch(x86_64)
+     cc-options: -DARCH_X86_64
 
 ----------------------------- The core library ------------------------------------------------
 library core
@@ -294,6 +298,7 @@ library buffer
   build-depends: core
                , indef
   hs-source-dirs: indef/buffer
+  signatures: Implementation
   exposed-modules: Buffer
                  , Context
 
@@ -475,21 +480,20 @@ library implementation
            , implementation/cbits/raaz/hash/sha512/portable.c
            , implementation/cbits/raaz/cipher/chacha20/cportable.c
   include-dirs: implementation/cbits/
-  includes: implementation/cbits/raaz/hash/blake2/common.h
-          , implementation/cbits/raaz/hash/blake2/blake2b/constants.h
-          , implementation/cbits/raaz/hash/blake2/blake2s/constants.h
+  includes: raaz/hash/blake2/common.h
+          , raaz/hash/blake2/blake2b/constants.h
+          , raaz/hash/blake2/blake2s/constants.h
+          , raaz/cipher/chacha20/common.h
+
+  install-includes: raaz/hash/blake2/common.h
+                  , raaz/hash/blake2/blake2b/constants.h
+                  , raaz/hash/blake2/blake2s/constants.h
+                  , raaz/cipher/chacha20/common.h
 
   -------------------------- Implementation of system entropy ----------------------------
   --
-  -- The next conditionals perform the following configuration tasks.
+  -- Exposing the most suitable source of entropy in the system.
   --
-  -- 1. Expose *all* the available sources of entropy.
-  --
-  -- 2. Reexport the most desirable source as the module Entropy. This
-  -- way by mixing in the implementation component, the correct
-  -- entropy source is used (which can be overridden by the user if
-  -- they so wish -- do not try that unless you know what you are
-  -- doing)
 
   if os(windows)
      hs-source-dirs: implementation/entropy/windows/
@@ -799,10 +803,11 @@ test-suite monocypher
            , monocypher/monocypher-3.0.0/optional/monocypher-ed25519.c
 
   include-dirs: monocypher/monocypher-3.0.0/
-              , monocypher/monocypher-3.0.0/optional
+              , monocypher/monocypher-3.0.0/optional/
 
-  includes: monocypher/monocypher-3.0.0/optional/monocypher-ed25519.h
-          , monocypher/monocypher-3.0.0/monocypher.h
+  includes: monocypher-ed25519.h
+          , monocypher.h
+
   build-tool-depends: hspec-discover:hspec-discover
   mixins: xchacha-indef requires (Implementation as ChaCha20.Implementation)
         , encrypt-api (Interface as Raaz.Encrypt.ChaCha20)
