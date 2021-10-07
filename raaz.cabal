@@ -129,6 +129,20 @@ data-files: tests/standard-test-vectors/blake2/tests.json
 
 extra-source-files: CHANGELOG.md
                   , README.md
+                  --
+                  -- C Header files are not included in cabal sdist
+                  -- even if specified in include.
+                  --
+                  , core/cbits/raaz/core/endian.h
+
+                  , libverse/verse.h
+
+                  , implementation/cbits/raaz/hash/blake2/common.h
+                  , implementation/cbits/raaz/hash/blake2/blake2b/constants.h
+                  , implementation/cbits/raaz/hash/blake2/blake2s/constants.h
+                  , implementation/cbits/raaz/cipher/chacha20/common.h
+
+
                   , monocypher/monocypher-3.0.0/optional/monocypher-ed25519.h
                   , monocypher/monocypher-3.0.0/monocypher.h
 
@@ -248,7 +262,7 @@ library core
            , core/cbits/raaz/core/cpusupports.c
   include-dirs: core/cbits
   includes: core/cbits/raaz/core/endian.h
-  install-includes: core/cbits/raaz/core/endian.h
+
 
 ----------------------------- Libverse as a sublibrary -----------------------------
 
@@ -269,8 +283,6 @@ library libverse
            , libverse/verse.c
   include-dirs: libverse
   includes: verse.h
-  install-includes: verse.h
-
 
 ---------------------- Implementation signature packages -------------
 --
@@ -485,10 +497,6 @@ library implementation
           , raaz/hash/blake2/blake2s/constants.h
           , raaz/cipher/chacha20/common.h
 
-  install-includes: raaz/hash/blake2/common.h
-                  , raaz/hash/blake2/blake2b/constants.h
-                  , raaz/hash/blake2/blake2s/constants.h
-                  , raaz/cipher/chacha20/common.h
 
   -------------------------- Implementation of system entropy ----------------------------
   --
