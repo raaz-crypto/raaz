@@ -58,8 +58,9 @@ jobs:
           cabal bench
           cabal haddock
           cabal check
+
       - name: Build with tarball
-        if: matrix.os == ubuntu-latest
+        if: matrix.os == 'ubuntu-latest'
         run: |
           cabal sdist
           mkdir tarball-build
