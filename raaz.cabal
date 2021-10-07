@@ -1,7 +1,7 @@
 cabal-version: 3.0
 
 name:    raaz
-version: 0.3.3
+version: 0.3.4
 stability: experimental
 
 synopsis: Fast and type safe cryptography.
@@ -261,8 +261,8 @@ library core
            , core/cbits/raaz/core/memory.c
            , core/cbits/raaz/core/cpusupports.c
   include-dirs: core/cbits
-  includes: core/cbits/raaz/core/endian.h
-  install-includes: core/cbits/raaz/core/endian.h
+  includes: raaz/core/endian.h
+  install-includes: raaz/core/endian.h
 
 ----------------------------- Libverse as a sublibrary -----------------------------
 
@@ -283,7 +283,7 @@ library libverse
            , libverse/verse.c
   include-dirs: libverse
   includes: verse.h
-  install-includes: libverse/verse.h
+  install-includes: verse.h
 
 ---------------------- Implementation signature packages -------------
 --
@@ -497,6 +497,11 @@ library implementation
           , raaz/hash/blake2/blake2b/constants.h
           , raaz/hash/blake2/blake2s/constants.h
           , raaz/cipher/chacha20/common.h
+  install-includes: raaz/hash/blake2/common.h
+                  , raaz/hash/blake2/blake2b/constants.h
+                  , raaz/hash/blake2/blake2s/constants.h
+                  , raaz/cipher/chacha20/common.h
+
 
 
   -------------------------- Implementation of system entropy ----------------------------

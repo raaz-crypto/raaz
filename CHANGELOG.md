@@ -1,5 +1,10 @@
 # Change log for [raaz].
 
+## [0.3.4] - Oct 7, 2021
+
+This is yet another release trying to work out the cabal-install
++ c-files interaction.
+
 ## [0.3.3] - Oct 7, 2021
 
 The core and libverse files need to be in the install include.
