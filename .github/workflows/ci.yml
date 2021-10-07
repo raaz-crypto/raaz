@@ -57,7 +57,18 @@ jobs:
           cabal test
           cabal bench
           cabal haddock
+          cabal check
+      - name: Build with tarball
+        if: matrix.os == ubuntu-latest
+        run: |
           cabal sdist
+          mkdir tarball-build
+          mv "dist-newstyle/*.tar.gz tarball-build
+          cd tarball-build
+          tar xzvf *.tar.gz --strip-components=1
+          cabal build
+          cabal test
+          cabal haddock
           cabal check
 
       - name: Raaz information
