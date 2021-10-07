@@ -1,5 +1,10 @@
 # Change log for [raaz].
 
+## [0.3.3] - Oct 7, 2021
+
+The core and libverse files need to be in the install include.
+Unfortunately there is no easy way to check this out.
+
 ## [0.3.2] - Oct 6, 2021
 
 Yet another missing header file sets.
