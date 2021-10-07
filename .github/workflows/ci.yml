@@ -50,6 +50,7 @@ jobs:
           cabal bench
           cabal haddock
           cabal check
+          cabal install
 
       - name: Build with tarball
         if: matrix.os == 'ubuntu-latest'
@@ -63,6 +64,7 @@ jobs:
           cabal test
           cabal haddock
           cabal check
+          cabal install
 
       - name: Raaz information
         run: cabal run raaz -- info
