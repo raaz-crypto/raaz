@@ -1,5 +1,14 @@
 # Change log for [raaz].
 
+## [0.3.5] - Oct 10, 2021
+
+Make things more friendly for serialisation.
+
+- Enforce Encodable instance on Digest, AuthTag, and Nounce.
+
+- Exppose unsafeToNounce for conversion from AEAD token to Nounce.
+
+
 ## [0.3.4] - Oct 7, 2021
 
 This is yet another release trying to work out the cabal-install
@@ -176,4 +185,7 @@ This release comes with very little changes.
 [0.3.0]: <http://github.com/raaz-crypto/raaz/releases/tag/v0.3.0>
 [0.3.1]: <http://github.com/raaz-crypto/raaz/releases/tag/v0.3.1>
 [0.3.2]: <http://github.com/raaz-crypto/raaz/releases/tag/v0.3.2>
+[0.3.3]: <http://github.com/raaz-crypto/raaz/releases/tag/v0.3.3>
+[0.3.4]: <http://github.com/raaz-crypto/raaz/releases/tag/v0.3.4>
+[0.3.5]: <http://github.com/raaz-crypto/raaz/releases/tag/v0.3.5>
 [raaz]:  <http://github.com/raaz-crypto/raaz/>
