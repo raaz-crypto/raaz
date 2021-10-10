@@ -6,7 +6,7 @@
 -- Stability   : experimental
 --
 module Raaz.AuthEncrypt.Unsafe
-       ( -- * Auth Encryption with Explicit Nounce
+       ( -- * Explicit computation and taking apart
          -- $unsafe$
          -- ** Specific variants
          -- $specific$
@@ -17,6 +17,17 @@ import Raaz.V1.AuthEncrypt.Unsafe
 
 -- $unsafe$
 --
+-- This module provides two class of unsafe functions:
+--
+-- 1. Functions to compute AEAD tokens with explicit key and Nounce
+--
+-- 2. Functions to take apart an AEAD token into their constituents, namely
+--    the nounce used, the cipher text, and the authentication tag.
+--
+-- The former is to help interface with other libraries where as the
+-- latter allows us to serialise AEAD tokens.
+--
+--
 -- __WARNING:__ The security of the interface is compromised if
 --
 -- 1. The key gets revealed to the attacker or
@@ -24,17 +35,12 @@ import Raaz.V1.AuthEncrypt.Unsafe
 -- 2. If the same key/nounce pair is used to lock two different
 --    messages.
 --
--- 3. Taking apart the AEAD token also compromises the type safety.
+-- 3. Taking apart the AEAD token may compromises type safety.
 --
--- Why then do we provide these functions ? As long as you are using
--- the raaz library exclusively, you do not need to use this unsafe
--- function. These are only needed when working with other libraries
--- and protocols which have a different nonunce selection policy
--- and/or a different encoding scheme for the AEAD token.
---
--- Nounces need not be private and may be exposed to the attacker. In
--- fact, in the safe version of these locking function, we pick the
--- nounce at random (using the csprg) and pack it into the AEAD token.
+-- Nounces /need not/ be private and may be exposed to the
+-- attacker. In fact, in the safe version of these locking function,
+-- we pick the nounce at random (using the csprg) and pack it into the
+-- AEAD token.
 
 -- $specific$
 --
