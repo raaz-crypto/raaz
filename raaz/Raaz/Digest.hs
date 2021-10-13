@@ -69,6 +69,12 @@ import           Raaz.V1.Digest ( digestAlgorithm )
 -- There are three variants for computing the digest of a
 -- message. `digest`, `digestFile` and `digestSource`.
 --
+-- === Serialisation
+--
+-- Digests are instances of `Encodable` and hence can be serialised
+-- directly to byte string.
+--
+--
 -- == Warning
 --
 -- Message digests __DO NOT__ provide any authentication; any one

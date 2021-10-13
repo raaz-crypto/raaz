@@ -13,8 +13,11 @@ import Raaz.Core
 data Prim
 data Internals
 
-instance Eq Prim
-instance Equality Prim
+instance Eq Prim            -- We need ability to compare
+instance Equality Prim      -- Timing safe comparison when part of a
+                            -- compound type
+instance Encodable Prim    -- To serialise authentication tag.
+
 instance Memory Internals
 instance WriteAccessible Internals
 instance Extractable Internals Prim

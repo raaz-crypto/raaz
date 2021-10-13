@@ -10,9 +10,10 @@
 --
 -- 1. The `Prim` type captures the message authentication code and
 --    hence should be instances of `Eq`, so that we can compare
---    messages by checking the digest, and `Equality`, so that the
+--    messages by checking the digest, `Equality`, so that the
 --    equality comparison can be made timing safe when part of a
---    compound data.
+--    compound data, and `Encodeable` so that we can serialise the
+--    authentication code to a byte string.
 --
 -- 2. To start the process of computing the message authentication,
 --    the `Internal` state of the implementation should be initialised
@@ -33,6 +34,7 @@ data Internals
 
 instance Equality Prim
 instance Eq Prim
+instance Encodable Prim
 
 instance Memory Internals
 instance Initialisable Internals (Key Prim)

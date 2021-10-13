@@ -10,8 +10,9 @@
 --
 -- 1. The `Prim` type captures the message digest and hence should be
 --    instances of `Eq`, so that we can compare messages by checking
---    the digest, and `Equality`, so that the equality comparison can
---    be made timing safe when part of a compound data.
+--    the digest, `Equality`, so that the equality comparison can be
+--    made timing safe when part of a compound data, and `Encodable`
+--    so that we can serialise the digest into a byte string.
 --
 -- 2. To start the process of computing the message digest the
 --    `Internal` state of the implementation should use initialised by
@@ -31,6 +32,7 @@ data Prim
 
 instance Eq Prim
 instance Equality Prim
+instance Encodable Prim
 
 -- | The internal memory used by the primitive.
 data Internals

@@ -9,7 +9,7 @@ module Raaz.V1.AuthEncrypt.Unsafe
        ( Locked
        , unsafeLock, unsafeLockWith
        , Cipher, AuthTag
-       , unsafeToCipherText, unsafeToAuthTag
+       , unsafeToNounce, unsafeToCipherText, unsafeToAuthTag
        , unsafeLocked
        ) where
 
@@ -62,6 +62,9 @@ unsafeToCipherText = AE.unsafeToCipherText
 unsafeToAuthTag :: Locked -> AE.AuthTag
 unsafeToAuthTag = AE.unsafeToAuthTag
 
+-- | Get the nounce used for authenticating the token.
+unsafeToNounce :: Locked -> Nounce Cipher
+unsafeToNounce = AE.unsafeToNounce
 
 -- | Construct the locked message out of the nounce, cipher text, and the
 -- authentication tag.

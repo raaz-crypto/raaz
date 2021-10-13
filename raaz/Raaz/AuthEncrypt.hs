@@ -50,64 +50,34 @@ import Raaz.V1.AuthEncrypt
 -- requires additional authenticated data. The `lockWith` and the
 -- `unlockWith` variants are used for this purpose.
 --
--- == Key reuse.
+-- == Safety against key reuse
 --
--- Authenticated encryption needs, not just a key, but also a
--- nounce. Under the hood, both `lock` and `lockWith` uses randomly
--- generated nounce for each invocation (hence the result is an @IO@
--- type). This ensures that the key-nounce pair is never reused. The
--- nounce is packed together with the cipher text and tag so that at
--- the receiving end, the packet can be unlocked. It is therefore safe
--- to lock multiple messages with the same key.
+-- The interface exposed here is safe /even with key reuse/. Under the
+-- hood, both `lock` and `lockWith` uses randomly generated nounce for
+-- each invocation (hence the result is an @IO@ type). The nounce is
+-- large (192-bits) and is generated using cryptographically secure
+-- pseudo-random generator (csprg). Thus even when a particular key is
+-- used multiple times, each such invocation is paired with a distinct
+-- nounce thereby preventing the reuse of the (key, nounce)-pair.
+--
+-- == Serialisation
+--
+-- Unfortunately, there does not seem to be an agreed upon format for
+-- serialising AEAD tokens. As a result the Locked type does not have
+-- an instance of `Encodable` unlike the message digest and message
+-- authentication type. However, for particular wire protocol, one can
+-- take apart the AEAD token using the "Raaz.AuthEncrypt.Unsafe"
+-- interface and individually serialise the constituents.
+--
+-- == Security assumption
+--
+-- The security of the interface is compromised if and only if the key
+-- gets exposed. Otherwise an adversary should not be able to read,
+-- tamper or forge Locked data.
+--
 
 -- $aead$
 --
 -- Some protocols have additional data that needs to be factored in
 -- when sending the locked packet. In such situations one can use the
 -- `lockWith` and `unlockWith` variants.
-
-
--- $security$
---
--- __WARNING:__ The security of the interface is compromised if
---
--- 1. The key gets revealed to the attacker or
---
--- 2. In the case of the unsafe versions (`unsafeLock` and
---    `unsafeLockWith`) which uses explicit nounce, if the same
---    key/nounce pair is used to lock two different messages.
---
--- Nounces need not be private and may be exposed to the attacker. In
--- fact, we pack the nounce with the locked message to make recovery
--- at the receiving end simple.
-
--- $specific$
---
--- The library exposes the following two authenticated encryption algorithm
---
--- * Raaz.AuthEncrypt.ChaCha20Poly1305
--- * Raaz.AuthEncrypt.XChaCha20Poly1305
---
--- of which the latter (XChaCha20Poly1305) is used by default. Both of
--- these modules only provide the unsafe version. In the case of the
--- former (ChaCha20Poly1305), the nounce is a bit too small (96-bits)
--- and random generation has a nontrivial chance of collison. It is
--- however, slightly faster and is safe to use when there is frequent
--- key resets as in the case of network protocols. As with other cases
--- we recommend the use of the default interface instead of the
--- specific one when ever possible.
-
-
-
--- $takingapart$
---
--- Values belonging to the `Locked` and `AEAD` types are meant to be
--- used as opaque objects. While unlocking these types, we do not
--- decrypt untill the tag is verified. This helps in quickly rejecting
--- fake packets without wasting time on decryption and improves the
--- security against DoS attacks. Taking apart the cipher text and the
--- authentication token can lead to incorrect handling and hence is
--- __not__ recommended in general. Nonetheless, when implementing
--- protocols that use AEAD, we might want to build and take apart
--- these types. We give now give functions for these unsafe operations
--- on AEAD packets.

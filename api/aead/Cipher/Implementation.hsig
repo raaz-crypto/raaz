@@ -14,6 +14,9 @@
 --
 -- 3. Initialise the BlockCount
 --
+-- In addition to serialise the corresponding locked data we would
+-- need Encodable instance for the nounce.
+
 signature Cipher.Implementation where
 
 import           Raaz.Core
@@ -26,6 +29,7 @@ data Internals
 instance Memory Internals
 
 instance Initialisable Internals (Key Prim)
+instance Encodable (Nounce Prim)
 
 -- | Write access to key is provided.
 instance WriteAccessible Internals

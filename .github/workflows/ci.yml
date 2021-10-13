@@ -1,7 +1,5 @@
 name: Build
 on:
-  push:
-  pull_request:
   schedule:
     # Daily build.
     - cron: '30 8 * * *'
@@ -51,8 +49,22 @@ jobs:
           cabal test
           cabal bench
           cabal haddock
-          cabal sdist
           cabal check
+          cabal install
+
+      - name: Build with tarball
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          cabal sdist
+          mkdir tarball-build
+          mv "dist-newstyle/*.tar.gz tarball-build
+          cd tarball-build
+          tar xzvf *.tar.gz --strip-components=1
+          cabal build
+          cabal test
+          cabal haddock
+          cabal check
+          cabal install
 
       - name: Raaz information
         run: cabal run raaz -- info

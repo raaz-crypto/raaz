@@ -96,9 +96,6 @@ instance Distributive m space => Monoid (SemiR space m) where
   mappend = (<>)
   {-# INLINE mappend #-}
 
-  mconcat = foldr mappend mempty
-  {-# INLINE mconcat #-}
-
 -- | From the an element of semi-direct product Space ⋊ Monoid return
 -- the point.
 semiRSpace :: SemiR space m -> space

@@ -54,6 +54,11 @@ import           Raaz.V1.Auth    ( authAlgorithm )
 -- convinced that the message could only have originated from a peer
 -- who knows @K@.
 --
+-- == Serialisation
+--
+-- Message authentication tags are instances of `Encodable` and hence
+-- can be serilised to byte strings.
+--
 -- == Warning
 --
 -- Message authentication __does not__ provide secrecy of the message,
