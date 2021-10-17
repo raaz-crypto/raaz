@@ -77,11 +77,12 @@ import Context
 --
 -- 2. Every use of data from the auxiliary buffer, whether it is to
 --    satisfy a request for random bytes or to reinitialise the
---    internals in step 1 is wiped out immediately.
+--    internals in Step 1 is wiped out immediately. The function
+--    `unsafeWriteTo` ensures this for us.
 --
 -- Assuming the security of the entropy source given by the
--- `getEntropy` and the random block generator given by the
--- `randomBlocks` we have the following security guarantee.
+-- `getEntropy` function and the random block generator given by the
+-- `randomBlocks` function, we have the following security guarantee.
 --
 -- [Security Guarantee:] At any point of time, a compromise of the
 -- cipher state (i.e. key iv pair) and/or the auxiliary buffer does
