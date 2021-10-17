@@ -52,7 +52,7 @@ import Context
 -- algorithm insecure. Besides, where do we get our truly random seed
 -- to begin the process?
 --
--- We more or less follow the /fast key erasure technique/
+-- We follow the /fast key erasure technique/
 -- (<https://blog.cr.yp.to/20170723-random.html>) which is used in the
 -- arc4random implementation in OpenBSD.  The two main steps in the
 -- generation of the required random bytes are the following:
@@ -145,15 +145,13 @@ reseed rstate = do seedInternals rstate
                    generateRandom rstate
 
 -- | Generate random bytes into the context in one go which will then
--- be slowly released to the outside world. Two additional steps that
--- we do here are:
+-- be slowly released to the outside world. Two additional steps needs
+-- to be done to make it safe.
 --
--- [Internal state erasure:] The internal random state with the
---    initial few bytes. This ensures makes sure that no one is able
---    to figure out which internal state (typically cipher key +
---    counter) was used to generate the previous chunk of data (part
---    of which may have been given out to say generate some sensitive
---    information.
+-- [Internal state update:] The internal random state is rewritten
+--    with the initial few bytes of the newly generated random data in
+--    the context buffer. This helps achieve forward secrecy as
+--    detailed in https://blog.cr.yp.to/20170723-random.html
 --
 -- [Bookkeeping:] We do keep track of how much random bytes are
 --    generated since the last seeding. We update this. Note that
@@ -164,8 +162,16 @@ generateRandom rstate@RandomState{..} = do
   unsafeGenerateBlocks randomBlocks randomCxt -- generate bytes.
   unsafeInitFromBuffer rstate                 -- rewrite internal state
   -- Finally book keeping.
+  --
+  -- Note that the use of pure here is for the applicative Proxy
+  --
+  -- pure :: a -> Proxy a
+  --
+  -- This is used by cxtBlockCount to get the size of the context in
+  -- blocks.
+  --
   let incrGenBlocks = mappend $ cxtBlockCount $ pure randomCxt
-      in modifyMem incrGenBlocks randomGenBlocks
+    in modifyMem incrGenBlocks randomGenBlocks
 
 
 ------------------------------ DANGEROUS ACCESS manipulation ------------------------
