@@ -44,20 +44,29 @@ jobs:
           cabal update
 
       - name: Build
-        run: |
-          cabal build --minimize-conflict-set
-          cabal test
-          cabal bench
-          cabal haddock
-          cabal check
-          cabal install
+        run: cabal build --minimize-conflict-set
+
+      - name: Test
+        run: cabal test
+
+      - name: Benchmark
+        run: cabal bench
+
+      - name: Haddock
+        run: cabal haddock
+
+      - name: Check
+        run: cabal check
+
+      - name: Install
+        run: cabal install
 
       - name: Build with tarball
         if: matrix.os == 'ubuntu-latest'
         run: |
           cabal sdist
           mkdir tarball-build
-          mv "dist-newstyle/*.tar.gz tarball-build
+          mv dist-newstyle/*.tar.gz tarball-build
           cd tarball-build
           tar xzvf *.tar.gz --strip-components=1
           cabal build
