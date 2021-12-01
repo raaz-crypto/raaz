@@ -1,8 +1,10 @@
 name: Build
 on:
+  push:
+  pull_request:
   schedule:
     # Daily build.
-    - cron: '30 8 * * *'
+    - cron: '42 8 * * *'
 jobs:
   build:
     runs-on: ${{ matrix.os }}
