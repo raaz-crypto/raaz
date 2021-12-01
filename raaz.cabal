@@ -192,7 +192,7 @@ common defaults
   default-language: Haskell2010
   ghc-options: -Wall
   default-extensions: NoImplicitPrelude
-  build-depends: base                    >= 4.11 &&  < 4.16
+  build-depends: base                    >= 4.11 &&  < 4.17
                , bytestring              >= 0.10 &&  < 0.12
                , deepseq                 >= 1.4  &&  < 1.5
                , vector                  >= 0.12 &&  < 0.13
