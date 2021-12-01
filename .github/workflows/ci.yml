@@ -1,15 +1,16 @@
 name: Build
 on:
-  schedule:
-    # Daily build.
-    - cron: '30 8 * * *'
+  push:
+    branch: 0.3
+  pull-request:
+    branch: 0.3
 jobs:
   build:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest]
-        ghc: [ '8.4' , '8.6', '8.8', '8.10', '9.0']
+        ghc: [ '8.4' , '8.6', '8.8', '8.10', '9.0', '9.2', 'latest' ]
         include:
           # - os: ubuntu-latest
           #   ghc: 'latest'
