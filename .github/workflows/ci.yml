@@ -1,27 +1,23 @@
 name: Build
 on:
   push:
-    branch: 0.3
-  pull-request:
-    branch: 0.3
+  pull_request:
+  schedule:
+    # Daily build.
+    - cron: '42 8 * * *'
+
 jobs:
   build:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest]
-        ghc: [ '8.4' , '8.6', '8.8', '8.10', '9.0', '9.2', 'latest' ]
+        ghc: [ '8.4' , '8.6', '8.8', '8.10', '9.0', '9.2', 'latest']
         include:
-          # - os: ubuntu-latest
-          #   ghc: 'latest'
-          #   experimental: true
-          # - os: ubuntu-latest
-          #   ghc: '9.0'
-          #   experimental: true
           - os: windows-latest
-            ghc: '9.0'
+            ghc: 'latest'
           - os: macos-latest
-            ghc: '9.0'
+            ghc: 'latest'
 
     steps:
       - name: 'Setup'
@@ -45,27 +41,36 @@ jobs:
           cabal update
 
       - name: Build
-        run: |
-          cabal build --minimize-conflict-set
-          cabal test
-          cabal bench
-          cabal haddock
-          cabal check
-          cabal install
+        run: cabal build --minimize-conflict-set
+
+      - name: Test
+        run: cabal test
+
+      - name: Benchmark
+        run: cabal bench
+
+      - name: Haddock
+        run: cabal haddock
+
+      - name: Check
+        run: cabal check
+
+      # Disable Install command.
+      # - name: Install
+      #   run: cabal install
 
       - name: Build with tarball
         if: matrix.os == 'ubuntu-latest'
         run: |
           cabal sdist
           mkdir tarball-build
-          mv "dist-newstyle/*.tar.gz tarball-build
+          mv dist-newstyle/sdist/*.tar.gz tarball-build
           cd tarball-build
           tar xzvf *.tar.gz --strip-components=1
           cabal build
           cabal test
           cabal haddock
           cabal check
-          cabal install
 
       - name: Raaz information
         run: cabal run raaz -- info
