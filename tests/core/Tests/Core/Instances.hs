@@ -4,7 +4,7 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 -- | Some common instances that are required by the test cases.
-module Tests.Core.Instances where
+module Tests.Core.Instances () where
 
 import Tests.Core.Imports
 import Tests.Core.Utils
@@ -88,3 +88,8 @@ instance Arbitrary Poly1305.Poly1305 where
 
 instance Arbitrary (Key Poly1305) where
   arbitrary = Poly1305.Key <$> arbitrary <*> arbitrary
+
+genEncodable :: (Encodable a, Storable a) => Gen a
+genEncodable = go undefined
+  where go :: (Encodable a, Storable a) => a -> Gen a
+        go x = unsafeFromByteString . pack <$> vector (fromEnum $ sizeOf $ pure x)

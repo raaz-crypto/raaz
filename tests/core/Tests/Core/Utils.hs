@@ -66,11 +66,6 @@ shortened x | l <= 11    = paddedx
         suffix = drop (l - 4) x
         paddedx = x ++ replicate (11 - l) ' '
 
-genEncodable :: (Encodable a, Storable a) => Gen a
-genEncodable = go undefined
-  where go :: (Encodable a, Storable a) => a -> Gen a
-        go x = unsafeFromByteString . pack <$> vector (fromEnum $ sizeOf $ pure x)
-
 -- | Generate bytestrings that are multiples of block size of a
 -- primitive.
 blocks :: Primitive prim => Proxy prim -> Gen ByteString
