@@ -118,7 +118,7 @@ unlock = unlockWith ()
 -- memory in the following order.
 --
 -- 1. Initialise with key either using the `initialise` function or, by using
---    the `WriteAccessible` instance using the `mem.
+--    the `WriteAccessible` instance using the `mem`.
 -- 2. Initialise the nounce
 --
 -- We are then all set to go.
