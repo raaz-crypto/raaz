@@ -7,12 +7,12 @@
 module Tests.Auth
        ( authsTo
        , incrementalVsFull
+       , auth
        ) where
 
 import Implementation
 import Interface
 import Tests.Core
-
 
 authsTo :: ByteString
         -> Prim
