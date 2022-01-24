@@ -5,11 +5,14 @@
 
 module Raaz.Mac.Poly1305Spec where
 
+import qualified Data.Vector.Unboxed as V
+import           Data.Vector.Unboxed ( (!) )
 import           Tests.Core
 import           Poly1305.Auth
 import           Raaz.Random
 import qualified Data.ByteString as BS
-import           Raaz.Primitive.Poly1305.Internal (Key(..))
+
+import           Raaz.Primitive.Poly1305.Internal
 
 randomClamping :: Spec
 randomClamping = it "randomly generated R values should be clamped"
@@ -45,3 +48,66 @@ spec = do
        )
     $ ( "Cryptographic Forum Research Group" :: ByteString)
     `authsTo` ("a8:06:1d:c1:30:51:36:c6:c2:2b:8b:af:0c:01:27:a9" :: Poly1305)
+
+  describe "vs Integer based implementation" $ do
+    prop "should be identical" $
+      \ k str -> auth k str `shouldBe` poly1305 k str
+
+-------------------------------------------------------------------------------
+--    Poly1305 using the Integer Type
+--
+-- WARNING: only to be used for testing, it is slow and unsafe.
+--
+
+-- ^ The prime 2^130 - 5
+prime :: Integer
+prime = bit 130 - 5
+
+fromWORD :: WORD -> Integer
+fromWORD w128 = b0 + shiftL b1 64
+  where vec = unsafeToVector w128
+        b0  = fromIntegral (vec ! 0)
+        b1  = fromIntegral (vec ! 1)
+
+toWORD :: Integer -> WORD
+toWORD i = unsafeFromVector $ V.fromList [b0 , b1]
+  where b0 = fromIntegral i
+        b1 = fromIntegral (shiftR i 64)
+
+fromR :: R -> Integer
+fromR (R r) = foldl clearBit v $
+              [ 28, 29, 30, 31 ]    ++ [32, 33] ++
+              [ 60, 61, 62, 63 ]    ++ [64, 65] ++
+              [ 92, 93, 94, 95 ]    ++ [96, 97] ++
+              [ 124, 125, 126, 127]
+  where v = fromWORD r
+
+
+fromS :: S -> Integer
+fromS (S s) = fromWORD s
+
+toPoly1305 :: Integer -> Poly1305
+toPoly1305 = Poly1305 . toWORD
+
+-- | Split the message byte string to integers
+chunks :: ByteString -> [Integer]
+chunks = map toI . chunkBS
+  where chunkBS bs
+          | BS.null bs  = []
+          | otherwise           = let (start, rest) = BS.splitAt 16 bs
+                                  in start : chunkBS rest
+
+        addByte :: Word8 -> Integer -> Integer
+        addByte w8 i = shiftL i 8 + fromIntegral w8
+        toI = BS.foldr addByte 1
+
+eval :: R -> [Integer] -> Integer
+eval r = foldl fl 0
+  where rI = fromR r
+        fl acc msg = ((acc + msg) * rI)  `rem` prime
+
+
+poly1305 :: Key Poly1305 -> ByteString -> Poly1305
+poly1305 (Key r s) bs = toPoly1305 $ eval r message + sI
+  where message = chunks bs
+        sI      = fromS s
