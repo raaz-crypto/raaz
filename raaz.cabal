@@ -252,6 +252,7 @@ library core
                , Raaz.Core.Encode.Base64
                , Raaz.Core.Util.ByteString
                , Raaz.Core.Types.Pointer
+               , Raaz.Core.Types.Pointer.Internal
                , Raaz.Core.Types.Tuple
                , Raaz.Core.Types.Equality
                , Raaz.Core.Types.Endian
