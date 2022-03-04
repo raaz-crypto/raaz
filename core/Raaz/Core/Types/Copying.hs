@@ -48,3 +48,15 @@ destination = Dest
 
 instance Functor Dest where
   fmap f = Dest . f . unDest
+
+-- DEVELOPERS NOTE: Why no applicative ?
+--
+-- It might look like providing an applicative instance is a good idea
+-- for both source and destination; You could use `pure x` instead of
+-- saying `source x` or `destination x`. But therein lies the
+-- problem. The reason why we had the `Src` and `Dest` type was so
+-- that we do not have have problems in function likes `copy ptr1
+-- ptr2` (is ptr1 the source or is it the destination). If we give the
+-- option to use pure instead of the explicit `source` and
+-- `destination` combinators, we end up writing `copy (pure ptr1)
+-- (pure ptr2)` which does not give any more safety.
