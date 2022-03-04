@@ -25,6 +25,7 @@ import           Foreign.ForeignPtr (withForeignPtr)
 import           Foreign.Ptr        (castPtr, plusPtr)
 
 import           Raaz.Core.Types.Pointer
+import           Raaz.Core.Types.Pointer.Internal
 import           Raaz.Core.Types.Copying
 
 -- | A typesafe length for Bytestring

@@ -26,7 +26,7 @@
 module Raaz.Core.Types.Internal
        ( module Raaz.Core.Primitive
        , module Raaz.Core.Types.Endian.Internal
-       , module Raaz.Core.Types.Pointer
+       , module Raaz.Core.Types.Pointer.Internal
        , module Raaz.Core.Types.Copying
        , module Raaz.Core.Types.Tuple
        ) where
@@ -34,8 +34,10 @@ module Raaz.Core.Types.Internal
 import Raaz.Core.Primitive     ( BlockCount (..) )
 import Raaz.Core.Types.Endian.Internal ( LE(..), BE(..) )
 
-import Raaz.Core.Types.Pointer ( AlignedPtr (..)
-                               , BYTES(..)
-                               )
+import Raaz.Core.Types.Pointer.Internal
+  ( AlignedPtr (..)
+  , BYTES(..)
+  )
+
 import Raaz.Core.Types.Copying ( Src(..), Dest(..)       )
 import Raaz.Core.Types.Tuple

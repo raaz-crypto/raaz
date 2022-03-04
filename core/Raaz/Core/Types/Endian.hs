@@ -21,6 +21,7 @@ import           Foreign.Storable            ( Storable, peek, poke )
 import           Raaz.Core.Prelude
 import           Raaz.Core.Types.Copying
 import           Raaz.Core.Types.Pointer
+import           Raaz.Core.Types.Pointer.Internal
 
 import           Raaz.Core.Types.Endian.Internal
 

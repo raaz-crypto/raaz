@@ -20,6 +20,7 @@ import System.IO.Unsafe   (unsafePerformIO)
 
 import Raaz.Core.Types.Endian
 import Raaz.Core.Types.Pointer
+import Raaz.Core.Types.Pointer.Internal
 import Raaz.Core.Util.ByteString(length, withByteString)
 
 

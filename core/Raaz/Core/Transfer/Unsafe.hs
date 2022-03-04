@@ -35,6 +35,7 @@ import           Raaz.Core.MonoidalAction
 import           Raaz.Core.Types.Copying
 import           Raaz.Core.Types.Endian
 import           Raaz.Core.Types.Pointer
+import           Raaz.Core.Types.Pointer.Internal
 import           Raaz.Core.Encode
 import           Raaz.Core.Util.ByteString as BU
 
