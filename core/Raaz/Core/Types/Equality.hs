@@ -9,8 +9,10 @@
 module Raaz.Core.Types.Equality
        ( -- * Timing safe equality checking.
          -- $timingSafeEquality$
-         Equality(..), (===)
-       , Result
+         Result
+       , Equality(..), (===)
+         -- ** Equality instances for custom types
+         -- $customequality$
        ) where
 
 import qualified Data.Vector.Generic         as G
@@ -35,16 +37,22 @@ import           Raaz.Core.Prelude
 -- mechanism to build timing safe equality for more complicated types
 -- that user might need to define in her use cases as we now describe.
 --
--- The starting point of defining such timing safe equality is the
--- class `Equality` which plays the role `Eq`. The member function
--- `eq` playing the role of (`==`) with an important difference.  The
--- comparison function `eq` returns the type type `Result` instead of
--- `Bool` and it is timing safe. The `Eq` instance is then defined by
--- making use of the operator (`===`). Thus a user of the library can
--- stick to the familiar `Eq` class and get the benefits of timing
--- safe comparison
+-- Timing safe comparisons /should not/ use the type `Bool` as short
+-- circuiting of boolean conditionals will leak timing
+-- information. Instead all timing safe comparisons express the result
+-- of the comparison using the opaque type `Result`.
 --
--- == Building timing safe equality for Custom types.
+-- Having defined the `Result` type, cryptographically sensitive types
+-- that support timing safe equality should be an instance of the
+-- class `Equality` which plays the role `Eq`. The member function
+-- `eq` playing the role of (`==`) with an important difference that
+-- it returns the type `Result` instead of `Bool`. The `Eq` instance
+-- is then defined by making use of the operator (`===`). Thus a user
+-- of the library can stick to the familiar `Eq` class and get the
+-- benefits of timing safe comparison
+--
+
+-- $customequality$
 --
 -- For basic types like `Word32`, `Word64` this module defines
 -- instances of `Equality`. The `Tuple` type inherits the `Equality`
