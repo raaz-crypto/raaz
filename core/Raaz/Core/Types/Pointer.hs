@@ -10,8 +10,14 @@
 module Raaz.Core.Types.Pointer
        ( -- * Pointers, offsets, and alignment
          -- $basics$
+
+         -- ** The class of pointer types.
+         Pointer(..), unsafeWithPointer, unsafeWithPointerCast
+       , AlignedPtr, ptrAlignment, nextAlignedPtr
+       , allocaBuffer, allocaSecure
+
          -- ** Type safe length units.
-         LengthUnit(..)
+       , LengthUnit(..)
        , BYTES
          -- *** Some length functions.
        , atLeast, atLeastAligned, atMost
@@ -21,10 +27,6 @@ module Raaz.Core.Types.Pointer
        , movePtr, alignPtr, nextLocation
        , peekAligned, pokeAligned
 
-         -- ** The class of pointer types.
-       , Pointer(..), unsafeWithPointer, unsafeWithPointerCast
-       , AlignedPtr, ptrAlignment, nextAlignedPtr
-       , allocaBuffer, allocaSecure
          -- ** Some low level pointer actions
        , wipeMemory
        , memset
@@ -52,16 +54,20 @@ import Raaz.Core.Types.Pointer.Internal
 --
 -- The main concepts introduced here are the following
 --
--- [`Pointer`:] The generic pointer type that is used through the
--- library.
+-- [`Pointer`:] The class of pointer types. Instances of this class
+-- supports operations like casting, allocating etc.
 --
--- [`LengthUnit`:] This class captures types units of length.
+-- [`LengthUnit`:] Often in cryptographic setting pointer offsets,
+-- buffer sizes are measured in different units, for example in bytes
+-- or as number of blocks of a primitive. We use different types for
+-- these lengths thereby avoiding bugs due to confusion in units.
+-- This type class captures all such types. Most functions that
+-- expects lengths like for example allocation functions, copying
+-- functions etc work with any instance of this class thereby avoiding
+-- length conversion bugs.
 --
 -- [`Alignment`:] A dedicated type that is used to keep track of
--- alignment constraints.  offsets in We have the generic pointer type
--- `Pointer` and distinguish between different length units at the
--- type level. This helps in to avoid a lot of length conversion
--- errors.
+-- alignment constraints.
 
 -------------------------- Length Units --------- -------------------
 
