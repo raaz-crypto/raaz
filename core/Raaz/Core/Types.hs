@@ -24,10 +24,8 @@ import Raaz.Core.Types.Equality
 import Raaz.Core.Primitive            ( BlockCount                  )
 
 import Raaz.Core.Types.Endian
+import Raaz.Core.Types.Pointer
 
-
-import Raaz.Core.Types.Pointer hiding ( AlignedPtr, BYTES)
-import Raaz.Core.Types.Pointer        ( AlignedPtr, BYTES)
 import Raaz.Core.Types.Tuple   hiding ( map                     )
 import Raaz.Core.Types.Copying( Src, Dest, source, destination)
 
