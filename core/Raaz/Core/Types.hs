@@ -23,10 +23,8 @@ import Raaz.Core.Types.Equality
 
 import Raaz.Core.Primitive            ( BlockCount                  )
 
--- Developer note: We want to expose LE and BE without its
--- constructors. This is a ugly hack for it.
-import Raaz.Core.Types.Endian  hiding (LE, BE)
-import Raaz.Core.Types.Endian         (LE, BE)
+import Raaz.Core.Types.Endian
+
 
 import Raaz.Core.Types.Pointer hiding ( AlignedPtr, BYTES)
 import Raaz.Core.Types.Pointer        ( AlignedPtr, BYTES)

@@ -255,6 +255,7 @@ library core
                , Raaz.Core.Types.Tuple
                , Raaz.Core.Types.Equality
                , Raaz.Core.Types.Endian
+               , Raaz.Core.Types.Endian.Internal
                , Raaz.Core.Types.Copying
 
   c-sources: core/cbits/raaz/core/endian.c

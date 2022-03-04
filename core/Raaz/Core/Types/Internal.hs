@@ -25,14 +25,15 @@
 
 module Raaz.Core.Types.Internal
        ( module Raaz.Core.Primitive
-       , module Raaz.Core.Types.Endian
+       , module Raaz.Core.Types.Endian.Internal
        , module Raaz.Core.Types.Pointer
        , module Raaz.Core.Types.Copying
        , module Raaz.Core.Types.Tuple
        ) where
 
 import Raaz.Core.Primitive     ( BlockCount (..) )
-import Raaz.Core.Types.Endian  ( LE(..), BE(..)          )
+import Raaz.Core.Types.Endian.Internal ( LE(..), BE(..) )
+
 import Raaz.Core.Types.Pointer ( AlignedPtr (..)
                                , BYTES(..)
                                )
