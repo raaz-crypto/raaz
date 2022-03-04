@@ -7,7 +7,6 @@
 module Tests.Core.Instances () where
 
 import Tests.Core.Imports
-import Tests.Core.Utils
 
 import Raaz.Primitive.Poly1305.Internal as Poly1305
 import Raaz.Core.Types.Internal
