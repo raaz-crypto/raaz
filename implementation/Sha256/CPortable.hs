@@ -13,6 +13,8 @@ module Sha256.CPortable
 import Foreign.Ptr                ( castPtr      )
 
 import Raaz.Core
+import Raaz.Core.Types.Internal
+
 import Raaz.Primitive.HashMemory
 import Raaz.Primitive.Sha2.Internal (Sha256, Sha256Mem, process256Last)
 

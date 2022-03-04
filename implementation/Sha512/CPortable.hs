@@ -13,6 +13,8 @@ module Sha512.CPortable
 import Foreign.Ptr                ( castPtr      )
 
 import Raaz.Core
+import Raaz.Core.Types.Internal
+
 import Raaz.Primitive.HashMemory
 import Raaz.Primitive.Sha2.Internal (Sha512, Sha512Mem, process512Last)
 

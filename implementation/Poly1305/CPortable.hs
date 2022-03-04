@@ -12,6 +12,7 @@ module Poly1305.CPortable
        ) where
 
 import Raaz.Core
+import Raaz.Core.Types.Internal
 import Raaz.Core.Transfer.Unsafe
 import Raaz.Primitive.Poly1305.Internal
 import Poly1305.Memory
