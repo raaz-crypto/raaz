@@ -1,7 +1,9 @@
 name: Build
 on:
   push:
+    branches: [ 'master' , '0.3' ]
   pull_request:
+    branches: [ 'master' , '0.3' ]
   schedule:
     # Daily build.
     - cron: '42 8 * * *'
