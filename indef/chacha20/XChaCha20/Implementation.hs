@@ -9,16 +9,24 @@ import           Raaz.Primitive.ChaCha20.Internal
 
 import qualified Implementation as Base
 
+-- | Name of the implementation
 name :: String
 name = Base.name
 
+-- | Then name of the primitive.
 primName :: String
 primName = "xchacha20"
 
+-- | A description of what this implementation is about.
 description :: String
 description = Base.description ++ " This is the XChaCha variant."
 
+-- | The underlying cryptographic primitive is the XChaCha20 cipher.
 type Prim                    = XChaCha20
+
+-- | The internal memory used by XChaCha20 implementation. It consists
+-- of a copy of the key and the internals of the associated chaca20
+-- implementation.
 data Internals               = XChaCha20Mem
   { copyOfKey         :: MemoryCell (Key ChaCha20)
   , chacha20Internals :: Base.Internals

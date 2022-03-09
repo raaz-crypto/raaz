@@ -41,8 +41,9 @@ type BufferAlignment = 32
 #endif
 
 -- | The primitive for which the implementation is given
-
 type Prim = ChaCha20
+
+-- | The Internal memory associated with the ChaCha20 implementation.
 data Internals
 instance Memory Internals
 
