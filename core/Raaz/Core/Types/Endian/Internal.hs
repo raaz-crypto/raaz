@@ -1,6 +1,15 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE TypeFamilies               #-}
+
+-- |
+--
+-- Module      : Raaz.Core.Types.Endian.Internal
+-- Copyright   : (c) Piyush P Kurur, 2022
+-- License     : Apache-2.0 OR BSD-3-Clause
+-- Maintainer  : Piyush P Kurur <ppk@iitpkd.ac.in>
+-- Stability   : experimental
+
 module Raaz.Core.Types.Endian.Internal where
 
 import           Control.DeepSeq             ( NFData)

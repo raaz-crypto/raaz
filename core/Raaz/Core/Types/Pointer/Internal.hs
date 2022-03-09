@@ -3,6 +3,13 @@
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+-- |
+--
+-- Module      : Raaz.Core.Types.Pointer.Internal
+-- Copyright   : (c) Piyush P Kurur, 2022
+-- License     : Apache-2.0 OR BSD-3-Clause
+-- Maintainer  : Piyush P Kurur <ppk@iitpkd.ac.in>
+-- Stability   : experimental
 
 module Raaz.Core.Types.Pointer.Internal where
 
