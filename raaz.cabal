@@ -1,7 +1,7 @@
 cabal-version: 3.0
 
 name:    raaz
-version: 0.3.6
+version: 0.3.7
 stability: experimental
 
 synopsis: Fast and type safe cryptography.
@@ -192,10 +192,10 @@ common defaults
   default-language: Haskell2010
   ghc-options: -Wall
   default-extensions: NoImplicitPrelude
-  build-depends: base                    >= 4.11 &&  < 4.17
+  build-depends: base                    >= 4.11 &&  < 4.18
                , bytestring              >= 0.10 &&  < 0.12
                , deepseq                 >= 1.4  &&  < 1.5
-               , vector                  >= 0.12 &&  < 0.13
+               , vector                  >= 0.12 &&  < 0.14
 
   ------------------------ Compiler optimisation flags -------------------------------------
   if flag(native) { cc-options: -march=native  }
