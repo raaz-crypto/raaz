@@ -197,4 +197,5 @@ This release comes with very little changes.
 [0.3.4]: <http://github.com/raaz-crypto/raaz/releases/tag/v0.3.4>
 [0.3.5]: <http://github.com/raaz-crypto/raaz/releases/tag/v0.3.5>
 [0.3.6]: <http://github.com/raaz-crypto/raaz/releases/tag/v0.3.6>
+[0.3.7]: <http://github.com/raaz-crypto/raaz/releases/tag/v0.3.7>
 [raaz]:  <http://github.com/raaz-crypto/raaz/>
