@@ -57,8 +57,13 @@ xchacha20Setup :: Nounce XChaCha20 -> Internals -> IO ()
 xchacha20Setup (XNounce tup) mem = do
   verse_hchacha20_c_portable keyPtr h0 h1 h2 h3
   -- In the above step, the key gets replaced by the subkey obtained
-  -- from the hchacha20 hash. We also set the ivcell appropriately
+  -- from the hchacha20 hash.  Note that verse_hchacha expects a
+  -- Word32 for h0 .. , h3 and hence the match LE h0 ... LE h3 in the
+  -- where clause below.
   initialise iv $ ivCell mem
+  -- The associated chacha 20 iv is just the rest of the words from
+  -- the XChacha20 IV. When building the iv we need them as LE Word32
+  -- and hence we do a simple h4, h4 match below.
   where keyPtr = castPtr $ keyCellPtr mem
         [LE h0,LE h1,LE h2, LE h3, h4, h5] = V.toList $ unsafeToVector tup
         iv  = Nounce $ unsafeFromList [0, h4, h5] :: Nounce ChaCha20
