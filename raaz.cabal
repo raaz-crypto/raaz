@@ -242,6 +242,7 @@ library core
                  , Raaz.Primitive.Keyed.Internal
 
   other-modules: Raaz.Core.ByteSource
+               , Raaz.Core.KeyExchange
                , Raaz.Core.MonoidalAction
                , Raaz.Core.Parse
                , Raaz.Core.Parse.Unsafe
