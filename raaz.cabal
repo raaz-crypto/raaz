@@ -233,6 +233,7 @@ library core
                  , Raaz.Core.Transfer.Unsafe
                  , Raaz.Core.Types
                  , Raaz.Core.Types.Internal
+                 , Raaz.KeyExchange.X25519.Internal
                  , Raaz.Primitive.AEAD.Internal
                  , Raaz.Primitive.Blake2.Internal
                  , Raaz.Primitive.Sha2.Internal

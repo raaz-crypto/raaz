@@ -16,6 +16,7 @@ module Raaz.Core
 import Raaz.Core.ByteSource as X
 import Raaz.Core.Constants  as X
 import Raaz.Core.Encode     as X
+import Raaz.Core.KeyExchange as X
 import Raaz.Core.Memory     hiding ( Access )
 import Raaz.Core.Memory     ( Access )
 import Raaz.Core.Prelude    as X
