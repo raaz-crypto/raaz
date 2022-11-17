@@ -274,11 +274,13 @@ library libverse
   build-depends: core
   hs-source-dirs: libverse
   exposed-modules: Raaz.Verse.ChaCha20.C.Portable
+                 , Raaz.Verse.Curve25519.C.Portable
                  , Raaz.Verse.Sha512.C.Portable
                  , Raaz.Verse.Sha256.C.Portable
                  , Raaz.Verse.Blake2b.C.Portable
                  , Raaz.Verse.Poly1305.C.Portable
   c-sources: libverse/chacha20/c/portable.c
+           , libverse/curve25519/c/portable.c
            , libverse/sha256/c/portable.c
            , libverse/sha512/c/portable.c
            , libverse/blake2b/c/portable.c
