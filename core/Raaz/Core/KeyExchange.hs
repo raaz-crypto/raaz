@@ -2,6 +2,9 @@
 module Raaz.Core.KeyExchange
        ( -- * Key exchange.
          -- $terminology$
+         Private
+       , Exchange
+       , Secret
        ) where
 
 import Raaz.Core.Prelude
