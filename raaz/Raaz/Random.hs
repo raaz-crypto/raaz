@@ -60,11 +60,12 @@ import           PRGenerator ( entropySource, csprgName, csprgImpl, csprgDescrip
                              , fillRandomBytes
                              , reseed
                              )
+import           Raaz.KeyExchange.X25519.Internal
 import qualified Raaz.Primitive.ChaCha20.Internal as ChaCha20
 import qualified Raaz.Primitive.Poly1305.Internal as Poly1305
 import           Raaz.Primitive.Keyed.Internal ( Keyed )
 import           Raaz.Verse.Poly1305.C.Portable   ( verse_poly1305_c_portable_clamp)
-
+import           Raaz.Verse.Curve25519.C.Portable ( verse_curve25519_c_portable_clamp)
 -- $randomness$
 --
 -- This module provides cryptographically secure pseudo-random
@@ -292,6 +293,10 @@ instance RandomStorable (Nounce ChaCha20.XChaCha20) where
 instance RandomStorable Poly1305.R where
   fillRandomElements n ptr state = unsafeFillRandomElements n ptr state >> clamp
     where clamp = verse_poly1305_c_portable_clamp (castPtr ptr) (toEnum n)
+
+instance RandomStorable (Private X25519) where
+  fillRandomElements n ptr state = unsafeFillRandomElements n ptr state >> clamp
+    where clamp = verse_curve25519_c_portable_clamp (castPtr ptr) (toEnum n)
 
 instance RandomStorable w => RandomStorable (LE w) where
   fillRandomElements n = fillRandomElements n . lePtrToPtr
