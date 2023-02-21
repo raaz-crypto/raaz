@@ -330,20 +330,6 @@ data Access = Access
     -- ^ Its size
   }
 
--- | Transfer the bytes from the source memory to the destination
--- memory. The total bytes transferred is the minimum of the bytes
--- available at the source and the space available at the destination.
-memTransfer :: (ReadAccessible src, WriteAccessible dest)
-            => Dest dest
-            -> Src src
-            -> IO ()
-memTransfer dest src = do
-  let dmem = unDest dest
-      smem = unSrc src
-      in do beforeReadAdjustment smem
-            copyAccessList (writeAccess dmem) (readAccess smem)
-            afterWriteAdjustment dmem
-
 
 -- | Copy access list, Internal function.
 copyAccessList :: [Access] -> [Access] -> IO ()
@@ -388,6 +374,21 @@ class Memory mem => WriteAccessible mem where
   -- the sensitive data.
   --
   afterWriteAdjustment :: mem -> IO ()
+
+
+-- | Transfer the bytes from the source memory to the destination
+-- memory. The total bytes transferred is the minimum of the bytes
+-- available at the source and the space available at the destination.
+memTransfer :: (ReadAccessible src, WriteAccessible dest)
+            => Dest dest
+            -> Src src
+            -> IO ()
+memTransfer dest src = do
+  let dmem = unDest dest
+      smem = unSrc src
+      in do beforeReadAdjustment smem
+            copyAccessList (writeAccess dmem) (readAccess smem)
+            afterWriteAdjustment dmem
 
 --------------------- Some instances of Memory --------------------
 
