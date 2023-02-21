@@ -15,14 +15,16 @@ data X25519 = X25519
 
 type Word256 = Tuple 4 (LE Word64)
 
-newtype instance Private X25519 = Private Word256
-  deriving (Storable, EndianStore, Equality, Eq)
+instance KeyExchange X25519 where
 
-newtype instance Exchange X25519 = Exchange Word256
-  deriving (Storable, EndianStore, Equality, Eq)
+  newtype Private X25519 = Private Word256
+    deriving (Storable, EndianStore, Equality, Eq)
 
-newtype instance Secret X25519 = Secret Word256
-  deriving (Storable, EndianStore, Equality, Eq)
+  newtype Exchange X25519 = Exchange Word256
+    deriving (Storable, EndianStore, Equality, Eq)
+
+  newtype Secret X25519 = Secret Word256
+    deriving (Storable, EndianStore, Equality, Eq)
 
 
 instance Encodable (Private X25519)
