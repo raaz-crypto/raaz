@@ -62,7 +62,7 @@ bufferSize = flip blocksOf Proxy . fromIntegral . natVal . nProxy
 
 -- | Get the underlying pointer for the buffer.
 unsafeGetBufferPointer :: Buffer n -> BufferPtr
-unsafeGetBufferPointer = castPointer . nextAlignedPtr . unBuffer
+unsafeGetBufferPointer = unsafeAlign . castPointer . unBuffer
 
 
 instance KnownNat n => Memory (Buffer n) where
