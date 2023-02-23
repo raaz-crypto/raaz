@@ -17,7 +17,7 @@ module Raaz.Core.Types.Pointer
        , allocaBuffer, allocaSecure
 
          -- ** Type safe length units.
-       , LengthUnit(..)
+       , LengthUnit(..), Alignment
        , BYTES
          -- *** Some length functions.
        , atLeast, atLeastAligned, atMost
