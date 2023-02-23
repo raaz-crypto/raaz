@@ -25,6 +25,13 @@ import Implementation
 -- padding of the last chunk of message.
 newtype Buffer (n :: Nat) = Buffer { unBuffer :: Ptr Word8 }
 
+-- | Get the underlying pointer for the buffer.
+unsafeGetBufferPointer :: Buffer n -> BufferPtr
+unsafeGetBufferPointer = unsafeAlign . castPointer . unBuffer
+
+-- | Get the buffer alignment.
+bufferAlignment :: KnownNat n => Proxy (Buffer n) -> Alignment
+bufferAlignment = ptrAlignment . fmap unsafeGetBufferPointer
 
 -- | This takes a buffer pointer action and runs it with the underlying pointer associated with
 -- the buffer. The action is supposed to use
@@ -47,11 +54,6 @@ memsetBuffer :: KnownNat n => Word8 -> Buffer n -> IO ()
 memsetBuffer = withBufferPtr . flip memset
 
 
--- WARNING: Not to be exposed else can be confusing with
--- `bufferSize`. Internal function used by allocation.
-actualBufferSize :: KnownNat n => Proxy (Buffer n) -> BlockCount Prim
-actualBufferSize bproxy = bufferSize bproxy <> additionalBlocks
-
 {-# INLINE bufferSize #-}
 -- | The size of data (measured in blocks) that can be safely
 -- processed inside this buffer.
@@ -60,18 +62,30 @@ bufferSize = flip blocksOf Proxy . fromIntegral . natVal . nProxy
   where nProxy :: Proxy (Buffer n) -> Proxy n
         nProxy  _ = Proxy
 
--- | Get the underlying pointer for the buffer.
-unsafeGetBufferPointer :: Buffer n -> BufferPtr
-unsafeGetBufferPointer = unsafeAlign . castPointer . unBuffer
+-- WARNING: Internal function that should not be exposed. Not to be
+-- exposed else can be confusing with `bufferSize`. Even if we want to
+-- process n blocks, we need to account for the additional Blocks that
+-- is needed by the implementation. This is therefore the needed size
+-- in blocks.
+actualBufferSize :: KnownNat n => Proxy (Buffer n) -> BlockCount Prim
+actualBufferSize bproxy = bufferSize bproxy <> additionalBlocks
+
+
+-- WARNING: Internal function that should not be exposed from this
+-- module.  Not to be confused with `bufferSize` and
+-- `actualBufferSize`. In addition to the blocks we might need to
+-- account for the alignment requirement of the implementation when
+-- allocating.
+allocBufferSize :: KnownNat n => Proxy (Buffer n) -> BYTES Int
+allocBufferSize prxy = atLeastAligned (actualBufferSize prxy) $ bufferAlignment prxy
 
 
 instance KnownNat n => Memory (Buffer n) where
   memoryAlloc = allocThisBuffer
     where allocThisBuffer = Buffer <$> pointerAlloc sz
+          sz              = allocBufferSize $ bufferProxy allocThisBuffer
           bufferProxy     :: Alloc (Buffer n) -> Proxy (Buffer n)
           bufferProxy _   = Proxy
-          algn            = ptrAlignment (Proxy :: Proxy BufferPtr)
-          sz              = atLeastAligned (actualBufferSize $ bufferProxy allocThisBuffer) algn
 
   unsafeToPointer = unBuffer
 
