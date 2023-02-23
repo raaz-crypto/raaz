@@ -13,7 +13,7 @@ module Raaz.Core.Types.Pointer
 
          -- ** The class of pointer types.
          Pointer(..), unsafeWithPointer, unsafeWithPointerCast
-       , AlignedPtr, ptrAlignment, nextAlignedPtr, unsafeAlign
+       , AlignedPtr, ptrAlignment, unsafeAlign
        , allocaBuffer, allocaSecure
 
          -- ** Type safe length units.
@@ -359,17 +359,6 @@ instance KnownNat n => Pointer (AlignedPtr n) where
     where algn  = fromEnum $ natVal $ getProxy action
           getProxy :: (AlignedPtr n a -> IO b) -> Proxy n
           getProxy _ = Proxy
-
--- | Given a raw pointer (i.e. element of type `Ptr`), returns the
--- next pointer aligned to @n@-bytes boundary.
-nextAlignedPtr :: (Storable a, KnownNat n) => Ptr a -> AlignedPtr n a
-nextAlignedPtr = alignIt
-  where alignIt ptr = AlignedPtr
-                      $ alignPtr ptr
-                      $ ptrAlignment
-                      $ getProxy alignIt
-        getProxy :: (Ptr a -> AlignedPtr n a) -> Proxy (AlignedPtr n a)
-        getProxy _  = Proxy
 
 -- | Unsafely gives the aligned version of the given pointer.
 unsafeAlign :: KnownNat n => Ptr a -> AlignedPtr n a
