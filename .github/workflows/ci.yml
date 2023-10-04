@@ -31,7 +31,7 @@ jobs:
           cabal --version
 
       - name: Get the Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Submodules
         run: git submodule update --init libverse
