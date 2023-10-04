@@ -34,7 +34,7 @@ jobs:
         uses: haskell-actions/setup@v2
         with:
           ghc-version: ${{ matrix.ghc }}
-
+          cabal-version: 'latest'
       - name: Information
         run: |
           ghc --version
