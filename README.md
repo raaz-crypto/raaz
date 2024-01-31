@@ -19,7 +19,7 @@ unique to raaz are the following
    cryptographic primitives. An advanced user who has an in-depth
    knowledge of the platform should be able to plugin the desired
    implementation.
-4. Strong emphasis on API design with through documentation.
+4. Strong emphasis on API design with thorough documentation.
 
 Building
 --------
