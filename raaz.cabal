@@ -626,10 +626,6 @@ executable raaz
   build-depends: optparse-applicative >= 0.13.0.0 && < 0.19
                , core
                , raaz
-  if impl(ghc < 8)
-    -- 'transformers' needed for "Control.Monad.IO.Class" only
-    -- starting with base-4.9 we don't need 'transformers' anymore
-    build-depends: transformers
 
 ---------------------------------- Test suit -----------------------------------------------------
 common test-defaults
