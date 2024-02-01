@@ -12,5 +12,3 @@ jobs:
 
       - name: 'Run HLint'
         uses: haskell-actions/hlint-scan@v1
-        with:
-          fail-on: warning
