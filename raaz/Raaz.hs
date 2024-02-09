@@ -44,15 +44,19 @@ import Raaz.Random
 -- $intro$
 --
 -- Raaz is a cryptographic library that provides an easy to use, type
--- safe interface for cryptographic applications. Applications can get
--- their cryptography wrong and this can have disastrous consequences.
--- This can be due to the wrong choices of the underlying
--- cryptographic primitives, or due to ignoring certain implementation
--- details (reusing the key, nounce pair). To prevent this kind of
--- issues, raaz, like other modern libraries, give a very high level
--- interface with the library taking the responsibility of selecting
--- sane primitives and their correct usages. The recommended usage is
--- to import the top level module and get going.
+-- safe interface for cryptographic applications. It is very easy to
+-- get the underlying cryptography of a software wrong and this can
+-- have disastrous consequences for critical systems. Wrong choice for
+-- the underlying cryptographic primitives, or ignoring certain
+-- implementation details (reusing the key, nounce pair) relevant for
+-- the safety of a given primitive can all lead to security
+-- compromises. Any modern cryptographic library should present to the
+-- user a high level interface where emphasis is given on
+-- cryptographic operation (message digest, message locking etc)
+-- rather than what primitives are involved or how it is used. The
+-- library should take the responsibility of selecting sane primitives
+-- and their correct usages. Raaz follows this approach and the
+-- recommended usage is to import the top level module and get going.
 --
 -- > module Main where
 -- >
@@ -70,13 +74,13 @@ import Raaz.Random
 -- situation in many libraries where both these are just 512-bit
 -- quantities.
 --
--- [Timing safe equality:] All cryptographically sensitive data have
--- timing safe equality operation `==`. The default comparison is
--- therefore safe and we encourage its use. The situation in many
--- other libraries on the other hand is that there are specific
--- functions that the user has to use to get timing safe
--- comparisons. Needless to say, this fact is often overlooked leading
--- to disastrous bugs.
+-- [Timing safe equality:] In addition the point above, cryptographic
+-- types (stuff like message digest, signature etc) come with an `Eq`
+-- instance where the underlying equality comparison `==` is timing
+-- safe. The situation in many other libraries on the other hand is
+-- that there are specific functions that the user has to use to get
+-- timing safe comparisons. Needless to say, this fact is often
+-- overlooked leading to disastrous bugs.
 --
 -- [Locked memory:] An interface to locked memory elements is provided
 -- through the combinators `withMemory` and `withSecureMemory`. These
