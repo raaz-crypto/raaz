@@ -1,5 +1,9 @@
 # Change log for [raaz].
 
+## [0.3.10] - Feb 1, 2024
+
+Release that supports ghc-9.10 (base 4.20)
+
 ## [0.3.9] - Feb 1, 2024
 
 Release that supports ghc-9.8 (base 4.19)
@@ -208,4 +212,5 @@ This release comes with very little changes.
 [0.3.7]: <http://github.com/raaz-crypto/raaz/releases/tag/v0.3.7>
 [0.3.8]: <http://github.com/raaz-crypto/raaz/releases/tag/v0.3.8>
 [0.3.9]: <http://github.com/raaz-crypto/raaz/releases/tag/v0.3.9>
+[0.3.10]: <http://github.com/raaz-crypto/raaz/releases/tag/v0.3.10>
 [raaz]:  <http://github.com/raaz-crypto/raaz/>
