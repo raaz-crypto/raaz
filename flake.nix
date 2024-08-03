@@ -15,6 +15,7 @@
         {
           devShell = pkgs.mkShell {
             buildInputs = [ pkgs.editorconfig-checker
+                            pkgs.zlib
                             hpkgs.ghc
                           ];
           };
