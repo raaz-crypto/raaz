@@ -711,6 +711,7 @@ test-suite tests
   if !os(windows)
     cpp-options: -DHAVE_DEV_NULL
 
+  autogen-modules: Paths_raaz
   other-modules: Raaz.Core.ByteSourceSpec
                , Raaz.Core.EncodeSpec
                , Raaz.Core.MemorySpec
