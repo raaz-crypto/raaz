@@ -128,13 +128,14 @@ build-type:    Simple
 
 data-files: tests/standard-test-vectors/blake2/tests.json
 
-extra-source-files: CHANGELOG.md
-                  , README.md
+extra-doc-files: CHANGELOG.md
+               , README.md
+extra-source-files:
                   --
                   -- C Header files are not included in cabal sdist
                   -- even if specified in include.
                   --
-                  , core/cbits/raaz/core/endian.h
+                    core/cbits/raaz/core/endian.h
 
                   , libverse/verse.h
 
