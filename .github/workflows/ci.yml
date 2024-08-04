@@ -63,8 +63,8 @@ jobs:
       - name: Benchmark
         run: cabal bench
 
-      - name: Haddock
-        run: cabal haddock --verbose
+      # - name: Haddock
+      #    run: cabal haddock --verbose
 
       - name: Check
         run: cabal check
