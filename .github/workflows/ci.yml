@@ -38,7 +38,7 @@ jobs:
         uses: haskell-actions/setup@v2
         with:
           ghc-version: ${{ matrix.ghc }}
-          cabal-version: 'latest'
+          cabal-version: '3.10'
       - name: Information
         run: |
           ghc --version
@@ -63,8 +63,8 @@ jobs:
       - name: Benchmark
         run: cabal bench
 
-      # - name: Haddock
-      #    run: cabal haddock --verbose
+      - name: Haddock
+        run: cabal haddock --verbose
 
       - name: Check
         run: cabal check
