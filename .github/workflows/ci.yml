@@ -64,7 +64,7 @@ jobs:
         run: cabal bench
 
       - name: Haddock
-        run: cabal haddock
+        run: cabal haddock --verbose
 
       - name: Check
         run: cabal check
