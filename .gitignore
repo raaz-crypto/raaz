@@ -2,6 +2,7 @@
 *.hi
 dist
 dist-newstyle
+dist-docs
 tags
 TAGS
 .cabal-sandbox
