@@ -59,8 +59,8 @@ jobs:
       - name: Test
         run: cabal test
 
-      - name: Benchmark
-        run: cabal bench
+      # - name: Benchmark
+      #  run: cabal bench
 
       - name: Haddock
         run: cabal haddock
