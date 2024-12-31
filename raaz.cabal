@@ -1,7 +1,7 @@
 cabal-version: 3.0
 
 name:    raaz
-version: 0.3.10
+version: 0.3.11
 stability: experimental
 
 synopsis: Fast and type safe cryptography.
