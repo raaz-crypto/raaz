@@ -1,6 +1,6 @@
 # Change log for [raaz].
 
-## [0.3.11] - Dec 21, 2024
+## [0.3.11] - Feb 18, 2025
 
 Release that supports ghc-9.12 (base 4.21)
 
