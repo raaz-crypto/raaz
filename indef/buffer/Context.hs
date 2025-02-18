@@ -89,7 +89,7 @@ setBytes nbytes = initialise nbytes . cxtAvailableBytes
 
 -- | Set the context to the empty state.
 unsafeSetCxtEmpty :: Cxt n -> IO ()
-unsafeSetCxtEmpty Cxt{..} = initialise (0 :: BYTES Int) cxtAvailableBytes
+unsafeSetCxtEmpty = initialise (0 :: BYTES Int) . cxtAvailableBytes
 
 -- | Set the context to the full state.
 unsafeSetCxtFull :: KnownNat n => Cxt n -> IO ()
@@ -223,6 +223,7 @@ unsafeWriteTo req dbuf cxt = do
 --
 --
 
+-- | This action fills from the given byte source to the context.
 unsafeFillFrom :: (KnownNat n, ByteSource src)
                => src
                -> Cxt n
@@ -265,7 +266,7 @@ unsafeUpdate action src cxt =
   where doNothing      = const $ return ()
         process remSrc = unsafeConsumeBlocks action cxt >> unsafeContinue action remSrc cxt
 
-
+-- | Finalise the context with the last chunk of data.
 unsafeFinalise :: KnownNat n
                => (BufferPtr -> BYTES Int -> Internals -> IO ())
                -> Cxt n
