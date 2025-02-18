@@ -53,7 +53,7 @@ data Cxt n = Cxt { cxtInternals       :: Internals
 
 instance KnownNat n => Memory (Cxt n) where
   memoryAlloc     = Cxt <$> memoryAlloc <*> memoryAlloc <*> memoryAlloc
-  unsafeToPointer = unsafeToPointer . cxtBuf
+  unsafeToPointer = unsafeToPointer . cxtInternals
 
 {-- WILL NOT IMPLEMENT:
 
@@ -91,7 +91,7 @@ setBytes nbytes = initialise nbytes . cxtAvailableBytes
 
 -- | Set the context to the empty state.
 unsafeSetCxtEmpty :: Cxt n -> IO ()
-unsafeSetCxtEmpty Cxt{..} = initialise (0 :: BYTES Int) cxtAvailableBytes
+unsafeSetCxtEmpty = initialise (0 :: BYTES Int) . cxtAvailableBytes
 
 -- | Set the context to the full state.
 unsafeSetCxtFull :: KnownNat n => Cxt n -> IO ()
@@ -225,6 +225,7 @@ unsafeWriteTo req dbuf cxt = do
 --
 --
 
+-- | This action fills from the given byte source to the context.
 unsafeFillFrom :: (KnownNat n, ByteSource src)
                => src
                -> Cxt n

@@ -7,6 +7,10 @@
   - [ ] Key Exchange     (via X25519)
   - [ ] Signature scheme (via ED25519)
 
+## [0.3.11] - Feb 18, 2025
+
+Release that supports ghc-9.12 (base 4.21)
+
 ## [0.3.10] - Jun 14, 2024
 
 Release that supports ghc-9.10 (base 4.20)
@@ -220,4 +224,5 @@ This release comes with very little changes.
 [0.3.8]: <http://github.com/raaz-crypto/raaz/releases/tag/v0.3.8>
 [0.3.9]: <http://github.com/raaz-crypto/raaz/releases/tag/v0.3.9>
 [0.3.10]: <http://github.com/raaz-crypto/raaz/releases/tag/v0.3.10>
+[0.3.11]: <http://github.com/raaz-crypto/raaz/releases/tag/v0.3.11>
 [raaz]:  <http://github.com/raaz-crypto/raaz/>

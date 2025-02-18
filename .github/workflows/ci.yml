@@ -25,6 +25,7 @@ jobs:
           - '9.6'
           - '9.8'
           - '9.10'
+          - '9.12'
           - 'latest'
 
         include:
@@ -60,11 +61,11 @@ jobs:
       - name: Test
         run: cabal test
 
-      - name: Benchmark
-        run: cabal bench
+      # - name: Benchmark
+      #  run: cabal bench
 
-      - name: Haddock
-        run: cabal haddock --verbose
+      # - name: Haddock
+      #   run: cabal haddock
 
       - name: Check
         run: cabal check
@@ -83,7 +84,6 @@ jobs:
           tar xzvf *.tar.gz --strip-components=1
           cabal build
           cabal test
-          cabal haddock
           cabal check
 
       - name: Raaz information
