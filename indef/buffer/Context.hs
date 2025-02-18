@@ -53,7 +53,7 @@ data Cxt n = Cxt { cxtInternals       :: Internals
 
 instance KnownNat n => Memory (Cxt n) where
   memoryAlloc     = Cxt <$> memoryAlloc <*> memoryAlloc <*> memoryAlloc
-  unsafeToPointer = unsafeToPointer . cxtBuf
+  unsafeToPointer = unsafeToPointer . cxtInternals
 
 {--
 
